@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import {
   Play,
@@ -11,12 +11,14 @@ import {
   VolumeX,
   X,
   Maximize2,
+  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
 import { formatDuration } from "@/lib/utils";
 import { mockAlbums } from "@/lib/mock-data";
+import { Waveform } from "./Waveform";
 
 export function MiniPlayer() {
   const {
@@ -40,21 +42,29 @@ export function MiniPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Trouver l'album de la piste courante
   const currentAlbum = currentTrack
     ? mockAlbums.find((a) => a.id === currentTrack.albumId)
     : null;
 
+  // Progress percentage for static waveform fallback
+  const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
+
   // Initialiser WaveSurfer quand la piste change
   useEffect(() => {
     if (!waveformRef.current || !currentTrack) return;
 
     setIsReady(false);
+    setHasError(false);
+    setIsLoading(true);
 
     // Détruire l'instance précédente
     if (wavesurferRef.current) {
       wavesurferRef.current.destroy();
+      wavesurferRef.current = null;
     }
 
     // Créer une nouvelle instance WaveSurfer
@@ -74,17 +84,26 @@ export function MiniPlayer() {
 
     wavesurferRef.current = wavesurfer;
 
-    // Charger l'audio
-    wavesurfer.load(currentTrack.audioUrl);
-
     // Event handlers
     wavesurfer.on("ready", () => {
       setDuration(wavesurfer.getDuration());
       wavesurfer.setVolume(isMuted ? 0 : volume);
       setIsReady(true);
+      setIsLoading(false);
+      setHasError(false);
       if (isPlaying) {
-        wavesurfer.play();
+        wavesurfer.play().catch(() => {
+          // Ignore play errors (user interaction required)
+        });
       }
+    });
+
+    wavesurfer.on("error", (error) => {
+      console.warn("WaveSurfer error:", error);
+      setHasError(true);
+      setIsLoading(false);
+      // Set a default duration from mock data
+      setDuration(currentTrack.duration);
     });
 
     wavesurfer.on("audioprocess", () => {
@@ -99,8 +118,21 @@ export function MiniPlayer() {
       next();
     });
 
+    // Charger l'audio avec gestion d'erreur
+    try {
+      wavesurfer.load(currentTrack.audioUrl);
+    } catch (error) {
+      console.warn("Failed to load audio:", error);
+      setHasError(true);
+      setIsLoading(false);
+      setDuration(currentTrack.duration);
+    }
+
     return () => {
-      wavesurfer.destroy();
+      if (wavesurferRef.current) {
+        wavesurferRef.current.destroy();
+        wavesurferRef.current = null;
+      }
     };
   }, [currentTrack?.id]);
 
@@ -109,7 +141,9 @@ export function MiniPlayer() {
     if (!wavesurferRef.current || !isReady) return;
 
     if (isPlaying) {
-      wavesurferRef.current.play();
+      wavesurferRef.current.play().catch(() => {
+        // Ignore play errors
+      });
     } else {
       wavesurferRef.current.pause();
     }
@@ -143,6 +177,15 @@ export function MiniPlayer() {
     setIsMuted(!isMuted);
   };
 
+  // Handle seek on static waveform
+  const handleStaticSeek = useCallback((percent: number) => {
+    const newProgress = (percent / 100) * duration;
+    setProgress(newProgress);
+    if (wavesurferRef.current && isReady) {
+      wavesurferRef.current.seekTo(percent / 100);
+    }
+  }, [duration, isReady, setProgress]);
+
   if (!currentTrack) return null;
 
   return (
@@ -162,10 +205,23 @@ export function MiniPlayer() {
             exit={{ height: 0, opacity: 0 }}
             className="px-4 pt-4"
           >
-            <div
-              ref={waveformRef}
-              className="w-full cursor-pointer rounded-lg overflow-hidden"
-            />
+            {hasError ? (
+              // Fallback to static waveform
+              <Waveform
+                data={currentTrack.waveform}
+                progress={progressPercent}
+                height={80}
+                waveColor="rgba(255, 255, 255, 0.3)"
+                progressColor="#1B9B4B"
+                interactive
+                onSeek={handleStaticSeek}
+              />
+            ) : (
+              <div
+                ref={isExpanded ? waveformRef : undefined}
+                className="w-full cursor-pointer rounded-lg overflow-hidden"
+              />
+            )}
           </motion.div>
         )}
 
@@ -194,10 +250,31 @@ export function MiniPlayer() {
           {/* Mini Waveform (when not expanded) */}
           {!isExpanded && (
             <div className="flex-1 hidden sm:block">
-              <div
-                ref={waveformRef}
-                className="w-full cursor-pointer"
-              />
+              {hasError || isLoading ? (
+                // Fallback to static waveform
+                <Waveform
+                  data={currentTrack.waveform}
+                  progress={progressPercent}
+                  height={40}
+                  waveColor="rgba(255, 255, 255, 0.3)"
+                  progressColor="#1B9B4B"
+                  interactive
+                  onSeek={handleStaticSeek}
+                />
+              ) : (
+                <div
+                  ref={!isExpanded ? waveformRef : undefined}
+                  className="w-full cursor-pointer"
+                />
+              )}
+            </div>
+          )}
+
+          {/* Error indicator */}
+          {hasError && (
+            <div className="hidden sm:flex items-center gap-1 text-yellow-400 text-xs flex-shrink-0">
+              <AlertCircle size={14} />
+              <span>Audio non disponible</span>
             </div>
           )}
 

@@ -107,7 +107,8 @@ const generateTracks = (albumId: string, count: number): Track[] => {
       title: trackTitles[i % trackTitles.length] + (i >= trackTitles.length ? ` ${Math.floor(i / trackTitles.length) + 1}` : ""),
       duration: Math.floor(Math.random() * 180) + 60, // 1-4 minutes
       bpm: Math.floor(Math.random() * 80) + 80, // 80-160 BPM
-      audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+      // Use a CORS-friendly audio sample
+    audioUrl: `https://actions.google.com/sounds/v1/alarms/beep_short.ogg`,
       albumId,
       genres: [GENRES[Math.floor(Math.random() * GENRES.length)]],
       moods: [MOODS[Math.floor(Math.random() * MOODS.length)]],
