@@ -1,26 +1,197 @@
 @import "tailwindcss";
 
+/* ========================================
+   PARIGO DESIGN SYSTEM - Neo Soft Brutalist
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary - Vert Parigo */
+  --color-primary: #1B9B4B;
+  --color-primary-dark: #147A3A;
+  --color-primary-light: #E8F5EC;
+
+  /* Neutrals */
+  --color-black: #1A1A1A;
+  --color-white: #FFFFFF;
+  --color-cream: #F5F2EE;
+  --color-gray-100: #E5E5E5;
+  --color-gray-400: #9CA3AF;
+  --color-gray-600: #4B5563;
+
+  /* Accent Colors */
+  --color-accent-blue: #3B82F6;
+  --color-accent-yellow: #FBBF24;
+  --color-accent-red: #EF4444;
+  --color-accent-purple: #8B5CF6;
+
+  /* Neo Brutalist Shadows */
+  --shadow-sm: 3px 3px 0px var(--color-black);
+  --shadow-md: 5px 5px 0px var(--color-black);
+  --shadow-lg: 8px 8px 0px var(--color-black);
+  --shadow-green: 5px 5px 0px var(--color-primary);
+  --shadow-pressed: 2px 2px 0px var(--color-black);
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
+
+  /* Borders */
+  --border-width: 2px;
+  --border-thick: 3px;
+
+  /* Fonts */
+  --font-heading: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Background */
+  --background: var(--color-cream);
+  --foreground: var(--color-black);
 }
 
 @theme inline {
+  /* Colors */
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
+  --color-black: var(--color-black);
+  --color-white: var(--color-white);
+  --color-cream: var(--color-cream);
+  --color-gray-100: var(--color-gray-100);
+  --color-gray-400: var(--color-gray-400);
+  --color-gray-600: var(--color-gray-600);
+  --color-accent-blue: var(--color-accent-blue);
+  --color-accent-yellow: var(--color-accent-yellow);
+  --color-accent-red: var(--color-accent-red);
+  --color-accent-purple: var(--color-accent-purple);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Fonts */
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  /* Shadows */
+  --shadow-brutal-sm: var(--shadow-sm);
+  --shadow-brutal-md: var(--shadow-md);
+  --shadow-brutal-lg: var(--shadow-lg);
+  --shadow-brutal-green: var(--shadow-green);
+  --shadow-brutal-pressed: var(--shadow-pressed);
+
+  /* Border Radius */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Base Styles */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+/* Neo Brutalist Button Base */
+.btn-brutal {
+  border: var(--border-width) solid var(--color-black);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  transition: all 0.15s ease;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-brutal:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-brutal:active {
+  transform: translate(2px, 2px);
+  box-shadow: var(--shadow-pressed);
+}
+
+/* Neo Brutalist Card Base */
+.card-brutal {
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-black);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+}
+
+.card-brutal:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Neo Brutalist Input Base */
+.input-brutal {
+  background: var(--color-white);
+  border: var(--border-width) solid var(--color-black);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s ease;
+}
+
+.input-brutal:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-green);
+}
+
+/* Neo Brutalist Tag/Badge */
+.tag-brutal {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border: var(--border-width) solid var(--color-black);
+  border-radius: var(--radius-full);
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.15s ease;
+}
+
+.tag-brutal:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px var(--color-black);
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-gray-400);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-600);
+}
+
+/* Selection */
+::selection {
+  background: var(--color-primary-light);
+  color: var(--color-black);
 }
