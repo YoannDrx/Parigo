@@ -10,11 +10,12 @@ import {
   Volume2,
   VolumeX,
   X,
+  Maximize2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Howl } from "howler";
+import WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
-import { formatDuration, cn } from "@/lib/utils";
+import { formatDuration } from "@/lib/utils";
 import { mockAlbums } from "@/lib/mock-data";
 
 export function MiniPlayer() {
@@ -34,93 +35,101 @@ export function MiniPlayer() {
     clearQueue,
   } = usePlayerStore();
 
-  const howlRef = useRef<Howl | null>(null);
+  const waveformRef = useRef<HTMLDivElement>(null);
+  const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [isMuted, setIsMuted] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isReady, setIsReady] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   // Trouver l'album de la piste courante
   const currentAlbum = currentTrack
     ? mockAlbums.find((a) => a.id === currentTrack.albumId)
     : null;
 
-  // Initialiser Howl quand la piste change
+  // Initialiser WaveSurfer quand la piste change
   useEffect(() => {
-    if (!currentTrack) return;
+    if (!waveformRef.current || !currentTrack) return;
 
-    // Arrêter le son précédent
-    if (howlRef.current) {
-      howlRef.current.unload();
+    setIsReady(false);
+
+    // Détruire l'instance précédente
+    if (wavesurferRef.current) {
+      wavesurferRef.current.destroy();
     }
 
-    // Créer une nouvelle instance Howl
-    howlRef.current = new Howl({
-      src: [currentTrack.audioUrl],
-      html5: true,
-      volume: volume,
-      onload: () => {
-        if (howlRef.current) {
-          setDuration(howlRef.current.duration());
-        }
-      },
-      onend: () => {
-        next();
-      },
+    // Créer une nouvelle instance WaveSurfer
+    const wavesurfer = WaveSurfer.create({
+      container: waveformRef.current,
+      waveColor: "rgba(255, 255, 255, 0.3)",
+      progressColor: "#1B9B4B",
+      cursorColor: "#1B9B4B",
+      cursorWidth: 2,
+      barWidth: 2,
+      barGap: 1,
+      barRadius: 2,
+      height: isExpanded ? 80 : 40,
+      normalize: true,
+      interact: true,
     });
 
-    // Démarrer la lecture si isPlaying est true
-    if (isPlaying) {
-      howlRef.current.play();
-    }
+    wavesurferRef.current = wavesurfer;
+
+    // Charger l'audio
+    wavesurfer.load(currentTrack.audioUrl);
+
+    // Event handlers
+    wavesurfer.on("ready", () => {
+      setDuration(wavesurfer.getDuration());
+      wavesurfer.setVolume(isMuted ? 0 : volume);
+      setIsReady(true);
+      if (isPlaying) {
+        wavesurfer.play();
+      }
+    });
+
+    wavesurfer.on("audioprocess", () => {
+      setProgress(wavesurfer.getCurrentTime());
+    });
+
+    wavesurfer.on("seeking", () => {
+      setProgress(wavesurfer.getCurrentTime());
+    });
+
+    wavesurfer.on("finish", () => {
+      next();
+    });
 
     return () => {
-      if (howlRef.current) {
-        howlRef.current.unload();
-      }
+      wavesurfer.destroy();
     };
   }, [currentTrack?.id]);
 
   // Gérer play/pause
   useEffect(() => {
-    if (!howlRef.current) return;
+    if (!wavesurferRef.current || !isReady) return;
 
     if (isPlaying) {
-      howlRef.current.play();
+      wavesurferRef.current.play();
     } else {
-      howlRef.current.pause();
+      wavesurferRef.current.pause();
     }
-  }, [isPlaying]);
+  }, [isPlaying, isReady]);
 
   // Gérer le volume
   useEffect(() => {
-    if (howlRef.current) {
-      howlRef.current.volume(isMuted ? 0 : volume);
+    if (wavesurferRef.current) {
+      wavesurferRef.current.setVolume(isMuted ? 0 : volume);
     }
   }, [volume, isMuted]);
 
-  // Update progress
+  // Redimensionner le waveform quand on expand
   useEffect(() => {
-    if (!howlRef.current || !isPlaying) return;
-
-    const interval = setInterval(() => {
-      if (howlRef.current && !isDragging) {
-        setProgress(howlRef.current.seek() as number);
-      }
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [isPlaying, isDragging]);
-
-  const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newProgress = parseFloat(e.target.value);
-    setProgress(newProgress);
-  };
-
-  const handleProgressCommit = () => {
-    if (howlRef.current) {
-      howlRef.current.seek(progress);
+    if (wavesurferRef.current && isReady) {
+      wavesurferRef.current.setOptions({
+        height: isExpanded ? 80 : 40,
+      });
     }
-    setIsDragging(false);
-  };
+  }, [isExpanded, isReady]);
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
@@ -142,31 +151,27 @@ export function MiniPlayer() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
+        layout
         className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-black)] text-white border-t-2 border-[var(--color-primary)]"
       >
-        {/* Progress bar */}
-        <div className="relative h-1 bg-white/20">
-          <input
-            type="range"
-            min={0}
-            max={duration || 100}
-            value={progress}
-            onChange={handleProgressChange}
-            onMouseDown={() => setIsDragging(true)}
-            onMouseUp={handleProgressCommit}
-            onTouchStart={() => setIsDragging(true)}
-            onTouchEnd={handleProgressCommit}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-          />
-          <div
-            className="h-full bg-[var(--color-primary)] transition-all"
-            style={{ width: `${duration ? (progress / duration) * 100 : 0}%` }}
-          />
-        </div>
+        {/* Expanded Waveform */}
+        {isExpanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="px-4 pt-4"
+          >
+            <div
+              ref={waveformRef}
+              className="w-full cursor-pointer rounded-lg overflow-hidden"
+            />
+          </motion.div>
+        )}
 
-        <div className="h-[72px] px-4 flex items-center gap-4">
+        <div className={`${isExpanded ? "h-20" : "h-[72px]"} px-4 flex items-center gap-4`}>
           {/* Track info */}
-          <div className="flex items-center gap-3 min-w-0 flex-1">
+          <div className="flex items-center gap-3 min-w-0 w-48 flex-shrink-0">
             {currentAlbum && (
               <div className="w-12 h-12 relative rounded-[var(--radius-sm)] overflow-hidden border-2 border-white/20 flex-shrink-0">
                 <Image
@@ -186,8 +191,18 @@ export function MiniPlayer() {
             </div>
           </div>
 
+          {/* Mini Waveform (when not expanded) */}
+          {!isExpanded && (
+            <div className="flex-1 hidden sm:block">
+              <div
+                ref={waveformRef}
+                className="w-full cursor-pointer"
+              />
+            </div>
+          )}
+
           {/* Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={previous}
               className="p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -213,14 +228,14 @@ export function MiniPlayer() {
           </div>
 
           {/* Time */}
-          <div className="hidden sm:flex items-center gap-2 text-sm font-mono text-white/60">
+          <div className="hidden md:flex items-center gap-2 text-sm font-mono text-white/60 flex-shrink-0 w-24">
             <span>{formatDuration(progress)}</span>
             <span>/</span>
             <span>{formatDuration(duration)}</span>
           </div>
 
           {/* Volume */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
             <button
               onClick={toggleMute}
               className="p-2 rounded-full hover:bg-white/10 transition-colors"
@@ -242,13 +257,23 @@ export function MiniPlayer() {
             />
           </div>
 
-          {/* Close */}
-          <button
-            onClick={clearQueue}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
-          >
-            <X size={18} />
-          </button>
+          {/* Expand / Close */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 rounded-full hover:bg-white/10 transition-colors hidden sm:block"
+              title={isExpanded ? "Réduire" : "Agrandir"}
+            >
+              <Maximize2 size={18} className={isExpanded ? "rotate-180" : ""} />
+            </button>
+            <button
+              onClick={clearQueue}
+              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+              title="Fermer"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
       </motion.div>
     </AnimatePresence>

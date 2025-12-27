@@ -5,6 +5,7 @@ import { Play, Pause, Heart, MoreHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Track, Album } from "@/types";
 import { Tag } from "@/components/ui";
+import { Waveform } from "./Waveform";
 import { formatDuration, formatBPM, cn } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
 
@@ -13,6 +14,7 @@ interface TrackRowProps {
   album?: Album;
   index: number;
   showAlbumCover?: boolean;
+  showWaveform?: boolean;
 }
 
 export function TrackRow({
@@ -20,10 +22,14 @@ export function TrackRow({
   album,
   index,
   showAlbumCover = true,
+  showWaveform = true,
 }: TrackRowProps) {
-  const { currentTrack, isPlaying, play, pause, resume, setQueue } = usePlayerStore();
+  const { currentTrack, isPlaying, progress, duration, play, pause, resume, setQueue } = usePlayerStore();
   const isCurrentTrack = currentTrack?.id === track.id;
   const isPlayingThis = isCurrentTrack && isPlaying;
+
+  // Calculate progress percentage for waveform
+  const progressPercent = isCurrentTrack && duration > 0 ? (progress / duration) * 100 : 0;
 
   const handlePlay = () => {
     if (isCurrentTrack) {
@@ -54,7 +60,7 @@ export function TrackRow({
       transition={{ delay: index * 0.05 }}
     >
       {/* Index / Play button */}
-      <div className="w-8 flex items-center justify-center">
+      <div className="w-8 flex items-center justify-center flex-shrink-0">
         <button
           onClick={handlePlay}
           className={cn(
@@ -93,27 +99,43 @@ export function TrackRow({
         </div>
       )}
 
-      {/* Track info */}
-      <div className="flex-1 min-w-0">
-        <p
-          className={cn(
-            "font-medium truncate",
-            isCurrentTrack
-              ? "text-[var(--color-primary-dark)]"
-              : "text-[var(--color-black)]"
-          )}
-        >
-          {track.title}
-        </p>
-        {album && (
-          <p className="text-sm text-[var(--color-gray-400)] truncate">
-            {album.title}
+      {/* Track info + Waveform */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="flex items-center gap-2">
+          <p
+            className={cn(
+              "font-medium truncate",
+              isCurrentTrack
+                ? "text-[var(--color-primary-dark)]"
+                : "text-[var(--color-black)]"
+            )}
+          >
+            {track.title}
           </p>
+          {album && (
+            <span className="text-sm text-[var(--color-gray-400)] truncate hidden sm:inline">
+              — {album.title}
+            </span>
+          )}
+        </div>
+
+        {/* Waveform */}
+        {showWaveform && (
+          <div className="w-full">
+            <Waveform
+              data={track.waveform}
+              progress={progressPercent}
+              height={24}
+              waveColor={isCurrentTrack ? "var(--color-primary-light)" : "var(--color-gray-100)"}
+              progressColor="var(--color-primary)"
+              className="opacity-80 group-hover:opacity-100 transition-opacity"
+            />
+          </div>
         )}
       </div>
 
-      {/* Tags */}
-      <div className="hidden md:flex items-center gap-1">
+      {/* Tags - Hidden on small screens */}
+      <div className="hidden lg:flex items-center gap-1 flex-shrink-0">
         {track.genres.slice(0, 1).map((genre) => (
           <Tag key={genre} variant="genre" size="sm">
             {genre}
@@ -127,21 +149,21 @@ export function TrackRow({
       </div>
 
       {/* BPM */}
-      <div className="hidden sm:block w-16 text-right">
+      <div className="hidden md:block w-16 text-right flex-shrink-0">
         <span className="text-sm font-mono text-[var(--color-gray-400)]">
           {formatBPM(track.bpm)}
         </span>
       </div>
 
       {/* Duration */}
-      <div className="w-12 text-right">
+      <div className="w-12 text-right flex-shrink-0">
         <span className="text-sm font-mono text-[var(--color-gray-400)]">
           {formatDuration(track.duration)}
         </span>
       </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
         <button className="p-2 rounded-full hover:bg-[var(--color-gray-100)] transition-colors">
           <Heart size={16} className="text-[var(--color-gray-400)]" />
         </button>

@@ -9,6 +9,8 @@ export interface Track {
   moods: string[];
   instruments: string[];
   isVocal: boolean;
+  /** Pre-generated waveform data (array of 0-1 values) */
+  waveform: number[];
 }
 
 export interface Album {
