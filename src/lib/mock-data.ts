@@ -44,19 +44,32 @@ export const INSTRUMENTS = [
   "Vocals",
 ];
 
-// Helper pour générer des IDs uniques
-const generateId = () => Math.random().toString(36).substring(2, 9);
+/**
+ * Simple seeded random number generator
+ * Returns consistent values for the same seed
+ */
+function createSeededRandom(seed: number) {
+  let state = seed;
+  return () => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff;
+    return state / 0x7fffffff;
+  };
+}
+
+// Helper pour générer des IDs uniques basés sur un seed
+const generateId = (seed: number) => {
+  const random = createSeededRandom(seed);
+  return Array.from({ length: 7 }, () =>
+    Math.floor(random() * 36).toString(36)
+  ).join('');
+};
 
 /**
  * Generate realistic waveform data
  * Uses seeded random for consistent results per track
  */
 function generateWaveformData(length: number = 100, seed: number): number[] {
-  // Simple seeded random
-  const seededRandom = (s: number) => {
-    const x = Math.sin(s) * 10000;
-    return x - Math.floor(x);
-  };
+  const seededRandom = createSeededRandom(seed);
 
   const data: number[] = [];
 
@@ -67,7 +80,7 @@ function generateWaveformData(length: number = 100, seed: number): number[] {
     const wave2 = Math.sin(t * Math.PI * 8 + seed * 2) * 0.2;
     const wave3 = Math.sin(t * Math.PI * 16 + seed * 3) * 0.1;
     // Noise
-    const noise = (seededRandom(seed + i) - 0.5) * 0.4;
+    const noise = (seededRandom() - 0.5) * 0.4;
     // Envelope
     const envelope = Math.sin(t * Math.PI);
     // Combine
@@ -77,6 +90,16 @@ function generateWaveformData(length: number = 100, seed: number): number[] {
 
   return data;
 }
+
+// Local audio samples (royalty-free music from archive.org)
+const AUDIO_SAMPLES = [
+  "/audio/sample-1.mp3",
+  "/audio/sample-2.mp3",
+  "/audio/sample-3.mp3",
+  "/audio/sample-4.mp3",
+  "/audio/sample-5.mp3",
+  "/audio/sample-6.mp3",
+];
 
 // Génération de pistes mockées
 const generateTracks = (albumId: string, count: number): Track[] => {
@@ -100,24 +123,34 @@ const generateTracks = (albumId: string, count: number): Track[] => {
 
   return Array.from({ length: count }, (_, i) => {
     // Create a unique seed based on albumId and track index
-    const seed = albumId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + i * 100;
+    const baseSeed = albumId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) + i * 100;
+    const random = createSeededRandom(baseSeed);
+
+    // Generate deterministic values
+    const duration = Math.floor(random() * 180) + 60; // 1-4 minutes
+    const bpm = Math.floor(random() * 80) + 80; // 80-160 BPM
+    const genreIndex = Math.floor(random() * GENRES.length);
+    const moodIndex = Math.floor(random() * MOODS.length);
+    const instrument1Index = Math.floor(random() * INSTRUMENTS.length);
+    const instrument2Index = Math.floor(random() * INSTRUMENTS.length);
+    const isVocal = random() > 0.7;
+    const audioIndex = Math.floor(random() * AUDIO_SAMPLES.length);
 
     return {
-      id: generateId(),
+      id: generateId(baseSeed),
       title: trackTitles[i % trackTitles.length] + (i >= trackTitles.length ? ` ${Math.floor(i / trackTitles.length) + 1}` : ""),
-      duration: Math.floor(Math.random() * 180) + 60, // 1-4 minutes
-      bpm: Math.floor(Math.random() * 80) + 80, // 80-160 BPM
-      // Use a CORS-friendly audio sample
-    audioUrl: `https://actions.google.com/sounds/v1/alarms/beep_short.ogg`,
+      duration,
+      bpm,
+      audioUrl: AUDIO_SAMPLES[audioIndex],
       albumId,
-      genres: [GENRES[Math.floor(Math.random() * GENRES.length)]],
-      moods: [MOODS[Math.floor(Math.random() * MOODS.length)]],
+      genres: [GENRES[genreIndex]],
+      moods: [MOODS[moodIndex]],
       instruments: [
-        INSTRUMENTS[Math.floor(Math.random() * INSTRUMENTS.length)],
-        INSTRUMENTS[Math.floor(Math.random() * INSTRUMENTS.length)],
+        INSTRUMENTS[instrument1Index],
+        INSTRUMENTS[instrument2Index],
       ],
-      isVocal: Math.random() > 0.7,
-      waveform: generateWaveformData(100, seed),
+      isVocal,
+      waveform: generateWaveformData(100, baseSeed),
     };
   });
 };

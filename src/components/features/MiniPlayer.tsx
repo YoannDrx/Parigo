@@ -57,13 +57,19 @@ export function MiniPlayer() {
   useEffect(() => {
     if (!waveformRef.current || !currentTrack) return;
 
+    let isMounted = true;
+
     setIsReady(false);
     setHasError(false);
     setIsLoading(true);
 
     // Détruire l'instance précédente
     if (wavesurferRef.current) {
-      wavesurferRef.current.destroy();
+      try {
+        wavesurferRef.current.destroy();
+      } catch {
+        // Ignore destroy errors
+      }
       wavesurferRef.current = null;
     }
 
@@ -86,6 +92,7 @@ export function MiniPlayer() {
 
     // Event handlers
     wavesurfer.on("ready", () => {
+      if (!isMounted) return;
       setDuration(wavesurfer.getDuration());
       wavesurfer.setVolume(isMuted ? 0 : volume);
       setIsReady(true);
@@ -99,6 +106,7 @@ export function MiniPlayer() {
     });
 
     wavesurfer.on("error", (error) => {
+      if (!isMounted) return;
       console.warn("WaveSurfer error:", error);
       setHasError(true);
       setIsLoading(false);
@@ -107,14 +115,17 @@ export function MiniPlayer() {
     });
 
     wavesurfer.on("audioprocess", () => {
+      if (!isMounted) return;
       setProgress(wavesurfer.getCurrentTime());
     });
 
     wavesurfer.on("seeking", () => {
+      if (!isMounted) return;
       setProgress(wavesurfer.getCurrentTime());
     });
 
     wavesurfer.on("finish", () => {
+      if (!isMounted) return;
       next();
     });
 
@@ -123,14 +134,21 @@ export function MiniPlayer() {
       wavesurfer.load(currentTrack.audioUrl);
     } catch (error) {
       console.warn("Failed to load audio:", error);
-      setHasError(true);
-      setIsLoading(false);
-      setDuration(currentTrack.duration);
+      if (isMounted) {
+        setHasError(true);
+        setIsLoading(false);
+        setDuration(currentTrack.duration);
+      }
     }
 
     return () => {
+      isMounted = false;
       if (wavesurferRef.current) {
-        wavesurferRef.current.destroy();
+        try {
+          wavesurferRef.current.destroy();
+        } catch {
+          // Ignore AbortError during cleanup
+        }
         wavesurferRef.current = null;
       }
     };
