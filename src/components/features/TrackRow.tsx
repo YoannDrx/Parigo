@@ -1,11 +1,12 @@
 "use client";
 
 import Image from "next/image";
-import { Play, Pause, Heart, MoreHorizontal } from "lucide-react";
+import { Play, Pause, MoreHorizontal } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Track, Album } from "@/types";
 import { Tag } from "@/components/ui";
 import { Waveform } from "./Waveform";
+import { FavoriteButton } from "./FavoriteButton";
 import { formatDuration, formatBPM, cn } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
 
@@ -39,7 +40,7 @@ export function TrackRow({
         resume();
       }
     } else {
-      if (album) {
+      if (album?.tracks) {
         const trackIndex = album.tracks.findIndex((t) => t.id === track.id);
         setQueue(album.tracks, trackIndex);
       }
@@ -164,9 +165,7 @@ export function TrackRow({
 
       {/* Actions */}
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-        <button className="p-2 rounded-full hover:bg-[var(--color-gray-100)] transition-colors">
-          <Heart size={16} className="text-[var(--color-gray-400)]" />
-        </button>
+        <FavoriteButton type="track" itemId={track.id} size="sm" showTooltip={false} />
         <button className="p-2 rounded-full hover:bg-[var(--color-gray-100)] transition-colors">
           <MoreHorizontal size={16} className="text-[var(--color-gray-400)]" />
         </button>

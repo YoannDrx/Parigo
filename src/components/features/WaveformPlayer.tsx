@@ -48,8 +48,13 @@ export function WaveformPlayer({ className }: WaveformPlayerProps) {
 
     wavesurferRef.current = wavesurfer;
 
-    // Load audio
-    wavesurfer.load(currentTrack.audioUrl);
+    // Load audio if URL is available
+    if (currentTrack.audioUrl) {
+      wavesurfer.load(currentTrack.audioUrl);
+    } else {
+      // No audio URL available, set duration from track data
+      setDuration(currentTrack.duration);
+    }
 
     // Event handlers
     wavesurfer.on("ready", () => {

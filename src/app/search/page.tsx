@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback, Suspense } from "react";
+import { useState, useCallback, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -10,19 +10,66 @@ import {
   ChevronDown,
   ChevronUp,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
 import { Button, Tag, Card, Input } from "@/components/ui";
 import { TrackRow, SearchBar, MiniPlayer } from "@/components/features";
-import {
-  getAllTracks,
-  mockAlbums,
-  GENRES,
-  MOODS,
-  INSTRUMENTS,
-} from "@/lib/mock-data";
+import { useTracks, useGenres, useMoods, useInstruments } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type { ViewMode, Track } from "@/types";
+import type { ViewMode, Track, Album } from "@/types";
+
+// Transform API track to component format
+function transformTrack(apiTrack: {
+  id: string;
+  slug?: string;
+  title: string;
+  duration: number;
+  bpm?: number;
+  key?: string;
+  isVocal: boolean;
+  audioUrl: string | null;
+  waveform: number[] | null;
+  albumId: string;
+  albumTitle: string;
+  albumSlug: string;
+  albumCover: string;
+  genres: string[];
+  moods: string[];
+  instruments?: string[];
+}): Track {
+  return {
+    id: apiTrack.slug || apiTrack.id,
+    slug: apiTrack.slug,
+    title: apiTrack.title,
+    duration: apiTrack.duration,
+    bpm: apiTrack.bpm ?? null,
+    key: apiTrack.key ?? null,
+    isVocal: apiTrack.isVocal,
+    audioUrl: apiTrack.audioUrl,
+    waveform: apiTrack.waveform,
+    albumId: apiTrack.albumId,
+    albumTitle: apiTrack.albumTitle,
+    albumSlug: apiTrack.albumSlug,
+    albumCover: apiTrack.albumCover,
+    genres: apiTrack.genres,
+    moods: apiTrack.moods,
+    instruments: apiTrack.instruments,
+  };
+}
+
+// Create minimal album object for TrackRow
+function createAlbumFromTrack(track: Track): Album {
+  return {
+    id: track.albumId,
+    slug: track.albumSlug,
+    title: track.albumTitle || "",
+    cover: track.albumCover || "/images/placeholder-album.jpg",
+    label: "",
+    genres: track.genres,
+    trackCount: 0,
+  };
+}
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -63,89 +110,16 @@ function SearchContent() {
     });
   };
 
-  const allTracks = getAllTracks();
+  // Fetch filter options from API
+  const { data: genresData } = useGenres();
+  const { data: moodsData } = useMoods();
+  const { data: instrumentsData } = useInstruments();
 
-  const filteredTracks = useMemo(() => {
-    return allTracks.filter((track) => {
-      // Text search
-      if (query) {
-        const lowerQuery = query.toLowerCase();
-        const album = mockAlbums.find((a) => a.id === track.albumId);
-        const matchesTitle = track.title.toLowerCase().includes(lowerQuery);
-        const matchesAlbum = album?.title.toLowerCase().includes(lowerQuery);
-        const matchesGenre = track.genres.some((g) =>
-          g.toLowerCase().includes(lowerQuery)
-        );
-        const matchesMood = track.moods.some((m) =>
-          m.toLowerCase().includes(lowerQuery)
-        );
-        if (!matchesTitle && !matchesAlbum && !matchesGenre && !matchesMood) {
-          return false;
-        }
-      }
+  const genres = genresData?.genres ?? [];
+  const moods = moodsData?.moods ?? [];
+  const instruments = instrumentsData?.instruments ?? [];
 
-      // Genres
-      if (
-        selectedGenres.length > 0 &&
-        !selectedGenres.some((g) => track.genres.includes(g))
-      ) {
-        return false;
-      }
-
-      // Moods
-      if (
-        selectedMoods.length > 0 &&
-        !selectedMoods.some((m) => track.moods.includes(m))
-      ) {
-        return false;
-      }
-
-      // Instruments
-      if (
-        selectedInstruments.length > 0 &&
-        !selectedInstruments.some((i) => track.instruments.includes(i))
-      ) {
-        return false;
-      }
-
-      // BPM
-      if (track.bpm < bpmRange[0] || track.bpm > bpmRange[1]) {
-        return false;
-      }
-
-      // Duration
-      if (track.duration < durationRange[0] || track.duration > durationRange[1]) {
-        return false;
-      }
-
-      // Vocal
-      if (isVocal !== null && track.isVocal !== isVocal) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [
-    allTracks,
-    query,
-    selectedGenres,
-    selectedMoods,
-    selectedInstruments,
-    bpmRange,
-    durationRange,
-    isVocal,
-  ]);
-
-  const resetFilters = useCallback(() => {
-    setQuery("");
-    setSelectedGenres([]);
-    setSelectedMoods([]);
-    setSelectedInstruments([]);
-    setBpmRange([60, 180]);
-    setDurationRange([0, 300]);
-    setIsVocal(null);
-  }, []);
-
+  // Build API params
   const hasActiveFilters =
     query ||
     selectedGenres.length > 0 ||
@@ -156,6 +130,41 @@ function SearchContent() {
     durationRange[0] !== 0 ||
     durationRange[1] !== 300 ||
     isVocal !== null;
+
+  // Create API params object
+  const apiParams = useMemo(() => {
+    const params: Parameters<typeof useTracks>[0] = {
+      limit: 50,
+    };
+
+    if (query) params.query = query;
+    if (selectedGenres.length > 0) params.genres = selectedGenres;
+    if (selectedMoods.length > 0) params.moods = selectedMoods;
+    if (selectedInstruments.length > 0) params.instruments = selectedInstruments;
+    if (bpmRange[0] !== 60) params.minBpm = bpmRange[0];
+    if (bpmRange[1] !== 180) params.maxBpm = bpmRange[1];
+    if (durationRange[0] !== 0) params.minDuration = durationRange[0];
+    if (durationRange[1] !== 300) params.maxDuration = durationRange[1];
+    if (isVocal !== null) params.isVocal = isVocal;
+
+    return params;
+  }, [query, selectedGenres, selectedMoods, selectedInstruments, bpmRange, durationRange, isVocal]);
+
+  // Fetch tracks from API
+  const { data: tracksData, isLoading: tracksLoading } = useTracks(apiParams);
+
+  const tracks = tracksData?.tracks.map(transformTrack) ?? [];
+  const totalCount = tracksData?.pagination.total ?? 0;
+
+  const resetFilters = useCallback(() => {
+    setQuery("");
+    setSelectedGenres([]);
+    setSelectedMoods([]);
+    setSelectedInstruments([]);
+    setBpmRange([60, 180]);
+    setDurationRange([0, 300]);
+    setIsVocal(null);
+  }, []);
 
   const toggleArrayFilter = (
     arr: string[],
@@ -234,11 +243,11 @@ function SearchContent() {
                   {/* Genres */}
                   <FilterSection title="Genres" id="genres">
                     <div className="flex flex-wrap gap-2">
-                      {GENRES.map((genre) => (
+                      {genres.map((genre) => (
                         <Tag
-                          key={genre}
+                          key={genre.slug}
                           variant={
-                            selectedGenres.includes(genre) ? "genre" : "default"
+                            selectedGenres.includes(genre.slug) ? "genre" : "default"
                           }
                           size="sm"
                           clickable
@@ -246,12 +255,12 @@ function SearchContent() {
                             toggleArrayFilter(
                               selectedGenres,
                               setSelectedGenres,
-                              genre
+                              genre.slug
                             )
                           }
                         >
-                          {genre}
-                          {selectedGenres.includes(genre) && (
+                          {genre.name}
+                          {selectedGenres.includes(genre.slug) && (
                             <X size={12} className="ml-1" />
                           )}
                         </Tag>
@@ -262,11 +271,11 @@ function SearchContent() {
                   {/* Moods */}
                   <FilterSection title="Moods" id="moods">
                     <div className="flex flex-wrap gap-2">
-                      {MOODS.map((mood) => (
+                      {moods.map((mood) => (
                         <Tag
-                          key={mood}
+                          key={mood.slug}
                           variant={
-                            selectedMoods.includes(mood) ? "mood" : "default"
+                            selectedMoods.includes(mood.slug) ? "mood" : "default"
                           }
                           size="sm"
                           clickable
@@ -274,12 +283,12 @@ function SearchContent() {
                             toggleArrayFilter(
                               selectedMoods,
                               setSelectedMoods,
-                              mood
+                              mood.slug
                             )
                           }
                         >
-                          {mood}
-                          {selectedMoods.includes(mood) && (
+                          {mood.name}
+                          {selectedMoods.includes(mood.slug) && (
                             <X size={12} className="ml-1" />
                           )}
                         </Tag>
@@ -290,11 +299,11 @@ function SearchContent() {
                   {/* Instruments */}
                   <FilterSection title="Instruments" id="instruments">
                     <div className="flex flex-wrap gap-2">
-                      {INSTRUMENTS.map((instrument) => (
+                      {instruments.map((instrument) => (
                         <Tag
-                          key={instrument}
+                          key={instrument.slug}
                           variant={
-                            selectedInstruments.includes(instrument)
+                            selectedInstruments.includes(instrument.slug)
                               ? "instrument"
                               : "default"
                           }
@@ -304,12 +313,12 @@ function SearchContent() {
                             toggleArrayFilter(
                               selectedInstruments,
                               setSelectedInstruments,
-                              instrument
+                              instrument.slug
                             )
                           }
                         >
-                          {instrument}
-                          {selectedInstruments.includes(instrument) && (
+                          {instrument.name}
+                          {selectedInstruments.includes(instrument.slug) && (
                             <X size={12} className="ml-1" />
                           )}
                         </Tag>
@@ -385,7 +394,7 @@ function SearchContent() {
               <div className="flex items-center justify-between mb-4">
                 <p className="text-[var(--color-gray-600)]">
                   <span className="font-semibold text-[var(--color-black)]">
-                    {filteredTracks.length}
+                    {totalCount}
                   </span>{" "}
                   résultats
                 </p>
@@ -432,68 +441,86 @@ function SearchContent() {
               {/* Active Filters */}
               {hasActiveFilters && (
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {selectedGenres.map((genre) => (
-                    <Tag
-                      key={genre}
-                      variant="genre"
-                      size="sm"
-                      clickable
-                      onClick={() =>
-                        setSelectedGenres(selectedGenres.filter((g) => g !== genre))
-                      }
-                    >
-                      {genre}
-                      <X size={12} className="ml-1" />
-                    </Tag>
-                  ))}
-                  {selectedMoods.map((mood) => (
-                    <Tag
-                      key={mood}
-                      variant="mood"
-                      size="sm"
-                      clickable
-                      onClick={() =>
-                        setSelectedMoods(selectedMoods.filter((m) => m !== mood))
-                      }
-                    >
-                      {mood}
-                      <X size={12} className="ml-1" />
-                    </Tag>
-                  ))}
-                </div>
-              )}
-
-              {/* Track List */}
-              {filteredTracks.length > 0 ? (
-                <Card padding="none" hover={false}>
-                  {filteredTracks.slice(0, 50).map((track, index) => {
-                    const album = mockAlbums.find((a) => a.id === track.albumId);
+                  {selectedGenres.map((genreSlug) => {
+                    const genre = genres.find((g) => g.slug === genreSlug);
                     return (
-                      <TrackRow
-                        key={track.id}
-                        track={track}
-                        album={album}
-                        index={index}
-                        showAlbumCover={true}
-                      />
+                      <Tag
+                        key={genreSlug}
+                        variant="genre"
+                        size="sm"
+                        clickable
+                        onClick={() =>
+                          setSelectedGenres(selectedGenres.filter((g) => g !== genreSlug))
+                        }
+                      >
+                        {genre?.name || genreSlug}
+                        <X size={12} className="ml-1" />
+                      </Tag>
                     );
                   })}
-                </Card>
-              ) : (
-                <div className="text-center py-16">
-                  <p className="text-[var(--color-gray-600)] text-lg mb-4">
-                    Aucune piste trouvée avec ces critères.
-                  </p>
-                  <Button variant="outline" onClick={resetFilters}>
-                    Réinitialiser les filtres
-                  </Button>
+                  {selectedMoods.map((moodSlug) => {
+                    const mood = moods.find((m) => m.slug === moodSlug);
+                    return (
+                      <Tag
+                        key={moodSlug}
+                        variant="mood"
+                        size="sm"
+                        clickable
+                        onClick={() =>
+                          setSelectedMoods(selectedMoods.filter((m) => m !== moodSlug))
+                        }
+                      >
+                        {mood?.name || moodSlug}
+                        <X size={12} className="ml-1" />
+                      </Tag>
+                    );
+                  })}
                 </div>
               )}
 
-              {filteredTracks.length > 50 && (
-                <p className="text-center text-[var(--color-gray-400)] mt-4">
-                  Affichage des 50 premiers résultats sur {filteredTracks.length}
-                </p>
+              {/* Loading State */}
+              {tracksLoading ? (
+                <div className="flex justify-center py-16">
+                  <Loader2 className="w-10 h-10 animate-spin text-[var(--color-primary)]" />
+                </div>
+              ) : (
+                <>
+                  {/* Track List */}
+                  {tracks.length > 0 ? (
+                    <Card padding="none" hover={false}>
+                      {tracks.map((track, index) => (
+                        <motion.div
+                          key={track.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.02 }}
+                        >
+                          <TrackRow
+                            track={track}
+                            album={createAlbumFromTrack(track)}
+                            index={index}
+                            showAlbumCover={true}
+                          />
+                        </motion.div>
+                      ))}
+                    </Card>
+                  ) : (
+                    <div className="text-center py-16">
+                      <p className="text-[var(--color-gray-600)] text-lg mb-4">
+                        Aucune piste trouvée avec ces critères.
+                      </p>
+                      <Button variant="outline" onClick={resetFilters}>
+                        Réinitialiser les filtres
+                      </Button>
+                    </div>
+                  )}
+
+                  {totalCount > 50 && (
+                    <p className="text-center text-[var(--color-gray-400)] mt-4">
+                      Affichage des 50 premiers résultats sur {totalCount}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -508,7 +535,11 @@ function SearchContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<div>Chargement...</div>}>
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-[var(--color-primary)]" />
+      </div>
+    }>
       <SearchContent />
     </Suspense>
   );
