@@ -6,10 +6,10 @@ Ce fichier fournit des instructions à Claude Code pour ce projet.
 
 ## grepai - OBLIGATOIRE
 
-**Tu DOIS utiliser grepai (via MCP) pour TOUTE recherche de code.**
+**Tu DOIS utiliser les commandes CLI grepai pour TOUTE recherche de code.**
 
-- ❌ INTERDIT : Grep, Glob, grep, find, rg
-- ✅ OBLIGATOIRE : `mcp__grepai__grepai_search`
+- ❌ INTERDIT : Grep, Glob, grep, find, rg, outils MCP grepai
+- ✅ OBLIGATOIRE : `grepai search "query"` via Bash
 
 Voir `~/.claude/CLAUDE.md` pour les instructions complètes.
 
