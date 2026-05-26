@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "slug": "album-de-librairie-musicale",
+    "nameFr": "Album de librairie musicale",
+    "nameEn": "Music Library Album",
+    "color": "#d5ff0a",
+    "icon": "disc",
+    "order": 0,
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "slug": "documentaire",
+    "nameFr": "Documentaire",
+    "nameEn": "Documentary",
+    "color": "#4a90ff",
+    "icon": "film",
+    "order": 1,
+    "isActive": true
+  },
+  {
+    "id": 3,
+    "slug": "synchro",
+    "nameFr": "Synchro",
+    "nameEn": "Sync",
+    "color": "#ff8c4a",
+    "icon": "radio",
+    "order": 2,
+    "isActive": true
+  },
+  {
+    "id": 4,
+    "slug": "vinyle",
+    "nameFr": "Vinyle",
+    "nameEn": "Vinyl",
+    "color": "#9c4aff",
+    "icon": "disc-3",
+    "order": 3,
+    "isActive": true
+  },
+  {
+    "id": 5,
+    "slug": "clip",
+    "nameFr": "Clip",
+    "nameEn": "Music Video",
+    "color": "#ff4a9c",
+    "icon": "video",
+    "order": 4,
+    "isActive": true
+  }
+]

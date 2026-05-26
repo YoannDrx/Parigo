@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 interface WaveformProps {
   /** Array of amplitude values (0-1) */
-  data: number[];
+  data: number[] | null | undefined;
   /** Progress percentage (0-100) */
   progress?: number;
   /** Height of the waveform in pixels */
@@ -37,8 +37,12 @@ export function Waveform({
 
   // Normalize data to ensure values are between 0 and 1
   const normalizedData = useMemo(() => {
+    if (!data || data.length === 0) {
+      // Generate placeholder data if no waveform available
+      return Array.from({ length: 50 }, () => 0.3 + Math.random() * 0.4);
+    }
     const max = Math.max(...data);
-    return data.map((v) => v / max);
+    return max > 0 ? data.map((v) => v / max) : data;
   }, [data]);
 
   // Draw waveform

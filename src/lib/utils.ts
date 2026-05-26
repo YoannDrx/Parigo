@@ -11,6 +11,7 @@ export function formatDuration(seconds: number): string {
   return `${mins}:${secs.toString().padStart(2, "0")}`;
 }
 
-export function formatBPM(bpm: number): string {
+export function formatBPM(bpm: number | null | undefined): string {
+  if (bpm === null || bpm === undefined) return "-";
   return `${bpm} BPM`;
 }

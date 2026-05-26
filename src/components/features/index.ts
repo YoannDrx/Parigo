@@ -1,7 +1,14 @@
 export { AlbumCard } from "./AlbumCard";
+export { AlbumCarousel } from "./AlbumCarousel";
+export { Carousel } from "./Carousel";
 export { TrackRow } from "./TrackRow";
 export { PlaylistCard } from "./PlaylistCard";
 export { SearchBar } from "./SearchBar";
 export { MiniPlayer } from "./MiniPlayer";
 export { Waveform, generateWaveformData } from "./Waveform";
 export { WaveformPlayer } from "./WaveformPlayer";
+export { UserMenu } from "./UserMenu";
+export { FavoriteButton } from "./FavoriteButton";
+export { AuthModal } from "./AuthModal";
+export { SyncCard } from "./SyncCard";
+export type { Sync } from "./SyncCard";

@@ -311,7 +311,7 @@ export const mockPlaylists: Playlist[] = [
     description: "Les meilleures pistes pour vos projets de grande envergure.",
     cover: "https://picsum.photos/seed/playlist1/400/400",
     category: "Cinematic",
-    trackIds: mockAlbums[0].tracks.slice(0, 5).map(t => t.id),
+    trackIds: mockAlbums[0]?.tracks?.slice(0, 5).map(t => t.id) ?? [],
   },
   {
     id: "playlist-2",
@@ -319,7 +319,7 @@ export const mockPlaylists: Playlist[] = [
     description: "Sons apaisants pour documentaires et lifestyle.",
     cover: "https://picsum.photos/seed/playlist2/400/400",
     category: "Ambient",
-    trackIds: mockAlbums[7].tracks.slice(0, 6).map(t => t.id),
+    trackIds: mockAlbums[7]?.tracks?.slice(0, 6).map(t => t.id) ?? [],
   },
   {
     id: "playlist-3",
@@ -327,7 +327,7 @@ export const mockPlaylists: Playlist[] = [
     description: "Pistes dynamiques pour publicités et sports.",
     cover: "https://picsum.photos/seed/playlist3/400/400",
     category: "Upbeat",
-    trackIds: mockAlbums[2].tracks.slice(0, 5).map(t => t.id),
+    trackIds: mockAlbums[2]?.tracks?.slice(0, 5).map(t => t.id) ?? [],
   },
   {
     id: "playlist-4",
@@ -335,7 +335,7 @@ export const mockPlaylists: Playlist[] = [
     description: "Créez la tension parfaite pour vos scènes.",
     cover: "https://picsum.photos/seed/playlist4/400/400",
     category: "Dark",
-    trackIds: mockAlbums[4].tracks.slice(0, 6).map(t => t.id),
+    trackIds: mockAlbums[4]?.tracks?.slice(0, 6).map(t => t.id) ?? [],
   },
   {
     id: "playlist-5",
@@ -343,7 +343,7 @@ export const mockPlaylists: Playlist[] = [
     description: "Hits accrocheurs pour spots TV.",
     cover: "https://picsum.photos/seed/playlist5/400/400",
     category: "Commercial",
-    trackIds: mockAlbums[10].tracks.slice(0, 5).map(t => t.id),
+    trackIds: mockAlbums[10]?.tracks?.slice(0, 5).map(t => t.id) ?? [],
   },
   {
     id: "playlist-6",
@@ -351,7 +351,7 @@ export const mockPlaylists: Playlist[] = [
     description: "Sons du monde pour récits de voyage.",
     cover: "https://picsum.photos/seed/playlist6/400/400",
     category: "World",
-    trackIds: mockAlbums[5].tracks.slice(0, 5).map(t => t.id),
+    trackIds: mockAlbums[5]?.tracks?.slice(0, 5).map(t => t.id) ?? [],
   },
 ];
 
@@ -406,7 +406,7 @@ export const mockSyncs = [
 
 // Helper pour obtenir toutes les pistes
 export function getAllTracks(): Track[] {
-  return mockAlbums.flatMap((album) => album.tracks);
+  return mockAlbums.flatMap((album) => album.tracks ?? []);
 }
 
 // Helper pour rechercher

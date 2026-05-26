@@ -4,24 +4,119 @@ import { use } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Play, Heart, Share2, ArrowLeft, Clock, Music } from "lucide-react";
+import { Play, Heart, Share2, ArrowLeft, Clock, Music, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
 import { Button, Tag, Card } from "@/components/ui";
 import { TrackRow, AlbumCard, MiniPlayer } from "@/components/features";
-import { getAlbumById, mockAlbums } from "@/lib/mock-data";
+import { useAlbum } from "@/hooks/use-api";
 import { formatDuration } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
+import type { Track, Album } from "@/types";
 
 interface AlbumPageProps {
   params: Promise<{ id: string }>;
 }
 
+// Transform API track to component format
+function transformTrack(apiTrack: {
+  id: string;
+  slug?: string;
+  title: string;
+  duration: number;
+  bpm?: number;
+  key?: string;
+  isVocal: boolean;
+  audioUrl: string | null;
+  waveform: number[] | null;
+  trackNumber?: number;
+  albumId: string;
+  albumTitle: string;
+  albumSlug: string;
+  albumCover: string;
+  genres: string[];
+  moods: string[];
+  instruments?: string[];
+}): Track {
+  return {
+    id: apiTrack.id,
+    slug: apiTrack.slug,
+    title: apiTrack.title,
+    duration: apiTrack.duration,
+    bpm: apiTrack.bpm ?? null,
+    key: apiTrack.key ?? null,
+    isVocal: apiTrack.isVocal,
+    audioUrl: apiTrack.audioUrl,
+    waveform: apiTrack.waveform,
+    trackNumber: apiTrack.trackNumber,
+    albumId: apiTrack.albumId,
+    albumTitle: apiTrack.albumTitle,
+    albumSlug: apiTrack.albumSlug,
+    albumCover: apiTrack.albumCover,
+    genres: apiTrack.genres,
+    moods: apiTrack.moods,
+    instruments: apiTrack.instruments,
+  };
+}
+
+// Transform API album to component format
+function transformAlbum(apiAlbum: {
+  id: string;
+  slug?: string;
+  title: string;
+  description?: string | null;
+  cover: string;
+  coverBlur?: string;
+  label: string;
+  labelSlug?: string;
+  releaseDate?: string;
+  year?: number;
+  spotifyUrl?: string;
+  genres: Array<{ name: string; slug: string; color?: string }>;
+  moods: Array<{ name: string; slug: string; color?: string }>;
+  artists: Array<{ name: string; slug: string; role?: string }>;
+  trackCount: number;
+  isFeatured?: boolean;
+}): Album {
+  return {
+    id: apiAlbum.slug || apiAlbum.id,
+    slug: apiAlbum.slug,
+    title: apiAlbum.title,
+    description: apiAlbum.description,
+    cover: apiAlbum.cover,
+    coverBlur: apiAlbum.coverBlur,
+    label: apiAlbum.label,
+    labelSlug: apiAlbum.labelSlug,
+    releaseDate: apiAlbum.releaseDate,
+    year: apiAlbum.year,
+    spotifyUrl: apiAlbum.spotifyUrl,
+    genres: apiAlbum.genres.map((g) => g.name),
+    moods: apiAlbum.moods.map((m) => m.name),
+    artists: apiAlbum.artists,
+    trackCount: apiAlbum.trackCount,
+    isFeatured: apiAlbum.isFeatured,
+  };
+}
+
 export default function AlbumPage({ params }: AlbumPageProps) {
   const { id } = use(params);
-  const album = getAlbumById(id);
+  const { data, isLoading, error } = useAlbum(id);
   const { setQueue, play } = usePlayerStore();
 
-  if (!album) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 flex items-center justify-center">
+          <Loader2 className="w-10 h-10 animate-spin text-[var(--color-primary)]" />
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  // Error or not found state
+  if (error || !data?.album) {
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
@@ -38,21 +133,24 @@ export default function AlbumPage({ params }: AlbumPageProps) {
     );
   }
 
-  const totalDuration = album.tracks.reduce((acc, track) => acc + track.duration, 0);
+  const album = transformAlbum(data.album);
+  const tracks = data.album.tracks?.map(transformTrack) ?? [];
+  const similarAlbums = data.similarAlbums?.map(transformAlbum) ?? [];
 
-  const handlePlayAll = () => {
-    setQueue(album.tracks, 0);
-    play(album.tracks[0]);
+  // Create album with tracks for TrackRow
+  const albumWithTracks: Album = {
+    ...album,
+    tracks,
   };
 
-  // Albums similaires (même genre)
-  const similarAlbums = mockAlbums
-    .filter(
-      (a) =>
-        a.id !== album.id &&
-        a.genres.some((g) => album.genres.includes(g))
-    )
-    .slice(0, 4);
+  const totalDuration = tracks.reduce((acc, track) => acc + track.duration, 0);
+
+  const handlePlayAll = () => {
+    if (tracks.length > 0) {
+      setQueue(tracks, 0);
+      play(tracks[0]);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -98,15 +196,43 @@ export default function AlbumPage({ params }: AlbumPageProps) {
               transition={{ delay: 0.1 }}
               className="flex-1"
             >
-              <p className="text-sm font-medium text-[var(--color-primary)] mb-2">
-                {album.label}
-              </p>
+              {album.labelSlug ? (
+                <Link href={`/labels/${album.labelSlug}`}>
+                  <p className="text-sm font-medium text-[var(--color-primary)] mb-2 hover:underline">
+                    {album.label}
+                  </p>
+                </Link>
+              ) : (
+                <p className="text-sm font-medium text-[var(--color-primary)] mb-2">
+                  {album.label}
+                </p>
+              )}
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[var(--color-black)] mb-4">
                 {album.title}
               </h1>
-              <p className="text-[var(--color-gray-600)] mb-6 max-w-xl">
-                {album.description}
-              </p>
+              {album.description && (
+                <p className="text-[var(--color-gray-600)] mb-6 max-w-xl">
+                  {album.description}
+                </p>
+              )}
+
+              {/* Artists */}
+              {album.artists && album.artists.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  <span className="text-sm text-[var(--color-gray-600)]">Par</span>
+                  {album.artists.map((artist, index) => (
+                    <span key={artist.slug}>
+                      <Link
+                        href={`/artists/${artist.slug}`}
+                        className="text-sm font-medium text-[var(--color-black)] hover:text-[var(--color-primary)]"
+                      >
+                        {artist.name}
+                      </Link>
+                      {index < album.artists!.length - 1 && ", "}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               {/* Meta */}
               <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-gray-600)] mb-6">
@@ -118,22 +244,24 @@ export default function AlbumPage({ params }: AlbumPageProps) {
                   <Clock size={16} />
                   {formatDuration(totalDuration)}
                 </span>
-                <span>
-                  Sorti le {new Date(album.releaseDate).toLocaleDateString("fr-FR")}
-                </span>
+                {album.releaseDate && (
+                  <span>
+                    Sorti le {new Date(album.releaseDate).toLocaleDateString("fr-FR")}
+                  </span>
+                )}
               </div>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-8">
                 {album.genres.map((genre) => (
-                  <Link key={genre} href={`/search?genre=${genre}`}>
+                  <Link key={genre} href={`/search?genre=${genre.toLowerCase().replace(/\s+/g, "-")}`}>
                     <Tag variant="genre" clickable>
                       {genre}
                     </Tag>
                   </Link>
                 ))}
-                {album.moods.map((mood) => (
-                  <Link key={mood} href={`/search?mood=${mood}`}>
+                {album.moods?.map((mood) => (
+                  <Link key={mood} href={`/search?mood=${mood.toLowerCase().replace(/\s+/g, "-")}`}>
                     <Tag variant="mood" clickable>
                       {mood}
                     </Tag>
@@ -143,7 +271,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
 
               {/* Actions */}
               <div className="flex flex-wrap gap-3">
-                <Button variant="primary" size="lg" onClick={handlePlayAll}>
+                <Button variant="primary" size="lg" onClick={handlePlayAll} disabled={tracks.length === 0}>
                   <Play size={20} className="mr-2 fill-white" />
                   Tout écouter
                 </Button>
@@ -164,17 +292,31 @@ export default function AlbumPage({ params }: AlbumPageProps) {
           <h2 className="text-xl font-bold text-[var(--color-black)] mb-6">
             Pistes
           </h2>
-          <Card padding="none" className="divide-y divide-[var(--color-gray-100)]">
-            {album.tracks.map((track, index) => (
-              <TrackRow
-                key={track.id}
-                track={track}
-                album={album}
-                index={index}
-                showAlbumCover={false}
-              />
-            ))}
-          </Card>
+          {tracks.length > 0 ? (
+            <Card padding="none" className="divide-y divide-[var(--color-gray-100)]">
+              {tracks.map((track, index) => (
+                <motion.div
+                  key={track.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.03 }}
+                >
+                  <TrackRow
+                    track={track}
+                    album={albumWithTracks}
+                    index={index}
+                    showAlbumCover={false}
+                  />
+                </motion.div>
+              ))}
+            </Card>
+          ) : (
+            <Card padding="lg" hover={false}>
+              <p className="text-center text-[var(--color-gray-600)]">
+                Aucune piste disponible pour cet album.
+              </p>
+            </Card>
+          )}
         </section>
 
         {/* Similar Albums */}

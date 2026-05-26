@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, Menu, X, User } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui";
+import { UserMenu } from "@/components/features";
 
 const navigation = [
   { name: "Recherche", href: "/search" },
@@ -57,10 +58,9 @@ export function Header() {
                 <Search size={20} />
               </Button>
             </Link>
-            <Button variant="outline" size="sm" className="hidden sm:flex gap-2">
-              <User size={18} />
-              <span>Connexion</span>
-            </Button>
+
+            {/* User Menu */}
+            <UserMenu />
 
             {/* Mobile menu button */}
             <button
@@ -92,10 +92,7 @@ export function Header() {
                   {item.name}
                 </Link>
               ))}
-              <Button variant="primary" size="md" className="mt-2">
-                <User size={18} className="mr-2" />
-                Connexion
-              </Button>
+              {/* Mobile user actions handled by UserMenu in header */}
             </div>
           </div>
         )}

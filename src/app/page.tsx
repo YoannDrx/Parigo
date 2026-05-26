@@ -2,12 +2,94 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
-import Image from "next/image";
-import { ArrowRight, Music, Users, Disc3, TrendingUp } from "lucide-react";
+import { ArrowRight, Music, Users, Disc3, TrendingUp, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
 import { Button, Card } from "@/components/ui";
-import { AlbumCard, PlaylistCard, SearchBar, MiniPlayer } from "@/components/features";
-import { mockAlbums, mockPlaylists, mockSyncs } from "@/lib/mock-data";
+import {
+  AlbumCarousel,
+  Carousel,
+  PlaylistCard,
+  SearchBar,
+  MiniPlayer,
+  SyncCard,
+} from "@/components/features";
+import type { Sync } from "@/components/features";
+import { useFeaturedAlbums, useFeaturedPlaylists } from "@/hooks/use-api";
+import type { Album, Playlist } from "@/types";
+
+// Synchronizations data
+const syncsData: Sync[] = [
+  {
+    slug: "cobra-kai",
+    title: "COBRA KAI",
+    subtitle: "Louis Vie",
+    cover: "/images/synchros/cobra-kai.jpg",
+    youtubeUrl: "https://www.youtube.com/watch?v=OdkAgKz6p8E",
+  },
+  {
+    slug: "tokyo-vice",
+    title: "Tokyo Vice",
+    subtitle: "HBO Max",
+    cover: "/images/synchros/tokyo-vice.jpg",
+    youtubeUrl: null,
+  },
+  {
+    slug: "emily",
+    title: "Emily in Paris",
+    subtitle: "Netflix",
+    cover: "/images/synchros/emily.jpg",
+    youtubeUrl: null,
+  },
+  {
+    slug: "bad-boys",
+    title: "Bad Boys",
+    subtitle: "Hey Boy",
+    cover: "/images/synchros/bad-boys-hey-boy.jpg",
+    youtubeUrl: "https://www.youtube.com/watch?v=6xkrqHRGwx0",
+  },
+  {
+    slug: "captain-fall",
+    title: "Captain Fall",
+    subtitle: "Netflix",
+    cover: "/images/synchros/captain-fall-cover.jpg",
+    youtubeUrl: "https://www.youtube.com/watch?v=KES5ncRZxBA",
+  },
+  {
+    slug: "monkey-man",
+    title: "Monkey Man",
+    subtitle: "Universal Pictures",
+    cover: "/images/synchros/monkey-man.jpg",
+    youtubeUrl: null,
+  },
+  {
+    slug: "control-z",
+    title: "Control Z",
+    subtitle: "Netflix",
+    cover: "/images/synchros/control-z.jpg",
+    youtubeUrl: null,
+  },
+  {
+    slug: "le-monde-de-demain",
+    title: "Le Monde de Demain",
+    subtitle: "Arte",
+    cover: "/images/synchros/lemondededemain.jpg",
+    youtubeUrl: null,
+  },
+  {
+    slug: "tapie",
+    title: "Tapie",
+    subtitle: "Netflix",
+    cover: "/images/synchros/tapie-photo.jpg",
+    youtubeUrl: null,
+  },
+  {
+    slug: "i-am-georgina",
+    title: "I Am Georgina",
+    subtitle: "Netflix",
+    cover: "/images/synchros/i-am-georgina.jpg",
+    youtubeUrl: null,
+  },
+];
 
 const stats = [
   { icon: Music, value: "350k+", label: "Œuvres" },
@@ -16,9 +98,54 @@ const stats = [
   { icon: TrendingUp, value: "1000+", label: "Sorties/an" },
 ];
 
+// Transform API album to component format
+function transformAlbum(apiAlbum: {
+  id: string;
+  slug?: string;
+  title: string;
+  cover: string;
+  label: string;
+  trackCount: number;
+  genres: Array<{ name: string; slug: string; color?: string }>;
+}): Album {
+  return {
+    id: apiAlbum.slug || apiAlbum.id,
+    slug: apiAlbum.slug,
+    title: apiAlbum.title,
+    cover: apiAlbum.cover,
+    label: apiAlbum.label,
+    trackCount: apiAlbum.trackCount,
+    genres: apiAlbum.genres.map((g) => g.name),
+  };
+}
+
+// Transform API playlist to component format
+function transformPlaylist(apiPlaylist: {
+  id: string;
+  slug?: string;
+  title: string;
+  description?: string;
+  cover: string;
+  category?: string;
+  trackCount: number;
+}): Playlist {
+  return {
+    id: apiPlaylist.slug || apiPlaylist.id,
+    slug: apiPlaylist.slug,
+    title: apiPlaylist.title,
+    description: apiPlaylist.description,
+    cover: apiPlaylist.cover,
+    category: apiPlaylist.category,
+    trackCount: apiPlaylist.trackCount,
+  };
+}
+
 export default function HomePage() {
-  const latestAlbums = mockAlbums.slice(0, 6);
-  const featuredPlaylists = mockPlaylists.slice(0, 4);
+  const { data: albumsData, isLoading: albumsLoading } = useFeaturedAlbums(12);
+  const { data: playlistsData, isLoading: playlistsLoading } = useFeaturedPlaylists(10);
+
+  const latestAlbums = albumsData?.albums.map(transformAlbum) ?? [];
+  const featuredPlaylists = playlistsData?.playlists.map(transformPlaylist) ?? [];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -64,16 +191,16 @@ export default function HomePage() {
 
               {/* Quick Links */}
               <div className="flex flex-wrap justify-center gap-3">
-                <Link href="/search?genre=Cinematic">
+                <Link href="/search?genre=cinematic">
                   <Button variant="outline" size="md">Cinématique</Button>
                 </Link>
-                <Link href="/search?genre=Electronic">
+                <Link href="/search?genre=electronic">
                   <Button variant="outline" size="md">Électronique</Button>
                 </Link>
-                <Link href="/search?mood=Uplifting">
+                <Link href="/search?mood=uplifting">
                   <Button variant="outline" size="md">Uplifting</Button>
                 </Link>
-                <Link href="/search?mood=Epic">
+                <Link href="/search?mood=epic">
                   <Button variant="outline" size="md">Épique</Button>
                 </Link>
               </div>
@@ -118,18 +245,16 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6">
-              {latestAlbums.map((album, index) => (
-                <motion.div
-                  key={album.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <AlbumCard album={album} priority={index < 3} />
-                </motion.div>
-              ))}
-            </div>
+            {albumsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
+              </div>
+            ) : (
+              <AlbumCarousel
+                albums={latestAlbums}
+                itemsPerView={{ mobile: 2, tablet: 3, desktop: 5 }}
+              />
+            )}
           </div>
         </section>
 
@@ -147,18 +272,20 @@ export default function HomePage() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredPlaylists.map((playlist, index) => (
-                <motion.div
-                  key={playlist.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <PlaylistCard playlist={playlist} />
-                </motion.div>
-              ))}
-            </div>
+            {playlistsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
+              </div>
+            ) : (
+              <Carousel
+                itemsPerView={{ mobile: 1, tablet: 2, desktop: 4 }}
+                gap={24}
+              >
+                {featuredPlaylists.map((playlist) => (
+                  <PlaylistCard key={playlist.id} playlist={playlist} />
+                ))}
+              </Carousel>
+            )}
           </div>
         </section>
 
@@ -175,25 +302,14 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12">
-              {mockSyncs.map((sync, index) => (
-                <motion.div
-                  key={sync.name}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.1 }}
-                  className="relative w-24 h-12 md:w-32 md:h-16 grayscale hover:grayscale-0 transition-all duration-300"
-                >
-                  <Image
-                    src={sync.logo}
-                    alt={sync.name}
-                    fill
-                    sizes="128px"
-                    className="object-contain"
-                  />
-                </motion.div>
+            <Carousel
+              itemsPerView={{ mobile: 1, tablet: 2, desktop: 4 }}
+              gap={24}
+            >
+              {syncsData.map((sync) => (
+                <SyncCard key={sync.slug} sync={sync} />
               ))}
-            </div>
+            </Carousel>
           </div>
         </section>
 

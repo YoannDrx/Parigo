@@ -17,7 +17,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
 import { formatDuration } from "@/lib/utils";
-import { mockAlbums } from "@/lib/mock-data";
 import { Waveform } from "./Waveform";
 
 export function MiniPlayer() {
@@ -45,10 +44,9 @@ export function MiniPlayer() {
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Trouver l'album de la piste courante
-  const currentAlbum = currentTrack
-    ? mockAlbums.find((a) => a.id === currentTrack.albumId)
-    : null;
+  // Get album info from track
+  const albumCover = currentTrack?.albumCover;
+  const albumTitle = currentTrack?.albumTitle;
 
   // Progress percentage for static waveform fallback
   const progressPercent = duration > 0 ? (progress / duration) * 100 : 0;
@@ -130,6 +128,14 @@ export function MiniPlayer() {
     });
 
     // Charger l'audio avec gestion d'erreur
+    if (!currentTrack.audioUrl) {
+      // No audio URL available
+      setHasError(true);
+      setIsLoading(false);
+      setDuration(currentTrack.duration);
+      return;
+    }
+
     try {
       wavesurfer.load(currentTrack.audioUrl);
     } catch (error) {
@@ -246,11 +252,11 @@ export function MiniPlayer() {
         <div className={`${isExpanded ? "h-20" : "h-[72px]"} px-4 flex items-center gap-4`}>
           {/* Track info */}
           <div className="flex items-center gap-3 min-w-0 w-48 flex-shrink-0">
-            {currentAlbum && (
+            {albumCover && (
               <div className="w-12 h-12 relative rounded-[var(--radius-sm)] overflow-hidden border-2 border-white/20 flex-shrink-0">
                 <Image
-                  src={currentAlbum.cover}
-                  alt={currentAlbum.title}
+                  src={albumCover}
+                  alt={albumTitle || "Album cover"}
                   fill
                   sizes="48px"
                   className="object-cover"
@@ -260,7 +266,7 @@ export function MiniPlayer() {
             <div className="min-w-0">
               <p className="font-medium truncate">{currentTrack.title}</p>
               <p className="text-sm text-white/60 truncate">
-                {currentAlbum?.title}
+                {albumTitle}
               </p>
             </div>
           </div>
