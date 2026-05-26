@@ -1,11 +1,11 @@
-# Exemples Harvest
+# Smoke tests Harvest API
 
-Ces exemples sont prevus pour demarrer les tests quand Harvest fournit les credentials. Ils ne contiennent aucun secret.
+Ces scripts sont prevus pour demarrer les tests quand Harvest fournit les credentials. Ils ne contiennent aucun secret.
 
 ## Smoke test TypeScript
 
 ```bash
-pnpm tsx docs/harvest/examples/harvest-smoke-test.ts
+pnpm tsx docs/harvest/smoke-tests/harvest-api-smoke-test.ts
 ```
 
 Variables minimales :
