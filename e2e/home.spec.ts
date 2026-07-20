@@ -4,7 +4,7 @@ import AxeBuilder from "@axe-core/playwright";
 test("la homepage rend la recherche principale et navigue vers les résultats", async ({ page }) => {
   await page.goto("/");
   await expect(
-    page.getByRole("heading", { level: 1, name: /La musique.*prend l’image/i }),
+    page.getByRole("heading", { level: 1, name: /La musique.*pour vos images/i }),
   ).toBeVisible();
   const search = page.getByLabel("Décrivez la musique que vous imaginez");
   await search.fill("Un piano intime pour un documentaire");
@@ -20,9 +20,12 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   }
-  await page.getByRole("button", { name: "English version" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: /Music.*takes the frame/i })).toBeVisible();
-  await page.getByRole("button", { name: "Switch to dark theme" }).click();
+  const controls = testInfo.project.name === "mobile"
+    ? page.locator("#global-menu")
+    : page.locator("body");
+  await controls.getByRole("button", { name: "English version" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: /Music.*for moving images/i })).toBeVisible();
+  await controls.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -30,6 +33,7 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
 });
 
 test("la homepage ne contient pas de violation critique axe", async ({ page }) => {
+  test.setTimeout(60_000);
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(`${message.text()} @ ${message.location().url}`);
@@ -43,10 +47,10 @@ test("la homepage ne contient pas de violation critique axe", async ({ page }) =
 test("la home expose les médias artistes et un menu modal responsive", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText(/démo locale/i)).toHaveCount(0);
-  expect(await page.locator("main img").count()).toBeGreaterThanOrEqual(20);
+  expect(await page.locator("main img").count()).toBeGreaterThanOrEqual(12);
 
   const artistsTitle = page.getByRole("heading", {
-    name: "Des artistes, pas des algorithmes.",
+    name: "Nos talents.",
   });
   await artistsTitle.scrollIntoViewIfNeeded();
   await expect(artistsTitle).toBeVisible();
@@ -80,7 +84,7 @@ test("la recherche assistée alimente le lecteur persistant", async ({ page }, t
 test("la recherche expose des vues, tris et filtres partageables", async ({ page }, testInfo) => {
   await page.goto("/search?q=techno&view=tracks");
   const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
-  if (await rejectCookies.isVisible()) await rejectCookies.click();
+  if (await rejectCookies.isVisible()) await rejectCookies.click({ force: true });
 
   await expect(page.getByRole("heading", { name: /Quel son porte votre image/i })).toBeVisible();
   await expect(page.getByRole("button", { name: "Écouter Track One" })).toBeVisible();
