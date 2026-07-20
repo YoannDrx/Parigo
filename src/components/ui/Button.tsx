@@ -11,23 +11,23 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
     const baseStyles =
-      "inline-flex min-h-11 items-center justify-center gap-2 font-semibold transition-all duration-300 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-2";
+      "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-2";
 
     const variants = {
       primary:
-        "border border-[var(--signal)] bg-[var(--signal)] text-[#11120f] hover:-translate-y-0.5 hover:bg-[var(--signal-strong)] active:translate-y-0",
+        "border border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white hover:border-[var(--foreground)] hover:bg-[var(--foreground)]",
       secondary:
-        "border border-[var(--surface-inverse)] bg-[var(--surface-inverse)] text-[var(--background)] hover:-translate-y-0.5 active:translate-y-0",
+        "border border-[var(--surface-inverse)] bg-[var(--surface-inverse)] text-[var(--background)] hover:border-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white",
       outline:
-        "border border-[var(--line)] bg-transparent text-[var(--foreground)] hover:border-[var(--line-strong)] hover:bg-[var(--surface-soft)]",
+        "border border-[var(--line-strong)] bg-transparent text-[var(--foreground)] hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]",
       ghost:
         "border border-transparent bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-soft)]",
     };
 
     const sizes = {
-      sm: "px-3.5 py-2 text-sm rounded-full",
-      md: "px-5 py-2.5 text-sm rounded-full",
-      lg: "px-7 py-3.5 text-base rounded-full",
+      sm: "rounded-[var(--radius-md)] px-3.5 py-2 text-sm",
+      md: "rounded-[var(--radius-md)] px-5 py-2.5 text-sm",
+      lg: "rounded-[var(--radius-md)] px-7 py-3.5 text-base",
     };
 
     return (

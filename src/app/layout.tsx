@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Manrope, IBM_Plex_Mono, Instrument_Serif } from "next/font/google";
+import { Archivo, Manrope, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 
@@ -19,12 +19,6 @@ const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
-});
-
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-editorial",
-  subsets: ["latin"],
-  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -68,7 +62,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} ${instrumentSerif.variable} antialiased`}
+        className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <QueryProvider>{children}</QueryProvider>
       </body>
