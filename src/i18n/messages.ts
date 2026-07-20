@@ -31,8 +31,8 @@ export const messages = {
     home: {
       eyebrow: "Bibliothèque musicale indépendante · Paris",
       titleTop: "La musique",
-      titleBottom: "prend l’image.",
-      promise: "Des œuvres singulières pour les films, les marques et les récits qui refusent le déjà-vu.",
+      titleBottom: "pour vos images.",
+      promise: "Trouvez, écoutez et sélectionnez des œuvres singulières pour vos films, vos marques et vos récits.",
       scroll: "Entrer dans le catalogue",
       searchLabel: "Décrivez la musique que vous imaginez",
       searchPlaceholder: "Une techno magnétique avec voix…",
@@ -206,8 +206,8 @@ export const messages = {
     home: {
       eyebrow: "Independent music library · Paris",
       titleTop: "Music",
-      titleBottom: "takes the frame.",
-      promise: "Singular works for films, brands and stories that refuse the familiar.",
+      titleBottom: "for moving images.",
+      promise: "Find, listen to and select singular works for your films, brands and stories.",
       scroll: "Enter the catalogue",
       searchLabel: "Describe the music you imagine",
       searchPlaceholder: "Magnetic techno with vocals…",

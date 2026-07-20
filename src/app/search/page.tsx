@@ -327,20 +327,20 @@ function SearchContent() {
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 pb-28">
-        <section className="grain bg-[var(--surface-inverse)] px-4 pb-12 pt-16 text-[var(--background)] sm:px-6 md:pb-16 md:pt-24 lg:px-8">
+        <section className="border-b border-[var(--line)] bg-[var(--surface)] px-4 pb-12 pt-32 text-[var(--foreground)] sm:px-6 md:pb-16 md:pt-40 lg:px-8">
           <div className="mx-auto max-w-[1800px]">
             <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
               <div className="lg:col-span-5">
-                <p className="eyebrow mb-5 text-[var(--signal)]">{t("search.eyebrow")}</p>
-                <h1 className="font-[var(--font-editorial)] text-[clamp(3.8rem,7vw,8.8rem)] font-normal leading-[.8] tracking-[-.065em]">{t("search.title")}</h1>
+                <p className="eyebrow mb-5 text-[var(--signal-strong)]">{t("search.eyebrow")}</p>
+                <h1 className="max-w-[10ch] text-[clamp(3.25rem,6vw,7rem)] font-semibold leading-[.88] tracking-[-.06em]">{t("search.title")}</h1>
               </div>
               <div className="lg:col-span-6 lg:col-start-7">
-                <p className="mb-6 max-w-2xl text-base leading-relaxed opacity-58 md:text-lg">{t("search.intro")}</p>
+                <p className="mb-6 max-w-2xl text-base leading-relaxed text-[var(--text-muted)] md:text-lg">{t("search.intro")}</p>
                 <AISearch compact defaultValue={query} onSearch={handleAssistedSearch} />
               </div>
             </div>
             <div className="mt-8 flex gap-2 overflow-x-auto pb-2" aria-label={locale === "fr" ? "Suggestions de recherche" : "Search suggestions"}>
-              {suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => handleAssistedSearch(suggestion)} className="min-h-11 shrink-0 border border-white/18 px-4 text-left text-xs transition hover:border-[var(--signal)] hover:text-[var(--signal)]">{suggestion}</button>)}
+              {suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => handleAssistedSearch(suggestion)} className="min-h-11 shrink-0 rounded-full border border-[var(--line)] px-4 text-left text-xs text-[var(--text-muted)] transition hover:border-[var(--signal)] hover:text-[var(--foreground)]">{suggestion}</button>)}
             </div>
           </div>
         </section>
