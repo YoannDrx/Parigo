@@ -49,7 +49,7 @@ export default function ArtistDetailPage() {
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 pb-28">
+      <main className="flex-1 pb-28 pt-[70px]">
         <div className="mx-auto max-w-[1700px] px-4 py-6 lg:px-8"><Link href="/artists" className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)]"><ArrowLeft size={17} /> {t("common.artists")}</Link></div>
         <section className="mx-auto grid max-w-[1700px] gap-12 px-4 py-8 lg:px-8 md:grid-cols-12 md:py-16">
           <MediaReveal className="relative aspect-[4/5] md:col-span-5" direction="left">{artist.image ? <Image src={artist.image} alt={artist.name} fill priority sizes="(max-width:768px) 100vw, 42vw" className="object-cover grayscale transition duration-1000 hover:grayscale-0" /> : <div className="flex h-full items-center justify-center bg-[var(--surface-soft)] font-[var(--font-editorial)] text-[12rem]">{artist.name.charAt(0)}</div>}</MediaReveal>

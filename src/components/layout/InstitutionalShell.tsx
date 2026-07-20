@@ -16,8 +16,8 @@ export function InstitutionalShell({ eyebrow, title, intro, children }: Institut
     <div className="page-shell">
       <Header />
       <main>
-        <header className="grain bg-[var(--surface-inverse)] px-4 py-24 text-[var(--background)] md:px-8 md:py-36">
-          <div className="mx-auto max-w-[1700px]"><p className="eyebrow mb-7 text-[var(--signal)]">{eyebrow}</p><RevealText as="h1" className="section-title-serif max-w-6xl">{title}</RevealText><p className="mt-10 max-w-2xl text-lg leading-relaxed opacity-58 md:text-xl">{intro}</p></div>
+        <header className="border-b border-[var(--line)] bg-[var(--surface)] px-4 pb-20 pt-32 md:px-8 md:pb-28 md:pt-40">
+          <div className="mx-auto max-w-[1700px]"><p className="eyebrow mb-7 text-[var(--signal-strong)]">{eyebrow}</p><RevealText as="h1" className="section-title-serif max-w-5xl">{title}</RevealText><p className="mt-9 max-w-2xl text-lg leading-relaxed text-[var(--text-muted)] md:text-xl">{intro}</p></div>
         </header>
         {children}
       </main>

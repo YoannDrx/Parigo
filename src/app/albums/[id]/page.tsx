@@ -160,7 +160,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 pb-24">
+      <main className="flex-1 pb-24 pt-[70px]">
         {/* Back Link */}
         <div className="mx-auto max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
           <Link

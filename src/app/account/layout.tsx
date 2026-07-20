@@ -50,7 +50,7 @@ export default function AccountLayout({
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
-      <header className="border-b border-[var(--line)] px-4 py-16 md:px-8 md:py-24"><div className="mx-auto max-w-[1600px]"><p className="eyebrow mb-5 text-[var(--color-primary-dark)]">{t("account.eyebrow")}</p><h1 className="font-[var(--font-editorial)] text-6xl font-normal tracking-[-.055em] md:text-8xl">{t("account.title")}</h1></div></header>
+      <header className="border-b border-[var(--line)] bg-[var(--surface)] px-4 pb-16 pt-32 md:px-8 md:pb-20 md:pt-40"><div className="mx-auto max-w-[1600px]"><p className="eyebrow mb-5 text-[var(--color-primary-dark)]">{t("account.eyebrow")}</p><h1 className="text-6xl font-semibold tracking-[-.055em] md:text-8xl">{t("account.title")}</h1></div></header>
       <div className="flex-1 pb-32 pt-10 md:pt-16">
       <div className="mx-auto max-w-[1600px] px-4 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
