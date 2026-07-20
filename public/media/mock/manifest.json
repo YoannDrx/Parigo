@@ -1,0 +1,29 @@
+{
+  "status": "mock",
+  "sourceProject": "portfolio-caro",
+  "usage": "Pochettes de catalogue, portraits artistes et maquettes éditoriales de la homepage",
+  "sourcePattern": "portfolio-caro/public/images/{albums,projets/photoscompo}/<reference>.jpg",
+  "albums": [
+    "pgo0022", "pgo0023", "pgo0024", "pgo0025",
+    "pgo0026", "pgo0027", "pgo0028", "pgo0030",
+    "pgo0032", "pgo0035", "pgo0040", "pgo0046"
+  ],
+  "artists": [
+    { "file": "arandel.jpg", "source": "arandel.jpg" },
+    { "file": "forever-pavot.jpg", "source": "emile-sornin-forever-pavot.jpg" },
+    { "file": "charlotte-savary.jpg", "source": "charlotte-savary.jpg" },
+    { "file": "flore.jpg", "source": "flore.jpg" },
+    { "file": "drixxxe.jpg", "source": "drixxxe.jpg" },
+    { "file": "frederic-hanak.jpg", "source": "frederic-hanak.jpg" },
+    { "file": "2080.jpg", "source": "2080.jpg" },
+    { "file": "les-cavaliers.jpg", "source": "alexis-molenat-les-cavaliers.jpg" }
+  ],
+  "artistImport": {
+    "source": "portfolio-caro/public/images/projets/photoscompo/",
+    "destination": "public/media/mock/artists/",
+    "fileCount": 70,
+    "scope": "Tous les portraits disponibles, conservés sous leur nom source pour correspondre aux fixtures artistes"
+  },
+  "formats": ["jpg-source", "jpeg-source", "png-source", "webp-source", "avif-600x600"],
+  "notes": "Copies locales destinées au prototypage de la future source Harvest. Les huit entrées artists documentent les alias éditoriaux de la homepage ; artistImport couvre l’intégralité du répertoire d’artistes. Les visuels de synchros existaient déjà sous public/images/synchros et ne sont donc pas dupliqués."
+}
