@@ -1,0 +1,1 @@
+export { CatalogHero } from "./CatalogHero";

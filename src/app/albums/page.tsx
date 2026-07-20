@@ -9,6 +9,8 @@ import { AlbumCard, MiniPlayer } from "@/components/features";
 import { useAlbums, useLabels, useGenres } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { ViewMode, Album } from "@/types";
+import { useI18n } from "@/components/providers/I18nProvider";
+import { CatalogHero } from "@/components/catalog";
 
 // Transform API album to component format
 function transformAlbum(apiAlbum: {
@@ -34,6 +36,7 @@ function transformAlbum(apiAlbum: {
 }
 
 export default function AlbumsPage() {
+  const { locale, t } = useI18n();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
@@ -53,22 +56,14 @@ export default function AlbumsPage() {
   const genres = genresData?.genres ?? [];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="page-shell flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 py-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <main className="flex-1">
+        <CatalogHero eyebrow={t("catalog.albumsEyebrow")} title={t("catalog.albumsTitle")} intro={t("catalog.albumsIntro")} meta={`${albumsData?.pagination.total ?? 0} ${t("common.albums").toLowerCase()}`} />
+        <div className="mx-auto max-w-[1700px] px-4 py-10 sm:px-6 lg:px-8 md:py-16">
           {/* Page Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-            <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-[var(--color-black)]">
-                Albums
-              </h1>
-              <p className="text-[var(--color-gray-600)] mt-1">
-                {albumsData?.pagination.total ?? 0} albums disponibles
-              </p>
-            </div>
-
+          <div className="mb-10 flex flex-col justify-end gap-4 md:flex-row md:items-center">
             <div className="flex items-center gap-3">
               {/* Filter Toggle (Mobile) */}
               <Button
@@ -78,29 +73,31 @@ export default function AlbumsPage() {
                 className="md:hidden gap-2"
               >
                 <SlidersHorizontal size={16} />
-                Filtres
+                {t("search.filters")}
               </Button>
 
               {/* View Toggle */}
-              <div className="flex border-2 border-[var(--color-black)] rounded-[var(--radius-sm)] overflow-hidden">
+              <div className="flex overflow-hidden rounded-full border border-[var(--line)]">
                 <button
                   onClick={() => setViewMode("grid")}
+                  aria-label={locale === "fr" ? "Vue grille" : "Grid view"}
                   className={cn(
                     "p-2 transition-colors",
                     viewMode === "grid"
-                      ? "bg-[var(--color-black)] text-white"
-                      : "bg-white text-[var(--color-black)] hover:bg-[var(--color-gray-100)]"
+                      ? "bg-[var(--foreground)] text-[var(--background)]"
+                      : "hover:bg-[var(--surface-soft)]"
                   )}
                 >
                   <Grid3X3 size={18} />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
+                  aria-label={locale === "fr" ? "Vue liste" : "List view"}
                   className={cn(
-                    "p-2 transition-colors border-l-2 border-[var(--color-black)]",
+                    "border-l border-[var(--line)] p-2 transition-colors",
                     viewMode === "list"
-                      ? "bg-[var(--color-black)] text-white"
-                      : "bg-white text-[var(--color-black)] hover:bg-[var(--color-gray-100)]"
+                      ? "bg-[var(--foreground)] text-[var(--background)]"
+                      : "hover:bg-[var(--surface-soft)]"
                   )}
                 >
                   <List size={18} />
@@ -127,7 +124,7 @@ export default function AlbumsPage() {
                   clickable
                   onClick={() => setSelectedLabel(null)}
                 >
-                  Tous
+                  {locale === "fr" ? "Tous" : "All"}
                 </Tag>
                 {labels.map((label) => (
                   <Tag
@@ -153,7 +150,7 @@ export default function AlbumsPage() {
                   clickable
                   onClick={() => setSelectedGenre(null)}
                 >
-                  Tous
+                  {locale === "fr" ? "Tous" : "All"}
                 </Tag>
                 {genres.slice(0, 12).map((genre) => (
                   <Tag
@@ -201,7 +198,7 @@ export default function AlbumsPage() {
               {albums.length === 0 && (
                 <div className="text-center py-16">
                   <p className="text-[var(--color-gray-600)] text-lg mb-4">
-                    Aucun album trouvé avec ces filtres.
+                    {t("catalog.noAlbums")}
                   </p>
                   <Button
                     variant="outline"
@@ -210,7 +207,7 @@ export default function AlbumsPage() {
                       setSelectedGenre(null);
                     }}
                   >
-                    Réinitialiser les filtres
+                    {t("common.reset")}
                   </Button>
                 </div>
               )}

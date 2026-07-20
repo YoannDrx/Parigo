@@ -1,150 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, Disc3, ExternalLink, Loader2 } from "lucide-react";
+import { ArrowUpRight, Building2, Disc3, Loader2 } from "lucide-react";
+import { Header, Footer } from "@/components/layout";
+import { MiniPlayer } from "@/components/features";
+import { CatalogHero } from "@/components/catalog";
+import { useI18n } from "@/components/providers/I18nProvider";
 
-interface Label {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  logo: string;
-  website: string | null;
-  albumCount: number;
-}
+interface Label { id: string; slug: string; name: string; description: string | null; logo: string; website: string | null; albumCount: number; }
 
 export default function LabelsPage() {
+  const { t } = useI18n();
   const [labels, setLabels] = useState<Label[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    const controller = new AbortController();
+    async function loadLabels() {
+      try {
+        const response = await fetch("/api/labels", { signal: controller.signal });
+        if (response.ok) setLabels((await response.json()).labels || []);
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) console.error("Error loading labels:", error);
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false);
+      }
+    }
     loadLabels();
+    return () => controller.abort();
   }, []);
 
-  const loadLabels = async () => {
-    try {
-      const response = await fetch("/api/labels");
-      if (response.ok) {
-        const data = await response.json();
-        setLabels(data.labels || []);
-      }
-    } catch (error) {
-      console.error("Error loading labels:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <div className="min-h-screen pt-24 pb-32">
-      <div className="container mx-auto px-4 lg:px-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-12"
-        >
-          <div className="flex items-center gap-4 mb-4">
-            <div className="w-14 h-14 bg-[var(--color-accent)] rounded-[var(--radius-md)] border-2 border-[var(--color-black)] shadow-[3px_3px_0px_var(--color-black)] flex items-center justify-center">
-              <Building2 size={28} className="text-[var(--color-black)]" />
+    <div className="page-shell flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1 pb-32">
+        <CatalogHero eyebrow={t("catalog.labelsEyebrow")} title={t("catalog.labelsTitle")} intro={t("catalog.labelsIntro")} meta={`${labels.length} ${t("common.labels").toLowerCase()}`} />
+        <div className="mx-auto max-w-[1700px] px-4 py-12 lg:px-8 md:py-20">
+          {isLoading ? <div className="flex justify-center py-24"><Loader2 className="animate-spin text-[var(--color-primary)]" /></div> : labels.length === 0 ? <div className="py-24 text-center"><Building2 size={42} className="mx-auto mb-6 opacity-25" /><h2 className="font-[var(--font-editorial)] text-5xl font-normal">{t("catalog.noLabels")}</h2></div> : (
+            <div className="grid border-l border-t border-[var(--line)] md:grid-cols-2">
+              {labels.map((label, index) => <motion.article key={label.id} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .25 }} transition={{ duration: .65, delay: (index % 2) * .06 }} className="border-b border-r border-[var(--line)]"><Link href={`/labels/${label.slug}`} className="group grid min-h-72 p-7 md:grid-cols-[1fr_1.4fr] md:p-10"><div className="flex items-start">{label.logo ? <div className="relative h-20 w-36"><Image src={label.logo} alt={label.name} fill sizes="144px" className="object-contain object-left grayscale transition group-hover:grayscale-0" /></div> : <Building2 size={44} className="opacity-25" />}</div><div className="flex flex-col justify-between"><div><span className="font-mono text-[.62rem] opacity-32">LBL.{String(index + 1).padStart(3, "0")}</span><h2 className="mt-4 font-[var(--font-editorial)] text-4xl font-normal tracking-[-.045em] transition group-hover:italic group-hover:text-[var(--color-primary-dark)] md:text-6xl">{label.name}</h2>{label.description && <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-[var(--text-muted)]">{label.description}</p>}</div><div className="mt-10 flex items-center justify-between text-xs text-[var(--text-muted)]"><span className="flex items-center gap-2"><Disc3 size={14} /> {label.albumCount} {label.albumCount === 1 ? t("catalog.album") : t("catalog.albums")}</span><ArrowUpRight size={18} className="transition group-hover:-translate-y-1 group-hover:translate-x-1" /></div></div></Link></motion.article>)}
             </div>
-            <div>
-              <h1 className="text-4xl font-bold text-[var(--color-black)]">
-                Labels
-              </h1>
-              <p className="text-[var(--color-gray-600)]">
-                {labels.length} label{labels.length > 1 ? "s" : ""} partenaires
-              </p>
-            </div>
-          </div>
-          <p className="text-lg text-[var(--color-gray-600)] max-w-2xl">
-            Découvrez nos labels partenaires et explorez leurs catalogues musicaux.
-          </p>
-        </motion.div>
-
-        {/* Labels Grid */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 size={32} className="animate-spin text-[var(--color-primary)]" />
-          </div>
-        ) : labels.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
-              <Building2 size={40} className="text-[var(--color-gray-400)]" />
-            </div>
-            <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
-              Aucun label
-            </h3>
-            <p className="text-[var(--color-gray-600)]">
-              Les labels seront bientôt disponibles.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {labels.map((label, index) => (
-              <motion.div
-                key={label.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-              >
-                <Link href={`/labels/${label.slug}`}>
-                  <div className="group bg-white border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[4px_4px_0px_var(--color-black)] overflow-hidden hover:shadow-[6px_6px_0px_var(--color-black)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all">
-                    {/* Logo Header */}
-                    <div className="relative h-32 bg-gradient-to-br from-[var(--color-gray-100)] to-[var(--color-gray-200)] flex items-center justify-center">
-                      {label.logo ? (
-                        <Image
-                          src={label.logo}
-                          alt={label.name}
-                          width={120}
-                          height={60}
-                          className="object-contain max-h-16"
-                        />
-                      ) : (
-                        <Building2 size={48} className="text-[var(--color-gray-400)]" />
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-5">
-                      <div className="flex items-start justify-between gap-2 mb-3">
-                        <h2 className="text-xl font-bold text-[var(--color-black)] group-hover:text-[var(--color-primary)] transition-colors">
-                          {label.name}
-                        </h2>
-                        {label.website && (
-                          <a
-                            href={label.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="p-1.5 rounded-full hover:bg-[var(--color-gray-100)] transition-colors"
-                          >
-                            <ExternalLink size={16} className="text-[var(--color-gray-400)]" />
-                          </a>
-                        )}
-                      </div>
-
-                      {label.description && (
-                        <p className="text-sm text-[var(--color-gray-600)] mb-4 line-clamp-2">
-                          {label.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-2 text-sm text-[var(--color-gray-500)]">
-                        <Disc3 size={16} />
-                        <span>{label.albumCount} album{label.albumCount > 1 ? "s" : ""}</span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </main>
+      <Footer />
+      <MiniPlayer />
     </div>
   );
 }
