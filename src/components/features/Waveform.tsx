@@ -39,7 +39,7 @@ export function Waveform({
   const normalizedData = useMemo(() => {
     if (!data || data.length === 0) {
       // Generate placeholder data if no waveform available
-      return Array.from({ length: 50 }, () => 0.3 + Math.random() * 0.4);
+      return Array.from({ length: 50 }, (_, index) => 0.3 + (Math.sin(index * 1.73) + 1) * 0.2);
     }
     const max = Math.max(...data);
     return max > 0 ? data.map((v) => v / max) : data;

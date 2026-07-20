@@ -15,11 +15,11 @@ const Tag = forwardRef<HTMLSpanElement, TagProps>(
     ref
   ) => {
     const variants = {
-      default: "bg-[var(--color-cream)] text-[var(--color-black)]",
-      primary: "bg-[var(--color-primary-light)] text-[var(--color-primary-dark)]",
-      genre: "bg-[#DBEAFE] text-[#1E40AF]",
-      mood: "bg-[#F3E8FF] text-[#6B21A8]",
-      instrument: "bg-[#FEF3C7] text-[#92400E]",
+      default: "bg-[var(--surface)] text-[var(--foreground)]",
+      primary: "bg-[var(--signal-soft)] text-[var(--foreground)]",
+      genre: "bg-[color-mix(in_srgb,var(--signal)_16%,var(--surface))] text-[var(--foreground)]",
+      mood: "bg-[color-mix(in_srgb,#b9a4ff_22%,var(--surface))] text-[var(--foreground)]",
+      instrument: "bg-[color-mix(in_srgb,#f0b34c_20%,var(--surface))] text-[var(--foreground)]",
     };
 
     const sizes = {
@@ -31,13 +31,21 @@ const Tag = forwardRef<HTMLSpanElement, TagProps>(
       <span
         ref={ref}
         className={cn(
-          "inline-flex items-center font-medium border-2 border-[var(--color-black)] rounded-full transition-all duration-150",
+          "inline-flex min-h-7 items-center rounded-full border border-[var(--line)] font-medium transition-all duration-200",
           variants[variant],
           sizes[size],
           clickable &&
-            "cursor-pointer hover:translate-x-[-1px] hover:translate-y-[-1px] hover:shadow-[2px_2px_0px_var(--color-black)] active:translate-x-0 active:translate-y-0 active:shadow-none",
+            "cursor-pointer hover:border-[var(--line-strong)] hover:bg-[var(--signal-soft)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]",
           className
         )}
+        role={clickable ? "button" : undefined}
+        tabIndex={clickable ? 0 : undefined}
+        onKeyDown={clickable ? (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            event.currentTarget.click();
+          }
+        } : undefined}
         {...props}
       >
         {children}

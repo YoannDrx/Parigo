@@ -16,7 +16,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="relative w-full">
         {hasIcon && (
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-gray-400)]">
+          <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-gray-500)]">
             {icon || <Search size={20} />}
           </div>
         )}
@@ -24,7 +24,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           type={type}
           className={cn(
-            "w-full bg-[var(--color-white)] text-[var(--color-black)] border-2 border-[var(--color-black)] rounded-[var(--radius-sm)] shadow-[3px_3px_0px_var(--color-black)] transition-all duration-150 placeholder:text-[var(--color-gray-400)] focus:outline-none focus:border-[var(--color-primary)] focus:shadow-[5px_5px_0px_var(--color-primary)]",
+            "min-h-11 w-full rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] text-[var(--foreground)] transition-all duration-300 placeholder:text-[var(--text-muted)] focus:border-[var(--signal)] focus:outline-none focus:ring-4 focus:ring-[var(--signal)]/15",
             hasIcon ? "pl-12 pr-4 py-3" : "px-4 py-3",
             className
           )}

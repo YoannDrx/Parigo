@@ -2,9 +2,9 @@
 
 import { createAuthClient } from "better-auth/react";
 
-export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-});
+// Better Auth resolves relative endpoints against the current browser origin.
+// Keeping the client same-origin also makes previews and non-default dev ports work.
+export const authClient = createAuthClient();
 
 export const {
   signIn,

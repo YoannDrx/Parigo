@@ -1,0 +1,5 @@
+"use client";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { useI18n } from "@/components/providers/I18nProvider";
+export default function NotFound() { const { locale } = useI18n(); return <main className="grain flex min-h-screen items-center justify-center bg-[#11120f] px-4 text-[#f1efe7]"><div className="text-center"><p className="eyebrow text-[var(--signal)]">404 · {locale === "fr" ? "Hors signal" : "Off signal"}</p><h1 className="mt-6 font-[var(--font-editorial)] text-6xl font-normal tracking-[-.055em] md:text-9xl">{locale === "fr" ? "Cette piste n’existe pas." : "This track does not exist."}</h1><p className="mx-auto mt-6 max-w-lg opacity-55">{locale === "fr" ? "Revenez au catalogue pour reprendre la recherche." : "Return to the catalogue and resume your search."}</p><Link href="/" className="mt-10 inline-flex min-h-12 items-center gap-2 rounded-full bg-[var(--signal)] px-6 font-semibold text-[#11120f]"><ArrowLeft size={17}/> {locale === "fr" ? "Retour à l’accueil" : "Back home"}</Link></div></main>; }

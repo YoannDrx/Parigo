@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,13 +19,18 @@ import {
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
+import { useI18n } from "@/components/providers/I18nProvider";
+
+const subscribeToHydration = () => () => undefined;
 
 export function UserMenu() {
+  const { locale, t } = useI18n();
   const { data: session, isPending } = useSession();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
 
   // Close menu on click outside
   useEffect(() => {
@@ -54,7 +59,7 @@ export function UserMenu() {
   };
 
   // Loading state
-  if (isPending) {
+  if (!isHydrated || isPending) {
     return (
       <div className="w-8 h-8 flex items-center justify-center">
         <Loader2 className="w-5 h-5 animate-spin text-[var(--color-gray-400)]" />
@@ -69,10 +74,11 @@ export function UserMenu() {
         variant="outline"
         size="sm"
         className="gap-2"
+        aria-label={t("auth.openLogin")}
         onClick={() => useAuthModalStore.getState().openLogin()}
       >
         <User size={18} />
-        <span className="hidden sm:inline">Connexion</span>
+        <span className="hidden sm:inline">{t("auth.login")}</span>
       </Button>
     );
   }
@@ -90,18 +96,20 @@ export function UserMenu() {
     : user.email?.charAt(0).toUpperCase() || "U";
 
   const menuItems = [
-    { icon: Heart, label: "Mes favoris", href: "/account/favorites" },
-    { icon: ListMusic, label: "Mes playlists", href: "/account/playlists" },
-    { icon: Clock, label: "Historique", href: "/account/history" },
-    { icon: Download, label: "Téléchargements", href: "/account/downloads" },
-    { icon: Settings, label: "Paramètres", href: "/account/settings" },
+    { icon: Heart, label: t("auth.favorites"), href: "/account/favorites" },
+    { icon: ListMusic, label: t("common.playlists"), href: "/account/playlists" },
+    { icon: Clock, label: t("auth.history"), href: "/account/history" },
+    { icon: Download, label: t("auth.downloads"), href: "/account/downloads" },
+    { icon: Settings, label: t("auth.settings"), href: "/account/settings" },
   ];
 
   return (
     <div ref={menuRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 p-1.5 rounded-[var(--radius-sm)] border-2 border-[var(--color-black)] bg-white shadow-[2px_2px_0px_var(--color-black)] hover:shadow-[4px_4px_0px_var(--color-black)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all"
+        aria-label={isOpen ? `${t("common.close")} ${t("common.account")}` : `${t("common.open")} ${t("common.account")}`}
+        aria-expanded={isOpen}
+        className="flex min-h-11 items-center gap-2 rounded-full border border-[var(--line)] bg-transparent px-2.5 transition hover:border-[var(--signal)]"
       >
         {user.image ? (
           <img
@@ -110,13 +118,13 @@ export function UserMenu() {
             className="w-7 h-7 rounded-full object-cover"
           />
         ) : (
-          <div className="w-7 h-7 bg-[var(--color-primary)] rounded-full flex items-center justify-center text-white text-xs font-bold">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--signal)] text-xs font-bold text-[#11120f]">
             {initials}
           </div>
         )}
         <ChevronDown
           size={16}
-          className={`text-[var(--color-gray-600)] transition-transform hidden sm:block ${
+          className={`hidden text-current opacity-60 transition-transform sm:block ${
             isOpen ? "rotate-180" : ""
           }`}
         />
@@ -129,14 +137,14 @@ export function UserMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-64 bg-white border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[4px_4px_0px_var(--color-black)] overflow-hidden z-50"
+            className="absolute right-0 z-50 mt-2 w-64 overflow-hidden rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] text-[var(--foreground)] shadow-[var(--theme-shadow)]"
           >
             {/* User Info */}
-            <div className="p-4 border-b-2 border-[var(--color-gray-100)]">
-              <p className="font-semibold text-[var(--color-black)] truncate">
-                {user.name || "Utilisateur"}
+            <div className="border-b border-[var(--line)] p-4">
+              <p className="truncate font-semibold">
+                {user.name || (locale === "fr" ? "Utilisateur" : "User")}
               </p>
-              <p className="text-sm text-[var(--color-gray-600)] truncate">
+              <p className="truncate text-sm text-[var(--text-muted)]">
                 {user.email}
               </p>
             </div>
@@ -148,9 +156,9 @@ export function UserMenu() {
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-[var(--color-black)] hover:bg-[var(--color-gray-100)] transition-colors"
+                  className="flex min-h-11 items-center gap-3 px-4 py-2.5 transition-colors hover:bg-[var(--surface-soft)]"
                 >
-                  <item.icon size={18} className="text-[var(--color-gray-600)]" />
+                  <item.icon size={18} className="text-[var(--text-muted)]" />
                   <span className="text-sm font-medium">{item.label}</span>
                 </Link>
               ))}
@@ -160,16 +168,16 @@ export function UserMenu() {
                 <Link
                   href="/admin"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 text-[var(--color-primary)] hover:bg-[var(--color-primary-light)] transition-colors"
+                  className="flex min-h-11 items-center gap-3 px-4 py-2.5 text-[var(--color-primary-dark)] transition-colors hover:bg-[var(--signal-soft)]"
                 >
                   <Shield size={18} />
-                  <span className="text-sm font-medium">Administration</span>
+                  <span className="text-sm font-medium">{locale === "fr" ? "Administration" : "Admin"}</span>
                 </Link>
               )}
             </div>
 
             {/* Sign Out */}
-            <div className="py-2 border-t-2 border-[var(--color-gray-100)]">
+            <div className="border-t border-[var(--line)] py-2">
               <button
                 onClick={handleSignOut}
                 disabled={isSigningOut}
@@ -181,7 +189,7 @@ export function UserMenu() {
                   <LogOut size={18} />
                 )}
                 <span className="text-sm font-medium">
-                  {isSigningOut ? "Déconnexion..." : "Se déconnecter"}
+                  {isSigningOut ? `${t("auth.logout")}…` : t("auth.logout")}
                 </span>
               </button>
             </div>

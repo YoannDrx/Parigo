@@ -15,8 +15,10 @@ import {
 import { signIn, signUp } from "@/lib/auth-client";
 import { Button, Card, Input } from "@/components/ui";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
+  const { locale, t } = useI18n();
   const router = useRouter();
   const close = useAuthModalStore((s) => s.close);
   const [email, setEmail] = useState("");
@@ -36,13 +38,13 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
       });
 
       if (result.error) {
-        setError(result.error.message || "Une erreur est survenue");
+        setError(result.error.message || (locale === "fr" ? "Une erreur est survenue" : "Something went wrong"));
       } else {
         close();
         router.refresh();
       }
     } catch {
-      setError("Une erreur est survenue lors de la connexion");
+      setError(locale === "fr" ? "Une erreur est survenue lors de la connexion" : "An error occurred while signing in");
     } finally {
       setIsLoading(false);
     }
@@ -52,10 +54,10 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
     <>
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-[var(--color-black)] mb-2">
-          Connexion
+          {t("auth.login")}
         </h1>
         <p className="text-[var(--color-gray-600)]">
-          Accédez à votre espace Parigo
+          {t("auth.loginIntro")}
         </p>
       </div>
 
@@ -76,7 +78,7 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
             htmlFor="login-email"
             className="block text-sm font-medium text-[var(--color-black)] mb-2"
           >
-            Email
+            {t("auth.email")}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -99,13 +101,13 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
               htmlFor="login-password"
               className="block text-sm font-medium text-[var(--color-black)]"
             >
-              Mot de passe
+              {t("auth.password")}
             </label>
             <button
               type="button"
               className="text-sm text-[var(--color-primary)] hover:underline"
             >
-              Mot de passe oublié ?
+              {locale === "fr" ? "Mot de passe oublié ?" : "Forgot password?"}
             </button>
           </div>
           <div className="relative">
@@ -134,23 +136,23 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
           {isLoading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              Connexion...
+              {t("auth.loggingIn")}
             </>
           ) : (
-            "Se connecter"
+            t("auth.login")
           )}
         </Button>
       </form>
 
       <div className="mt-6 text-center">
         <p className="text-sm text-[var(--color-gray-600)]">
-          Pas encore de compte ?{" "}
+          {t("auth.noAccount")} {" "}
           <button
             type="button"
             onClick={onSwitchToRegister}
             className="text-[var(--color-primary)] font-medium hover:underline"
           >
-            S&apos;inscrire
+            {t("auth.register")}
           </button>
         </p>
       </div>
@@ -159,6 +161,7 @@ function LoginForm({ onSwitchToRegister }: { onSwitchToRegister: () => void }) {
 }
 
 function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
+  const { locale, t } = useI18n();
   const router = useRouter();
   const close = useAuthModalStore((s) => s.close);
   const [name, setName] = useState("");
@@ -169,9 +172,9 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordRequirements = [
-    { label: "Au moins 8 caractères", met: password.length >= 8 },
-    { label: "Au moins une majuscule", met: /[A-Z]/.test(password) },
-    { label: "Au moins un chiffre", met: /[0-9]/.test(password) },
+    { label: locale === "fr" ? "Au moins 8 caractères" : "At least 8 characters", met: password.length >= 8 },
+    { label: locale === "fr" ? "Au moins une majuscule" : "At least one uppercase letter", met: /[A-Z]/.test(password) },
+    { label: locale === "fr" ? "Au moins un chiffre" : "At least one number", met: /[0-9]/.test(password) },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -179,12 +182,12 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas");
+      setError(locale === "fr" ? "Les mots de passe ne correspondent pas" : "Passwords do not match");
       return;
     }
 
     if (!passwordRequirements.every((req) => req.met)) {
-      setError("Le mot de passe ne respecte pas tous les critères");
+      setError(locale === "fr" ? "Le mot de passe ne respecte pas tous les critères" : "The password does not meet all requirements");
       return;
     }
 
@@ -198,13 +201,13 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
       });
 
       if (result.error) {
-        setError(result.error.message || "Une erreur est survenue");
+        setError(result.error.message || (locale === "fr" ? "Une erreur est survenue" : "Something went wrong"));
       } else {
         close();
         router.refresh();
       }
     } catch {
-      setError("Une erreur est survenue lors de l'inscription");
+      setError(locale === "fr" ? "Une erreur est survenue lors de l'inscription" : "An error occurred while creating the account");
     } finally {
       setIsLoading(false);
     }
@@ -214,10 +217,10 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
     <>
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-[var(--color-black)] mb-2">
-          Créer un compte
+          {t("auth.register")}
         </h1>
         <p className="text-[var(--color-gray-600)]">
-          Rejoignez la communauté Parigo
+          {t("auth.registerIntro")}
         </p>
       </div>
 
@@ -238,7 +241,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
             htmlFor="register-name"
             className="block text-sm font-medium text-[var(--color-black)] mb-2"
           >
-            Nom complet
+            {t("auth.name")}
           </label>
           <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -247,7 +250,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Votre nom"
+              placeholder={t("auth.name")}
               className="pl-10"
               required
               disabled={isLoading}
@@ -260,7 +263,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
             htmlFor="register-email"
             className="block text-sm font-medium text-[var(--color-black)] mb-2"
           >
-            Email
+            {t("auth.email")}
           </label>
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -282,7 +285,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
             htmlFor="register-password"
             className="block text-sm font-medium text-[var(--color-black)] mb-2"
           >
-            Mot de passe
+            {t("auth.password")}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -334,7 +337,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
             htmlFor="register-confirmPassword"
             className="block text-sm font-medium text-[var(--color-black)] mb-2"
           >
-            Confirmer le mot de passe
+            {locale === "fr" ? "Confirmer le mot de passe" : "Confirm password"}
           </label>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -352,7 +355,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
           </div>
           {confirmPassword && password !== confirmPassword && (
             <p className="mt-1 text-xs text-red-500">
-              Les mots de passe ne correspondent pas
+              {locale === "fr" ? "Les mots de passe ne correspondent pas" : "Passwords do not match"}
             </p>
           )}
         </div>
@@ -367,23 +370,23 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
           {isLoading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin mr-2" />
-              Inscription...
+              {t("auth.registering")}
             </>
           ) : (
-            "S'inscrire"
+            t("auth.register")
           )}
         </Button>
       </form>
 
       <div className="mt-6 text-center">
         <p className="text-sm text-[var(--color-gray-600)]">
-          Déjà un compte ?{" "}
+          {t("auth.hasAccount")} {" "}
           <button
             type="button"
             onClick={onSwitchToLogin}
             className="text-[var(--color-primary)] font-medium hover:underline"
           >
-            Se connecter
+            {t("auth.login")}
           </button>
         </p>
       </div>
@@ -392,6 +395,7 @@ function RegisterForm({ onSwitchToLogin }: { onSwitchToLogin: () => void }) {
 }
 
 export function AuthModal() {
+  const { t } = useI18n();
   const { isOpen, view, close, setView } = useAuthModalStore();
 
   // Close on escape key
@@ -440,12 +444,12 @@ export function AuthModal() {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="relative w-full max-w-md"
           >
-            <Card padding="lg" className="bg-white relative">
+            <Card padding="lg" className="relative border-[var(--line)] bg-[var(--surface)] shadow-[var(--theme-shadow)]">
               {/* Close button */}
               <button
                 onClick={close}
                 className="absolute top-4 right-4 p-2 rounded-full hover:bg-[var(--color-gray-100)] transition-colors"
-                aria-label="Fermer"
+                aria-label={t("common.close")}
               >
                 <X className="w-5 h-5 text-[var(--color-gray-600)]" />
               </button>

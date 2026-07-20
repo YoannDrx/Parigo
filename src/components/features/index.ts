@@ -12,3 +12,6 @@ export { FavoriteButton } from "./FavoriteButton";
 export { AuthModal } from "./AuthModal";
 export { SyncCard } from "./SyncCard";
 export type { Sync } from "./SyncCard";
+export { AISearch } from "./AISearch";
+export { ShortlistDrawer } from "./ShortlistDrawer";
+export { ContactForm } from "./ContactForm";

@@ -18,8 +18,10 @@ import WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
 import { formatDuration } from "@/lib/utils";
 import { Waveform } from "./Waveform";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 export function MiniPlayer() {
+  const { locale, t } = useI18n();
   const {
     currentTrack,
     isPlaying,
@@ -57,6 +59,8 @@ export function MiniPlayer() {
 
     let isMounted = true;
 
+    // Reset the local adapter state whenever WaveSurfer is recreated.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsReady(false);
     setHasError(false);
     setIsLoading(true);
@@ -75,8 +79,8 @@ export function MiniPlayer() {
     const wavesurfer = WaveSurfer.create({
       container: waveformRef.current,
       waveColor: "rgba(255, 255, 255, 0.3)",
-      progressColor: "#1B9B4B",
-      cursorColor: "#1B9B4B",
+      progressColor: "#6CFF67",
+      cursorColor: "#6CFF67",
       cursorWidth: 2,
       barWidth: 2,
       barGap: 1,
@@ -201,6 +205,21 @@ export function MiniPlayer() {
     setIsMuted(!isMuted);
   };
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
+      if (event.code === "Space") {
+        event.preventDefault();
+        if (isPlaying) pause(); else resume();
+      }
+      if (event.key.toLowerCase() === "n") next();
+      if (event.key.toLowerCase() === "p") previous();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isPlaying, next, pause, previous, resume]);
+
   // Handle seek on static waveform
   const handleStaticSeek = useCallback((percent: number) => {
     const newProgress = (percent / 100) * duration;
@@ -215,11 +234,12 @@ export function MiniPlayer() {
   return (
     <AnimatePresence>
       <motion.div
+        data-testid="player-dock"
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
         layout
-        className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--color-black)] text-white border-t-2 border-[var(--color-primary)]"
+        className="fixed bottom-0 left-0 right-0 z-[60] border-t border-white/12 bg-[var(--color-black)]/95 text-white shadow-[0_-20px_60px_rgba(0,0,0,.18)] backdrop-blur-xl"
       >
         {/* Expanded Waveform */}
         {isExpanded && (
@@ -236,7 +256,7 @@ export function MiniPlayer() {
                 progress={progressPercent}
                 height={80}
                 waveColor="rgba(255, 255, 255, 0.3)"
-                progressColor="#1B9B4B"
+                progressColor="#6CFF67"
                 interactive
                 onSeek={handleStaticSeek}
               />
@@ -256,7 +276,7 @@ export function MiniPlayer() {
               <div className="w-12 h-12 relative rounded-[var(--radius-sm)] overflow-hidden border-2 border-white/20 flex-shrink-0">
                 <Image
                   src={albumCover}
-                  alt={albumTitle || "Album cover"}
+                  alt={albumTitle || (locale === "fr" ? "Pochette de l’album" : "Album cover")}
                   fill
                   sizes="48px"
                   className="object-cover"
@@ -281,7 +301,7 @@ export function MiniPlayer() {
                   progress={progressPercent}
                   height={40}
                   waveColor="rgba(255, 255, 255, 0.3)"
-                  progressColor="#1B9B4B"
+                  progressColor="#6CFF67"
                   interactive
                   onSeek={handleStaticSeek}
                 />
@@ -298,7 +318,7 @@ export function MiniPlayer() {
           {hasError && (
             <div className="hidden sm:flex items-center gap-1 text-yellow-400 text-xs flex-shrink-0">
               <AlertCircle size={14} />
-              <span>Audio non disponible</span>
+              <span>{locale === "fr" ? "Audio non disponible" : "Audio unavailable"}</span>
             </div>
           )}
 
@@ -306,23 +326,26 @@ export function MiniPlayer() {
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
               onClick={previous}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              aria-label={locale === "fr" ? "Piste précédente" : "Previous track"}
             >
               <SkipBack size={20} />
             </button>
             <button
               onClick={() => (isPlaying ? pause() : resume())}
-              className="w-10 h-10 bg-[var(--color-primary)] rounded-full border-2 border-white flex items-center justify-center shadow-[3px_3px_0px_white] hover:shadow-[4px_4px_0px_white] hover:translate-x-[-1px] hover:translate-y-[-1px] active:shadow-[1px_1px_0px_white] active:translate-x-[1px] active:translate-y-[1px] transition-all"
+              className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary)] text-black transition hover:scale-105"
+              aria-label={isPlaying ? t("common.pause") : t("common.play")}
             >
               {isPlaying ? (
-                <Pause size={18} className="fill-white" />
+                <Pause size={18} className="fill-current" />
               ) : (
-                <Play size={18} className="fill-white ml-0.5" />
+                <Play size={18} className="fill-current ml-0.5" />
               )}
             </button>
             <button
               onClick={next}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              aria-label={locale === "fr" ? "Piste suivante" : "Next track"}
             >
               <SkipForward size={20} />
             </button>
@@ -339,7 +362,8 @@ export function MiniPlayer() {
           <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
             <button
               onClick={toggleMute}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              aria-label={isMuted ? (locale === "fr" ? "Réactiver le son" : "Unmute") : (locale === "fr" ? "Couper le son" : "Mute")}
             >
               {isMuted || volume === 0 ? (
                 <VolumeX size={18} />
@@ -363,14 +387,16 @@ export function MiniPlayer() {
             <button
               onClick={() => setIsExpanded(!isExpanded)}
               className="p-2 rounded-full hover:bg-white/10 transition-colors hidden sm:block"
-              title={isExpanded ? "Réduire" : "Agrandir"}
+              title={isExpanded ? (locale === "fr" ? "Réduire" : "Collapse") : (locale === "fr" ? "Agrandir" : "Expand")}
+              aria-label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Agrandir le lecteur" : "Expand player")}
             >
               <Maximize2 size={18} className={isExpanded ? "rotate-180" : ""} />
             </button>
             <button
               onClick={clearQueue}
               className="p-2 rounded-full hover:bg-white/10 transition-colors"
-              title="Fermer"
+              title={t("common.close")}
+              aria-label={t("common.close")}
             >
               <X size={18} />
             </button>

@@ -10,7 +10,7 @@ export function Skeleton({ className }: SkeletonProps) {
   return (
     <div
       className={cn(
-        "animate-pulse bg-[var(--color-gray-100)] rounded-[var(--radius-sm)]",
+        "animate-pulse bg-[var(--color-gray-200)] rounded-[var(--radius-md)]",
         className
       )}
     />
@@ -19,7 +19,7 @@ export function Skeleton({ className }: SkeletonProps) {
 
 export function AlbumCardSkeleton() {
   return (
-    <div className="bg-[var(--color-white)] border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[5px_5px_0px_var(--color-black)] overflow-hidden">
+    <div className="bg-[var(--color-white)] border border-[var(--color-line)] rounded-[var(--radius-lg)] overflow-hidden">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-4 space-y-2">
         <Skeleton className="h-5 w-3/4" />

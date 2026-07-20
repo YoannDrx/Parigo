@@ -5,27 +5,29 @@ import Link from "next/link";
 import { Play } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Playlist } from "@/types";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface PlaylistCardProps {
   playlist: Playlist;
 }
 
 export function PlaylistCard({ playlist }: PlaylistCardProps) {
+  const { t } = useI18n();
   return (
     <Link href={`/playlists/${playlist.id}`}>
       <motion.div
-        className="group/card bg-[var(--color-white)] border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[5px_5px_0px_var(--color-black)] overflow-hidden transition-all duration-200 hover:shadow-[8px_8px_0px_var(--color-black)] hover:translate-x-[-3px] hover:translate-y-[-3px]"
-        whileHover={{ scale: 1.02 }}
+        className="group/card"
+        whileHover={{ y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
         {/* Cover Image */}
-        <div className="relative aspect-video overflow-hidden">
+        <div className="relative aspect-square overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
           <Image
             src={playlist.cover}
             alt={playlist.title}
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover/card:scale-105"
+            className="object-cover transition duration-[900ms] ease-out group-hover/card:scale-[1.035]"
           />
 
           {/* Overlay */}
@@ -34,14 +36,15 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
           {/* Play button */}
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity">
             <button
-              className="w-14 h-14 bg-[var(--color-primary)] rounded-full border-2 border-[var(--color-black)] shadow-[4px_4px_0px_var(--color-black)] flex items-center justify-center hover:shadow-[6px_6px_0px_var(--color-black)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-primary)] text-black transition hover:scale-105"
+              aria-label={`${t("common.play")} ${playlist.title}`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 // TODO: Play playlist
               }}
             >
-              <Play size={24} className="text-white fill-white ml-1" />
+              <Play size={24} className="fill-current ml-1" />
             </button>
           </div>
 
@@ -56,15 +59,15 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
         </div>
 
         {/* Info - fixed height for uniform cards */}
-        <div className="p-3 h-[90px] flex flex-col min-w-0">
-          <h3 className="font-semibold text-[var(--color-black)] truncate mb-1 text-sm">
+        <div className="flex min-w-0 flex-col pt-4">
+          <h3 className="mb-1 truncate text-lg font-semibold tracking-[-.035em] md:text-xl">
             {playlist.title}
           </h3>
-          <p className="text-xs text-[var(--color-gray-600)] line-clamp-2 flex-1">
+          <p className="line-clamp-2 flex-1 text-xs text-[var(--text-muted)]">
             {playlist.description}
           </p>
           <p className="text-xs text-[var(--color-gray-400)] mt-auto">
-            {playlist.trackCount ?? playlist.trackIds?.length ?? 0} pistes
+            {playlist.trackCount ?? playlist.trackIds?.length ?? 0} {t("catalog.tracks")}
           </p>
         </div>
       </motion.div>
