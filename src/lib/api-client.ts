@@ -39,6 +39,8 @@ export interface ApiTrack {
   albumTitle: string;
   albumSlug: string;
   albumCover: string;
+  albumLabel?: string;
+  albumLabelSlug?: string;
   genres: string[];
   moods: string[];
   instruments?: string[];
@@ -155,6 +157,8 @@ export async function fetchTracks(params?: {
   minDuration?: number;
   maxDuration?: number;
   isVocal?: boolean;
+  label?: string;
+  sort?: "relevance" | "recent" | "title" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
 }): Promise<{ tracks: ApiTrack[] } & PaginatedResponse<ApiTrack>> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
@@ -172,6 +176,8 @@ export async function fetchTracks(params?: {
   if (params?.minDuration) searchParams.set("minDuration", params.minDuration.toString());
   if (params?.maxDuration) searchParams.set("maxDuration", params.maxDuration.toString());
   if (params?.isVocal !== undefined) searchParams.set("isVocal", params.isVocal.toString());
+  if (params?.label) searchParams.set("label", params.label);
+  if (params?.sort) searchParams.set("sort", params.sort);
 
   const res = await fetch(`${API_BASE}/tracks?${searchParams}`);
   if (!res.ok) throw new Error("Failed to fetch tracks");

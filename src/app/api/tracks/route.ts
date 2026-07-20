@@ -19,13 +19,32 @@ export async function GET(request: NextRequest) {
     const minDuration = searchParams.get("minDuration");
     const maxDuration = searchParams.get("maxDuration");
     const isVocal = searchParams.get("isVocal");
+    const labelSlug = searchParams.get("label");
+    const sort = searchParams.get("sort") || "relevance";
 
     // Build where clause
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       isActive: true,
-      album: { isActive: true },
+      album: {
+        isActive: true,
+        ...(labelSlug ? { label: { slug: labelSlug } } : {}),
+      },
     };
+
+    const orderBy = sort === "recent"
+      ? [{ album: { releaseDate: "desc" as const } }, { trackNumber: "asc" as const }]
+      : sort === "title"
+        ? [{ title: "asc" as const }]
+        : sort === "bpm-asc"
+          ? [{ bpm: "asc" as const }, { title: "asc" as const }]
+          : sort === "bpm-desc"
+            ? [{ bpm: "desc" as const }, { title: "asc" as const }]
+            : sort === "duration-asc"
+              ? [{ duration: "asc" as const }, { title: "asc" as const }]
+              : sort === "duration-desc"
+                ? [{ duration: "desc" as const }, { title: "asc" as const }]
+                : [{ album: { order: "asc" as const } }, { trackNumber: "asc" as const }];
 
     // Text search
     if (query) {
@@ -103,6 +122,12 @@ export async function GET(request: NextRequest) {
                   path: true,
                 },
               },
+              label: {
+                select: {
+                  name: true,
+                  slug: true,
+                },
+              },
             },
           },
           audio: {
@@ -143,7 +168,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
-        orderBy: [{ album: { order: "asc" } }, { trackNumber: "asc" }],
+        orderBy,
         take: limit,
         skip: offset,
       }),
@@ -164,6 +189,8 @@ export async function GET(request: NextRequest) {
       albumTitle: track.album.title,
       albumSlug: track.album.slug,
       albumCover: track.album.cover?.path || "/images/placeholder-album.jpg",
+      albumLabel: track.album.label?.name,
+      albumLabelSlug: track.album.label?.slug,
       genres: track.genres.map((g) => g.genre.name),
       moods: track.moods.map((m) => m.mood.name),
       instruments: track.instruments.map((i) => i.instrument.name),

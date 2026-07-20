@@ -10,6 +10,8 @@ export interface Track {
   albumTitle?: string;
   albumSlug?: string;
   albumCover?: string;
+  albumLabel?: string;
+  albumLabelSlug?: string;
   genres: string[];
   moods: string[];
   instruments?: string[];
@@ -97,4 +99,57 @@ export interface FilterState {
   instruments: string[];
   isVocal: boolean | null;
   searchQuery: string;
+}
+
+export type MediaKind = "album" | "synchro" | "artist" | "label";
+
+export interface MediaCredit {
+  src: string;
+  source: string;
+  kind: MediaKind;
+  title: string;
+  mock: boolean;
+}
+
+export interface SearchIntent {
+  raw: string;
+  freeText: string;
+  genres: string[];
+  moods: string[];
+  instruments: string[];
+  bpmRange: [number, number] | null;
+  isVocal: boolean | null;
+}
+
+export interface CatalogQuery extends Partial<FilterState> {
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
+export interface ShortlistItem {
+  track: Track;
+  addedAt: string;
+}
+
+export type CatalogTrack = Track;
+export type CatalogAlbum = Album;
+export interface CatalogAlbumDetail extends Album { tracks: Track[]; }
+export type CatalogPlaylist = Playlist;
+export type CatalogArtist = Artist;
+export type CatalogLabel = Label;
+
+export interface CatalogAdapter {
+  search(query: CatalogQuery): Promise<PaginatedResult<CatalogTrack>>;
+  getAlbums(query?: CatalogQuery): Promise<PaginatedResult<CatalogAlbum>>;
+  getAlbum(slug: string): Promise<CatalogAlbumDetail | null>;
+  getPlaylists(query?: CatalogQuery): Promise<PaginatedResult<CatalogPlaylist>>;
+  getArtists(query?: CatalogQuery): Promise<PaginatedResult<CatalogArtist>>;
+  getLabels(query?: CatalogQuery): Promise<PaginatedResult<CatalogLabel>>;
 }

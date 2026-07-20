@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { publicArtistImage } from "@/lib/media-paths";
 
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "100"), 200);
     const offset = parseInt(searchParams.get("offset") || "0");
     const letter = searchParams.get("letter"); // Filter by first letter
 
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
       slug: artist.slug,
       name: artist.name,
       bio: artist.bio,
-      image: artist.image?.path || "/images/placeholder-artist.jpg",
+      image: publicArtistImage(artist.image?.path, artist.slug),
       links: artist.links.map((link) => ({
         platform: link.platform,
         url: link.url,

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { publicArtistImage } from "@/lib/media-paths";
 
 // GET - Get a single artist by slug with discography
 export async function GET(
@@ -68,7 +69,7 @@ export async function GET(
       slug: artist.slug,
       name: artist.name,
       bio: artist.bio,
-      image: artist.image?.path || null,
+      image: publicArtistImage(artist.image?.path, artist.slug),
       links: artist.links.map((link) => ({
         id: link.id,
         platform: link.platform,
