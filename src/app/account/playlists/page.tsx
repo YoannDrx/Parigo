@@ -6,6 +6,7 @@ import { ListMusic, Plus, Loader2, Lock, Globe } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface UserPlaylist {
   id: string;
@@ -19,6 +20,7 @@ interface UserPlaylist {
 }
 
 export default function PlaylistsPage() {
+  const { locale, t } = useI18n();
   const { data: session } = useSession();
   const [playlists, setPlaylists] = useState<UserPlaylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,18 +55,18 @@ export default function PlaylistsPage() {
             <ListMusic size={24} className="text-[var(--color-secondary)]" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--color-black)]">
-              Mes playlists
+            <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
+              {t("account.playlists")}
             </h1>
             <p className="text-[var(--color-gray-600)]">
-              {playlists.length} playlist{playlists.length > 1 ? "s" : ""}
+              {playlists.length} {playlists.length === 1 ? "playlist" : "playlists"}
             </p>
           </div>
         </div>
 
         <Button variant="primary" className="gap-2">
           <Plus size={18} />
-          <span className="hidden sm:inline">Créer une playlist</span>
+          <span className="hidden sm:inline">{locale === "fr" ? "Créer une playlist" : "Create a playlist"}</span>
         </Button>
       </div>
 
@@ -83,14 +85,14 @@ export default function PlaylistsPage() {
             <ListMusic size={40} className="text-[var(--color-gray-400)]" />
           </div>
           <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
-            Aucune playlist
+            {locale === "fr" ? "Aucune playlist" : "No playlists"}
           </h3>
           <p className="text-[var(--color-gray-600)] mb-6 max-w-md">
-            Créez votre première playlist pour organiser vos pistes préférées
+            {locale === "fr" ? "Créez votre première playlist pour organiser vos pistes préférées." : "Create your first playlist to organise your favourite tracks."}
           </p>
           <Button variant="primary" className="gap-2">
             <Plus size={18} />
-            Créer ma première playlist
+            {locale === "fr" ? "Créer ma première playlist" : "Create my first playlist"}
           </Button>
         </motion.div>
       ) : (
@@ -103,7 +105,7 @@ export default function PlaylistsPage() {
               transition={{ delay: index * 0.05 }}
             >
               <Link href={`/playlists/${playlist.slug}`}>
-                <div className="bg-white border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[4px_4px_0px_var(--color-black)] overflow-hidden hover:shadow-[6px_6px_0px_var(--color-black)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all">
+                <div className="overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:shadow-[var(--theme-shadow)]">
                   <div className="aspect-square relative">
                     <img
                       src={playlist.cover || "/images/placeholder-playlist.jpg"}
@@ -127,7 +129,7 @@ export default function PlaylistsPage() {
                       {playlist.title}
                     </h3>
                     <p className="text-sm text-[var(--color-gray-600)]">
-                      {playlist.trackCount} piste{playlist.trackCount > 1 ? "s" : ""}
+                      {playlist.trackCount} {playlist.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}
                     </p>
                   </div>
                 </div>

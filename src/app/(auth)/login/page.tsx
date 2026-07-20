@@ -7,8 +7,10 @@ import { motion } from "framer-motion";
 import { Mail, Lock, Loader2, AlertCircle } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import { Button, Card, Input } from "@/components/ui";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function LoginPage() {
+  const { locale, t } = useI18n();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -27,13 +29,13 @@ export default function LoginPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Une erreur est survenue");
+        setError(result.error.message || (locale === "fr" ? "Une erreur est survenue" : "Something went wrong"));
       } else {
         router.push("/");
         router.refresh();
       }
     } catch {
-      setError("Une erreur est survenue lors de la connexion");
+      setError(locale === "fr" ? "Une erreur est survenue lors de la connexion" : "An error occurred while signing in");
     } finally {
       setIsLoading(false);
     }
@@ -43,15 +45,16 @@ export default function LoginPage() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-md"
+      className="w-full max-w-lg"
     >
-      <Card padding="lg" className="bg-white">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-black)] mb-2">
-            Connexion
+      <Card padding="lg" className="border-[var(--line)] bg-[var(--surface)] shadow-none">
+        <div className="mb-10">
+          <p className="eyebrow mb-5 text-[var(--color-primary-dark)]">{t("account.eyebrow")}</p>
+          <h1 className="mb-3 font-[var(--font-editorial)] text-6xl font-normal tracking-[-.055em]">
+            {t("auth.login")}
           </h1>
-          <p className="text-[var(--color-gray-600)]">
-            Accédez à votre espace Parigo
+          <p className="text-[var(--text-muted)]">
+            {t("auth.loginIntro")}
           </p>
         </div>
 
@@ -72,7 +75,7 @@ export default function LoginPage() {
               htmlFor="email"
               className="block text-sm font-medium text-[var(--color-black)] mb-2"
             >
-              Email
+              {t("auth.email")}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -95,13 +98,13 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-[var(--color-black)]"
               >
-                Mot de passe
+                {t("auth.password")}
               </label>
               <Link
                 href="/forgot-password"
                 className="text-sm text-[var(--color-primary)] hover:underline"
               >
-                Mot de passe oublié ?
+                {locale === "fr" ? "Mot de passe oublié ?" : "Forgot password?"}
               </Link>
             </div>
             <div className="relative">
@@ -130,22 +133,22 @@ export default function LoginPage() {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                Connexion...
+                {t("auth.loggingIn")}
               </>
             ) : (
-              "Se connecter"
+              t("auth.login")
             )}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-[var(--color-gray-600)]">
-            Pas encore de compte ?{" "}
+            {t("auth.noAccount")} {" "}
             <Link
               href="/register"
               className="text-[var(--color-primary)] font-medium hover:underline"
             >
-              S&apos;inscrire
+              {t("auth.register")}
             </Link>
           </p>
         </div>

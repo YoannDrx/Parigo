@@ -13,15 +13,9 @@ import {
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { redirect } from "next/navigation";
-
-const navItems = [
-  { icon: User, label: "Mon compte", href: "/account" },
-  { icon: Heart, label: "Mes favoris", href: "/account/favorites" },
-  { icon: ListMusic, label: "Mes playlists", href: "/account/playlists" },
-  { icon: Clock, label: "Historique", href: "/account/history" },
-  { icon: Download, label: "Téléchargements", href: "/account/downloads" },
-  { icon: Settings, label: "Paramètres", href: "/account/settings" },
-];
+import { Header, Footer } from "@/components/layout";
+import { MiniPlayer } from "@/components/features";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function AccountLayout({
   children,
@@ -30,6 +24,15 @@ export default function AccountLayout({
 }) {
   const { data: session, isPending } = useSession();
   const pathname = usePathname();
+  const { t } = useI18n();
+  const navItems = [
+    { icon: User, label: t("account.profile"), href: "/account" },
+    { icon: Heart, label: t("account.favorites"), href: "/account/favorites" },
+    { icon: ListMusic, label: t("account.playlists"), href: "/account/playlists" },
+    { icon: Clock, label: t("account.history"), href: "/account/history" },
+    { icon: Download, label: t("account.downloads"), href: "/account/downloads" },
+    { icon: Settings, label: t("account.settings"), href: "/account/settings" },
+  ];
 
   // Redirect if not authenticated
   if (!isPending && !session?.user) {
@@ -45,23 +48,26 @@ export default function AccountLayout({
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-32">
-      <div className="container mx-auto px-4 lg:px-6">
+    <div className="page-shell flex min-h-screen flex-col">
+      <Header />
+      <header className="border-b border-[var(--line)] px-4 py-16 md:px-8 md:py-24"><div className="mx-auto max-w-[1600px]"><p className="eyebrow mb-5 text-[var(--color-primary-dark)]">{t("account.eyebrow")}</p><h1 className="font-[var(--font-editorial)] text-6xl font-normal tracking-[-.055em] md:text-8xl">{t("account.title")}</h1></div></header>
+      <div className="flex-1 pb-32 pt-10 md:pt-16">
+      <div className="mx-auto max-w-[1600px] px-4 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}
-          <aside className="lg:w-64 flex-shrink-0">
+          <aside className="flex-shrink-0 lg:w-64">
             <div className="sticky top-24">
-              <nav className="bg-white border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[4px_4px_0px_var(--color-black)] overflow-hidden">
+              <nav className="flex overflow-x-auto border-y border-[var(--line)] lg:block">
                 {navItems.map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 transition-colors ${
+                      className={`flex min-h-12 shrink-0 items-center gap-3 border-b border-transparent px-4 py-3 transition-colors lg:w-full ${
                         isActive
-                          ? "bg-[var(--color-primary)] text-white"
-                          : "text-[var(--color-black)] hover:bg-[var(--color-gray-100)]"
+                          ? "border-[var(--foreground)] text-[var(--color-primary-dark)]"
+                          : "text-[var(--text-muted)] hover:text-[var(--foreground)]"
                       }`}
                     >
                       <item.icon size={20} />
@@ -86,6 +92,9 @@ export default function AccountLayout({
           </main>
         </div>
       </div>
+      </div>
+      <Footer />
+      <MiniPlayer />
     </div>
   );
 }

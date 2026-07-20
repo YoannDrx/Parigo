@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
 import { Heart, Music, Disc3, ListMusic, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow, AlbumCard, PlaylistCard } from "@/components/features";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 type TabType = "tracks" | "albums" | "playlists";
 
@@ -44,6 +46,7 @@ interface FavoritePlaylist {
 }
 
 export default function FavoritesPage() {
+  const { locale, t } = useI18n();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>("tracks");
   const [tracks, setTracks] = useState<FavoriteTrack[]>([]);
@@ -86,9 +89,9 @@ export default function FavoritesPage() {
   };
 
   const tabs = [
-    { id: "tracks" as TabType, label: "Pistes", icon: Music, count: tracks.length },
-    { id: "albums" as TabType, label: "Albums", icon: Disc3, count: albums.length },
-    { id: "playlists" as TabType, label: "Playlists", icon: ListMusic, count: playlists.length },
+    { id: "tracks" as TabType, label: t("catalog.tracks"), icon: Music, count: tracks.length },
+    { id: "albums" as TabType, label: t("common.albums"), icon: Disc3, count: albums.length },
+    { id: "playlists" as TabType, label: t("common.playlists"), icon: ListMusic, count: playlists.length },
   ];
 
   return (
@@ -99,11 +102,11 @@ export default function FavoritesPage() {
           <Heart size={24} className="text-red-500" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-black)]">
-            Mes favoris
+          <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
+            {t("account.favorites")}
           </h1>
           <p className="text-[var(--color-gray-600)]">
-            {tracks.length + albums.length + playlists.length} éléments
+            {tracks.length + albums.length + playlists.length} {locale === "fr" ? "éléments" : "items"}
           </p>
         </div>
       </div>
@@ -114,10 +117,10 @@ export default function FavoritesPage() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-full border-2 transition-all whitespace-nowrap ${
+            className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2.5 transition-all ${
               activeTab === tab.id
-                ? "bg-[var(--color-black)] text-white border-[var(--color-black)]"
-                : "bg-white text-[var(--color-black)] border-[var(--color-black)] hover:shadow-[2px_2px_0px_var(--color-black)]"
+                ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]"
+                : "border-[var(--line)] hover:border-[var(--line-strong)]"
             }`}
           >
             <tab.icon size={18} />
@@ -155,8 +158,8 @@ export default function FavoritesPage() {
                 {tracks.length === 0 ? (
                   <EmptyState
                     icon={Music}
-                    title="Aucune piste en favoris"
-                    description="Ajoutez des pistes à vos favoris en cliquant sur l'icône coeur"
+                    title={locale === "fr" ? "Aucune piste en favoris" : "No favourite tracks"}
+                    description={locale === "fr" ? "Ajoutez des pistes à vos favoris pour les retrouver ici." : "Add tracks to your favourites to find them here."}
                   />
                 ) : (
                   tracks.map((track, index) => (
@@ -203,8 +206,8 @@ export default function FavoritesPage() {
                 {albums.length === 0 ? (
                   <EmptyState
                     icon={Disc3}
-                    title="Aucun album en favoris"
-                    description="Ajoutez des albums à vos favoris pour les retrouver facilement"
+                    title={locale === "fr" ? "Aucun album en favoris" : "No favourite albums"}
+                    description={locale === "fr" ? "Ajoutez des albums à vos favoris pour les retrouver facilement." : "Add albums to your favourites to find them easily."}
                   />
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -234,8 +237,8 @@ export default function FavoritesPage() {
                 {playlists.length === 0 ? (
                   <EmptyState
                     icon={ListMusic}
-                    title="Aucune playlist en favoris"
-                    description="Suivez des playlists pour les retrouver ici"
+                    title={locale === "fr" ? "Aucune playlist en favoris" : "No favourite playlists"}
+                    description={locale === "fr" ? "Suivez des playlists pour les retrouver ici." : "Follow playlists to find them here."}
                   />
                 ) : (
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -267,7 +270,7 @@ function EmptyState({
   title,
   description,
 }: {
-  icon: React.ElementType;
+  icon: LucideIcon;
   title: string;
   description: string;
 }) {
@@ -276,7 +279,7 @@ function EmptyState({
       <div className="w-16 h-16 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
         <Icon size={32} className="text-[var(--color-gray-400)]" />
       </div>
-      <h3 className="text-lg font-semibold text-[var(--color-black)] mb-1">
+      <h3 className="mb-1 font-[var(--font-editorial)] text-3xl font-normal">
         {title}
       </h3>
       <p className="text-[var(--color-gray-600)]">{description}</p>

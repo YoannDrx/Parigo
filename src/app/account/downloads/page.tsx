@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Download, Loader2, FileAudio, Calendar, Tag } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui";
-import { formatDuration } from "@/lib/utils";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface DownloadEntry {
   id: string;
@@ -32,6 +32,7 @@ const licenseLabels: Record<string, { label: string; color: string }> = {
 };
 
 export default function DownloadsPage() {
+  const { locale, t } = useI18n();
   const { data: session } = useSession();
   const [downloads, setDownloads] = useState<DownloadEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,11 +66,11 @@ export default function DownloadsPage() {
           <Download size={24} className="text-green-500" />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-black)]">
-            Téléchargements
+          <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
+            {t("account.downloads")}
           </h1>
           <p className="text-[var(--color-gray-600)]">
-            {downloads.length} téléchargement{downloads.length > 1 ? "s" : ""}
+            {downloads.length} {locale === "fr" ? `téléchargement${downloads.length > 1 ? "s" : ""}` : `download${downloads.length === 1 ? "" : "s"}`}
           </p>
         </div>
       </div>
@@ -89,10 +90,10 @@ export default function DownloadsPage() {
             <Download size={40} className="text-[var(--color-gray-400)]" />
           </div>
           <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
-            Aucun téléchargement
+            {locale === "fr" ? "Aucun téléchargement" : "No downloads"}
           </h3>
           <p className="text-[var(--color-gray-600)] max-w-md">
-            Vos pistes téléchargées avec licence apparaîtront ici
+            {locale === "fr" ? "Vos pistes téléchargées avec licence apparaîtront ici." : "Your licensed downloads will appear here."}
           </p>
         </motion.div>
       ) : (
@@ -105,7 +106,7 @@ export default function DownloadsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="bg-white border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[3px_3px_0px_var(--color-black)] p-4"
+                className="border border-[var(--line)] bg-[var(--surface)] p-4"
               >
                 <div className="flex items-center gap-4">
                   {/* Cover */}
@@ -136,7 +137,7 @@ export default function DownloadsPage() {
                     <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-gray-500)]">
                       <span className="flex items-center gap-1">
                         <Calendar size={12} />
-                        {new Date(download.downloadedAt).toLocaleDateString("fr-FR")}
+                        {new Date(download.downloadedAt).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB")}
                       </span>
                       {download.projectName && (
                         <span className="flex items-center gap-1">
@@ -157,7 +158,7 @@ export default function DownloadsPage() {
                   {/* Re-download Button */}
                   <Button variant="outline" size="sm" className="gap-2">
                     <Download size={16} />
-                    <span className="hidden sm:inline">Télécharger</span>
+                    <span className="hidden sm:inline">{locale === "fr" ? "Télécharger" : "Download"}</span>
                   </Button>
                 </div>
               </motion.div>

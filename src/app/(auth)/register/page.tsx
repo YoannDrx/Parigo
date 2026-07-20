@@ -7,8 +7,10 @@ import { motion } from "framer-motion";
 import { Mail, Lock, User, Loader2, AlertCircle, CheckCircle } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
 import { Button, Card, Input } from "@/components/ui";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function RegisterPage() {
+  const { locale, t } = useI18n();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -18,9 +20,9 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordRequirements = [
-    { label: "Au moins 8 caractères", met: password.length >= 8 },
-    { label: "Au moins une majuscule", met: /[A-Z]/.test(password) },
-    { label: "Au moins un chiffre", met: /[0-9]/.test(password) },
+    { label: locale === "fr" ? "Au moins 8 caractères" : "At least 8 characters", met: password.length >= 8 },
+    { label: locale === "fr" ? "Au moins une majuscule" : "At least one uppercase letter", met: /[A-Z]/.test(password) },
+    { label: locale === "fr" ? "Au moins un chiffre" : "At least one number", met: /[0-9]/.test(password) },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,12 +30,12 @@ export default function RegisterPage() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas");
+      setError(locale === "fr" ? "Les mots de passe ne correspondent pas" : "Passwords do not match");
       return;
     }
 
     if (!passwordRequirements.every((req) => req.met)) {
-      setError("Le mot de passe ne respecte pas tous les critères");
+      setError(locale === "fr" ? "Le mot de passe ne respecte pas tous les critères" : "The password does not meet all requirements");
       return;
     }
 
@@ -47,13 +49,13 @@ export default function RegisterPage() {
       });
 
       if (result.error) {
-        setError(result.error.message || "Une erreur est survenue");
+        setError(result.error.message || (locale === "fr" ? "Une erreur est survenue" : "Something went wrong"));
       } else {
         router.push("/");
         router.refresh();
       }
     } catch {
-      setError("Une erreur est survenue lors de l'inscription");
+      setError(locale === "fr" ? "Une erreur est survenue lors de l'inscription" : "An error occurred while creating the account");
     } finally {
       setIsLoading(false);
     }
@@ -63,15 +65,16 @@ export default function RegisterPage() {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="w-full max-w-md"
+      className="w-full max-w-lg py-8"
     >
-      <Card padding="lg" className="bg-white">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-[var(--color-black)] mb-2">
-            Créer un compte
+      <Card padding="lg" className="border-[var(--line)] bg-[var(--surface)] shadow-none">
+        <div className="mb-10">
+          <p className="eyebrow mb-5 text-[var(--color-primary-dark)]">{t("account.eyebrow")}</p>
+          <h1 className="mb-3 font-[var(--font-editorial)] text-6xl font-normal tracking-[-.055em]">
+            {t("auth.register")}
           </h1>
           <p className="text-[var(--color-gray-600)]">
-            Rejoignez la communauté Parigo
+            {t("auth.registerIntro")}
           </p>
         </div>
 
@@ -92,7 +95,7 @@ export default function RegisterPage() {
               htmlFor="name"
               className="block text-sm font-medium text-[var(--color-black)] mb-2"
             >
-              Nom complet
+              {t("auth.name")}
             </label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -101,7 +104,7 @@ export default function RegisterPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Votre nom"
+                placeholder={t("auth.name")}
                 className="pl-10"
                 required
                 disabled={isLoading}
@@ -114,7 +117,7 @@ export default function RegisterPage() {
               htmlFor="email"
               className="block text-sm font-medium text-[var(--color-black)] mb-2"
             >
-              Email
+              {t("auth.email")}
             </label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -136,7 +139,7 @@ export default function RegisterPage() {
               htmlFor="password"
               className="block text-sm font-medium text-[var(--color-black)] mb-2"
             >
-              Mot de passe
+              {t("auth.password")}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -188,7 +191,7 @@ export default function RegisterPage() {
               htmlFor="confirmPassword"
               className="block text-sm font-medium text-[var(--color-black)] mb-2"
             >
-              Confirmer le mot de passe
+              {locale === "fr" ? "Confirmer le mot de passe" : "Confirm password"}
             </label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-gray-400)]" />
@@ -206,7 +209,7 @@ export default function RegisterPage() {
             </div>
             {confirmPassword && password !== confirmPassword && (
               <p className="mt-1 text-xs text-red-500">
-                Les mots de passe ne correspondent pas
+                {locale === "fr" ? "Les mots de passe ne correspondent pas" : "Passwords do not match"}
               </p>
             )}
           </div>
@@ -221,22 +224,22 @@ export default function RegisterPage() {
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                Inscription...
+                {t("auth.registering")}
               </>
             ) : (
-              "S'inscrire"
+              t("auth.register")
             )}
           </Button>
         </form>
 
         <div className="mt-6 text-center">
           <p className="text-sm text-[var(--color-gray-600)]">
-            Déjà un compte ?{" "}
+            {t("auth.hasAccount")} {" "}
             <Link
               href="/login"
               className="text-[var(--color-primary)] font-medium hover:underline"
             >
-              Se connecter
+              {t("auth.login")}
             </Link>
           </p>
         </div>

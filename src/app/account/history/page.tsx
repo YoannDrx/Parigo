@@ -6,6 +6,7 @@ import { Clock, Loader2, Trash2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow } from "@/components/features";
 import { Button } from "@/components/ui";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface HistoryEntry {
   id: string;
@@ -27,6 +28,7 @@ interface HistoryEntry {
 }
 
 export default function HistoryPage() {
+  const { locale, t } = useI18n();
   const { data: session } = useSession();
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +55,7 @@ export default function HistoryPage() {
   };
 
   const clearHistory = async () => {
-    if (!confirm("Êtes-vous sûr de vouloir effacer votre historique ?")) return;
+    if (!confirm(locale === "fr" ? "Êtes-vous sûr de vouloir effacer votre historique ?" : "Are you sure you want to clear your history?")) return;
 
     try {
       const response = await fetch("/api/user/history", {
@@ -70,7 +72,7 @@ export default function HistoryPage() {
   // Group history by date
   const groupedHistory = history.reduce(
     (acc, entry) => {
-      const date = new Date(entry.playedAt).toLocaleDateString("fr-FR", {
+      const date = new Date(entry.playedAt).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB", {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -93,11 +95,11 @@ export default function HistoryPage() {
             <Clock size={24} className="text-blue-500" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[var(--color-black)]">
-              Historique
+            <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
+              {t("account.history")}
             </h1>
             <p className="text-[var(--color-gray-600)]">
-              {history.length} écoute{history.length > 1 ? "s" : ""}
+              {history.length} {locale === "fr" ? `écoute${history.length > 1 ? "s" : ""}` : `listen${history.length === 1 ? "" : "s"}`}
             </p>
           </div>
         </div>
@@ -109,7 +111,7 @@ export default function HistoryPage() {
             className="gap-2 text-red-500 border-red-500 hover:bg-red-50"
           >
             <Trash2 size={18} />
-            <span className="hidden sm:inline">Effacer</span>
+            <span className="hidden sm:inline">{locale === "fr" ? "Effacer" : "Clear"}</span>
           </Button>
         )}
       </div>
@@ -129,10 +131,10 @@ export default function HistoryPage() {
             <Clock size={40} className="text-[var(--color-gray-400)]" />
           </div>
           <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
-            Aucun historique
+            {locale === "fr" ? "Aucun historique" : "No listening history"}
           </h3>
           <p className="text-[var(--color-gray-600)] max-w-md">
-            Votre historique d'écoute apparaîtra ici
+            {locale === "fr" ? "Votre historique d’écoute apparaîtra ici." : "Your listening history will appear here."}
           </p>
         </motion.div>
       ) : (
@@ -181,7 +183,7 @@ export default function HistoryPage() {
                       showWaveform={false}
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[var(--color-gray-400)]">
-                      {new Date(entry.playedAt).toLocaleTimeString("fr-FR", {
+                      {new Date(entry.playedAt).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-GB", {
                         hour: "2-digit",
                         minute: "2-digit",
                       })}

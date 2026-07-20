@@ -1,0 +1,19 @@
+import { notFound } from "next/navigation";
+import { Pause, Play, Search, Sparkles } from "lucide-react";
+import { Button, Card, Input, Skeleton, Tag } from "@/components/ui";
+
+const colors = [
+  ["Encre", "#151613"], ["Papier", "#EEECE4"], ["Signal spectral", "#A8FF1F"],
+  ["Surface négative", "#161714"], ["Brouillard", "#E3E0D6"],
+];
+
+export default function DesignSystemPage() {
+  if (process.env.NODE_ENV === "production") notFound();
+  return <main className="min-h-screen bg-[var(--background)] px-4 py-16 text-[var(--foreground)] md:px-8"><div className="mx-auto max-w-6xl"><p className="eyebrow text-[var(--color-primary-dark)]">Interne · développement uniquement</p><h1 className="mt-5 font-[var(--font-editorial)] text-8xl font-normal tracking-[-.06em]">Négatif sonore</h1><p className="mt-6 max-w-2xl text-[var(--text-muted)]">Référence exécutable de la nouvelle identité éditoriale, des thèmes clair et sombre, des états et des composants structurants de Parigo.</p>
+    <section className="mt-16"><h2 className="text-3xl">Couleurs</h2><div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{colors.map(([name,value])=><div key={name}><div className="aspect-square rounded-[20px] border border-black/12" style={{background:value}}/><p className="mt-3 font-semibold">{name}</p><code className="font-mono text-xs text-black/45">{value}</code></div>)}</div></section>
+    <section className="mt-20"><h2 className="text-3xl">Typographie</h2><div className="mt-6 space-y-5 border-y border-[var(--line)] py-8"><p className="font-[var(--font-editorial)] text-7xl leading-none tracking-[-.06em]">Instrument Serif — L’émotion</p><p className="font-[var(--font-heading)] text-5xl tracking-[-.06em]">Archivo — Le signal</p><p className="font-[var(--font-body)] text-2xl">Manrope — une interface claire et humaine.</p><p className="font-mono text-sm">IBM Plex Mono · 124 BPM · 02:36 · PGO 0046</p></div></section>
+    <section className="mt-20"><h2 className="text-3xl">Actions et formulaires</h2><div className="mt-6 flex flex-wrap gap-3"><Button>Action principale</Button><Button variant="secondary">Action sombre</Button><Button variant="outline">Action secondaire</Button><Button variant="ghost">Action discrète</Button><Button disabled>Désactivé</Button></div><div className="mt-6 grid gap-4 md:grid-cols-2"><Input placeholder="Champ standard" /><Input isSearch placeholder="Recherche" /></div></section>
+    <section className="mt-20"><h2 className="text-3xl">Tags et états</h2><div className="mt-6 flex flex-wrap gap-2"><Tag variant="primary">Actif</Tag><Tag variant="genre">Cinématique</Tag><Tag variant="mood">Tension</Tag><Tag variant="instrument">Synthé</Tag><Tag clickable>Interactif</Tag></div><div className="mt-8 grid gap-5 md:grid-cols-3"><Card><Sparkles className="text-[var(--color-primary-dark)]"/><h3 className="mt-6 text-xl">Surface par défaut</h3><p className="mt-2 text-sm text-black/50">Bord fin, élévation légère et espace généreux.</p></Card><Card className="bg-[var(--color-ink)] text-white"><Search/><h3 className="mt-6 text-xl">Surface sombre</h3><p className="mt-2 text-sm text-white/50">Pour les séquences immersives et le player.</p></Card><Card><div className="flex gap-2"><button aria-label="Lire" className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary)]"><Play size={17}/></button><button aria-label="Mettre en pause" className="flex h-11 w-11 items-center justify-center rounded-full border border-black/12"><Pause size={17}/></button></div><h3 className="mt-6 text-xl">Contrôles média</h3></Card></div></section>
+    <section className="mt-20"><h2 className="text-3xl">Chargement</h2><div className="mt-6 space-y-3"><Skeleton className="h-12 w-full"/><Skeleton className="h-12 w-4/5"/><Skeleton className="h-12 w-2/3"/></div></section>
+  </div></main>;
+}
