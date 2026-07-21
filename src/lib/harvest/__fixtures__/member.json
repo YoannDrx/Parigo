@@ -1,0 +1,42 @@
+{
+  "Member": {
+  "ID": "member-fixture-1",
+  "FirstName": "Test",
+  "LastName": "Member",
+  "Email": "member@example.invalid",
+  "Username": "member@example.invalid",
+  "Company": "Example Production",
+  "Country": "France",
+  "Production": "Film",
+  "SubProduction": "Documentary",
+  "Position": "Music supervisor",
+  "Address1": "1 Test Street",
+  "Suburb": "Paris",
+  "Postcode": "75000",
+  "Phone": "+33000000000",
+  "Status": "active",
+  "RegionID": "global-fixture",
+  "TermsAccept": "true",
+  "PrivacyAccept": "true",
+  "Subscribe": "false",
+  "FileFormat": "mp3-320-fixture",
+  "DownloadEnabled": "true",
+  "DownloadLimit": "100",
+  "DownloadsUsed": "12",
+  "DownloadsRemaining": "88",
+  "DownloadStem": "false",
+  "SampleEnabled": "true",
+  "PositionType": "Music supervisor",
+  "Freelancer": "true",
+  "ManagedBy": {
+    "Name": "Parigo Support",
+    "Email": "support@example.invalid",
+    "Phone": ""
+  },
+  "FileFormats": [{ "ID": "mp3-320-fixture" }],
+  "HasProfileImage": "true",
+  "ServiceInfoURLs": {
+    "ProfileImageURL": "https://cdn.example.invalid/member/{id}/{width}/{height}"
+  }
+  }
+}

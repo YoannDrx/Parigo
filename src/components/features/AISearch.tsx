@@ -11,6 +11,7 @@ interface AISearchProps {
   defaultValue?: string;
   compact?: boolean;
   showExamples?: boolean;
+  mode?: "keyword" | "assisted";
   onSearch?: (query: string) => void;
 }
 
@@ -22,18 +23,18 @@ const labels: Record<string, string> = {
   drums: "Batterie", synth: "Synthé", percussion: "Percussions",
 };
 
-export function AISearch({ defaultValue = "", compact = false, showExamples = false, onSearch }: AISearchProps) {
+export function AISearch({ defaultValue = "", compact = false, showExamples = false, mode = "keyword", onSearch }: AISearchProps) {
   const { locale, t } = useI18n();
   const [query, setQuery] = useState(defaultValue);
   const router = useRouter();
   const intent = useMemo(() => parseSearchIntent(query), [query]);
-  const chips = [
+  const chips = mode === "assisted" ? [
     ...intent.genres.map((item) => labels[item] ?? item),
     ...intent.moods.map((item) => labels[item] ?? item),
     ...intent.instruments.map((item) => labels[item] ?? item),
     ...(intent.bpmRange ? [`${intent.bpmRange[0]}–${intent.bpmRange[1]} BPM`] : []),
     ...(intent.isVocal === false ? ["Instrumental"] : intent.isVocal === true ? [locale === "fr" ? "Avec voix" : "Vocals"] : []),
-  ];
+  ] : [];
   const examples = locale === "fr" ? [
     "Une techno magnétique sans voix",
     "Un piano intime pour un documentaire",
@@ -50,7 +51,8 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
     event.preventDefault();
     if (!query.trim()) return;
     if (onSearch) onSearch(query.trim());
-    else router.push(`/search?${intentToSearchParams(intent).toString()}`);
+    else if (mode === "assisted") router.push(`/search?${intentToSearchParams(intent).toString()}`);
+    else router.push(`/search?q=${encodeURIComponent(query.trim())}&view=tracks&type=main`);
   };
 
   return (
@@ -81,7 +83,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
         </button>
       </form>
 
-      {!compact && (
+      {!compact && mode === "assisted" && (
         <div className="mt-3 flex min-h-7 flex-wrap items-center gap-2 px-1 text-[var(--text-muted)]">
           <span className="eyebrow">{t("home.searchDisclosure")}</span>
           {chips.map((chip) => <span key={chip} className="rounded-full border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-xs">{chip}</span>)}

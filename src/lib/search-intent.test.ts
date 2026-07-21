@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { intentToSearchParams, parseSearchIntent } from "./search-intent";
+import { canonicalizeCategoryValues, intentToSearchParams, parseSearchIntent, resolveIntentCategoryIds } from "./search-intent";
+import type { SearchFilterGroup } from "@/types";
 
 describe("parseSearchIntent", () => {
   it("comprend une intention française multi-critères", () => {
@@ -37,5 +38,33 @@ describe("parseSearchIntent", () => {
     const intent = parseSearchIntent("Magnetic techno with vocals");
     expect(intent.genres).toContain("techno");
     expect(intent.isVocal).toBe(true);
+  });
+
+  it("ne cumule pas un genre et un style portant tous les deux le nom Techno", () => {
+    const groups: SearchFilterGroup[] = [
+      { key: "genre", label: "Genre", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_genre-techno", name: "Techno" }] },
+      { key: "moods", label: "Moods", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_mood-energetic", name: "Energetic" }] },
+      { key: "styles", label: "Styles", selection: "include-exclude", total: 1, available: 1, items: [{ id: "style-techno", name: "Techno" }] },
+    ];
+    const intent = parseSearchIntent("Une techno qui tabasse.");
+
+    expect(resolveIntentCategoryIds(intent, groups)).toEqual(["ATT_genre-techno", "ATT_mood-energetic"]);
+    expect(intent.moods).toContain("energetic");
+  });
+
+  it("n'ajoute pas la phrase libre quand des critères structurés seront appliqués", () => {
+    const params = intentToSearchParams(parseSearchIntent("Une techno qui tabasse."));
+
+    expect(params.get("q")).toBeNull();
+    expect(params.getAll("genre")).toEqual(["techno"]);
+  });
+
+  it("nettoie une ancienne URL où un style a été sérialisé comme une catégorie", () => {
+    const groups: SearchFilterGroup[] = [
+      { key: "genre", label: "Genre", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_8c1be9ece2483e34", name: "Techno" }] },
+      { key: "styles", label: "Styles", selection: "include-exclude", total: 1, available: 1, items: [{ id: "b80dffcee47aad5c", name: "Techno" }] },
+    ];
+
+    expect(canonicalizeCategoryValues(["ATT_8c1be9ece2483e34", "ATT_b80dffcee47aad5c"], groups)).toEqual(["ATT_8c1be9ece2483e34"]);
   });
 });

@@ -1,0 +1,14 @@
+.word {
+  transition: fill 360ms var(--ease-out);
+}
+
+:global(.group:hover) .word,
+.root:hover .word {
+  fill: var(--signal-strong);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word {
+    transition-duration: 1ms;
+  }
+}

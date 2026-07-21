@@ -1,62 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { apiError, apiLabel, requestId } from "@/lib/harvest/api";
+import { getLabels } from "@/lib/harvest/catalog";
 
 export async function GET(request: NextRequest) {
+  const id = requestId();
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const offset = parseInt(searchParams.get("offset") || "0");
-
-    const where = {
-      isActive: true,
-    };
-
-    const [labels, total] = await Promise.all([
-      prisma.label.findMany({
-        where,
-        include: {
-          logo: {
-            select: {
-              path: true,
-            },
-          },
-          _count: {
-            select: {
-              albums: true,
-            },
-          },
-        },
-        orderBy: { order: "asc" },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.label.count({ where }),
-    ]);
-
-    const transformedLabels = labels.map((label) => ({
-      id: label.id,
-      slug: label.slug,
-      name: label.name,
-      description: label.description,
-      logo: label.logo?.path || "/images/placeholder-label.jpg",
-      website: label.website,
-      albumCount: label._count.albums,
-    }));
-
-    return NextResponse.json({
-      labels: transformedLabels,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + limit < total,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching labels:", error);
+    const limit = Math.min(Number(request.nextUrl.searchParams.get("limit") || 100), 200);
+    const offset = Math.max(Number(request.nextUrl.searchParams.get("offset") || 0), 0);
+    const all = await getLabels();
     return NextResponse.json(
-      { error: "Failed to fetch labels" },
-      { status: 500 }
+      {
+        data: { labels: all.slice(offset, offset + limit).map(apiLabel) },
+        meta: { total: all.length, page: Math.floor(offset / limit) + 1, pageSize: limit, requestId: id },
+      },
+      { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200", "X-Request-ID": id } },
     );
+  } catch (error) {
+    return apiError(error, id);
   }
 }

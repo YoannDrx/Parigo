@@ -1,194 +1,98 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { apiError, requestId } from "@/lib/harvest/api";
+import { cloudSearch } from "@/lib/harvest/catalog";
+import { readHarvestSession } from "@/lib/harvest/session";
+
+const sortMap = {
+  relevance: "RankExpression",
+  recent: "ReleaseDate_Desc",
+  oldest: "ReleaseDate_Asc",
+  title: "Name_Asc",
+  "title-desc": "Name_Desc",
+  "bpm-asc": "BPM_Asc",
+  "bpm-desc": "BPM_Desc",
+  "duration-asc": "Duration_Asc",
+  "duration-desc": "Duration_Desc",
+} as const;
+
+const querySchema = z.object({
+  q: z.string().max(500).default("%"),
+  view: z.enum(["tracks", "albums"]).default("tracks"),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(30),
+  sort: z.enum(["relevance", "recent", "oldest", "title", "title-desc", "bpm-asc", "bpm-desc", "duration-asc", "duration-desc"]).default("relevance"),
+  type: z.enum(["main", "alternate", "all"]).default("main"),
+  labels: z.string().optional(),
+  styles: z.string().optional(),
+  categories: z.string().optional(),
+  bpmMin: z.coerce.number().min(1).max(300).optional(),
+  bpmMax: z.coerce.number().min(1).max(300).optional(),
+  durationMin: z.coerce.number().min(0).optional(),
+  durationMax: z.coerce.number().min(1).max(7200).optional(),
+  language: z.enum(["fr", "en"]).default("fr"),
+});
+
+function list(value?: string): string[] | undefined {
+  const values = value?.split(",").map((item) => item.trim()).filter(Boolean);
+  return values?.length ? values : undefined;
+}
+
+function legacyCategoryValues(request: NextRequest): string[] {
+  return ["category", "genre", "mood", "instrument"].flatMap((key) =>
+    request.nextUrl.searchParams.getAll(key).flatMap((value) => value.split(",")),
+  ).map((value) => value.trim()).filter(Boolean);
+}
 
 export async function GET(request: NextRequest) {
+  const id = requestId();
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get("q") || "";
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const type = searchParams.get("type"); // all, albums, tracks, artists
-
-    if (!query || query.length < 2) {
-      return NextResponse.json({
-        albums: [],
-        tracks: [],
-        artists: [],
-        total: 0,
-      });
-    }
-
-    const searchTerm = `%${query}%`;
-
-    const results: {
-      albums: unknown[];
-      tracks: unknown[];
-      artists: unknown[];
-    } = {
-      albums: [],
-      tracks: [],
-      artists: [],
-    };
-
-    // Search albums
-    if (!type || type === "all" || type === "albums") {
-      const albums = await prisma.album.findMany({
-        where: {
-          isActive: true,
-          OR: [
-            { title: { contains: query, mode: "insensitive" } },
-            { description: { contains: query, mode: "insensitive" } },
-            {
-              artists: {
-                some: {
-                  artist: { name: { contains: query, mode: "insensitive" } },
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          label: {
-            select: { name: true, slug: true },
-          },
-          cover: {
-            select: { path: true },
-          },
-          genres: {
-            include: {
-              genre: {
-                select: { name: true, slug: true, color: true },
-              },
-            },
-          },
-          artists: {
-            include: {
-              artist: {
-                select: { name: true, slug: true },
-              },
-            },
-          },
-          _count: {
-            select: { tracks: true },
-          },
-        },
-        take: type === "albums" ? limit : 5,
-        orderBy: { order: "asc" },
-      });
-
-      results.albums = albums.map((album) => ({
-        id: album.id,
-        slug: album.slug,
-        title: album.title,
-        cover: album.cover?.path || "/images/placeholder-album.jpg",
-        label: album.label?.name || "Parigo",
-        genres: album.genres.map((g) => g.genre.name),
-        artists: album.artists.map((a) => a.artist.name),
-        trackCount: album._count.tracks,
-      }));
-    }
-
-    // Search tracks
-    if (!type || type === "all" || type === "tracks") {
-      const tracks = await prisma.track.findMany({
-        where: {
-          isActive: true,
-          album: { isActive: true },
-          OR: [
-            { title: { contains: query, mode: "insensitive" } },
-            {
-              genres: {
-                some: {
-                  genre: { name: { contains: query, mode: "insensitive" } },
-                },
-              },
-            },
-            {
-              moods: {
-                some: {
-                  mood: { name: { contains: query, mode: "insensitive" } },
-                },
-              },
-            },
-          ],
-        },
-        include: {
-          album: {
-            select: {
-              id: true,
-              title: true,
-              slug: true,
-              cover: { select: { path: true } },
-            },
-          },
-          audio: { select: { path: true } },
-          genres: {
-            include: {
-              genre: { select: { name: true } },
-            },
-          },
-          moods: {
-            include: {
-              mood: { select: { name: true } },
-            },
-          },
-        },
-        take: type === "tracks" ? limit : 10,
-        orderBy: { playCount: "desc" },
-      });
-
-      results.tracks = tracks.map((track) => ({
-        id: track.id,
-        slug: track.slug,
-        title: track.title,
-        duration: track.duration,
-        bpm: track.bpm,
-        isVocal: track.isVocal,
-        audioUrl: track.audio?.path || track.previewUrl || null,
-        waveform: track.waveform,
-        albumId: track.album.id,
-        albumTitle: track.album.title,
-        albumSlug: track.album.slug,
-        albumCover: track.album.cover?.path || "/images/placeholder-album.jpg",
-        genres: track.genres.map((g) => g.genre.name),
-        moods: track.moods.map((m) => m.mood.name),
-      }));
-    }
-
-    // Search artists
-    if (!type || type === "all" || type === "artists") {
-      const artists = await prisma.artist.findMany({
-        where: {
-          isActive: true,
-          name: { contains: query, mode: "insensitive" },
-        },
-        include: {
-          image: { select: { path: true } },
-          _count: {
-            select: { albumCredits: true, trackCredits: true },
-          },
-        },
-        take: type === "artists" ? limit : 5,
-        orderBy: { order: "asc" },
-      });
-
-      results.artists = artists.map((artist) => ({
-        id: artist.id,
-        slug: artist.slug,
-        name: artist.name,
-        image: artist.image?.path || "/images/placeholder-artist.jpg",
-        albumCount: artist._count.albumCredits,
-        trackCount: artist._count.trackCredits,
-      }));
-    }
-
+    const rawParams = Object.fromEntries(request.nextUrl.searchParams);
+    const input = querySchema.parse({
+      ...rawParams,
+      q: request.nextUrl.searchParams.get("q") ?? request.nextUrl.searchParams.get("keyword") ?? "%",
+    });
+    const session = await readHarvestSession();
+    const categories = [...(list(input.categories) || []), ...legacyCategoryValues(request)];
+    const skip = (input.page - 1) * input.limit;
+    const result = await cloudSearch({
+      query: input.q.trim() || "%",
+      view: input.view === "albums" ? "Album" : "Track",
+      skip,
+      limit: input.limit,
+      sort: sortMap[input.sort],
+      type: input.type,
+      labels: list(input.labels),
+      styles: list(input.styles),
+      categories: categories.length ? [...new Set(categories)] : undefined,
+      minBpm: input.bpmMin,
+      maxBpm: input.bpmMax,
+      minDuration: input.durationMin,
+      maxDuration: input.durationMax,
+      language: input.language,
+      saveSearchHistory: Boolean(session),
+    }, session?.memberToken);
+    const items = input.view === "albums" ? result.albums : result.tracks;
     return NextResponse.json({
-      ...results,
-      total:
-        results.albums.length + results.tracks.length + results.artists.length,
-      query,
+      data: {
+        items,
+        view: input.view,
+        facets: result.facets,
+        appliedSearch: { ...input, q: input.q === "%" ? "" : input.q },
+      },
+      meta: {
+        page: input.page,
+        pageSize: input.limit,
+        total: result.total,
+        requestId: id,
+      },
+    }, {
+      headers: {
+        "Cache-Control": session ? "no-store" : "public, s-maxage=30, stale-while-revalidate=120",
+        "X-Request-ID": id,
+      },
     });
   } catch (error) {
-    console.error("Error searching:", error);
-    return NextResponse.json({ error: "Search failed" }, { status: 500 });
+    return apiError(error, id);
   }
 }

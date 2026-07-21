@@ -2,29 +2,21 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Clock, Loader2, Trash2 } from "lucide-react";
+import { Clock, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow } from "@/components/features";
-import { Button } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
+import type { Album, Track } from "@/types";
 
 interface HistoryEntry {
   id: string;
   playedAt: string;
-  track: {
-    id: string;
-    title: string;
-    duration: number;
-    bpm: number;
-    waveform: number[];
-    genres: { name: string }[];
-    moods: { name: string }[];
-    album?: {
-      id: string;
-      title: string;
-      cover: string;
-    };
-  };
+  track: Track;
+}
+
+function albumFromTrack(track: Track): Album | undefined {
+  if (!track.albumId) return undefined;
+  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", cover: track.albumCover || "/images/placeholder-album.jpg", label: track.albumLabel || "Parigo", labelSlug: track.albumLabelSlug, genres: track.genres, moods: track.moods, trackCount: 0 };
 }
 
 export default function HistoryPage() {
@@ -45,27 +37,12 @@ export default function HistoryPage() {
       const response = await fetch("/api/user/history");
       if (response.ok) {
         const data = await response.json();
-        setHistory(data.history || []);
+        setHistory(data.data?.history || []);
       }
     } catch (error) {
       console.error("Error loading history:", error);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const clearHistory = async () => {
-    if (!confirm(locale === "fr" ? "Êtes-vous sûr de vouloir effacer votre historique ?" : "Are you sure you want to clear your history?")) return;
-
-    try {
-      const response = await fetch("/api/user/history", {
-        method: "DELETE",
-      });
-      if (response.ok) {
-        setHistory([]);
-      }
-    } catch (error) {
-      console.error("Error clearing history:", error);
     }
   };
 
@@ -104,16 +81,6 @@ export default function HistoryPage() {
           </div>
         </div>
 
-        {history.length > 0 && (
-          <Button
-            variant="outline"
-            onClick={clearHistory}
-            className="gap-2 text-red-500 border-red-500 hover:bg-red-50"
-          >
-            <Trash2 size={18} />
-            <span className="hidden sm:inline">{locale === "fr" ? "Effacer" : "Clear"}</span>
-          </Button>
-        )}
       </div>
 
       {/* Content */}
@@ -130,7 +97,7 @@ export default function HistoryPage() {
           <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
             <Clock size={40} className="text-[var(--color-gray-400)]" />
           </div>
-          <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
+          <h3 className="mb-2 text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Aucun historique" : "No listening history"}
           </h3>
           <p className="text-[var(--color-gray-600)] max-w-md">
@@ -152,33 +119,8 @@ export default function HistoryPage() {
                 {entries.map((entry, index) => (
                   <div key={entry.id} className="relative">
                     <TrackRow
-                      track={{
-                        id: entry.track.id,
-                        title: entry.track.title,
-                        duration: entry.track.duration,
-                        bpm: entry.track.bpm,
-                        waveform: entry.track.waveform,
-                        genres: entry.track.genres.map((g) => g.name),
-                        moods: entry.track.moods.map((m) => m.name),
-                        instruments: [],
-                        isVocal: false,
-                        audioUrl: null,
-                        albumId: entry.track.album?.id || "",
-                      }}
-                      album={
-                        entry.track.album
-                          ? {
-                              id: entry.track.album.id,
-                              title: entry.track.album.title,
-                              cover: entry.track.album.cover,
-                              label: "",
-                              trackCount: 0,
-                              genres: [],
-                              releaseDate: "",
-                              tracks: [],
-                            }
-                          : undefined
-                      }
+                      track={entry.track}
+                      album={albumFromTrack(entry.track)}
                       index={index}
                       showWaveform={false}
                     />

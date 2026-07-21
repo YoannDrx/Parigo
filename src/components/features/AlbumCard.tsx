@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Album } from "@/types";
 import { Tag } from "@/components/ui";
@@ -37,17 +36,6 @@ export function AlbumCard({ album, priority = false }: AlbumCardProps) {
 
           {/* Overlay with actions */}
           <div className="absolute inset-0 flex items-center justify-center gap-3 bg-black/0 opacity-0 transition-all duration-300 group-hover/card:bg-black/45 group-hover/card:opacity-100 group-focus-within/card:opacity-100">
-            <button
-              className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)] text-black transition hover:scale-105"
-              aria-label={`${t("common.play")} ${album.title}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // TODO: Play album
-              }}
-            >
-              <Play size={20} className="fill-current ml-1" />
-            </button>
             <FavoriteButton type="album" itemId={album.id} size="md" />
           </div>
         </div>

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play } from "lucide-react";
 import { motion } from "framer-motion";
 import type { Playlist } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -32,21 +31,6 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-          {/* Play button */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity">
-            <button
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--color-primary)] text-black transition hover:scale-105"
-              aria-label={`${t("common.play")} ${playlist.title}`}
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                // TODO: Play playlist
-              }}
-            >
-              <Play size={24} className="fill-current ml-1" />
-            </button>
-          </div>
 
           {/* Category badge */}
           {playlist.category && (

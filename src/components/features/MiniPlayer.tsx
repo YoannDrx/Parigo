@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useId, useRef, useState, useCallback } from "react";
 import Image from "next/image";
 import {
   Play,
@@ -10,17 +10,30 @@ import {
   Volume2,
   VolumeX,
   X,
-  Maximize2,
   AlertCircle,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  ListPlus,
+  ListMusic,
+  Repeat2,
+  Share2,
+  Shuffle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
-import { formatDuration } from "@/lib/utils";
-import { Waveform } from "./Waveform";
+import { cn, formatBPM, formatDuration } from "@/lib/utils";
+import { TrackWaveform } from "./TrackWaveform";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { useShortlistStore } from "@/stores/shortlist-store";
+import { FavoriteButton } from "./FavoriteButton";
+import { DownloadButton } from "./DownloadButton";
+import { AddToPlaylistButton } from "./AddToPlaylistButton";
+import { Tooltip } from "@/components/ui";
 
 export function MiniPlayer() {
+  const playerInstanceId = useId();
   const { locale, t } = useI18n();
   const {
     currentTrack,
@@ -28,6 +41,10 @@ export function MiniPlayer() {
     volume,
     progress,
     duration,
+    queue,
+    queueIndex,
+    repeatMode,
+    shuffleEnabled,
     pause,
     resume,
     next,
@@ -36,6 +53,8 @@ export function MiniPlayer() {
     setProgress,
     setDuration,
     clearQueue,
+    setRepeatMode,
+    toggleShuffle,
   } = usePlayerStore();
 
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -45,6 +64,9 @@ export function MiniPlayer() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const addToShortlist = useShortlistStore((state) => state.add);
+  const removeFromShortlist = useShortlistStore((state) => state.remove);
+  const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === currentTrack?.id));
 
   // Get album info from track
   const albumCover = currentTrack?.albumCover;
@@ -60,7 +82,6 @@ export function MiniPlayer() {
     let isMounted = true;
 
     // Reset the local adapter state whenever WaveSurfer is recreated.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsReady(false);
     setHasError(false);
     setIsLoading(true);
@@ -112,7 +133,7 @@ export function MiniPlayer() {
       console.warn("WaveSurfer error:", error);
       setHasError(true);
       setIsLoading(false);
-      // Set a default duration from mock data
+      // Keep the metadata duration until the media element reports its value.
       setDuration(currentTrack.duration);
     });
 
@@ -162,6 +183,8 @@ export function MiniPlayer() {
         wavesurferRef.current = null;
       }
     };
+  // The WaveSurfer instance is intentionally recreated only for a new track.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack?.id]);
 
   // Gérer play/pause
@@ -188,7 +211,7 @@ export function MiniPlayer() {
   useEffect(() => {
     if (wavesurferRef.current && isReady) {
       wavesurferRef.current.setOptions({
-        height: isExpanded ? 80 : 40,
+        height: isExpanded ? 72 : 36,
       });
     }
   }, [isExpanded, isReady]);
@@ -229,180 +252,108 @@ export function MiniPlayer() {
     }
   }, [duration, isReady, setProgress]);
 
+  const cycleRepeat = () => {
+    setRepeatMode(repeatMode === "off" ? "queue" : repeatMode === "queue" ? "track" : "off");
+  };
+
+  const shareTrack = async () => {
+    if (!currentTrack) return;
+    const url = `${window.location.origin}/albums/${currentTrack.albumSlug || currentTrack.albumId}?track=${encodeURIComponent(currentTrack.id)}`;
+    if (navigator.share) await navigator.share({ title: currentTrack.title, text: currentTrack.description, url }).catch(() => undefined);
+    else await navigator.clipboard.writeText(url);
+  };
+
+  const nextTracks = queue.length > 1
+    ? [...queue.slice(queueIndex + 1), ...queue.slice(0, queueIndex)].slice(0, 4)
+    : [];
+
   if (!currentTrack) return null;
 
   return (
     <AnimatePresence>
-      <motion.div
+      <motion.aside
         data-testid="player-dock"
-        initial={{ y: 100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: 100, opacity: 0 }}
-        layout
-        className="fixed bottom-0 left-0 right-0 z-[60] border-t border-white/12 bg-[var(--color-black)]/95 text-white shadow-[0_-20px_60px_rgba(0,0,0,.18)] backdrop-blur-xl"
+        data-player-instance={playerInstanceId}
+        aria-label={locale === "fr" ? "Lecteur audio persistant" : "Persistent audio player"}
+        initial={{ y: 120, opacity: 0, scale: .98 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 120, opacity: 0, scale: .98 }}
+        transition={{ duration: .42, ease: [.22, 1, .36, 1] }}
+        className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden rounded-[1.35rem] border border-white/14 bg-[#101410]/94 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5"
       >
-        {/* Expanded Waveform */}
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-4 pt-4"
-          >
-            {hasError ? (
-              // Fallback to static waveform
-              <Waveform
-                data={currentTrack.waveform}
-                progress={progressPercent}
-                height={80}
-                waveColor="rgba(255, 255, 255, 0.3)"
-                progressColor="#6CFF67"
-                interactive
-                onSeek={handleStaticSeek}
-              />
-            ) : (
-              <div
-                ref={isExpanded ? waveformRef : undefined}
-                className="w-full cursor-pointer rounded-lg overflow-hidden"
-              />
-            )}
-          </motion.div>
-        )}
-
-        <div className={`${isExpanded ? "h-20" : "h-[72px]"} px-4 flex items-center gap-4`}>
-          {/* Track info */}
-          <div className="flex items-center gap-3 min-w-0 w-48 flex-shrink-0">
-            {albumCover && (
-              <div className="w-12 h-12 relative rounded-[var(--radius-sm)] overflow-hidden border-2 border-white/20 flex-shrink-0">
+        <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_14%_0%,rgba(92,190,116,.18),transparent_27%),linear-gradient(115deg,transparent_0%,rgba(255,255,255,.025)_48%,transparent_48.2%)]" />
+        <div className="relative grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2 px-3 py-3 sm:px-4 md:grid-cols-[minmax(210px,.8fr)_auto_minmax(300px,1.45fr)_auto] md:gap-x-5 md:px-5">
+          <div className="flex min-w-0 items-center gap-3 md:pr-2">
+            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[.7rem] border border-white/16 bg-white/6 sm:h-14 sm:w-14">
+              {albumCover ? (
                 <Image
                   src={albumCover}
                   alt={albumTitle || (locale === "fr" ? "Pochette de l’album" : "Album cover")}
                   fill
-                  sizes="48px"
+                  sizes="56px"
                   className="object-cover"
                 />
-              </div>
-            )}
+              ) : <span className="flex h-full w-full items-center justify-center"><ListMusic size={18} className="text-white/68" /></span>}
+              {isPlaying && <span aria-hidden="true" className="absolute bottom-1.5 right-1.5 flex h-4 items-end gap-[2px] rounded-sm bg-black/70 p-1"><i className="h-1 w-[2px] animate-pulse bg-[var(--signal)]" /><i className="h-2 w-[2px] animate-pulse bg-[var(--signal)] [animation-delay:120ms]" /><i className="h-1.5 w-[2px] animate-pulse bg-[var(--signal)] [animation-delay:240ms]" /></span>}
+            </div>
             <div className="min-w-0">
-              <p className="font-medium truncate">{currentTrack.title}</p>
-              <p className="text-sm text-white/60 truncate">
-                {albumTitle}
-              </p>
+              <p className="mb-1 font-mono text-[.5rem] uppercase tracking-[.13em] text-[var(--signal)]">{locale === "fr" ? "À l’écoute" : "Now playing"}</p>
+              <p className="truncate text-sm font-semibold leading-tight text-white sm:text-base">{currentTrack.title}</p>
+              <p className="mt-1 truncate text-[.68rem] text-white/72 sm:text-xs">{currentTrack.artists?.map((artist) => artist.name).join(", ") || albumTitle}</p>
+              <p className="mt-1 hidden truncate font-mono text-[.5rem] uppercase tracking-[.1em] text-white/54 lg:block">{currentTrack.cdCode || albumTitle || "PARIGO"} · {currentTrack.version || (locale === "fr" ? "Version principale" : "Main version")}{currentTrack.bpm ? ` · ${formatBPM(currentTrack.bpm)}` : ""}</p>
             </div>
           </div>
 
-          {/* Mini Waveform (when not expanded) */}
-          {!isExpanded && (
-            <div className="flex-1 hidden sm:block">
-              {hasError || isLoading ? (
-                // Fallback to static waveform
-                <Waveform
-                  data={currentTrack.waveform}
-                  progress={progressPercent}
-                  height={40}
-                  waveColor="rgba(255, 255, 255, 0.3)"
-                  progressColor="#6CFF67"
-                  interactive
-                  onSeek={handleStaticSeek}
-                />
-              ) : (
-                <div
-                  ref={!isExpanded ? waveformRef : undefined}
-                  className="w-full cursor-pointer"
-                />
-              )}
+          <div className="flex items-center justify-end gap-0.5 md:justify-center md:gap-1">
+            <Tooltip label={locale === "fr" ? "Piste précédente" : "Previous track"} className="hidden sm:inline-flex"><button onClick={previous} className="flex h-10 w-10 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Piste précédente" : "Previous track"}><SkipBack size={17} /></button></Tooltip>
+            <Tooltip label={isPlaying ? t("common.pause") : t("common.play")}><button onClick={() => (isPlaying ? pause() : resume())} className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--signal)] text-[#0c120d] shadow-[0_0_0_5px_rgba(92,190,116,.12)] transition duration-300 hover:scale-105 hover:bg-white" aria-label={isPlaying ? t("common.pause") : t("common.play")}>
+              {isPlaying ? <Pause size={18} className="fill-current" /> : <Play size={18} className="ml-0.5 fill-current" />}
+            </button></Tooltip>
+            <Tooltip label={locale === "fr" ? "Piste suivante" : "Next track"} className="hidden sm:inline-flex"><button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Piste suivante" : "Next track"}><SkipForward size={17} /></button></Tooltip>
+          </div>
+
+          <div className="flex items-center justify-end md:order-4">
+            <div className="mr-1 hidden items-center gap-0.5 xl:flex">
+              <FavoriteButton type="track" itemId={currentTrack.id} size="md" className="!h-10 !w-10 !border-0 !bg-transparent !text-white/74 hover:!bg-white/9 hover:!text-white hover:!shadow-none" />
+              <AddToPlaylistButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
+              <DownloadButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
+              <Tooltip label={isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")}><button type="button" onClick={() => isShortlisted ? removeFromShortlist(currentTrack.id) : addToShortlist(currentTrack)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center rounded-full transition", isShortlisted ? "bg-[var(--signal)] text-[#0c120d]" : "text-white/74 hover:bg-white/9 hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${currentTrack.title}`}>{isShortlisted ? <Check size={16} /> : <ListPlus size={16} />}</button></Tooltip>
+              <Tooltip label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${currentTrack.title}`}><Share2 size={16} /></button></Tooltip>
             </div>
-          )}
-
-          {/* Error indicator */}
-          {hasError && (
-            <div className="hidden sm:flex items-center gap-1 text-yellow-400 text-xs flex-shrink-0">
-              <AlertCircle size={14} />
-              <span>{locale === "fr" ? "Audio non disponible" : "Audio unavailable"}</span>
-            </div>
-          )}
-
-          {/* Controls */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={previous}
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
-              aria-label={locale === "fr" ? "Piste précédente" : "Previous track"}
-            >
-              <SkipBack size={20} />
-            </button>
-            <button
-              onClick={() => (isPlaying ? pause() : resume())}
-              className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--color-primary)] text-black transition hover:scale-105"
-              aria-label={isPlaying ? t("common.pause") : t("common.play")}
-            >
-              {isPlaying ? (
-                <Pause size={18} className="fill-current" />
-              ) : (
-                <Play size={18} className="fill-current ml-0.5" />
-              )}
-            </button>
-            <button
-              onClick={next}
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
-              aria-label={locale === "fr" ? "Piste suivante" : "Next track"}
-            >
-              <SkipForward size={20} />
-            </button>
+            <Tooltip label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Détails de la piste" : "Track details")}><button onClick={() => setIsExpanded(!isExpanded)} className="flex h-10 w-10 items-center justify-center rounded-full text-white/78 transition hover:bg-white/9 hover:text-white" aria-expanded={isExpanded} aria-label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Agrandir le lecteur" : "Expand player")}>{isExpanded ? <ChevronDown size={17} /> : <ChevronUp size={17} />}</button></Tooltip>
+            <Tooltip label={t("common.close")}><button onClick={clearQueue} className="flex h-10 w-9 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={t("common.close")}><X size={16} /></button></Tooltip>
           </div>
 
-          {/* Time */}
-          <div className="hidden md:flex items-center gap-2 text-sm font-mono text-white/60 flex-shrink-0 w-24">
-            <span>{formatDuration(progress)}</span>
-            <span>/</span>
-            <span>{formatDuration(duration)}</span>
-          </div>
-
-          {/* Volume */}
-          <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
-            <button
-              onClick={toggleMute}
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
-              aria-label={isMuted ? (locale === "fr" ? "Réactiver le son" : "Unmute") : (locale === "fr" ? "Couper le son" : "Mute")}
-            >
-              {isMuted || volume === 0 ? (
-                <VolumeX size={18} />
-              ) : (
-                <Volume2 size={18} />
-              )}
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={isMuted ? 0 : volume}
-              onChange={handleVolumeChange}
-              className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
-            />
-          </div>
-
-          {/* Expand / Close */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors hidden sm:block"
-              title={isExpanded ? (locale === "fr" ? "Réduire" : "Collapse") : (locale === "fr" ? "Agrandir" : "Expand")}
-              aria-label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Agrandir le lecteur" : "Expand player")}
-            >
-              <Maximize2 size={18} className={isExpanded ? "rotate-180" : ""} />
-            </button>
-            <button
-              onClick={clearQueue}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors"
-              title={t("common.close")}
-              aria-label={t("common.close")}
-            >
-              <X size={18} />
-            </button>
+          <div className={cn("relative col-span-3 mt-2 min-w-0 md:order-3 md:col-span-1 md:mt-0", isExpanded ? "h-[72px]" : "h-9")}>
+            <div ref={waveformRef} data-testid="player-waveform" className={cn("h-full w-full cursor-pointer overflow-hidden rounded-md transition-opacity", hasError && "pointer-events-none opacity-0")} />
+            {(hasError || isLoading) && <div className="absolute inset-0"><TrackWaveform trackId={currentTrack.id} initialData={currentTrack.waveform} progress={progressPercent} height={isExpanded ? 72 : 36} interactive onSeek={handleStaticSeek} /></div>}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-between font-mono text-[.5rem] text-white/62"><span data-testid="player-time-current">{formatDuration(progress)}</span><span>{formatDuration(duration)}</span></div>
           </div>
         </div>
-      </motion.div>
+
+        <AnimatePresence initial={false}>
+          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: .32, ease: [.22, 1, .36, 1] }} className="relative overflow-hidden border-t border-white/10">
+            <div className="grid gap-5 px-4 py-4 sm:grid-cols-[auto_1fr] md:px-6">
+              <div className="flex items-center gap-1 sm:flex-col sm:items-stretch sm:border-r sm:border-white/10 sm:pr-5 lg:flex-row lg:border-r-0 lg:pr-0">
+                <div className="flex items-center gap-0.5 xl:hidden">
+                  <FavoriteButton type="track" itemId={currentTrack.id} size="md" className="!h-10 !w-10 !border-0 !bg-transparent !text-white/74 hover:!bg-white/9 hover:!text-white hover:!shadow-none" />
+                  <AddToPlaylistButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
+                  <DownloadButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
+                  <Tooltip label={isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")}><button type="button" onClick={() => isShortlisted ? removeFromShortlist(currentTrack.id) : addToShortlist(currentTrack)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center rounded-full transition", isShortlisted ? "bg-[var(--signal)] text-[#0c120d]" : "text-white/74 hover:bg-white/9 hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${currentTrack.title}`}>{isShortlisted ? <Check size={16} /> : <ListPlus size={16} />}</button></Tooltip>
+                  <Tooltip label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${currentTrack.title}`}><Share2 size={16} /></button></Tooltip>
+                </div>
+                <Tooltip label={locale === "fr" ? "Lecture aléatoire" : "Shuffle"}><button onClick={toggleShuffle} aria-pressed={shuffleEnabled} className={cn("flex h-10 min-w-10 items-center justify-center gap-2 rounded-full px-3 text-xs transition hover:bg-white/9", shuffleEnabled ? "bg-[var(--signal)] text-[#0c120d]" : "text-white/74")} aria-label={locale === "fr" ? "Lecture aléatoire" : "Shuffle"}><Shuffle size={15} /><span className="hidden lg:inline">{locale === "fr" ? "Aléatoire" : "Shuffle"}</span></button></Tooltip>
+                <Tooltip label={locale === "fr" ? `Répétition : ${repeatMode}` : `Repeat: ${repeatMode}`}><button onClick={cycleRepeat} className={cn("flex h-10 min-w-10 items-center justify-center gap-2 rounded-full px-3 text-xs transition hover:bg-white/9", repeatMode !== "off" ? "text-[var(--signal)]" : "text-white/74")} aria-label={locale === "fr" ? `Répétition : ${repeatMode}` : `Repeat: ${repeatMode}`}><Repeat2 size={15} /><span className="hidden lg:inline">{repeatMode === "track" ? "1" : repeatMode === "queue" ? (locale === "fr" ? "File" : "Queue") : "Off"}</span></button></Tooltip>
+                <div className="hidden items-center gap-1 lg:flex"><Tooltip label={isMuted ? (locale === "fr" ? "Réactiver le son" : "Unmute") : (locale === "fr" ? "Couper le son" : "Mute")}><button onClick={toggleMute} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={isMuted ? (locale === "fr" ? "Réactiver le son" : "Unmute") : (locale === "fr" ? "Couper le son" : "Mute")}>{isMuted || volume === 0 ? <VolumeX size={16} /> : <Volume2 size={16} />}</button></Tooltip><input type="range" min={0} max={1} step={0.01} value={isMuted ? 0 : volume} onChange={handleVolumeChange} className="h-1 w-20 cursor-pointer appearance-none rounded-full bg-white/20 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--signal)]" /></div>
+              </div>
+              <div className="min-w-0">
+                <div className="mb-3 flex items-center justify-between"><p className="font-mono text-[.55rem] uppercase tracking-[.13em] text-white/62">{locale === "fr" ? "À suivre" : "Up next"} · {Math.max(0, queue.length - 1)}</p>{hasError && <span className="flex items-center gap-1.5 text-[.62rem] text-amber-200/70" role="status"><AlertCircle size={13} />{locale === "fr" ? "Waveform de secours" : "Fallback waveform"}</span>}</div>
+                {nextTracks.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{nextTracks.map((track, index) => <div key={`${track.id}-${index}`} className="flex min-w-0 items-center gap-3 rounded-lg border border-white/9 bg-white/[.035] p-2.5"><span className="font-mono text-[.52rem] text-[var(--signal)]">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-white">{track.title}</p><p className="mt-1 truncate text-[.6rem] text-white/62">{track.albumTitle}</p></div></div>)}</div> : <p className="text-xs text-white/62">{locale === "fr" ? "Aucune autre piste dans la file." : "No other tracks in the queue."}</p>}
+              </div>
+            </div>
+          </motion.div>}
+        </AnimatePresence>
+      </motion.aside>
     </AnimatePresence>
   );
 }

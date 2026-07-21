@@ -1,93 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/auth-utils";
+import { z } from "zod";
+import { apiError, requestId } from "@/lib/harvest/api";
+import { getMemberProfile, subscribeMember, updateMemberProfile } from "@/lib/harvest/member";
+import { assertSameOrigin, requireHarvestSession, setHarvestSession } from "@/lib/harvest/session";
 
-// GET - Get current user profile
 export async function GET() {
+  const id = requestId();
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        role: true,
-        createdAt: true,
-        _count: {
-          select: {
-            favoriteTracks: true,
-            favoriteAlbums: true,
-            favoritePlaylists: true,
-            playlists: true,
-            listeningHistory: true,
-            downloads: true,
-          },
-        },
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    return NextResponse.json({
-      user: {
-        ...user,
-        stats: {
-          favoriteTracks: user._count.favoriteTracks,
-          favoriteAlbums: user._count.favoriteAlbums,
-          favoritePlaylists: user._count.favoritePlaylists,
-          playlists: user._count.playlists,
-          listeningHistory: user._count.listeningHistory,
-          downloads: user._count.downloads,
-        },
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching profile:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch profile" },
-      { status: 500 }
-    );
-  }
+    const session = await requireHarvestSession();
+    const profile = await getMemberProfile(session.memberToken);
+    return NextResponse.json({ data: { profile }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
 }
 
-// PUT - Update user profile
+const updateSchema = z.object({
+  firstName: z.string().trim().min(1).max(80).optional(),
+  lastName: z.string().trim().min(1).max(80).optional(),
+  company: z.string().max(160).optional(),
+  country: z.string().max(100).optional(),
+  production: z.string().max(160).optional(),
+  subProduction: z.string().max(160).optional(),
+  position: z.string().max(160).optional(),
+  address1: z.string().max(200).optional(),
+  address2: z.string().max(200).optional(),
+  suburb: z.string().max(120).optional(),
+  state: z.string().max(120).optional(),
+  postcode: z.string().max(30).optional(),
+  phone: z.string().max(60).optional(),
+  website: z.string().max(300).optional(),
+  fileFormatId: z.string().max(120).optional(),
+  subscribed: z.boolean().optional(),
+});
+
 export async function PUT(request: NextRequest) {
+  const id = requestId();
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    assertSameOrigin(request);
+    const session = await requireHarvestSession();
+    const input = updateSchema.parse(await request.json());
+    const { subscribed, ...profileInput } = input;
+    if (Object.values(profileInput).some((value) => value !== undefined)) {
+      await updateMemberProfile(session.memberToken, profileInput);
     }
-
-    const { name, image } = await request.json();
-
-    const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
-      data: {
-        ...(name !== undefined && { name }),
-        ...(image !== undefined && { image }),
-      },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
+    if (subscribed !== undefined) await subscribeMember(session.memberToken, subscribed);
+    const profile = await getMemberProfile(session.memberToken);
+    await setHarvestSession({
+      ...session,
+      user: {
+        id: profile.id,
+        email: profile.email,
+        firstName: profile.firstName,
+        lastName: profile.lastName,
+        status: profile.status,
+        image: profile.image,
+        createdAt: profile.createdAt,
       },
     });
-
-    return NextResponse.json({ user: updatedUser });
-  } catch (error) {
-    console.error("Error updating profile:", error);
-    return NextResponse.json(
-      { error: "Failed to update profile" },
-      { status: 500 }
-    );
-  }
+    return NextResponse.json({ data: { profile }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

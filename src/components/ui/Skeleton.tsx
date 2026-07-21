@@ -19,7 +19,7 @@ export function Skeleton({ className }: SkeletonProps) {
 
 export function AlbumCardSkeleton() {
   return (
-    <div className="bg-[var(--color-white)] border border-[var(--color-line)] rounded-[var(--radius-lg)] overflow-hidden">
+    <div className="overflow-hidden rounded-[var(--radius-lg)] border border-[var(--color-line)] bg-[var(--surface)]">
       <Skeleton className="aspect-square w-full rounded-none" />
       <div className="p-4 space-y-2">
         <Skeleton className="h-5 w-3/4" />

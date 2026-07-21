@@ -1,3 +1,5 @@
+export {};
+
 type JsonValue = null | boolean | number | string | JsonValue[] | { [key: string]: JsonValue };
 
 const requiredEnv = [
@@ -9,7 +11,14 @@ const requiredEnv = [
 ] as const;
 
 function requireEnv(name: string): string {
-  const value = process.env[name];
+  const aliases: Record<string, string | undefined> = {
+    HARVEST_AUTH_URL: "https://auth.harvestmedia.net/oauth2/token",
+    HARVEST_SERVICE_URL: "https://service.harvestmedia.net/HMP-WS.svc",
+    HARVEST_ACCESS_KEY: process.env.HM_ServiceAPI_Key,
+    HARVEST_CLIENT_ID: process.env.HM_ServiceAPI_AuthClientID,
+    HARVEST_CLIENT_SECRET: process.env.HM_ServiceAPI_AuthClientSecret,
+  };
+  const value = process.env[name] || aliases[name];
   if (!value) {
     throw new Error(`Missing ${name}`);
   }
@@ -17,7 +26,7 @@ function requireEnv(name: string): string {
 }
 
 function authHeader(token: string): string {
-  const prefix = process.env.HARVEST_AUTH_HEADER_PREFIX ?? "Bearer";
+  const prefix = process.env.HARVEST_AUTH_HEADER_PREFIX ?? "";
   return prefix ? `${prefix} ${token}` : token;
 }
 
@@ -54,6 +63,28 @@ function findStringByKey(value: JsonValue | undefined, keys: string[]): string |
   return undefined;
 }
 
+function redact(value: JsonValue): JsonValue {
+  if (Array.isArray(value)) return value.map(redact);
+  if (!value || typeof value !== "object") {
+    if (typeof value === "string" && /^https?:/i.test(value)) {
+      try {
+        const url = new URL(value);
+        for (const key of [...url.searchParams.keys()]) {
+          if (/token|key|secret/i.test(key)) url.searchParams.set(key, "[redacted]");
+        }
+        return url.toString();
+      } catch { return value; }
+    }
+    return value;
+  }
+  return Object.fromEntries(
+    Object.entries(value).map(([key, nested]) => [
+      key,
+      /token|secret|accesskey/i.test(key) ? "[redacted]" : redact(nested),
+    ]),
+  );
+}
+
 async function requestJson(label: string, input: string, init?: RequestInit): Promise<JsonValue | undefined> {
   const response = await fetch(input, init);
   const parsed = await readResponse(response);
@@ -69,7 +100,7 @@ async function requestJson(label: string, input: string, init?: RequestInit): Pr
     return undefined;
   }
 
-  console.log(JSON.stringify(parsed.json, null, 2).slice(0, 1600));
+  console.log(JSON.stringify(redact(parsed.json), null, 2).slice(0, 1600));
   return parsed.json;
 }
 
@@ -107,6 +138,10 @@ async function getServiceToken(accessToken: string): Promise<string> {
 }
 
 async function main() {
+  if (process.env.HARVEST_LIVE_TESTS !== "1") {
+    console.log("Harvest live tests skipped (set HARVEST_LIVE_TESTS=1 to enable). ");
+    return;
+  }
   for (const name of requiredEnv) requireEnv(name);
 
   const accessToken = await getAccessToken();
@@ -114,22 +149,25 @@ async function main() {
   const serviceToken = await getServiceToken(accessToken);
   const serviceUrl = requireEnv("HARVEST_SERVICE_URL");
 
-  await requestJson("Get Service Info", `${serviceUrl}/getserviceinfo/${serviceToken}`, {
+  const serviceInfo = await requestJson("Get Service Info", `${serviceUrl}/getserviceinfo/${serviceToken}`, {
     headers: { Accept: "application/json", Authorization: authorization },
   });
 
   const testIp = process.env.HARVEST_TEST_IP;
+  let regionInfo: JsonValue | undefined;
   if (testIp) {
-    await requestJson("Get Region By IP", `${serviceUrl}/getregionbyip/${serviceToken}?ip=${encodeURIComponent(testIp)}`, {
+    regionInfo = await requestJson("Get Region By IP", `${serviceUrl}/getregionbyip/${serviceToken}?ip=${encodeURIComponent(testIp)}`, {
       headers: { Accept: "application/json", Authorization: authorization },
     });
   } else {
-    await requestJson("Get Regions", `${serviceUrl}/getregions/${serviceToken}`, {
+    regionInfo = await requestJson("Get Regions", `${serviceUrl}/getregions/${serviceToken}`, {
       headers: { Accept: "application/json", Authorization: authorization },
     });
   }
 
-  const regionId = process.env.HARVEST_REGION_ID;
+  const regionId = process.env.HARVEST_REGION_ID
+    || findStringByKey(serviceInfo, ["DefaultRegionID", "OverrideRegionID"])
+    || findStringByKey(regionInfo, ["ID", "RegionID"]);
   if (!regionId) {
     console.log("HARVEST_REGION_ID not set; skipping guest member and search tests.");
     return;
@@ -142,7 +180,7 @@ async function main() {
   if (!guestToken) throw new Error("Could not find guest member token in response");
 
   const keyword = process.env.HARVEST_SEARCH_KEYWORD ?? "piano";
-  await requestJson("Cloud Search", `${serviceUrl}/cloudsearch/${guestToken}`, {
+  const searchResponse = await requestJson("Cloud Search", `${serviceUrl}/cloudsearch/${guestToken}`, {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -150,40 +188,49 @@ async function main() {
       Authorization: authorization,
     },
     body: JSON.stringify({
-      SaveSearchHistory: "false",
+      SaveSearchHistory: false,
+      RegionID: regionId,
       SearchFilters: {
         SearchType: "Normal",
-        IncludeInactive: "false",
-        MainOnly: "true",
-        AlternateOnly: "false",
-        NearestBPM: "false",
-        NearestDuration: "false",
-        NearestAlternate: "false",
+        LibraryType: "",
+        IncludeInactive: false,
+        MainOnly: true,
+        AlternateOnly: false,
+        NearestBPM: false,
+        NearestDuration: false,
+        NearestAlternate: false,
+        TranslateKeyword: "fr",
         ParentSearchHistoryID: "",
         SearchTermBundle: {
           St_Keyword_Aggregated: {
-            ExactPhrase: "false",
-            Wildcard: "true",
-            DisableKeywordGroup: "false",
-            OrOperation: "false",
+            ExactPhrase: false,
+            Wildcard: true,
+            DisableKeywordGroup: false,
+            OrOperation: false,
             Keywords: keyword,
-            Negative: "false",
+            Negative: false,
           },
         },
         ResultView: {
           View: "Track",
-          Sort_Predefined: "ReleaseDate_Desc",
+          Sort_Predefined: "RankExpression",
           RankExpression: "",
           Skip: "0",
           Limit: "10",
-          Facet_Library: "true",
-          Facet_BPM: "true",
-          Facet_Duration: "true",
-          Facet_Category: "true",
+          ReturnRates: false,
+          Facet_Library: true,
+          Facet_Style: true,
+          Facet_BPM: true,
+          Facet_Duration: true,
+          Facet_Category: true,
         },
       },
     }),
   });
+  const serializedSearch = JSON.stringify(searchResponse);
+  if (!serializedSearch.includes('"sort_predefined":"RankExpression"')) {
+    throw new Error("Cloud Search did not preserve Harvest RankExpression relevance sorting");
+  }
 }
 
 main().catch((error) => {

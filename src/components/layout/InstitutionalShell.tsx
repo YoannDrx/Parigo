@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
-import { MiniPlayer } from "@/components/features";
 import { RevealText } from "@/components/motion";
 
 interface InstitutionalShellProps {
@@ -22,7 +21,6 @@ export function InstitutionalShell({ eyebrow, title, intro, children }: Institut
         {children}
       </main>
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

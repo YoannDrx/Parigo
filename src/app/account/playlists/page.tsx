@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { ListMusic, Plus, Loader2, Lock, Globe } from "lucide-react";
 import Link from "next/link";
@@ -24,6 +25,7 @@ export default function PlaylistsPage() {
   const { data: session } = useSession();
   const [playlists, setPlaylists] = useState<UserPlaylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
 
   useEffect(() => {
     if (session?.user) {
@@ -37,12 +39,28 @@ export default function PlaylistsPage() {
       const response = await fetch("/api/user/playlists");
       if (response.ok) {
         const data = await response.json();
-        setPlaylists(data.playlists || []);
+        setPlaylists(data.data?.playlists || []);
       }
     } catch (error) {
       console.error("Error loading playlists:", error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const createPlaylist = async () => {
+    const title = window.prompt(locale === "fr" ? "Nom de la playlist" : "Playlist name");
+    if (!title?.trim()) return;
+    setIsCreating(true);
+    try {
+      const response = await fetch("/api/user/playlists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: title.trim(), description: "", isPublic: false }),
+      });
+      if (response.ok) await loadPlaylists();
+    } finally {
+      setIsCreating(false);
     }
   };
 
@@ -64,7 +82,7 @@ export default function PlaylistsPage() {
           </div>
         </div>
 
-        <Button variant="primary" className="gap-2">
+        <Button variant="primary" className="gap-2" onClick={createPlaylist} disabled={isCreating}>
           <Plus size={18} />
           <span className="hidden sm:inline">{locale === "fr" ? "Créer une playlist" : "Create a playlist"}</span>
         </Button>
@@ -84,13 +102,13 @@ export default function PlaylistsPage() {
           <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
             <ListMusic size={40} className="text-[var(--color-gray-400)]" />
           </div>
-          <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
+          <h3 className="mb-2 text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Aucune playlist" : "No playlists"}
           </h3>
           <p className="text-[var(--color-gray-600)] mb-6 max-w-md">
             {locale === "fr" ? "Créez votre première playlist pour organiser vos pistes préférées." : "Create your first playlist to organise your favourite tracks."}
           </p>
-          <Button variant="primary" className="gap-2">
+          <Button variant="primary" className="gap-2" onClick={createPlaylist} disabled={isCreating}>
             <Plus size={18} />
             {locale === "fr" ? "Créer ma première playlist" : "Create my first playlist"}
           </Button>
@@ -104,12 +122,14 @@ export default function PlaylistsPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <Link href={`/playlists/${playlist.slug}`}>
+              <Link href={`/account/playlists/${playlist.id}`}>
                 <div className="overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:shadow-[var(--theme-shadow)]">
                   <div className="aspect-square relative">
-                    <img
+                    <Image
                       src={playlist.cover || "/images/placeholder-playlist.jpg"}
                       alt={playlist.title}
+                      width={640}
+                      height={640}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-2 right-2">
@@ -125,7 +145,7 @@ export default function PlaylistsPage() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-[var(--color-black)] truncate">
+                    <h3 className="truncate font-semibold text-[var(--foreground)]">
                       {playlist.title}
                     </h3>
                     <p className="text-sm text-[var(--color-gray-600)]">

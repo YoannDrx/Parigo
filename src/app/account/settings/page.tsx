@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Settings,
@@ -24,57 +24,60 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
 
-  // Password change state
-  const [passwordForm, setPasswordForm] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  });
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
+  const [isSavingSubscription, setIsSavingSubscription] = useState(false);
+  const [subscriptionMessage, setSubscriptionMessage] = useState("");
+
+  useEffect(() => {
+    void fetch("/api/user/profile", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => setSubscribed(Boolean(payload?.data?.profile?.subscribed)))
+      .catch(() => undefined);
+  }, []);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setPasswordError("");
     setPasswordSuccess(false);
 
-    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-      setPasswordError(locale === "fr" ? "Les mots de passe ne correspondent pas" : "Passwords do not match");
-      return;
-    }
-
-    if (passwordForm.newPassword.length < 8) {
-      setPasswordError(locale === "fr" ? "Le mot de passe doit contenir au moins 8 caractères" : "The password must contain at least 8 characters");
-      return;
-    }
-
     setIsChangingPassword(true);
     try {
       const response = await fetch("/api/user/change-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          currentPassword: passwordForm.currentPassword,
-          newPassword: passwordForm.newPassword,
-        }),
       });
 
       if (response.ok) {
         setPasswordSuccess(true);
-        setPasswordForm({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
       } else {
         const data = await response.json();
-        setPasswordError(data.error || (locale === "fr" ? "Erreur lors du changement de mot de passe" : "Password change failed"));
+        setPasswordError(data.error?.message || (locale === "fr" ? "Impossible d’envoyer l’e-mail" : "Could not send the email"));
       }
     } catch {
-      setPasswordError(locale === "fr" ? "Erreur lors du changement de mot de passe" : "Password change failed");
+      setPasswordError(locale === "fr" ? "Impossible d’envoyer l’e-mail" : "Could not send the email");
     } finally {
       setIsChangingPassword(false);
+    }
+  };
+
+  const handleSubscriptionChange = async (next: boolean) => {
+    setIsSavingSubscription(true);
+    setSubscriptionMessage("");
+    try {
+      const response = await fetch("/api/user/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscribed: next }),
+      });
+      if (!response.ok) throw new Error("subscription update failed");
+      setSubscribed(next);
+      setSubscriptionMessage(locale === "fr" ? "Préférence enregistrée." : "Preference saved.");
+    } catch {
+      setSubscriptionMessage(locale === "fr" ? "Impossible d’enregistrer cette préférence." : "Could not save this preference.");
+    } finally {
+      setIsSavingSubscription(false);
     }
   };
 
@@ -123,57 +126,17 @@ export default function SettingsPage() {
       >
         <div className="flex items-center gap-3 mb-6">
           <Lock size={20} className="text-[var(--color-gray-600)]" />
-          <h2 className="text-xl font-semibold text-[var(--color-black)]">
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Changer le mot de passe" : "Change password"}
           </h2>
         </div>
 
         <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-black)] mb-1">
-              {locale === "fr" ? "Mot de passe actuel" : "Current password"}
-            </label>
-            <input
-              type="password"
-              value={passwordForm.currentPassword}
-              onChange={(e) =>
-                setPasswordForm({ ...passwordForm, currentPassword: e.target.value })
-              }
-              className="w-full px-4 py-2.5 border-2 border-[var(--color-black)] rounded-[var(--radius-sm)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-black)] mb-1">
-              {locale === "fr" ? "Nouveau mot de passe" : "New password"}
-            </label>
-            <input
-              type="password"
-              value={passwordForm.newPassword}
-              onChange={(e) =>
-                setPasswordForm({ ...passwordForm, newPassword: e.target.value })
-              }
-              className="w-full px-4 py-2.5 border-2 border-[var(--color-black)] rounded-[var(--radius-sm)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              required
-              minLength={8}
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-black)] mb-1">
-              {locale === "fr" ? "Confirmer le nouveau mot de passe" : "Confirm new password"}
-            </label>
-            <input
-              type="password"
-              value={passwordForm.confirmPassword}
-              onChange={(e) =>
-                setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })
-              }
-              className="w-full px-4 py-2.5 border-2 border-[var(--color-black)] rounded-[var(--radius-sm)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-              required
-            />
-          </div>
+          <p className="text-sm leading-6 text-[var(--color-gray-600)]">
+            {locale === "fr"
+              ? "Parigo sécurise le changement de mot de passe par e-mail. Nous vous enverrons un lien à l’adresse de votre compte."
+              : "Parigo secures password changes by email. We will send a reset link to your account address."}
+          </p>
 
           {passwordError && (
             <p className="text-red-500 text-sm">{passwordError}</p>
@@ -182,7 +145,7 @@ export default function SettingsPage() {
           {passwordSuccess && (
             <div className="flex items-center gap-2 text-green-600 text-sm">
               <Check size={16} />
-              <span>{locale === "fr" ? "Mot de passe modifié avec succès" : "Password updated successfully"}</span>
+              <span>{locale === "fr" ? "E-mail de réinitialisation envoyé" : "Password reset email sent"}</span>
             </div>
           )}
 
@@ -195,10 +158,10 @@ export default function SettingsPage() {
             {isChangingPassword ? (
               <>
                 <Loader2 size={18} className="animate-spin" />
-                {locale === "fr" ? "Modification…" : "Updating…"}
+                {locale === "fr" ? "Envoi…" : "Sending…"}
               </>
             ) : (
-              locale === "fr" ? "Modifier le mot de passe" : "Update password"
+              locale === "fr" ? "Envoyer le lien de réinitialisation" : "Send password reset link"
             )}
           </Button>
         </form>
@@ -213,43 +176,25 @@ export default function SettingsPage() {
       >
         <div className="flex items-center gap-3 mb-6">
           <Bell size={20} className="text-[var(--color-gray-600)]" />
-          <h2 className="text-xl font-semibold text-[var(--color-black)]">
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Notifications" : "Notifications"}
           </h2>
         </div>
 
         <div className="space-y-4">
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-[var(--color-black)]">
-              {locale === "fr" ? "Nouveaux albums des labels suivis" : "New albums from followed labels"}
+            <span className="text-[var(--foreground)]">
+              {locale === "fr" ? "Recevoir les nouvelles sorties Parigo" : "Receive Parigo new releases"}
             </span>
             <input
               type="checkbox"
-              defaultChecked
+              checked={subscribed}
+              disabled={isSavingSubscription}
+              onChange={(event) => void handleSubscriptionChange(event.target.checked)}
               className="w-5 h-5 rounded accent-[var(--color-primary)]"
             />
           </label>
-
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-[var(--color-black)]">
-              {locale === "fr" ? "Mises à jour des playlists éditoriales" : "Editorial playlist updates"}
-            </span>
-            <input
-              type="checkbox"
-              defaultChecked
-              className="w-5 h-5 rounded accent-[var(--color-primary)]"
-            />
-          </label>
-
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-[var(--color-black)]">
-              {locale === "fr" ? "Newsletter hebdomadaire" : "Weekly newsletter"}
-            </span>
-            <input
-              type="checkbox"
-              className="w-5 h-5 rounded accent-[var(--color-primary)]"
-            />
-          </label>
+          {subscriptionMessage && <p className="text-sm text-[var(--color-gray-600)]">{subscriptionMessage}</p>}
         </div>
       </motion.div>
 

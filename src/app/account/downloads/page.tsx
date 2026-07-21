@@ -1,27 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Download, Loader2, FileAudio, Calendar, Tag } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { Button } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
+import type { Track } from "@/types";
 
 interface DownloadEntry {
   id: string;
   downloadedAt: string;
   licenseType: string;
   projectName: string;
-  track: {
-    id: string;
-    title: string;
-    duration: number;
-    album?: {
-      id: string;
-      title: string;
-      cover: string;
-    };
-  };
+  track: Track;
 }
 
 const licenseLabels: Record<string, { label: string; color: string }> = {
@@ -49,7 +41,7 @@ export default function DownloadsPage() {
       const response = await fetch("/api/user/downloads");
       if (response.ok) {
         const data = await response.json();
-        setDownloads(data.downloads || []);
+        setDownloads(data.data?.downloads || []);
       }
     } catch (error) {
       console.error("Error loading downloads:", error);
@@ -89,7 +81,7 @@ export default function DownloadsPage() {
           <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
             <Download size={40} className="text-[var(--color-gray-400)]" />
           </div>
-          <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
+          <h3 className="mb-2 text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Aucun téléchargement" : "No downloads"}
           </h3>
           <p className="text-[var(--color-gray-600)] max-w-md">
@@ -111,10 +103,12 @@ export default function DownloadsPage() {
                 <div className="flex items-center gap-4">
                   {/* Cover */}
                   <div className="w-16 h-16 rounded-[var(--radius-sm)] overflow-hidden border border-[var(--color-gray-100)] flex-shrink-0">
-                    {download.track.album?.cover ? (
-                      <img
-                        src={download.track.album.cover}
-                        alt={download.track.album.title}
+                    {download.track.albumCover ? (
+                      <Image
+                        src={download.track.albumCover}
+                        alt={download.track.albumTitle || ""}
+                        width={64}
+                        height={64}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -126,12 +120,12 @@ export default function DownloadsPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-[var(--color-black)] truncate">
+                    <h3 className="truncate font-semibold text-[var(--foreground)]">
                       {download.track.title}
                     </h3>
-                    {download.track.album && (
+                    {download.track.albumId && (
                       <p className="text-sm text-[var(--color-gray-600)] truncate">
-                        {download.track.album.title}
+                        {download.track.albumTitle}
                       </p>
                     )}
                     <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-gray-500)]">
@@ -155,11 +149,6 @@ export default function DownloadsPage() {
                     {license.label}
                   </div>
 
-                  {/* Re-download Button */}
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download size={16} />
-                    <span className="hidden sm:inline">{locale === "fr" ? "Télécharger" : "Download"}</span>
-                  </Button>
                 </div>
               </motion.div>
             );

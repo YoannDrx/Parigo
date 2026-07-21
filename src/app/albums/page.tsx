@@ -1,39 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Grid3X3, List, SlidersHorizontal, Loader2 } from "lucide-react";
+import { ArrowUpRight, Grid3X3, List, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { Button, Tag } from "@/components/ui";
-import { AlbumCard, MiniPlayer } from "@/components/features";
+import { Button, Select, Tag } from "@/components/ui";
+import { AlbumCard } from "@/components/features";
 import { useAlbums, useLabels, useGenres } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type { ViewMode, Album } from "@/types";
+import type { ViewMode } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { CatalogHero } from "@/components/catalog";
-
-// Transform API album to component format
-function transformAlbum(apiAlbum: {
-  id: string;
-  slug?: string;
-  title: string;
-  cover: string;
-  label: string;
-  labelSlug?: string;
-  trackCount: number;
-  genres: Array<{ name: string; slug: string; color?: string }>;
-}): Album {
-  return {
-    id: apiAlbum.slug || apiAlbum.id,
-    slug: apiAlbum.slug,
-    title: apiAlbum.title,
-    cover: apiAlbum.cover,
-    label: apiAlbum.label,
-    labelSlug: apiAlbum.labelSlug,
-    trackCount: apiAlbum.trackCount,
-    genres: apiAlbum.genres.map((g) => g.name),
-  };
-}
+import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 
 export default function AlbumsPage() {
   const { locale, t } = useI18n();
@@ -41,19 +21,24 @@ export default function AlbumsPage() {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [sort, setSort] = useState<"title-asc" | "title-desc">("title-asc");
 
   // Fetch data from API
   const { data: albumsData, isLoading: albumsLoading } = useAlbums({
     limit: 50,
     label: selectedLabel || undefined,
-    genre: selectedGenre || undefined,
+    categories: selectedGenre ? [selectedGenre] : undefined,
   });
   const { data: labelsData } = useLabels({ limit: 20 });
   const { data: genresData } = useGenres();
 
-  const albums = albumsData?.albums.map(transformAlbum) ?? [];
+  const albums = albumsData?.albums ?? [];
   const labels = labelsData?.labels ?? [];
   const genres = genresData?.genres ?? [];
+  const sortedAlbums = useMemo(() => [...(albumsData?.albums ?? [])].sort((left, right) => {
+    const comparison = left.title.localeCompare(right.title, locale, { sensitivity: "base" });
+    return sort === "title-asc" ? comparison : -comparison;
+  }), [albumsData?.albums, locale, sort]);
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
@@ -75,6 +60,8 @@ export default function AlbumsPage() {
                 <SlidersHorizontal size={16} />
                 {t("search.filters")}
               </Button>
+
+              <Select value={sort} onValueChange={setSort} ariaLabel={locale === "fr" ? "Trier les albums" : "Sort albums"} className="min-w-28" options={[{ value: "title-asc", label: "A–Z" }, { value: "title-desc", label: "Z–A" }]} />
 
               {/* View Toggle */}
               <div className="flex overflow-hidden rounded-full border border-[var(--line)]">
@@ -115,7 +102,7 @@ export default function AlbumsPage() {
           >
             {/* Labels */}
             <div>
-              <h3 className="text-sm font-semibold text-[var(--color-black)] mb-3">
+              <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Labels
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -129,9 +116,9 @@ export default function AlbumsPage() {
                 {labels.map((label) => (
                   <Tag
                     key={label.id}
-                    variant={selectedLabel === label.slug ? "primary" : "default"}
+                    variant={selectedLabel === label.id ? "primary" : "default"}
                     clickable
-                    onClick={() => setSelectedLabel(label.slug || null)}
+                    onClick={() => setSelectedLabel(label.id)}
                   >
                     {label.name}
                   </Tag>
@@ -141,7 +128,7 @@ export default function AlbumsPage() {
 
             {/* Genres */}
             <div>
-              <h3 className="text-sm font-semibold text-[var(--color-black)] mb-3">
+              <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Genres
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -155,9 +142,9 @@ export default function AlbumsPage() {
                 {genres.slice(0, 12).map((genre) => (
                   <Tag
                     key={genre.id}
-                    variant={selectedGenre === genre.slug ? "genre" : "default"}
+                    variant={selectedGenre === genre.id ? "genre" : "default"}
                     clickable
-                    onClick={() => setSelectedGenre(genre.slug)}
+                    onClick={() => setSelectedGenre(genre.id)}
                   >
                     {genre.name}
                   </Tag>
@@ -176,20 +163,38 @@ export default function AlbumsPage() {
               {/* Albums Grid */}
               <div
                 className={cn(
-                  "gap-4 md:gap-6",
                   viewMode === "grid"
-                    ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-                    : "flex flex-col"
+                    ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5"
+                    : "border-y border-[var(--line)]"
                 )}
               >
-                {albums.map((album, index) => (
+                {sortedAlbums.map((album, index) => (
                   <motion.div
                     key={album.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: Math.min(index * 0.035, 0.28) }}
                   >
-                    <AlbumCard album={album} />
+                    {viewMode === "grid" ? <AlbumCard album={album} /> : (
+                      <Link href={`/albums/${album.slug || album.id}`} className="group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 last:border-b-0 transition-colors hover:bg-[var(--surface-soft)] sm:min-h-32 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:gap-6 sm:px-4">
+                        <div className="relative aspect-square overflow-hidden rounded-[.35rem] border border-[var(--line)] bg-[var(--surface)]">
+                          <Image src={album.cover} alt={album.title} fill sizes="96px" className="object-cover transition-transform duration-500 group-hover:scale-[1.025]" />
+                        </div>
+                        <div className="min-w-0 py-1">
+                          <p className="truncate font-mono text-[.56rem] uppercase tracking-[.13em] text-[var(--text-muted)]">{String(index + 1).padStart(2, "0")} · {album.label}</p>
+                          <h2 className="mt-2 truncate text-lg font-semibold leading-tight tracking-[-.025em] text-[var(--foreground)] sm:text-2xl">{album.title}</h2>
+                          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
+                            {album.genres[0] && <span>{localizeCatalogTerm(album.genres[0], locale)}</span>}
+                            {(album.year || album.releaseDate) && <span>{album.year || new Date(album.releaseDate as string).getFullYear()}</span>}
+                            {album.code && <span>{album.code}</span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 pl-2 sm:gap-5">
+                          <span className="hidden whitespace-nowrap font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--text-muted)] sm:block">{album.trackCount} {t("catalog.tracks")}</span>
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] text-[var(--foreground)] transition duration-300 group-hover:border-[var(--signal-strong)] group-hover:bg-[var(--signal-strong)] group-hover:text-white"><ArrowUpRight size={16} /></span>
+                        </div>
+                      </Link>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -217,7 +222,6 @@ export default function AlbumsPage() {
       </main>
 
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

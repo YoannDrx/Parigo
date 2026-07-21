@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { AuthModal } from "@/components/features/AuthModal";
 import { MotionConfig } from "framer-motion";
 import { ShortlistDrawer } from "@/components/features/ShortlistDrawer";
+import { MiniPlayer } from "@/components/features/MiniPlayer";
 import { I18nProvider } from "./I18nProvider";
 import { ThemeProvider } from "./ThemeProvider";
 import { CookieConsent } from "@/components/privacy/CookieConsent";
@@ -28,6 +29,7 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         <QueryClientProvider client={queryClient}>
           <MotionConfig reducedMotion="user" transition={{ duration: 0.32 }}>
             {children}
+            <MiniPlayer />
             <AuthModal />
             <ShortlistDrawer />
             <CookieConsent />

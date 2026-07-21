@@ -6,77 +6,73 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
-  ChevronDown,
+  Check,
   ChevronLeft,
   ChevronRight,
   Disc3,
-  LayoutList,
+  LayoutGrid,
   Loader2,
+  Minus,
   RotateCcw,
-  Rows3,
+  Search,
   SlidersHorizontal,
+  Sparkles,
   X,
 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { AISearch, MiniPlayer, TrackRow } from "@/components/features";
-import { Button } from "@/components/ui";
-import { useGenres, useInstruments, useLabels, useMoods, useTracks } from "@/hooks/use-api";
+import { TrackRow } from "@/components/features";
+import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
+import { Button, Select } from "@/components/ui";
+import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { localizeCatalogTerm } from "@/i18n/catalog-terms";
-import { intentToSearchParams, parseSearchIntent } from "@/lib/search-intent";
+import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, resolveIntentCategoryIds } from "@/lib/search-intent";
 import { cn, formatDuration } from "@/lib/utils";
-import type { Album, Track } from "@/types";
+import type { Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, Track } from "@/types";
 
 type ResultView = "tracks" | "albums";
-type Density = "comfortable" | "compact";
-type SortMode = "relevance" | "recent" | "title" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
+type Density = "full" | "mid" | "light";
+type SortMode = "relevance" | "recent" | "oldest" | "title" | "title-desc" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
+type VersionType = "main" | "all";
 
 const PAGE_SIZE = 30;
+const DEFAULT_BPM: [number, number] = [50, 200];
+const DEFAULT_DURATION: [number, number] = [0, 300];
+const PRODUCTION_SUGGESTIONS = [
+  "upbeat", "dramatic", "drama", "positive", "driving", "building", "bright", "fun", "energetic", "dark",
+  "happy", "mysterious", "confident", "action", "uplifting", "warm", "uptempo", "tension", "fast", "determined",
+  "electronic", "piano", "documentary", "tense", "suspense", "cinematic", "synths", "guitar", "dreamy", "atmospheric",
+  "powerful", "strings", "reflective", "synth", "orchestral", "cool", "light", "bouncy", "intense", "quirky",
+  "retro", "medium", "edgy", "playful", "dance", "epic", "exciting", "optimistic", "emotional", "aggressive",
+  "vocals", "pop", "percussion", "ambient", "mid", "drums", "tempo", "mid-tempo", "hopeful", "party",
+  "lively", "romantic", "vocal", "sports", "rock", "sexy", "ominous", "flowing", "adventure", "pulsing",
+  "bass", "electronica", "percussive", "gentle", "smooth", "relaxed", "serious", "sound design", "test", "carefree",
+  "dynamic", "trailer", "world", "love", "factual", "suspenseful", "gritty", "slow", "mystery", "travel",
+  "comedy", "heartfelt", "cheerful", "funky", "film", "underscore", "eerie", "heavy", "anticipation", "tender",
+] as const;
 
-function stripQuotes(value: string) {
-  return value.replace(/^['"]+|['"]+$/g, "");
+function stripQuotes(value: string): string {
+  return value.replace(/^["']+|["']+$/g, "");
 }
 
-function transformTrack(apiTrack: {
-  id: string;
-  slug?: string;
-  title: string;
-  duration: number;
-  bpm?: number;
-  key?: string;
-  isVocal: boolean;
-  audioUrl: string | null;
-  waveform: number[] | null;
-  albumId: string;
-  albumTitle: string;
-  albumSlug: string;
-  albumCover: string;
-  albumLabel?: string;
-  albumLabelSlug?: string;
-  genres: string[];
-  moods: string[];
-  instruments?: string[];
-}): Track {
-  return {
-    id: apiTrack.id,
-    slug: apiTrack.slug,
-    title: apiTrack.title,
-    duration: apiTrack.duration,
-    bpm: apiTrack.bpm ?? null,
-    key: apiTrack.key ?? null,
-    isVocal: apiTrack.isVocal,
-    audioUrl: apiTrack.audioUrl,
-    waveform: apiTrack.waveform,
-    albumId: apiTrack.albumId,
-    albumTitle: apiTrack.albumTitle,
-    albumSlug: apiTrack.albumSlug,
-    albumCover: apiTrack.albumCover,
-    albumLabel: apiTrack.albumLabel,
-    albumLabelSlug: apiTrack.albumLabelSlug,
-    genres: apiTrack.genres,
-    moods: apiTrack.moods,
-    instruments: apiTrack.instruments,
-  };
+function csv(value: string | null): string[] {
+  return value?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
+}
+
+function categoryId(value: string): string | null {
+  const negative = value.startsWith("-");
+  const raw = negative ? value.slice(1) : value;
+  const withoutPrefix = raw.replace(/^ATT_/i, "");
+  const opaque = withoutPrefix.split("_")[0];
+  if (!/^[a-z0-9-]{8,}$/i.test(opaque)) return null;
+  return `${negative ? "-" : ""}ATT_${opaque}`;
+}
+
+function sorted(values: string[]): string[] {
+  return [...new Set(values)].sort((a, b) => a.replace(/^-/, "").localeCompare(b.replace(/^-/, "")) || a.localeCompare(b));
+}
+
+function flatten(items: SearchFilterItem[]): SearchFilterItem[] {
+  return items.flatMap((item) => [item, ...flatten(item.children ?? [])]);
 }
 
 function albumFromTrack(track: Track): Album {
@@ -93,348 +89,362 @@ function albumFromTrack(track: Track): Album {
   };
 }
 
-function FilterSection({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) {
-  return (
-    <details open className="group border-b border-[var(--line)] py-1">
-      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between py-2 text-sm font-semibold [&::-webkit-details-marker]:hidden">
-        <span>{title}{count ? <span className="ml-2 font-mono text-[.58rem] opacity-45">{String(count).padStart(2, "0")}</span> : null}</span>
-        <ChevronDown size={16} className="transition group-open:rotate-180" />
-      </summary>
-      <div className="pb-5 pt-1">{children}</div>
-    </details>
-  );
-}
-
-function Choice({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      aria-pressed={active}
-      onClick={onClick}
-      className={cn(
-        "min-h-10 border px-3 py-2 text-left text-xs transition",
-        active
-          ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]"
-          : "border-[var(--line)] hover:border-[var(--foreground)]"
-      )}
-    >
-      {children}
-    </button>
-  );
+function useDebounced<T>(value: T, delay = 300): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setDebounced(value), delay);
+    return () => window.clearTimeout(timeout);
+  }, [delay, value]);
+  return debounced;
 }
 
 function SearchContent() {
   const { locale, t } = useI18n();
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = stripQuotes(searchParams.get("q") || searchParams.get("keyword") || "");
-  const initialIntent = parseSearchIntent(initialQuery);
-  const initialGenres = searchParams.getAll("genre");
-  const initialMoods = searchParams.getAll("mood");
-  const initialInstruments = searchParams.getAll("instrument");
+  const searchParams = useSearchParams();
+  const initialQuery = stripQuotes(searchParams.get("q") ?? searchParams.get("keyword") ?? "");
+  const legacyEntries = useMemo(() => ([
+    ["category", null],
+    ["genre", "genre"],
+    ["mood", "moods"],
+    ["instrument", "instruments"],
+  ] as const).flatMap(([param, group]) => searchParams.getAll(param).flatMap(csv).map((value) => ({ value, group }))), [searchParams]);
+  const legacyRaw = useMemo(() => legacyEntries.map(({ value }) => value), [legacyEntries]);
 
   const [query, setQuery] = useState(initialQuery);
+  const [queryDraft, setQueryDraft] = useState(initialQuery);
   const [view, setView] = useState<ResultView>(searchParams.get("view") === "albums" ? "albums" : "tracks");
-  const [density, setDensity] = useState<Density>(searchParams.get("density") === "compact" ? "compact" : "comfortable");
+  const [type, setType] = useState<VersionType>(searchParams.get("type") === "all" ? "all" : "main");
+  const [density, setDensity] = useState<Density>(searchParams.get("density") === "mid" || searchParams.get("density") === "light" ? searchParams.get("density") as Density : "full");
   const [sort, setSort] = useState<SortMode>((searchParams.get("sort") as SortMode) || "relevance");
   const [page, setPage] = useState(Math.max(1, Number(searchParams.get("page")) || 1));
-  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const mobileFilterButtonRef = useRef<HTMLButtonElement>(null);
-  const mobileFilterCloseRef = useRef<HTMLButtonElement>(null);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>(initialGenres.length ? initialGenres : initialIntent.genres);
-  const [selectedMoods, setSelectedMoods] = useState<string[]>(initialMoods.length ? initialMoods : initialIntent.moods);
-  const [selectedInstruments, setSelectedInstruments] = useState<string[]>(initialInstruments.length ? initialInstruments : initialIntent.instruments);
-  const [selectedLabel, setSelectedLabel] = useState(searchParams.get("label") || "");
+  const [categories, setCategories] = useState<string[]>(sorted([
+    ...csv(searchParams.get("categories")),
+    ...legacyRaw,
+  ].map(categoryId).filter((value): value is string => Boolean(value))));
+  const [labels, setLabels] = useState<string[]>(sorted(csv(searchParams.get("labels") ?? searchParams.get("label")).filter((value) => !value.startsWith("-"))));
+  const [styles, setStyles] = useState<string[]>(sorted(csv(searchParams.get("styles"))));
   const [bpmRange, setBpmRange] = useState<[number, number]>([
-    Number(searchParams.get("minBpm")) || initialIntent.bpmRange?.[0] || 50,
-    Number(searchParams.get("maxBpm")) || initialIntent.bpmRange?.[1] || 200,
+    Number(searchParams.get("bpmMin") ?? searchParams.get("minBpm")) || DEFAULT_BPM[0],
+    Number(searchParams.get("bpmMax") ?? searchParams.get("maxBpm")) || DEFAULT_BPM[1],
   ]);
   const [durationRange, setDurationRange] = useState<[number, number]>([
-    Number(searchParams.get("minDuration")) || 0,
-    Number(searchParams.get("maxDuration")) || 300,
+    Number(searchParams.get("durationMin") ?? searchParams.get("minDuration")) || DEFAULT_DURATION[0],
+    Number(searchParams.get("durationMax") ?? searchParams.get("maxDuration")) || DEFAULT_DURATION[1],
   ]);
-  const [isVocal, setIsVocal] = useState<boolean | null>(
-    searchParams.get("vocal") === "true"
-      ? true
-      : searchParams.get("vocal") === "false"
-        ? false
-        : initialIntent.isVocal
-  );
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [assistedOpen, setAssistedOpen] = useState(false);
+  const [assistedDraft, setAssistedDraft] = useState("");
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
-  const parsedIntent = useMemo(() => parseSearchIntent(query), [query]);
-  const { data: genresData } = useGenres();
-  const { data: moodsData } = useMoods();
-  const { data: instrumentsData } = useInstruments();
-  const { data: labelsData } = useLabels({ limit: 60 });
-  const genres = genresData?.genres ?? [];
-  const moods = moodsData?.moods ?? [];
-  const instruments = instrumentsData?.instruments ?? [];
-  const labels = labelsData?.labels ?? [];
+  const filtersQuery = useSearchFilters(locale);
+  const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
+  const allFilterItems = useMemo(() => filterGroups.flatMap((group) => flatten(group.items)), [filterGroups]);
+  const itemNames = useMemo(() => new Map(allFilterItems.map((item) => [item.id, item.name])), [allFilterItems]);
 
   useEffect(() => {
-    document.body.style.overflow = mobileFiltersOpen ? "hidden" : "";
-    if (!mobileFiltersOpen) return () => { document.body.style.overflow = ""; };
-    const filterTrigger = mobileFilterButtonRef.current;
-    mobileFilterCloseRef.current?.focus();
+    if (!filterGroups.length) return;
+    const frame = window.requestAnimationFrame(() => setCategories((current) => {
+      const canonical = canonicalizeCategoryValues(current, filterGroups);
+      return canonical.join(",") === current.join(",") ? current : canonical;
+    }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [filterGroups]);
+
+  useEffect(() => {
+    if (!allFilterItems.length) return;
+    const names = new Map<string, string>();
+    allFilterItems.forEach((item) => {
+      const key = item.name.toLocaleLowerCase(locale);
+      if (!names.has(key)) names.set(key, item.id);
+    });
+    const resolved = legacyEntries.flatMap(({ value, group }) => {
+      const canonical = categoryId(value);
+      if (canonical) return [canonical];
+      const unsigned = value.replace(/^-/, "");
+      const id = group
+        ? findSearchFilterId(filterGroups, group as SearchFilterGroupKey, unsigned)
+        : names.get(unsigned.toLocaleLowerCase(locale));
+      return id ? [`${value.startsWith("-") ? "-" : ""}${id}`] : [];
+    });
+    if (!resolved.length) return;
+    const frame = window.requestAnimationFrame(() => setCategories((current) => sorted([...current, ...resolved])));
+    return () => window.cancelAnimationFrame(frame);
+  }, [allFilterItems, filterGroups, legacyEntries, locale]);
+
+  const updateCategories = useCallback((values: string[]) => { setCategories(sorted(values)); setPage(1); }, []);
+  const updateLabels = useCallback((values: string[]) => { setLabels(sorted(values)); setPage(1); }, []);
+  const updateStyles = useCallback((values: string[]) => { setStyles(sorted(values)); setPage(1); }, []);
+  const updateBpm = useCallback((value: [number, number]) => { setBpmRange(value); setPage(1); }, []);
+  const updateDuration = useCallback((value: [number, number]) => { setDurationRange(value); setPage(1); }, []);
+
+  useEffect(() => {
+    // On mobile the filter sheet is an explicit apply surface. Deferring the URL
+    // replacement keeps the focus trap and scroll position stable while users
+    // make several selections; closing the sheet commits the canonical URL.
+    if (mobileFiltersOpen) return;
+    const params = new URLSearchParams();
+    if (query) params.set("q", query);
+    params.set("view", view);
+    params.set("type", type);
+    if (page > 1) params.set("page", String(page));
+    if (sort !== "relevance") params.set("sort", sort);
+    if (density !== "full") params.set("density", density);
+    if (labels.length) params.set("labels", sorted(labels).join(","));
+    if (styles.length) params.set("styles", sorted(styles).join(","));
+    if (categories.length) params.set("categories", sorted(categories).join(","));
+    if (bpmRange[0] !== DEFAULT_BPM[0]) params.set("bpmMin", String(bpmRange[0]));
+    if (bpmRange[1] !== DEFAULT_BPM[1]) params.set("bpmMax", String(bpmRange[1]));
+    if (durationRange[0] !== DEFAULT_DURATION[0]) params.set("durationMin", String(durationRange[0]));
+    if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
+    const next = params.toString();
+    if (next !== searchParams.toString()) router.replace(`/search${next ? `?${next}` : ""}`, { scroll: false });
+  }, [bpmRange, categories, density, durationRange, labels, mobileFiltersOpen, page, query, router, searchParams, sort, styles, type, view]);
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    const trigger = mobileTriggerRef.current;
+    const dialog = dialogRef.current;
+    document.body.style.overflow = "hidden";
+    const focusable = () => [...(dialog?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+    focusable()[0]?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMobileFiltersOpen(false);
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
     };
     window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
-      filterTrigger?.focus();
+      trigger?.focus();
     };
   }, [mobileFiltersOpen]);
 
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (query) params.set("q", query);
-    params.set("view", view);
-    if (density === "compact") params.set("density", density);
-    if (sort !== "relevance") params.set("sort", sort);
-    if (page > 1) params.set("page", String(page));
-    selectedGenres.forEach((value) => params.append("genre", value));
-    selectedMoods.forEach((value) => params.append("mood", value));
-    selectedInstruments.forEach((value) => params.append("instrument", value));
-    if (selectedLabel) params.set("label", selectedLabel);
-    if (bpmRange[0] !== 50) params.set("minBpm", String(bpmRange[0]));
-    if (bpmRange[1] !== 200) params.set("maxBpm", String(bpmRange[1]));
-    if (durationRange[0] !== 0) params.set("minDuration", String(durationRange[0]));
-    if (durationRange[1] !== 300) params.set("maxDuration", String(durationRange[1]));
-    if (isVocal !== null) params.set("vocal", String(isVocal));
-    const next = params.toString();
-    if (next !== searchParams.toString()) router.replace(`/search?${next}`, { scroll: false });
-  }, [bpmRange, density, durationRange, isVocal, page, query, router, searchParams, selectedGenres, selectedInstruments, selectedLabel, selectedMoods, sort, view]);
-
-  const apiParams = useMemo(() => {
-    const hasStructuredCriteria = Boolean(
-      selectedGenres.length || selectedMoods.length || selectedInstruments.length ||
-      bpmRange[0] !== 50 || bpmRange[1] !== 200 || isVocal !== null
-    );
-    return {
-      limit: PAGE_SIZE,
-      offset: (page - 1) * PAGE_SIZE,
-      query: hasStructuredCriteria ? undefined : (parsedIntent.freeText || query || undefined),
-      genres: selectedGenres.length ? selectedGenres : undefined,
-      moods: selectedMoods.length ? selectedMoods : undefined,
-      instruments: selectedInstruments.length ? selectedInstruments : undefined,
-      label: selectedLabel || undefined,
-      minBpm: bpmRange[0] !== 50 ? bpmRange[0] : undefined,
-      maxBpm: bpmRange[1] !== 200 ? bpmRange[1] : undefined,
-      minDuration: durationRange[0] || undefined,
-      maxDuration: durationRange[1] !== 300 ? durationRange[1] : undefined,
-      isVocal: isVocal ?? undefined,
-      sort,
-    };
-  }, [bpmRange, durationRange, isVocal, page, parsedIntent.freeText, query, selectedGenres, selectedInstruments, selectedLabel, selectedMoods, sort]);
-
-  const { data: tracksData, isLoading, isError, refetch } = useTracks(apiParams);
-  const tracks = useMemo(() => tracksData?.tracks.map(transformTrack) ?? [], [tracksData]);
-  const totalCount = tracksData?.pagination.total ?? 0;
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const albums = useMemo(() => Array.from(new Map(tracks.map((track) => [track.albumId, albumFromTrack(track)])).values()), [tracks]);
-
-  const hasActiveFilters = Boolean(
-    query || selectedGenres.length || selectedMoods.length || selectedInstruments.length || selectedLabel ||
-    bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300 || isVocal !== null
-  );
-
-  const handleAssistedSearch = useCallback((value: string) => {
-    const intent = parseSearchIntent(value);
-    setQuery(value);
-    setSelectedGenres(intent.genres);
-    setSelectedMoods(intent.moods);
-    setSelectedInstruments(intent.instruments);
-    setBpmRange(intent.bpmRange ?? [50, 200]);
-    setIsVocal(intent.isVocal);
-    setPage(1);
-    const params = intentToSearchParams(intent);
-    params.set("view", view);
-    router.replace(`/search?${params.toString()}`, { scroll: false });
-  }, [router, view]);
-
   const resetFilters = useCallback(() => {
-    setQuery("");
-    setSelectedGenres([]);
-    setSelectedMoods([]);
-    setSelectedInstruments([]);
-    setSelectedLabel("");
-    setBpmRange([50, 200]);
-    setDurationRange([0, 300]);
-    setIsVocal(null);
+    setCategories([]);
+    setLabels([]);
+    setStyles([]);
+    setBpmRange(DEFAULT_BPM);
+    setDurationRange(DEFAULT_DURATION);
+    setType("main");
     setPage(1);
   }, []);
 
-  const toggle = (value: string, values: string[], setter: (next: string[]) => void) => {
-    setter(values.includes(value) ? values.filter((item) => item !== value) : [...values, value]);
+  const requestParams = useMemo(() => ({
+    limit: PAGE_SIZE,
+    offset: (page - 1) * PAGE_SIZE,
+    query: query || undefined,
+    labels,
+    styles,
+    categories,
+    minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
+    maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
+    minDuration: durationRange[0] !== DEFAULT_DURATION[0] ? durationRange[0] : undefined,
+    maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
+    type,
+    language: locale,
+    sort,
+  }), [bpmRange, categories, durationRange, labels, locale, page, query, sort, styles, type]);
+  const debouncedParams = useDebounced(requestParams, 300);
+  const tracksQuery = useTracks(debouncedParams, view === "tracks");
+  const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, view === "albums");
+  const activeQuery = view === "tracks" ? tracksQuery : albumsQuery;
+  const tracks = tracksQuery.data?.tracks ?? [];
+  const albums = albumsQuery.data?.albums ?? [];
+  const total = view === "tracks" ? tracksQuery.data?.pagination.total ?? 0 : albumsQuery.data?.pagination.total ?? 0;
+  const facets: SearchFacets | undefined = view === "tracks" ? tracksQuery.data?.facets : albumsQuery.data?.facets;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  const assisted = useMemo(() => parseSearchIntent(assistedDraft), [assistedDraft]);
+  const detectedNames = [...new Set([...assisted.genres, ...assisted.moods, ...assisted.instruments])];
+  const applyAssisted = () => {
+    const detectedIds = resolveIntentCategoryIds(assisted, filterGroups);
+    const hasStructuredCriteria = Boolean(detectedIds.length || assisted.bpmRange);
+    const nextQuery = hasStructuredCriteria ? "" : assisted.freeText || assistedDraft.trim();
+    setQuery(nextQuery);
+    setQueryDraft(nextQuery);
+    setCategories(sorted(detectedIds));
+    if (detectedNames.length) {
+      const detected = new Set(detectedNames.map((name) => name.toLocaleLowerCase(locale)));
+      setStyles((current) => sorted(current.filter((value) => {
+        const id = value.replace(/^-/, "");
+        return !detected.has((itemNames.get(id) ?? "").toLocaleLowerCase(locale));
+      })));
+    }
+    if (assisted.bpmRange) setBpmRange([Math.max(50, assisted.bpmRange[0]), Math.min(200, assisted.bpmRange[1])]);
+    setPage(1);
+    setAssistedOpen(false);
+  };
+
+  const activeValues = [...categories, ...styles];
+  const includedCount = activeValues.filter((value) => !value.startsWith("-")).length + labels.length;
+  const excludedCount = activeValues.filter((value) => value.startsWith("-")).length;
+  const resultStart = total ? (page - 1) * PAGE_SIZE + 1 : 0;
+  const resultEnd = Math.min(page * PAGE_SIZE, total);
+  const removeValue = (value: string, source: "categories" | "styles" | "labels") => {
+    const setter = source === "categories" ? updateCategories : source === "styles" ? updateStyles : updateLabels;
+    setter((source === "categories" ? categories : source === "styles" ? styles : labels).filter((item) => item !== value));
+  };
+  const addSuggestion = (suggestion: string) => {
+    const terms = query.match(/"[^"]+"|\S+/g)?.map((term) => stripQuotes(term)) ?? [];
+    const nextQuery = [...terms, suggestion].filter((term, index, all) => all.findIndex((candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase()) === index).map((term) => `"${term}"`).join(" ");
+    setQuery(nextQuery);
+    setQueryDraft(nextQuery);
     setPage(1);
   };
 
-  const suggestions = locale === "fr"
-    ? ["Techno pulsée, sombre, sans voix", "Piano intime pour documentaire", "Pop solaire à 120 BPM", "Cordes tendues et cinématiques"]
-    : ["Pulsing dark techno, no vocals", "Intimate piano for documentary", "Bright pop at 120 BPM", "Tense cinematic strings"];
-
   const filterPanel = (
-    <div className="border border-[var(--line)] bg-[var(--background)] p-5">
-      <div className="mb-3 flex items-center justify-between border-b border-[var(--line)] pb-4">
-        <h2 className="eyebrow">{t("search.filters")}</h2>
-        {hasActiveFilters && <button type="button" onClick={resetFilters} className="inline-flex min-h-10 items-center gap-2 text-xs hover:underline"><RotateCcw size={14} />{t("common.reset")}</button>}
-      </div>
-      <FilterSection title="Labels" count={selectedLabel ? 1 : 0}>
-        <div className="grid max-h-48 grid-cols-2 gap-2 overflow-y-auto pr-1">
-          {labels.map((label) => <Choice key={label.slug || label.id} active={selectedLabel === label.slug} onClick={() => { setSelectedLabel(selectedLabel === label.slug ? "" : label.slug || ""); setPage(1); }}>{label.name}</Choice>)}
-        </div>
-      </FilterSection>
-      <FilterSection title={locale === "fr" ? "Genres" : "Genres"} count={selectedGenres.length}>
-        <div className="flex flex-wrap gap-2">{genres.map((genre) => <Choice key={genre.slug} active={selectedGenres.includes(genre.slug)} onClick={() => toggle(genre.slug, selectedGenres, setSelectedGenres)}>{localizeCatalogTerm(genre.slug, locale)}</Choice>)}</div>
-      </FilterSection>
-      <FilterSection title={locale === "fr" ? "Ambiances" : "Moods"} count={selectedMoods.length}>
-        <div className="flex flex-wrap gap-2">{moods.map((mood) => <Choice key={mood.slug} active={selectedMoods.includes(mood.slug)} onClick={() => toggle(mood.slug, selectedMoods, setSelectedMoods)}>{localizeCatalogTerm(mood.slug, locale)}</Choice>)}</div>
-      </FilterSection>
-      <FilterSection title="Instruments" count={selectedInstruments.length}>
-        <div className="flex max-h-52 flex-wrap gap-2 overflow-y-auto pr-1">{instruments.map((instrument) => <Choice key={instrument.slug} active={selectedInstruments.includes(instrument.slug)} onClick={() => toggle(instrument.slug, selectedInstruments, setSelectedInstruments)}>{localizeCatalogTerm(instrument.slug, locale)}</Choice>)}</div>
-      </FilterSection>
-      <FilterSection title="Tempo / BPM" count={bpmRange[0] !== 50 || bpmRange[1] !== 200 ? 1 : 0}>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <label className="text-[.62rem] uppercase tracking-[.12em] opacity-55">Min<input aria-label="BPM minimum" type="number" min={50} max={bpmRange[1]} value={bpmRange[0]} onChange={(event) => { setBpmRange([Number(event.target.value) || 50, bpmRange[1]]); setPage(1); }} className="mt-2 h-11 w-full border border-[var(--line)] bg-transparent px-3 font-mono text-sm" /></label>
-          <span className="mt-5 opacity-35">—</span>
-          <label className="text-[.62rem] uppercase tracking-[.12em] opacity-55">Max<input aria-label="BPM maximum" type="number" min={bpmRange[0]} max={240} value={bpmRange[1]} onChange={(event) => { setBpmRange([bpmRange[0], Number(event.target.value) || 200]); setPage(1); }} className="mt-2 h-11 w-full border border-[var(--line)] bg-transparent px-3 font-mono text-sm" /></label>
-        </div>
-      </FilterSection>
-      <FilterSection title={locale === "fr" ? "Durée" : "Duration"} count={durationRange[0] !== 0 || durationRange[1] !== 300 ? 1 : 0}>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
-          <label className="text-[.62rem] uppercase tracking-[.12em] opacity-55">Min<input aria-label={locale === "fr" ? "Durée minimum en secondes" : "Minimum duration in seconds"} type="number" min={0} max={durationRange[1]} value={durationRange[0]} onChange={(event) => { setDurationRange([Number(event.target.value) || 0, durationRange[1]]); setPage(1); }} className="mt-2 h-11 w-full border border-[var(--line)] bg-transparent px-3 font-mono text-sm" /></label>
-          <span className="mt-5 opacity-35">—</span>
-          <label className="text-[.62rem] uppercase tracking-[.12em] opacity-55">Max<input aria-label={locale === "fr" ? "Durée maximum en secondes" : "Maximum duration in seconds"} type="number" min={durationRange[0]} max={1200} value={durationRange[1]} onChange={(event) => { setDurationRange([durationRange[0], Number(event.target.value) || 300]); setPage(1); }} className="mt-2 h-11 w-full border border-[var(--line)] bg-transparent px-3 font-mono text-sm" /></label>
-        </div>
-        <p className="mt-3 font-mono text-[.62rem] opacity-45">{formatDuration(durationRange[0])} — {formatDuration(durationRange[1])}</p>
-      </FilterSection>
-      <FilterSection title={locale === "fr" ? "Présence vocale" : "Vocals"} count={isVocal === null ? 0 : 1}>
-        <div className="grid grid-cols-3 gap-2">
-          <Choice active={isVocal === null} onClick={() => { setIsVocal(null); setPage(1); }}>{locale === "fr" ? "Toutes" : "All"}</Choice>
-          <Choice active={isVocal === true} onClick={() => { setIsVocal(true); setPage(1); }}>Vocal</Choice>
-          <Choice active={isVocal === false} onClick={() => { setIsVocal(false); setPage(1); }}>Instrumental</Choice>
-        </div>
-      </FilterSection>
-    </div>
+    <SearchFilterPanel
+      groups={filterGroups}
+      categories={categories}
+      labels={labels}
+      styles={styles}
+      bpmRange={bpmRange}
+      durationRange={durationRange}
+      categoryFacets={facets?.categories ?? []}
+      labelFacets={facets?.labels ?? []}
+      styleFacets={facets?.styles ?? []}
+      locale={locale}
+      onCategoriesChange={updateCategories}
+      onLabelsChange={updateLabels}
+      onStylesChange={updateStyles}
+      onBpmChange={updateBpm}
+      onDurationChange={updateDuration}
+      onReset={resetFilters}
+    />
   );
-
-  const resultStart = totalCount ? (page - 1) * PAGE_SIZE + 1 : 0;
-  const resultEnd = Math.min(page * PAGE_SIZE, totalCount);
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 pb-28">
-        <section className="border-b border-[var(--line)] bg-[var(--surface)] px-4 pb-12 pt-32 text-[var(--foreground)] sm:px-6 md:pb-16 md:pt-40 lg:px-8">
+      <main className="flex-1 pb-28 pt-28 md:pt-32">
+        <section className="border-b border-[var(--line)] px-4 pb-7 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[1800px]">
-            <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
-              <div className="lg:col-span-5">
-                <p className="eyebrow mb-5 text-[var(--signal-strong)]">{t("search.eyebrow")}</p>
-                <h1 className="max-w-[10ch] text-[clamp(3.25rem,6vw,7rem)] font-semibold leading-[.88] tracking-[-.06em]">{t("search.title")}</h1>
+            <div className="grid items-end gap-6 lg:grid-cols-[minmax(240px,.45fr)_minmax(0,1fr)]">
+              <div>
+                <p className="eyebrow mb-3 text-[var(--signal-strong)]">{locale === "fr" ? "Catalogue Parigo" : "Parigo catalogue"}</p>
+                <h1 className="text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92] tracking-[-.06em]">{locale === "fr" ? "Trouver la bonne musique." : "Find the right music."}</h1>
               </div>
-              <div className="lg:col-span-6 lg:col-start-7">
-                <p className="mb-6 max-w-2xl text-base leading-relaxed text-[var(--text-muted)] md:text-lg">{t("search.intro")}</p>
-                <AISearch compact defaultValue={query} onSearch={handleAssistedSearch} />
+              <div>
+                <form onSubmit={(event) => { event.preventDefault(); setQuery(queryDraft.trim()); setPage(1); }} className="flex min-h-15 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-sm)] transition-[border-color,box-shadow] focus-within:border-[var(--signal-strong)] focus-within:shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--signal-strong),var(--shadow-sm)]">
+                  <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />
+                  <label htmlFor="catalog-search" className="sr-only">{t("common.search")}</label>
+                  <input id="catalog-search" value={queryDraft} onChange={(event) => setQueryDraft(event.target.value)} placeholder={locale === "fr" ? "Titre, mot-clé, compositeur, instrument…" : "Title, keyword, composer, instrument…"} className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
+                  {queryDraft && <button type="button" onClick={() => { setQueryDraft(""); setQuery(""); setPage(1); }} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}><X size={16} /></button>}
+                  <Button type="submit" size="sm" aria-label={t("common.search")}><span className="hidden sm:inline">{t("common.search")}</span><ChevronRight className="sm:hidden" size={17} /></Button>
+                </form>
+                <button type="button" onClick={() => setAssistedOpen((value) => !value)} aria-expanded={assistedOpen} className="mt-2 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--signal-strong)]"><Sparkles size={14} />{locale === "fr" ? "Recherche assistée" : "Assisted search"}</button>
+                {assistedOpen && (
+                  <div className="mt-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
+                    <label className="text-xs font-semibold" htmlFor="assisted-search">{locale === "fr" ? "Décrivez votre intention musicale" : "Describe your music brief"}</label>
+                    <textarea id="assisted-search" value={assistedDraft} onChange={(event) => setAssistedDraft(event.target.value)} rows={2} placeholder={locale === "fr" ? "Un piano intime, sans voix, pour un documentaire…" : "An intimate instrumental piano track for a documentary…"} className="mt-2 w-full resize-none rounded-md border border-[var(--line)] bg-transparent p-3 text-sm outline-none focus:border-[var(--signal-strong)]" />
+                    {assistedDraft && <div className="mt-3"><p className="text-[.68rem] font-semibold uppercase tracking-[.1em] text-[var(--text-muted)]">{locale === "fr" ? "Critères détectés — à vérifier" : "Detected criteria — review before search"}</p><div className="mt-2 flex flex-wrap gap-2">{detectedNames.map((name) => <span key={name} className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{name}</span>)}{assisted.bpmRange && <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{assisted.bpmRange.join("–")} BPM</span>}{!detectedNames.length && !assisted.bpmRange && <span className="text-xs text-[var(--text-muted)]">{locale === "fr" ? "Aucun filtre structuré détecté : la phrase restera un mot-clé." : "No structured filter detected: the sentence will remain a keyword."}</span>}</div>{(detectedNames.length > 0 || assisted.bpmRange) && <p className="mt-3 max-w-xl text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Ces critères remplacent la phrase libre pour éviter de contraindre deux fois la même intention." : "These criteria replace the free-form sentence so the same intent is not constrained twice."}</p>}<Button type="button" size="sm" onClick={applyAssisted} disabled={detectedNames.length > 0 && filtersQuery.isLoading} className="mt-3">{filtersQuery.isLoading && detectedNames.length > 0 ? (locale === "fr" ? "Préparation des critères…" : "Preparing criteria…") : (locale === "fr" ? "Appliquer ces critères" : "Apply criteria")}</Button></div>}
+                  </div>
+                )}
               </div>
-            </div>
-            <div className="mt-8 flex gap-2 overflow-x-auto pb-2" aria-label={locale === "fr" ? "Suggestions de recherche" : "Search suggestions"}>
-              {suggestions.map((suggestion) => <button key={suggestion} type="button" onClick={() => handleAssistedSearch(suggestion)} className="min-h-11 shrink-0 rounded-full border border-[var(--line)] px-4 text-left text-xs text-[var(--text-muted)] transition hover:border-[var(--signal)] hover:text-[var(--foreground)]">{suggestion}</button>)}
             </div>
           </div>
         </section>
 
-        <div className="mx-auto grid w-full max-w-[1800px] gap-8 px-4 py-8 sm:px-6 md:py-12 lg:grid-cols-[300px_minmax(0,1fr)] lg:px-8">
-          <aside className="hidden self-start lg:sticky lg:top-24 lg:block">{filterPanel}</aside>
+        <div className="mx-auto grid max-w-[1800px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:px-8">
+          <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
+            {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><Loader2 className="animate-spin" /></div> : filterPanel}
+          </aside>
 
-          <section aria-live="polite" aria-busy={isLoading}>
-            <div className="mb-5 flex flex-col gap-4 border-b border-[var(--line)] pb-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="font-mono text-[.68rem] uppercase tracking-[.13em] opacity-58">{resultStart}—{resultEnd} / {totalCount} {totalCount === 1 ? t("search.result") : t("search.results")}</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  <Button ref={mobileFilterButtonRef} variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="lg:hidden"><SlidersHorizontal size={16} />{t("search.filters")}</Button>
-                  <label className="sr-only" htmlFor="search-sort">{locale === "fr" ? "Trier les résultats" : "Sort results"}</label>
-                  <select id="search-sort" value={sort} onChange={(event) => { setSort(event.target.value as SortMode); setPage(1); }} className="h-11 border border-[var(--line)] bg-transparent px-3 text-xs">
-                    <option value="relevance">{locale === "fr" ? "Pertinence" : "Relevance"}</option>
-                    <option value="recent">{locale === "fr" ? "Parution récente" : "Newest release"}</option>
-                    <option value="title">{locale === "fr" ? "Titre A—Z" : "Title A—Z"}</option>
-                    <option value="bpm-asc">BPM ↑</option>
-                    <option value="bpm-desc">BPM ↓</option>
-                    <option value="duration-asc">{locale === "fr" ? "Durée ↑" : "Duration ↑"}</option>
-                    <option value="duration-desc">{locale === "fr" ? "Durée ↓" : "Duration ↓"}</option>
-                  </select>
+          <section className="min-w-0" aria-live="polite">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-10 items-center gap-2 rounded-md border border-[var(--line)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="rounded-full bg-[var(--signal-strong)] px-1.5 text-white">{includedCount + excludedCount}</span>}</button>
+                <div className="inline-flex rounded-md border border-[var(--line)] p-1" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
+                  <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("min-h-9 rounded px-3 text-xs font-semibold", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={14} className="mr-1.5 inline" />{locale === "fr" ? "Pistes" : "Tracks"}</button>
+                  <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("min-h-9 rounded px-3 text-xs font-semibold", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} className="mr-1.5 inline" />Albums</button>
                 </div>
+                <Select value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Versions principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} />
               </div>
-
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex border border-[var(--line)]" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
-                  <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("flex min-h-11 items-center gap-2 px-4 text-xs transition", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutList size={16} />{locale === "fr" ? "Pistes" : "Tracks"}</button>
-                  <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("flex min-h-11 items-center gap-2 border-l border-[var(--line)] px-4 text-xs transition", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={16} />Albums</button>
-                </div>
-                {view === "tracks" && <div className="flex border border-[var(--line)]" role="group" aria-label={t("search.density")}>
-                  <button type="button" aria-pressed={density === "comfortable"} onClick={() => setDensity("comfortable")} className={cn("flex h-11 w-11 items-center justify-center transition", density === "comfortable" && "bg-[var(--foreground)] text-[var(--background)]")} title={t("search.comfortable")}><Rows3 size={17} /></button>
-                  <button type="button" aria-pressed={density === "compact"} onClick={() => setDensity("compact")} className={cn("flex h-11 w-11 items-center justify-center border-l border-[var(--line)] transition", density === "compact" && "bg-[var(--foreground)] text-[var(--background)]")} title={t("search.compact")}><LayoutList size={17} /></button>
-                </div>}
+              <div className="flex items-center gap-2">
+                <Select value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Densité des pistes" : "Track density"} className="min-w-[9.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste complète" : "Full track" }, { value: "mid", label: locale === "fr" ? "Mi-piste" : "Medium track" }, { value: "light", label: locale === "fr" ? "Piste légère" : "Light track" }]} />
+                <Select value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="min-w-[9rem]" options={[
+                  { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
+                  { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
+                  { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
+                  { value: "title", label: "A–Z" }, { value: "title-desc", label: "Z–A" },
+                  ...(view === "tracks" ? [{ value: "bpm-asc" as const, label: "BPM ↑" }, { value: "bpm-desc" as const, label: "BPM ↓" }, { value: "duration-asc" as const, label: locale === "fr" ? "Durée ↑" : "Duration ↑" }, { value: "duration-desc" as const, label: locale === "fr" ? "Durée ↓" : "Duration ↓" }] : []),
+                ]} />
               </div>
             </div>
 
-            {hasActiveFilters && <div className="mb-6 flex flex-wrap gap-2">
-              {selectedGenres.map((value) => <Choice key={`genre-${value}`} active onClick={() => toggle(value, selectedGenres, setSelectedGenres)}>{localizeCatalogTerm(value, locale)} <X className="ml-1 inline" size={12} /></Choice>)}
-              {selectedMoods.map((value) => <Choice key={`mood-${value}`} active onClick={() => toggle(value, selectedMoods, setSelectedMoods)}>{localizeCatalogTerm(value, locale)} <X className="ml-1 inline" size={12} /></Choice>)}
-              {selectedLabel && <Choice active onClick={() => { setSelectedLabel(""); setPage(1); }}>{labels.find((label) => label.slug === selectedLabel)?.name || selectedLabel} <X className="ml-1 inline" size={12} /></Choice>}
-              <button type="button" onClick={resetFilters} className="min-h-10 px-3 text-xs underline decoration-current/30 underline-offset-4">{t("common.reset")}</button>
-            </div>}
-
-            {isLoading ? (
-              <div className="flex min-h-80 items-center justify-center"><Loader2 className="animate-spin text-[var(--color-primary)]" size={34} /><span className="sr-only">{t("common.loading")}</span></div>
-            ) : isError ? (
-              <div className="border border-[var(--line)] px-5 py-24 text-center"><h2 className="font-[var(--font-editorial)] text-5xl tracking-[-.045em]">{t("search.errorTitle")}</h2><Button variant="outline" onClick={() => refetch()} className="mt-7">{t("common.retry")}</Button></div>
-            ) : tracks.length === 0 ? (
-              <div className="border border-[var(--line)] px-5 py-24 text-center"><h2 className="font-[var(--font-editorial)] text-5xl tracking-[-.045em] md:text-7xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-5 max-w-xl text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-7">{t("common.reset")}</Button></div>
-            ) : view === "tracks" ? (
-              <div className="border-y border-[var(--line)]">
-                {tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFromTrack(track)} queue={tracks} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density === "compact"} />)}
-              </div>
-            ) : (
-              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-                {albums.map((album, index) => <motion.article key={album.id} initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.035 }} className="border border-[var(--line)] bg-[var(--background)] p-3">
-                  <Link href={`/albums/${album.slug || album.id}`} className="group block">
-                    <div className="relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 30vw" className="object-cover transition duration-700 group-hover:scale-[1.035]" /></div>
-                    <div className="flex items-start justify-between gap-4 py-4"><div><h2 className="font-[var(--font-editorial)] text-3xl tracking-[-.04em]">{album.title}</h2><p className="mt-1 text-xs text-[var(--text-muted)]">{album.label}</p></div><span className="font-mono text-[.58rem] opacity-42">{String(index + 1).padStart(2, "0")}</span></div>
-                  </Link>
-                </motion.article>)}
+            {(categories.length > 0 || labels.length > 0 || styles.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
+              <div className="mb-4 rounded-xl border border-[var(--line)] bg-[var(--background)] p-3">
+                <div className="mb-3 flex items-center justify-between gap-4"><p className="text-xs font-semibold">{locale === "fr" ? `${includedCount} inclus, ${excludedCount} exclus` : `${includedCount} included, ${excludedCount} excluded`}</p><button type="button" onClick={resetFilters} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[.68rem] font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button></div>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "categories")} className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition hover:border-[var(--foreground)]", negative ? "filter-chip-excluded" : "border-[var(--signal-strong)]/35 bg-[var(--signal-soft)] text-[var(--foreground)]")}><span className={cn("flex h-4 w-4 items-center justify-center rounded-full", negative ? "bg-[var(--danger)] text-white" : "bg-[var(--signal-strong)] text-white")}>{negative ? <Minus size={10} /> : <Check size={10} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
+                  {labels.map((value) => <button key={value} type="button" onClick={() => removeValue(value, "labels")} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--signal-strong)]/35 bg-[var(--signal-soft)] px-3 text-xs text-[var(--foreground)] transition hover:border-[var(--foreground)]"><span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--signal-strong)] text-white"><Check size={10} /></span>{itemNames.get(value) ?? value}<X size={12} /></button>)}
+                  {styles.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "styles")} className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition hover:border-[var(--foreground)]", negative ? "filter-chip-excluded" : "border-[var(--signal-strong)]/35 bg-[var(--signal-soft)] text-[var(--foreground)]")} ><span className={cn("flex h-4 w-4 items-center justify-center rounded-full", negative ? "bg-[var(--danger)] text-white" : "bg-[var(--signal-strong)] text-white")}>{negative ? <Minus size={10} /> : <Check size={10} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
+                  {(bpmRange[0] !== 50 || bpmRange[1] !== 200) && <button type="button" onClick={() => updateBpm(DEFAULT_BPM)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs">BPM {bpmRange[0]}–{bpmRange[1]}<X size={12} /></button>}
+                  {(durationRange[0] !== 0 || durationRange[1] !== 300) && <button type="button" onClick={() => updateDuration(DEFAULT_DURATION)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs">{formatDuration(durationRange[0])}–{formatDuration(durationRange[1])}<X size={12} /></button>}
+                </div>
               </div>
             )}
 
-            {!isLoading && !isError && totalPages > 1 && <nav className="mt-8 flex items-center justify-between border-t border-[var(--line)] pt-5" aria-label={locale === "fr" ? "Pagination des résultats" : "Results pagination"}>
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => { setPage((value) => Math.max(1, value - 1)); window.scrollTo({ top: 420, behavior: "smooth" }); }}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
-              <span className="font-mono text-[.65rem] uppercase tracking-[.13em] opacity-58">{locale === "fr" ? "Page" : "Page"} {page} / {totalPages}</span>
-              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => { setPage((value) => Math.min(totalPages, value + 1)); window.scrollTo({ top: 420, behavior: "smooth" }); }}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>
-            </nav>}
+            <div className="mb-4 flex items-center justify-between border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
+              <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
+              {query && <span>{locale === "fr" ? "Résultats pour" : "Results for"} « {query} »</span>}
+            </div>
+
+            {!activeQuery.isError && (
+              <section className="mb-5 overflow-hidden border-y border-[var(--line)] bg-[var(--surface)] py-3" aria-labelledby="suggested-searches-title">
+                <div className="flex items-end justify-between gap-4 px-3 sm:px-4"><div className="flex flex-wrap items-baseline gap-x-3"><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Pistes de recherche" : "Search directions"}</p><h2 id="suggested-searches-title" className="text-sm font-semibold">{locale === "fr" ? "Recherches suggérées" : "Suggested searches"}</h2></div><span className="shrink-0 font-mono text-[.58rem] text-[var(--text-muted)]">{PRODUCTION_SUGGESTIONS.length} TAGS →</span></div>
+                <div className="suggestion-rail mt-2 grid grid-flow-col grid-rows-4 auto-cols-max gap-1.5 overflow-x-auto px-3 pb-2 pt-1.5 sm:grid-rows-3 sm:px-4" aria-label={locale === "fr" ? "Faire défiler les recherches suggérées horizontalement" : "Scroll suggested searches horizontally"}>{PRODUCTION_SUGGESTIONS.map((suggestion) => <button key={suggestion} type="button" onClick={() => addSuggestion(suggestion)} className="min-h-7 rounded-full border border-[var(--line)] bg-[var(--background)] px-2.5 py-1 text-[.68rem] leading-none transition hover:-translate-y-0.5 hover:border-[var(--signal-strong)] hover:bg-[var(--signal-soft)]">{suggestion}</button>)}</div>
+              </section>
+            )}
+
+            {activeQuery.isLoading || activeQuery.isFetching && !activeQuery.data ? (
+              <div className="flex min-h-96 items-center justify-center"><Loader2 className="animate-spin text-[var(--signal-strong)]" size={32} /><span className="sr-only">{t("common.loading")}</span></div>
+            ) : activeQuery.isError ? (
+              <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-3xl">{locale === "fr" ? "La recherche est temporairement indisponible." : "Search is temporarily unavailable."}</h2><p className="mt-3 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Réessayez dans quelques instants." : "Please try again in a moment."}</p><Button variant="outline" onClick={() => activeQuery.refetch()} className="mt-7">{t("common.retry")}</Button></div>
+            ) : view === "tracks" ? tracks.length ? (
+              <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--surface)]">{tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFromTrack(track)} queue={tracks} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} />)}</div>
+            ) : (
+              <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
+            ) : albums.length ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{albums.map((album, index) => <motion.article key={album.id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .018 }} className="rounded-xl border border-[var(--line)] bg-[var(--surface)] p-2.5"><Link href={`/albums/${album.slug || album.id}`} className="group block"><div className="relative aspect-square overflow-hidden rounded-lg bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div><div className="flex items-start justify-between gap-3 py-3"><div className="min-w-0"><h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2><p className="mt-1 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p></div><span className="font-mono text-[.55rem] opacity-40">{String(index + 1).padStart(2, "0")}</span></div></Link></motion.article>)}</div>
+            ) : (
+              <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
+            )}
+
+            {!activeQuery.isLoading && !activeQuery.isError && totalPages > 1 && (
+              <nav className="mt-7 flex items-center justify-between border-t border-[var(--line)] pt-5" aria-label={locale === "fr" ? "Pagination des résultats" : "Results pagination"}>
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => { setPage((value) => Math.max(1, value - 1)); window.scrollTo({ top: 330, behavior: "smooth" }); }}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
+                <span className="font-mono text-[.65rem] uppercase tracking-[.12em] text-[var(--text-muted)]">Page {page} / {totalPages}</span>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => { setPage((value) => Math.min(totalPages, value + 1)); window.scrollTo({ top: 330, behavior: "smooth" }); }}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>
+              </nav>
+            )}
           </section>
         </div>
       </main>
 
-      {mobileFiltersOpen && <div className="fixed inset-0 z-[90] lg:hidden" role="dialog" aria-modal="true" aria-label={t("search.filters")}>
-        <button type="button" className="absolute inset-0 bg-black/58 backdrop-blur-sm" onClick={() => setMobileFiltersOpen(false)} aria-label={t("common.close")} />
-        <motion.aside initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }} className="absolute inset-y-0 right-0 w-[min(92vw,430px)] overflow-y-auto bg-[var(--background)] p-4 shadow-2xl">
-          <div className="sticky top-0 z-10 mb-4 flex items-center justify-between border-b border-[var(--line)] bg-[var(--background)] py-3"><p className="eyebrow">{t("search.filters")}</p><button ref={mobileFilterCloseRef} type="button" onClick={() => setMobileFiltersOpen(false)} className="flex h-11 w-11 items-center justify-center border border-[var(--line)]" aria-label={t("common.close")}><X size={18} /></button></div>
-          {filterPanel}
-          <Button variant="primary" className="sticky bottom-4 mt-4 w-full" onClick={() => setMobileFiltersOpen(false)}>{locale === "fr" ? `Voir ${totalCount} résultats` : `View ${totalCount} results`}</Button>
-        </motion.aside>
-      </div>}
-
+      {mobileFiltersOpen && (
+        <div className="fixed inset-0 z-[100] lg:hidden" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title">
+          <button type="button" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => setMobileFiltersOpen(false)} aria-label={t("common.close")} />
+          <motion.div ref={dialogRef} initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: .3, ease: [0.22, 1, 0.36, 1] }} className="absolute inset-0 flex flex-col bg-[var(--background)] sm:inset-x-4 sm:bottom-4 sm:top-10 sm:rounded-2xl">
+            <div className="flex min-h-16 items-center justify-between border-b border-[var(--line)] px-4"><h2 id="mobile-filter-title" className="font-semibold">{locale === "fr" ? "Filtres" : "Filters"}</h2><button type="button" onClick={() => setMobileFiltersOpen(false)} className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)]" aria-label={t("common.close")}><X size={17} /></button></div>
+            <div className="relative z-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3">{filterPanel}</div>
+            <div className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--background)] p-3"><Button className="w-full" onClick={() => setMobileFiltersOpen(false)}>{locale === "fr" ? `Voir ${total.toLocaleString(locale)} résultats` : `View ${total.toLocaleString(locale)} results`}</Button></div>
+          </motion.div>
+        </div>
+      )}
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }
 
 export default function SearchPage() {
-  return (
-    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><Loader2 className="animate-spin text-[var(--color-primary)]" size={34} /></div>}>
-      <SearchContent />
-    </Suspense>
-  );
+  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><Loader2 className="animate-spin text-[var(--signal-strong)]" size={32} /></div>}><SearchContent /></Suspense>;
 }

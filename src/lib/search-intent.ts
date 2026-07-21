@@ -1,4 +1,4 @@
-import type { SearchIntent } from "@/types";
+import type { SearchFilterGroup, SearchFilterGroupKey, SearchFilterItem, SearchIntent } from "@/types";
 
 const dictionaries = {
   genres: {
@@ -26,7 +26,7 @@ const dictionaries = {
   moods: {
     uplifting: ["positif", "positive", "solaire", "sunny", "bright", "lumineux", "optimiste", "optimistic", "uplifting"],
     dark: ["sombre", "dark", "noir", "inquiétant", "ominous"],
-    energetic: ["énergique", "energetic", "dynamique", "dynamic", "sport", "rapide", "powerful"],
+    energetic: ["énergique", "energetic", "dynamique", "dynamic", "sport", "rapide", "powerful", "qui tabasse", "percutant", "percutante", "punchy", "hard-hitting"],
     peaceful: ["calme", "calm", "doux", "soft", "paisible", "peaceful", "relaxant", "apaisant", "intimate"],
     melancholic: ["mélancolique", "melancholic", "triste", "sad", "nostalgique", "nostalgic", "émotion", "emotional"],
     tense: ["tension", "tense", "tendu", "suspense", "thriller", "urgence", "urgent"],
@@ -45,6 +45,67 @@ const dictionaries = {
 
 function normalize(value: string) {
   return value.toLocaleLowerCase("fr").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function normalizeFilterLabel(value: string) {
+  return normalize(value).replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function flattenFilterItems(items: SearchFilterItem[]): SearchFilterItem[] {
+  return items.flatMap((item) => [item, ...flattenFilterItems(item.children ?? [])]);
+}
+
+export function findSearchFilterId(
+  groups: SearchFilterGroup[],
+  groupKey: SearchFilterGroupKey,
+  value: string,
+): string | undefined {
+  const group = groups.find((candidate) => candidate.key === groupKey);
+  if (!group) return undefined;
+  const target = normalizeFilterLabel(value);
+  const items = flattenFilterItems(group.items);
+  const exact = items.find((item) => normalizeFilterLabel(item.name) === target);
+  if (exact) return exact.id;
+  return items.find((item) => {
+    const candidate = normalizeFilterLabel(item.name);
+    return candidate.startsWith(`${target} `) || target.startsWith(`${candidate} `);
+  })?.id;
+}
+
+export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFilterGroup[]): string[] {
+  const requested: Array<[SearchFilterGroupKey, string]> = [
+    ...intent.genres.map((value): [SearchFilterGroupKey, string] => ["genre", value]),
+    ...intent.moods.map((value): [SearchFilterGroupKey, string] => ["moods", value]),
+    ...intent.instruments.map((value): [SearchFilterGroupKey, string] => ["instruments", value]),
+  ];
+  return [...new Set(requested.flatMap(([group, value]) => {
+    const id = findSearchFilterId(groups, group, value);
+    return id ? [id] : [];
+  }))];
+}
+
+export function canonicalizeCategoryValues(values: string[], groups: SearchFilterGroup[]): string[] {
+  const categoryGroups = groups.filter((group) => group.key !== "labels" && group.key !== "styles");
+  const itemsByOpaqueId = new Map(categoryGroups.flatMap((group) => flattenFilterItems(group.items)).map((item) => [item.id.replace(/^ATT_/i, "").split("_")[0], item]));
+  const seenMeanings = new Set<string>();
+  const canonical: string[] = [];
+
+  for (const value of values) {
+    const negative = value.startsWith("-");
+    const opaqueId = value.replace(/^-/, "").replace(/^ATT_/i, "").split("_")[0];
+    const item = itemsByOpaqueId.get(opaqueId);
+    if (!item) continue;
+    const meaning = normalizeFilterLabel(item.name);
+    if (seenMeanings.has(meaning)) continue;
+    seenMeanings.add(meaning);
+    canonical.push(`${negative ? "-" : ""}ATT_${opaqueId}`);
+  }
+
+  return canonical.sort((a, b) => a.replace(/^-/, "").localeCompare(b.replace(/^-/, "")) || a.localeCompare(b));
+}
+
+export function hasAppliedStructuredIntent(intent: SearchIntent): boolean {
+  return Boolean(intent.genres.length || intent.moods.length || intent.instruments.length || intent.bpmRange);
 }
 
 function matches(input: string, terms: readonly string[]) {
@@ -79,7 +140,7 @@ export function parseSearchIntent(raw: string): SearchIntent {
 
 export function intentToSearchParams(intent: SearchIntent) {
   const params = new URLSearchParams();
-  if (intent.freeText) params.set("q", intent.freeText);
+  if (intent.freeText && !hasAppliedStructuredIntent(intent)) params.set("q", intent.freeText);
   intent.genres.forEach((value) => params.append("genre", value));
   intent.moods.forEach((value) => params.append("mood", value));
   intent.instruments.forEach((value) => params.append("instrument", value));

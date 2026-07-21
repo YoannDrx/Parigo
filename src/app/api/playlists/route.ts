@@ -1,74 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { apiError, apiPlaylist, requestId } from "@/lib/harvest/api";
+import { getPlaylists } from "@/lib/harvest/catalog";
 
 export async function GET(request: NextRequest) {
+  const id = requestId();
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const limit = parseInt(searchParams.get("limit") || "20");
-    const offset = parseInt(searchParams.get("offset") || "0");
-    const category = searchParams.get("category");
-    const featured = searchParams.get("featured") === "true";
-
-    const where: Record<string, unknown> = {
-      isActive: true,
-      isPublic: true,
-    };
-
-    if (category) {
-      where.category = category;
-    }
-
-    if (featured) {
-      where.isFeatured = true;
-    }
-
-    const [playlists, total] = await Promise.all([
-      prisma.playlist.findMany({
-        where,
-        include: {
-          cover: {
-            select: {
-              path: true,
-            },
-          },
-          _count: {
-            select: {
-              tracks: true,
-            },
-          },
-        },
-        orderBy: { order: "asc" },
-        take: limit,
-        skip: offset,
-      }),
-      prisma.playlist.count({ where }),
-    ]);
-
-    const transformedPlaylists = playlists.map((playlist) => ({
-      id: playlist.id,
-      slug: playlist.slug,
-      title: playlist.title,
-      description: playlist.description,
-      cover: playlist.cover?.path || "/images/placeholder-playlist.jpg",
-      category: playlist.category,
-      trackCount: playlist._count.tracks,
-      isFeatured: playlist.isFeatured,
-    }));
-
-    return NextResponse.json({
-      playlists: transformedPlaylists,
-      pagination: {
-        total,
-        limit,
-        offset,
-        hasMore: offset + limit < total,
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching playlists:", error);
+    const limit = Math.min(Number(request.nextUrl.searchParams.get("limit") || 100), 100);
+    const offset = Math.max(Number(request.nextUrl.searchParams.get("offset") || 0), 0);
+    const result = await getPlaylists({ limit, offset, style: request.nextUrl.searchParams.get("category") || undefined });
     return NextResponse.json(
-      { error: "Failed to fetch playlists" },
-      { status: 500 }
+      {
+        data: { playlists: result.items.map(apiPlaylist) },
+        meta: { total: result.total, page: Math.floor(offset / limit) + 1, pageSize: limit, requestId: id },
+      },
+      { headers: { "Cache-Control": "public, s-maxage=600, stale-while-revalidate=1800", "X-Request-ID": id } },
     );
+  } catch (error) {
+    return apiError(error, id);
   }
 }

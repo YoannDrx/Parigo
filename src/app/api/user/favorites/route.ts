@@ -1,40 +1,16 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/auth-utils";
+import { apiError, requestId } from "@/lib/harvest/api";
+import { getFavouriteTracks } from "@/lib/harvest/activity";
+import { requireHarvestSession } from "@/lib/harvest/session";
 
-// GET - Get all favorite IDs for the current user (for quick checking)
 export async function GET() {
+  const id = requestId();
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const [favoriteTracks, favoriteAlbums, favoritePlaylists] = await Promise.all([
-      prisma.favoriteTrack.findMany({
-        where: { userId: session.user.id },
-        select: { trackId: true },
-      }),
-      prisma.favoriteAlbum.findMany({
-        where: { userId: session.user.id },
-        select: { albumId: true },
-      }),
-      prisma.favoritePlaylist.findMany({
-        where: { userId: session.user.id },
-        select: { playlistId: true },
-      }),
-    ]);
-
-    return NextResponse.json({
-      trackIds: favoriteTracks.map((f) => f.trackId),
-      albumIds: favoriteAlbums.map((f) => f.albumId),
-      playlistIds: favoritePlaylists.map((f) => f.playlistId),
-    });
-  } catch (error) {
-    console.error("Error fetching favorites:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch favorites" },
-      { status: 500 }
-    );
-  }
+    const session = await requireHarvestSession();
+    const tracks = await getFavouriteTracks(session.memberToken);
+    return NextResponse.json({ data: {
+      trackIds: tracks.map((track) => track.id),
+      albumIds: [...new Set(tracks.map((track) => track.albumId).filter(Boolean))],
+    }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

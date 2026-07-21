@@ -1,0 +1,30 @@
+{
+  "TotalTracks": "28335",
+  "Tracks": [
+    {
+      "ID": "track-fixture-1",
+      "Name": "Piano On My Mind",
+      "MainTrackID": "track-fixture-1",
+      "LengthSeconds": "151",
+      "Bpm": "92",
+      "IsAlternate": "false",
+      "IsExplicit": "false",
+      "AlbumID": "album-fixture-1",
+      "AlbumName": "Piano Stories",
+      "LibraryID": "library-fixture-1",
+      "LibraryName": "Parigo",
+      "Composer": "Composer One, Composer Two",
+      "Publisher": "Publisher One",
+      "Genre": "Cinematic, Acoustic",
+      "Instrumentation": "Piano, Strings",
+      "MusicFor": "Documentary",
+      "Keywords": "intimate, emotional",
+      "Tags": "piano, score"
+    }
+  ],
+  "Facets": {
+    "BPM": { "Min": "1", "Max": "8590" },
+    "Duration": { "Min": "1", "Max": "2029" },
+    "Categories": { "Items": [{ "ID": "ATT_category-piano", "Name": "Piano", "Count": "835" }] }
+  }
+}
