@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { ListMusic, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { MiniPlayer, PlaylistCard } from "@/components/features";
+import { PlaylistCard } from "@/components/features";
 import { CatalogHero } from "@/components/catalog";
+import { Select } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Playlist as CatalogPlaylist } from "@/types";
 
@@ -58,13 +59,10 @@ export default function PlaylistsPage() {
         <div className="mx-auto max-w-[1700px] px-4 py-12 lg:px-8 md:py-16">
           <div className="mb-12 flex items-center justify-between gap-4 border-b border-[var(--line)] pb-6">
             <p className="text-sm text-[var(--text-muted)]">{locale === "fr" ? "Sélections éditoriales Parigo" : "Parigo editorial selections"}</p>
-            <label className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[.08em]">
+            <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[.08em]">
               <span className="hidden sm:inline">{locale === "fr" ? "Trier" : "Sort"}</span>
-              <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="min-h-11 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-medium normal-case tracking-normal" aria-label={locale === "fr" ? "Trier les playlists" : "Sort playlists"}>
-                <option value="title-asc">A–Z</option>
-                <option value="title-desc">Z–A</option>
-              </select>
-            </label>
+              <Select value={sort} onValueChange={setSort} ariaLabel={locale === "fr" ? "Trier les playlists" : "Sort playlists"} className="min-w-28 normal-case tracking-normal" options={[{ value: "title-asc", label: "A–Z" }, { value: "title-desc", label: "Z–A" }]} />
+            </div>
           </div>
 
           {isLoading ? (
@@ -83,7 +81,6 @@ export default function PlaylistsPage() {
         </div>
       </main>
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

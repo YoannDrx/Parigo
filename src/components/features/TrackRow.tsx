@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Pause, ListPlus, ListEnd, ArrowUpRight, Info, Share2 } from "lucide-react";
+import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import type { Track, Album } from "@/types";
-import { Tag } from "@/components/ui";
+import { Tag, Tooltip } from "@/components/ui";
 import { TrackWaveform } from "./TrackWaveform";
 import { TrackDetailsPanel } from "./TrackDetailsPanel";
 import { FavoriteButton } from "./FavoriteButton";
@@ -44,9 +44,21 @@ export function TrackRow({
   const { locale, t } = useI18n();
   const { currentTrack, isPlaying, progress, duration, play, pause, resume, setQueue, addToQueue } = usePlayerStore();
   const addToShortlist = useShortlistStore((state) => state.add);
+  const removeFromShortlist = useShortlistStore((state) => state.remove);
+  const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === track.id));
   const isCurrentTrack = currentTrack?.id === track.id;
   const isPlayingThis = isCurrentTrack && isPlaying;
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const displayedTerms = [track.genres[0], track.moods[0]].filter(Boolean) as string[];
+  const additionalTerms = [...new Set([
+    ...track.genres.slice(1),
+    ...track.moods.slice(1),
+    ...(track.instruments ?? []),
+    ...(track.tags ?? []),
+    ...(track.keywords ?? []),
+    ...(track.musicFor ?? []),
+  ].filter((term) => term && !displayedTerms.some((displayed) => displayed.toLocaleLowerCase() === term.toLocaleLowerCase())))];
+  const additionalTermsLabel = additionalTerms.slice(0, 12).map((term) => localizeCatalogTerm(term, locale)).join(" · ");
 
   // Calculate progress percentage for waveform
   const progressPercent = isCurrentTrack && duration > 0 ? (progress / duration) * 100 : 0;
@@ -85,6 +97,7 @@ export function TrackRow({
       <div className={cn("flex items-center gap-2 px-2 md:gap-3 md:px-3", density === "full" ? "py-3.5" : density === "mid" ? "py-2.5" : "py-1.5")}>
       {/* Index / Play button */}
       <div className="w-8 flex items-center justify-center flex-shrink-0">
+        <Tooltip label={isPlayingThis ? t("common.pause") : t("common.play")}>
         <button
           onClick={handlePlay}
           aria-label={isPlayingThis ? `${t("common.pause")} ${track.title}` : `${t("common.play")} ${track.title}`}
@@ -92,7 +105,7 @@ export function TrackRow({
             "w-8 h-8 rounded-full flex items-center justify-center transition-all",
             isPlayingThis
               ? "bg-[var(--color-primary)] text-white"
-              : "text-[var(--color-gray-400)] group-hover:text-[var(--color-black)] group-hover:bg-[var(--color-gray-100)]"
+              : "text-[var(--text-muted)] group-hover:bg-[var(--surface-soft)] group-hover:text-[var(--foreground)]"
           )}
         >
           {isPlayingThis ? (
@@ -109,6 +122,7 @@ export function TrackRow({
             />
           )}
         </button>
+        </Tooltip>
       </div>
 
       {/* Album cover */}
@@ -133,7 +147,7 @@ export function TrackRow({
               "font-medium truncate",
               isCurrentTrack
                 ? "text-[var(--color-primary-dark)]"
-                : "text-[var(--color-black)]"
+                : "text-[var(--foreground)]"
             )}
           >
             {track.title}
@@ -163,15 +177,16 @@ export function TrackRow({
       {/* Tags - Hidden on small screens */}
       {density === "full" && <div className="hidden xl:flex items-center gap-1 flex-shrink-0">
         {track.genres.slice(0, 1).map((genre) => (
-          <Tag key={genre} variant="genre" size="sm">
-            {localizeCatalogTerm(genre, locale)}
-          </Tag>
+          <Tooltip key={genre} label={`${locale === "fr" ? "Genre principal" : "Primary genre"} · ${localizeCatalogTerm(genre, locale)}`}>
+            <Tag variant="genre" size="sm">{localizeCatalogTerm(genre, locale)}</Tag>
+          </Tooltip>
         ))}
         {track.moods.slice(0, 1).map((mood) => (
-          <Tag key={mood} variant="mood" size="sm">
-            {localizeCatalogTerm(mood, locale)}
-          </Tag>
+          <Tooltip key={mood} label={`${locale === "fr" ? "Humeur principale" : "Primary mood"} · ${localizeCatalogTerm(mood, locale)}`}>
+            <Tag variant="mood" size="sm">{localizeCatalogTerm(mood, locale)}</Tag>
+          </Tooltip>
         ))}
+        {additionalTerms.length > 0 && <Tooltip label={`${locale === "fr" ? "Autres tags" : "Other tags"} · ${additionalTermsLabel}${additionalTerms.length > 12 ? "…" : ""}`}><button type="button" onClick={() => setDetailsOpen(true)} className="inline-flex min-h-7 items-center rounded-full border border-dashed border-[var(--line-strong)] px-2 text-[.65rem] font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Voir tous les tags" : "View all tags"} : ${track.title}`}>+{additionalTerms.length}</button></Tooltip>}
       </div>}
 
       {/* BPM */}
@@ -190,19 +205,19 @@ export function TrackRow({
 
       {/* Actions */}
       <div className="flex flex-shrink-0 items-center gap-0.5">
-        <FavoriteButton type="track" itemId={track.id} size="sm" showTooltip={false} />
-        <button type="button" onClick={() => setDetailsOpen((value) => !value)} aria-expanded={detailsOpen} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button>
+        <FavoriteButton type="track" itemId={track.id} size="sm" />
+        <Tooltip label={locale === "fr" ? "Informations sur la piste" : "Track information"}><button type="button" onClick={() => setDetailsOpen((value) => !value)} aria-expanded={detailsOpen} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></Tooltip>
         <div className="hidden lg:contents"><DownloadButton trackId={track.id} trackTitle={track.title} /><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /><AddTagButton trackId={track.id} trackTitle={track.title} /><CueSheetButton compact title={track.title} trackIds={[track.id]} /></div>
-        <button onClick={() => addToQueue(track)} className="hidden h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] xl:flex" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`} title={locale === "fr" ? "File d’attente" : "Queue"}>
+        <Tooltip label={locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} className="hidden xl:inline-flex"><button onClick={() => addToQueue(track)} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}>
           <ListEnd size={17} className="text-[var(--color-gray-500)]" />
-        </button>
-        <button onClick={() => addToShortlist(track)} className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--signal-strong)]/45 text-[var(--signal-strong)] transition-colors hover:bg-[var(--signal-strong)] hover:text-white" aria-label={`${t("search.addShortlist")} : ${track.title}`} title={locale === "fr" ? "Ajouter à la sélection de travail" : "Add to working selection"}>
-          <ListPlus size={17} />
-        </button>
-        <button type="button" onClick={() => void shareTrack()} className="hidden h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] xl:flex" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button>
-        <Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="hidden h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] 2xl:flex" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`} title={locale === "fr" ? "Demander une licence" : "Request a licence"}>
+        </button></Tooltip>
+        <Tooltip label={isShortlisted ? (locale === "fr" ? "Déjà dans la sélection — retirer" : "Already selected — remove") : (locale === "fr" ? "Ajouter à la sélection" : "Add to selection")}><button onClick={() => isShortlisted ? removeFromShortlist(track.id) : addToShortlist(track)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center rounded-full border transition-colors", isShortlisted ? "border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal)_16%,transparent)]" : "border-[var(--signal-strong)]/45 text-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${track.title}`}>
+          {isShortlisted ? <Check size={17} /> : <ListPlus size={17} />}
+        </button></Tooltip>
+        <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="hidden xl:inline-flex"><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></Tooltip>
+        <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"} className="hidden 2xl:inline-flex"><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}>
           <ArrowUpRight size={17} className="text-[var(--color-gray-500)]" />
-        </Link>
+        </Link></Tooltip>
       </div>
       </div>
       {detailsOpen && <TrackDetailsPanel track={track} />}

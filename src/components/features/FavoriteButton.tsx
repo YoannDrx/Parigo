@@ -5,7 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useFavoritesStore } from "@/stores/favorites-store";
+import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui";
 
 interface FavoriteButtonProps {
   type: "track" | "album";
@@ -23,6 +25,7 @@ export function FavoriteButton({
   showTooltip = true,
 }: FavoriteButtonProps) {
   const { data: session } = useSession();
+  const openLogin = useAuthModalStore((state) => state.openLogin);
   const {
     isLoading,
     isLoaded,
@@ -40,16 +43,16 @@ export function FavoriteButton({
     }
   }, [session?.user, isLoaded, isLoading, loadFavorites]);
 
-  // If not logged in, don't show the button (or show disabled)
-  if (!session?.user) {
-    return null;
-  }
-
   const isFavorite = type === "track" ? isTrackFavorite(itemId) : isAlbumFavorite(itemId);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!session?.user) {
+      openLogin();
+      return;
+    }
 
     if (type === "track") {
       await toggleFavoriteTrack(itemId);
@@ -70,8 +73,8 @@ export function FavoriteButton({
     lg: 22,
   };
 
-  return (
-    <div className="relative group">
+  const tooltipLabel = !session?.user ? "Se connecter pour ajouter aux favoris" : isFavorite ? "Retirer des favoris" : "Ajouter aux favoris";
+  const control = (
       <motion.button
         onClick={handleToggle}
         disabled={isLoading}
@@ -87,7 +90,7 @@ export function FavoriteButton({
           className
         )}
         whileTap={{ scale: 0.9 }}
-        title={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+        aria-label={tooltipLabel}
       >
         <AnimatePresence mode="wait">
           {isLoading ? (
@@ -115,13 +118,6 @@ export function FavoriteButton({
           )}
         </AnimatePresence>
       </motion.button>
-
-      {/* Tooltip */}
-      {showTooltip && (
-        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-[var(--color-black)] text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-          {isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
-        </div>
-      )}
-    </div>
   );
+  return showTooltip ? <Tooltip label={tooltipLabel}>{control}</Tooltip> : control;
 }

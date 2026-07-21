@@ -4,7 +4,9 @@ import { useState } from "react";
 import { Download, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui";
 
 interface DownloadButtonProps {
   trackId: string;
@@ -14,13 +16,16 @@ interface DownloadButtonProps {
 
 export function DownloadButton({ trackId, trackTitle, className }: DownloadButtonProps) {
   const { data: session } = useSession();
+  const openLogin = useAuthModalStore((state) => state.openLogin);
   const { locale } = useI18n();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  if (!session?.user) return null;
-
   const startDownload = async () => {
+    if (!session?.user) {
+      openLogin();
+      return;
+    }
     setLoading(true);
     setMessage("");
     try {
@@ -62,18 +67,20 @@ export function DownloadButton({ trackId, trackTitle, className }: DownloadButto
     }
   };
 
+  const tooltipLabel = message || (!session?.user ? (locale === "fr" ? "Se connecter pour télécharger" : "Sign in to download") : (locale === "fr" ? "Télécharger" : "Download"));
   return (
-    <div className="relative">
+    <div className="relative inline-flex">
+      <Tooltip label={tooltipLabel}>
       <button
         type="button"
         onClick={() => void startDownload()}
         disabled={loading}
         className={cn("flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-50", className)}
         aria-label={`${locale === "fr" ? "Télécharger" : "Download"} : ${trackTitle}`}
-        title={message || (locale === "fr" ? "Télécharger" : "Download")}
       >
         {loading ? <Loader2 size={17} className="animate-spin" /> : <Download size={17} className="text-[var(--color-gray-500)]" />}
       </button>
+      </Tooltip>
       {message && <span role="alert" className="sr-only">{message}</span>}
     </div>
   );

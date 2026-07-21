@@ -4,13 +4,20 @@ import { useState } from "react";
 import { ListPlus, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { useAuthModalStore } from "@/stores/auth-modal-store";
+import { cn } from "@/lib/utils";
+import { Tooltip } from "@/components/ui";
 
-export function AddToPlaylistButton({ trackId, trackTitle }: { trackId: string; trackTitle: string }) {
+export function AddToPlaylistButton({ trackId, trackTitle, className }: { trackId: string; trackTitle: string; className?: string }) {
   const { data: session } = useSession();
+  const openLogin = useAuthModalStore((state) => state.openLogin);
   const { locale } = useI18n();
   const [loading, setLoading] = useState(false);
-  if (!session?.user) return null;
   const add = async () => {
+    if (!session?.user) {
+      openLogin();
+      return;
+    }
     setLoading(true);
     try {
       const response = await fetch("/api/user/playlists", { cache: "no-store" });
@@ -31,5 +38,6 @@ export function AddToPlaylistButton({ trackId, trackTitle }: { trackId: string; 
       setLoading(false);
     }
   };
-  return <button type="button" onClick={() => void add()} disabled={loading} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-50" aria-label={`${locale === "fr" ? "Ajouter à une playlist" : "Add to playlist"} : ${trackTitle}`}>{loading ? <Loader2 size={17} className="animate-spin" /> : <ListPlus size={17} className="text-[var(--color-gray-500)]" />}</button>;
+  const label = locale === "fr" ? "Ajouter à une playlist" : "Add to playlist";
+  return <Tooltip label={label}><button type="button" onClick={() => void add()} disabled={loading} className={cn("flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-50", className)} aria-label={`${label} : ${trackTitle}`}>{loading ? <Loader2 size={17} className="animate-spin" /> : <ListPlus size={17} className="text-[var(--color-gray-500)]" />}</button></Tooltip>;
 }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FileText, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { Button } from "@/components/ui";
+import { Button, Tooltip } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export function CueSheetButton({ title, trackIds, compact = false }: { title: string; trackIds: string[]; compact?: boolean }) {
@@ -26,5 +26,5 @@ export function CueSheetButton({ title, trackIds, compact = false }: { title: st
       setLoading(false);
     }
   };
-  return <div>{compact ? <button type="button" onClick={() => void create()} disabled={loading} title={error || "Cue sheet"} className="flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]" aria-label={`Cue sheet : ${title}`}>{loading ? <Loader2 size={17} className="animate-spin" /> : <FileText size={17} />}</button> : <Button variant="outline" size="lg" onClick={() => void create()} disabled={loading} title={error}>{loading ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />} {locale === "fr" ? "Cue sheet" : "Cue sheet"}</Button>}{error && <span className="sr-only" role="alert">{error}</span>}</div>;
+  return <div>{compact ? <Tooltip label={error || "Cue sheet"}><button type="button" onClick={() => void create()} disabled={loading} className="flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]" aria-label={`Cue sheet : ${title}`}>{loading ? <Loader2 size={17} className="animate-spin" /> : <FileText size={17} />}</button></Tooltip> : <Button variant="outline" size="lg" onClick={() => void create()} disabled={loading}>{loading ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />} {locale === "fr" ? "Cue sheet" : "Cue sheet"}</Button>}{error && <span className="sr-only" role="alert">{error}</span>}</div>;
 }

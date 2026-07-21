@@ -6,8 +6,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Play, Share2, ArrowLeft, Clock, Music, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { Button, Tag } from "@/components/ui";
-import { TrackRow, AlbumCard, CueSheetButton, MiniPlayer } from "@/components/features";
+import { Button, Select, Tag } from "@/components/ui";
+import { TrackRow, AlbumCard, CueSheetButton } from "@/components/features";
 import { FavoriteButton } from "@/components/features/FavoriteButton";
 import { useAlbum } from "@/hooks/use-api";
 import { formatDuration } from "@/lib/utils";
@@ -103,7 +103,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
         <div className="mx-auto max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
           <Link
             href="/albums"
-            className="inline-flex items-center gap-2 text-[var(--color-gray-600)] hover:text-[var(--color-black)] transition-colors"
+            className="inline-flex items-center gap-2 text-[var(--text-muted)] transition-colors hover:text-[var(--foreground)]"
           >
             <ArrowLeft size={18} />
             {t("common.back")} · {t("common.albums")}
@@ -165,7 +165,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
                   <span className="text-sm text-[var(--color-gray-600)]">{locale === "fr" ? "Par" : "By"}</span>
                   {album.artists.map((artist, index) => (
                     <span key={artist.slug}>
-                      <span className="text-sm font-medium text-[var(--color-black)]">{artist.name}</span>
+                      <span className="text-sm font-medium text-[var(--foreground)]">{artist.name}</span>
                       {index < album.artists!.length - 1 && ", "}
                     </span>
                   ))}
@@ -228,7 +228,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
 
         {/* Tracks */}
         <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow text-[var(--signal-strong)]">{album.code || album.label}</p><h2 className="mt-3 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.tracks")}</h2></div><div className="flex flex-wrap items-center gap-2"><select value={trackSort} onChange={(event) => setTrackSort(event.target.value as typeof trackSort)} className="min-h-11 rounded-md border border-[var(--line)] bg-transparent px-3 text-xs font-semibold" aria-label={locale === "fr" ? "Trier les pistes" : "Sort tracks"}><option value="album">{locale === "fr" ? "Ordre de l’album" : "Album order"}</option><option value="title-asc">A–Z</option><option value="title-desc">Z–A</option></select><div className="inline-flex rounded-md border border-[var(--line)] p-1" role="group" aria-label={locale === "fr" ? "Versions des pistes" : "Track versions"}><button type="button" aria-pressed={!showAllVersions} onClick={() => setShowAllVersions(false)} className={`min-h-10 rounded px-4 text-xs font-semibold ${!showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Pistes principales" : "Main tracks"}</button><button type="button" aria-pressed={showAllVersions} onClick={() => setShowAllVersions(true)} className={`min-h-10 rounded px-4 text-xs font-semibold ${showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Toutes les versions" : "All versions"}</button></div></div></div>
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow text-[var(--signal-strong)]">{album.code || album.label}</p><h2 className="mt-3 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.tracks")}</h2></div><div className="flex flex-wrap items-center gap-2"><Select value={trackSort} onValueChange={setTrackSort} ariaLabel={locale === "fr" ? "Trier les pistes" : "Sort tracks"} className="min-w-[10.5rem]" options={[{ value: "album", label: locale === "fr" ? "Ordre de l’album" : "Album order" }, { value: "title-asc", label: "A–Z" }, { value: "title-desc", label: "Z–A" }]} /><div className="inline-flex rounded-md border border-[var(--line)] p-1" role="group" aria-label={locale === "fr" ? "Versions des pistes" : "Track versions"}><button type="button" aria-pressed={!showAllVersions} onClick={() => setShowAllVersions(false)} className={`min-h-10 rounded px-4 text-xs font-semibold ${!showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Pistes principales" : "Main tracks"}</button><button type="button" aria-pressed={showAllVersions} onClick={() => setShowAllVersions(true)} className={`min-h-10 rounded px-4 text-xs font-semibold ${showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Toutes les versions" : "All versions"}</button></div></div></div>
           {tracks.length > 0 ? (
             <div className="border-y border-[var(--line)] py-2">
               {tracks.map((track, index) => (
@@ -275,7 +275,6 @@ export default function AlbumPage({ params }: AlbumPageProps) {
       </main>
 
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

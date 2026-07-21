@@ -110,7 +110,7 @@ function FilterItemRow({
         className={cn(
           "group/item flex min-h-9 items-center gap-1 rounded-md px-1.5 text-sm transition hover:bg-[var(--surface-soft)]",
           state === "include" && "bg-[color-mix(in_srgb,var(--signal)_11%,transparent)]",
-          state === "exclude" && "bg-rose-500/7",
+          state === "exclude" && "filter-row-excluded",
         )}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
       >
@@ -122,11 +122,11 @@ function FilterItemRow({
             className="flex h-8 w-7 shrink-0 items-center justify-center rounded hover:bg-black/5"
             aria-label={`${open ? (locale === "fr" ? "Replier" : "Collapse") : (locale === "fr" ? "Déplier" : "Expand")} ${name}`}
           >
-            <span className="relative"><ChevronDown size={13} className={cn("transition", !open && "-rotate-90")} />{!open && descendantCount > 0 && <span className="absolute -right-2.5 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-[var(--foreground)] px-1 font-mono text-[.5rem] text-[var(--background)]">{descendantCount}</span>}</span>
+            <ChevronDown size={13} className={cn("transition", !open && "-rotate-90")} />
           </button>
         ) : <span className="w-7 shrink-0" />}
-        <span className={cn("min-w-0 flex-1 truncate", state === "exclude" && "line-through decoration-rose-500/70")}>{name}</span>
-        {!open && descendantCount > 0 && <span className="flex items-center gap-1" aria-label={locale === "fr" ? `${descendants.included} sous-filtres inclus et ${descendants.excluded} exclus` : `${descendants.included} included and ${descendants.excluded} excluded subfilters`}>{descendants.included > 0 && <span className="h-1.5 w-1.5 rounded-full bg-[var(--signal-strong)]" />}{descendants.excluded > 0 && <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />}</span>}
+        <span className={cn("min-w-0 flex-1 truncate", state === "exclude" && "line-through decoration-[var(--danger)]/65")}>{name}</span>
+        {!open && descendantCount > 0 && <span className="mr-2 flex min-w-6 items-center justify-center gap-1 rounded-full border border-[var(--line-strong)] bg-[var(--background)] px-1.5 py-0.5 font-mono text-[.52rem]" aria-label={locale === "fr" ? `${descendants.included} sous-filtres inclus et ${descendants.excluded} exclus` : `${descendants.included} included and ${descendants.excluded} excluded subfilters`}>{descendantCount}</span>}
         {count !== undefined && <span className="min-w-7 text-right font-mono text-[.6rem] opacity-45">{count}</span>}
         <button
           type="button"
@@ -150,8 +150,8 @@ function FilterItemRow({
             className={cn(
               "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition",
               state === "exclude"
-                ? "border-rose-500 bg-rose-500 text-white"
-                : "border-[var(--line-strong)] text-[var(--text-muted)] hover:border-rose-500 hover:text-rose-600",
+                ? "border-[var(--danger)] bg-[var(--danger)] text-white"
+                : "border-[var(--line-strong)] text-[var(--text-muted)] hover:border-[var(--danger)] hover:text-[var(--danger)]",
             )}
             aria-label={`${locale === "fr" ? "Exclure" : "Exclude"} ${name}`}
           >
@@ -201,19 +201,21 @@ function FilterGroupSection({
     ? [...groupIds].filter((id) => counts.has(id.replace(/^ATT_/i, ""))).length
     : group.available;
   return (
-    <details open={group.key === "genre" || group.key === "labels" || undefined} className="group border-b border-[var(--line)]">
-      <summary className="flex min-h-13 cursor-pointer list-none items-center gap-2 py-2.5 [&::-webkit-details-marker]:hidden">
+    <details open={group.key === "genre" || group.key === "labels" || undefined} className="group border-b border-[var(--line)] px-4 transition-colors hover:bg-[var(--surface-soft)] focus-within:bg-[var(--surface-soft)]">
+      <summary className="flex min-h-14 cursor-pointer list-none items-center py-3 [&::-webkit-details-marker]:hidden">
         <span className="flex-1 font-medium">{labelsByKey[group.key]?.[locale] ?? group.label}</span>
-        <span
-          className="font-mono text-[.62rem] text-[var(--text-muted)]"
-          aria-label={locale === "fr" ? `${group.total} critères au total, ${available} disponibles` : `${group.total} total filters, ${available} available`}
-        >
-          {group.total}/{available}
+        <span className="ml-5 flex items-center gap-3">
+          <span
+            className="font-mono text-[.62rem] text-[var(--text-muted)]"
+            aria-label={locale === "fr" ? `${group.total} critères au total, ${available} disponibles` : `${group.total} total filters, ${available} available`}
+          >
+            {group.total}/{available}
+          </span>
+          {selected > 0 && <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[var(--signal-strong)] px-1.5 text-[.6rem] font-semibold text-white">{selected}</span>}
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition group-hover:border-[var(--line)]"><ChevronDown size={15} className="transition group-open:rotate-180" /></span>
         </span>
-        {selected > 0 && <span className="rounded-full bg-[var(--signal-strong)] px-2 py-0.5 text-[.6rem] font-semibold text-white">{selected}</span>}
-        <ChevronDown size={15} className="transition group-open:rotate-180" />
       </summary>
-      <div className="pb-4">
+      <div className="pb-5 pt-1">
         <div className="relative mb-2.5">
           <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-45" />
           <input
@@ -258,7 +260,7 @@ function RangeControl({
   const start = ((value[0] - min) / (max - min)) * 100;
   const end = ((value[1] - min) / (max - min)) * 100;
   return (
-    <div className="border-b border-[var(--line)] py-4">
+    <div className="border-b border-[var(--line)] px-4 py-5">
       <div className="mb-3 flex items-center justify-between">
         <p className="font-medium">{label}</p>
         <span className="font-mono text-[.66rem] text-[var(--text-muted)]">{format(value[0])} — {format(value[1])}</span>
@@ -305,13 +307,13 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
     + (bpmRange[0] !== 50 || bpmRange[1] !== 200 ? 1 : 0)
     + (durationRange[0] !== 0 || durationRange[1] !== 300 ? 1 : 0);
   return (
-    <div className="rounded-xl border border-[var(--line)] bg-[var(--background)] px-4 shadow-[var(--shadow-sm)]">
-      <div className="flex min-h-14 items-center justify-between border-b border-[var(--line)]">
+    <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--background)] shadow-[var(--shadow-sm)]">
+      <div className="flex min-h-16 items-center justify-between border-b border-[var(--line)] px-4 py-3">
         <div>
           <h2 className="text-sm font-semibold">{locale === "fr" ? "Affiner la recherche" : "Refine search"}</h2>
           {activeCount > 0 && <p className="mt-0.5 text-[.65rem] text-[var(--text-muted)]">{activeCount} {locale === "fr" ? "critères actifs" : "active filters"}</p>}
         </div>
-        {activeCount > 0 && <button type="button" onClick={onReset} className="inline-flex min-h-10 items-center gap-1.5 text-xs font-semibold hover:text-[var(--signal-strong)]"><RotateCcw size={13} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button>}
+        {activeCount > 0 && <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[.68rem] font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button>}
       </div>
       {groups.map((group) => (
         <FilterGroupSection
@@ -324,7 +326,7 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
         />
       ))}
       <RangeControl label="BPM" value={bpmRange} min={50} max={200} locale={locale} format={(value) => String(value)} onChange={onBpmChange} />
-      <div className="flex gap-2 py-3">
+      <div className="flex gap-2 border-b border-[var(--line)] px-4 py-4">
         {([[50, 90], [90, 130], [130, 200]] as Array<[number, number]>).map((range, index) => (
           <button key={range.join("-")} type="button" onClick={() => onBpmChange(range)} className="min-h-9 flex-1 rounded-full border border-[var(--line)] px-2 text-[.65rem] font-semibold hover:border-[var(--signal-strong)]">
             {locale === "fr" ? ["Lent", "Moyen", "Rapide"][index] : ["Slow", "Medium", "Fast"][index]}

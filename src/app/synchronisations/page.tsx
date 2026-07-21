@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowUpRight, Play, Youtube } from "lucide-react";
 import { Footer, Header } from "@/components/layout";
 import { SYNCHRONISATIONS, SYNCHRONISATIONS_PLAYLIST_URL } from "@/content/synchronisations";
 
@@ -16,7 +16,13 @@ export default function SynchronisationsPage() {
       <Header />
       <main className="px-4 pb-24 pt-28 md:px-8 md:pb-36 md:pt-36">
         <div className="mx-auto max-w-[1580px]">
-          <div className="grid gap-10 md:grid-cols-12 md:items-end"><div className="md:col-span-8"><p className="eyebrow text-[var(--signal-strong)]">Music for image</p><h1 className="mt-6 text-[clamp(3.8rem,8.5vw,9rem)] font-semibold leading-[.84] tracking-[-.07em]">Nos synchronisations<span className="text-[var(--signal)]">.</span></h1></div><p className="max-w-md leading-relaxed text-[var(--text-muted)] md:col-span-3 md:col-start-10">Films, séries, campagnes : une sélection de récits auxquels le catalogue Parigo a prêté sa couleur.</p></div>
+          <div className="grid gap-10 md:grid-cols-12 md:items-end">
+            <div className="md:col-span-8"><p className="eyebrow text-[var(--signal-strong)]">Music for image</p><h1 className="mt-6 text-[clamp(3.8rem,8.5vw,9rem)] font-semibold leading-[.84] tracking-[-.07em]">Nos synchronisations<span className="text-[var(--signal)]">.</span></h1></div>
+            <div className="max-w-md md:col-span-3 md:col-start-10">
+              <p className="leading-relaxed text-[var(--text-muted)]">Films, séries, campagnes : une sélection de récits auxquels le catalogue Parigo a prêté sa couleur.</p>
+              <a href={SYNCHRONISATIONS_PLAYLIST_URL} target="_blank" rel="noreferrer" className="group mt-7 inline-flex min-h-12 items-center gap-3 rounded-full border border-[var(--signal-strong)] bg-[var(--signal-soft)] px-5 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--signal-strong)] hover:text-[var(--background)]"><Youtube size={17} /><span>Voir la playlist YouTube</span><ArrowUpRight size={16} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></a>
+            </div>
+          </div>
           <div className="mt-16 grid gap-7 lg:grid-cols-2">
             {SYNCHRONISATIONS.map((sync, index) => (
               <Link key={sync.slug} href={`/synchronisations/${sync.slug}`} className="home-sync-card group block">
@@ -24,7 +30,6 @@ export default function SynchronisationsPage() {
               </Link>
             ))}
           </div>
-          <div className="mt-16 border-t border-[var(--line)] pt-8 text-right"><a href={SYNCHRONISATIONS_PLAYLIST_URL} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-[var(--line)] px-6 font-semibold transition hover:border-[var(--signal)] hover:bg-[var(--signal-soft)]">Playlist YouTube <ArrowRight size={17} /></a></div>
         </div>
       </main>
       <Footer />

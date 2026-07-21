@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import searchFixture from "./__fixtures__/cloud-search-track.json";
 import memberFixture from "./__fixtures__/member.json";
 import tagFixture from "./__fixtures__/member-tags.json";
-import { HarvestMemberSchema, HarvestMemberTagSchema, HarvestSearchResponseSchema } from "./contracts";
+import { HarvestMemberSchema, HarvestMemberTagSchema, HarvestSearchResponseSchema, HarvestTrackSchema } from "./contracts";
 
 describe("endpoint-specific Harvest contracts", () => {
   it("validates and normalizes the observed Cloud Search payload", () => {
@@ -33,6 +33,11 @@ describe("endpoint-specific Harvest contracts", () => {
   it("accepts right holders returned as first and last name fields", () => {
     const payload = HarvestSearchResponseSchema.parse({ TotalTracks: 1, Tracks: [{ ID: "track-1", RightHolders: [{ ID: "holder-1", FirstName: "Janet", LastName: "Preston", Capacity: "Composer" }] }] });
     expect(payload.Tracks[0].RightHolders[0]).toMatchObject({ ID: "holder-1", FirstName: "Janet", LastName: "Preston" });
+  });
+
+  it("normalizes the BPM ranges returned by featured playlists", () => {
+    const track = HarvestTrackSchema.parse({ ID: "track-variable-tempo", Bpm: "116-127" });
+    expect(track.Bpm).toBe(122);
   });
 
   it("rejects a partial response missing a field required by the view", () => {

@@ -1,16 +1,19 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Grid3X3, List, SlidersHorizontal, Loader2 } from "lucide-react";
+import { ArrowUpRight, Grid3X3, List, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { Button, Tag } from "@/components/ui";
-import { AlbumCard, MiniPlayer } from "@/components/features";
+import { Button, Select, Tag } from "@/components/ui";
+import { AlbumCard } from "@/components/features";
 import { useAlbums, useLabels, useGenres } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
 import type { ViewMode } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { CatalogHero } from "@/components/catalog";
+import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 
 export default function AlbumsPage() {
   const { locale, t } = useI18n();
@@ -58,10 +61,7 @@ export default function AlbumsPage() {
                 {t("search.filters")}
               </Button>
 
-              <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="min-h-10 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-medium" aria-label={locale === "fr" ? "Trier les albums" : "Sort albums"}>
-                <option value="title-asc">A–Z</option>
-                <option value="title-desc">Z–A</option>
-              </select>
+              <Select value={sort} onValueChange={setSort} ariaLabel={locale === "fr" ? "Trier les albums" : "Sort albums"} className="min-w-28" options={[{ value: "title-asc", label: "A–Z" }, { value: "title-desc", label: "Z–A" }]} />
 
               {/* View Toggle */}
               <div className="flex overflow-hidden rounded-full border border-[var(--line)]">
@@ -102,7 +102,7 @@ export default function AlbumsPage() {
           >
             {/* Labels */}
             <div>
-              <h3 className="text-sm font-semibold text-[var(--color-black)] mb-3">
+              <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Labels
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -128,7 +128,7 @@ export default function AlbumsPage() {
 
             {/* Genres */}
             <div>
-              <h3 className="text-sm font-semibold text-[var(--color-black)] mb-3">
+              <h3 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Genres
               </h3>
               <div className="flex flex-wrap gap-2">
@@ -163,10 +163,9 @@ export default function AlbumsPage() {
               {/* Albums Grid */}
               <div
                 className={cn(
-                  "gap-4 md:gap-6",
                   viewMode === "grid"
-                    ? "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-                    : "flex flex-col"
+                    ? "grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 lg:grid-cols-4 xl:grid-cols-5"
+                    : "border-y border-[var(--line)]"
                 )}
               >
                 {sortedAlbums.map((album, index) => (
@@ -174,9 +173,28 @@ export default function AlbumsPage() {
                     key={album.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}
+                    transition={{ delay: Math.min(index * 0.035, 0.28) }}
                   >
-                    <AlbumCard album={album} />
+                    {viewMode === "grid" ? <AlbumCard album={album} /> : (
+                      <Link href={`/albums/${album.slug || album.id}`} className="group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 last:border-b-0 transition-colors hover:bg-[var(--surface-soft)] sm:min-h-32 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:gap-6 sm:px-4">
+                        <div className="relative aspect-square overflow-hidden rounded-[.35rem] border border-[var(--line)] bg-[var(--surface)]">
+                          <Image src={album.cover} alt={album.title} fill sizes="96px" className="object-cover transition-transform duration-500 group-hover:scale-[1.025]" />
+                        </div>
+                        <div className="min-w-0 py-1">
+                          <p className="truncate font-mono text-[.56rem] uppercase tracking-[.13em] text-[var(--text-muted)]">{String(index + 1).padStart(2, "0")} · {album.label}</p>
+                          <h2 className="mt-2 truncate text-lg font-semibold leading-tight tracking-[-.025em] text-[var(--foreground)] sm:text-2xl">{album.title}</h2>
+                          <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
+                            {album.genres[0] && <span>{localizeCatalogTerm(album.genres[0], locale)}</span>}
+                            {(album.year || album.releaseDate) && <span>{album.year || new Date(album.releaseDate as string).getFullYear()}</span>}
+                            {album.code && <span>{album.code}</span>}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 pl-2 sm:gap-5">
+                          <span className="hidden whitespace-nowrap font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--text-muted)] sm:block">{album.trackCount} {t("catalog.tracks")}</span>
+                          <span className="flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] text-[var(--foreground)] transition duration-300 group-hover:border-[var(--signal-strong)] group-hover:bg-[var(--signal-strong)] group-hover:text-white"><ArrowUpRight size={16} /></span>
+                        </div>
+                      </Link>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -204,7 +222,6 @@ export default function AlbumsPage() {
       </main>
 
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

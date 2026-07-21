@@ -5,6 +5,7 @@ import { Check, Loader2, Tag, X } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { MemberTag } from "@/types";
+import { Tooltip } from "@/components/ui";
 
 export function AddTagButton({ trackId, trackTitle }: { trackId: string; trackTitle: string }) {
   const { data: session } = useSession();
@@ -46,7 +47,7 @@ export function AddTagButton({ trackId, trackTitle }: { trackId: string; trackTi
   };
   return (
     <div ref={containerRef} className="relative">
-      <button type="button" onClick={() => open ? setOpen(false) : void show()} className="flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter un tag" : "Add tag"} : ${trackTitle}`}><Tag size={16} /></button>
+      <Tooltip label={locale === "fr" ? "Ajouter un tag" : "Add tag"}><button type="button" onClick={() => open ? setOpen(false) : void show()} className="flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter un tag" : "Add tag"} : ${trackTitle}`}><Tag size={16} /></button></Tooltip>
       {open && <div className="absolute bottom-full right-0 z-40 mb-2 w-64 rounded-lg border border-[var(--line)] bg-[var(--surface)] p-2 shadow-[var(--shadow-md)]"><div className="flex items-center justify-between px-2 py-1"><p className="text-xs font-semibold">{locale === "fr" ? "Ajouter à un tag" : "Add to a tag"}</p><button type="button" onClick={() => setOpen(false)} className="flex h-8 w-8 items-center justify-center" aria-label={locale === "fr" ? "Fermer" : "Close"}><X size={14} /></button></div>{loading ? <Loader2 className="mx-auto my-5 animate-spin" size={17} /> : tags.length ? <div className="max-h-52 overflow-y-auto">{tags.map((tag) => <button key={tag.id} type="button" onClick={() => void add(tag)} className="flex min-h-10 w-full items-center justify-between rounded px-2 text-left text-xs hover:bg-[var(--surface-soft)]"><span>{tag.name}</span><span className="font-mono opacity-45">{tag.trackCount}</span></button>)}</div> : <p className="p-3 text-xs text-[var(--text-muted)]">{locale === "fr" ? "Créez d’abord un tag dans votre compte." : "Create a tag in your account first."}</p>}{message && <p role="status" className="flex items-center gap-1.5 p-2 text-xs text-[var(--signal-strong)]"><Check size={13} />{message}</p>}</div>}
     </div>
   );

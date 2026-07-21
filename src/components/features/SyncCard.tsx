@@ -26,7 +26,7 @@ export function SyncCard({ sync, priority = false }: SyncCardProps) {
 
   return (
     <motion.div
-      className="group/card bg-[var(--color-white)] border-2 border-[var(--color-black)] rounded-[var(--radius-md)] shadow-[5px_5px_0px_var(--color-black)] overflow-hidden transition-all duration-200 hover:shadow-[8px_8px_0px_var(--color-black)] hover:translate-x-[-3px] hover:translate-y-[-3px] cursor-pointer"
+      className="group/card cursor-pointer overflow-hidden rounded-[var(--radius-md)] border-2 border-[var(--color-black)] bg-[var(--surface)] shadow-[5px_5px_0px_var(--color-black)] transition-all duration-200 hover:-translate-x-[3px] hover:-translate-y-[3px] hover:shadow-[8px_8px_0px_var(--color-black)]"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleClick}

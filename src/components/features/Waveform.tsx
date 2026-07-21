@@ -84,6 +84,20 @@ export function Waveform({
     // Calculate progress position
     const progressX = (progress / 100) * rect.width;
 
+    // Canvas does not resolve CSS variables or color-mix() values itself.
+    // Let the browser compute them in the current theme before drawing.
+    const resolveCanvasColor = (value: string) => {
+      const probe = document.createElement("span");
+      probe.style.color = value;
+      probe.hidden = true;
+      containerRef.current?.appendChild(probe);
+      const resolved = window.getComputedStyle(probe).color || value;
+      probe.remove();
+      return resolved;
+    };
+    const resolvedWaveColor = resolveCanvasColor(waveColor);
+    const resolvedProgressColor = resolveCanvasColor(progressColor);
+
     // Draw bars
     sampledData.forEach((value, index) => {
       const x = index * totalBarWidth;
@@ -91,7 +105,7 @@ export function Waveform({
       const y = (rect.height - barHeight) / 2;
 
       // Determine color based on progress
-      ctx.fillStyle = x < progressX ? progressColor : waveColor;
+      ctx.fillStyle = x < progressX ? resolvedProgressColor : resolvedWaveColor;
 
       // Draw rounded bar
       ctx.beginPath();

@@ -20,6 +20,18 @@ const harvestNullableNumber = z.union([z.number(), z.string(), z.null()]).transf
   }
   return parsed;
 });
+const harvestBpm = z.union([z.number(), z.string()]).transform((value, context) => {
+  const source = String(value).trim();
+  const range = source.match(/^(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)$/);
+  const parsed = range
+    ? (Number(range[1]) + Number(range[2])) / 2
+    : Number(source);
+  if (!Number.isFinite(parsed)) {
+    context.addIssue({ code: "custom", message: "Expected a Harvest BPM value" });
+    return z.NEVER;
+  }
+  return Math.round(parsed);
+});
 const harvestBoolean = z.union([z.boolean(), z.number(), z.string()]).transform((value) => {
   if (typeof value === "boolean") return value;
   if (typeof value === "number") return value === 1;
@@ -58,7 +70,7 @@ export const HarvestTrackSchema = z.looseObject({
   LibraryType: z.string().optional().nullable(),
   LibraryFeatured: harvestBoolean.optional(),
   Highlighted: harvestBoolean.optional(),
-  Bpm: harvestNumber.optional().nullable(),
+  Bpm: harvestBpm.optional().nullable(),
   Version: z.string().optional().nullable(),
   CDCode: z.string().optional().nullable(),
   ISRC: z.string().optional().nullable(),

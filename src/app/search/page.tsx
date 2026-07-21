@@ -13,20 +13,21 @@ import {
   LayoutGrid,
   Loader2,
   Minus,
+  RotateCcw,
   Search,
   SlidersHorizontal,
   Sparkles,
   X,
 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { MiniPlayer, TrackRow } from "@/components/features";
+import { TrackRow } from "@/components/features";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
-import { Button } from "@/components/ui";
+import { Button, Select } from "@/components/ui";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { parseSearchIntent } from "@/lib/search-intent";
+import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, resolveIntentCategoryIds } from "@/lib/search-intent";
 import { cn, formatDuration } from "@/lib/utils";
-import type { Album, SearchFacets, SearchFilterItem, Track } from "@/types";
+import type { Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, Track } from "@/types";
 
 type ResultView = "tracks" | "albums";
 type Density = "full" | "mid" | "light";
@@ -37,7 +38,16 @@ const PAGE_SIZE = 30;
 const DEFAULT_BPM: [number, number] = [50, 200];
 const DEFAULT_DURATION: [number, number] = [0, 300];
 const PRODUCTION_SUGGESTIONS = [
-  "drama", "strings", "upbeat", "positive", "building", "warm", "emotional", "dramatic", "reflective", "documentary", "bright", "medium", "uplifting", "synths", "happy", "mysterious", "dark", "uptempo", "hopeful", "mid", "atmospheric", "mid-tempo", "tempo", "synth", "cinematic", "emotive", "dreamy", "bass", "percussion", "gentle", "flowing", "slow", "factual", "light", "orchestral", "romantic", "drums", "guitar", "optimistic", "tender", "heartfelt", "tension", "thoughtful", "love", "suspense", "fast", "fun", "ambient", "tense", "builds", "vocals", "documentaries", "melancholy", "energetic", "build", "sad", "film", "driving", "epic", "beauty", "vocal", "sentimental", "introspective", "romance", "smooth", "mystery", "confident", "playful", "serious", "relaxed", "calm", "brass", "cool", "pop", "pensive", "passionate", "beautiful", "nostalgic", "determined", "retro", "nature", "electronic", "peaceful", "quirky", "delicate", "jazz", "doco", "docos", "docu", "pulsing", "underscore", "orchestra", "test", "floating", "haunting", "mellow", "action", "ominous", "bouncy", "inspirational",
+  "upbeat", "dramatic", "drama", "positive", "driving", "building", "bright", "fun", "energetic", "dark",
+  "happy", "mysterious", "confident", "action", "uplifting", "warm", "uptempo", "tension", "fast", "determined",
+  "electronic", "piano", "documentary", "tense", "suspense", "cinematic", "synths", "guitar", "dreamy", "atmospheric",
+  "powerful", "strings", "reflective", "synth", "orchestral", "cool", "light", "bouncy", "intense", "quirky",
+  "retro", "medium", "edgy", "playful", "dance", "epic", "exciting", "optimistic", "emotional", "aggressive",
+  "vocals", "pop", "percussion", "ambient", "mid", "drums", "tempo", "mid-tempo", "hopeful", "party",
+  "lively", "romantic", "vocal", "sports", "rock", "sexy", "ominous", "flowing", "adventure", "pulsing",
+  "bass", "electronica", "percussive", "gentle", "smooth", "relaxed", "serious", "sound design", "test", "carefree",
+  "dynamic", "trailer", "world", "love", "factual", "suspenseful", "gritty", "slow", "mystery", "travel",
+  "comedy", "heartfelt", "cheerful", "funky", "film", "underscore", "eerie", "heavy", "anticipation", "tender",
 ] as const;
 
 function stripQuotes(value: string): string {
@@ -93,7 +103,13 @@ function SearchContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = stripQuotes(searchParams.get("q") ?? searchParams.get("keyword") ?? "");
-  const legacyRaw = useMemo(() => ["category", "genre", "mood", "instrument"].flatMap((key) => searchParams.getAll(key).flatMap(csv)), [searchParams]);
+  const legacyEntries = useMemo(() => ([
+    ["category", null],
+    ["genre", "genre"],
+    ["mood", "moods"],
+    ["instrument", "instruments"],
+  ] as const).flatMap(([param, group]) => searchParams.getAll(param).flatMap(csv).map((value) => ({ value, group }))), [searchParams]);
+  const legacyRaw = useMemo(() => legacyEntries.map(({ value }) => value), [legacyEntries]);
 
   const [query, setQuery] = useState(initialQuery);
   const [queryDraft, setQueryDraft] = useState(initialQuery);
@@ -128,18 +144,34 @@ function SearchContent() {
   const itemNames = useMemo(() => new Map(allFilterItems.map((item) => [item.id, item.name])), [allFilterItems]);
 
   useEffect(() => {
+    if (!filterGroups.length) return;
+    const frame = window.requestAnimationFrame(() => setCategories((current) => {
+      const canonical = canonicalizeCategoryValues(current, filterGroups);
+      return canonical.join(",") === current.join(",") ? current : canonical;
+    }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [filterGroups]);
+
+  useEffect(() => {
     if (!allFilterItems.length) return;
-    const names = new Map(allFilterItems.map((item) => [item.name.toLocaleLowerCase(locale), item.id]));
-    const resolved = legacyRaw.flatMap((value) => {
+    const names = new Map<string, string>();
+    allFilterItems.forEach((item) => {
+      const key = item.name.toLocaleLowerCase(locale);
+      if (!names.has(key)) names.set(key, item.id);
+    });
+    const resolved = legacyEntries.flatMap(({ value, group }) => {
       const canonical = categoryId(value);
       if (canonical) return [canonical];
-      const id = names.get(value.replace(/^-/, "").toLocaleLowerCase(locale));
+      const unsigned = value.replace(/^-/, "");
+      const id = group
+        ? findSearchFilterId(filterGroups, group as SearchFilterGroupKey, unsigned)
+        : names.get(unsigned.toLocaleLowerCase(locale));
       return id ? [`${value.startsWith("-") ? "-" : ""}${id}`] : [];
     });
     if (!resolved.length) return;
     const frame = window.requestAnimationFrame(() => setCategories((current) => sorted([...current, ...resolved])));
     return () => window.cancelAnimationFrame(frame);
-  }, [allFilterItems, legacyRaw, locale]);
+  }, [allFilterItems, filterGroups, legacyEntries, locale]);
 
   const updateCategories = useCallback((values: string[]) => { setCategories(sorted(values)); setPage(1); }, []);
   const updateLabels = useCallback((values: string[]) => { setLabels(sorted(values)); setPage(1); }, []);
@@ -231,12 +263,21 @@ function SearchContent() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const assisted = useMemo(() => parseSearchIntent(assistedDraft), [assistedDraft]);
-  const detectedNames = [...assisted.genres, ...assisted.moods, ...assisted.instruments];
+  const detectedNames = [...new Set([...assisted.genres, ...assisted.moods, ...assisted.instruments])];
   const applyAssisted = () => {
-    const detectedIds = allFilterItems.filter((item) => detectedNames.some((name) => item.name.toLocaleLowerCase(locale) === name.toLocaleLowerCase(locale))).map((item) => item.id);
-    setQuery(assisted.freeText || assistedDraft.trim());
-    setQueryDraft(assisted.freeText || assistedDraft.trim());
-    if (detectedIds.length) setCategories(sorted(detectedIds));
+    const detectedIds = resolveIntentCategoryIds(assisted, filterGroups);
+    const hasStructuredCriteria = Boolean(detectedIds.length || assisted.bpmRange);
+    const nextQuery = hasStructuredCriteria ? "" : assisted.freeText || assistedDraft.trim();
+    setQuery(nextQuery);
+    setQueryDraft(nextQuery);
+    setCategories(sorted(detectedIds));
+    if (detectedNames.length) {
+      const detected = new Set(detectedNames.map((name) => name.toLocaleLowerCase(locale)));
+      setStyles((current) => sorted(current.filter((value) => {
+        const id = value.replace(/^-/, "");
+        return !detected.has((itemNames.get(id) ?? "").toLocaleLowerCase(locale));
+      })));
+    }
     if (assisted.bpmRange) setBpmRange([Math.max(50, assisted.bpmRange[0]), Math.min(200, assisted.bpmRange[1])]);
     setPage(1);
     setAssistedOpen(false);
@@ -292,7 +333,7 @@ function SearchContent() {
                 <h1 className="text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92] tracking-[-.06em]">{locale === "fr" ? "Trouver la bonne musique." : "Find the right music."}</h1>
               </div>
               <div>
-                <form onSubmit={(event) => { event.preventDefault(); setQuery(queryDraft.trim()); setPage(1); }} className="flex min-h-15 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-sm)] focus-within:border-[var(--signal-strong)]">
+                <form onSubmit={(event) => { event.preventDefault(); setQuery(queryDraft.trim()); setPage(1); }} className="flex min-h-15 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-sm)] transition-[border-color,box-shadow] focus-within:border-[var(--signal-strong)] focus-within:shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--signal-strong),var(--shadow-sm)]">
                   <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />
                   <label htmlFor="catalog-search" className="sr-only">{t("common.search")}</label>
                   <input id="catalog-search" value={queryDraft} onChange={(event) => setQueryDraft(event.target.value)} placeholder={locale === "fr" ? "Titre, mot-clé, compositeur, instrument…" : "Title, keyword, composer, instrument…"} className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
@@ -304,7 +345,7 @@ function SearchContent() {
                   <div className="mt-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
                     <label className="text-xs font-semibold" htmlFor="assisted-search">{locale === "fr" ? "Décrivez votre intention musicale" : "Describe your music brief"}</label>
                     <textarea id="assisted-search" value={assistedDraft} onChange={(event) => setAssistedDraft(event.target.value)} rows={2} placeholder={locale === "fr" ? "Un piano intime, sans voix, pour un documentaire…" : "An intimate instrumental piano track for a documentary…"} className="mt-2 w-full resize-none rounded-md border border-[var(--line)] bg-transparent p-3 text-sm outline-none focus:border-[var(--signal-strong)]" />
-                    {assistedDraft && <div className="mt-3"><p className="text-[.68rem] font-semibold uppercase tracking-[.1em] text-[var(--text-muted)]">{locale === "fr" ? "Critères détectés — à vérifier" : "Detected criteria — review before search"}</p><div className="mt-2 flex flex-wrap gap-2">{detectedNames.map((name) => <span key={name} className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{name}</span>)}{assisted.bpmRange && <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{assisted.bpmRange.join("–")} BPM</span>}{!detectedNames.length && !assisted.bpmRange && <span className="text-xs text-[var(--text-muted)]">{locale === "fr" ? "Aucun filtre structuré détecté : la phrase restera un mot-clé." : "No structured filter detected: the sentence will remain a keyword."}</span>}</div><Button type="button" size="sm" onClick={applyAssisted} className="mt-3">{locale === "fr" ? "Appliquer ces critères" : "Apply criteria"}</Button></div>}
+                    {assistedDraft && <div className="mt-3"><p className="text-[.68rem] font-semibold uppercase tracking-[.1em] text-[var(--text-muted)]">{locale === "fr" ? "Critères détectés — à vérifier" : "Detected criteria — review before search"}</p><div className="mt-2 flex flex-wrap gap-2">{detectedNames.map((name) => <span key={name} className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{name}</span>)}{assisted.bpmRange && <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{assisted.bpmRange.join("–")} BPM</span>}{!detectedNames.length && !assisted.bpmRange && <span className="text-xs text-[var(--text-muted)]">{locale === "fr" ? "Aucun filtre structuré détecté : la phrase restera un mot-clé." : "No structured filter detected: the sentence will remain a keyword."}</span>}</div>{(detectedNames.length > 0 || assisted.bpmRange) && <p className="mt-3 max-w-xl text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Ces critères remplacent la phrase libre pour éviter de contraindre deux fois la même intention." : "These criteria replace the free-form sentence so the same intent is not constrained twice."}</p>}<Button type="button" size="sm" onClick={applyAssisted} disabled={detectedNames.length > 0 && filtersQuery.isLoading} className="mt-3">{filtersQuery.isLoading && detectedNames.length > 0 ? (locale === "fr" ? "Préparation des critères…" : "Preparing criteria…") : (locale === "fr" ? "Appliquer ces critères" : "Apply criteria")}</Button></div>}
                   </div>
                 )}
               </div>
@@ -325,38 +366,27 @@ function SearchContent() {
                   <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("min-h-9 rounded px-3 text-xs font-semibold", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={14} className="mr-1.5 inline" />{locale === "fr" ? "Pistes" : "Tracks"}</button>
                   <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("min-h-9 rounded px-3 text-xs font-semibold", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} className="mr-1.5 inline" />Albums</button>
                 </div>
-                <select value={type} onChange={(event) => { setType(event.target.value as VersionType); setPage(1); }} className="min-h-10 rounded-md border border-[var(--line)] bg-transparent px-3 text-xs font-semibold" aria-label={locale === "fr" ? "Versions des pistes" : "Track versions"}>
-                  <option value="main">{locale === "fr" ? "Versions principales" : "Main versions"}</option>
-                  <option value="all">{locale === "fr" ? "Toutes les versions" : "All versions"}</option>
-                </select>
+                <Select value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Versions principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} />
               </div>
               <div className="flex items-center gap-2">
-                <select value={density} onChange={(event) => setDensity(event.target.value as Density)} className="min-h-10 rounded-md border border-[var(--line)] bg-transparent px-3 text-xs font-semibold" aria-label={locale === "fr" ? "Densité des pistes" : "Track density"}>
-                  <option value="full">{locale === "fr" ? "Piste complète" : "Full track"}</option>
-                  <option value="mid">{locale === "fr" ? "Mi-piste" : "Medium track"}</option>
-                  <option value="light">{locale === "fr" ? "Piste légère" : "Light track"}</option>
-                </select>
-                <select value={sort} onChange={(event) => { setSort(event.target.value as SortMode); setPage(1); }} className="min-h-10 rounded-md border border-[var(--line)] bg-transparent px-3 text-xs font-semibold" aria-label={locale === "fr" ? "Trier les résultats" : "Sort results"}>
-                  <option value="relevance">{locale === "fr" ? "Pertinence" : "Relevance"}</option>
-                  <option value="recent">{locale === "fr" ? "Plus récents" : "Newest"}</option>
-                  <option value="oldest">{locale === "fr" ? "Plus anciens" : "Oldest"}</option>
-                  <option value="title">A–Z</option>
-                  <option value="title-desc">Z–A</option>
-                  {view === "tracks" && <option value="bpm-asc">BPM ↑</option>}
-                  {view === "tracks" && <option value="bpm-desc">BPM ↓</option>}
-                  {view === "tracks" && <option value="duration-asc">{locale === "fr" ? "Durée ↑" : "Duration ↑"}</option>}
-                  {view === "tracks" && <option value="duration-desc">{locale === "fr" ? "Durée ↓" : "Duration ↓"}</option>}
-                </select>
+                <Select value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Densité des pistes" : "Track density"} className="min-w-[9.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste complète" : "Full track" }, { value: "mid", label: locale === "fr" ? "Mi-piste" : "Medium track" }, { value: "light", label: locale === "fr" ? "Piste légère" : "Light track" }]} />
+                <Select value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="min-w-[9rem]" options={[
+                  { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
+                  { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
+                  { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
+                  { value: "title", label: "A–Z" }, { value: "title-desc", label: "Z–A" },
+                  ...(view === "tracks" ? [{ value: "bpm-asc" as const, label: "BPM ↑" }, { value: "bpm-desc" as const, label: "BPM ↓" }, { value: "duration-asc" as const, label: locale === "fr" ? "Durée ↑" : "Duration ↑" }, { value: "duration-desc" as const, label: locale === "fr" ? "Durée ↓" : "Duration ↓" }] : []),
+                ]} />
               </div>
             </div>
 
             {(categories.length > 0 || labels.length > 0 || styles.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
               <div className="mb-4 rounded-xl border border-[var(--line)] bg-[var(--background)] p-3">
-                <div className="mb-2 flex items-center justify-between gap-4"><p className="text-xs font-semibold">{locale === "fr" ? `${includedCount} inclus, ${excludedCount} exclus` : `${includedCount} included, ${excludedCount} excluded`}</p><button type="button" onClick={resetFilters} className="min-h-8 text-xs underline">{locale === "fr" ? "Tout effacer" : "Clear all"}</button></div>
+                <div className="mb-3 flex items-center justify-between gap-4"><p className="text-xs font-semibold">{locale === "fr" ? `${includedCount} inclus, ${excludedCount} exclus` : `${includedCount} included, ${excludedCount} excluded`}</p><button type="button" onClick={resetFilters} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[.68rem] font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button></div>
                 <div className="flex flex-wrap gap-2">
-                  {categories.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "categories")} className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs", negative ? "border-rose-300 bg-rose-50 text-rose-800" : "border-emerald-300 bg-emerald-50 text-emerald-900")}><span className="font-mono text-[.58rem] uppercase opacity-55">{negative ? <Minus size={12} /> : <Check size={12} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
-                  {labels.map((value) => <button key={value} type="button" onClick={() => removeValue(value, "labels")} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3 text-xs text-emerald-900"><Check size={12} />{itemNames.get(value) ?? value}<X size={12} /></button>)}
-                  {styles.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "styles")} className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs", negative ? "border-rose-300 bg-rose-50 text-rose-800" : "border-emerald-300 bg-emerald-50 text-emerald-900")} >{negative ? <Minus size={12} /> : <Check size={12} />}{itemNames.get(id) ?? id}<X size={12} /></button>; })}
+                  {categories.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "categories")} className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition hover:border-[var(--foreground)]", negative ? "filter-chip-excluded" : "border-[var(--signal-strong)]/35 bg-[var(--signal-soft)] text-[var(--foreground)]")}><span className={cn("flex h-4 w-4 items-center justify-center rounded-full", negative ? "bg-[var(--danger)] text-white" : "bg-[var(--signal-strong)] text-white")}>{negative ? <Minus size={10} /> : <Check size={10} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
+                  {labels.map((value) => <button key={value} type="button" onClick={() => removeValue(value, "labels")} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--signal-strong)]/35 bg-[var(--signal-soft)] px-3 text-xs text-[var(--foreground)] transition hover:border-[var(--foreground)]"><span className="flex h-4 w-4 items-center justify-center rounded-full bg-[var(--signal-strong)] text-white"><Check size={10} /></span>{itemNames.get(value) ?? value}<X size={12} /></button>)}
+                  {styles.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "styles")} className={cn("inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs transition hover:border-[var(--foreground)]", negative ? "filter-chip-excluded" : "border-[var(--signal-strong)]/35 bg-[var(--signal-soft)] text-[var(--foreground)]")} ><span className={cn("flex h-4 w-4 items-center justify-center rounded-full", negative ? "bg-[var(--danger)] text-white" : "bg-[var(--signal-strong)] text-white")}>{negative ? <Minus size={10} /> : <Check size={10} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
                   {(bpmRange[0] !== 50 || bpmRange[1] !== 200) && <button type="button" onClick={() => updateBpm(DEFAULT_BPM)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs">BPM {bpmRange[0]}–{bpmRange[1]}<X size={12} /></button>}
                   {(durationRange[0] !== 0 || durationRange[1] !== 300) && <button type="button" onClick={() => updateDuration(DEFAULT_DURATION)} className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-[var(--line)] px-3 text-xs">{formatDuration(durationRange[0])}–{formatDuration(durationRange[1])}<X size={12} /></button>}
                 </div>
@@ -368,11 +398,11 @@ function SearchContent() {
               {query && <span>{locale === "fr" ? "Résultats pour" : "Results for"} « {query} »</span>}
             </div>
 
-            {query && !activeQuery.isLoading && !activeQuery.isError && (
-              <details className="group mb-5 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-3">
-                <summary className="flex min-h-9 cursor-pointer list-none items-center justify-between text-xs font-semibold [&::-webkit-details-marker]:hidden"><span>{locale === "fr" ? "Recherches suggérées" : "Suggested searches"}</span><span className="text-[var(--text-muted)]">{PRODUCTION_SUGGESTIONS.length} <ChevronRight size={13} className="ml-1 inline transition group-open:rotate-90" /></span></summary>
-                <div className="mt-3 flex flex-wrap gap-2 border-t border-[var(--line)] pt-3">{PRODUCTION_SUGGESTIONS.map((suggestion) => <button key={suggestion} type="button" onClick={() => addSuggestion(suggestion)} className="min-h-8 rounded-full border border-[var(--line)] px-3 text-xs transition hover:border-[var(--signal-strong)] hover:bg-[var(--signal-soft)]">{suggestion}</button>)}</div>
-              </details>
+            {!activeQuery.isError && (
+              <section className="mb-5 overflow-hidden border-y border-[var(--line)] bg-[var(--surface)] py-3" aria-labelledby="suggested-searches-title">
+                <div className="flex items-end justify-between gap-4 px-3 sm:px-4"><div className="flex flex-wrap items-baseline gap-x-3"><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Pistes de recherche" : "Search directions"}</p><h2 id="suggested-searches-title" className="text-sm font-semibold">{locale === "fr" ? "Recherches suggérées" : "Suggested searches"}</h2></div><span className="shrink-0 font-mono text-[.58rem] text-[var(--text-muted)]">{PRODUCTION_SUGGESTIONS.length} TAGS →</span></div>
+                <div className="suggestion-rail mt-2 grid grid-flow-col grid-rows-4 auto-cols-max gap-1.5 overflow-x-auto px-3 pb-2 pt-1.5 sm:grid-rows-3 sm:px-4" aria-label={locale === "fr" ? "Faire défiler les recherches suggérées horizontalement" : "Scroll suggested searches horizontally"}>{PRODUCTION_SUGGESTIONS.map((suggestion) => <button key={suggestion} type="button" onClick={() => addSuggestion(suggestion)} className="min-h-7 rounded-full border border-[var(--line)] bg-[var(--background)] px-2.5 py-1 text-[.68rem] leading-none transition hover:-translate-y-0.5 hover:border-[var(--signal-strong)] hover:bg-[var(--signal-soft)]">{suggestion}</button>)}</div>
+              </section>
             )}
 
             {activeQuery.isLoading || activeQuery.isFetching && !activeQuery.data ? (
@@ -411,7 +441,6 @@ function SearchContent() {
         </div>
       )}
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

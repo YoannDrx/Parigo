@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Clock, ListMusic, Loader2, Music, Play, Shuffle } from "lucide-react";
-import { MiniPlayer, TrackRow } from "@/components/features";
+import { TrackRow } from "@/components/features";
 import { Footer, Header } from "@/components/layout";
 import { Button, Tag } from "@/components/ui";
 import { MediaReveal } from "@/components/motion";
@@ -26,7 +26,7 @@ export default function PlaylistDetailPage() {
   const slug = useParams().slug as string;
   const [playlist, setPlaylist] = useState<PlaylistDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<"not-found" | "unavailable" | null>(null);
   const [saved, setSaved] = useState(false);
   const { play, setQueue } = usePlayerStore();
 
@@ -34,13 +34,16 @@ export default function PlaylistDetailPage() {
     const controller = new AbortController();
     async function load() {
       setIsLoading(true);
-      setError(false);
+      setError(null);
       try {
         const response = await fetch(`/api/playlists/${slug}`, { signal: controller.signal });
-        if (!response.ok) throw new Error(String(response.status));
+        if (!response.ok) {
+          setError(response.status === 404 ? "not-found" : "unavailable");
+          return;
+        }
         setPlaylist((await response.json()).data?.playlist);
       } catch (cause) {
-        if (!(cause instanceof DOMException && cause.name === "AbortError")) setError(true);
+        if (!(cause instanceof DOMException && cause.name === "AbortError")) setError("unavailable");
       } finally {
         if (!controller.signal.aborted) setIsLoading(false);
       }
@@ -58,7 +61,10 @@ export default function PlaylistDetailPage() {
   };
 
   if (isLoading) return <div className="page-shell flex min-h-screen flex-col"><Header /><main className="flex flex-1 items-center justify-center"><Loader2 className="animate-spin text-[var(--color-primary)]" /></main><Footer /></div>;
-  if (error || !playlist) return <div className="page-shell flex min-h-screen flex-col"><Header /><main className="flex flex-1 flex-col items-center justify-center p-8 text-center"><ListMusic size={42} className="mb-6 opacity-25" /><h1 className="font-[var(--font-editorial)] text-5xl font-normal">{locale === "fr" ? "Playlist non trouvée" : "Playlist not found"}</h1><Link href="/playlists" className="mt-8"><Button variant="outline"><ArrowLeft size={17} /> {t("common.back")}</Button></Link></main><Footer /></div>;
+  if (error || !playlist) {
+    const unavailable = error === "unavailable";
+    return <div className="page-shell flex min-h-screen flex-col"><Header /><main className="flex flex-1 flex-col items-center justify-center p-8 text-center"><ListMusic size={42} className="mb-6 opacity-25" /><h1 className="font-[var(--font-editorial)] text-5xl font-normal">{unavailable ? (locale === "fr" ? "Playlist momentanément indisponible" : "Playlist temporarily unavailable") : (locale === "fr" ? "Playlist non trouvée" : "Playlist not found")}</h1>{unavailable && <p className="mt-4 max-w-lg text-[var(--text-muted)]">{locale === "fr" ? "Le catalogue n’a pas pu charger cette sélection. Réessayez dans quelques instants." : "The catalogue could not load this selection. Please try again shortly."}</p>}<Link href="/playlists" className="mt-8"><Button variant="outline"><ArrowLeft size={17} /> {t("common.back")}</Button></Link></main><Footer /></div>;
+  }
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
@@ -71,7 +77,7 @@ export default function PlaylistDetailPage() {
         </section>
         <section className="mx-auto max-w-[1500px] px-4 py-16 lg:px-8 md:py-24"><h2 className="mb-10 font-[var(--font-editorial)] text-6xl font-normal tracking-[-.055em]">{t("catalog.tracks")}</h2>{playlist.tracks.length ? <div className="border-y border-[var(--line)] py-2">{playlist.tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFor(track)} index={index} />)}</div> : <p className="border-y border-[var(--line)] py-16 text-center text-[var(--text-muted)]">{locale === "fr" ? "Cette playlist ne contient pas encore de pistes." : "This playlist does not contain any tracks yet."}</p>}</section>
       </main>
-      <Footer /><MiniPlayer />
+      <Footer />
     </div>
   );
 }

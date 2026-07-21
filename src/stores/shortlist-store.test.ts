@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { useShortlistStore } from "./shortlist-store";
+import { isLegacyDemoTrack, useShortlistStore } from "./shortlist-store";
 import type { Track } from "@/types";
 
 const track: Track = {
@@ -32,5 +32,10 @@ describe("shortlist store", () => {
     useShortlistStore.getState().add(track);
     useShortlistStore.getState().remove(track.id);
     expect(useShortlistStore.getState().items).toEqual([]);
+  });
+
+  it("identifie uniquement l’ancienne piste de démonstration ACIDE", () => {
+    expect(isLegacyDemoTrack({ ...track, title: "Track 1", albumTitle: "ACIDE" })).toBe(true);
+    expect(isLegacyDemoTrack({ ...track, title: "Track 1", albumTitle: "Un véritable album" })).toBe(false);
   });
 });
