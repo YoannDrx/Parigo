@@ -168,6 +168,28 @@ img { filter: var(--image-filter); }
 
 ::selection { background: var(--signal); color: #fff; }
 
+.range-thumb::-webkit-slider-thumb {
+  pointer-events: auto;
+  width: 20px;
+  height: 20px;
+  appearance: none;
+  border: 3px solid var(--surface);
+  border-radius: 999px;
+  background: var(--signal-strong);
+  box-shadow: 0 0 0 1px var(--signal-strong), 0 3px 10px rgba(16, 45, 26, .22);
+  cursor: grab;
+}
+.range-thumb::-moz-range-thumb {
+  pointer-events: auto;
+  width: 15px;
+  height: 15px;
+  border: 3px solid var(--surface);
+  border-radius: 999px;
+  background: var(--signal-strong);
+  box-shadow: 0 0 0 1px var(--signal-strong), 0 3px 10px rgba(16, 45, 26, .22);
+  cursor: grab;
+}
+
 .editorial-display {
   font-family: var(--font-heading);
   font-size: clamp(3.5rem, 9vw, 9.5rem);
@@ -216,16 +238,18 @@ img { filter: var(--image-filter); }
   border-radius: var(--radius-sm);
   background: transparent;
   color: inherit;
-  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease;
+  transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) ease;
 }
 
-.nav-control:hover { background: var(--surface-soft); color: var(--signal-strong); }
+.nav-control:hover { background: color-mix(in srgb, var(--signal) 9%, transparent); color: var(--signal-strong); transform: translateY(-1px); }
+.nav-link { transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) ease; }
+.nav-link:hover { background: color-mix(in srgb, var(--signal) 8%, transparent); color: var(--foreground); transform: translateY(-1px); }
 
 .parigo-logo {
   position: relative;
   display: inline-flex;
   align-items: baseline;
-  padding: .25em .32em;
+  padding: .23em .29em;
   font-family: var(--font-heading);
   font-weight: 740;
   letter-spacing: -.07em;
@@ -240,17 +264,71 @@ img { filter: var(--image-filter); }
 .parigo-logo__go { color: var(--signal); transform-origin: center; }
 .parigo-logo__corner {
   position: absolute;
-  width: .62em;
-  height: .62em;
-  border-color: var(--signal);
-  transition: width var(--motion-medium) var(--ease-out), transform var(--motion-medium) var(--ease-out);
+  width: .88em;
+  height: .78em;
+  border-style: solid;
+  border-color: transparent;
+  transition: width var(--motion-medium) var(--ease-out), height var(--motion-medium) var(--ease-out), transform var(--motion-medium) var(--ease-out);
 }
-.parigo-logo__corner--top { top: 0; right: 0; border-top-width: 1.5px; border-right-width: 1.5px; }
-.parigo-logo__corner--bottom { bottom: 0; left: 0; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.parigo-logo__corner--top { top: 0; right: 0; border-top: 3px solid currentColor; border-right: 3px solid currentColor; border-top-right-radius: .3em; }
+.parigo-logo__corner--bottom { bottom: 0; left: 0; border-bottom: 3px solid var(--signal); border-left: 3px solid var(--signal); border-bottom-left-radius: .3em; }
 .group:hover .parigo-logo__go, .parigo-logo:hover .parigo-logo__go { color: currentColor; transform: rotateY(360deg); }
 .group:hover .parigo-logo__word, .parigo-logo:hover .parigo-logo__word { color: var(--signal-strong); }
-.group:hover .parigo-logo__corner--top, .parigo-logo:hover .parigo-logo__corner--top { width: 100%; }
-.group:hover .parigo-logo__corner--bottom, .parigo-logo:hover .parigo-logo__corner--bottom { width: 100%; }
+.group:hover .parigo-logo__corner--top, .parigo-logo:hover .parigo-logo__corner--top { width: 100%; height: .96em; }
+.group:hover .parigo-logo__corner--bottom, .parigo-logo:hover .parigo-logo__corner--bottom { width: 100%; height: .96em; }
+
+.home-rail-card {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+  padding: .55rem;
+  background: var(--surface);
+  box-shadow: 9px 10px 0 color-mix(in srgb, var(--signal-soft) 52%, transparent), 0 14px 40px rgba(15, 22, 16, .04);
+  transition: transform 480ms var(--ease-out), border-color 300ms ease, box-shadow 480ms var(--ease-out);
+}
+.home-rail-card:hover { border-color: color-mix(in srgb, var(--signal) 62%, var(--line)); box-shadow: 13px 15px 0 color-mix(in srgb, var(--signal) 22%, transparent), 0 28px 70px rgba(15, 22, 16, .12); transform: translate3d(-3px, -6px, 0) rotate(-.35deg); }
+.home-rail-card__media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 34%, rgba(255,255,255,.34) 48%, transparent 62%);
+  transform: translateX(-140%);
+  transition: transform 780ms var(--ease-out);
+}
+.home-rail-card:hover .home-rail-card__media::after { transform: translateX(140%); }
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
+.home-sync-card {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: 1rem;
+  background: #0b0e0b;
+  box-shadow: 0 22px 70px rgba(0,0,0,.18);
+  transition: transform 520ms var(--ease-out), box-shadow 520ms var(--ease-out), border-color 300ms ease;
+}
+.home-sync-card::before, .home-sync-card::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 3rem;
+  height: 3rem;
+  pointer-events: none;
+  transition: width 520ms var(--ease-out), height 520ms var(--ease-out);
+}
+.home-sync-card::before { top: .7rem; right: .7rem; border-top: 1px solid var(--signal); border-right: 1px solid var(--signal); border-top-right-radius: .5rem; }
+.home-sync-card::after { bottom: .7rem; left: .7rem; border-bottom: 1px solid var(--signal); border-left: 1px solid var(--signal); border-bottom-left-radius: .5rem; }
+.home-sync-card:hover { border-color: color-mix(in srgb, var(--signal) 65%, transparent); box-shadow: 0 34px 90px rgba(0,0,0,.3); transform: translateY(-6px); }
+.home-sync-card:hover::before, .home-sync-card:hover::after { width: calc(100% - 1.4rem); height: calc(100% - 1.4rem); }
+.home-sync-card__frame { border-radius: inherit; }
 
 .contact-field { display: grid; gap: .75rem; border-bottom: 1px solid var(--line-strong); padding: 1.2rem 0; }
 .contact-field > span { display: flex; gap: .8rem; font-family: var(--font-mono); font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; }

@@ -1,14 +1,16 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { MotionValue } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import type { SignalFieldProps } from "./SignalField";
 
-const DynamicSignalField = dynamic(
+const DynamicSignalField = dynamic<SignalFieldProps>(
   () => import("./SignalField").then((module) => module.SignalField),
   { ssr: false }
 );
 
-export function SignalFieldLoader() {
+export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValue<number>; pointerY: MotionValue<number> }) {
   const [canRender, setCanRender] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -37,7 +39,7 @@ export function SignalFieldLoader() {
 
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      {canRender && isActive ? <DynamicSignalField /> : (
+      {canRender && isActive ? <DynamicSignalField pointerX={pointerX} pointerY={pointerY} /> : (
         <>
         <div className="absolute left-[-10%] top-[42%] h-px w-[120%] rotate-[-6deg] bg-[var(--color-signal)] shadow-[0_0_38px_8px_rgba(108,255,103,.3)]" />
         <div className="absolute left-[-10%] top-[48%] h-px w-[120%] rotate-[3deg] bg-white/35" />

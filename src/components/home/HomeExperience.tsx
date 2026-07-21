@@ -3,32 +3,21 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowDown, ArrowRight, Play } from "lucide-react";
-import type { ReactNode } from "react";
+import { AlertCircle, ArrowDown, ArrowRight, Play, RotateCcw } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import { AISearch, MiniPlayer } from "@/components/features";
 import { Footer, Header } from "@/components/layout";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { Button } from "@/components/ui";
+import { SYNCHRONISATIONS as syncs } from "@/content/synchronisations";
+import { useAlbums, useFeaturedPlaylists } from "@/hooks/use-api";
+import { OrganicHeroBackdrop } from "./OrganicHeroBackdrop";
+import { HorizontalRail } from "./HorizontalRail";
+import { EditorialScrollStory } from "./EditorialScrollStory";
+import { ManifestoScrollSection } from "./ManifestoScrollSection";
+import { ProcessSignalSection } from "./ProcessSignalSection";
 
-const releases = [
-  { title: "EDM From Paris", ref: "PGO 0023", cover: "/media/mock/albums/pgo0023.avif" },
-  { title: "Latin Experience", ref: "PGO 0026", cover: "/media/mock/albums/pgo0026.avif" },
-  { title: "Hollywood Hustlers", ref: "PGO 0028", cover: "/media/mock/albums/pgo0028.avif" },
-  { title: "Trap In The Cloud", ref: "PGO 0035", cover: "/media/mock/albums/pgo0035.avif" },
-];
-
-const artists = [
-  { name: "Arandel", image: "/media/mock/artists/arandel.jpg" },
-  { name: "Forever Pavot", image: "/media/mock/artists/forever-pavot.jpg" },
-  { name: "Charlotte Savary", image: "/media/mock/artists/charlotte-savary.jpg" },
-  { name: "Flore", image: "/media/mock/artists/flore.jpg" },
-];
-
-const syncs = [
-  { title: "Tokyo Vice", client: "HBO Max", image: "/images/synchros/tokyo-vice.jpg" },
-  { title: "Le Monde de demain", client: "Arte / Netflix", image: "/images/synchros/le-monde-de-demain2.jpg" },
-  { title: "Monkey Man", client: "Universal", image: "/images/synchros/monkey-man.jpg" },
-];
+const PARIGO_LABEL_ID = "b9d701733704e2d7";
 
 function SectionReveal({ children, className = "" }: { children: ReactNode; className?: string }) {
   const reduceMotion = useReducedMotion();
@@ -41,107 +30,99 @@ function SectionReveal({ children, className = "" }: { children: ReactNode; clas
 
 export function HomeExperience() {
   const { locale, t } = useI18n();
-  const process = locale === "fr" ? [
-    ["01", "Décrivez", "Une émotion, une scène, un rythme ou quelques références suffisent."],
-    ["02", "Écoutez", "Comparez les pistes, leurs waveforms et leurs métadonnées sans perdre le fil."],
-    ["03", "Sélectionnez", "Créez une shortlist, partagez-la et avancez vers la bonne licence."],
-  ] : [
-    ["01", "Describe", "A feeling, a scene, a rhythm or a few references are enough."],
-    ["02", "Listen", "Compare tracks, waveforms and metadata without losing your flow."],
-    ["03", "Select", "Build a shortlist, share it and move towards the right licence."],
-  ];
+  const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "syncs" | "parigo">("playlists");
+  const releaseQuery = useAlbums({ limit: 12, sort: "releaseDate" });
+  const playlistQuery = useFeaturedPlaylists(12);
+  const parigoQuery = useAlbums({ limit: 12, label: PARIGO_LABEL_ID, sort: "releaseDate" });
+  const { data: releaseData } = releaseQuery;
+  const { data: playlistData } = playlistQuery;
+  const releases = releaseData?.albums || [];
+  const editorialPlaylists = playlistData?.playlists || [];
+  const parigoAlbums = parigoQuery.data?.albums || [];
   const uses = locale === "fr" ? ["Publicité", "Documentaire", "Fiction", "Sport", "Mode", "Émotion"] : ["Advertising", "Documentary", "Fiction", "Sport", "Fashion", "Emotion"];
 
   return (
     <div className="page-shell">
       <Header variant="overlay" />
       <main>
-        <section className="relative flex min-h-[860px] items-center overflow-hidden bg-[var(--surface)] px-4 pb-16 pt-28 md:min-h-[100svh] md:px-8 md:pb-20">
-          <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-            <motion.span animate={{ x: [0, 32, 0], y: [0, -18, 0] }} transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }} className="absolute left-[7%] top-[18%] h-[32vw] max-h-[470px] min-h-64 w-[32vw] min-w-64 rounded-full bg-[#cfe6d5] blur-[80px] opacity-75" />
-            <motion.span animate={{ x: [0, -28, 0], y: [0, 24, 0] }} transition={{ duration: 17, repeat: Infinity, ease: "easeInOut" }} className="absolute bottom-[8%] right-[8%] h-[28vw] max-h-[430px] min-h-56 w-[28vw] min-w-56 rounded-full bg-[#b7d7c2] blur-[90px] opacity-68" />
-          </div>
-          <div className="relative mx-auto w-full max-w-[1240px] text-center">
-            <motion.p initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .5 }} className="eyebrow text-[var(--signal-strong)]">{t("home.eyebrow")}</motion.p>
-            <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7, delay: .08, ease: [0.22, 1, 0.36, 1] }} aria-label={`${t("home.titleTop")} ${t("home.titleBottom")}`} className="mx-auto mt-8 max-w-[11ch] text-[clamp(3.65rem,9vw,8.8rem)] font-semibold leading-[.87] tracking-[-.065em]">
-              <span className="block">{t("home.titleTop")}</span>
-              <span className="block text-[var(--signal-strong)]">{t("home.titleBottom")}</span>
+        <section className="relative flex min-h-[760px] items-center overflow-hidden bg-[var(--surface)] px-4 pb-14 pt-28 md:min-h-[94svh] md:px-8">
+          <OrganicHeroBackdrop />
+          <div className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center">
+            <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .5 }} className="eyebrow text-[var(--signal-strong)]">Parigo Music · Paris</motion.p>
+            <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, delay: .08, ease: [0.22, 1, 0.36, 1] }} className="mx-auto mt-7 max-w-[12ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
+              Music for image<span className="text-[var(--signal-strong)]">.</span>
             </motion.h1>
-            <p className="mx-auto mt-7 max-w-xl text-base leading-relaxed text-[var(--text-muted)] md:text-lg">{t("home.promise")}</p>
-            <div className="mx-auto mt-10 max-w-4xl text-left"><AISearch showExamples /></div>
-            <a href="#discover" className="mx-auto mt-12 inline-flex min-h-11 items-center gap-2 text-xs font-semibold uppercase tracking-[.1em] text-[var(--text-muted)] transition hover:text-[var(--foreground)]">{t("home.scroll")} <ArrowDown size={15} /></a>
+            <p className="mx-auto mt-6 max-w-2xl text-base leading-relaxed text-[var(--text-muted)] md:text-lg">{locale === "fr" ? "Une librairie musicale indépendante au service des images, des récits et des émotions." : "An independent music library for images, stories and emotion."}</p>
+            <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch /></div>
+            <a href="#about" className="pointer-events-auto mx-auto mt-10 inline-flex min-h-11 items-center gap-2 text-xs font-semibold uppercase tracking-[.1em] text-[var(--text-muted)] transition hover:text-[var(--foreground)]">{t("home.scroll")} <ArrowDown size={15} /></a>
           </div>
         </section>
 
-        <section id="discover" className="px-4 py-20 md:px-8 md:py-28">
+        <section id="about" className="px-4 py-16 md:px-8 md:py-24">
           <SectionReveal className="mx-auto max-w-[1580px]">
-            <div className="relative min-h-[620px] overflow-hidden rounded-[var(--radius-md)] md:min-h-[760px]">
-              <Image src="/images/synchros/emily.jpg" alt="Emily in Paris — synchronisation Parigo" fill priority sizes="100vw" className="object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/76 via-black/18 to-black/10" />
-              <div className="absolute inset-x-0 bottom-0 grid gap-8 p-6 text-white md:grid-cols-12 md:p-12">
-                <p className="eyebrow md:col-span-3">{t("home.statementEyebrow")}</p>
-                <h2 className="max-w-[18ch] text-[clamp(2.4rem,5vw,5.6rem)] font-semibold leading-[.94] tracking-[-.05em] md:col-span-8 md:col-start-5">{locale === "fr" ? "Une recherche musicale qui commence par votre image." : "Music search that begins with your image."}</h2>
+            <div className="relative min-h-[610px] overflow-hidden rounded-xl md:min-h-[760px]">
+              <picture className="absolute inset-0 block"><source srcSet="/images/parigo-studio.avif" type="image/avif" /><source srcSet="/images/parigo-studio.webp" type="image/webp" /><Image src="/images/parigo-studio.jpg" alt="Studio PARIGO avec une sélection de vinyles" fill priority sizes="100vw" className="object-cover" /></picture>
+              <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
+              <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
+                <p className="eyebrow mb-5 text-emerald-200">Parigo depuis 2013</p>
+                <h2 className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em]">{locale === "fr" ? "Qui sommes-nous ?" : "Who are we?"}</h2>
+                <p className="mt-7 max-w-2xl text-base leading-7 text-white/82 md:text-lg">{locale === "fr" ? "De la musique d’archives aux productions les plus actuelles, de la musique classique aux répertoires internationaux, Parigo met à votre disposition une offre musicale complète, exigeante et immédiatement exploitable pour tous vos projets audiovisuels." : "From archive music to the latest productions, from classical music to international repertoires, Parigo offers a complete and exacting catalogue ready for every audiovisual project."}</p>
+                <Link href="/albums" className="mt-8 inline-flex min-h-11 w-fit items-center gap-2 rounded-md border border-white/55 px-5 text-sm font-semibold transition hover:bg-white hover:text-black">{locale === "fr" ? "Découvrir le catalogue" : "Explore the catalogue"}<ArrowRight size={15} /></Link>
               </div>
             </div>
           </SectionReveal>
         </section>
 
-        <section className="border-y border-[var(--line)] bg-[var(--surface)] px-4 py-20 md:px-8 md:py-28">
+        <section id="featured" className="border-y border-[var(--line)] bg-[var(--surface)] px-4 py-20 md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
             <SectionReveal className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div><p className="eyebrow text-[var(--signal-strong)]">{t("home.releasesEyebrow")}</p><h2 className="mt-5 max-w-[12ch] text-[clamp(2.8rem,5vw,5.6rem)] font-semibold leading-[.92] tracking-[-.055em]">{locale === "fr" ? "À écouter maintenant." : "Listen now."}</h2></div>
-              <Link href="/albums" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">{t("common.seeAll")} <ArrowRight size={16} /></Link>
+              <div><p className="eyebrow text-[var(--signal-strong)]">Featured</p><h2 className="mt-5 max-w-[12ch] text-[clamp(2.8rem,5vw,5.6rem)] font-semibold leading-[.92] tracking-[-.055em]">{locale === "fr" ? "À écouter maintenant." : "Listen now."}</h2></div>
+              <div className="flex max-w-full gap-1 overflow-x-auto rounded-lg border border-[var(--line)] p-1" role="tablist" aria-label={locale === "fr" ? "Sélections mises en avant" : "Featured selections"}>
+                {([
+                  ["playlists", locale === "fr" ? "Playlists" : "Playlists"],
+                  ["releases", locale === "fr" ? "Nouveautés" : "New releases"],
+                  ["syncs", locale === "fr" ? "Synchronisations" : "Syncs"],
+                  ["parigo", "Label PARIGO"],
+                ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => setFeaturedTab(id)} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
+              </div>
             </SectionReveal>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {releases.map((release) => (
-                <SectionReveal key={release.ref}>
-                  <Link href="/albums" className="group block">
-                    <div className="relative aspect-square overflow-hidden rounded-[var(--radius-md)] bg-[var(--surface-soft)]"><Image src={release.cover} alt={release.title} fill sizes="(max-width:640px) 100vw, 25vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.025]" /><span className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#151815] opacity-0 shadow-md transition group-hover:opacity-100"><Play size={16} fill="currentColor" /></span></div>
-                    <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] py-4"><div><h3 className="text-lg font-semibold tracking-[-.025em]">{release.title}</h3><p className="mt-1 font-mono text-[.6rem] uppercase tracking-[.12em] text-[var(--text-muted)]">Parigo Music</p></div><span className="font-mono text-[.6rem] text-[var(--text-muted)]">{release.ref}</span></div>
+            {(featuredTab === "releases" && releaseQuery.isError) || (featuredTab === "playlists" && playlistQuery.isError) || (featuredTab === "parigo" && parigoQuery.isError) ? (
+              <div className="rounded-xl border border-[var(--line)] px-6 py-20 text-center"><AlertCircle className="mx-auto text-[var(--signal-strong)]" /><h3 className="mt-4 text-2xl">{locale === "fr" ? "Cette sélection est momentanément indisponible." : "This selection is temporarily unavailable."}</h3><button type="button" onClick={() => { if (featuredTab === "playlists") void playlistQuery.refetch(); else if (featuredTab === "parigo") void parigoQuery.refetch(); else void releaseQuery.refetch(); }} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--line)] px-4 text-sm font-semibold"><RotateCcw size={15} />{t("common.retry")}</button></div>
+            ) : featuredTab === "syncs" ? (
+              <HorizontalRail cinema label={locale === "fr" ? "Synchronisations à la une" : "Featured synchronisations"}>{syncs.map((sync, index) => <Link key={sync.slug} href={`/synchronisations/${sync.slug}`} className="home-sync-card group snap-start"><div className="home-sync-card__frame relative aspect-video overflow-hidden bg-[#0b0e0b]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:768px) 91vw, 53vw" className="object-contain transition duration-700 group-hover:scale-[1.018]" /><div className="absolute inset-0 bg-gradient-to-t from-black/82 via-transparent to-black/5" /><span className="absolute right-5 top-5 font-mono text-[.58rem] text-white/60">SYNC / {String(index + 1).padStart(2, "0")}</span><span className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-black/25 text-white backdrop-blur-md transition duration-500 group-hover:rotate-[8deg] group-hover:scale-110 group-hover:bg-[var(--signal)]"><Play size={17} fill="currentColor" /></span><div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-5 p-5 text-white md:p-7"><div><p className="font-mono text-[.58rem] uppercase tracking-[.13em] text-white/62">{sync.client}</p><h3 className="mt-2 text-2xl md:text-4xl">{sync.title}</h3></div><span className="hidden font-mono text-[.58rem] uppercase tracking-[.12em] text-white/55 sm:block">Voir le film ↗</span></div></div></Link>)}</HorizontalRail>
+            ) : featuredTab === "playlists" ? (
+              <HorizontalRail label={locale === "fr" ? "Playlists à écouter maintenant" : "Playlists to listen to now"}>{editorialPlaylists.map((playlist, index) => <Link key={playlist.id} href={`/playlists/${playlist.id}`} className="home-rail-card group block snap-start"><div className="home-rail-card__media relative aspect-square overflow-hidden rounded-[.8rem] bg-[var(--surface-soft)]"><Image src={playlist.cover} alt={playlist.title} fill sizes="(max-width:640px) 78vw, 25vw" className="object-cover transition duration-700 group-hover:scale-[1.035]" /><span className="absolute right-3 top-3 rounded-full bg-black/68 px-2.5 py-1.5 font-mono text-[.55rem] text-white backdrop-blur">P / {String(index + 1).padStart(2, "0")}</span></div><div className="flex min-h-24 items-end justify-between gap-4 px-1 pb-1 pt-5"><div className="min-w-0"><p className="font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--signal-strong)]">{locale === "fr" ? "Sélection Parigo" : "Parigo selection"}</p><h3 className="mt-2 line-clamp-2 text-lg leading-[1.05]">{playlist.title}</h3></div><p className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{playlist.trackCount ?? 0} {t("catalog.tracks")}</p></div></Link>)}</HorizontalRail>
+            ) : (
+            <HorizontalRail label={featuredTab === "parigo" ? "Albums Parigo" : locale === "fr" ? "Dernières sorties" : "New releases"}>
+              {(featuredTab === "parigo" ? parigoAlbums : releases).map((release, index) => (
+                  <Link key={release.id} href={`/albums/${release.id}`} className="home-rail-card group block snap-start">
+                    <div className="home-rail-card__media relative aspect-square overflow-hidden rounded-[.8rem] bg-[var(--surface-soft)]"><Image src={release.cover} alt={release.title} fill sizes="(max-width:640px) 78vw, 25vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.035]" /><span className="absolute right-3 top-3 rounded-full bg-black/68 px-2.5 py-1.5 font-mono text-[.55rem] text-white backdrop-blur">A / {String(index + 1).padStart(2, "0")}</span><span className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#151815] opacity-0 shadow-md transition duration-300 group-hover:-translate-y-1 group-hover:opacity-100"><Play size={16} fill="currentColor" /></span></div>
+                    <div className="flex min-h-24 items-end justify-between gap-4 px-1 pb-1 pt-5"><div className="min-w-0"><h3 className="line-clamp-2 text-lg font-semibold leading-[1.05] tracking-[-.025em]">{release.title}</h3><p className="mt-2 truncate font-mono text-[.55rem] uppercase tracking-[.12em] text-[var(--text-muted)]">{release.label}</p></div><span className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{release.trackCount} {t("catalog.tracks")}</span></div>
                   </Link>
-                </SectionReveal>
               ))}
-            </div>
+            </HorizontalRail>
+            )}
+            <div className="mt-8 text-right"><Link href={featuredTab === "playlists" ? "/playlists" : featuredTab === "syncs" ? "/synchronisations" : "/albums"} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">{t("common.seeAll")}<ArrowRight size={16} /></Link></div>
           </div>
         </section>
 
-        <section className="px-4 py-24 text-center md:px-8 md:py-36">
-          <SectionReveal className="mx-auto max-w-[1320px]">
-            <p className="eyebrow text-[var(--signal-strong)]">Parigo Music</p>
-            <h2 className="mt-7 text-[clamp(2.65rem,6.8vw,7.2rem)] font-semibold uppercase leading-[.92] tracking-[-.055em]">{locale === "fr" ? "Une musique juste. Au bon moment. Pour la bonne image." : "The right music. At the right moment. For the right image."}</h2>
-          </SectionReveal>
-        </section>
+        <ManifestoScrollSection locale={locale} />
 
-        <section className="border-y border-[var(--line)] bg-[var(--surface-soft)] px-4 py-20 md:px-8 md:py-28">
-          <div className="mx-auto max-w-[1580px]">
-            <SectionReveal className="grid gap-8 md:grid-cols-12"><div className="md:col-span-4"><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Comment ça marche" : "How it works"}</p><h2 className="mt-5 text-[clamp(2.5rem,4.5vw,4.8rem)] leading-[.94]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</h2></div><p className="max-w-md self-end text-[var(--text-muted)] md:col-span-4 md:col-start-9">{t("home.demoCopy")}</p></SectionReveal>
-            <div className="mt-14 grid border-l border-t border-[var(--line)] md:grid-cols-3">
-              {process.map(([number, title, copy]) => <article key={number} className="flex min-h-64 flex-col border-b border-r border-[var(--line)] bg-[var(--surface)] p-6 md:min-h-72"><span className="font-mono text-[.62rem] text-[var(--signal-strong)]">{number}</span><div className="mt-auto"><h3 className="text-3xl">{title}</h3><p className="mt-4 max-w-sm text-sm leading-relaxed text-[var(--text-muted)]">{copy}</p></div></article>)}
-            </div>
-          </div>
-        </section>
+        <ProcessSignalSection locale={locale} />
 
-        <section className="px-4 py-20 md:px-8 md:py-28">
-          <div className="mx-auto grid max-w-[1580px] gap-12 lg:grid-cols-12">
-            <SectionReveal className="lg:col-span-4"><p className="eyebrow text-[var(--signal-strong)]">{t("home.artistsEyebrow")}</p><h2 className="mt-5 text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92]">{locale === "fr" ? "Nos talents." : "Our talents."}</h2><p className="mt-6 max-w-sm leading-relaxed text-[var(--text-muted)]">{t("home.artistsCopy")}</p><Link href="/artists" className="mt-8 inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">{t("home.artistsCta")} <ArrowRight size={16} /></Link></SectionReveal>
-            <div className="grid grid-cols-2 gap-3 lg:col-span-8">
-              {artists.map((artist) => <Link key={artist.name} href="/artists" className="group relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[var(--surface-soft)]"><Image src={artist.image} alt={artist.name} fill sizes="(max-width:1024px) 50vw, 33vw" className="object-cover grayscale transition duration-700 group-hover:scale-[1.02] group-hover:grayscale-0" /><div className="absolute inset-0 bg-gradient-to-t from-black/68 via-transparent to-transparent" /><h3 className="absolute inset-x-0 bottom-0 p-4 text-xl text-white md:p-6 md:text-3xl">{artist.name}</h3></Link>)}
-            </div>
-          </div>
-        </section>
+        <EditorialScrollStory playlists={editorialPlaylists} locale={locale} />
 
         <section className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
             <SectionReveal className="mb-12 grid gap-8 md:grid-cols-12"><div className="md:col-span-7"><p className="eyebrow text-[var(--signal)]">{t("home.syncEyebrow")}</p><h2 className="mt-5 text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92]">{t("home.syncTitle")}</h2></div><p className="max-w-md self-end opacity-58 md:col-span-4 md:col-start-9">{t("home.syncCopy")}</p></SectionReveal>
-            <div className="grid gap-4 md:grid-cols-3">
-              {syncs.map((sync) => <article key={sync.title} className="group"><div className="relative aspect-[4/5] overflow-hidden rounded-[var(--radius-md)] bg-[#222]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:768px) 100vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.025]" /><div className="absolute inset-0 bg-gradient-to-t from-black/72 via-transparent to-transparent" /><div className="absolute inset-x-0 bottom-0 p-5 text-white"><p className="font-mono text-[.6rem] uppercase tracking-[.13em] opacity-62">{sync.client}</p><h3 className="mt-2 text-2xl md:text-3xl">{sync.title}</h3></div></div></article>)}
-            </div>
+            <HorizontalRail wide label={locale === "fr" ? "Nos synchronisations" : "Our synchronisations"}>{syncs.map((sync, index) => <Link key={sync.slug} href={`/synchronisations/${sync.slug}`} className="home-sync-card group snap-start"><div className="home-sync-card__frame relative aspect-video overflow-hidden bg-[#0b0e0b]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:768px) 86vw, 55vw" className="object-contain transition-transform duration-700 group-hover:scale-[1.018]" /><div className="absolute inset-0 bg-gradient-to-t from-black/78 via-transparent to-transparent" /><span className="absolute right-5 top-5 font-mono text-xs text-white/60">{String(index + 1).padStart(2, "0")}</span><span className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-white/45 bg-black/22 text-white backdrop-blur-md transition group-hover:scale-110 group-hover:bg-[var(--signal)]"><Play size={17} fill="currentColor" /></span><div className="absolute inset-x-0 bottom-0 p-5 text-white md:p-8"><p className="font-mono text-[.6rem] uppercase tracking-[.13em] opacity-62">{sync.client}</p><h3 className="mt-2 text-2xl md:text-4xl">{sync.title}</h3></div></div></Link>)}</HorizontalRail>
+            <div className="mt-3 text-right"><Link href="/synchronisations" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal)]">{t("common.seeAll")}<ArrowRight size={16} /></Link></div>
           </div>
         </section>
 
         <section className="px-4 py-20 md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
-            <SectionReveal className="grid gap-8 md:grid-cols-12"><div className="md:col-span-6"><p className="eyebrow text-[var(--signal-strong)]">{t("home.usesEyebrow")}</p><h2 className="mt-5 text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92]">{t("home.usesTitle")}</h2></div></SectionReveal>
+            <SectionReveal className="grid gap-8 md:grid-cols-12"><div className="md:col-span-6"><p className="eyebrow text-[var(--signal-strong)]">{t("home.usesEyebrow")}</p><h2 className="mt-5 text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92]">{t("home.usesTitle")}</h2></div><p className="max-w-md self-end text-sm leading-relaxed text-[var(--text-muted)] md:col-span-4 md:col-start-9">{locale === "fr" ? "Chaque entrée lance une recherche par mot-clé dans le catalogue. Vous pourrez ensuite affiner le résultat avec les genres, humeurs, usages, instruments, labels, styles, BPM et durée." : "Each entry starts a keyword search across the catalogue. You can then refine it by genre, mood, use, instrument, label, style, BPM and duration."}</p></SectionReveal>
             <div className="mt-12 grid border-l border-t border-[var(--line)] sm:grid-cols-2 lg:grid-cols-3">{uses.map((use, index) => <Link key={use} href={`/search?q=${encodeURIComponent(use)}`} className="group flex min-h-32 items-center justify-between border-b border-r border-[var(--line)] bg-[var(--surface)] p-5 transition-colors hover:bg-[var(--signal-soft)]"><span className="text-2xl font-semibold tracking-[-.035em]">{use}</span><span className="font-mono text-[.6rem] text-[var(--text-muted)]">0{index + 1} ↗</span></Link>)}</div>
           </div>
         </section>

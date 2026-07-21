@@ -1,8 +1,14 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
+import type { MotionValue } from "framer-motion";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
+
+export interface SignalFieldProps {
+  pointerX: MotionValue<number>;
+  pointerY: MotionValue<number>;
+}
 
 interface RibbonProps {
   color: string;
@@ -10,9 +16,11 @@ interface RibbonProps {
   speed: number;
   offset: number;
   opacity: number;
+  pointerX: MotionValue<number>;
+  pointerY: MotionValue<number>;
 }
 
-function Ribbon({ color, amplitude, speed, offset, opacity }: RibbonProps) {
+function Ribbon({ color, amplitude, speed, offset, opacity, pointerX, pointerY }: RibbonProps) {
   const line = useMemo(() => {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(new Float32Array(180 * 3), 3));
@@ -25,8 +33,10 @@ function Ribbon({ color, amplitude, speed, offset, opacity }: RibbonProps) {
     (line.material as THREE.Material).dispose();
   }, [line]);
 
-  useFrame(({ clock, pointer }) => {
+  useFrame(({ clock }) => {
     const time = clock.getElapsedTime() * speed;
+    const mouseX = pointerX.get();
+    const mouseY = pointerY.get();
     const attribute = line.geometry.getAttribute("position") as THREE.BufferAttribute;
     for (let index = 0; index < attribute.count; index += 1) {
       const progress = index / (attribute.count - 1);
@@ -34,7 +44,12 @@ function Ribbon({ color, amplitude, speed, offset, opacity }: RibbonProps) {
       const envelope = Math.sin(progress * Math.PI);
       const y = Math.sin(progress * 16 + time + offset) * amplitude * envelope;
       const detail = Math.sin(progress * 41 - time * 1.4) * amplitude * 0.22;
-      attribute.setXYZ(index, x, y + detail + pointer.y * 0.22, pointer.x * 0.45 + Math.cos(progress * 8 + time) * 0.16);
+      attribute.setXYZ(
+        index,
+        x,
+        y + detail - mouseY * 0.22,
+        mouseX * 0.45 + Math.cos(progress * 8 + time) * 0.16,
+      );
     }
     attribute.needsUpdate = true;
   });
@@ -42,24 +57,24 @@ function Ribbon({ color, amplitude, speed, offset, opacity }: RibbonProps) {
   return <primitive object={line} />;
 }
 
-function Scene() {
+function Scene({ pointerX, pointerY }: SignalFieldProps) {
   const group = useRef<THREE.Group>(null);
-  useFrame(({ pointer }) => {
+  useFrame((_, delta) => {
     if (!group.current) return;
-    group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, pointer.x * 0.08, 0.04);
-    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, -pointer.y * 0.05, 0.04);
+    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, pointerX.get() * 0.08, 4.5, delta);
+    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -pointerY.get() * 0.05, 4.5, delta);
   });
 
   return (
     <group ref={group} rotation={[0.12, 0, -0.08]}>
-      <Ribbon color="#6cff67" amplitude={1.28} speed={0.56} offset={0} opacity={0.98} />
-      <Ribbon color="#dfffdc" amplitude={0.84} speed={0.4} offset={2.1} opacity={0.56} />
-      <Ribbon color="#75a995" amplitude={1.62} speed={0.28} offset={4.2} opacity={0.34} />
+      <Ribbon color="#6cff67" amplitude={1.28} speed={0.56} offset={0} opacity={0.98} pointerX={pointerX} pointerY={pointerY} />
+      <Ribbon color="#dfffdc" amplitude={0.84} speed={0.4} offset={2.1} opacity={0.56} pointerX={pointerX} pointerY={pointerY} />
+      <Ribbon color="#75a995" amplitude={1.62} speed={0.28} offset={4.2} opacity={0.34} pointerX={pointerX} pointerY={pointerY} />
     </group>
   );
 }
 
-export function SignalField() {
+export function SignalField({ pointerX, pointerY }: SignalFieldProps) {
   return (
     <Canvas
       aria-hidden="true"
@@ -68,7 +83,7 @@ export function SignalField() {
       gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
       frameloop="always"
     >
-      <Scene />
+      <Scene pointerX={pointerX} pointerY={pointerY} />
     </Canvas>
   );
 }
