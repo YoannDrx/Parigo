@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Check, ImagePlus, Loader2, Save, Trash2 } from "lucide-react";
-import { Button, Input } from "@/components/ui";
+import { Button, Input, Select } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { MemberProfile } from "@/types";
 
@@ -111,7 +111,7 @@ export default function AccountPage() {
     <form onSubmit={save} className="border border-[var(--line)] bg-[var(--surface)] p-6 md:p-8">
       <div className="mb-6"><h2 className="font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Identité et activité" : "Identity and business"}</h2><p className="mt-2 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Les champs professionnels et postaux sont facultatifs." : "Business and postal fields are optional."}</p></div>
       <div className="grid gap-5 sm:grid-cols-2">{fields.map((field) => <label key={field.key} className="text-sm"><span className="mb-2 block">{locale === "fr" ? field.fr : field.en}{field.key === "firstName" || field.key === "lastName" || field.key === "country" ? " *" : ""}</span><Input type={field.type || "text"} value={String(form[field.key] ?? "")} required={field.key === "firstName" || field.key === "lastName" || field.key === "country"} onChange={(event) => setForm((current) => current ? { ...current, [field.key]: event.target.value } : current)} /></label>)}</div>
-      {profile.fileFormats?.length ? <label className="mt-5 block max-w-md text-sm"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><select value={form.fileFormatId || ""} onChange={(event) => setForm((current) => current ? { ...current, fileFormatId: event.target.value } : current)} className="h-12 w-full border border-[var(--line)] bg-transparent px-3">{profile.fileFormats.map((format) => <option key={format.id} value={format.id}>{format.label}</option>)}</select></label> : null}
+      {profile.fileFormats?.length ? <label className="mt-5 block max-w-md text-sm"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><Select value={form.fileFormatId || ""} onValueChange={(value) => setForm((current) => current ? { ...current, fileFormatId: value } : current)} ariaLabel={locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"} className="w-full [&_[role=combobox]]:min-h-12" options={profile.fileFormats.map((format) => ({ value: format.id, label: format.label }))} /></label> : null}
       <div className="mt-7 flex flex-wrap items-center gap-4"><Button type="submit" disabled={saving}>{saving ? <Loader2 className="animate-spin" size={17} /> : <Save size={17} />}{locale === "fr" ? "Enregistrer dans Parigo" : "Save to Parigo"}</Button>{message && <p role="status" className="inline-flex items-center gap-2 text-sm"><Check size={15} />{message}</p>}</div>
     </form>
   </div>;

@@ -6,7 +6,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Building2, Disc3, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
-import { MiniPlayer } from "@/components/features";
 import { CatalogHero } from "@/components/catalog";
 import { useI18n } from "@/components/providers/I18nProvider";
 
@@ -47,7 +46,6 @@ export default function LabelsPage() {
         </div>
       </main>
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

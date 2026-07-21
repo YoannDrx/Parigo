@@ -21,10 +21,11 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { Tooltip } from "@/components/ui";
 
 const subscribeToHydration = () => () => undefined;
 
-export function UserMenu() {
+export function UserMenu({ compact = false }: { compact?: boolean }) {
   const { locale, t } = useI18n();
   const { data: session, isPending } = useSession();
   const router = useRouter();
@@ -70,18 +71,19 @@ export function UserMenu() {
 
   // Not logged in
   if (!session?.user) {
-    return (
+    const control = (
       <Button
         variant="outline"
         size="sm"
-        className="gap-2"
+        className={compact ? "h-11 w-11 rounded-full border-[var(--line)] p-0" : "gap-2"}
         aria-label={t("auth.openLogin")}
         onClick={() => useAuthModalStore.getState().openLogin()}
       >
         <User size={18} />
-        <span className="hidden sm:inline">{t("auth.login")}</span>
+        {!compact && <span className="hidden sm:inline">{t("auth.login")}</span>}
       </Button>
     );
+    return compact ? <Tooltip label={t("auth.login")} side="bottom">{control}</Tooltip> : control;
   }
 
   // Logged in - show dropdown
@@ -110,7 +112,7 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         aria-label={isOpen ? `${t("common.close")} ${t("common.account")}` : `${t("common.open")} ${t("common.account")}`}
         aria-expanded={isOpen}
-        className="flex min-h-11 items-center gap-2 rounded-full border border-[var(--line)] bg-transparent px-2.5 transition hover:border-[var(--signal)]"
+        className={`flex min-h-11 items-center gap-2 rounded-full border border-[var(--line)] bg-transparent transition hover:border-[var(--signal)] ${compact ? "w-11 justify-center p-0" : "px-2.5"}`}
       >
         {user.image ? (
           <Image
@@ -125,12 +127,12 @@ export function UserMenu() {
             {initials}
           </div>
         )}
-        <ChevronDown
+        {!compact && <ChevronDown
           size={16}
           className={`hidden text-current opacity-60 transition-transform sm:block ${
             isOpen ? "rotate-180" : ""
           }`}
-        />
+        />}
       </button>
 
       <AnimatePresence>

@@ -102,7 +102,7 @@ export default function PlaylistsPage() {
           <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
             <ListMusic size={40} className="text-[var(--color-gray-400)]" />
           </div>
-          <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
+          <h3 className="mb-2 text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Aucune playlist" : "No playlists"}
           </h3>
           <p className="text-[var(--color-gray-600)] mb-6 max-w-md">
@@ -145,7 +145,7 @@ export default function PlaylistsPage() {
                     </div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-[var(--color-black)] truncate">
+                    <h3 className="truncate font-semibold text-[var(--foreground)]">
                       {playlist.title}
                     </h3>
                     <p className="text-sm text-[var(--color-gray-600)]">

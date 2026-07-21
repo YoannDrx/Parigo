@@ -126,7 +126,7 @@ export default function SettingsPage() {
       >
         <div className="flex items-center gap-3 mb-6">
           <Lock size={20} className="text-[var(--color-gray-600)]" />
-          <h2 className="text-xl font-semibold text-[var(--color-black)]">
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Changer le mot de passe" : "Change password"}
           </h2>
         </div>
@@ -176,14 +176,14 @@ export default function SettingsPage() {
       >
         <div className="flex items-center gap-3 mb-6">
           <Bell size={20} className="text-[var(--color-gray-600)]" />
-          <h2 className="text-xl font-semibold text-[var(--color-black)]">
+          <h2 className="text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Notifications" : "Notifications"}
           </h2>
         </div>
 
         <div className="space-y-4">
           <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-[var(--color-black)]">
+            <span className="text-[var(--foreground)]">
               {locale === "fr" ? "Recevoir les nouvelles sorties Parigo" : "Receive Parigo new releases"}
             </span>
             <input

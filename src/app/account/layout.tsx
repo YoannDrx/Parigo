@@ -15,7 +15,6 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { redirect } from "next/navigation";
 import { Header, Footer } from "@/components/layout";
-import { MiniPlayer } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function AccountLayout({
@@ -96,7 +95,6 @@ export default function AccountLayout({
       </div>
       </div>
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }

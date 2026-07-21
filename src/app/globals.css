@@ -30,7 +30,7 @@
   --color-primary-dark: var(--signal-strong);
   --color-primary-light: var(--signal-soft);
   --color-black: #151815;
-  --color-white: var(--surface);
+  --color-white: #ffffff;
   --color-cream: var(--background);
   --color-gray-50: #f7f7f4;
   --color-gray-100: #e8e8e2;
@@ -63,7 +63,7 @@
   --header-bg: rgba(17, 20, 17, .9);
 
   --color-paper: var(--background);
-  --color-white: var(--surface);
+  --color-white: #ffffff;
   --color-cream: var(--background);
   --color-mist: #313731;
   --color-line: var(--line);
@@ -85,6 +85,7 @@
   --font-heading: "Archivo", sans-serif;
   --font-editorial: "Archivo", sans-serif;
   --font-body: "Manrope", sans-serif;
+  --font-rounded: var(--font-body);
   --font-mono: "IBM Plex Mono", monospace;
   --radius-sm: 2px;
   --radius-md: 6px;
@@ -124,6 +125,7 @@
   --font-heading: var(--font-heading);
   --font-editorial: var(--font-editorial);
   --font-body: var(--font-body);
+  --font-rounded: var(--font-rounded);
   --font-mono: var(--font-mono);
   --radius-sm: var(--radius-sm);
   --radius-md: var(--radius-md);
@@ -221,7 +223,13 @@ img { filter: var(--image-filter); }
 }
 
 .reveal-text { display: block; }
-.reveal-segment { display: inline-flex; overflow: hidden; vertical-align: top; }
+.reveal-segment {
+  display: inline-flex;
+  overflow: hidden;
+  padding: .035em .075em .12em 0;
+  margin: -.035em -.075em -.12em 0;
+  vertical-align: top;
+}
 .page-shell { min-height: 100vh; background: var(--background); color: var(--foreground); }
 .theme-surface { background: var(--surface); color: var(--foreground); }
 .theme-soft { background: var(--surface-soft); color: var(--foreground); }
@@ -245,37 +253,59 @@ img { filter: var(--image-filter); }
 .nav-link { transition: background-color var(--motion-fast) ease, color var(--motion-fast) ease, transform var(--motion-fast) ease; }
 .nav-link:hover { background: color-mix(in srgb, var(--signal) 8%, transparent); color: var(--foreground); transform: translateY(-1px); }
 
+[data-theme] .home-project-cta:hover {
+  border-color: var(--foreground) !important;
+  background: var(--foreground) !important;
+  color: var(--background) !important;
+}
+
+.filter-chip-excluded {
+  border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
+  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+  color: color-mix(in srgb, var(--danger) 88%, var(--foreground));
+}
+.filter-row-excluded { background: color-mix(in srgb, var(--danger) 8%, transparent); }
+.suggestion-rail { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--signal-strong) 55%, transparent) transparent; }
+.suggestion-rail::-webkit-scrollbar { height: 5px; }
+.suggestion-rail::-webkit-scrollbar-track { background: transparent; }
+.suggestion-rail::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--signal-strong) 55%, transparent); border-radius: 999px; }
+
 .parigo-logo {
   position: relative;
   display: inline-flex;
-  align-items: baseline;
-  padding: .23em .29em;
-  font-family: var(--font-heading);
-  font-weight: 740;
-  letter-spacing: -.07em;
-  line-height: 1;
+  width: 4.05em;
+  height: 1.16em;
   perspective: 500px;
 }
 
-.parigo-logo__word, .parigo-logo__go {
-  display: inline-block;
-  transition: color var(--motion-medium) var(--ease-out), transform 520ms var(--ease-out);
+.parigo-logo svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.parigo-logo__word,
+.parigo-logo__corner--top { fill: currentColor; }
+.parigo-logo__go,
+.parigo-logo__corner--bottom { fill: var(--signal-strong); }
+.parigo-logo__extension--top { fill: currentColor; }
+.parigo-logo__extension--bottom { fill: var(--signal-strong); }
+.parigo-logo__extension {
+  transition: transform 620ms var(--ease-out);
+  transform-box: fill-box;
 }
-.parigo-logo__go { color: var(--signal); transform-origin: center; }
-.parigo-logo__corner {
-  position: absolute;
-  width: .88em;
-  height: .78em;
-  border-style: solid;
-  border-color: transparent;
-  transition: width var(--motion-medium) var(--ease-out), height var(--motion-medium) var(--ease-out), transform var(--motion-medium) var(--ease-out);
+.parigo-logo__go {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: fill 360ms var(--ease-out), transform 900ms var(--ease-out);
 }
-.parigo-logo__corner--top { top: 0; right: 0; border-top: 3px solid currentColor; border-right: 3px solid currentColor; border-top-right-radius: .3em; }
-.parigo-logo__corner--bottom { bottom: 0; left: 0; border-bottom: 3px solid var(--signal); border-left: 3px solid var(--signal); border-bottom-left-radius: .3em; }
-.group:hover .parigo-logo__go, .parigo-logo:hover .parigo-logo__go { color: currentColor; transform: rotateY(360deg); }
-.group:hover .parigo-logo__word, .parigo-logo:hover .parigo-logo__word { color: var(--signal-strong); }
-.group:hover .parigo-logo__corner--top, .parigo-logo:hover .parigo-logo__corner--top { width: 100%; height: .96em; }
-.group:hover .parigo-logo__corner--bottom, .parigo-logo:hover .parigo-logo__corner--bottom { width: 100%; height: .96em; }
+.parigo-logo__extension--top { transform-origin: right center; }
+.parigo-logo__extension--bottom { transform-origin: left center; }
+.group:hover .parigo-logo__extension--top,
+.parigo-logo:hover .parigo-logo__extension--top { transform: scaleX(5.35); }
+.group:hover .parigo-logo__extension--bottom,
+.parigo-logo:hover .parigo-logo__extension--bottom { transform: scaleX(6.4); }
+.group:hover .parigo-logo__go,
+.parigo-logo:hover .parigo-logo__go { fill: currentColor; transform: rotateY(720deg); }
+@media (prefers-reduced-motion: reduce) {
+  .parigo-logo__extension,
+  .parigo-logo__go { transition-duration: 1ms; }
+}
 
 .home-rail-card {
   position: relative;

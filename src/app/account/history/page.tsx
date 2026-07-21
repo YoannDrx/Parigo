@@ -97,7 +97,7 @@ export default function HistoryPage() {
           <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
             <Clock size={40} className="text-[var(--color-gray-400)]" />
           </div>
-          <h3 className="text-xl font-semibold text-[var(--color-black)] mb-2">
+          <h3 className="mb-2 text-xl font-semibold text-[var(--foreground)]">
             {locale === "fr" ? "Aucun historique" : "No listening history"}
           </h3>
           <p className="text-[var(--color-gray-600)] max-w-md">

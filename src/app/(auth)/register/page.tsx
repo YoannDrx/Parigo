@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, Select } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 interface RegistrationForm {
@@ -118,12 +118,12 @@ export function RegisterForm({
 
   return (
     <motion.div initial={{ opacity: 0, y: embedded ? 8 : 20 }} animate={{ opacity: 1, y: 0 }} className={embedded ? "w-full" : "w-full max-w-3xl py-8"}>
-      <Card padding="lg" className={embedded ? "border-0 bg-[var(--surface)] shadow-none" : "border-[var(--line)] bg-[var(--surface)] shadow-none"}>
+      <Card hover={false} padding={embedded ? "none" : "lg"} className={embedded ? "border-0 bg-[var(--surface)] shadow-none" : "border-[var(--line)] bg-[var(--surface)] shadow-none"}>
         <div className="mb-8 flex items-start justify-between gap-6">
-          <div><p className="eyebrow mb-4 text-[var(--color-primary-dark)]">Compte Parigo</p><h1 id={headingId} className="font-[var(--font-editorial)] text-5xl tracking-[-.055em] md:text-6xl">{t("auth.register")}</h1><p className="mt-3 text-[var(--text-muted)]">{step === 1 ? (locale === "fr" ? "Créez vos identifiants Parigo." : "Create your Parigo credentials.") : (locale === "fr" ? "Complétez votre profil Parigo." : "Complete your Parigo profile.")}</p></div>
-          <span className="font-mono text-xs opacity-55">{step}/2</span>
+          <div><p className="eyebrow mb-4 text-[var(--signal-strong)]">{locale === "fr" ? "Compte Parigo" : "Parigo account"}</p><h1 id={headingId} className="text-[clamp(2.65rem,5vw,3.8rem)] font-semibold leading-[.94] tracking-[-.055em]">{t("auth.register")}</h1><p className="mt-3 text-sm leading-relaxed text-[var(--text-muted)]">{step === 1 ? (locale === "fr" ? "Créez vos identifiants Parigo." : "Create your Parigo credentials.") : (locale === "fr" ? "Complétez votre profil Parigo." : "Complete your Parigo profile.")}</p></div>
+          <span className="rounded-full border border-[var(--line)] px-2.5 py-1 font-mono text-[.6rem] text-[var(--text-muted)]">{step}/2</span>
         </div>
-        <div className="mb-8 grid grid-cols-2 gap-2" aria-hidden="true"><div className="h-1 bg-[var(--foreground)]" /><div className={cnStep(step === 2)} /></div>
+        <div className="mb-8 grid grid-cols-2 gap-2" aria-hidden="true"><div className="h-[2px] bg-[var(--signal-strong)]" /><div className={cnStep(step === 2)} /></div>
 
         {error && <div role="alert" className="mb-6 flex items-center gap-3 border border-red-300 bg-red-50 p-4 text-sm text-red-700"><AlertCircle size={19} />{error}</div>}
 
@@ -137,10 +137,10 @@ export function RegisterForm({
           </form>
         ) : (
           <form onSubmit={submit} className="space-y-7">
-            <div className="grid gap-5 sm:grid-cols-2"><Field id="company" label={locale === "fr" ? "Société" : "Company"} value={form.company} onChange={(value) => set("company", value)} /><label htmlFor="country" className="block text-sm font-medium"><span className="mb-2 block">{locale === "fr" ? "Pays *" : "Country *"}</span><select id="country" required value={form.country} onChange={(event) => set("country", event.target.value)} className="h-12 w-full border border-[var(--line)] bg-transparent px-3">{countries.map((country) => <option key={country.code} value={country.code}>{country.name}</option>)}</select></label></div>
+            <div className="grid gap-5 sm:grid-cols-2"><Field id="company" label={locale === "fr" ? "Société" : "Company"} value={form.company} onChange={(value) => set("company", value)} /><label htmlFor="country" className="block text-sm font-medium"><span className="mb-2 block">{locale === "fr" ? "Pays *" : "Country *"}</span><Select id="country" name="country" value={form.country} onValueChange={(value) => set("country", value)} ariaLabel={locale === "fr" ? "Pays *" : "Country *"} className="w-full [&_[role=combobox]]:min-h-12" options={countries.map((country) => ({ value: country.code, label: country.name }))} /></label></div>
             <div className="grid gap-5 sm:grid-cols-3"><Field id="production" label="Production" value={form.production} onChange={(value) => set("production", value)} /><Field id="subProduction" label={locale === "fr" ? "Sous-production" : "Sub-production"} value={form.subProduction} onChange={(value) => set("subProduction", value)} /><Field id="position" label={locale === "fr" ? "Poste" : "Position"} value={form.position} onChange={(value) => set("position", value)} /></div>
             <div className="grid gap-5 sm:grid-cols-2"><Field id="address1" label={locale === "fr" ? "Adresse" : "Address"} value={form.address1} onChange={(value) => set("address1", value)} autoComplete="address-line1" /><Field id="address2" label={locale === "fr" ? "Complément d’adresse" : "Address line 2"} value={form.address2} onChange={(value) => set("address2", value)} autoComplete="address-line2" /><Field id="suburb" label={locale === "fr" ? "Ville" : "City"} value={form.suburb} onChange={(value) => set("suburb", value)} autoComplete="address-level2" /><Field id="state" label={locale === "fr" ? "État / région" : "State / region"} value={form.state} onChange={(value) => set("state", value)} autoComplete="address-level1" /><Field id="postcode" label={locale === "fr" ? "Code postal" : "Postcode"} value={form.postcode} onChange={(value) => set("postcode", value)} autoComplete="postal-code" /><Field id="phone" label={locale === "fr" ? "Téléphone" : "Phone"} value={form.phone} onChange={(value) => set("phone", value)} type="tel" autoComplete="tel" /></div>
-            {formats.length > 0 && <label htmlFor="fileFormatId" className="block text-sm font-medium"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><select id="fileFormatId" value={form.fileFormatId} onChange={(event) => set("fileFormatId", event.target.value)} className="h-12 w-full border border-[var(--line)] bg-transparent px-3">{formats.map((format) => <option key={format.id} value={format.id}>{format.label}</option>)}</select></label>}
+            {formats.length > 0 && <label htmlFor="fileFormatId" className="block text-sm font-medium"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><Select id="fileFormatId" name="fileFormatId" value={form.fileFormatId} onValueChange={(value) => set("fileFormatId", value)} ariaLabel={locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"} className="w-full [&_[role=combobox]]:min-h-12" options={formats.map((format) => ({ value: format.id, label: format.label }))} /></label>}
             <div className="space-y-3 border-t border-[var(--line)] pt-6 text-sm"><label className="flex items-start gap-3"><input type="checkbox" required checked={form.termsAccepted} onChange={(event) => set("termsAccepted", event.target.checked)} /><span>{locale === "fr" ? "J’accepte les " : "I accept the "}<Link className="underline" href="/terms">{locale === "fr" ? "conditions d’utilisation" : "terms of use"}</Link>.</span></label><label className="flex items-start gap-3"><input type="checkbox" required checked={form.privacyAccepted} onChange={(event) => set("privacyAccepted", event.target.checked)} /><span>{locale === "fr" ? "J’accepte la " : "I accept the "}<Link className="underline" href="/privacy">{locale === "fr" ? "politique de confidentialité" : "privacy policy"}</Link>.</span></label><label className="flex items-start gap-3"><input type="checkbox" checked={form.subscribe} onChange={(event) => set("subscribe", event.target.checked)} /><span>{locale === "fr" ? "Recevoir la newsletter et les nouvelles sorties Parigo" : "Receive the Parigo newsletter and new releases"}</span></label></div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row"><Button type="button" variant="outline" size="lg" onClick={() => setStep(1)} disabled={isLoading}><ArrowLeft size={18} />{locale === "fr" ? "Retour" : "Back"}</Button><Button type="submit" size="lg" className="flex-1" disabled={isLoading}>{isLoading ? <><Loader2 className="animate-spin" size={18} />{t("auth.registering")}</> : t("auth.register")}</Button></div>
           </form>
@@ -156,5 +156,5 @@ export default function RegisterPage() {
 }
 
 function cnStep(active: boolean) {
-  return active ? "h-1 bg-[var(--foreground)]" : "h-1 bg-[var(--line)]";
+  return active ? "h-[2px] bg-[var(--signal-strong)]" : "h-[2px] bg-[var(--line)]";
 }

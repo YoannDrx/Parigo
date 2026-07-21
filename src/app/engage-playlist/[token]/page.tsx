@@ -3,7 +3,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { Loader2, Share2 } from "lucide-react";
 import { Footer, Header } from "@/components/layout";
-import { MiniPlayer, TrackRow } from "@/components/features";
+import { TrackRow } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Album, Track } from "@/types";
 
@@ -47,5 +47,5 @@ export default function EngagePlaylistPage({ params }: { params: Promise<{ token
     trackCount: 0,
   }), []);
 
-  return <div className="page-shell flex min-h-screen flex-col"><Header /><main className="mx-auto w-full max-w-[1500px] flex-1 px-4 pb-28 pt-32 lg:px-8">{loading ? <div className="flex min-h-80 items-center justify-center"><Loader2 className="animate-spin" /></div> : error || !playlists.length ? <div className="py-24 text-center"><Share2 className="mx-auto mb-6 opacity-30" size={44} /><h1 className="font-[var(--font-editorial)] text-5xl">{locale === "fr" ? "Playlist partagée indisponible" : "Shared playlist unavailable"}</h1><p className="mt-4 text-[var(--text-muted)]">{error}</p></div> : playlists.map((playlist) => <section key={playlist.id} className="mb-20"><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Playlist partagée" : "Shared playlist"}</p><h1 className="mt-5 font-[var(--font-editorial)] text-6xl tracking-[-.05em] md:text-8xl">{playlist.title}</h1>{playlist.description && <p className="mt-6 max-w-2xl text-[var(--text-muted)]">{playlist.description}</p>}<div className="mt-12 border-y border-[var(--line)]">{playlist.tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFor(track)} index={index} queue={playlist.tracks} />)}</div></section>)}</main><Footer /><MiniPlayer /></div>;
+  return <div className="page-shell flex min-h-screen flex-col"><Header /><main className="mx-auto w-full max-w-[1500px] flex-1 px-4 pb-28 pt-32 lg:px-8">{loading ? <div className="flex min-h-80 items-center justify-center"><Loader2 className="animate-spin" /></div> : error || !playlists.length ? <div className="py-24 text-center"><Share2 className="mx-auto mb-6 opacity-30" size={44} /><h1 className="font-[var(--font-editorial)] text-5xl">{locale === "fr" ? "Playlist partagée indisponible" : "Shared playlist unavailable"}</h1><p className="mt-4 text-[var(--text-muted)]">{error}</p></div> : playlists.map((playlist) => <section key={playlist.id} className="mb-20"><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Playlist partagée" : "Shared playlist"}</p><h1 className="mt-5 font-[var(--font-editorial)] text-6xl tracking-[-.05em] md:text-8xl">{playlist.title}</h1>{playlist.description && <p className="mt-6 max-w-2xl text-[var(--text-muted)]">{playlist.description}</p>}<div className="mt-12 border-y border-[var(--line)]">{playlist.tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFor(track)} index={index} queue={playlist.tracks} />)}</div></section>)}</main><Footer /></div>;
 }

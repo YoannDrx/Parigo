@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Loader2, Search } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
 import { CatalogHero } from "@/components/catalog/CatalogHero";
-import { MiniPlayer } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { CatalogCategory } from "@/types";
 
@@ -61,7 +60,6 @@ export default function CollectionsPage() {
         </section>
       </main>
       <Footer />
-      <MiniPlayer />
     </div>
   );
 }
