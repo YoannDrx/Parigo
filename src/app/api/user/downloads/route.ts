@@ -1,125 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/auth-utils";
+import { z } from "zod";
+import { apiError, requestId } from "@/lib/harvest/api";
+import { getDownloadHistory, requestDownload } from "@/lib/harvest/activity";
+import { getDownloadFormats } from "@/lib/harvest/assets";
+import { assertSameOrigin, requireHarvestSession } from "@/lib/harvest/session";
 
-// GET - Get all downloads for current user
 export async function GET(request: NextRequest) {
+  const id = requestId();
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get("limit") || "50");
-    const offset = parseInt(searchParams.get("offset") || "0");
-
-    const downloads = await prisma.download.findMany({
-      where: { userId: session.user.id },
-      include: {
-        track: {
-          include: {
-            album: {
-              include: {
-                cover: { select: { path: true } },
-              },
-            },
-          },
-        },
-      },
-      orderBy: { downloadedAt: "desc" },
-      take: limit,
-      skip: offset,
-    });
-
-    const formattedDownloads = downloads.map((download) => ({
-      id: download.id,
-      downloadedAt: download.downloadedAt,
-      licenseType: download.licenseType,
-      projectName: download.projectName,
-      track: {
-        id: download.track.id,
-        title: download.track.title,
-        duration: download.track.duration,
-        album: download.track.album
-          ? {
-              id: download.track.album.id,
-              title: download.track.album.title,
-              cover:
-                download.track.album.cover?.path ||
-                "/images/placeholder-album.jpg",
-            }
-          : undefined,
-      },
-    }));
-
-    const total = await prisma.download.count({
-      where: { userId: session.user.id },
-    });
-
+    const session = await requireHarvestSession();
+    const limit = Math.min(Number(request.nextUrl.searchParams.get("limit") || 50), 100);
+    const offset = Math.max(Number(request.nextUrl.searchParams.get("offset") || 0), 0);
+    const downloads = await getDownloadHistory(session.memberToken, offset, limit);
     return NextResponse.json({
-      downloads: formattedDownloads,
-      total,
-      hasMore: offset + limit < total,
-    });
-  } catch (error) {
-    console.error("Error fetching downloads:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch downloads" },
-      { status: 500 }
-    );
-  }
+      data: { downloads },
+      meta: { total: downloads.length, page: Math.floor(offset / limit) + 1, pageSize: limit, requestId: id },
+    }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
 }
 
-// POST - Log a new download
+const downloadSchema = z.object({
+  trackId: z.string().optional(),
+  trackIds: z.array(z.string()).optional(),
+  formatId: z.string().optional(),
+  includeVersions: z.boolean().optional(),
+});
+
 export async function POST(request: NextRequest) {
+  const id = requestId();
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { trackId, licenseType, projectName } = await request.json();
-
-    if (!trackId) {
-      return NextResponse.json(
-        { error: "Track ID is required" },
-        { status: 400 }
-      );
-    }
-
-    if (!licenseType) {
-      return NextResponse.json(
-        { error: "License type is required" },
-        { status: 400 }
-      );
-    }
-
-    // Verify track exists
-    const track = await prisma.track.findUnique({
-      where: { id: trackId },
-    });
-
-    if (!track) {
-      return NextResponse.json({ error: "Track not found" }, { status: 404 });
-    }
-
-    // Create download entry
-    const download = await prisma.download.create({
-      data: {
-        userId: session.user.id,
-        trackId,
-        licenseType,
-        projectName: projectName || null,
-      },
-    });
-
-    return NextResponse.json({ success: true, downloadId: download.id });
-  } catch (error) {
-    console.error("Error logging download:", error);
-    return NextResponse.json(
-      { error: "Failed to log download" },
-      { status: 500 }
-    );
-  }
+    assertSameOrigin(request);
+    const session = await requireHarvestSession();
+    const input = downloadSchema.parse(await request.json());
+    const trackIds = input.trackIds?.length ? input.trackIds : input.trackId ? [input.trackId] : [];
+    if (!trackIds.length) return NextResponse.json({ error: { code: "VALIDATION_FAILED", message: "At least one track is required", retryable: false, requestId: id } }, { status: 400 });
+    const formats = input.formatId ? [] : await getDownloadFormats();
+    const formatId = input.formatId || formats.find((format) => format.extension === "MP3" && format.bitRate === 320)?.id || formats.find((format) => format.isDefault)?.id || formats[0]?.id;
+    if (!formatId) return NextResponse.json({ error: { code: "INVALID_UPSTREAM_RESPONSE", message: "No download format is available", retryable: false, requestId: id } }, { status: 502 });
+    return NextResponse.json({ data: await requestDownload(session.memberToken, { ...input, formatId, trackIds }), meta: { requestId: id } }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

@@ -1,103 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "@/lib/auth-utils";
+import { z } from "zod";
+import { apiError, apiPlaylist, requestId } from "@/lib/harvest/api";
+import { createMemberPlaylist, getMemberPlaylists, removeMemberPlaylist } from "@/lib/harvest/activity";
+import { assertSameOrigin, requireHarvestSession } from "@/lib/harvest/session";
 
-// GET - Get all playlists for current user
+const createSchema = z.object({ title: z.string().min(1).max(160), description: z.string().max(1000).optional(), isPublic: z.boolean().optional() });
+
 export async function GET() {
+  const id = requestId();
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const playlists = await prisma.playlist.findMany({
-      where: { userId: session.user.id },
-      include: {
-        cover: { select: { path: true } },
-        _count: { select: { tracks: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    const formattedPlaylists = playlists.map((playlist) => ({
-      id: playlist.id,
-      slug: playlist.slug,
-      title: playlist.title,
-      description: playlist.description,
-      cover: playlist.cover?.path || "/images/placeholder-playlist.jpg",
-      trackCount: playlist._count.tracks,
-      isPublic: playlist.isPublic,
-      createdAt: playlist.createdAt,
-    }));
-
+    const session = await requireHarvestSession();
+    const playlists = await getMemberPlaylists(session.memberToken);
     return NextResponse.json({
-      playlists: formattedPlaylists,
-      total: formattedPlaylists.length,
-    });
-  } catch (error) {
-    console.error("Error fetching playlists:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch playlists" },
-      { status: 500 }
-    );
-  }
+      data: { playlists: playlists.map((playlist) => ({ ...apiPlaylist(playlist), isPublic: false, createdAt: playlist.createdAt || new Date().toISOString() })) },
+      meta: { total: playlists.length, requestId: id },
+    }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
 }
 
-// POST - Create a new playlist
 export async function POST(request: NextRequest) {
+  const id = requestId();
   try {
-    const session = await getServerSession();
-    if (!session?.user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    assertSameOrigin(request);
+    const session = await requireHarvestSession();
+    const input = createSchema.parse(await request.json());
+    const playlist = await createMemberPlaylist(session.memberToken, input);
+    return NextResponse.json({ data: { playlist: playlist ? apiPlaylist(playlist) : null }, meta: { requestId: id } }, { status: 201 });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
+}
 
-    const { title, description, isPublic } = await request.json();
-
-    if (!title) {
-      return NextResponse.json(
-        { error: "Title is required" },
-        { status: 400 }
-      );
-    }
-
-    // Generate slug from title
-    const baseSlug = title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-
-    // Ensure unique slug
-    let slug = baseSlug;
-    let counter = 1;
-    while (await prisma.playlist.findUnique({ where: { slug } })) {
-      slug = `${baseSlug}-${counter}`;
-      counter++;
-    }
-
-    const playlist = await prisma.playlist.create({
-      data: {
-        slug,
-        title,
-        description: description || "",
-        isPublic: isPublic ?? false,
-        userId: session.user.id,
-      },
-    });
-
-    return NextResponse.json({
-      playlist: {
-        id: playlist.id,
-        slug: playlist.slug,
-        title: playlist.title,
-        description: playlist.description,
-        isPublic: playlist.isPublic,
-      },
-    });
-  } catch (error) {
-    console.error("Error creating playlist:", error);
-    return NextResponse.json(
-      { error: "Failed to create playlist" },
-      { status: 500 }
-    );
-  }
+export async function DELETE(request: NextRequest) {
+  const id = requestId();
+  try {
+    assertSameOrigin(request);
+    const session = await requireHarvestSession();
+    const { playlistId } = z.object({ playlistId: z.string().min(1) }).parse(await request.json());
+    await removeMemberPlaylist(session.memberToken, playlistId);
+    return NextResponse.json({ data: { removed: true }, meta: { requestId: id } });
+  } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

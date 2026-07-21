@@ -1,25 +1,15 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { apiError, requestId } from "@/lib/harvest/api";
+import { getCategories } from "@/lib/harvest/catalog";
 
 export async function GET() {
+  const id = requestId();
   try {
-    const genres = await prisma.genre.findMany({
-      where: { isActive: true },
-      orderBy: { order: "asc" },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        color: true,
-      },
-    });
-
-    return NextResponse.json({ genres });
-  } catch (error) {
-    console.error("Error fetching genres:", error);
+    const roots = await getCategories();
+    const genre = roots.find((root) => /^genres?$/i.test(root.name));
     return NextResponse.json(
-      { error: "Failed to fetch genres" },
-      { status: 500 }
+      { genres: (genre?.children || []).map((item) => ({ id: item.id, name: item.name, slug: item.id })) },
+      { headers: { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200", "X-Request-ID": id } },
     );
-  }
+  } catch (error) { return apiError(error, id); }
 }
