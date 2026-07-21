@@ -67,9 +67,9 @@ function Scene({ pointerX, pointerY }: SignalFieldProps) {
 
   return (
     <group ref={group} rotation={[0.12, 0, -0.08]}>
-      <Ribbon color="#6cff67" amplitude={1.28} speed={0.56} offset={0} opacity={0.98} pointerX={pointerX} pointerY={pointerY} />
-      <Ribbon color="#dfffdc" amplitude={0.84} speed={0.4} offset={2.1} opacity={0.56} pointerX={pointerX} pointerY={pointerY} />
-      <Ribbon color="#75a995" amplitude={1.62} speed={0.28} offset={4.2} opacity={0.34} pointerX={pointerX} pointerY={pointerY} />
+      <Ribbon color="#6cff67" amplitude={1.54} speed={0.56} offset={0} opacity={1} pointerX={pointerX} pointerY={pointerY} />
+      <Ribbon color="#dfffdc" amplitude={1.08} speed={0.4} offset={2.1} opacity={0.68} pointerX={pointerX} pointerY={pointerY} />
+      <Ribbon color="#75a995" amplitude={1.88} speed={0.28} offset={4.2} opacity={0.46} pointerX={pointerX} pointerY={pointerY} />
     </group>
   );
 }
