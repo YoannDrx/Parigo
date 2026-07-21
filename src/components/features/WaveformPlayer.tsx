@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
 import { cn } from "@/lib/utils";
@@ -87,6 +87,8 @@ export function WaveformPlayer({ className }: WaveformPlayerProps) {
     return () => {
       wavesurfer.destroy();
     };
+  // The WaveSurfer instance is intentionally recreated only for a new track.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack?.id]);
 
   // Handle play/pause

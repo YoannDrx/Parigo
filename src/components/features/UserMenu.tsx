@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -112,9 +113,11 @@ export function UserMenu() {
         className="flex min-h-11 items-center gap-2 rounded-full border border-[var(--line)] bg-transparent px-2.5 transition hover:border-[var(--signal)]"
       >
         {user.image ? (
-          <img
+          <Image
             src={user.image}
             alt={user.name || "User"}
+            width={28}
+            height={28}
             className="w-7 h-7 rounded-full object-cover"
           />
         ) : (

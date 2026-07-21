@@ -16,8 +16,8 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
-import { formatDuration } from "@/lib/utils";
-import { Waveform } from "./Waveform";
+import { cn, formatDuration } from "@/lib/utils";
+import { TrackWaveform } from "./TrackWaveform";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export function MiniPlayer() {
@@ -60,7 +60,6 @@ export function MiniPlayer() {
     let isMounted = true;
 
     // Reset the local adapter state whenever WaveSurfer is recreated.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsReady(false);
     setHasError(false);
     setIsLoading(true);
@@ -112,7 +111,7 @@ export function MiniPlayer() {
       console.warn("WaveSurfer error:", error);
       setHasError(true);
       setIsLoading(false);
-      // Set a default duration from mock data
+      // Keep the metadata duration until the media element reports its value.
       setDuration(currentTrack.duration);
     });
 
@@ -162,6 +161,8 @@ export function MiniPlayer() {
         wavesurferRef.current = null;
       }
     };
+  // The WaveSurfer instance is intentionally recreated only for a new track.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentTrack?.id]);
 
   // Gérer play/pause
@@ -238,95 +239,41 @@ export function MiniPlayer() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
-        layout
         className="fixed bottom-0 left-0 right-0 z-[60] border-t border-white/12 bg-[var(--color-black)]/95 text-white shadow-[0_-20px_60px_rgba(0,0,0,.18)] backdrop-blur-xl"
       >
-        {/* Expanded Waveform */}
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="px-4 pt-4"
-          >
-            {hasError ? (
-              // Fallback to static waveform
-              <Waveform
-                data={currentTrack.waveform}
-                progress={progressPercent}
-                height={80}
-                waveColor="rgba(255, 255, 255, 0.3)"
-                progressColor="#6CFF67"
-                interactive
-                onSeek={handleStaticSeek}
-              />
-            ) : (
-              <div
-                ref={isExpanded ? waveformRef : undefined}
-                className="w-full cursor-pointer rounded-lg overflow-hidden"
-              />
-            )}
-          </motion.div>
-        )}
-
-        <div className={`${isExpanded ? "h-20" : "h-[72px]"} px-4 flex items-center gap-4`}>
+        <div className="mx-auto grid max-w-[1920px] grid-cols-[minmax(0,1fr)_auto] gap-x-3 px-3 py-2 sm:grid-cols-[220px_minmax(180px,1fr)_auto] sm:items-center sm:px-5 md:gap-x-5">
           {/* Track info */}
-          <div className="flex items-center gap-3 min-w-0 w-48 flex-shrink-0">
+          <div className="flex min-w-0 items-center gap-3">
             {albumCover && (
-              <div className="w-12 h-12 relative rounded-[var(--radius-sm)] overflow-hidden border-2 border-white/20 flex-shrink-0">
+              <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[var(--radius-sm)] border border-white/20 sm:h-14 sm:w-14">
                 <Image
                   src={albumCover}
                   alt={albumTitle || (locale === "fr" ? "Pochette de l’album" : "Album cover")}
                   fill
-                  sizes="48px"
+                  sizes="56px"
                   className="object-cover"
                 />
               </div>
             )}
             <div className="min-w-0">
-              <p className="font-medium truncate">{currentTrack.title}</p>
-              <p className="text-sm text-white/60 truncate">
+              <p className="truncate text-sm font-semibold sm:text-base">{currentTrack.title}</p>
+              <p className="truncate text-xs text-white/55 sm:text-sm">
                 {albumTitle}
               </p>
             </div>
           </div>
 
-          {/* Mini Waveform (when not expanded) */}
-          {!isExpanded && (
-            <div className="flex-1 hidden sm:block">
-              {hasError || isLoading ? (
-                // Fallback to static waveform
-                <Waveform
-                  data={currentTrack.waveform}
-                  progress={progressPercent}
-                  height={40}
-                  waveColor="rgba(255, 255, 255, 0.3)"
-                  progressColor="#6CFF67"
-                  interactive
-                  onSeek={handleStaticSeek}
-                />
-              ) : (
-                <div
-                  ref={!isExpanded ? waveformRef : undefined}
-                  className="w-full cursor-pointer"
-                />
-              )}
-            </div>
-          )}
-
-          {/* Error indicator */}
-          {hasError && (
-            <div className="hidden sm:flex items-center gap-1 text-yellow-400 text-xs flex-shrink-0">
-              <AlertCircle size={14} />
-              <span>{locale === "fr" ? "Audio non disponible" : "Audio unavailable"}</span>
-            </div>
-          )}
+          <div className={cn("relative col-span-2 mt-1 min-w-0 sm:col-span-1 sm:mt-0", isExpanded ? "h-20" : "h-10")}>
+            <div ref={waveformRef} className={cn("h-full w-full cursor-pointer overflow-hidden rounded-md transition-opacity", hasError && "pointer-events-none opacity-0")} />
+            {(hasError || isLoading) && <div className="absolute inset-0"><TrackWaveform trackId={currentTrack.id} initialData={currentTrack.waveform} progress={progressPercent} height={isExpanded ? 80 : 40} interactive onSeek={handleStaticSeek} /></div>}
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-between font-mono text-[.55rem] text-white/45"><span>{formatDuration(progress)}</span><span>{formatDuration(duration)}</span></div>
+          </div>
 
           {/* Controls */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="row-start-1 flex flex-shrink-0 items-center justify-end gap-0.5 sm:col-start-3 sm:row-auto sm:gap-1">
             <button
               onClick={previous}
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              className="hidden h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/10 sm:flex"
               aria-label={locale === "fr" ? "Piste précédente" : "Previous track"}
             >
               <SkipBack size={20} />
@@ -344,25 +291,18 @@ export function MiniPlayer() {
             </button>
             <button
               onClick={next}
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              className="hidden h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/10 sm:flex"
               aria-label={locale === "fr" ? "Piste suivante" : "Next track"}
             >
               <SkipForward size={20} />
             </button>
           </div>
 
-          {/* Time */}
-          <div className="hidden md:flex items-center gap-2 text-sm font-mono text-white/60 flex-shrink-0 w-24">
-            <span>{formatDuration(progress)}</span>
-            <span>/</span>
-            <span>{formatDuration(duration)}</span>
-          </div>
-
           {/* Volume */}
-          <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
+          <div className="hidden items-center gap-1 lg:flex">
             <button
               onClick={toggleMute}
-              className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              className="flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-white/10"
               aria-label={isMuted ? (locale === "fr" ? "Réactiver le son" : "Unmute") : (locale === "fr" ? "Couper le son" : "Mute")}
             >
               {isMuted || volume === 0 ? (
@@ -378,15 +318,15 @@ export function MiniPlayer() {
               step={0.01}
               value={isMuted ? 0 : volume}
               onChange={handleVolumeChange}
-              className="w-20 h-1 bg-white/20 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:rounded-full"
+              className="h-1 w-16 cursor-pointer appearance-none rounded-full bg-white/20 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
             />
           </div>
 
           {/* Expand / Close */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          <div className="flex flex-shrink-0 items-center gap-0.5">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors hidden sm:block"
+              className="hidden rounded-full p-2 transition-colors hover:bg-white/10 sm:block"
               title={isExpanded ? (locale === "fr" ? "Réduire" : "Collapse") : (locale === "fr" ? "Agrandir" : "Expand")}
               aria-label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Agrandir le lecteur" : "Expand player")}
             >
@@ -394,13 +334,13 @@ export function MiniPlayer() {
             </button>
             <button
               onClick={clearQueue}
-              className="p-2 rounded-full hover:bg-white/10 transition-colors"
+              className="rounded-full p-2 transition-colors hover:bg-white/10"
               title={t("common.close")}
               aria-label={t("common.close")}
             >
               <X size={18} />
             </button>
-          </div>
+          </div>{hasError && <span className="sr-only" role="status"><AlertCircle size={14} />{locale === "fr" ? "Le flux audio est indisponible, la waveform reste affichée." : "Audio stream unavailable; waveform remains visible."}</span>}
         </div>
       </motion.div>
     </AnimatePresence>

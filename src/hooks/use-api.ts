@@ -6,19 +6,46 @@ import {
   fetchAlbum,
   fetchTracks,
   searchAll,
-  fetchArtists,
   fetchLabels,
   fetchPlaylists,
   fetchGenres,
   fetchMoods,
   fetchInstruments,
+  fetchCategoryGroups,
+  fetchStyles,
+  fetchSearchFilters,
 } from "@/lib/api-client";
 
 // Albums hooks
-export function useAlbums(params?: Parameters<typeof fetchAlbums>[0]) {
+export function useAlbums(params?: Parameters<typeof fetchAlbums>[0], enabled = true) {
   return useQuery({
     queryKey: ["albums", params],
-    queryFn: () => fetchAlbums(params),
+    queryFn: ({ signal }) => fetchAlbums(params, signal),
+    enabled,
+  });
+}
+
+export function useSearchFilters(language: "fr" | "en") {
+  return useQuery({
+    queryKey: ["search-filters", language],
+    queryFn: ({ signal }) => fetchSearchFilters(language, signal),
+    staleTime: 1000 * 60 * 60,
+  });
+}
+
+export function useCategoryGroups(language: "fr" | "en") {
+  return useQuery({
+    queryKey: ["harvest-categories", language],
+    queryFn: () => fetchCategoryGroups(language),
+    staleTime: 1000 * 60 * 60,
+  });
+}
+
+export function useStyles() {
+  return useQuery({
+    queryKey: ["harvest-styles"],
+    queryFn: fetchStyles,
+    staleTime: 1000 * 60 * 60,
   });
 }
 
@@ -38,27 +65,21 @@ export function useAlbum(idOrSlug: string) {
 }
 
 // Tracks hooks
-export function useTracks(params?: Parameters<typeof fetchTracks>[0]) {
+export function useTracks(params?: Parameters<typeof fetchTracks>[0], enabled = true) {
   return useQuery({
     queryKey: ["tracks", params],
-    queryFn: () => fetchTracks(params),
+    queryFn: ({ signal }) => fetchTracks(params, signal),
+    enabled,
+    staleTime: 20_000,
   });
 }
 
 // Search hook
-export function useSearch(query: string, type?: "all" | "albums" | "tracks" | "artists") {
+export function useSearch(query: string, type?: "all" | "albums" | "tracks") {
   return useQuery({
     queryKey: ["search", query, type],
     queryFn: () => searchAll(query, type),
     enabled: query.length >= 2,
-  });
-}
-
-// Artists hooks
-export function useArtists(params?: Parameters<typeof fetchArtists>[0]) {
-  return useQuery({
-    queryKey: ["artists", params],
-    queryFn: () => fetchArtists(params),
   });
 }
 

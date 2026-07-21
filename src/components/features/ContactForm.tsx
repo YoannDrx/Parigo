@@ -6,13 +6,21 @@ import { useI18n } from "@/components/providers/I18nProvider";
 
 export function ContactForm() {
   const { t } = useI18n();
-  const [sent, setSent] = useState(false);
+  const [opened, setOpened] = useState(false);
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setSent(true);
+    const data = new FormData(event.currentTarget);
+    const name = String(data.get("name") || "");
+    const company = String(data.get("company") || "");
+    const email = String(data.get("email") || "");
+    const message = String(data.get("message") || "");
+    const subject = encodeURIComponent(`Demande Parigo Music — ${name || company || email}`);
+    const body = encodeURIComponent(`${message}\n\n${name}${company ? ` — ${company}` : ""}\n${email}`);
+    window.location.href = `mailto:contact@parigomusic.com?subject=${subject}&body=${body}`;
+    setOpened(true);
   };
 
-  if (sent) return <div className="border border-[var(--line)] bg-[var(--signal-soft)] p-8 text-[var(--foreground)]"><Check className="mb-4" /><h2 className="font-[var(--font-editorial)] text-4xl font-normal">{t("institutional.sentTitle")}</h2><p className="mt-3 text-[var(--text-muted)]">{t("institutional.sentCopy")}</p></div>;
+  if (opened) return <div className="border border-[var(--line)] bg-[var(--signal-soft)] p-8 text-[var(--foreground)]"><Check className="mb-4" /><h2 className="font-[var(--font-editorial)] text-4xl font-normal">Votre messagerie a été ouverte</h2><p className="mt-3 text-[var(--text-muted)]">Vérifiez puis envoyez votre message depuis votre application e-mail. Si elle ne s’est pas ouverte, écrivez à <a className="underline" href="mailto:contact@parigomusic.com">contact@parigomusic.com</a>.</p></div>;
 
   return (
     <form onSubmit={submit} className="contact-form border-t border-[var(--line-strong)]" aria-label={t("institutional.contactForm")}>

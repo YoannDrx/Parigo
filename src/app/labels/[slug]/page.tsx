@@ -29,7 +29,7 @@ export default function LabelDetailPage() {
       try {
         const response = await fetch(`/api/labels/${slug}`, { signal: controller.signal });
         if (!response.ok) throw new Error(String(response.status));
-        setLabel((await response.json()).label);
+        setLabel((await response.json()).data?.label);
       } catch (cause) {
         if (!(cause instanceof DOMException && cause.name === "AbortError")) setError(true);
       } finally {

@@ -8,7 +8,7 @@ import { useFavoritesStore } from "@/stores/favorites-store";
 import { cn } from "@/lib/utils";
 
 interface FavoriteButtonProps {
-  type: "track" | "album" | "playlist";
+  type: "track" | "album";
   itemId: string;
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -29,10 +29,8 @@ export function FavoriteButton({
     loadFavorites,
     toggleFavoriteTrack,
     toggleFavoriteAlbum,
-    toggleFavoritePlaylist,
     isTrackFavorite,
     isAlbumFavorite,
-    isPlaylistFavorite,
   } = useFavoritesStore();
 
   // Load favorites when user is logged in
@@ -47,12 +45,7 @@ export function FavoriteButton({
     return null;
   }
 
-  const isFavorite =
-    type === "track"
-      ? isTrackFavorite(itemId)
-      : type === "album"
-      ? isAlbumFavorite(itemId)
-      : isPlaylistFavorite(itemId);
+  const isFavorite = type === "track" ? isTrackFavorite(itemId) : isAlbumFavorite(itemId);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -60,10 +53,8 @@ export function FavoriteButton({
 
     if (type === "track") {
       await toggleFavoriteTrack(itemId);
-    } else if (type === "album") {
-      await toggleFavoriteAlbum(itemId);
     } else {
-      await toggleFavoritePlaylist(itemId);
+      await toggleFavoriteAlbum(itemId);
     }
   };
 

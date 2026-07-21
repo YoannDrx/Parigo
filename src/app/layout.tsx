@@ -22,6 +22,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.parigomusic.com"),
   title: {
     default: "Parigo Music — La musique juste pour l'image",
     template: "%s — Parigo Music",

@@ -5,7 +5,6 @@ import { create } from "zustand";
 interface FavoritesState {
   trackIds: Set<string>;
   albumIds: Set<string>;
-  playlistIds: Set<string>;
   isLoading: boolean;
   isLoaded: boolean;
 
@@ -17,19 +16,14 @@ interface FavoritesState {
   addFavoriteAlbum: (albumId: string) => Promise<void>;
   removeFavoriteAlbum: (albumId: string) => Promise<void>;
   toggleFavoriteAlbum: (albumId: string) => Promise<void>;
-  addFavoritePlaylist: (playlistId: string) => Promise<void>;
-  removeFavoritePlaylist: (playlistId: string) => Promise<void>;
-  toggleFavoritePlaylist: (playlistId: string) => Promise<void>;
   isTrackFavorite: (trackId: string) => boolean;
   isAlbumFavorite: (albumId: string) => boolean;
-  isPlaylistFavorite: (playlistId: string) => boolean;
   clearFavorites: () => void;
 }
 
 export const useFavoritesStore = create<FavoritesState>((set, get) => ({
   trackIds: new Set(),
   albumIds: new Set(),
-  playlistIds: new Set(),
   isLoading: false,
   isLoaded: false,
 
@@ -42,9 +36,8 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
       if (response.ok) {
         const data = await response.json();
         set({
-          trackIds: new Set(data.trackIds),
-          albumIds: new Set(data.albumIds),
-          playlistIds: new Set(data.playlistIds),
+          trackIds: new Set(data.data.trackIds),
+          albumIds: new Set(data.data.albumIds),
           isLoaded: true,
         });
       }
@@ -189,79 +182,13 @@ export const useFavoritesStore = create<FavoritesState>((set, get) => ({
     }
   },
 
-  addFavoritePlaylist: async (playlistId: string) => {
-    set((state) => ({
-      playlistIds: new Set([...state.playlistIds, playlistId]),
-    }));
-
-    try {
-      const response = await fetch("/api/user/favorites/playlists", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playlistId }),
-      });
-
-      if (!response.ok) {
-        set((state) => {
-          const newSet = new Set(state.playlistIds);
-          newSet.delete(playlistId);
-          return { playlistIds: newSet };
-        });
-      }
-    } catch (error) {
-      console.error("Failed to add favorite playlist:", error);
-      set((state) => {
-        const newSet = new Set(state.playlistIds);
-        newSet.delete(playlistId);
-        return { playlistIds: newSet };
-      });
-    }
-  },
-
-  removeFavoritePlaylist: async (playlistId: string) => {
-    set((state) => {
-      const newSet = new Set(state.playlistIds);
-      newSet.delete(playlistId);
-      return { playlistIds: newSet };
-    });
-
-    try {
-      const response = await fetch("/api/user/favorites/playlists", {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ playlistId }),
-      });
-
-      if (!response.ok) {
-        set((state) => ({
-          playlistIds: new Set([...state.playlistIds, playlistId]),
-        }));
-      }
-    } catch (error) {
-      console.error("Failed to remove favorite playlist:", error);
-      set((state) => ({
-        playlistIds: new Set([...state.playlistIds, playlistId]),
-      }));
-    }
-  },
-
-  toggleFavoritePlaylist: async (playlistId: string) => {
-    if (get().playlistIds.has(playlistId)) {
-      await get().removeFavoritePlaylist(playlistId);
-    } else {
-      await get().addFavoritePlaylist(playlistId);
-    }
-  },
-
   isTrackFavorite: (trackId: string) => get().trackIds.has(trackId),
   isAlbumFavorite: (albumId: string) => get().albumIds.has(albumId),
-  isPlaylistFavorite: (playlistId: string) => get().playlistIds.has(playlistId),
 
   clearFavorites: () => {
     set({
       trackIds: new Set(),
       albumIds: new Set(),
-      playlistIds: new Set(),
       isLoaded: false,
     });
   },

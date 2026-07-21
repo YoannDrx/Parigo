@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Grid3X3, List, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
@@ -8,32 +8,9 @@ import { Button, Tag } from "@/components/ui";
 import { AlbumCard, MiniPlayer } from "@/components/features";
 import { useAlbums, useLabels, useGenres } from "@/hooks/use-api";
 import { cn } from "@/lib/utils";
-import type { ViewMode, Album } from "@/types";
+import type { ViewMode } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { CatalogHero } from "@/components/catalog";
-
-// Transform API album to component format
-function transformAlbum(apiAlbum: {
-  id: string;
-  slug?: string;
-  title: string;
-  cover: string;
-  label: string;
-  labelSlug?: string;
-  trackCount: number;
-  genres: Array<{ name: string; slug: string; color?: string }>;
-}): Album {
-  return {
-    id: apiAlbum.slug || apiAlbum.id,
-    slug: apiAlbum.slug,
-    title: apiAlbum.title,
-    cover: apiAlbum.cover,
-    label: apiAlbum.label,
-    labelSlug: apiAlbum.labelSlug,
-    trackCount: apiAlbum.trackCount,
-    genres: apiAlbum.genres.map((g) => g.name),
-  };
-}
 
 export default function AlbumsPage() {
   const { locale, t } = useI18n();
@@ -41,19 +18,24 @@ export default function AlbumsPage() {
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null);
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [sort, setSort] = useState<"title-asc" | "title-desc">("title-asc");
 
   // Fetch data from API
   const { data: albumsData, isLoading: albumsLoading } = useAlbums({
     limit: 50,
     label: selectedLabel || undefined,
-    genre: selectedGenre || undefined,
+    categories: selectedGenre ? [selectedGenre] : undefined,
   });
   const { data: labelsData } = useLabels({ limit: 20 });
   const { data: genresData } = useGenres();
 
-  const albums = albumsData?.albums.map(transformAlbum) ?? [];
+  const albums = albumsData?.albums ?? [];
   const labels = labelsData?.labels ?? [];
   const genres = genresData?.genres ?? [];
+  const sortedAlbums = useMemo(() => [...(albumsData?.albums ?? [])].sort((left, right) => {
+    const comparison = left.title.localeCompare(right.title, locale, { sensitivity: "base" });
+    return sort === "title-asc" ? comparison : -comparison;
+  }), [albumsData?.albums, locale, sort]);
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
@@ -75,6 +57,11 @@ export default function AlbumsPage() {
                 <SlidersHorizontal size={16} />
                 {t("search.filters")}
               </Button>
+
+              <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="min-h-10 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-medium" aria-label={locale === "fr" ? "Trier les albums" : "Sort albums"}>
+                <option value="title-asc">A–Z</option>
+                <option value="title-desc">Z–A</option>
+              </select>
 
               {/* View Toggle */}
               <div className="flex overflow-hidden rounded-full border border-[var(--line)]">
@@ -129,9 +116,9 @@ export default function AlbumsPage() {
                 {labels.map((label) => (
                   <Tag
                     key={label.id}
-                    variant={selectedLabel === label.slug ? "primary" : "default"}
+                    variant={selectedLabel === label.id ? "primary" : "default"}
                     clickable
-                    onClick={() => setSelectedLabel(label.slug || null)}
+                    onClick={() => setSelectedLabel(label.id)}
                   >
                     {label.name}
                   </Tag>
@@ -155,9 +142,9 @@ export default function AlbumsPage() {
                 {genres.slice(0, 12).map((genre) => (
                   <Tag
                     key={genre.id}
-                    variant={selectedGenre === genre.slug ? "genre" : "default"}
+                    variant={selectedGenre === genre.id ? "genre" : "default"}
                     clickable
-                    onClick={() => setSelectedGenre(genre.slug)}
+                    onClick={() => setSelectedGenre(genre.id)}
                   >
                     {genre.name}
                   </Tag>
@@ -182,7 +169,7 @@ export default function AlbumsPage() {
                     : "flex flex-col"
                 )}
               >
-                {albums.map((album, index) => (
+                {sortedAlbums.map((album, index) => (
                   <motion.div
                     key={album.id}
                     initial={{ opacity: 0, y: 20 }}

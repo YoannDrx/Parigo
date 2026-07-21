@@ -22,7 +22,7 @@ export default function LabelsPage() {
     async function loadLabels() {
       try {
         const response = await fetch("/api/labels", { signal: controller.signal });
-        if (response.ok) setLabels((await response.json()).labels || []);
+        if (response.ok) setLabels((await response.json()).data?.labels || []);
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "AbortError")) console.error("Error loading labels:", error);
       } finally {

@@ -1,17 +1,18 @@
 "use client";
 
-import { use } from "react";
+import { use, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Play, Heart, Share2, ArrowLeft, Clock, Music, Loader2 } from "lucide-react";
+import { Play, Share2, ArrowLeft, Clock, Music, Loader2 } from "lucide-react";
 import { Header, Footer } from "@/components/layout";
 import { Button, Tag } from "@/components/ui";
-import { TrackRow, AlbumCard, MiniPlayer } from "@/components/features";
+import { TrackRow, AlbumCard, CueSheetButton, MiniPlayer } from "@/components/features";
+import { FavoriteButton } from "@/components/features/FavoriteButton";
 import { useAlbum } from "@/hooks/use-api";
 import { formatDuration } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
-import type { Track, Album } from "@/types";
+import type { Album } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { MediaReveal } from "@/components/motion";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
@@ -20,91 +21,13 @@ interface AlbumPageProps {
   params: Promise<{ id: string }>;
 }
 
-// Transform API track to component format
-function transformTrack(apiTrack: {
-  id: string;
-  slug?: string;
-  title: string;
-  duration: number;
-  bpm?: number;
-  key?: string;
-  isVocal: boolean;
-  audioUrl: string | null;
-  waveform: number[] | null;
-  trackNumber?: number;
-  albumId: string;
-  albumTitle: string;
-  albumSlug: string;
-  albumCover: string;
-  genres: string[];
-  moods: string[];
-  instruments?: string[];
-}): Track {
-  return {
-    id: apiTrack.id,
-    slug: apiTrack.slug,
-    title: apiTrack.title,
-    duration: apiTrack.duration,
-    bpm: apiTrack.bpm ?? null,
-    key: apiTrack.key ?? null,
-    isVocal: apiTrack.isVocal,
-    audioUrl: apiTrack.audioUrl,
-    waveform: apiTrack.waveform,
-    trackNumber: apiTrack.trackNumber,
-    albumId: apiTrack.albumId,
-    albumTitle: apiTrack.albumTitle,
-    albumSlug: apiTrack.albumSlug,
-    albumCover: apiTrack.albumCover,
-    genres: apiTrack.genres,
-    moods: apiTrack.moods,
-    instruments: apiTrack.instruments,
-  };
-}
-
-// Transform API album to component format
-function transformAlbum(apiAlbum: {
-  id: string;
-  slug?: string;
-  title: string;
-  description?: string | null;
-  cover: string;
-  coverBlur?: string;
-  label: string;
-  labelSlug?: string;
-  releaseDate?: string;
-  year?: number;
-  spotifyUrl?: string;
-  genres: Array<{ name: string; slug: string; color?: string }>;
-  moods: Array<{ name: string; slug: string; color?: string }>;
-  artists: Array<{ name: string; slug: string; role?: string }>;
-  trackCount: number;
-  isFeatured?: boolean;
-}): Album {
-  return {
-    id: apiAlbum.slug || apiAlbum.id,
-    slug: apiAlbum.slug,
-    title: apiAlbum.title,
-    description: apiAlbum.description,
-    cover: apiAlbum.cover,
-    coverBlur: apiAlbum.coverBlur,
-    label: apiAlbum.label,
-    labelSlug: apiAlbum.labelSlug,
-    releaseDate: apiAlbum.releaseDate,
-    year: apiAlbum.year,
-    spotifyUrl: apiAlbum.spotifyUrl,
-    genres: apiAlbum.genres.map((g) => g.name),
-    moods: apiAlbum.moods.map((m) => m.name),
-    artists: apiAlbum.artists,
-    trackCount: apiAlbum.trackCount,
-    isFeatured: apiAlbum.isFeatured,
-  };
-}
-
 export default function AlbumPage({ params }: AlbumPageProps) {
   const { locale, t } = useI18n();
   const { id } = use(params);
   const { data, isLoading, error } = useAlbum(id);
   const { setQueue, play } = usePlayerStore();
+  const [showAllVersions, setShowAllVersions] = useState(false);
+  const [trackSort, setTrackSort] = useState<"album" | "title-asc" | "title-desc">("album");
 
   // Loading state
   if (isLoading) {
@@ -137,9 +60,15 @@ export default function AlbumPage({ params }: AlbumPageProps) {
     );
   }
 
-  const album = transformAlbum(data.album);
-  const tracks = data.album.tracks?.map(transformTrack) ?? [];
-  const similarAlbums = data.similarAlbums?.map(transformAlbum) ?? [];
+  const album = data.album;
+  const mainTracks = data.album.tracks ?? [];
+  const unsortedTracks = showAllVersions
+    ? mainTracks.flatMap((track) => [track, ...(track.alternateTracks ?? [])])
+    : mainTracks;
+  const tracks = trackSort === "album"
+    ? unsortedTracks
+    : [...unsortedTracks].sort((left, right) => left.title.localeCompare(right.title, locale, { sensitivity: "base" }) * (trackSort === "title-asc" ? 1 : -1));
+  const similarAlbums = data.similarAlbums ?? [];
 
   // Create album with tracks for TrackRow
   const albumWithTracks: Album = {
@@ -153,6 +82,15 @@ export default function AlbumPage({ params }: AlbumPageProps) {
     if (tracks.length > 0) {
       setQueue(tracks, 0);
       play(tracks[0]);
+    }
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    if (navigator.share) {
+      await navigator.share({ title: album.title, text: album.description || undefined, url }).catch(() => undefined);
+    } else {
+      await navigator.clipboard.writeText(url);
     }
   };
 
@@ -174,20 +112,20 @@ export default function AlbumPage({ params }: AlbumPageProps) {
 
         {/* Album Header */}
         <section className="mx-auto max-w-[1700px] px-4 py-8 sm:px-6 lg:px-8 md:py-16">
-          <div className="grid gap-12 md:grid-cols-12 md:gap-16">
+          <div className="grid gap-10 md:grid-cols-12 md:items-start md:gap-12">
             {/* Cover */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="w-full md:col-span-6"
+              className="w-full max-w-[520px] md:col-span-4"
             >
               <MediaReveal className="relative aspect-square" direction="left">
                 <Image
                   src={album.cover}
                   alt={album.title}
                   fill
-                  sizes="(max-width: 768px) 100vw, 320px"
-                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 520px"
+                  className="object-contain"
                   priority
                 />
               </MediaReveal>
@@ -198,7 +136,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="self-center md:col-span-5 md:col-start-8"
+              className="self-center md:col-span-7 md:col-start-6"
             >
               {album.labelSlug ? (
                 <Link href={`/labels/${album.labelSlug}`}>
@@ -211,7 +149,8 @@ export default function AlbumPage({ params }: AlbumPageProps) {
                   {album.label}
                 </p>
               )}
-              <h1 className="mb-6 font-[var(--font-editorial)] text-6xl font-normal leading-[.86] tracking-[-.055em] md:text-8xl lg:text-9xl">
+              {album.code && <p className="mb-3 font-mono text-[.65rem] uppercase tracking-[.14em] text-[var(--text-muted)]">{album.code}</p>}
+              <h1 className="mb-6 font-[var(--font-editorial)] text-5xl font-normal leading-[.9] tracking-[-.055em] md:text-7xl lg:text-8xl">
                 {album.title}
               </h1>
               {album.description && (
@@ -226,12 +165,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
                   <span className="text-sm text-[var(--color-gray-600)]">{locale === "fr" ? "Par" : "By"}</span>
                   {album.artists.map((artist, index) => (
                     <span key={artist.slug}>
-                      <Link
-                        href={`/artists/${artist.slug}`}
-                        className="text-sm font-medium text-[var(--color-black)] hover:text-[var(--color-primary)]"
-                      >
-                        {artist.name}
-                      </Link>
+                      <span className="text-sm font-medium text-[var(--color-black)]">{artist.name}</span>
                       {index < album.artists!.length - 1 && ", "}
                     </span>
                   ))}
@@ -279,13 +213,14 @@ export default function AlbumPage({ params }: AlbumPageProps) {
                   <Play size={20} className="mr-2 fill-white" />
                   {t("search.playSelection")}
                 </Button>
-                <Button variant="outline" size="lg">
-                  <Heart size={20} className="mr-2" />
-                  {t("account.favorites")}
-                </Button>
-                <Button variant="ghost" size="lg" aria-label={locale === "fr" ? "Partager l’album" : "Share album"}>
+                <div className="flex items-center gap-2 border border-[var(--line)] px-3">
+                  <FavoriteButton type="album" itemId={data.album.id} size="md" showTooltip={false} />
+                  <span className="text-sm">{t("account.favorites")}</span>
+                </div>
+                <Button variant="ghost" size="lg" onClick={() => void handleShare()} aria-label={locale === "fr" ? "Partager l’album" : "Share album"}>
                   <Share2 size={20} />
                 </Button>
+                <CueSheetButton title={album.title} trackIds={tracks.map((track) => track.id)} />
               </div>
             </motion.div>
           </div>
@@ -293,9 +228,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
 
         {/* Tracks */}
         <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-          <h2 className="mb-8 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
-            {t("catalog.tracks")}
-          </h2>
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow text-[var(--signal-strong)]">{album.code || album.label}</p><h2 className="mt-3 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.tracks")}</h2></div><div className="flex flex-wrap items-center gap-2"><select value={trackSort} onChange={(event) => setTrackSort(event.target.value as typeof trackSort)} className="min-h-11 rounded-md border border-[var(--line)] bg-transparent px-3 text-xs font-semibold" aria-label={locale === "fr" ? "Trier les pistes" : "Sort tracks"}><option value="album">{locale === "fr" ? "Ordre de l’album" : "Album order"}</option><option value="title-asc">A–Z</option><option value="title-desc">Z–A</option></select><div className="inline-flex rounded-md border border-[var(--line)] p-1" role="group" aria-label={locale === "fr" ? "Versions des pistes" : "Track versions"}><button type="button" aria-pressed={!showAllVersions} onClick={() => setShowAllVersions(false)} className={`min-h-10 rounded px-4 text-xs font-semibold ${!showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Pistes principales" : "Main tracks"}</button><button type="button" aria-pressed={showAllVersions} onClick={() => setShowAllVersions(true)} className={`min-h-10 rounded px-4 text-xs font-semibold ${showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Toutes les versions" : "All versions"}</button></div></div></div>
           {tracks.length > 0 ? (
             <div className="border-y border-[var(--line)] py-2">
               {tracks.map((track, index) => (
@@ -323,7 +256,7 @@ export default function AlbumPage({ params }: AlbumPageProps) {
         {similarAlbums.length > 0 && (
           <section className="mx-auto max-w-[1700px] px-4 py-16 sm:px-6 lg:px-8 md:py-28">
             <h2 className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
-              {locale === "fr" ? "Albums similaires" : "Related albums"}
+              {locale === "fr" ? "Dans le même univers" : "In the same universe"}
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {similarAlbums.map((similarAlbum, index) => (

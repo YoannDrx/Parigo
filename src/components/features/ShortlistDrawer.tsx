@@ -1,28 +1,88 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ListPlus, Play, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, ListPlus, Loader2, Play, Save, Trash2, X } from "lucide-react";
 import { useShortlistStore } from "@/stores/shortlist-store";
 import { usePlayerStore } from "@/stores/player-store";
+import { useAuthModalStore } from "@/stores/auth-modal-store";
+import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { CueSheetButton } from "./CueSheetButton";
+import type { Playlist } from "@/types";
 
 export function ShortlistDrawer() {
   const { locale, t } = useI18n();
-  const { items, isOpen, setOpen, remove, clear } = useShortlistStore();
+  const { data: session } = useSession();
+  const openLogin = useAuthModalStore((state) => state.openLogin);
+  const { items, isOpen, setOpen, remove, clear, move } = useShortlistStore();
   const { setQueue, play } = usePlayerStore();
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [targetPlaylist, setTargetPlaylist] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  const [saved, setSaved] = useState(false);
 
-  if (items.length === 0) return null;
-  const playAll = () => {
-    const tracks = items.map((item) => item.track);
-    setQueue(tracks, 0);
-    play(tracks[0]);
+  useEffect(() => {
+    if (!isOpen || !session?.user) return;
+    void fetch("/api/user/playlists", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => setPlaylists(payload?.data?.playlists ?? []));
+  }, [isOpen, session?.user]);
+
+  const tracks = items.map((item) => item.track);
+  const playAll = () => { if (!tracks.length) return; setQueue(tracks, 0); play(tracks[0]); };
+
+  const saveToPlaylist = async (existingId?: string) => {
+    if (!session?.user) { setOpen(false); openLogin(); return; }
+    setSaving(true);
+    setMessage("");
+    setSaved(false);
+    try {
+      let playlistId = existingId;
+      if (!playlistId) {
+        const title = `${locale === "fr" ? "Sélection" : "Selection"} · ${new Date().toLocaleDateString(locale)}`;
+        const createResponse = await fetch("/api/user/playlists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ title, description: locale === "fr" ? "Créée depuis une sélection de travail Parigo" : "Created from a Parigo working selection" }),
+        });
+        const created = await createResponse.json();
+        if (!createResponse.ok || !created.data?.playlist?.id) throw new Error(created.error?.message || (locale === "fr" ? "La playlist n’a pas pu être créée." : "The playlist could not be created."));
+        playlistId = created.data.playlist.id;
+      }
+      if (!playlistId) throw new Error(locale === "fr" ? "La playlist cible est introuvable." : "The target playlist could not be found.");
+      const addResponse = await fetch(`/api/user/playlists/${encodeURIComponent(playlistId)}/tracks`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add", trackIds: tracks.map((track) => track.id) }),
+      });
+      const added = await addResponse.json();
+      if (!addResponse.ok || !added.data?.updated) throw new Error(added.error?.message || (locale === "fr" ? "Certaines pistes n’ont pas pu être ajoutées. La sélection a été conservée." : "Some tracks could not be added. The selection was kept."));
+      setSaved(true);
+      setMessage(locale === "fr" ? "La playlist Parigo a été vérifiée. Vous pouvez maintenant vider cette sélection." : "The Parigo playlist was verified. You can now clear this selection.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : (locale === "fr" ? "La sélection a été conservée après une erreur." : "The selection was kept after an error."));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="fixed bottom-24 right-4 z-[58] flex min-h-12 items-center gap-2 rounded-full bg-[var(--signal)] px-4 text-sm font-semibold text-[#11120f] shadow-[var(--shadow-md)] md:right-8" aria-label={`${t("common.open")} ${t("search.shortlist")}, ${items.length} ${items.length > 1 ? t("catalog.tracks") : t("catalog.track")}`}><ListPlus size={18} /><span>{items.length}</span></button>
+      <button onClick={() => setOpen(true)} className="fixed bottom-24 right-4 z-[58] flex min-h-12 items-center gap-2 rounded-full bg-[var(--signal)] px-4 text-sm font-semibold text-[#11120f] shadow-[var(--shadow-md)] transition hover:-translate-y-0.5 hover:shadow-lg md:right-8" aria-label={`${t("common.open")} ${t("search.shortlist")}, ${items.length} ${items.length > 1 ? t("catalog.tracks") : t("catalog.track")}`}><ListPlus size={18} /><span className="hidden sm:inline">{locale === "fr" ? "Sélection" : "Selection"}</span><span className="rounded-full bg-black/12 px-2 py-0.5 font-mono text-xs">{items.length}</span></button>
       <AnimatePresence>
-        {isOpen && <><motion.button aria-label={`${t("common.close")} ${t("search.shortlist")}`} className="fixed inset-0 z-[79] bg-black/45 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} /><motion.aside role="dialog" aria-modal="true" aria-label={t("search.shortlist")} className="fixed bottom-0 right-0 top-0 z-[80] flex w-full max-w-md flex-col bg-[var(--background)] p-5 text-[var(--foreground)] shadow-[-30px_0_80px_rgba(0,0,0,.28)] md:p-7" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 260 }}><div className="flex items-center justify-between border-b border-[var(--line)] pb-5"><div><p className="eyebrow text-[var(--color-primary-dark)]">{locale === "fr" ? "Sélection de travail" : "Working selection"}</p><h2 className="mt-1 font-[var(--font-editorial)] text-4xl font-normal">{t("search.shortlist")}</h2></div><button onClick={() => setOpen(false)} className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)]" aria-label={t("common.close")}><X size={19} /></button></div><div className="flex-1 overflow-y-auto py-4">{items.map((item, index) => <div key={item.track.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[var(--line)] py-4"><span className="font-mono text-xs opacity-35">{String(index + 1).padStart(2,"0")}</span><div className="min-w-0"><p className="truncate font-semibold">{item.track.title}</p><p className="truncate text-sm opacity-48">{item.track.albumTitle}</p></div><button onClick={() => remove(item.track.id)} className="flex h-11 w-11 items-center justify-center rounded-full hover:bg-current/[.06]" aria-label={`${t("search.removeShortlist")} : ${item.track.title}`}><Trash2 size={17} /></button></div>)}</div><div className="grid grid-cols-[1fr_auto] gap-3 border-t border-[var(--line)] pt-5"><button onClick={playAll} className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--signal)] font-semibold text-[#11120f]"><Play size={17} fill="currentColor" /> {t("search.playSelection")}</button><button onClick={clear} className="flex min-h-12 items-center justify-center rounded-full border border-[var(--line)] px-4 text-sm">{t("search.clearShortlist")}</button></div></motion.aside></>}
+        {isOpen && <>
+          <motion.button aria-label={`${t("common.close")} ${t("search.shortlist")}`} className="fixed inset-0 z-[79] bg-black/45 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />
+          <motion.aside role="dialog" aria-modal="true" aria-label={t("search.shortlist")} className="fixed bottom-0 right-0 top-0 z-[80] flex w-full max-w-lg flex-col bg-[var(--background)] p-5 text-[var(--foreground)] shadow-[-30px_0_80px_rgba(0,0,0,.28)] md:p-7" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 28, stiffness: 260 }}>
+            <div className="flex items-center justify-between border-b border-[var(--line)] pb-5"><div><p className="eyebrow text-[var(--color-primary-dark)]">{locale === "fr" ? "Sélection de travail" : "Working selection"}</p><h2 className="mt-1 font-[var(--font-editorial)] text-4xl font-normal">{t("search.shortlist")}</h2></div><button onClick={() => setOpen(false)} className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--line)]" aria-label={t("common.close")}><X size={19} /></button></div>
+            {!session?.user && <p className="mt-4 rounded-lg bg-[var(--surface-soft)] p-3 text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Cette sélection est enregistrée uniquement sur cet appareil. Connectez-vous pour la convertir en playlist Parigo, la partager ou générer un cue sheet." : "This selection is saved on this device only. Sign in to convert it to a Parigo playlist, share it or generate a cue sheet."}</p>}
+            <div className="flex-1 overflow-y-auto py-4">{items.length ? items.map((item, index) => <div key={item.track.id} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 border-b border-[var(--line)] py-4"><span className="font-mono text-xs opacity-35">{String(index + 1).padStart(2,"0")}</span><div className="min-w-0"><p className="truncate font-semibold">{item.track.title}</p><p className="truncate text-sm opacity-48">{item.track.albumTitle}</p></div><div className="flex"><button type="button" disabled={index === 0} onClick={() => move(item.track.id, -1)} className="flex h-9 w-9 items-center justify-center disabled:opacity-20" aria-label={locale === "fr" ? "Monter" : "Move up"}><ArrowUp size={14} /></button><button type="button" disabled={index === items.length - 1} onClick={() => move(item.track.id, 1)} className="flex h-9 w-9 items-center justify-center disabled:opacity-20" aria-label={locale === "fr" ? "Descendre" : "Move down"}><ArrowDown size={14} /></button><button onClick={() => remove(item.track.id)} className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-current/[.06]" aria-label={`${t("search.removeShortlist")} : ${item.track.title}`}><Trash2 size={15} /></button></div></div>) : <div className="mx-auto max-w-sm py-12 text-center"><span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[var(--signal-strong)]/40 text-[var(--signal-strong)]"><ListPlus size={25} /></span><h3 className="mt-5 text-2xl">{locale === "fr" ? "Votre sélection est vide" : "Your selection is empty"}</h3><p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">{locale === "fr" ? "Dans une liste de pistes, utilisez le bouton + entouré de vert. Les pistes ajoutées apparaîtront ici, dans l’ordre de votre choix." : "In any track list, use the green outlined + button. Added tracks will appear here in your chosen order."}</p><ol className="mt-7 grid gap-2 text-left text-xs text-[var(--text-muted)]"><li><b className="mr-2 text-[var(--foreground)]">01</b>{locale === "fr" ? "Ajoutez des pistes depuis la recherche, un album ou une playlist." : "Add tracks from search, an album or a playlist."}</li><li><b className="mr-2 text-[var(--foreground)]">02</b>{locale === "fr" ? "Réordonnez et écoutez votre sélection." : "Reorder and listen to your selection."}</li><li><b className="mr-2 text-[var(--foreground)]">03</b>{locale === "fr" ? "Connectez-vous pour la convertir en playlist Parigo." : "Sign in to convert it to a Parigo playlist."}</li></ol></div>}</div>
+            {message && <p role="status" className={`mb-3 rounded-lg border p-3 text-xs leading-5 ${saved ? "border-emerald-300 bg-emerald-50 text-emerald-900" : "border-amber-300 bg-amber-50 text-amber-900"}`}>{message}</p>}
+            {session?.user && items.length > 0 && <div className="mb-3 grid gap-2 rounded-lg border border-[var(--line)] p-3"><p className="mb-1 text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Parigo crée d’abord la playlist, ajoute toutes les pistes, puis vérifie la réponse distante. Votre sélection locale n’est jamais vidée automatiquement." : "Parigo first creates the playlist, adds every track, then verifies the remote response. Your local selection is never cleared automatically."}</p><button type="button" onClick={() => void saveToPlaylist()} disabled={saving} className="flex min-h-11 items-center justify-center gap-2 rounded-md bg-[var(--foreground)] px-3 text-sm font-semibold text-[var(--background)] disabled:opacity-50">{saving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}{locale === "fr" ? "Créer une playlist avec cette sélection" : "Create a playlist from this selection"}</button>{playlists.length > 0 && <div className="flex gap-2"><select value={targetPlaylist} onChange={(event) => setTargetPlaylist(event.target.value)} className="min-w-0 flex-1 rounded-md border border-[var(--line)] bg-transparent px-3 text-xs"><option value="">{locale === "fr" ? "Fusionner dans…" : "Merge into…"}</option>{playlists.map((playlist) => <option key={playlist.id} value={playlist.id}>{playlist.title}</option>)}</select><button type="button" disabled={!targetPlaylist || saving} onClick={() => void saveToPlaylist(targetPlaylist)} className="min-h-11 rounded-md border border-[var(--line)] px-3 text-xs font-semibold disabled:opacity-40">{locale === "fr" ? "Ajouter" : "Add"}</button></div>}<CueSheetButton title={locale === "fr" ? "Sélection Parigo" : "Parigo selection"} trackIds={tracks.map((track) => track.id)} /></div>}
+            <div className="grid grid-cols-[1fr_auto] gap-3 border-t border-[var(--line)] pt-5"><button onClick={playAll} disabled={!items.length} className="flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--signal)] font-semibold text-[#11120f] disabled:cursor-not-allowed disabled:opacity-35"><Play size={17} fill="currentColor" /> {t("search.playSelection")}</button><button onClick={clear} disabled={!items.length} className="flex min-h-12 items-center justify-center rounded-full border border-[var(--line)] px-4 text-sm disabled:opacity-30">{saved ? <Check className="mr-1" size={15} /> : null}{t("search.clearShortlist")}</button></div>
+          </motion.aside>
+        </>}
       </AnimatePresence>
     </>
   );

@@ -3,55 +3,25 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import { Heart, Music, Disc3, ListMusic, Loader2 } from "lucide-react";
+import { Heart, Music, Disc3, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { TrackRow, AlbumCard, PlaylistCard } from "@/components/features";
+import { TrackRow, AlbumCard } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
+import type { Album, Track } from "@/types";
 
-type TabType = "tracks" | "albums" | "playlists";
+type TabType = "tracks" | "albums";
 
-interface FavoriteTrack {
-  id: string;
-  title: string;
-  duration: number;
-  bpm: number;
-  waveform: number[];
-  genres: { name: string; slug: string }[];
-  moods: { name: string; slug: string }[];
-  album?: {
-    id: string;
-    title: string;
-    cover: string;
-  };
-}
-
-interface FavoriteAlbum {
-  id: string;
-  slug: string;
-  title: string;
-  cover: string;
-  label: string;
-  genres: { name: string; slug: string }[];
-  trackCount: number;
-}
-
-interface FavoritePlaylist {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-  cover: string;
-  trackCount: number;
-  isPublic: boolean;
+function albumFromTrack(track: Track): Album | undefined {
+  if (!track.albumId) return undefined;
+  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", cover: track.albumCover || "/images/placeholder-album.jpg", label: track.albumLabel || "Parigo", labelSlug: track.albumLabelSlug, genres: track.genres, moods: track.moods, trackCount: 0 };
 }
 
 export default function FavoritesPage() {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState<TabType>("tracks");
-  const [tracks, setTracks] = useState<FavoriteTrack[]>([]);
-  const [albums, setAlbums] = useState<FavoriteAlbum[]>([]);
-  const [playlists, setPlaylists] = useState<FavoritePlaylist[]>([]);
+  const [tracks, setTracks] = useState<Track[]>([]);
+  const [albums, setAlbums] = useState<Album[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -63,23 +33,18 @@ export default function FavoritesPage() {
   const loadFavorites = async () => {
     setIsLoading(true);
     try {
-      const [tracksRes, albumsRes, playlistsRes] = await Promise.all([
+      const [tracksRes, albumsRes] = await Promise.all([
         fetch("/api/user/favorites/tracks"),
         fetch("/api/user/favorites/albums"),
-        fetch("/api/user/favorites/playlists"),
       ]);
 
       if (tracksRes.ok) {
         const data = await tracksRes.json();
-        setTracks(data.tracks || []);
+        setTracks(data.data?.tracks || []);
       }
       if (albumsRes.ok) {
         const data = await albumsRes.json();
-        setAlbums(data.albums || []);
-      }
-      if (playlistsRes.ok) {
-        const data = await playlistsRes.json();
-        setPlaylists(data.playlists || []);
+        setAlbums(data.data?.albums || []);
       }
     } catch (error) {
       console.error("Error loading favorites:", error);
@@ -91,7 +56,6 @@ export default function FavoritesPage() {
   const tabs = [
     { id: "tracks" as TabType, label: t("catalog.tracks"), icon: Music, count: tracks.length },
     { id: "albums" as TabType, label: t("common.albums"), icon: Disc3, count: albums.length },
-    { id: "playlists" as TabType, label: t("common.playlists"), icon: ListMusic, count: playlists.length },
   ];
 
   return (
@@ -106,7 +70,7 @@ export default function FavoritesPage() {
             {t("account.favorites")}
           </h1>
           <p className="text-[var(--color-gray-600)]">
-            {tracks.length + albums.length + playlists.length} {locale === "fr" ? "éléments" : "items"}
+            {tracks.length + albums.length} {locale === "fr" ? "éléments" : "items"}
           </p>
         </div>
       </div>
@@ -165,33 +129,8 @@ export default function FavoritesPage() {
                   tracks.map((track, index) => (
                     <TrackRow
                       key={track.id}
-                      track={{
-                        id: track.id,
-                        title: track.title,
-                        duration: track.duration,
-                        bpm: track.bpm,
-                        waveform: track.waveform,
-                        genres: track.genres.map((g) => g.name),
-                        moods: track.moods.map((m) => m.name),
-                        instruments: [],
-                        isVocal: false,
-                        audioUrl: null,
-                        albumId: track.album?.id || "",
-                      }}
-                      album={
-                        track.album
-                          ? {
-                              id: track.album.id,
-                              title: track.album.title,
-                              cover: track.album.cover,
-                              label: "",
-                              trackCount: 0,
-                              genres: [],
-                              releaseDate: "",
-                              tracks: [],
-                            }
-                          : undefined
-                      }
+                      track={track}
+                      album={albumFromTrack(track)}
                       index={index}
                       showWaveform={false}
                     />
@@ -214,16 +153,7 @@ export default function FavoritesPage() {
                     {albums.map((album) => (
                       <AlbumCard
                         key={album.id}
-                        album={{
-                          id: album.id,
-                          title: album.title,
-                          cover: album.cover,
-                          label: album.label,
-                          trackCount: album.trackCount,
-                          genres: album.genres.map((g) => g.name),
-                          releaseDate: "",
-                          tracks: [],
-                        }}
+                        album={album}
                       />
                     ))}
                   </div>
@@ -231,33 +161,6 @@ export default function FavoritesPage() {
               </div>
             )}
 
-            {/* Playlists Tab */}
-            {activeTab === "playlists" && (
-              <div>
-                {playlists.length === 0 ? (
-                  <EmptyState
-                    icon={ListMusic}
-                    title={locale === "fr" ? "Aucune playlist en favoris" : "No favourite playlists"}
-                    description={locale === "fr" ? "Suivez des playlists pour les retrouver ici." : "Follow playlists to find them here."}
-                  />
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {playlists.map((playlist) => (
-                      <PlaylistCard
-                        key={playlist.id}
-                        playlist={{
-                          id: playlist.id,
-                          title: playlist.title,
-                          description: playlist.description,
-                          cover: playlist.cover,
-                          trackCount: playlist.trackCount,
-                        }}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
           </motion.div>
         </AnimatePresence>
       )}

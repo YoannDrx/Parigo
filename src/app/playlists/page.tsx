@@ -24,7 +24,7 @@ export default function PlaylistsPage() {
   const { locale, t } = useI18n();
   const [playlists, setPlaylists] = useState<ApiPlaylist[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [sort, setSort] = useState<"title-asc" | "title-desc">("title-asc");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -33,7 +33,7 @@ export default function PlaylistsPage() {
         const response = await fetch("/api/playlists", { signal: controller.signal });
         if (response.ok) {
           const data = await response.json();
-          setPlaylists(data.playlists || []);
+          setPlaylists(data.data?.playlists || []);
         }
       } catch (error) {
         if (!(error instanceof DOMException && error.name === "AbortError")) console.error("Error loading playlists:", error);
@@ -45,12 +45,10 @@ export default function PlaylistsPage() {
     return () => controller.abort();
   }, []);
 
-  const categories = useMemo(() => Array.from(new Set(playlists.flatMap((playlist) => playlist.category ? [playlist.category] : []))), [playlists]);
-  const filtered = useMemo(() => activeCategory ? playlists.filter((playlist) => playlist.category === activeCategory) : playlists, [activeCategory, playlists]);
-  const categoryLabel = (category: string) => {
-    const labels: Record<string, [string, string]> = { featured: ["En vedette", "Featured"], trending: ["Tendances", "Trending"], mood: ["Ambiances", "Moods"], energy: ["Énergie", "Energy"] };
-    return labels[category]?.[locale === "fr" ? 0 : 1] ?? category;
-  };
+  const sortedPlaylists = useMemo(() => [...playlists].sort((left, right) => {
+    const comparison = left.title.localeCompare(right.title, locale, { sensitivity: "base" });
+    return sort === "title-asc" ? comparison : -comparison;
+  }), [locale, playlists, sort]);
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
@@ -58,21 +56,26 @@ export default function PlaylistsPage() {
       <main className="flex-1 pb-32">
         <CatalogHero eyebrow={t("catalog.playlistsEyebrow")} title={t("catalog.playlistsTitle")} intro={t("catalog.playlistsIntro")} meta={`${playlists.length} ${t("common.playlists").toLowerCase()}`} />
         <div className="mx-auto max-w-[1700px] px-4 py-12 lg:px-8 md:py-16">
-          {categories.length > 0 && (
-            <div className="mb-14 flex flex-wrap gap-2 border-b border-[var(--line)] pb-8">
-              <button onClick={() => setActiveCategory(null)} className={`min-h-11 rounded-full border px-4 text-sm transition ${activeCategory === null ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}>{locale === "fr" ? "Toutes" : "All"}</button>
-              {categories.map((category) => <button key={category} onClick={() => setActiveCategory(category)} className={`min-h-11 rounded-full border px-4 text-sm capitalize transition ${activeCategory === category ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]" : "border-[var(--line)] hover:border-[var(--line-strong)]"}`}>{categoryLabel(category)}</button>)}
-            </div>
-          )}
+          <div className="mb-12 flex items-center justify-between gap-4 border-b border-[var(--line)] pb-6">
+            <p className="text-sm text-[var(--text-muted)]">{locale === "fr" ? "Sélections éditoriales Parigo" : "Parigo editorial selections"}</p>
+            <label className="flex items-center gap-3 text-xs font-semibold uppercase tracking-[.08em]">
+              <span className="hidden sm:inline">{locale === "fr" ? "Trier" : "Sort"}</span>
+              <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)} className="min-h-11 rounded-full border border-[var(--line)] bg-[var(--surface)] px-4 text-sm font-medium normal-case tracking-normal" aria-label={locale === "fr" ? "Trier les playlists" : "Sort playlists"}>
+                <option value="title-asc">A–Z</option>
+                <option value="title-desc">Z–A</option>
+              </select>
+            </label>
+          </div>
 
           {isLoading ? (
             <div className="flex items-center justify-center py-24"><Loader2 size={32} className="animate-spin text-[var(--color-primary)]" /></div>
-          ) : filtered.length === 0 ? (
+          ) : sortedPlaylists.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center"><ListMusic size={42} className="mb-6 opacity-30" /><h2 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.noPlaylists")}</h2></div>
           ) : (
             <div className="grid grid-cols-2 gap-x-5 gap-y-14 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 md:gap-x-7 md:gap-y-20">
-              {filtered.map((playlist, index) => {
-                const item: CatalogPlaylist = { id: playlist.slug || playlist.id, slug: playlist.slug, title: playlist.title, description: playlist.description ?? undefined, cover: playlist.cover || "/media/mock/albums/pgo0025.avif", trackCount: playlist.trackCount, category: playlist.category ?? undefined, isFeatured: playlist.isFeatured };
+              {sortedPlaylists.map((playlist, index) => {
+                const category = playlist.category?.toLowerCase() === "curated" ? (locale === "fr" ? "Sélection Parigo" : "Parigo selection") : playlist.category ?? undefined;
+                const item: CatalogPlaylist = { id: playlist.slug || playlist.id, slug: playlist.slug, title: playlist.title, description: playlist.description ?? undefined, cover: playlist.cover || "/images/placeholder-album.jpg", trackCount: playlist.trackCount, category, isFeatured: playlist.isFeatured };
                 return <motion.div key={playlist.id} initial={{ opacity: 0, y: 32 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: .16 }} transition={{ duration: .65, delay: (index % 5) * .035 }}><PlaylistCard playlist={item} /></motion.div>;
               })}
             </div>

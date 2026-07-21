@@ -10,6 +10,7 @@ import {
   Clock,
   Download,
   Settings,
+  Tags,
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { redirect } from "next/navigation";
@@ -31,6 +32,7 @@ export default function AccountLayout({
     { icon: ListMusic, label: t("account.playlists"), href: "/account/playlists" },
     { icon: Clock, label: t("account.history"), href: "/account/history" },
     { icon: Download, label: t("account.downloads"), href: "/account/downloads" },
+    { icon: Tags, label: "Tag Manager", href: "/account/tags" },
     { icon: Settings, label: t("account.settings"), href: "/account/settings" },
   ];
 
