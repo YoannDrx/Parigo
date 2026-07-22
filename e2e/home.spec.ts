@@ -91,12 +91,64 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await expect(page.getByRole("dialog", { name: "Menu principal" })).toHaveCount(0);
 });
 
-test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur", async ({ page }) => {
+test("la home et les pistes proposent des interactions tactiles dédiées", async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
+  test.skip(testInfo.project.name !== "mobile", "Ce parcours contrôle spécifiquement la composition tactile.");
+  await page.goto("/");
+  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
+  if (await rejectCookies.isVisible()) await rejectCookies.click();
+
+  await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
+  const carouselArrows = page.locator('button[aria-label="Précédent"], button[aria-label="Suivant"]');
+  expect(await carouselArrows.count()).toBeGreaterThan(0);
+  for (let index = 0; index < await carouselArrows.count(); index += 1) await expect(carouselArrows.nth(index)).toBeHidden();
+
+  const manifesto = page.locator("#manifesto");
+  const manifestoTitle = manifesto.locator("h2").first();
+  await manifestoTitle.scrollIntoViewIfNeeded();
+  expect(Number.parseFloat(await manifestoTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(60);
+  expect(await manifesto.evaluate((node) => node.clientHeight)).toBeGreaterThan((await page.evaluate(() => innerHeight)) * 2);
+  await expect(page.getByTestId("manifesto-reveal-edge")).toBeVisible();
+
+  const process = page.locator("#process");
+  await process.scrollIntoViewIfNeeded();
+  expect((await page.getByTestId("process-progress").boundingBox())!.height).toBeGreaterThanOrEqual(4);
+
+  const editorialRail = page.getByTestId("editorial-mobile-rail");
+  await editorialRail.scrollIntoViewIfNeeded();
+  expect(await editorialRail.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+  const editorialCards = editorialRail.locator('a[href^="/playlists/"]');
+  const firstCard = await editorialCards.nth(0).boundingBox();
+  const secondCard = await editorialCards.nth(1).boundingBox();
+  expect(firstCard).not.toBeNull();
+  expect(secondCard).not.toBeNull();
+  expect(Math.abs(firstCard!.y - secondCard!.y)).toBeLessThanOrEqual(2);
+  expect(secondCard!.x).toBeGreaterThan(firstCard!.x);
+
+  await page.goto("/search?q=piano&view=tracks&type=main");
+  const firstPlay = page.getByRole("button", { name: /^Écouter / }).first();
+  await expect(firstPlay).toBeVisible({ timeout: 30_000 });
+  await expect(firstPlay.getByTestId("track-play-icon")).toBeVisible();
+  const moreActions = page.getByRole("button", { name: /^Plus d’actions :/ }).first();
+  await expect(moreActions).toBeVisible();
+  await moreActions.click();
+  const actions = page.getByRole("region", { name: /^Actions pour/ }).first();
+  await expect(actions).toBeVisible();
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("opacity", "0");
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("pointer-events", "none");
+  await expect(actions.getByText("Télécharger", { exact: true })).toBeVisible();
+  await expect(actions.getByText("Playlist", { exact: true })).toBeVisible();
+  await expect(actions.getByText("Partager", { exact: true })).toBeVisible();
+});
+
+test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/");
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
   const featured = page.locator("#featured");
-  await expect(featured.getByRole("button", { name: "Suivant" })).toBeEnabled();
+  const nextButton = featured.locator('button[aria-label="Suivant"]');
+  if (testInfo.project.name === "mobile") await expect(nextButton).toBeHidden();
+  else await expect(nextButton).toBeEnabled();
   await featured.getByRole("tab", { name: "Synchronisations" }).click();
   const firstSync = featured.locator('a[href^="/synchronisations/"]').first();
   await expect(firstSync).toBeVisible();

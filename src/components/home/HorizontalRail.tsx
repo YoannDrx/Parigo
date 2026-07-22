@@ -47,10 +47,10 @@ export function HorizontalRail({ children, label, wide = false, cinema = false }
       <div ref={railRef} onScroll={updateBounds} className={cn("no-scrollbar grid snap-x snap-mandatory grid-flow-col gap-5 overflow-x-auto px-1 pb-5 pt-2", cinema ? "auto-cols-[91%] sm:auto-cols-[72%] lg:auto-cols-[53%] xl:auto-cols-[43%]" : wide ? "auto-cols-[86%] md:auto-cols-[58%] xl:auto-cols-[42%]" : "auto-cols-[78%] sm:auto-cols-[44%] lg:auto-cols-[31%] xl:auto-cols-[23%]")} aria-label={label}>
         {children}
       </div>
-      <div className="mt-3 grid grid-cols-[auto_1fr_auto] items-center gap-5 border-t border-[var(--line)] pt-5">
-        <span className="hidden font-mono text-[.56rem] uppercase tracking-[.14em] text-[var(--text-muted)] sm:block">{label}</span>
+      <div className="mt-2 grid grid-cols-1 items-center gap-5 border-t border-[var(--line)] pt-4 lg:mt-3 lg:grid-cols-[auto_1fr_auto] lg:pt-5">
+        <span className="hidden font-mono text-[.56rem] uppercase tracking-[.14em] text-[var(--text-muted)] lg:block">{label}</span>
         <div aria-hidden="true" className="relative h-[2px] overflow-hidden"><div style={{ transform: `scaleX(${bounds.overflow ? Math.max(.06, progress) : 1})` }} className="absolute inset-0 origin-left bg-[var(--signal)] transition-transform duration-300" /></div>
-        <div className="flex gap-2">
+        <div className="hidden gap-2 lg:flex">
         <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label="Précédent"><ChevronLeft size={20} className="transition-transform group-hover:-translate-x-1" /></button>
         <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label="Suivant"><ChevronRight size={20} className="transition-transform group-hover:translate-x-1" /></button>
         </div>
