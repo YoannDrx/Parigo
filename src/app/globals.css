@@ -401,6 +401,13 @@ img { filter: var(--image-filter); }
 
 @media (min-width: 640px) { .contact-field { padding: 1.45rem 0; } }
 @media (max-width: 767px) { .section-title, .section-title-serif { line-height: .94; } }
+@media (max-width: 1023px) {
+  body[data-mobile-track-actions-open="true"] [data-shortlist-trigger] {
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .marquee-track { animation: none; }
