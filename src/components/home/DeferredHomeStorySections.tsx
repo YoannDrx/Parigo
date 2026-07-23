@@ -10,19 +10,24 @@ export function DeferredHomeStorySections(props: StoryProps) {
 
   useEffect(() => {
     let active = true;
-    let timeout: ReturnType<typeof setTimeout> | null = null;
-    let idle: number | null = null;
+    let requested = false;
     const load = () => {
+      if (requested) return;
+      requested = true;
       void import("./HomeStorySections").then((module) => {
         if (active) setSections(() => module.HomeStorySections);
       });
     };
-    if ("requestIdleCallback" in window) idle = window.requestIdleCallback(load, { timeout: 1_500 });
-    else timeout = globalThis.setTimeout(load, 500);
+    // These long-form, below-the-fold animations are intentionally kept out of
+    // the LCP window. A user who scrolls gets them immediately; an idle page
+    // receives them after the critical rendering work has settled.
+    const timeout = globalThis.setTimeout(load, 6_000);
+    const loadOnIntent = () => load();
+    window.addEventListener("scroll", loadOnIntent, { once: true, passive: true });
     return () => {
       active = false;
-      if (idle !== null && "cancelIdleCallback" in window) window.cancelIdleCallback(idle);
-      if (timeout !== null) globalThis.clearTimeout(timeout);
+      globalThis.clearTimeout(timeout);
+      window.removeEventListener("scroll", loadOnIntent);
     };
   }, []);
 
