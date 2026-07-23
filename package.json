@@ -35,7 +35,7 @@
     "framer-motion": "^12.23.26",
     "howler": "^2.2.4",
     "jose": "^6.2.3",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^1.26.0",
     "next": "16.2.11",
     "react": "19.2.8",
     "react-dom": "19.2.8",
