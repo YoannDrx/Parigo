@@ -2,21 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "framer-motion";
 import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, Play, RotateCcw, Youtube } from "lucide-react";
-import { useState, type ReactNode } from "react";
-import { AISearch } from "@/components/features";
-import { Footer, Header } from "@/components/layout";
+import { useEffect, useState, type ReactNode } from "react";
+import { AISearch } from "@/components/features/AISearch";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SYNCHRONISATIONS as syncs } from "@/content/synchronisations";
-import { useAlbums, useFeaturedPlaylists } from "@/hooks/use-api";
-import { OrganicHeroBackdrop } from "./OrganicHeroBackdrop";
+import { fetchAlbums } from "@/lib/api-client";
+import { DeferredOrganicHeroBackdrop } from "./DeferredOrganicHeroBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
-import { EditorialScrollStory } from "./EditorialScrollStory";
-import { ManifestoScrollSection } from "./ManifestoScrollSection";
-import { ProcessSignalSection } from "./ProcessSignalSection";
-import { ProjectInvitationSection } from "./ProjectInvitationSection";
-import { SensationSignalSection } from "./SensationSignalSection";
+import { DeferredHomeStorySections } from "./DeferredHomeStorySections";
+import type { Playlist } from "@/types";
 
 const PARIGO_LABEL_ID = "b9d701733704e2d7";
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
@@ -42,36 +39,55 @@ function PlatformIcon({ name }: { name: PlatformName }) {
 }
 
 function SectionReveal({ children, className = "" }: { children: ReactNode; className?: string }) {
-  const reduceMotion = useReducedMotion();
-  return (
-    <motion.div initial={reduceMotion ? undefined : { opacity: 0, y: 24 }} whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: .15 }} transition={{ duration: .62, ease: [0.22, 1, 0.36, 1] }} className={className}>
-      {children}
-    </motion.div>
-  );
+  return <div className={className}>{children}</div>;
 }
 
-export function HomeExperience() {
+interface HomeExperienceProps {
+  initialPlaylists: {
+    playlists: Playlist[];
+    pagination: { total: number; limit: number; offset: number; hasMore: boolean };
+  };
+}
+
+export function HomeExperience({ initialPlaylists }: HomeExperienceProps) {
   const { locale, t } = useI18n();
   const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "syncs" | "parigo">("playlists");
-  const releaseQuery = useAlbums({ limit: 12, sort: "releaseDate" });
-  const playlistQuery = useFeaturedPlaylists(12);
-  const parigoQuery = useAlbums({ limit: 12, label: PARIGO_LABEL_ID, sort: "releaseDate" });
-  const { data: releaseData } = releaseQuery;
-  const { data: playlistData } = playlistQuery;
-  const releases = releaseData?.albums || [];
-  const editorialPlaylists = playlistData?.playlists || [];
-  const parigoAlbums = parigoQuery.data?.albums || [];
+  const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>([]);
+  const [parigoAlbums, setParigoAlbums] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>([]);
+  const [tabError, setTabError] = useState<"releases" | "parigo" | null>(null);
+  const [retryVersion, setRetryVersion] = useState(0);
+  const editorialPlaylists = initialPlaylists.playlists;
+
+  useEffect(() => {
+    if (featuredTab !== "releases" && featuredTab !== "parigo") return;
+    if (featuredTab === "releases" && releases.length > 0) return;
+    if (featuredTab === "parigo" && parigoAlbums.length > 0) return;
+    const controller = new AbortController();
+    const tab = featuredTab;
+    void fetchAlbums(
+      tab === "parigo"
+        ? { limit: 12, label: PARIGO_LABEL_ID, sort: "releaseDate" }
+        : { limit: 12, sort: "releaseDate" },
+      controller.signal,
+    ).then((data) => {
+      if (tab === "parigo") setParigoAlbums(data.albums);
+      else setReleases(data.albums);
+    }).catch((error: unknown) => {
+      if (!(error instanceof DOMException && error.name === "AbortError")) setTabError(tab);
+    });
+    return () => controller.abort();
+  }, [featuredTab, parigoAlbums.length, releases.length, retryVersion]);
   return (
     <div className="page-shell home-shell">
       <Header variant="overlay" />
       <main>
         <section data-testid="home-hero" className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-hidden bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
-          <OrganicHeroBackdrop />
+          <DeferredOrganicHeroBackdrop />
           <div className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center">
-            <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .5 }} className="eyebrow text-[var(--signal-strong)]">Parigo Music · Paris</motion.p>
-            <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .72, delay: .08, ease: [0.22, 1, 0.36, 1] }} className="mx-auto mt-7 max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
+            <p className="eyebrow text-[var(--signal-strong)]">Parigo Music · Paris</p>
+            <h1 className="mx-auto mt-7 max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
               {locale === "fr" ? "Trouvez la bonne musique" : "Find the right music"}<span className="text-[var(--signal-strong)]">.</span>
-            </motion.h1>
+            </h1>
             <p className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
               {locale === "fr" ? <>Un catalogue édité pour les monteurs, superviseurs musicaux et producteurs.<br className="hidden sm:block" />Cherchez, écoutez, comparez et licenciez — sans bruit inutile.</> : <>A curated catalogue built for editors, music supervisors and producers.<br className="hidden sm:block" />Search, listen, compare and license — without the noise.</>}
             </p>
@@ -83,7 +99,7 @@ export function HomeExperience() {
         <section id="about" className="px-4 py-16 md:px-8 md:py-24">
           <SectionReveal className="mx-auto max-w-[1580px]">
             <div className="relative min-h-[610px] overflow-hidden rounded-xl md:min-h-[760px]">
-              <picture className="absolute inset-0 block"><source srcSet="/images/parigo-studio.avif" type="image/avif" /><source srcSet="/images/parigo-studio.webp" type="image/webp" /><Image src="/images/parigo-studio.jpg" alt="Studio PARIGO avec une sélection de vinyles" fill priority sizes="100vw" className="object-cover" /></picture>
+              <Image src="/images/parigo-studio.jpg" alt="Studio PARIGO avec une sélection de vinyles" fill loading="lazy" quality={78} sizes="100vw" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
               <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
                 <p className="eyebrow mb-5 text-emerald-200">{locale === "fr" ? "Parigo depuis 2013" : "Parigo since 2013"}</p>
@@ -105,11 +121,11 @@ export function HomeExperience() {
                   ["releases", locale === "fr" ? "Nouveautés" : "New releases"],
                   ["syncs", locale === "fr" ? "Synchronisations" : "Syncs"],
                   ["parigo", "Label PARIGO"],
-                ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => setFeaturedTab(id)} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
+                ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => { setTabError(null); setFeaturedTab(id); }} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
               </div>
             </SectionReveal>
-            {(featuredTab === "releases" && releaseQuery.isError) || (featuredTab === "playlists" && playlistQuery.isError) || (featuredTab === "parigo" && parigoQuery.isError) ? (
-              <div className="rounded-xl border border-[var(--line)] px-6 py-20 text-center"><AlertCircle className="mx-auto text-[var(--signal-strong)]" /><h3 className="mt-4 text-2xl">{locale === "fr" ? "Cette sélection est momentanément indisponible." : "This selection is temporarily unavailable."}</h3><button type="button" onClick={() => { if (featuredTab === "playlists") void playlistQuery.refetch(); else if (featuredTab === "parigo") void parigoQuery.refetch(); else void releaseQuery.refetch(); }} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--line)] px-4 text-sm font-semibold"><RotateCcw size={15} />{t("common.retry")}</button></div>
+            {tabError === featuredTab ? (
+              <div className="rounded-xl border border-[var(--line)] px-6 py-20 text-center"><AlertCircle className="mx-auto text-[var(--signal-strong)]" /><h3 className="mt-4 text-2xl">{locale === "fr" ? "Cette sélection est momentanément indisponible." : "This selection is temporarily unavailable."}</h3><button type="button" onClick={() => { setTabError(null); setRetryVersion((version) => version + 1); }} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--line)] px-4 text-sm font-semibold"><RotateCcw size={15} />{t("common.retry")}</button></div>
             ) : featuredTab === "syncs" ? (
               <HorizontalRail cinema label={locale === "fr" ? "Synchronisations à la une" : "Featured synchronisations"}>{syncs.map((sync, index) => <Link key={sync.slug} href={`/synchronisations/${sync.slug}`} className="home-sync-card group snap-start"><div className="home-sync-card__frame relative aspect-video overflow-hidden bg-[#0b0e0b]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:768px) 91vw, 53vw" className="object-contain transition duration-700 group-hover:scale-[1.018]" /><div className="absolute inset-0 bg-gradient-to-t from-black/82 via-transparent to-black/5" /><span className="absolute right-5 top-5 font-mono text-[.58rem] text-white/60">SYNC / {String(index + 1).padStart(2, "0")}</span><span className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-white/40 bg-black/25 text-white backdrop-blur-md transition duration-500 group-hover:rotate-[8deg] group-hover:scale-110 group-hover:bg-[var(--signal)]"><Play size={17} fill="currentColor" /></span><div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-5 p-5 text-white md:p-7"><div><p className="font-mono text-[.58rem] uppercase tracking-[.13em] text-white/62">{sync.client}</p><h3 className="mt-2 text-2xl md:text-4xl">{sync.title}</h3></div><span className="hidden font-mono text-[.58rem] uppercase tracking-[.12em] text-white/55 sm:block">{locale === "fr" ? "Voir le film" : "Watch the film"} ↗</span></div></div></Link>)}</HorizontalRail>
             ) : featuredTab === "playlists" ? (
@@ -128,19 +144,11 @@ export function HomeExperience() {
           </div>
         </section>
 
-        <ManifestoScrollSection locale={locale} />
-
-        <ProcessSignalSection locale={locale} />
-
-        <ProjectInvitationSection />
-
-        <SensationSignalSection locale={locale} />
-
-        <EditorialScrollStory playlists={editorialPlaylists} locale={locale} />
+        <DeferredHomeStorySections playlists={editorialPlaylists} locale={locale} />
 
         <section className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
-            <SectionReveal className="mb-12 grid gap-8 md:grid-cols-12"><div className="md:col-span-7"><p className="eyebrow text-[var(--signal)]">{t("home.syncEyebrow")}</p><h2 className="mt-5 text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92]">{t("home.syncTitle")}</h2></div><p className="max-w-md self-end opacity-58 md:col-span-4 md:col-start-9">{t("home.syncCopy")}</p></SectionReveal>
+            <SectionReveal className="mb-12 grid w-full min-w-0 gap-8 md:grid-cols-12"><div className="min-w-0 md:col-span-7"><p className="eyebrow break-words text-[var(--inverse-accent)]">{t("home.syncEyebrow")}</p><h2 className="mt-5 break-words text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92]">{t("home.syncTitle")}</h2></div><p className="min-w-0 max-w-md break-words self-end text-[var(--inverse-muted)] md:col-span-4 md:col-start-9">{t("home.syncCopy")}</p></SectionReveal>
             <HorizontalRail wide inverse label={locale === "fr" ? "Nos synchronisations" : "Our synchronisations"}>{syncs.map((sync, index) => <Link key={sync.slug} href={`/synchronisations/${sync.slug}`} className="home-sync-card group snap-start"><div className="home-sync-card__frame relative aspect-video overflow-hidden bg-[#0b0e0b]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:768px) 86vw, 55vw" className="object-contain transition-transform duration-700 group-hover:scale-[1.018]" /><div className="absolute inset-0 bg-gradient-to-t from-black/78 via-transparent to-transparent" /><span className="absolute right-5 top-5 font-mono text-xs text-white/60">{String(index + 1).padStart(2, "0")}</span><span className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-white/45 bg-black/22 text-white backdrop-blur-md transition group-hover:scale-110 group-hover:bg-[var(--signal)]"><Play size={17} fill="currentColor" /></span><div className="absolute inset-x-0 bottom-0 p-5 text-white md:p-8"><p className="font-mono text-[.6rem] uppercase tracking-[.13em] opacity-62">{sync.client}</p><h3 className="mt-2 text-2xl md:text-4xl">{sync.title}</h3></div></div></Link>)}</HorizontalRail>
             <div className="mt-3 text-right"><Link href="/synchronisations" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal)]">{t("common.seeAll")}<ArrowRight size={16} /></Link></div>
           </div>

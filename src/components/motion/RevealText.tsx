@@ -16,7 +16,8 @@ export function RevealText({ children, className, as = "p", delay = 0, mode = "w
   const segments = mode === "lines" ? children.split("\n") : children.split(" ");
 
   return (
-    <MotionTag className={cn("reveal-text", className)} aria-label={children.replaceAll("\n", " ")}>
+    <MotionTag className={cn("reveal-text", className)}>
+      <span className="sr-only">{children.replaceAll("\n", " ")}</span>
       {segments.map((segment, index) => (
         <span key={`${segment}-${index}`} className={cn("reveal-segment", mode === "lines" && "block")} aria-hidden="true">
           <motion.span

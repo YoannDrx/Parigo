@@ -6,7 +6,10 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Loader2 } from "lucide-react";
 import { signUp } from "@/lib/auth-client";
-import { Button, Card, Input, Select } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 interface RegistrationForm {

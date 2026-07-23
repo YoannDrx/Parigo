@@ -126,13 +126,19 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   const controls = testInfo.project.name === "mobile"
     ? page.locator("#global-menu")
     : page.locator("body");
-  await controls.getByRole("button", { name: "English version" }).click();
+  await controls.getByRole("link", { name: /English version/ }).click();
   await expect(page.getByRole("heading", { level: 1, name: /Find the right music/i })).toBeVisible();
-  await controls.getByRole("button", { name: "Switch to dark theme" }).click();
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Open menu" }).click();
+  }
+  const themeControls = testInfo.project.name === "mobile"
+    ? page.locator("#global-menu")
+    : page.locator("body");
+  await themeControls.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expect(page.getByText(/A curated catalogue built for editors, music supervisors and producers/)).toBeVisible();
+  await expect(page.getByRole("main").getByText(/A curated catalogue built for editors, music supervisors and producers/)).toBeVisible();
   for (const heading of ["Who are we?", "From brief to selection.", "Begin with a feeling."]) {
     const element = page.getByRole("heading", { name: heading });
     const color = await element.evaluate((node) => getComputedStyle(node).color);
@@ -157,7 +163,7 @@ test("la homepage ne contient pas de violation critique axe", async ({ page }) =
     if (message.type() === "error") consoleErrors.push(`${message.text()} @ ${message.location().url}`);
   });
   await page.goto("/");
-  const results = await new AxeBuilder({ page }).disableRules(["color-contrast"]).analyze();
+  const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations.filter((violation) => violation.impact === "critical")).toEqual([]);
   expect(consoleErrors).toEqual([]);
 });
@@ -200,6 +206,7 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   await page.goto("/");
   const manifesto = page.locator("#manifesto");
   const manifestoTitle = manifesto.locator("h2").first();
+  await expect(manifesto).toBeVisible({ timeout: 30_000 });
   expect(await manifesto.evaluate((node) => node.clientHeight)).toBeGreaterThan((await page.evaluate(() => innerHeight)) * 2);
   await expect(page.getByTestId("manifesto-reveal-edge")).toBeVisible();
   expect(Number.parseFloat(await manifestoTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(60);
@@ -304,7 +311,7 @@ test("le manifesto libère le scroll une fois révélé", async ({ page }, testI
   await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(0);
   await expect(section.locator(":scope > div")).toHaveCSS("position", "relative");
   const completedHeight = await section.evaluate((node) => node.clientHeight);
-  expect(completedHeight).toBeLessThanOrEqual((await page.evaluate(() => window.innerHeight)) + 2);
+  expect(completedHeight).toBeGreaterThanOrEqual((await page.evaluate(() => window.innerHeight)) * 2);
   await section.evaluate((node) => window.scrollTo({ top: (node as HTMLElement).offsetTop - 120, behavior: "instant" }));
   await page.waitForTimeout(120);
   await section.evaluate((node) => window.scrollTo({ top: (node as HTMLElement).offsetTop + node.clientHeight + 120, behavior: "instant" }));

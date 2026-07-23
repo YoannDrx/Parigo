@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Archivo, Manrope, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { headers } from "next/headers";
+import { isLocale } from "@/lib/locale";
+import { siteConfig } from "@/lib/seo";
 
 const archivo = Archivo({
   variable: "--font-heading",
@@ -22,7 +25,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://www.parigomusic.com"),
+  metadataBase: new URL(siteConfig.url),
   title: {
     default: "Parigo Music — La musique juste pour l'image",
     template: "%s — Parigo Music",
@@ -48,17 +51,20 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const localeHeader = (await headers()).get("x-parigo-locale");
+  const locale = isLocale(localeHeader) ? localeHeader : "fr";
+
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('parigo-theme');var v=t==='dark'||t==='light'?t:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=v;document.documentElement.style.colorScheme=v;var l=localStorage.getItem('parigo-locale');if(l==='en'||l==='fr')document.documentElement.lang=l}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('parigo-theme');var v=t==='dark'||t==='light'?t:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=v;document.documentElement.style.colorScheme=v}catch(e){}})()`,
           }}
         />
       </head>
@@ -66,7 +72,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} antialiased`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider initialLocale={locale}>{children}</QueryProvider>
       </body>
     </html>
   );

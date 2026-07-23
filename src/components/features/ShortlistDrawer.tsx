@@ -8,7 +8,7 @@ import { usePlayerStore } from "@/stores/player-store";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { Select } from "@/components/ui";
+import { Select } from "@/components/ui/Select";
 import { CueSheetButton } from "./CueSheetButton";
 import type { Playlist } from "@/types";
 
@@ -42,8 +42,8 @@ export function ShortlistDrawer() {
       if (!dock) return false;
 
       const measure = () => {
-        const rect = dock.getBoundingClientRect();
-        setPlayerClearance(Math.max(0, window.innerHeight - rect.top + 12));
+        const dockBottom = Number.parseFloat(window.getComputedStyle(dock).bottom) || 0;
+        setPlayerClearance(Math.max(0, dockBottom + dock.offsetHeight + 12));
       };
 
       measure();

@@ -1,30 +1,16 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
 import { messages, type Locale, type MessageKey } from "@/i18n/messages";
+import { localizedPath as buildLocalizedPath } from "@/lib/locale";
 
 interface I18nContextValue {
   locale: Locale;
-  setLocale: (locale: Locale) => void;
-  toggleLocale: () => void;
+  localizedPath: (path: string) => string;
   t: (key: MessageKey) => string;
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
-const LOCALE_EVENT = "parigo:locale-change";
-
-function subscribeToLocale(callback: () => void) {
-  window.addEventListener(LOCALE_EVENT, callback);
-  return () => window.removeEventListener(LOCALE_EVENT, callback);
-}
-
-function getLocaleSnapshot(): Locale {
-  return document.documentElement.lang === "en" ? "en" : "fr";
-}
-
-function getServerLocaleSnapshot(): Locale {
-  return "fr";
-}
 
 function resolveMessage(locale: Locale, key: MessageKey): string {
   const value = key.split(".").reduce<unknown>((current, segment) => {
@@ -34,19 +20,17 @@ function resolveMessage(locale: Locale, key: MessageKey): string {
   return typeof value === "string" ? value : key;
 }
 
-export function I18nProvider({ children }: { children: ReactNode }) {
-  const locale = useSyncExternalStore(subscribeToLocale, getLocaleSnapshot, getServerLocaleSnapshot);
-
-  const setLocale = useCallback((nextLocale: Locale) => {
-    window.localStorage.setItem("parigo-locale", nextLocale);
-    document.documentElement.lang = nextLocale;
-    document.cookie = `parigo-locale=${nextLocale};path=/;max-age=31536000;samesite=lax`;
-    window.dispatchEvent(new Event(LOCALE_EVENT));
-  }, []);
-
-  const toggleLocale = useCallback(() => setLocale(locale === "fr" ? "en" : "fr"), [locale, setLocale]);
+export function I18nProvider({
+  children,
+  initialLocale,
+}: {
+  children: ReactNode;
+  initialLocale: Locale;
+}) {
+  const locale = initialLocale;
   const t = useCallback((key: MessageKey) => resolveMessage(locale, key), [locale]);
-  const value = useMemo(() => ({ locale, setLocale, toggleLocale, t }), [locale, setLocale, toggleLocale, t]);
+  const localizedPath = useCallback((path: string) => buildLocalizedPath(locale, path), [locale]);
+  const value = useMemo(() => ({ locale, localizedPath, t }), [locale, localizedPath, t]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

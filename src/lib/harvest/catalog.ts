@@ -154,6 +154,7 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
     code: parsed.Code || parsed.CdCode || undefined,
     keywords: asList(parsed.Keywords),
     styles,
+    updatedAt: asIsoDate(parsed.LastUpdated),
   };
 }
 
@@ -172,6 +173,7 @@ export function mapPlaylist(item: HarvestRecord, templates: HarvestAssetTemplate
     category: parsed.Type || parsed.Category || undefined,
     isFeatured: true,
     createdAt: asIsoDate(parsed.CreatedDate),
+    updatedAt: asIsoDate(parsed.LastUpdated),
   };
 }
 
@@ -309,10 +311,7 @@ export async function getAlbum(id: string): Promise<{ album: Album & { tracks: T
 }
 
 export async function getLabels(): Promise<Label[]> {
-  const [payload, templates] = await Promise.all([
-    guestRequest<HarvestRecord>((token) => `/getlibraries/${token}`),
-    getAssetTemplates(),
-  ]);
+  const payload = await guestRequest<HarvestRecord>((token) => `/getlibraries/${token}`);
   return recordArray(payload, "Libraries")
     .map((item) => {
       const id = asString(item.ID);
@@ -320,14 +319,13 @@ export async function getLabels(): Promise<Label[]> {
         id,
         slug: id,
         name: asString(item.Name),
-        logo: templates.libraryLogo
-          ? assetUrl(templates.libraryLogo, { id, width: 640, height: 640 })
-          : "/images/placeholder-label.jpg",
+        logo: asString(item.LibraryLogoUrl) || null,
         description: asString(pick(item, "Detail", "Profile")) || undefined,
         website: asString(item.Website) || undefined,
         albumCount: asNumber(item.AlbumCount),
         location: asString(item.Location) || undefined,
         featured: asBoolean(item.Featured),
+        updatedAt: asIsoDate(item.LastUpdated),
       } satisfies Label;
     })
     .filter((label) => label.id && label.name)
@@ -335,26 +333,22 @@ export async function getLabels(): Promise<Label[]> {
 }
 
 export async function getLabel(id: string): Promise<Label | null> {
-  const [payload, templates] = await Promise.all([
-    guestRequest<HarvestRecord>((token) => `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true`),
-    getAssetTemplates(),
-  ]);
+  const payload = await guestRequest<HarvestRecord>((token) =>
+    `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true`,
+  );
   const item = isRecord(payload.Library) ? payload.Library : undefined;
   if (!item) return null;
-  const labels = await getLabels();
-  const count = labels.find((label) => label.id === id)?.albumCount ?? 0;
   return {
     id,
     slug: id,
     name: asString(item.Name),
-    logo: templates.libraryLogo
-      ? assetUrl(templates.libraryLogo, { id, width: 800, height: 800 })
-      : "/images/placeholder-label.jpg",
+    logo: asString(item.LibraryLogoUrl) || null,
     description: asString(pick(item, "Detail", "Profile")) || undefined,
     website: asString(item.Website) || undefined,
-    albumCount: count,
+    albumCount: asNumber(item.AlbumCount),
     location: asString(item.Location) || undefined,
     featured: asBoolean(item.Featured),
+    updatedAt: asIsoDate(item.LastUpdated),
   };
 }
 

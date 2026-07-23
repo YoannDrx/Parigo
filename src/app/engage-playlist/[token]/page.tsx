@@ -2,8 +2,9 @@
 
 import { use, useEffect, useMemo, useState } from "react";
 import { Loader2, Share2 } from "lucide-react";
-import { Footer, Header } from "@/components/layout";
-import { TrackRow } from "@/components/features";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
+import { TrackRow } from "@/components/features/TrackRow";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Album, Track } from "@/types";
 

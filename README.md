@@ -10,6 +10,11 @@ cp .env.example .env
 pnpm dev
 ```
 
+Le projet utilise volontairement un seul fichier local `.env`. Il ne faut pas
+créer de `.env.local`, `.env.development`, `.env.production` ou de variante
+Sentry : toutes les valeurs locales sont regroupées dans `.env`, qui reste
+ignoré par Git. `.env.example` est l’inventaire versionné sans secrets.
+
 Variables obligatoires pour le catalogue public :
 
 - `HARVEST_CLIENT_ID`
@@ -17,6 +22,12 @@ Variables obligatoires pour le catalogue public :
 - `HARVEST_ACCESS_KEY`
 
 Pour activer les comptes Parigo, ajouter `HARVEST_SESSION_SECRET`, un secret indépendant généré par exemple avec `openssl rand -base64 48`. Son absence désactive uniquement la surface membre ; elle ne fait pas tomber le catalogue public.
+
+Le formulaire de contact utilise `RESEND_API_KEY`, envoie depuis
+`Parigo Music <contact@do-not-reply.app>` et transmet les demandes à
+`info@parigomusic.com`. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
+public réellement accessible. Tant que le domaine Parigo n’est pas raccordé,
+la valeur de référence est `https://parigo-ten.vercel.app`.
 
 `HARVEST_AUTH_URL`, `HARVEST_SERVICE_URL` et `HARVEST_AUTH_GRANT_TYPE` ont des valeurs officielles par défaut. `HARVEST_DEFAULT_REGION_ID` est facultatif : la région globale du service est découverte automatiquement. Les anciens alias `HM_ServiceAPI_*` ne sont plus pris en charge.
 

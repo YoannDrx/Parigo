@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      compatible-minor-updates:
+        update-types:
+          - minor
+          - patch
+    open-pull-requests-limit: 5

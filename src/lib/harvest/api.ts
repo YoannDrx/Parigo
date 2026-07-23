@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import type { Album, Label, Playlist, Track } from "@/types";
 import { HarvestError } from "./errors";
+import { logEvent } from "@/lib/logger";
 
 export function requestId(): string {
   return crypto.randomUUID();
@@ -45,6 +46,14 @@ export function apiError(
     : normalized.code === "HARVEST_UNAVAILABLE"
       ? "Le service Parigo est temporairement indisponible."
       : normalized.message.replace(/Harvest/gi, "Parigo");
+  logEvent({
+    level: normalized.status >= 500 ? "error" : "warn",
+    message: "api_request_failed",
+    route: options.surface || "catalog",
+    requestId: id,
+    status: normalized.status,
+    code: normalized.code,
+  });
   return NextResponse.json(
     {
       error: {

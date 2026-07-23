@@ -21,7 +21,7 @@ import {
   Shuffle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import WaveSurfer from "wavesurfer.js";
+import type WaveSurfer from "wavesurfer.js";
 import { usePlayerStore } from "@/stores/player-store";
 import { cn, formatBPM, formatDuration } from "@/lib/utils";
 import { TrackWaveform } from "./TrackWaveform";
@@ -30,7 +30,7 @@ import { useShortlistStore } from "@/stores/shortlist-store";
 import { FavoriteButton } from "./FavoriteButton";
 import { DownloadButton } from "./DownloadButton";
 import { AddToPlaylistButton } from "./AddToPlaylistButton";
-import { Tooltip } from "@/components/ui";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 export function MiniPlayer() {
   const playerInstanceId = useId();
@@ -80,108 +80,69 @@ export function MiniPlayer() {
     if (!waveformRef.current || !currentTrack) return;
 
     let isMounted = true;
-
-    // Reset the local adapter state whenever WaveSurfer is recreated.
+    let localWaveSurfer: WaveSurfer | null = null;
     setIsReady(false);
     setHasError(false);
     setIsLoading(true);
-
-    // Détruire l'instance précédente
     if (wavesurferRef.current) {
-      try {
-        wavesurferRef.current.destroy();
-      } catch {
-        // Ignore destroy errors
-      }
+      try { wavesurferRef.current.destroy(); } catch {}
       wavesurferRef.current = null;
     }
-
-    // Créer une nouvelle instance WaveSurfer
-    const wavesurfer = WaveSurfer.create({
-      container: waveformRef.current,
-      waveColor: "rgba(255, 255, 255, 0.3)",
-      progressColor: "#6CFF67",
-      cursorColor: "#6CFF67",
-      cursorWidth: 2,
-      barWidth: 2,
-      barGap: 1,
-      barRadius: 2,
-      height: isExpanded ? 80 : 40,
-      normalize: true,
-      interact: true,
-    });
-
-    wavesurferRef.current = wavesurfer;
-
-    // Event handlers
-    wavesurfer.on("ready", () => {
-      if (!isMounted) return;
-      setDuration(wavesurfer.getDuration());
-      wavesurfer.setVolume(isMuted ? 0 : volume);
-      setIsReady(true);
-      setIsLoading(false);
-      setHasError(false);
-      if (isPlaying) {
-        wavesurfer.play().catch(() => {
-          // Ignore play errors (user interaction required)
-        });
-      }
-    });
-
-    wavesurfer.on("error", (error) => {
-      if (!isMounted) return;
-      console.warn("WaveSurfer error:", error);
-      setHasError(true);
-      setIsLoading(false);
-      // Keep the metadata duration until the media element reports its value.
-      setDuration(currentTrack.duration);
-    });
-
-    wavesurfer.on("audioprocess", () => {
-      if (!isMounted) return;
-      setProgress(wavesurfer.getCurrentTime());
-    });
-
-    wavesurfer.on("seeking", () => {
-      if (!isMounted) return;
-      setProgress(wavesurfer.getCurrentTime());
-    });
-
-    wavesurfer.on("finish", () => {
-      if (!isMounted) return;
-      next();
-    });
-
-    // Charger l'audio avec gestion d'erreur
     if (!currentTrack.audioUrl) {
-      // No audio URL available
       setHasError(true);
       setIsLoading(false);
       setDuration(currentTrack.duration);
       return;
     }
-
-    try {
-      wavesurfer.load(currentTrack.audioUrl);
-    } catch (error) {
-      console.warn("Failed to load audio:", error);
-      if (isMounted) {
+    const audioUrl = currentTrack.audioUrl;
+    const container = waveformRef.current;
+    void import("wavesurfer.js").then(({ default: WaveSurferModule }) => {
+      if (!isMounted || !container) return;
+      const wavesurfer = WaveSurferModule.create({
+        container,
+        waveColor: "rgba(255, 255, 255, 0.3)",
+        progressColor: "#6CFF67",
+        cursorColor: "#6CFF67",
+        cursorWidth: 2,
+        barWidth: 2,
+        barGap: 1,
+        barRadius: 2,
+        height: isExpanded ? 80 : 40,
+        normalize: true,
+        interact: true,
+      });
+      localWaveSurfer = wavesurfer;
+      wavesurferRef.current = wavesurfer;
+      wavesurfer.on("ready", () => {
+        if (!isMounted) return;
+        setDuration(wavesurfer.getDuration());
+        wavesurfer.setVolume(isMuted ? 0 : volume);
+        setIsReady(true);
+        setIsLoading(false);
+        setHasError(false);
+        if (isPlaying) void wavesurfer.play().catch(() => undefined);
+      });
+      wavesurfer.on("error", () => {
+        if (!isMounted) return;
         setHasError(true);
         setIsLoading(false);
         setDuration(currentTrack.duration);
-      }
-    }
+      });
+      wavesurfer.on("audioprocess", () => { if (isMounted) setProgress(wavesurfer.getCurrentTime()); });
+      wavesurfer.on("seeking", () => { if (isMounted) setProgress(wavesurfer.getCurrentTime()); });
+      wavesurfer.on("finish", () => { if (isMounted) next(); });
+      void wavesurfer.load(audioUrl);
+    }).catch(() => {
+      if (!isMounted) return;
+      setHasError(true);
+      setIsLoading(false);
+      setDuration(currentTrack.duration);
+    });
 
     return () => {
       isMounted = false;
-      if (wavesurferRef.current) {
-        try {
-          wavesurferRef.current.destroy();
-        } catch {
-          // Ignore AbortError during cleanup
-        }
-        wavesurferRef.current = null;
-      }
+      try { localWaveSurfer?.destroy(); } catch {}
+      if (wavesurferRef.current === localWaveSurfer) wavesurferRef.current = null;
     };
   // The WaveSurfer instance is intentionally recreated only for a new track.
   // eslint-disable-next-line react-hooks/exhaustive-deps

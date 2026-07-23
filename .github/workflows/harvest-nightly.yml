@@ -1,0 +1,26 @@
+name: Harvest read-only contracts
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  harvest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "9.15.0"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:harvest
+        env:
+          HARVEST_LIVE_TESTS: "1"
+          HARVEST_CLIENT_ID: ${{ secrets.HARVEST_CLIENT_ID }}
+          HARVEST_CLIENT_SECRET: ${{ secrets.HARVEST_CLIENT_SECRET }}
+          HARVEST_ACCESS_KEY: ${{ secrets.HARVEST_ACCESS_KEY }}

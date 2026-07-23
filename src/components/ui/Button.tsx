@@ -15,7 +15,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
     const variants = {
       primary:
-        "border border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white hover:!border-[var(--foreground)] hover:!bg-[var(--foreground)] hover:!text-[var(--background)]",
+        "border border-[var(--signal-strong)] bg-[var(--signal-strong)] text-[var(--signal-contrast)] hover:!border-[var(--foreground)] hover:!bg-[var(--foreground)] hover:!text-[var(--background)]",
       secondary:
         "border border-[var(--surface-inverse)] bg-[var(--surface-inverse)] text-[var(--background)] hover:border-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white",
       outline:

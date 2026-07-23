@@ -8,7 +8,8 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { cn } from "@/lib/utils";
 import type { Playlist } from "@/types";
-import { AnchoredPopover, Tooltip } from "@/components/ui";
+import { AnchoredPopover } from "@/components/ui/AnchoredPopover";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 export function AddToPlaylistButton({ trackId, trackTitle, className }: { trackId: string; trackTitle: string; className?: string }) {
   const { data: session } = useSession();

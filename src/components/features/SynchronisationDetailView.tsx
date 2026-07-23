@@ -8,14 +8,14 @@ import type { Synchronisation } from "@/content/synchronisations";
 import { youtubeEmbedUrl } from "@/content/synchronisations";
 
 export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
-  const { locale } = useI18n();
+  const { locale, localizedPath } = useI18n();
 
   return (
     <div className="page-shell">
       <Header />
       <main className="px-4 pb-24 pt-28 md:px-8 md:pb-36 md:pt-32">
         <div className="mx-auto max-w-[1440px]">
-          <Link href="/synchronisations" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]"><ArrowLeft size={16} />{locale === "fr" ? "Toutes les synchronisations" : "All syncs"}</Link>
+          <Link href={localizedPath("/synchronisations")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]"><ArrowLeft size={16} />{locale === "fr" ? "Toutes les synchronisations" : "All syncs"}</Link>
           <div className="mt-9 grid gap-7 lg:grid-cols-12 lg:items-start">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
               <div className="flex items-center justify-between border-b border-white/12 px-3 py-2.5 text-white/46"><span className="font-mono text-[.54rem] uppercase tracking-[.14em]">Parigo screening room</span><span className="font-mono text-[.54rem]">16:9</span></div>

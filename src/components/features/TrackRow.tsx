@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2, Plus, X, NotebookPen } from "lucide-react";
-import { motion } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Track, Album } from "@/types";
-import { Tag, Tooltip } from "@/components/ui";
+import { Tag } from "@/components/ui/Tag";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { TrackWaveform } from "./TrackWaveform";
 import { TrackDetailsPanel, type TrackDetailsTab } from "./TrackDetailsPanel";
 import { FavoriteButton } from "./FavoriteButton";
@@ -127,13 +127,11 @@ export function TrackRow({
   };
 
   return (
-    <motion.article
+    <article
       data-mobile-track-actions={mobileActionsOpen ? "open" : undefined}
       data-state={isCurrentTrack ? "playing" : "idle"}
-      className={cn("parigo-track-row group relative border-b border-[var(--line)] transition-all duration-150 last:border-b-0", isCurrentTrack ? "bg-[var(--color-primary-light)]" : "")}
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
+      style={{ animationDelay: `${Math.min(index * 50, 350)}ms` }}
+      className={cn("parigo-track-row group relative animate-[fade-in_.24s_ease-out_both] border-b border-[var(--line)] transition-all duration-150 last:border-b-0", isCurrentTrack ? "bg-[var(--color-primary-light)]" : "")}
     >
       <div className={cn("parigo-track-row__main flex items-center gap-2 px-2 md:gap-3 md:px-3", density === "full" ? "py-3.5" : density === "mid" ? "py-2.5" : "py-1.5")}>
       {/* Index / Play button */}
@@ -282,6 +280,6 @@ export function TrackRow({
         </div>
       </div>}
       {detailsOpen && <TrackDetailsPanel track={track} activeTab={detailsTab} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} />}
-    </motion.article>
+    </article>
   );
 }

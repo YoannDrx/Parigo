@@ -100,6 +100,7 @@ export const HarvestAlbumSchema = z.looseObject({
   Detail: z.string().optional().nullable(),
   Description: z.string().optional().nullable(),
   ReleaseDate: z.string().optional().nullable(),
+  LastUpdated: z.string().optional().nullable(),
   TrackCount: harvestNumber.optional().nullable(),
   Featured: harvestBoolean.optional(),
   LibraryFeatured: harvestBoolean.optional(),
@@ -121,6 +122,7 @@ export const HarvestPlaylistSchema = z.looseObject({
   Type: z.string().optional().nullable(),
   Category: z.string().optional().nullable(),
   CreatedDate: z.string().optional().nullable(),
+  LastUpdated: z.string().optional().nullable(),
   Tracks: z.array(HarvestTrackSchema).optional().default([]),
 });
 

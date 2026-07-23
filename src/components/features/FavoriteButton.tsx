@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Heart, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useFavoritesStore } from "@/stores/favorites-store";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { cn } from "@/lib/utils";
-import { Tooltip } from "@/components/ui";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 interface FavoriteButtonProps {
@@ -82,7 +81,7 @@ export function FavoriteButton({
       ? (locale === "fr" ? "Retirer des favoris" : "Remove from favourites")
       : (locale === "fr" ? "Ajouter aux favoris" : "Add to favourites");
   const control = (
-      <motion.button
+      <button
         onClick={handleToggle}
         disabled={isLoading}
         className={cn(
@@ -96,35 +95,24 @@ export function FavoriteButton({
           sizeClasses[size],
           className
         )}
-        whileTap={{ scale: 0.9 }}
         aria-label={tooltipLabel}
       >
-        <AnimatePresence mode="wait">
           {isLoading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-            >
+            <span className="animate-[fade-in_.18s_ease-out_both]">
               <Loader2 size={iconSizes[size]} className="animate-spin" />
-            </motion.div>
+            </span>
           ) : (
-            <motion.div
+            <span
               key={isFavorite ? "filled" : "empty"}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ type: "spring", stiffness: 500, damping: 25 }}
+              className="animate-[fade-in_.18s_ease-out_both]"
             >
               <Heart
                 size={iconSizes[size]}
                 className={isFavorite ? "fill-current" : ""}
               />
-            </motion.div>
+            </span>
           )}
-        </AnimatePresence>
-      </motion.button>
+      </button>
   );
   return showTooltip ? <Tooltip label={tooltipLabel}>{control}</Tooltip> : control;
 }

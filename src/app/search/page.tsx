@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import {
   Check,
   BookmarkPlus,
@@ -20,16 +20,23 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { Header, Footer } from "@/components/layout";
-import { TrackRow } from "@/components/features";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
-import { Button, Select } from "@/components/ui";
+import { DeferredSearchSuggestions } from "@/components/search/DeferredSearchSuggestions";
+import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, resolveIntentCategoryIds, searchIntentChips } from "@/lib/search-intent";
 import { cn, formatDuration } from "@/lib/utils";
 import type { Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, Track } from "@/types";
 import { useSession } from "@/lib/auth-client";
+
+const TrackRow = dynamic(
+  () => import("@/components/features/TrackRow").then((module) => module.TrackRow),
+  { ssr: false, loading: () => <div className="h-20 animate-pulse border-b border-[var(--line)] bg-[var(--surface-soft)]" /> },
+);
 
 type ResultView = "tracks" | "albums";
 type Density = "full" | "mid" | "light";
@@ -40,19 +47,6 @@ type SearchMode = "intent" | "exact";
 const PAGE_SIZE = 30;
 const DEFAULT_BPM: [number, number] = [50, 200];
 const DEFAULT_DURATION: [number, number] = [0, 300];
-const PRODUCTION_SUGGESTIONS = [
-  "upbeat", "dramatic", "drama", "positive", "driving", "building", "bright", "fun", "energetic", "dark",
-  "happy", "mysterious", "confident", "action", "uplifting", "warm", "uptempo", "tension", "fast", "determined",
-  "electronic", "piano", "documentary", "tense", "suspense", "cinematic", "synths", "guitar", "dreamy", "atmospheric",
-  "powerful", "strings", "reflective", "synth", "orchestral", "cool", "light", "bouncy", "intense", "quirky",
-  "retro", "medium", "edgy", "playful", "dance", "epic", "exciting", "optimistic", "emotional", "aggressive",
-  "vocals", "pop", "percussion", "ambient", "mid", "drums", "tempo", "mid-tempo", "hopeful", "party",
-  "lively", "romantic", "vocal", "sports", "rock", "sexy", "ominous", "flowing", "adventure", "pulsing",
-  "bass", "electronica", "percussive", "gentle", "smooth", "relaxed", "serious", "sound design", "test", "carefree",
-  "dynamic", "trailer", "world", "love", "factual", "suspenseful", "gritty", "slow", "mystery", "travel",
-  "comedy", "heartfelt", "cheerful", "funky", "film", "underscore", "eerie", "heavy", "anticipation", "tender",
-] as const;
-
 function stripQuotes(value: string): string {
   return value.replace(/^["']+|["']+$/g, "");
 }
@@ -102,7 +96,7 @@ function useDebounced<T>(value: T, delay = 300): T {
 }
 
 function SearchContent() {
-  const { locale, t } = useI18n();
+  const { locale, t, localizedPath } = useI18n();
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -489,10 +483,7 @@ function SearchContent() {
             {saveSearchOpen && <div className="mb-4 grid gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nom de la recherche" : "Search name"}</span><input autoFocus value={saveSearchName} onChange={(event) => { setSaveSearchName(event.target.value); setSaveSearchState("idle"); }} maxLength={160} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--foreground)]" /></label><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setSaveSearchOpen(false)}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button size="sm" disabled={!saveSearchName.trim() || !searchHistoryId || saveSearchState === "saving"} onClick={() => void saveCurrentSearch()}>{saveSearchState === "saving" ? <Loader2 className="animate-spin" size={14} /> : <BookmarkPlus size={14} />}{saveSearchState === "saved" ? (locale === "fr" ? "Sauvegardée" : "Saved") : (locale === "fr" ? "Enregistrer" : "Save")}</Button></div>{saveSearchState === "error" && <p className="text-xs text-[var(--danger)] sm:col-span-2">{locale === "fr" ? "La recherche n’a pas pu être sauvegardée." : "The search could not be saved."}</p>}</div>}
 
             {!activeQuery.isError && (
-              <section className="search-suggestions mb-5 overflow-hidden border-y border-[var(--line)] bg-[var(--surface)] py-3" aria-labelledby="suggested-searches-title">
-                <div className="flex items-end justify-between gap-4 px-3 sm:px-4"><h2 id="suggested-searches-title" className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Recherches suggérées" : "Suggested searches"}</h2><span className="shrink-0 font-mono text-[.58rem] text-[var(--text-muted)]">{PRODUCTION_SUGGESTIONS.length} TAGS →</span></div>
-                <div className="suggestion-rail mt-2 grid grid-flow-col grid-rows-4 auto-cols-max gap-1.5 overflow-x-auto px-3 pb-2 pt-1.5 sm:grid-rows-3 sm:px-4" aria-label={locale === "fr" ? "Faire défiler les recherches suggérées horizontalement" : "Scroll suggested searches horizontally"}>{PRODUCTION_SUGGESTIONS.map((suggestion) => <button key={suggestion} type="button" onClick={() => addSuggestion(suggestion)} className="search-suggestion-tag min-h-7 border border-[var(--line)] bg-[var(--background)] px-2.5 py-1 text-[.68rem] leading-none transition hover:-translate-y-0.5 hover:border-[var(--signal-strong)] hover:bg-[var(--signal-soft)]">{suggestion}</button>)}</div>
-              </section>
+              <DeferredSearchSuggestions locale={locale} onSelect={addSuggestion} />
             )}
 
             {intentResolutionPending || activeQuery.isLoading || activeQuery.isFetching && !activeQuery.data ? (
@@ -510,7 +501,7 @@ function SearchContent() {
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             ) : albums.length ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{albums.map((album, index) => <motion.article key={album.id} initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * .018 }} className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-2.5"><Link href={`/albums/${album.slug || album.id}`} className="group block"><div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div><div className="flex items-start justify-between gap-3 py-3"><div className="min-w-0"><h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2><p className="mt-1 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p></div><span className="font-mono text-[.55rem] opacity-40">{String(index + 1).padStart(2, "0")}</span></div></Link></motion.article>)}</div>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{albums.map((album, index) => <article key={album.id} style={{ animationDelay: `${index * 18}ms` }} className="parigo-card animate-[fade-in_.25s_ease-out_both] border border-[var(--line)] bg-[var(--surface)] p-2.5"><Link href={localizedPath(`/albums/${album.slug || album.id}`)} className="group block"><div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div><div className="flex items-start justify-between gap-3 py-3"><div className="min-w-0"><h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2><p className="mt-1 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p></div><span className="font-mono text-[.55rem] opacity-40">{String(index + 1).padStart(2, "0")}</span></div></Link></article>)}</div>
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             )}
@@ -529,11 +520,11 @@ function SearchContent() {
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-[100] lg:hidden" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title">
           <button type="button" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => setMobileFiltersOpen(false)} aria-label={t("common.close")} />
-          <motion.div ref={dialogRef} initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: .3, ease: [0.22, 1, 0.36, 1] }} className="parigo-drawer parigo-drawer--bottom absolute inset-0 flex flex-col bg-[var(--background)] sm:inset-x-4 sm:bottom-4 sm:top-10">
+          <div ref={dialogRef} className="parigo-drawer parigo-drawer--bottom absolute inset-0 flex animate-[fade-in_.3s_ease-out_both] flex-col bg-[var(--background)] sm:inset-x-4 sm:bottom-4 sm:top-10">
             <div className="flex min-h-16 items-center justify-between border-b border-[var(--line)] px-4"><h2 id="mobile-filter-title" className="font-semibold">{locale === "fr" ? "Filtres" : "Filters"}</h2><button type="button" onClick={() => setMobileFiltersOpen(false)} className="flex h-11 w-11 items-center justify-center border border-[var(--line)]" aria-label={t("common.close")}><X size={17} /></button></div>
             <div className="relative z-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3">{filterPanel}</div>
             <div className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--background)] p-3"><Button className="w-full" onClick={() => setMobileFiltersOpen(false)}>{locale === "fr" ? `Voir ${total.toLocaleString(locale)} résultats` : `View ${total.toLocaleString(locale)} results`}</Button></div>
-          </motion.div>
+          </div>
         </div>
       )}
       <Footer />

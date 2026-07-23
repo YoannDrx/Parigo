@@ -1,23 +1,13 @@
 import type { MetadataRoute } from "next";
-import { getAlbums } from "@/lib/harvest/catalog";
+import { SITE_URL } from "@/lib/seo";
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.parigomusic.com";
-
-export const revalidate = 3600;
-
-export default async function robots(): Promise<MetadataRoute.Robots> {
-  let albumSitemaps = 1;
-  try {
-    const result = await getAlbums({ limit: 1 });
-    albumSitemaps = Math.max(1, Math.ceil(result.total / 100));
-  } catch {
-    // Keep the first page discoverable while Harvest is temporarily unavailable.
-  }
+export default function robots(): MetadataRoute.Robots {
   return {
-    rules: { userAgent: "*", allow: "/", disallow: ["/api/", "/account/"] },
-    sitemap: [
-      `${baseUrl}/sitemap.xml`,
-      ...Array.from({ length: albumSitemaps }, (_, index) => `${baseUrl}/sitemaps/albums/${index + 1}.xml`),
-    ],
+    rules: {
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/api/", "/account/", "/en/account/", "/design-system", "/engage-playlist/", "/verify-member/"],
+    },
+    sitemap: `${SITE_URL}/sitemap.xml`,
   };
 }

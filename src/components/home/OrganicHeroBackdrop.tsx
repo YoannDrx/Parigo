@@ -55,7 +55,7 @@ export function OrganicHeroBackdrop() {
         }}
         transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
         style={{ x, y, rotateX: tiltX, rotateY: tiltY, transformPerspective: 900 }}
-        className="absolute left-1/2 top-1/2 aspect-square h-[72%] min-h-[450px] max-h-[700px] w-auto -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-white/55 bg-[linear-gradient(135deg,rgba(255,255,255,.5),rgba(80,165,105,.18)_48%,rgba(255,255,255,.34))] shadow-[inset_0_0_130px_rgba(255,255,255,.5),0_42px_120px_rgba(34,106,58,.18)] backdrop-blur-[3px] [transform-style:preserve-3d]"
+        className="absolute left-1/2 top-1/2 aspect-square h-auto w-[min(86vw,700px)] max-w-full -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-white/55 bg-[linear-gradient(135deg,rgba(255,255,255,.5),rgba(80,165,105,.18)_48%,rgba(255,255,255,.34))] shadow-[inset_0_0_130px_rgba(255,255,255,.5),0_42px_120px_rgba(34,106,58,.18)] backdrop-blur-[3px] [transform-style:preserve-3d] md:h-[72%] md:min-h-[450px] md:w-auto"
       >
         <motion.span style={{ x: glowX, y: glowY }} className="absolute left-1/2 top-1/2 h-[66%] w-[66%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--signal)_28%,transparent)] blur-[65px]" />
         <span className="absolute inset-[7%] rounded-[inherit] border border-white/18 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,.5),transparent_36%)]" />

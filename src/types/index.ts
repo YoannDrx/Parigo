@@ -64,6 +64,7 @@ export interface Album {
   code?: string;
   keywords?: string[];
   styles?: Array<{ id: string; name: string }>;
+  updatedAt?: string;
 }
 
 export interface Playlist {
@@ -78,6 +79,7 @@ export interface Playlist {
   isFeatured?: boolean;
   tracks?: Track[];
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface MemberSavedSearch {
@@ -103,12 +105,13 @@ export interface Label {
   id: string;
   slug?: string;
   name: string;
-  logo: string;
+  logo: string | null;
   description?: string;
   website?: string;
   albumCount: number;
   location?: string;
   featured?: boolean;
+  updatedAt?: string;
 }
 
 export interface CatalogCategory {
