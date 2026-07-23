@@ -14,11 +14,35 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveAttribute("href", "/search");
+  await expect(hero.getByText("Interprétation", { exact: true })).toHaveCount(0);
   const search = page.getByLabel("Décrivez la musique que vous imaginez");
   await search.fill("Un piano intime pour un documentaire");
+  await expect(hero.getByText("Interprétation", { exact: true })).toBeVisible();
+  await expect(hero.getByText("Piano", { exact: true })).toBeVisible();
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: /Trouver la bonne musique/i })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get("categories"), { timeout: 30_000 }).not.toBeNull();
+  const resolvedUrl = new URL(page.url());
+  expect(resolvedUrl.searchParams.get("brief")).toBe("Un piano intime pour un documentaire");
+  expect(resolvedUrl.searchParams.has("q")).toBe(false);
+});
+
+test("le CTA Qui sommes-nous conserve un contraste lisible dans les deux thèmes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop.");
+  await page.goto("/");
+  const cta = page.getByRole("link", { name: "Découvrir le catalogue" });
+  await cta.scrollIntoViewIfNeeded();
+
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((nextTheme) => {
+      document.documentElement.dataset.theme = nextTheme;
+      document.documentElement.style.colorScheme = nextTheme;
+    }, theme);
+    await cta.hover();
+    await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(cta).toHaveCSS("color", "rgb(17, 21, 16)");
+  }
 });
 
 test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ page }, testInfo) => {
@@ -234,7 +258,22 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   const featured = page.locator("#featured");
   const nextButton = featured.locator('button[aria-label="Suivant"]');
   if (testInfo.project.name === "mobile") await expect(nextButton).toBeHidden();
-  else await expect(nextButton).toBeEnabled();
+  else {
+    await expect(nextButton).toBeEnabled();
+    await expect(nextButton).toHaveClass(/home-rail-nav--next/);
+    await expect(nextButton).toHaveCSS("border-radius", "0px");
+    expect((await nextButton.boundingBox())!.width).toBeGreaterThanOrEqual(76);
+    expect((await nextButton.boundingBox())!.height).toBeGreaterThanOrEqual(56);
+    await nextButton.hover();
+    await expect.poll(() => nextButton.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe("none");
+    await expect(page.getByRole("tooltip")).toHaveText("Suivant");
+    const inverseButton = page.locator(".home-rail-nav--inverse").last();
+    const inverseColors = await inverseButton.evaluate((node) => ({
+      control: getComputedStyle(node).color,
+      section: getComputedStyle(node.closest("section")!).backgroundColor,
+    }));
+    expect(inverseColors.control).not.toBe(inverseColors.section);
+  }
   await featured.getByRole("tab", { name: "Synchronisations" }).click();
   const firstSync = featured.locator('a[href^="/synchronisations/"]').first();
   await expect(firstSync).toBeVisible();
@@ -353,6 +392,7 @@ test("les suggestions sont visibles à vide et la shortlist expose son état", a
   await searchInput.focus();
   const focusedForm = searchInput.locator("xpath=ancestor::form");
   expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe("none");
+  await expect(searchInput).toHaveCSS("outline-style", "none");
   const suggestionRail = page.locator(".suggestion-rail");
   expect(await suggestionRail.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
@@ -381,17 +421,39 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   test.setTimeout(60_000);
   test.skip(testInfo.project.name === "mobile", "La résolution de taxonomie est identique sur la feuille mobile.");
   await page.goto("/search");
-  await page.getByRole("button", { name: "Recherche assistée" }).click();
-  await page.getByLabel("Décrivez votre intention musicale").fill("Une techno qui tabasse.");
-  const apply = page.getByRole("button", { name: /Appliquer ces critères|Préparation des critères/ });
+  const input = page.getByLabel("Décrivez votre intention musicale");
+  await input.fill("Une techno magnétique avec voix");
+  const interpretation = page.getByTestId("search-interpretation");
+  await expect(interpretation).toContainText("Techno");
+  await expect(interpretation).toContainText("Voix détectée · filtre bientôt disponible");
+
+  await input.fill("Une techno qui tabasse.");
+  await expect(interpretation).toContainText("Techno");
+  await expect(interpretation).toContainText("Énergique");
+  const apply = page.getByRole("button", { name: "Interpréter et rechercher" });
   await expect(apply).toBeEnabled({ timeout: 30_000 });
   await apply.click();
   await expect(page).toHaveURL(/categories=ATT_8c1be9ece2483e34/, { timeout: 30_000 });
 
   const url = new URL(page.url());
   expect(url.searchParams.has("q")).toBe(false);
+  expect(url.searchParams.get("brief")).toBe("Une techno qui tabasse.");
   expect(url.searchParams.get("categories")?.split(",")).toEqual(["ATT_8c1be9ece2483e34", "ATT_b242dfd7a2cf175e"]);
   await expect(page.getByText("2 inclus, 0 exclus", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
+});
+
+test("la recherche exacte reste accessible depuis le champ unifié", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/search");
+  await page.getByRole("button", { name: "Rechercher un titre précis" }).click();
+  const input = page.getByLabel("Rechercher un titre, un album ou un compositeur");
+  await input.fill("piano");
+  await input.press("Enter");
+  await expect(page).toHaveURL(/q=piano/, { timeout: 30_000 });
+  const url = new URL(page.url());
+  expect(url.searchParams.has("brief")).toBe(false);
+  expect(url.searchParams.has("categories")).toBe(false);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 });
 

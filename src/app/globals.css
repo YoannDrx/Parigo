@@ -323,6 +323,19 @@ img { filter: var(--image-filter); }
   color: var(--background) !important;
 }
 
+.home-about-cta,
+.home-about-cta:visited {
+  border: 1px solid rgba(255, 255, 255, .65);
+  background: transparent;
+  color: #fff !important;
+}
+.home-about-cta:hover,
+.home-about-cta:focus-visible {
+  border-color: #fff;
+  background: #fff;
+  color: #111510 !important;
+}
+
 .filter-chip-excluded {
   border-color: color-mix(in srgb, var(--danger) 38%, var(--line));
   background: color-mix(in srgb, var(--danger) 8%, var(--surface));
@@ -392,6 +405,85 @@ img { filter: var(--image-filter); }
   transition: transform 780ms var(--ease-out);
 }
 .home-rail-card:hover .home-rail-card__media::after { transform: translateX(140%); }
+
+.home-rail-nav {
+  position: relative;
+  display: grid;
+  width: 4.75rem;
+  height: 3.5rem;
+  place-items: center;
+  color: inherit;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px transparent;
+  transition: color 260ms ease, background-color 260ms ease, box-shadow 260ms ease, opacity 260ms ease, transform 260ms var(--ease-out);
+}
+.home-rail-nav--inverse { color: var(--background); }
+.home-rail-nav::before,
+.home-rail-nav::after {
+  content: "";
+  position: absolute;
+  width: 1.15rem;
+  height: 1.15rem;
+  transition: width 440ms var(--ease-out), height 440ms var(--ease-out), border-color 260ms ease;
+}
+.home-rail-nav--previous::before {
+  top: 0;
+  left: 0;
+  border-top: 1px solid currentColor;
+  border-left: 1px solid currentColor;
+}
+.home-rail-nav--previous::after {
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid var(--signal);
+  border-bottom: 1px solid var(--signal);
+}
+.home-rail-nav--next::before {
+  top: 0;
+  right: 0;
+  border-top: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+}
+.home-rail-nav--next::after {
+  bottom: 0;
+  left: 0;
+  border-bottom: 1px solid var(--signal);
+  border-left: 1px solid var(--signal);
+}
+.home-rail-nav:not(:disabled):hover::before,
+.home-rail-nav:not(:disabled):hover::after,
+.home-rail-nav:focus-visible::before,
+.home-rail-nav:focus-visible::after {
+  width: calc(100% - .35rem);
+  height: calc(100% - .35rem);
+}
+.home-rail-nav:not(:disabled):hover,
+.home-rail-nav:focus-visible {
+  color: var(--signal-strong);
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 38%, transparent);
+}
+.home-rail-nav--inverse:not(:disabled):hover,
+.home-rail-nav--inverse:focus-visible { color: var(--background); }
+.home-rail-nav:active { transform: scale(.96); }
+.home-rail-nav:disabled { cursor: not-allowed; opacity: .22; }
+.home-rail-nav__arrow {
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 1.35;
+  transition: transform 360ms var(--ease-out);
+}
+.home-rail-nav__shaft {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 440ms var(--ease-out);
+}
+.home-rail-nav--previous:not(:disabled):hover .home-rail-nav__arrow { transform: translateX(-.22rem); }
+.home-rail-nav--next:not(:disabled):hover .home-rail-nav__arrow { transform: translateX(.22rem); }
+.home-rail-nav:not(:disabled):hover .home-rail-nav__shaft { transform: scaleX(1.08); }
 
 .no-scrollbar {
   -ms-overflow-style: none;
