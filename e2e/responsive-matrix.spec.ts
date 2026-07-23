@@ -51,15 +51,19 @@ test("les routes principales ne débordent sur aucun viewport cible", async ({ p
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
       await expect(page.locator("main")).toBeVisible();
-      await page.waitForTimeout(100);
-      const dimensions = await page.evaluate(() => ({
-        clientWidth: document.documentElement.clientWidth,
-        scrollWidth: document.documentElement.scrollWidth,
-      }));
-      expect(
-        dimensions.scrollWidth,
-        `${route} déborde à ${viewport.width}×${viewport.height}`,
-      ).toBe(dimensions.clientWidth);
+      await expect.poll(
+        () => page.evaluate(() => ({
+          clientWidth: document.documentElement.clientWidth,
+          scrollWidth: document.documentElement.scrollWidth,
+        })),
+        {
+          message: `${route} déborde à ${viewport.width}×${viewport.height}`,
+          timeout: 5_000,
+        },
+      ).toEqual({
+        clientWidth: viewport.width,
+        scrollWidth: viewport.width,
+      });
     }
   }
 });

@@ -145,7 +145,7 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
     const channels = color.match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
     expect(Math.min(...channels)).toBeGreaterThan(180);
   }
-  const instagramTile = page.locator('span[aria-label="Instagram"]');
+  const instagramTile = page.locator('[role="listitem"]').filter({ hasText: "Instagram" });
   await expect(instagramTile).toHaveCSS("background-color", "rgb(255, 255, 255)");
   if (testInfo.project.name === "desktop") {
     const projectCta = page.getByRole("button", { name: "Discuss a project" });
@@ -160,7 +160,12 @@ test("la homepage ne contient pas de violation critique axe", async ({ page }) =
   test.setTimeout(60_000);
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
-    if (message.type() === "error") consoleErrors.push(`${message.text()} @ ${message.location().url}`);
+    const text = message.text();
+    const blockedPreviewToolbar = text.includes("https://vercel.live/_next-live/feedback/feedback.js")
+      && text.includes("Content Security Policy");
+    if (message.type() === "error" && !blockedPreviewToolbar) {
+      consoleErrors.push(`${text} @ ${message.location().url}`);
+    }
   });
   await page.goto("/");
   const results = await new AxeBuilder({ page }).analyze();
