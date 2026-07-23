@@ -96,7 +96,7 @@ export function Header({ variant = "default" }: HeaderProps) {
 
       <AnimatePresence>
         {open && (
-          <motion.div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }} transition={{ duration: .3, ease: [.22, 1, .36, 1] }} className="fixed inset-x-0 bottom-0 top-[74px] z-[1] overflow-y-auto bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[var(--foreground)] shadow-[0_34px_100px_rgba(15,22,16,.14)] backdrop-blur-2xl">
+          <motion.div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} initial={{ opacity: 0, y: -14 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -14 }} transition={{ duration: .3, ease: [.22, 1, .36, 1] }} className="parigo-drawer parigo-drawer--bottom fixed inset-x-0 bottom-0 top-[74px] z-[1] overflow-y-auto bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[var(--foreground)] backdrop-blur-2xl">
             <div className="mx-auto grid min-h-full max-w-[1760px] px-4 py-8 md:grid-cols-12 md:px-8 md:py-12">
               <div className="mb-9 xl:hidden md:col-span-12"><UserMenu embedded /></div>
               <div className="md:col-span-8 lg:col-span-9 lg:pr-12">

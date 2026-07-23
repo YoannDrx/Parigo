@@ -62,11 +62,11 @@ export default function HistoryPage() {
     }, {} as Record<string, HistoryEntry[]>), [history, locale]);
 
   return (
-    <div className="space-y-8">
+    <div className="account-page space-y-8">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="account-page__header flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+          <div className="account-page__mark">
             <Clock size={24} className="text-blue-500" />
           </div>
           <div>
@@ -90,7 +90,7 @@ export default function HistoryPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-20 text-center"
+          className="account-empty flex flex-col items-center justify-center px-6 py-20 text-center"
         >
           <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
             <Clock size={40} className="text-[var(--color-gray-400)]" />
@@ -113,7 +113,7 @@ export default function HistoryPage() {
               <h3 className="text-sm font-semibold text-[var(--color-gray-600)] uppercase tracking-wide mb-3">
                 {date}
               </h3>
-              <div className="overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
+              <div className="parigo-frame overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
                 {entries.map((entry, index) => (
                   <div
                     key={entry.id}

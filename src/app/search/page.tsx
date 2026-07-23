@@ -529,7 +529,7 @@ function SearchContent() {
       {mobileFiltersOpen && (
         <div className="fixed inset-0 z-[100] lg:hidden" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title">
           <button type="button" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => setMobileFiltersOpen(false)} aria-label={t("common.close")} />
-          <motion.div ref={dialogRef} initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: .3, ease: [0.22, 1, 0.36, 1] }} className="absolute inset-0 flex flex-col bg-[var(--background)] sm:inset-x-4 sm:bottom-4 sm:top-10">
+          <motion.div ref={dialogRef} initial={{ y: "100%" }} animate={{ y: 0 }} transition={{ duration: .3, ease: [0.22, 1, 0.36, 1] }} className="parigo-drawer parigo-drawer--bottom absolute inset-0 flex flex-col bg-[var(--background)] sm:inset-x-4 sm:bottom-4 sm:top-10">
             <div className="flex min-h-16 items-center justify-between border-b border-[var(--line)] px-4"><h2 id="mobile-filter-title" className="font-semibold">{locale === "fr" ? "Filtres" : "Filters"}</h2><button type="button" onClick={() => setMobileFiltersOpen(false)} className="flex h-11 w-11 items-center justify-center border border-[var(--line)]" aria-label={t("common.close")}><X size={17} /></button></div>
             <div className="relative z-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3">{filterPanel}</div>
             <div className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--background)] p-3"><Button className="w-full" onClick={() => setMobileFiltersOpen(false)}>{locale === "fr" ? `Voir ${total.toLocaleString(locale)} résultats` : `View ${total.toLocaleString(locale)} results`}</Button></div>

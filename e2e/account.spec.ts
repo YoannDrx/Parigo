@@ -239,6 +239,8 @@ test("les recherches sauvegardées restent relançables et supprimables", async 
 
 test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   await mockSession(page);
+  let nativeDialog: string | null = null;
+  page.on("dialog", async (dialog) => { nativeDialog = dialog.type(); await dialog.dismiss(); });
   const suggested = { ...track, id: "track-2", title: "Piano parallèle" };
   await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] } } }) }));
   await page.route("**/api/user/playlists/playlist-1/suggestions?limit=12", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tracks: [suggested] } }) }));
@@ -249,6 +251,18 @@ test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   });
   await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
   await page.goto("/account/playlists/playlist-1");
+  await page.getByRole("button", { name: "Renommer", exact: true }).click();
+  const renameDialog = page.getByRole("dialog", { name: "Renommer la playlist." });
+  await expect(renameDialog).toBeVisible();
+  await renameDialog.getByRole("textbox", { name: "Nouveau nom" }).fill("Film automne");
+  await renameDialog.getByRole("button", { name: "Renommer", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Film automne" })).toBeVisible();
+  await page.getByRole("button", { name: "Supprimer", exact: true }).click();
+  const deleteDialog = page.getByRole("dialog", { name: "Supprimer cette playlist ?" });
+  await expect(deleteDialog).toBeVisible();
+  await deleteDialog.getByRole("button", { name: "Conserver" }).click();
+  await expect(deleteDialog).toHaveCount(0);
+  expect(nativeDialog).toBeNull();
   await page.getByRole("button", { name: "Prolonger la sélection" }).click();
   await expect(page.getByText("Piano parallèle", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Partager", exact: true }).click();

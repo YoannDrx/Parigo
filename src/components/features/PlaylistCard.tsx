@@ -15,12 +15,12 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
   return (
     <Link href={`/playlists/${playlist.id}`}>
       <motion.div
-        className="group/card"
+        className="parigo-frame group/card border border-[var(--line)] bg-[var(--surface)]"
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
         {/* Cover Image */}
-        <div className="relative aspect-square overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
+        <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
           <Image
             src={playlist.cover}
             alt={playlist.title}
@@ -43,7 +43,7 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
         </div>
 
         {/* Info - fixed height for uniform cards */}
-        <div className="flex min-w-0 flex-col pt-4">
+        <div className="flex min-w-0 flex-col p-4">
           <h3 className="mb-1 truncate text-lg font-semibold tracking-[-.035em] md:text-xl">
             {playlist.title}
           </h3>

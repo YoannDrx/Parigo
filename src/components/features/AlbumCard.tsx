@@ -19,12 +19,12 @@ export function AlbumCard({ album, priority = false }: AlbumCardProps) {
   return (
     <Link href={`/albums/${album.id}`}>
       <motion.div
-        className="group/card"
+        className="parigo-frame group/card border border-[var(--line)] bg-[var(--surface)]"
         whileHover={{ y: -4 }}
         whileTap={{ scale: 0.98 }}
       >
         {/* Cover Image */}
-        <div className="relative aspect-square overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
+        <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
           <Image
             src={album.cover}
             alt={album.title}
@@ -41,7 +41,7 @@ export function AlbumCard({ album, priority = false }: AlbumCardProps) {
         </div>
 
         {/* Info - fixed height to ensure uniform card sizes */}
-        <div className="flex min-w-0 flex-col pt-4">
+        <div className="flex min-w-0 flex-col p-4">
           <h3 className="truncate text-lg font-semibold leading-tight tracking-[-.035em] md:text-xl">
             {album.title}
           </h3>

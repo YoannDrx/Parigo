@@ -47,7 +47,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
         onSubmit={submit}
         className={cn(
           "ai-search-shell relative flex items-center border bg-[var(--surface)] text-[var(--foreground)] shadow-[var(--shadow-sm)] transition",
-          compact ? "rounded-[var(--radius-md)] border-[var(--line)] p-1.5" : "rounded-[var(--radius-lg)] border-[var(--signal)] p-2 md:p-2.5"
+          compact ? "rounded-[var(--radius-md)] border-[var(--line)] p-1.5" : "parigo-frame border-[var(--signal)] p-2 md:p-2.5"
         )}
       >
         {mode === "assisted"

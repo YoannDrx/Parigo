@@ -87,10 +87,10 @@ export default function FavoritesPage() {
   const filtersActive = Boolean(query.trim()) || category !== "all";
 
   return (
-    <div className="space-y-8">
+    <div className="account-page space-y-8">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+      <div className="account-page__header flex items-center gap-3">
+        <div className="account-page__mark">
           <Heart size={24} className="text-red-500" />
         </div>
         <div>
@@ -104,7 +104,7 @@ export default function FavoritesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
+      <div className="account-toolbar flex gap-2 overflow-x-auto">
         {tabs.map((tab) => (
           <button
             key={tab.id}
@@ -131,7 +131,7 @@ export default function FavoritesPage() {
       </div>
 
       {!isLoading && activeTotal > 0 && (
-        <section aria-label={locale === "fr" ? "Rechercher et filtrer les favoris" : "Search and filter favourites"} className="grid gap-3 border-y border-[var(--line)] py-4 md:grid-cols-[minmax(16rem,1fr)_14rem_auto] md:items-center">
+        <section aria-label={locale === "fr" ? "Rechercher et filtrer les favoris" : "Search and filter favourites"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(16rem,1fr)_14rem_auto] md:items-center">
           <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={activeTab === "tracks" ? (locale === "fr" ? "Titre, album, humeur, instrument…" : "Title, album, mood, instrument…") : (locale === "fr" ? "Titre, label, genre…" : "Title, label, genre…")} aria-label={locale === "fr" ? "Rechercher dans mes favoris" : "Search my favourites"} />
           <Select value={category} onValueChange={setCategory} ariaLabel={locale === "fr" ? "Filtrer les favoris" : "Filter favourites"} options={[{ value: "all", label: locale === "fr" ? "Tous les genres et humeurs" : "All genres and moods" }, ...categories.map((value) => ({ value, label: value }))]} className="[&_[role=combobox]]:min-h-11" />
           {filtersActive && <Button variant="ghost" className="justify-self-start px-3 md:justify-self-end" onClick={() => { setQuery(""); setCategory("all"); }}><X size={15} />{locale === "fr" ? "Effacer" : "Clear"}</Button>}
@@ -219,7 +219,7 @@ function EmptyState({
   description: string;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
+    <div className="account-empty flex flex-col items-center justify-center px-6 py-20 text-center">
       <div className="w-16 h-16 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
         <Icon size={32} className="text-[var(--color-gray-400)]" />
       </div>

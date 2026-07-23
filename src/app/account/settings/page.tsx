@@ -113,10 +113,10 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="account-page space-y-8">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center">
+      <div className="account-page__header flex items-center gap-3">
+        <div className="account-page__mark">
           <Settings size={24} className="text-[var(--color-gray-600)]" />
         </div>
         <div>
@@ -133,7 +133,7 @@ export default function SettingsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="parigo-panel border border-[var(--line)] bg-[var(--surface)] p-6"
+        className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-6"
       >
         <div className="flex items-center gap-3 mb-6">
           <Lock size={20} className="text-[var(--color-gray-600)]" />
@@ -183,7 +183,7 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="parigo-panel border border-[var(--line)] bg-[var(--surface)] p-6"
+        className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-6"
       >
         <div className="flex items-center gap-3 mb-6">
           <Bell size={20} className="text-[var(--color-gray-600)]" />
@@ -220,7 +220,7 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="parigo-panel relative overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]"
+        className="parigo-frame relative overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]"
       >
         <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[var(--danger)]" />
         <div className="grid gap-6 px-6 py-7 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start md:px-8 md:py-8">
