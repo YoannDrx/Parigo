@@ -2,9 +2,10 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
-import { Check, ImagePlus, Loader2, Save, Trash2 } from "lucide-react";
+import { Check, ImagePlus, Loader2, Save, Trash2, User } from "lucide-react";
 import { Button, Input, Select, Tooltip } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { MemberProfile } from "@/types";
 
 type FullProfile = MemberProfile & { image?: string; createdAt?: string };
@@ -97,7 +98,7 @@ export default function AccountPage() {
   ];
 
   return <div className="account-page space-y-8">
-    <div className="account-page__header"><p className="eyebrow mb-4">{locale === "fr" ? "Membre Parigo" : "Parigo member"}</p><h1 className="font-[var(--font-editorial)] text-5xl tracking-[-.05em] md:text-6xl">{t("account.profile")}</h1><p className="mt-2 text-[var(--text-muted)]">{locale === "fr" ? "Retrouvez et mettez à jour les informations liées à votre compte." : "View and update the information associated with your account."}</p></div>
+    <AccountPageHeader icon={User} eyebrow={locale === "fr" ? "Membre Parigo" : "Parigo member"} title={t("account.profile")} description={locale === "fr" ? "Retrouvez et mettez à jour les informations liées à votre compte." : "View and update the information associated with your account."} />
 
     <section className="parigo-frame grid gap-6 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[auto_1fr] md:p-8">
       <div className="flex flex-col items-center gap-4">

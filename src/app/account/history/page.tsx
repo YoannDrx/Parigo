@@ -6,6 +6,7 @@ import { Clock, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Album, Track } from "@/types";
 
 interface HistoryEntry {
@@ -63,23 +64,12 @@ export default function HistoryPage() {
 
   return (
     <div className="account-page space-y-8">
-      {/* Page Header */}
-      <div className="account-page__header flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="account-page__mark">
-            <Clock size={24} className="text-blue-500" />
-          </div>
-          <div>
-            <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
-              {t("account.history")}
-            </h1>
-            <p className="text-[var(--color-gray-600)]">
-              {history.length} {locale === "fr" ? `écoute${history.length > 1 ? "s" : ""}` : `listen${history.length === 1 ? "" : "s"}`}
-            </p>
-          </div>
-        </div>
-
-      </div>
+      <AccountPageHeader
+        icon={Clock}
+        eyebrow={locale === "fr" ? "Le fil de vos écoutes" : "Your listening trail"}
+        title={t("account.history")}
+        description={locale === "fr" ? `${history.length} écoute${history.length > 1 ? "s" : ""} pour reprendre une piste là où l’intuition est née.` : `${history.length} listen${history.length === 1 ? "" : "s"} to pick up a track where the idea began.`}
+      />
 
       {/* Content */}
       {isLoading ? (

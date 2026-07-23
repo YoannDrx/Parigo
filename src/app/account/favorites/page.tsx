@@ -8,6 +8,7 @@ import { useSession } from "@/lib/auth-client";
 import { TrackRow, AlbumCard } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { Button, Input, Select } from "@/components/ui";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Album, Track } from "@/types";
 
 type TabType = "tracks" | "albums";
@@ -88,20 +89,12 @@ export default function FavoritesPage() {
 
   return (
     <div className="account-page space-y-8">
-      {/* Page Header */}
-      <div className="account-page__header flex items-center gap-3">
-        <div className="account-page__mark">
-          <Heart size={24} className="text-red-500" />
-        </div>
-        <div>
-          <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
-            {t("account.favorites")}
-          </h1>
-          <p className="text-[var(--color-gray-600)]">
-            {tracks.length + albums.length} {locale === "fr" ? "éléments" : "items"}
-          </p>
-        </div>
-      </div>
+      <AccountPageHeader
+        icon={Heart}
+        eyebrow={locale === "fr" ? "Votre collection" : "Your collection"}
+        title={t("account.favorites")}
+        description={locale === "fr" ? `${tracks.length + albums.length} éléments conservés pour les retrouver rapidement.` : `${tracks.length + albums.length} items kept close for quick access.`}
+      />
 
       {/* Tabs */}
       <div className="account-toolbar flex gap-2 overflow-x-auto">

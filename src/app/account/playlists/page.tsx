@@ -8,6 +8,7 @@ import { Globe, ListMusic, Loader2, Lock, Plus, Search, X } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Button, Input, Select } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 
 interface UserPlaylist {
   id: string;
@@ -122,21 +123,16 @@ export default function PlaylistsPage() {
 
   return (
     <div className="account-page space-y-8">
-      <div className="account-page__header flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
-          <div className="account-page__mark">
-            <ListMusic size={24} className="text-[var(--signal-strong)]" />
-          </div>
-          <div>
-            <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("account.playlists")}</h1>
-            <p className="text-[var(--text-muted)]">{playlists.length} {playlists.length === 1 ? "playlist" : "playlists"}</p>
-          </div>
-        </div>
-        <Button variant="primary" className="gap-2 self-start" onClick={openCreate}>
+      <AccountPageHeader
+        icon={ListMusic}
+        eyebrow={locale === "fr" ? "Vos sélections" : "Your selections"}
+        title={t("account.playlists")}
+        description={locale === "fr" ? `${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"} pour organiser et partager vos choix.` : `${playlists.length} ${playlists.length === 1 ? "playlist" : "playlists"} to organise and share your choices.`}
+        actions={<Button variant="primary" className="gap-2" onClick={openCreate}>
           <Plus size={18} />
           <span>{locale === "fr" ? "Créer une playlist" : "Create a playlist"}</span>
-        </Button>
-      </div>
+        </Button>}
+      />
 
       {!isLoading && playlists.length > 0 && (
         <section aria-label={locale === "fr" ? "Rechercher et filtrer les playlists" : "Search and filter playlists"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(15rem,1fr)_12rem_12rem]">

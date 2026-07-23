@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { Loader2, Pencil, Plus, Tag, Trash2, X } from "lucide-react";
 import { Button, Input, ParigoDialog } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { MemberTag, Track } from "@/types";
 
 export default function TagsPage() {
@@ -104,7 +105,7 @@ export default function TagsPage() {
   };
 
   return <div className="account-page space-y-8">
-    <div className="account-page__header"><p className="eyebrow mb-4">Parigo / Tags</p><h1 className="font-[var(--font-editorial)] text-5xl tracking-[-.05em] md:text-6xl">{locale === "fr" ? "Tags personnels" : "Personal tags"}</h1><p className="mt-2 max-w-2xl text-[var(--text-muted)]">{locale === "fr" ? "Classez les pistes avec vos tags personnels Parigo. Ils restent liés à votre compte, sans base locale Parigo." : "Organise tracks with your personal Parigo tags. They stay attached to your account, with no local Parigo database."}</p></div>
+    <AccountPageHeader icon={Tag} eyebrow={locale === "fr" ? "Votre classement" : "Your filing system"} title={locale === "fr" ? "Tags personnels" : "Personal tags"} description={locale === "fr" ? "Classez les pistes avec vos tags personnels Parigo. Ils restent liés à votre compte." : "Organise tracks with your personal Parigo tags. They stay attached to your account."} />
     {message && <p role="alert" className="parigo-frame border border-red-300 bg-[var(--surface)] p-3 text-sm text-red-700">{message}</p>}
     <form onSubmit={create} className="account-toolbar flex max-w-xl gap-2"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder={locale === "fr" ? "Nom du nouveau tag" : "New tag name"} /><Button type="submit"><Plus size={17} />{locale === "fr" ? "Créer" : "Create"}</Button></form>
     {loading ? <Loader2 className="animate-spin" /> : <div className="grid gap-6 lg:grid-cols-[minmax(260px,360px)_1fr]">

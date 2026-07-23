@@ -99,7 +99,7 @@ export function TrackDetailsPanel({ track, activeTab, onTabChange, onClose }: { 
       </header>
 
       <div className="no-scrollbar overflow-x-auto border-b border-[var(--line)] px-4 md:px-7">
-        <div className="track-detail-tabs flex min-w-max" role="tablist">{tabs.map(([id, label], index) => <button key={id} type="button" role="tab" aria-selected={activeTab === id} onClick={() => onTabChange(id)} className={cn("min-h-12 border-r border-[var(--line)] px-4 text-sm font-semibold transition first:border-l", activeTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]")}><span className="mr-2 font-mono text-[.52rem] text-[var(--signal-strong)]">{String(index + 1).padStart(2, "0")}</span>{label}</button>)}</div>
+        <div className="track-detail-tabs flex min-w-max" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={activeTab === id} onClick={() => onTabChange(id)} className={cn("relative min-h-12 border-r border-[var(--line)] px-5 text-sm font-semibold transition first:border-l after:absolute after:inset-x-4 after:bottom-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-[var(--signal)] after:transition-transform", activeTab === id ? "bg-[var(--foreground)] text-[var(--background)] after:scale-x-100" : "text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--foreground)] hover:after:scale-x-50")}>{label}</button>)}</div>
       </div>
 
       <div className="track-detail-panel__content px-4 py-6 md:px-7 md:py-7">

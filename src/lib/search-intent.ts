@@ -100,7 +100,12 @@ export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFil
     ...intent.instruments.map((value): [SearchFilterGroupKey, string] => ["instruments", value]),
   ];
   return [...new Set(requested.flatMap(([group, value]) => {
-    const id = findSearchFilterId(groups, group, value);
+    const candidates: Array<[SearchFilterGroupKey, string]> = group === "genre" && value === "cinematic"
+      ? [["moods", "cinematic"], ["genre", "film"]]
+      : group === "moods" && value === "tense"
+        ? [["moods", "tension"], ["moods", "suspense"]]
+        : [[group, value]];
+    const id = candidates.map(([candidateGroup, candidateValue]) => findSearchFilterId(groups, candidateGroup, candidateValue)).find(Boolean);
     return id ? [id] : [];
   }))];
 }

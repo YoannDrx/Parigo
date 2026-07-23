@@ -15,6 +15,7 @@ import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { Button, Switch } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 
 export default function SettingsPage() {
   useSession();
@@ -114,20 +115,7 @@ export default function SettingsPage() {
 
   return (
     <div className="account-page space-y-8">
-      {/* Page Header */}
-      <div className="account-page__header flex items-center gap-3">
-        <div className="account-page__mark">
-          <Settings size={24} className="text-[var(--color-gray-600)]" />
-        </div>
-        <div>
-          <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
-            {t("account.settings")}
-          </h1>
-          <p className="text-[var(--color-gray-600)]">
-            {locale === "fr" ? "Gérez vos préférences et votre sécurité." : "Manage your preferences and security."}
-          </p>
-        </div>
-      </div>
+      <AccountPageHeader icon={Settings} eyebrow={locale === "fr" ? "Préférences du compte" : "Account preferences"} title={t("account.settings")} description={locale === "fr" ? "Gérez vos préférences, vos notifications et la sécurité de votre espace." : "Manage your preferences, notifications and member-space security."} />
 
       {/* Change Password Section */}
       <motion.div
