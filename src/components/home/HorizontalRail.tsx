@@ -1,10 +1,21 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/providers/I18nProvider";
+import { Tooltip } from "@/components/ui";
 
-export function HorizontalRail({ children, label, wide = false, cinema = false }: { children: ReactNode; label: string; wide?: boolean; cinema?: boolean }) {
+function RailArrow({ direction }: { direction: -1 | 1 }) {
+  return (
+    <svg viewBox="0 0 42 16" className="home-rail-nav__arrow h-4 w-10" aria-hidden="true">
+      <path d="M2 8h38" className="home-rail-nav__shaft" />
+      <path d={direction === -1 ? "M8 2 2 8l6 6" : "m34 2 6 6-6 6"} />
+    </svg>
+  );
+}
+
+export function HorizontalRail({ children, label, wide = false, cinema = false, inverse = false }: { children: ReactNode; label: string; wide?: boolean; cinema?: boolean; inverse?: boolean }) {
+  const { locale } = useI18n();
   const railRef = useRef<HTMLDivElement>(null);
   const [bounds, setBounds] = useState({ start: true, end: false, overflow: false });
   const [progress, setProgress] = useState(0);
@@ -50,9 +61,13 @@ export function HorizontalRail({ children, label, wide = false, cinema = false }
       <div className="mt-2 grid grid-cols-1 items-center gap-5 border-t border-[var(--line)] pt-4 lg:mt-3 lg:grid-cols-[auto_1fr_auto] lg:pt-5">
         <span className="hidden font-mono text-[.56rem] uppercase tracking-[.14em] text-[var(--text-muted)] lg:block">{label}</span>
         <div aria-hidden="true" className="relative h-[2px] overflow-hidden"><div style={{ transform: `scaleX(${bounds.overflow ? Math.max(.06, progress) : 1})` }} className="absolute inset-0 origin-left bg-[var(--signal)] transition-transform duration-300" /></div>
-        <div className="hidden gap-2 lg:flex">
-        <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label="Précédent"><ChevronLeft size={20} className="transition-transform group-hover:-translate-x-1" /></button>
-        <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label="Suivant"><ChevronRight size={20} className="transition-transform group-hover:translate-x-1" /></button>
+        <div className="hidden items-center gap-3 lg:flex">
+          <Tooltip label={locale === "fr" ? "Précédent" : "Previous"}>
+            <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--previous", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Précédent" : "Previous"}><RailArrow direction={-1} /></button>
+          </Tooltip>
+          <Tooltip label={locale === "fr" ? "Suivant" : "Next"}>
+            <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--next", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Suivant" : "Next"}><RailArrow direction={1} /></button>
+          </Tooltip>
         </div>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AlbumCard } from "./AlbumCard";
 import type { Album } from "@/types";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface AlbumCarouselProps {
   albums: Album[];
@@ -23,6 +24,7 @@ export function AlbumCarousel({
   autoPlay = false,
   autoPlayInterval = 5000,
 }: AlbumCarouselProps) {
+  const { locale } = useI18n();
   const [currentPage, setCurrentPage] = useState(0);
   const [visibleItems, setVisibleItems] = useState(itemsPerView.desktop);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -239,7 +241,7 @@ export function AlbumCarousel({
         <button
           onClick={goToPrevious}
           className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-white border-2 border-[var(--color-black)] rounded-full shadow-[3px_3px_0px_var(--color-black)] flex items-center justify-center hover:shadow-[4px_4px_0px_var(--color-black)] hover:-translate-y-[calc(50%+1px)] hover:translate-x-[-1px] transition-all opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
-          aria-label="Albums précédents"
+          aria-label={locale === "fr" ? "Albums précédents" : "Previous albums"}
         >
           <ChevronLeft className="w-5 h-5 text-[var(--color-black)]" />
         </button>
@@ -249,7 +251,7 @@ export function AlbumCarousel({
         <button
           onClick={goToNext}
           className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-white border-2 border-[var(--color-black)] rounded-full shadow-[3px_3px_0px_var(--color-black)] flex items-center justify-center hover:shadow-[4px_4px_0px_var(--color-black)] hover:-translate-y-[calc(50%+1px)] hover:translate-x-[1px] transition-all opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
-          aria-label="Albums suivants"
+          aria-label={locale === "fr" ? "Albums suivants" : "Next albums"}
         >
           <ChevronRight className="w-5 h-5 text-[var(--color-black)]" />
         </button>

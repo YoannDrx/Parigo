@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalizeCategoryValues, intentToSearchParams, parseSearchIntent, resolveIntentCategoryIds } from "./search-intent";
+import { canonicalizeCategoryValues, intentToSearchParams, parseSearchIntent, resolveIntentCategoryIds, searchIntentChips } from "./search-intent";
 import type { SearchFilterGroup } from "@/types";
 
 describe("parseSearchIntent", () => {
@@ -18,11 +18,12 @@ describe("parseSearchIntent", () => {
     expect(intent.bpmRange).toEqual([120, 150]);
   });
 
-  it("sérialise une recherche partageable", () => {
+  it("sérialise un brief structuré sans promettre un filtre vocal indisponible", () => {
     const params = intentToSearchParams(parseSearchIntent("piano calme instrumental"));
-    expect(params.getAll("instrument")).toContain("piano");
-    expect(params.getAll("mood")).toContain("peaceful");
-    expect(params.get("vocal")).toBe("false");
+    expect(params.get("brief")).toBe("piano calme instrumental");
+    expect(params.get("resolve")).toBe("1");
+    expect(params.get("q")).toBeNull();
+    expect(params.has("vocal")).toBe(false);
   });
 
   it("comprend une intention anglaise", () => {
@@ -56,7 +57,26 @@ describe("parseSearchIntent", () => {
     const params = intentToSearchParams(parseSearchIntent("Une techno qui tabasse."));
 
     expect(params.get("q")).toBeNull();
-    expect(params.getAll("genre")).toEqual(["techno"]);
+    expect(params.get("brief")).toBe("Une techno qui tabasse.");
+    expect(params.get("resolve")).toBe("1");
+  });
+
+  it("conserve une recherche littérale quand aucun critère structuré n'est compris", () => {
+    const params = intentToSearchParams(parseSearchIntent("Armand Dupont"));
+
+    expect(params.get("brief")).toBe("Armand Dupont");
+    expect(params.get("q")).toBe("Armand Dupont");
+    expect(params.has("resolve")).toBe(false);
+  });
+
+  it("n'affiche comme filtres que les critères réellement applicables", () => {
+    const intent = parseSearchIntent("Une techno énergique avec voix entre 120 et 140 BPM");
+
+    expect(searchIntentChips(intent, "fr").map((chip) => chip.label)).toEqual([
+      "Techno",
+      "Énergique",
+      "120–140 BPM",
+    ]);
   });
 
   it("nettoie une ancienne URL où un style a été sérialisé comme une catégorie", () => {

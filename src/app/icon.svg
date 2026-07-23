@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-label="Parigo Music">
+  <rect width="192" height="192" fill="#fff"/>
+  <path d="M58 38h65c19.3 0 35 15.7 35 35v65" fill="none" stroke="#111411" stroke-width="10"/>
+  <path d="M34 55v72c0 16.6 13.4 30 30 30h60" fill="none" stroke="#278d49" stroke-width="10"/>
+  <path d="M127.66 165.58h-25.09v67.96H60.82V50.33h66.84c35.75 0 62.62 18.43 62.62 56.41s-26.87 58.85-62.62 58.85Zm18.65-57.52c0-18.87-15.55-24.43-31.98-24.43h-11.77v48.64h11.77c16.43 0 31.98-5.55 31.98-24.21Z" transform="translate(43 32) scale(.45)" fill="#111411"/>
+</svg>

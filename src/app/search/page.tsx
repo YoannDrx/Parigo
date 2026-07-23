@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Check,
+  BookmarkPlus,
   ChevronLeft,
   ChevronRight,
   Disc3,
@@ -25,14 +26,16 @@ import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { Button, Select } from "@/components/ui";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, resolveIntentCategoryIds } from "@/lib/search-intent";
+import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, resolveIntentCategoryIds, searchIntentChips } from "@/lib/search-intent";
 import { cn, formatDuration } from "@/lib/utils";
 import type { Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, Track } from "@/types";
+import { useSession } from "@/lib/auth-client";
 
 type ResultView = "tracks" | "albums";
 type Density = "full" | "mid" | "light";
 type SortMode = "relevance" | "recent" | "oldest" | "title" | "title-desc" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
 type VersionType = "main" | "all";
+type SearchMode = "intent" | "exact";
 
 const PAGE_SIZE = 30;
 const DEFAULT_BPM: [number, number] = [50, 200];
@@ -100,9 +103,12 @@ function useDebounced<T>(value: T, delay = 300): T {
 
 function SearchContent() {
   const { locale, t } = useI18n();
+  const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = stripQuotes(searchParams.get("q") ?? searchParams.get("keyword") ?? "");
+  const initialBrief = stripQuotes(searchParams.get("brief") ?? "");
+  const shouldResolveInitialBrief = searchParams.get("resolve") === "1";
   const legacyEntries = useMemo(() => ([
     ["category", null],
     ["genre", "genre"],
@@ -112,7 +118,10 @@ function SearchContent() {
   const legacyRaw = useMemo(() => legacyEntries.map(({ value }) => value), [legacyEntries]);
 
   const [query, setQuery] = useState(initialQuery);
-  const [queryDraft, setQueryDraft] = useState(initialQuery);
+  const [brief, setBrief] = useState(initialBrief);
+  const [queryDraft, setQueryDraft] = useState(initialBrief || initialQuery);
+  const [searchMode, setSearchMode] = useState<SearchMode>(initialBrief || !initialQuery ? "intent" : "exact");
+  const [intentResolutionPending, setIntentResolutionPending] = useState(Boolean(initialBrief && shouldResolveInitialBrief));
   const [view, setView] = useState<ResultView>(searchParams.get("view") === "albums" ? "albums" : "tracks");
   const [type, setType] = useState<VersionType>(searchParams.get("type") === "all" ? "all" : "main");
   const [density, setDensity] = useState<Density>(searchParams.get("density") === "mid" || searchParams.get("density") === "light" ? searchParams.get("density") as Density : "full");
@@ -133,8 +142,9 @@ function SearchContent() {
     Number(searchParams.get("durationMax") ?? searchParams.get("maxDuration")) || DEFAULT_DURATION[1],
   ]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
-  const [assistedOpen, setAssistedOpen] = useState(false);
-  const [assistedDraft, setAssistedDraft] = useState("");
+  const [saveSearchOpen, setSaveSearchOpen] = useState(false);
+  const [saveSearchName, setSaveSearchName] = useState("");
+  const [saveSearchState, setSaveSearchState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const dialogRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -173,6 +183,31 @@ function SearchContent() {
     return () => window.cancelAnimationFrame(frame);
   }, [allFilterItems, filterGroups, legacyEntries, locale]);
 
+  useEffect(() => {
+    if (!intentResolutionPending || !brief || !filterGroups.length) return;
+    const intent = parseSearchIntent(brief);
+    const detectedIds = resolveIntentCategoryIds(intent, filterGroups);
+    const hasResolvedCriteria = Boolean(detectedIds.length || intent.bpmRange);
+    const frame = window.requestAnimationFrame(() => {
+      setQuery(hasResolvedCriteria ? "" : brief);
+      setCategories(sorted(detectedIds));
+      setBpmRange(intent.bpmRange
+        ? [Math.max(DEFAULT_BPM[0], intent.bpmRange[0]), Math.min(DEFAULT_BPM[1], intent.bpmRange[1])]
+        : DEFAULT_BPM);
+      setIntentResolutionPending(false);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [brief, filterGroups, intentResolutionPending]);
+
+  useEffect(() => {
+    if (!intentResolutionPending || !brief || !filtersQuery.isError) return;
+    const frame = window.requestAnimationFrame(() => {
+      setQuery(brief);
+      setIntentResolutionPending(false);
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [brief, filtersQuery.isError, intentResolutionPending]);
+
   const updateCategories = useCallback((values: string[]) => { setCategories(sorted(values)); setPage(1); }, []);
   const updateLabels = useCallback((values: string[]) => { setLabels(sorted(values)); setPage(1); }, []);
   const updateStyles = useCallback((values: string[]) => { setStyles(sorted(values)); setPage(1); }, []);
@@ -185,6 +220,7 @@ function SearchContent() {
     // make several selections; closing the sheet commits the canonical URL.
     if (mobileFiltersOpen) return;
     const params = new URLSearchParams();
+    if (brief) params.set("brief", brief);
     if (query) params.set("q", query);
     params.set("view", view);
     params.set("type", type);
@@ -200,7 +236,7 @@ function SearchContent() {
     if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`/search${next ? `?${next}` : ""}`, { scroll: false });
-  }, [bpmRange, categories, density, durationRange, labels, mobileFiltersOpen, page, query, router, searchParams, sort, styles, type, view]);
+  }, [bpmRange, brief, categories, density, durationRange, labels, mobileFiltersOpen, page, query, router, searchParams, sort, styles, type, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -253,34 +289,56 @@ function SearchContent() {
     sort,
   }), [bpmRange, categories, durationRange, labels, locale, page, query, sort, styles, type]);
   const debouncedParams = useDebounced(requestParams, 300);
-  const tracksQuery = useTracks(debouncedParams, view === "tracks");
-  const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, view === "albums");
+  const tracksQuery = useTracks(debouncedParams, view === "tracks" && !intentResolutionPending);
+  const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, view === "albums" && !intentResolutionPending);
   const activeQuery = view === "tracks" ? tracksQuery : albumsQuery;
   const tracks = tracksQuery.data?.tracks ?? [];
   const albums = albumsQuery.data?.albums ?? [];
   const total = view === "tracks" ? tracksQuery.data?.pagination.total ?? 0 : albumsQuery.data?.pagination.total ?? 0;
   const facets: SearchFacets | undefined = view === "tracks" ? tracksQuery.data?.facets : albumsQuery.data?.facets;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const searchHistoryId = view === "tracks" ? tracksQuery.data?.searchHistoryId : albumsQuery.data?.searchHistoryId;
 
-  const assisted = useMemo(() => parseSearchIntent(assistedDraft), [assistedDraft]);
-  const detectedNames = [...new Set([...assisted.genres, ...assisted.moods, ...assisted.instruments])];
-  const applyAssisted = () => {
-    const detectedIds = resolveIntentCategoryIds(assisted, filterGroups);
-    const hasStructuredCriteria = Boolean(detectedIds.length || assisted.bpmRange);
-    const nextQuery = hasStructuredCriteria ? "" : assisted.freeText || assistedDraft.trim();
-    setQuery(nextQuery);
-    setQueryDraft(nextQuery);
-    setCategories(sorted(detectedIds));
-    if (detectedNames.length) {
-      const detected = new Set(detectedNames.map((name) => name.toLocaleLowerCase(locale)));
-      setStyles((current) => sorted(current.filter((value) => {
-        const id = value.replace(/^-/, "");
-        return !detected.has((itemNames.get(id) ?? "").toLocaleLowerCase(locale));
-      })));
-    }
-    if (assisted.bpmRange) setBpmRange([Math.max(50, assisted.bpmRange[0]), Math.min(200, assisted.bpmRange[1])]);
+  const draftIntent = useMemo(() => parseSearchIntent(searchMode === "intent" ? queryDraft : ""), [queryDraft, searchMode]);
+  const draftIntentChips = useMemo(() => searchIntentChips(draftIntent, locale), [draftIntent, locale]);
+  const hasTaxonomyIntent = Boolean(draftIntent.genres.length || draftIntent.moods.length || draftIntent.instruments.length);
+
+  const applyUnifiedSearch = () => {
+    const value = queryDraft.trim();
+    if (!value) return;
     setPage(1);
-    setAssistedOpen(false);
+    setLabels([]);
+    setStyles([]);
+    setDurationRange(DEFAULT_DURATION);
+    setType("main");
+
+    if (searchMode === "exact") {
+      setBrief("");
+      setQuery(value);
+      setCategories([]);
+      setBpmRange(DEFAULT_BPM);
+      setIntentResolutionPending(false);
+      return;
+    }
+
+    const detectedIds = filterGroups.length ? resolveIntentCategoryIds(draftIntent, filterGroups) : [];
+    const waitingForTaxonomy = hasTaxonomyIntent && !filterGroups.length;
+    const hasResolvedCriteria = Boolean(detectedIds.length || draftIntent.bpmRange);
+    setBrief(value);
+    setQuery(waitingForTaxonomy || hasResolvedCriteria ? "" : value);
+    setCategories(sorted(detectedIds));
+    setBpmRange(draftIntent.bpmRange
+      ? [Math.max(DEFAULT_BPM[0], draftIntent.bpmRange[0]), Math.min(DEFAULT_BPM[1], draftIntent.bpmRange[1])]
+      : DEFAULT_BPM);
+    setIntentResolutionPending(waitingForTaxonomy);
+  };
+
+  const clearUnifiedSearch = () => {
+    setQueryDraft("");
+    setQuery("");
+    setBrief("");
+    setIntentResolutionPending(false);
+    resetFilters();
   };
 
   const activeValues = [...categories, ...styles];
@@ -295,9 +353,32 @@ function SearchContent() {
   const addSuggestion = (suggestion: string) => {
     const terms = query.match(/"[^"]+"|\S+/g)?.map((term) => stripQuotes(term)) ?? [];
     const nextQuery = [...terms, suggestion].filter((term, index, all) => all.findIndex((candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase()) === index).map((term) => `"${term}"`).join(" ");
+    setBrief("");
+    setSearchMode("exact");
+    setIntentResolutionPending(false);
     setQuery(nextQuery);
     setQueryDraft(nextQuery);
     setPage(1);
+  };
+
+  const openSaveSearch = () => {
+    const fallback = (brief || query).replaceAll('"', "").trim() || (locale === "fr" ? "Ma recherche Parigo" : "My Parigo search");
+    setSaveSearchName(fallback.slice(0, 160));
+    setSaveSearchState("idle");
+    setSaveSearchOpen(true);
+  };
+
+  const saveCurrentSearch = async () => {
+    if (!searchHistoryId || !saveSearchName.trim()) return;
+    setSaveSearchState("saving");
+    const searchUrl = `${window.location.pathname}${window.location.search}`;
+    const response = await fetch("/api/user/searches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: saveSearchName.trim(), searchHistoryId, searchUrl }),
+    });
+    setSaveSearchState(response.ok ? "saved" : "error");
+    if (response.ok) window.setTimeout(() => setSaveSearchOpen(false), 900);
   };
 
   const filterPanel = (
@@ -333,21 +414,28 @@ function SearchContent() {
                 <h1 className="text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92] tracking-[-.06em]">{locale === "fr" ? "Trouver la bonne musique." : "Find the right music."}</h1>
               </div>
               <div>
-                <form onSubmit={(event) => { event.preventDefault(); setQuery(queryDraft.trim()); setPage(1); }} className="flex min-h-15 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-sm)] transition-[border-color,box-shadow] focus-within:border-[var(--signal-strong)] focus-within:shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--signal-strong),var(--shadow-sm)]">
-                  <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />
-                  <label htmlFor="catalog-search" className="sr-only">{t("common.search")}</label>
-                  <input id="catalog-search" value={queryDraft} onChange={(event) => setQueryDraft(event.target.value)} placeholder={locale === "fr" ? "Titre, mot-clé, compositeur, instrument…" : "Title, keyword, composer, instrument…"} className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
-                  {queryDraft && <button type="button" onClick={() => { setQueryDraft(""); setQuery(""); setPage(1); }} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}><X size={16} /></button>}
-                  <Button type="submit" size="sm" aria-label={t("common.search")}><span className="hidden sm:inline">{t("common.search")}</span><ChevronRight className="sm:hidden" size={17} /></Button>
+                <form onSubmit={(event) => { event.preventDefault(); applyUnifiedSearch(); }} className="ai-search-shell flex min-h-15 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-sm)] transition">
+                  {searchMode === "intent" ? <Sparkles size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" /> : <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />}
+                  <label htmlFor="catalog-search" className="sr-only">{searchMode === "intent" ? (locale === "fr" ? "Décrivez votre intention musicale" : "Describe your music brief") : (locale === "fr" ? "Rechercher un titre, un album ou un compositeur" : "Search for a title, album or composer")}</label>
+                  <input id="catalog-search" value={queryDraft} onChange={(event) => setQueryDraft(event.target.value)} maxLength={500} placeholder={searchMode === "intent" ? (locale === "fr" ? "Une techno énergique entre 120 et 140 BPM…" : "Energetic techno between 120 and 140 BPM…") : (locale === "fr" ? "Titre, album, compositeur ou mot-clé exact…" : "Title, album, composer or exact keyword…")} className="ai-search-input min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
+                  {queryDraft && <button type="button" onClick={clearUnifiedSearch} className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}><X size={16} /></button>}
+                  <Button type="submit" size="sm" disabled={!queryDraft.trim() || intentResolutionPending} aria-label={searchMode === "intent" ? (locale === "fr" ? "Interpréter et rechercher" : "Interpret and search") : t("common.search")}><span className="hidden sm:inline">{intentResolutionPending ? (locale === "fr" ? "Interprétation…" : "Interpreting…") : t("common.search")}</span>{intentResolutionPending ? <Loader2 className="animate-spin sm:hidden" size={17} /> : <ChevronRight className="sm:hidden" size={17} />}</Button>
                 </form>
-                <button type="button" onClick={() => setAssistedOpen((value) => !value)} aria-expanded={assistedOpen} className="mt-2 inline-flex min-h-10 items-center gap-2 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--signal-strong)]"><Sparkles size={14} />{locale === "fr" ? "Recherche assistée" : "Assisted search"}</button>
-                {assistedOpen && (
-                  <div className="mt-2 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4">
-                    <label className="text-xs font-semibold" htmlFor="assisted-search">{locale === "fr" ? "Décrivez votre intention musicale" : "Describe your music brief"}</label>
-                    <textarea id="assisted-search" value={assistedDraft} onChange={(event) => setAssistedDraft(event.target.value)} rows={2} placeholder={locale === "fr" ? "Un piano intime, sans voix, pour un documentaire…" : "An intimate instrumental piano track for a documentary…"} className="mt-2 w-full resize-none rounded-md border border-[var(--line)] bg-transparent p-3 text-sm outline-none focus:border-[var(--signal-strong)]" />
-                    {assistedDraft && <div className="mt-3"><p className="text-[.68rem] font-semibold uppercase tracking-[.1em] text-[var(--text-muted)]">{locale === "fr" ? "Critères détectés — à vérifier" : "Detected criteria — review before search"}</p><div className="mt-2 flex flex-wrap gap-2">{detectedNames.map((name) => <span key={name} className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{name}</span>)}{assisted.bpmRange && <span className="rounded-full border border-[var(--line)] px-3 py-1 text-xs">{assisted.bpmRange.join("–")} BPM</span>}{!detectedNames.length && !assisted.bpmRange && <span className="text-xs text-[var(--text-muted)]">{locale === "fr" ? "Aucun filtre structuré détecté : la phrase restera un mot-clé." : "No structured filter detected: the sentence will remain a keyword."}</span>}</div>{(detectedNames.length > 0 || assisted.bpmRange) && <p className="mt-3 max-w-xl text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Ces critères remplacent la phrase libre pour éviter de contraindre deux fois la même intention." : "These criteria replace the free-form sentence so the same intent is not constrained twice."}</p>}<Button type="button" size="sm" onClick={applyAssisted} disabled={detectedNames.length > 0 && filtersQuery.isLoading} className="mt-3">{filtersQuery.isLoading && detectedNames.length > 0 ? (locale === "fr" ? "Préparation des critères…" : "Preparing criteria…") : (locale === "fr" ? "Appliquer ces critères" : "Apply criteria")}</Button></div>}
+                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div data-testid="search-interpretation" className="flex min-h-9 flex-1 flex-wrap items-center gap-2 text-[var(--text-muted)]" aria-live="polite">
+                    {searchMode === "intent" ? <>
+                      <span className="eyebrow">{locale === "fr" ? "Interprétation" : "Interpretation"}</span>
+                      {draftIntentChips.map((chip) => <span key={chip.key} className="rounded-full border border-[var(--signal-strong)]/35 bg-[var(--signal-soft)] px-2.5 py-1 text-xs text-[var(--foreground)]">{chip.label}</span>)}
+                      {draftIntent.isVocal !== null && <span className="rounded-full border border-dashed border-[var(--line-strong)] px-2.5 py-1 text-xs">{locale === "fr" ? "Voix détectée · filtre bientôt disponible" : "Vocals detected · filter coming soon"}</span>}
+                      {queryDraft.trim() && !draftIntentChips.length && draftIntent.isVocal === null && <span className="text-xs">{locale === "fr" ? "Aucun critère structuré détecté : recherche par mots-clés." : "No structured criteria detected: keyword search."}</span>}
+                      {!queryDraft.trim() && <span className="text-xs">{locale === "fr" ? "Les critères compris apparaîtront ici avant la recherche." : "Recognised criteria will appear here before searching."}</span>}
+                    </> : <span className="text-xs">{locale === "fr" ? "Recherche littérale dans les titres, albums, compositeurs et métadonnées." : "Literal search across titles, albums, composers and metadata."}</span>}
                   </div>
-                )}
+                  <button type="button" onClick={() => setSearchMode((current) => current === "intent" ? "exact" : "intent")} className="inline-flex min-h-9 shrink-0 items-center gap-2 self-start border-b border-[var(--line-strong)] text-xs font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
+                    {searchMode === "intent" ? <Search size={13} /> : <Sparkles size={13} />}
+                    {searchMode === "intent" ? (locale === "fr" ? "Rechercher un titre précis" : "Search for an exact title") : (locale === "fr" ? "Décrire une intention" : "Describe a brief")}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -393,10 +481,12 @@ function SearchContent() {
               </div>
             )}
 
-            <div className="mb-4 flex items-center justify-between border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
-              <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
-              {query && <span>{locale === "fr" ? "Résultats pour" : "Results for"} « {query} »</span>}
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
+              <div className="flex items-center gap-3"><span>{intentResolutionPending || activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>{session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || intentResolutionPending || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 border-l border-[var(--line)] pl-3 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}</div>
+              {(brief || query) && <span>{brief ? (locale === "fr" ? "Brief interprété" : "Interpreted brief") : (locale === "fr" ? "Résultats pour" : "Results for")} « {brief || query} »</span>}
             </div>
+
+            {saveSearchOpen && <div className="mb-4 grid gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nom de la recherche" : "Search name"}</span><input autoFocus value={saveSearchName} onChange={(event) => { setSaveSearchName(event.target.value); setSaveSearchState("idle"); }} maxLength={160} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--foreground)]" /></label><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setSaveSearchOpen(false)}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button size="sm" disabled={!saveSearchName.trim() || !searchHistoryId || saveSearchState === "saving"} onClick={() => void saveCurrentSearch()}>{saveSearchState === "saving" ? <Loader2 className="animate-spin" size={14} /> : <BookmarkPlus size={14} />}{saveSearchState === "saved" ? (locale === "fr" ? "Sauvegardée" : "Saved") : (locale === "fr" ? "Enregistrer" : "Save")}</Button></div>{saveSearchState === "error" && <p className="text-xs text-[var(--danger)] sm:col-span-2">{locale === "fr" ? "La recherche n’a pas pu être sauvegardée." : "The search could not be saved."}</p>}</div>}
 
             {!activeQuery.isError && (
               <section className="mb-5 overflow-hidden border-y border-[var(--line)] bg-[var(--surface)] py-3" aria-labelledby="suggested-searches-title">
@@ -405,7 +495,7 @@ function SearchContent() {
               </section>
             )}
 
-            {activeQuery.isLoading || activeQuery.isFetching && !activeQuery.data ? (
+            {intentResolutionPending || activeQuery.isLoading || activeQuery.isFetching && !activeQuery.data ? (
               <div className="flex min-h-96 items-center justify-center"><Loader2 className="animate-spin text-[var(--signal-strong)]" size={32} /><span className="sr-only">{t("common.loading")}</span></div>
             ) : activeQuery.isError ? (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-3xl">{locale === "fr" ? "La recherche est temporairement indisponible." : "Search is temporarily unavailable."}</h2><p className="mt-3 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Réessayez dans quelques instants." : "Please try again in a moment."}</p><Button variant="outline" onClick={() => activeQuery.refetch()} className="mt-7">{t("common.retry")}</Button></div>

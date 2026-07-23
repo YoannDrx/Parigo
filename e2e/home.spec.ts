@@ -3,14 +3,117 @@ import AxeBuilder from "@axe-core/playwright";
 
 test("la homepage rend la recherche principale et navigue vers les résultats", async ({ page }) => {
   await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero).toBeVisible();
+  const backgrounds = await page.evaluate(() => ({
+    canvas: getComputedStyle(document.documentElement).backgroundColor,
+    hero: getComputedStyle(document.querySelector<HTMLElement>("[data-testid='home-hero']")!).backgroundColor,
+  }));
+  expect(backgrounds.canvas).toBe(backgrounds.hero);
   await expect(
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveAttribute("href", "/search");
+  await expect(hero.getByText("Interprétation", { exact: true })).toHaveCount(0);
   const search = page.getByLabel("Décrivez la musique que vous imaginez");
   await search.fill("Un piano intime pour un documentaire");
+  await expect(hero.getByText("Interprétation", { exact: true })).toBeVisible();
+  await expect(hero.getByText("Piano", { exact: true })).toBeVisible();
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: /Trouver la bonne musique/i })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get("categories"), { timeout: 30_000 }).not.toBeNull();
+  const resolvedUrl = new URL(page.url());
+  expect(resolvedUrl.searchParams.get("brief")).toBe("Un piano intime pour un documentaire");
+  expect(resolvedUrl.searchParams.has("q")).toBe(false);
+});
+
+test("le CTA Qui sommes-nous conserve un contraste lisible dans les deux thèmes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop.");
+  await page.goto("/");
+  const cta = page.getByRole("link", { name: "Découvrir le catalogue" });
+  await cta.scrollIntoViewIfNeeded();
+
+  for (const theme of ["light", "dark"]) {
+    await page.evaluate((nextTheme) => {
+      document.documentElement.dataset.theme = nextTheme;
+      document.documentElement.style.colorScheme = nextTheme;
+    }, theme);
+    await cta.hover();
+    await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(cta).toHaveCSS("color", "rgb(17, 21, 16)");
+  }
+});
+
+test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol du CTA est un comportement desktop.");
+  await page.goto("/");
+  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
+  if (await rejectCookies.isVisible()) await rejectCookies.click();
+  const cta = page.getByRole("link", { name: "Envoyer un brief" });
+  await cta.scrollIntoViewIfNeeded();
+  await cta.hover();
+  await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(cta).toHaveCSS("color", "rgb(16, 20, 16)");
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.style.colorScheme = "dark";
+  });
+  await cta.hover();
+  await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(cta).toHaveCSS("color", "rgb(16, 20, 16)");
+});
+
+test("la navbar reste minimaliste et expose la signature Parigo dans l’onglet", async ({ page }, testInfo) => {
+  await page.goto("/search");
+
+  const iconHref = await page.locator('head link[rel="icon"]').getAttribute("href");
+  expect(iconHref).toMatch(/^\/icon\.svg/);
+  const iconResponse = await page.request.get(new URL(iconHref!, page.url()).toString());
+  expect(iconResponse.ok()).toBe(true);
+  expect(iconResponse.headers()["content-type"]).toContain("image/svg+xml");
+  expect(await iconResponse.text()).toContain("Parigo Music");
+
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+    await expect(page.locator("#global-menu").getByText(/^0[1-7]$/)).toHaveCount(0);
+    return;
+  }
+
+  const mainNavigation = page.getByRole("navigation", { name: "Navigation principale" });
+  const activeLink = mainNavigation.getByRole("link", { name: "Recherche", exact: true });
+  await expect(activeLink).toHaveAttribute("aria-current", "page");
+  const activeStyles = await activeLink.evaluate((node) => {
+    const style = getComputedStyle(node);
+    const marker = getComputedStyle(node, "::after");
+    return { background: style.backgroundColor, radius: style.borderRadius, markerHeight: marker.height, markerTransform: marker.transform };
+  });
+  expect(activeStyles.background).toBe("rgba(0, 0, 0, 0)");
+  expect(activeStyles.radius).toBe("0px");
+  expect(activeStyles.markerHeight).toBe("2px");
+  expect(activeStyles.markerTransform).toBe("matrix(1, 0, 0, 1, 0, 0)");
+
+  const albumsLink = mainNavigation.getByRole("link", { name: "Albums", exact: true });
+  await albumsLink.focus();
+  await expect.poll(() => albumsLink.evaluate((node) => getComputedStyle(node, "::after").transform)).toBe("matrix(1, 0, 0, 1, 0, 0)");
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await expect(page.locator("#global-menu").getByText(/^0[1-7]$/)).toHaveCount(0);
+});
+
+test("la connexion reprend les codes éditoriaux sans indentation artificielle", async ({ page }, testInfo) => {
+  await page.goto("/");
+  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await page.getByRole("button", { name: "Ouvrir la connexion" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Se connecter" });
+  await expect(dialog).toBeVisible();
+  const email = dialog.locator("#login-email");
+  const password = dialog.locator("#login-password");
+  await expect(email).toHaveCSS("padding-left", "16px");
+  await expect(password).toHaveCSS("padding-left", "16px");
+  const forgot = dialog.getByRole("button", { name: "Mot de passe oublié" });
+  await expect(forgot).toHaveCSS("text-transform", "none");
+  expect(Number.parseFloat(await forgot.evaluate((node) => getComputedStyle(node).fontSize))).toBeLessThan(12);
 });
 
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
@@ -129,13 +232,20 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const firstPlay = page.getByRole("button", { name: /^Écouter / }).first();
   await expect(firstPlay).toBeVisible({ timeout: 30_000 });
   await expect(firstPlay.getByTestId("track-play-icon")).toBeVisible();
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCount(0);
+  await page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).first().click();
+  const shortlistTrigger = page.locator("[data-shortlist-trigger]");
+  await expect(shortlistTrigger).toBeVisible();
+  await page.getByRole("dialog", { name: "Shortlist" }).getByRole("button", { name: "Fermer" }).click();
+  await expect(shortlistTrigger).toHaveCSS("right", "12px");
+  await expect(shortlistTrigger).toHaveCSS("bottom", "12px");
   const moreActions = page.getByRole("button", { name: /^Plus d’actions :/ }).first();
   await expect(moreActions).toBeVisible();
   await moreActions.click();
   const actions = page.getByRole("region", { name: /^Actions pour/ }).first();
   await expect(actions).toBeVisible();
-  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("opacity", "0");
-  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("pointer-events", "none");
+  await expect(shortlistTrigger).toHaveCSS("opacity", "0");
+  await expect(shortlistTrigger).toHaveCSS("pointer-events", "none");
   await expect(actions.getByText("Télécharger", { exact: true })).toBeVisible();
   await expect(actions.getByText("Playlist", { exact: true })).toBeVisible();
   await expect(actions.getByText("Partager", { exact: true })).toBeVisible();
@@ -148,7 +258,22 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   const featured = page.locator("#featured");
   const nextButton = featured.locator('button[aria-label="Suivant"]');
   if (testInfo.project.name === "mobile") await expect(nextButton).toBeHidden();
-  else await expect(nextButton).toBeEnabled();
+  else {
+    await expect(nextButton).toBeEnabled();
+    await expect(nextButton).toHaveClass(/home-rail-nav--next/);
+    await expect(nextButton).toHaveCSS("border-radius", "0px");
+    expect((await nextButton.boundingBox())!.width).toBeGreaterThanOrEqual(76);
+    expect((await nextButton.boundingBox())!.height).toBeGreaterThanOrEqual(56);
+    await nextButton.hover();
+    await expect.poll(() => nextButton.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe("none");
+    await expect(page.getByRole("tooltip")).toHaveText("Suivant");
+    const inverseButton = page.locator(".home-rail-nav--inverse").last();
+    const inverseColors = await inverseButton.evaluate((node) => ({
+      control: getComputedStyle(node).color,
+      section: getComputedStyle(node.closest("section")!).backgroundColor,
+    }));
+    expect(inverseColors.control).not.toBe(inverseColors.section);
+  }
   await featured.getByRole("tab", { name: "Synchronisations" }).click();
   const firstSync = featured.locator('a[href^="/synchronisations/"]').first();
   await expect(firstSync).toBeVisible();
@@ -183,6 +308,28 @@ test("le manifesto libère le scroll une fois révélé", async ({ page }, testI
   await page.waitForTimeout(120);
   await section.evaluate((node) => window.scrollTo({ top: (node as HTMLElement).offsetTop + node.clientHeight + 120, behavior: "instant" }));
   await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(0);
+});
+
+test("le manifesto mobile attend la fin du geste avant de libérer le sticky", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La temporisation contrôle spécifiquement les navigations mobiles.");
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  const section = page.locator("#manifesto");
+  await section.evaluate((node) => window.scrollTo({
+    top: (node as HTMLElement).offsetTop + node.clientHeight - window.innerHeight,
+    behavior: "instant",
+  }));
+  await page.waitForTimeout(70);
+  await expect(section).toHaveAttribute("data-reveal-completed", "false");
+  await page.evaluate(() => window.scrollBy({ top: 28, behavior: "instant" }));
+  await page.waitForTimeout(70);
+  await expect(section).toHaveAttribute("data-reveal-completed", "false");
+
+  const processTopBefore = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
+  await expect(section).toHaveAttribute("data-reveal-completed", "true", { timeout: 1_000 });
+  const processTopAfter = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
+  expect(Math.abs(processTopAfter - processTopBefore)).toBeLessThanOrEqual(2);
+  await expect(section.locator(":scope > div")).toHaveCSS("position", "relative");
 });
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }) => {
@@ -245,15 +392,27 @@ test("les suggestions sont visibles à vide et la shortlist expose son état", a
   await searchInput.focus();
   const focusedForm = searchInput.locator("xpath=ancestor::form");
   expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe("none");
+  await expect(searchInput).toHaveCSS("outline-style", "none");
   const suggestionRail = page.locator(".suggestion-rail");
   expect(await suggestionRail.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCount(0);
   const add = page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).first();
   await add.click();
   await expect(page.getByRole("dialog", { name: "Shortlist" })).toBeVisible();
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("right", "20px");
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("bottom", "20px");
   await page.getByRole("button", { name: "Connectez-vous", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: "Se connecter" })).toBeVisible();
   await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Écouter / }).first().click();
+  const playerDock = page.getByTestId("player-dock");
+  const shortlistTrigger = page.locator("[data-shortlist-trigger]");
+  await expect(playerDock).toBeVisible();
+  await expect.poll(async () => {
+    const [playerBox, triggerBox] = await Promise.all([playerDock.boundingBox(), shortlistTrigger.boundingBox()]);
+    return playerBox && triggerBox ? playerBox.y - (triggerBox.y + triggerBox.height) : -1;
+  }).toBeGreaterThanOrEqual(10);
   const remove = page.getByRole("button", { name: /^Retirer de la shortlist :/ }).first();
   await expect(remove).toHaveAttribute("aria-pressed", "true");
 });
@@ -262,17 +421,39 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   test.setTimeout(60_000);
   test.skip(testInfo.project.name === "mobile", "La résolution de taxonomie est identique sur la feuille mobile.");
   await page.goto("/search");
-  await page.getByRole("button", { name: "Recherche assistée" }).click();
-  await page.getByLabel("Décrivez votre intention musicale").fill("Une techno qui tabasse.");
-  const apply = page.getByRole("button", { name: /Appliquer ces critères|Préparation des critères/ });
+  const input = page.getByLabel("Décrivez votre intention musicale");
+  await input.fill("Une techno magnétique avec voix");
+  const interpretation = page.getByTestId("search-interpretation");
+  await expect(interpretation).toContainText("Techno");
+  await expect(interpretation).toContainText("Voix détectée · filtre bientôt disponible");
+
+  await input.fill("Une techno qui tabasse.");
+  await expect(interpretation).toContainText("Techno");
+  await expect(interpretation).toContainText("Énergique");
+  const apply = page.getByRole("button", { name: "Interpréter et rechercher" });
   await expect(apply).toBeEnabled({ timeout: 30_000 });
   await apply.click();
   await expect(page).toHaveURL(/categories=ATT_8c1be9ece2483e34/, { timeout: 30_000 });
 
   const url = new URL(page.url());
   expect(url.searchParams.has("q")).toBe(false);
+  expect(url.searchParams.get("brief")).toBe("Une techno qui tabasse.");
   expect(url.searchParams.get("categories")?.split(",")).toEqual(["ATT_8c1be9ece2483e34", "ATT_b242dfd7a2cf175e"]);
   await expect(page.getByText("2 inclus, 0 exclus", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
+});
+
+test("la recherche exacte reste accessible depuis le champ unifié", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.goto("/search");
+  await page.getByRole("button", { name: "Rechercher un titre précis" }).click();
+  const input = page.getByLabel("Rechercher un titre, un album ou un compositeur");
+  await input.fill("piano");
+  await input.press("Enter");
+  await expect(page).toHaveURL(/q=piano/, { timeout: 30_000 });
+  const url = new URL(page.url());
+  expect(url.searchParams.has("brief")).toBe(false);
+  expect(url.searchParams.has("categories")).toBe(false);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 });
 

@@ -31,7 +31,7 @@ function emit(next: SessionState) {
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
-  void loadSession();
+  if (state.isPending) void loadSession();
   return () => listeners.delete(listener);
 }
 

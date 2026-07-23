@@ -43,6 +43,27 @@ const dictionaries = {
   },
 } as const;
 
+const displayLabels: Record<"fr" | "en", Record<string, string>> = {
+  fr: {
+    cinematic: "Cinématique", electronic: "Électronique", ambient: "Ambient", jazz: "Jazz", techno: "Techno",
+    house: "House", funk: "Funk", soul: "Soul", blues: "Blues", folk: "Folk", classical: "Classique",
+    "hip-hop": "Hip-hop", rock: "Rock", pop: "Pop", rnb: "R&B", reggae: "Reggae", "afro-beat": "Afrobeat",
+    country: "Country", latin: "Latin", world: "World", uplifting: "Solaire", dark: "Sombre",
+    energetic: "Énergique", peaceful: "Calme", melancholic: "Mélancolique", tense: "Tension",
+    epic: "Épique", playful: "Ludique", piano: "Piano", guitar: "Guitare", strings: "Cordes",
+    drums: "Batterie", synth: "Synthé", percussion: "Percussions",
+  },
+  en: {
+    cinematic: "Cinematic", electronic: "Electronic", ambient: "Ambient", jazz: "Jazz", techno: "Techno",
+    house: "House", funk: "Funk", soul: "Soul", blues: "Blues", folk: "Folk", classical: "Classical",
+    "hip-hop": "Hip-hop", rock: "Rock", pop: "Pop", rnb: "R&B", reggae: "Reggae", "afro-beat": "Afrobeat",
+    country: "Country", latin: "Latin", world: "World", uplifting: "Uplifting", dark: "Dark",
+    energetic: "Energetic", peaceful: "Peaceful", melancholic: "Melancholic", tense: "Tense",
+    epic: "Epic", playful: "Playful", piano: "Piano", guitar: "Guitar", strings: "Strings",
+    drums: "Drums", synth: "Synth", percussion: "Percussion",
+  },
+};
+
 function normalize(value: string) {
   return value.toLocaleLowerCase("fr").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
@@ -108,6 +129,16 @@ export function hasAppliedStructuredIntent(intent: SearchIntent): boolean {
   return Boolean(intent.genres.length || intent.moods.length || intent.instruments.length || intent.bpmRange);
 }
 
+export function searchIntentChips(intent: SearchIntent, locale: "fr" | "en"): Array<{ key: string; label: string }> {
+  const labels = displayLabels[locale];
+  return [
+    ...intent.genres.map((value) => ({ key: `genre:${value}`, label: labels[value] ?? value })),
+    ...intent.moods.map((value) => ({ key: `mood:${value}`, label: labels[value] ?? value })),
+    ...intent.instruments.map((value) => ({ key: `instrument:${value}`, label: labels[value] ?? value })),
+    ...(intent.bpmRange ? [{ key: "bpm", label: `${intent.bpmRange[0]}–${intent.bpmRange[1]} BPM` }] : []),
+  ];
+}
+
 function matches(input: string, terms: readonly string[]) {
   return terms.some((term) => input.includes(normalize(term)));
 }
@@ -125,7 +156,7 @@ export function parseSearchIntent(raw: string): SearchIntent {
     .map(([slug]) => slug);
 
   let bpmRange: [number, number] | null = null;
-  const explicitBpm = normalized.match(/(\d{2,3})\s*(?:a|à|-|to|and)\s*(\d{2,3})\s*bpm/);
+  const explicitBpm = normalized.match(/(\d{2,3})\s*(?:a|à|et|-|–|to|and)\s*(\d{2,3})\s*bpm/);
   if (explicitBpm) bpmRange = [Number(explicitBpm[1]), Number(explicitBpm[2])];
   else if (/\b(lent|lente|slow|posé|pose)\b/.test(normalized)) bpmRange = [55, 90];
   else if (/\b(medium|modéré|modere)\b/.test(normalized)) bpmRange = [90, 120];
@@ -140,14 +171,10 @@ export function parseSearchIntent(raw: string): SearchIntent {
 
 export function intentToSearchParams(intent: SearchIntent) {
   const params = new URLSearchParams();
-  if (intent.freeText && !hasAppliedStructuredIntent(intent)) params.set("q", intent.freeText);
-  intent.genres.forEach((value) => params.append("genre", value));
-  intent.moods.forEach((value) => params.append("mood", value));
-  intent.instruments.forEach((value) => params.append("instrument", value));
-  if (intent.bpmRange) {
-    params.set("minBpm", String(intent.bpmRange[0]));
-    params.set("maxBpm", String(intent.bpmRange[1]));
-  }
-  if (intent.isVocal !== null) params.set("vocal", String(intent.isVocal));
+  if (intent.raw) params.set("brief", intent.raw);
+  if (hasAppliedStructuredIntent(intent)) params.set("resolve", "1");
+  else if (intent.freeText) params.set("q", intent.freeText);
+  params.set("view", "tracks");
+  params.set("type", "main");
   return params;
 }

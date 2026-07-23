@@ -17,13 +17,65 @@ export function ShortlistDrawer() {
   const { data: session } = useSession();
   const openLogin = useAuthModalStore((state) => state.openLogin);
   const { items, isOpen, setOpen, remove, clear, move } = useShortlistStore();
-  const { setQueue, play } = usePlayerStore();
+  const { currentTrack, setQueue, play } = usePlayerStore();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [targetPlaylist, setTargetPlaylist] = useState("");
   const [playlistTitle, setPlaylistTitle] = useState("");
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [saved, setSaved] = useState(false);
+  const [playerClearance, setPlayerClearance] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!currentTrack) {
+      setPlayerClearance(null);
+      return;
+    }
+
+    let resizeObserver: ResizeObserver | null = null;
+    let mutationObserver: MutationObserver | null = null;
+    let positionFrame = 0;
+    let removeResizeListener: () => void = () => {};
+
+    const connectToPlayer = () => {
+      const dock = document.querySelector<HTMLElement>("[data-testid='player-dock']");
+      if (!dock) return false;
+
+      const measure = () => {
+        const rect = dock.getBoundingClientRect();
+        setPlayerClearance(Math.max(0, window.innerHeight - rect.top + 12));
+      };
+
+      measure();
+      const motionStartedAt = performance.now();
+      const followPlayerEntrance = () => {
+        measure();
+        if (performance.now() - motionStartedAt < 650) {
+          positionFrame = window.requestAnimationFrame(followPlayerEntrance);
+        }
+      };
+      positionFrame = window.requestAnimationFrame(followPlayerEntrance);
+      resizeObserver = new ResizeObserver(measure);
+      resizeObserver.observe(dock);
+      window.addEventListener("resize", measure);
+      removeResizeListener = () => window.removeEventListener("resize", measure);
+      return true;
+    };
+
+    if (!connectToPlayer()) {
+      mutationObserver = new MutationObserver(() => {
+        if (connectToPlayer()) mutationObserver?.disconnect();
+      });
+      mutationObserver.observe(document.body, { childList: true, subtree: true });
+    }
+
+    return () => {
+      window.cancelAnimationFrame(positionFrame);
+      removeResizeListener();
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+    };
+  }, [currentTrack]);
 
   useEffect(() => {
     if (!isOpen || !session?.user) return;
@@ -78,7 +130,25 @@ export function ShortlistDrawer() {
 
   return (
     <>
-      <button data-shortlist-trigger onClick={() => setOpen(true)} className="group fixed bottom-24 right-4 z-[58] flex h-14 max-w-[4.65rem] items-center gap-2 overflow-hidden rounded-full bg-[var(--signal)] px-3 text-sm font-semibold text-[#11120f] shadow-[var(--shadow-md)] transition-[max-width,transform,box-shadow,opacity] duration-300 hover:max-w-[11rem] hover:-translate-y-0.5 hover:shadow-lg focus-visible:max-w-[11rem] md:right-8" aria-label={`${t("common.open")} ${t("search.shortlist")}, ${items.length} ${items.length > 1 ? t("catalog.tracks") : t("catalog.track")}`}><ListPlus size={19} className="shrink-0" /><span className="shrink-0 rounded-full bg-black/12 px-2 py-0.5 font-mono text-xs">{items.length}</span><span className="max-w-0 shrink-0 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-300 group-hover:max-w-24 group-hover:opacity-100 group-focus-visible:max-w-24 group-focus-visible:opacity-100">{locale === "fr" ? "Sélection" : "Selection"}</span></button>
+      <AnimatePresence>
+        {items.length > 0 && (
+          <motion.button
+            data-shortlist-trigger
+            onClick={() => setOpen(true)}
+            className="group fixed bottom-[max(.75rem,env(safe-area-inset-bottom))] right-3 z-[58] flex h-14 max-w-[4.65rem] items-center gap-2 overflow-hidden rounded-full bg-[var(--signal)] px-3 text-sm font-semibold text-[#11120f] shadow-[var(--shadow-md)] transition-[bottom,max-width,transform,box-shadow,opacity] duration-300 hover:max-w-[11rem] hover:-translate-y-0.5 hover:shadow-lg focus-visible:max-w-[11rem] md:bottom-5 md:right-5"
+            style={playerClearance === null ? undefined : { bottom: playerClearance }}
+            initial={{ opacity: 0, scale: 0.84, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.88, y: 8 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            aria-label={`${t("common.open")} ${t("search.shortlist")}, ${items.length} ${items.length > 1 ? t("catalog.tracks") : t("catalog.track")}`}
+          >
+            <ListPlus size={19} className="shrink-0" />
+            <span className="shrink-0 rounded-full bg-black/12 px-2 py-0.5 font-mono text-xs">{items.length}</span>
+            <span className="max-w-0 shrink-0 overflow-hidden whitespace-nowrap opacity-0 transition-[max-width,opacity] duration-300 group-hover:max-w-24 group-hover:opacity-100 group-focus-visible:max-w-24 group-focus-visible:opacity-100">{locale === "fr" ? "Sélection" : "Selection"}</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {isOpen && <>
           <motion.button aria-label={`${t("common.close")} ${t("search.shortlist")}`} className="fixed inset-0 z-[79] bg-black/45 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setOpen(false)} />

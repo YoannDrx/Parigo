@@ -76,7 +76,7 @@ export default function TagsPage() {
   };
 
   return <div className="space-y-8">
-    <div><p className="eyebrow mb-4">Parigo / Tags</p><h1 className="font-[var(--font-editorial)] text-5xl tracking-[-.05em] md:text-6xl">Tag Manager</h1><p className="mt-2 max-w-2xl text-[var(--text-muted)]">{locale === "fr" ? "Classez les pistes avec vos tags personnels Parigo. Ils restent liés à votre compte, sans base locale Parigo." : "Organize tracks with your personal Parigo tags. They stay attached to your account, with no local Parigo database."}</p></div>
+    <div><p className="eyebrow mb-4">Parigo / Tags</p><h1 className="font-[var(--font-editorial)] text-5xl tracking-[-.05em] md:text-6xl">{locale === "fr" ? "Tags personnels" : "Personal tags"}</h1><p className="mt-2 max-w-2xl text-[var(--text-muted)]">{locale === "fr" ? "Classez les pistes avec vos tags personnels Parigo. Ils restent liés à votre compte, sans base locale Parigo." : "Organise tracks with your personal Parigo tags. They stay attached to your account, with no local Parigo database."}</p></div>
     {message && <p role="alert" className="border border-red-300 p-3 text-sm text-red-700">{message}</p>}
     <form onSubmit={create} className="flex max-w-xl gap-2"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder={locale === "fr" ? "Nom du nouveau tag" : "New tag name"} /><Button type="submit"><Plus size={17} />{locale === "fr" ? "Créer" : "Create"}</Button></form>
     {loading ? <Loader2 className="animate-spin" /> : <div className="grid gap-6 lg:grid-cols-[minmax(260px,360px)_1fr]">

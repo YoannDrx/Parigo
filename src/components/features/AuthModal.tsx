@@ -4,12 +4,12 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { AlertCircle, Loader2, Lock, LogIn, Mail, UserPlus, X } from "lucide-react";
+import { AlertCircle, ArrowRight, Loader2, LogIn, UserPlus, X } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import { Button, Input } from "@/components/ui";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { RegisterForm } from "@/app/(auth)/register/page";
+import { RegisterForm } from "@/components/features/RegisterForm";
 import { ParigoLogo } from "@/components/layout/ParigoLogo";
 
 export function LoginForm({ onRegister, onSuccess, onForgot, headingId = "auth-login-title" }: { onRegister?: () => void; onSuccess?: () => void; onForgot?: () => void; headingId?: string }) {
@@ -53,12 +53,17 @@ export function LoginForm({ onRegister, onSuccess, onForgot, headingId = "auth-l
       <form onSubmit={submit} className="space-y-5">
         <label htmlFor="login-email" className="block text-sm font-medium">
           <span className="mb-2 block">{t("auth.email")}</span>
-          <span className="relative block"><Mail className="absolute left-3 top-1/2 -translate-y-1/2 opacity-45" size={19} /><Input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} className="pl-10" required disabled={isLoading} /></span>
+          <Input id="login-email" type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} required disabled={isLoading} />
         </label>
         <label htmlFor="login-password" className="block text-sm font-medium">
-          <span className="mb-2 flex items-center justify-between"><span>{t("auth.password")}</span><button type="button" onClick={() => onForgot ? onForgot() : router.push("/forgot-password")} className="font-normal underline">{locale === "fr" ? "Mot de passe oublié ?" : "Forgot password?"}</button></span>
-          <span className="relative block"><Lock className="absolute left-3 top-1/2 -translate-y-1/2 opacity-45" size={19} /><Input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} className="pl-10" required minLength={8} disabled={isLoading} /></span>
+          <span className="mb-2 block">{t("auth.password")}</span>
+          <Input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required minLength={8} disabled={isLoading} />
         </label>
+        <div className="-mt-1 flex justify-end">
+          <button type="button" onClick={() => onForgot ? onForgot() : router.push("/forgot-password")} style={{ fontSize: ".68rem", fontWeight: 500, letterSpacing: 0, textTransform: "none" }} className="group/forgot inline-flex min-h-8 items-center gap-1.5 border-b border-[var(--line)] text-[var(--text-muted)] transition-colors hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
+            {locale === "fr" ? "Mot de passe oublié" : "Forgot password"}<ArrowRight size={11} className="transition-transform group-hover/forgot:translate-x-0.5" />
+          </button>
+        </div>
         <Button type="submit" size="lg" className="w-full" disabled={isLoading}>{isLoading && <Loader2 className="animate-spin" size={18} />}{isLoading ? t("auth.loggingIn") : t("auth.login")}</Button>
       </form>
       <p className="mt-6 text-center text-sm text-[var(--text-muted)]">{t("auth.noAccount")} <button type="button" onClick={() => onRegister ? onRegister() : router.push("/register")} className="font-medium underline">{t("auth.register")}</button></p>

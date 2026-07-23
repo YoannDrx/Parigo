@@ -35,7 +35,7 @@ export function DownloadButton({ trackId, trackTitle, className }: DownloadButto
       const format = formats.find((item: { extension?: string; bitRate?: number }) =>
         item.extension === "MP3" && item.bitRate === 320,
       ) || formats.find((item: { isDefault?: boolean }) => item.isDefault) || formats[0];
-      if (!format?.id) throw new Error("No download format is available");
+      if (!format?.id) throw new Error(locale === "fr" ? "Aucun format de téléchargement n’est disponible." : "No download format is available.");
 
       const requestResponse = await fetch("/api/user/downloads", {
         method: "POST",
@@ -43,23 +43,23 @@ export function DownloadButton({ trackId, trackTitle, className }: DownloadButto
         body: JSON.stringify({ trackId, formatId: format.id }),
       });
       const requestPayload = await requestResponse.json();
-      if (!requestResponse.ok) throw new Error(requestPayload.error?.message || "Download rejected");
-      if (requestPayload.data?.blockedContentIds?.includes(trackId)) throw new Error("This track is blocked for download");
+      if (!requestResponse.ok) throw new Error(requestPayload.error?.message || (locale === "fr" ? "Le téléchargement a été refusé." : "Download rejected."));
+      if (requestPayload.data?.blockedContentIds?.includes(trackId)) throw new Error(locale === "fr" ? "Cette piste n’est pas disponible au téléchargement." : "This track is blocked for download.");
       const token = requestPayload.data?.tokens?.[0];
-      if (!token) throw new Error("Parigo did not return a download token");
+      if (!token) throw new Error(locale === "fr" ? "Parigo n’a pas fourni de lien de téléchargement." : "Parigo did not return a download token.");
 
       for (let attempt = 0; attempt < 8; attempt += 1) {
         if (attempt > 0) await new Promise((resolve) => setTimeout(resolve, Math.min(1000 * 2 ** attempt, 8000)));
         const infoResponse = await fetch(`/api/user/downloads/${encodeURIComponent(token)}`, { cache: "no-store" });
         const info = await infoResponse.json();
-        if (!infoResponse.ok) throw new Error(info.error?.message || "Download status unavailable");
+        if (!infoResponse.ok) throw new Error(info.error?.message || (locale === "fr" ? "Le statut du téléchargement est indisponible." : "Download status unavailable."));
         const ready = info.data?.files?.find((file: { url?: string }) => file.url);
         if (ready?.url) {
           window.location.assign(ready.url);
           return;
         }
       }
-      throw new Error("The download is still being prepared. Try again shortly.");
+      throw new Error(locale === "fr" ? "Le téléchargement est encore en préparation. Réessayez dans un instant." : "The download is still being prepared. Try again shortly.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : (locale === "fr" ? "Téléchargement indisponible" : "Download unavailable"));
     } finally {

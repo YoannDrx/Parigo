@@ -63,6 +63,7 @@ export default function RootLayout({
         />
       </head>
       <body
+        suppressHydrationWarning
         className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <QueryProvider>{children}</QueryProvider>

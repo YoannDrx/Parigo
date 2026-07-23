@@ -27,6 +27,21 @@ export interface SignedSearchValues {
   exclude: string[];
 }
 
+export function searchHistoryIdFromResponse(payload: Record<string, unknown>): string | undefined {
+  const parameters = isRecord(payload.SearchParameters)
+    ? payload.SearchParameters
+    : isRecord(payload.SearchFilters)
+      ? payload.SearchFilters
+      : undefined;
+  if (!parameters) return undefined;
+  return asString(
+    parameters.ParentSearchHistoryID
+      || parameters.parentsearchhistoryid
+      || parameters.SearchHistoryID
+      || parameters.searchhistoryid,
+  ) || undefined;
+}
+
 export function harvestCategoryId(value: string): string {
   const withoutPrefix = value.replace(/^ATT_/i, "");
   const opaqueId = withoutPrefix.split("_")[0];

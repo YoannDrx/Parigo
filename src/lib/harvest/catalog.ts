@@ -21,7 +21,7 @@ import {
   type HarvestTrackPayload,
 } from "./contracts";
 import { HarvestError, isRecord } from "./errors";
-import { buildCloudSearch, mapSearchFacets, type HarvestSearchInput } from "./search";
+import { buildCloudSearch, mapSearchFacets, searchHistoryIdFromResponse, type HarvestSearchInput } from "./search";
 import {
   asBoolean,
   asIsoDate,
@@ -180,6 +180,7 @@ export async function cloudSearch(input: HarvestSearchInput, authenticatedMember
   albums: Album[];
   total: number;
   facets: SearchFacets;
+  searchHistoryId?: string;
 }> {
   const regionId = input.regionId || await getRegionId();
   const requestBody = JSON.stringify(buildCloudSearch({
@@ -202,11 +203,13 @@ export async function cloudSearch(input: HarvestSearchInput, authenticatedMember
   const total = view === "Album"
     ? payload.TotalAlbums
     : payload.TotalTracks;
+  const searchHistoryId = searchHistoryIdFromResponse(payload);
   return {
     tracks: trackItems.map((item) => mapTrack(item, templates)),
     albums: albumItems.map((item) => mapAlbum(item, templates)),
     total,
     facets: mapSearchFacets(payload),
+    searchHistoryId,
   };
 }
 

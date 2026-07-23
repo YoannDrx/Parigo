@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Clock, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
@@ -22,46 +22,44 @@ function albumFromTrack(track: Track): Album | undefined {
 export default function HistoryPage() {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user) {
-      loadHistory();
-    }
-  }, [session?.user]);
-
-  const loadHistory = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/user/history");
-      if (response.ok) {
+    if (!userId) return;
+    const controller = new AbortController();
+    void fetch("/api/user/history", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) return;
         const data = await response.json();
         setHistory(data.data?.history || []);
-      }
-    } catch (error) {
-      console.error("Error loading history:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) console.error("Error loading history:", error);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+    return () => controller.abort();
+  }, [userId]);
 
-  // Group history by date
-  const groupedHistory = history.reduce(
-    (acc, entry) => {
+  const groupedHistory = useMemo(() => [...history]
+    .sort((a, b) => {
+      const aTime = Date.parse(a.playedAt);
+      const bTime = Date.parse(b.playedAt);
+      return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
+    })
+    .reduce((acc, entry) => {
       const date = new Date(entry.playedAt).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB", {
         weekday: "long",
         day: "numeric",
         month: "long",
       });
-      if (!acc[date]) {
-        acc[date] = [];
-      }
+      if (!acc[date]) acc[date] = [];
       acc[date].push(entry);
       return acc;
-    },
-    {} as Record<string, HistoryEntry[]>
-  );
+    }, {} as Record<string, HistoryEntry[]>), [history, locale]);
 
   return (
     <div className="space-y-8">
@@ -115,21 +113,34 @@ export default function HistoryPage() {
               <h3 className="text-sm font-semibold text-[var(--color-gray-600)] uppercase tracking-wide mb-3">
                 {date}
               </h3>
-              <div className="space-y-2">
+              <div className="overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
                 {entries.map((entry, index) => (
-                  <div key={entry.id} className="relative">
-                    <TrackRow
-                      track={entry.track}
-                      album={albumFromTrack(entry.track)}
-                      index={index}
-                      showWaveform={false}
-                    />
-                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-[var(--color-gray-400)]">
-                      {new Date(entry.playedAt).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-GB", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </span>
+                  <div
+                    key={entry.id}
+                    data-testid="history-entry"
+                    className="grid border-b border-[var(--line)] last:border-b-0 sm:grid-cols-[5.75rem_minmax(0,1fr)]"
+                  >
+                    <div className="flex items-center gap-2 border-b border-[var(--line)] px-4 py-2 font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--text-muted)] sm:flex-col sm:items-start sm:justify-center sm:gap-1 sm:border-b-0 sm:border-r sm:px-4 sm:py-3">
+                      <span>{locale === "fr" ? "Écouté à" : "Played at"}</span>
+                      <time
+                        dateTime={entry.playedAt}
+                        data-testid="history-played-at"
+                        className="text-[.68rem] font-semibold tracking-[.04em] text-[var(--foreground)]"
+                      >
+                        {new Date(entry.playedAt).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-GB", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </time>
+                    </div>
+                    <div className="min-w-0 [&>div]:border-b-0">
+                      <TrackRow
+                        track={entry.track}
+                        album={albumFromTrack(entry.track)}
+                        index={index}
+                        showWaveform={false}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
