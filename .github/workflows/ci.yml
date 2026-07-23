@@ -92,6 +92,28 @@ jobs:
         env:
           SEO_BASE_URL: ${{ needs.preview.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - name: Keep browser reports only on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-browser-reports
+          path: |
+            playwright-report
+            test-results
+
+  preview-lighthouse:
+    needs: preview
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Discover a live album for Lighthouse
         run: node --import tsx scripts/discover-lighthouse-album.ts
         env:
@@ -101,19 +123,16 @@ jobs:
         env:
           LIGHTHOUSE_BASE_URL: ${{ needs.preview.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      - name: Keep browser and Lighthouse reports only on failure
+      - name: Keep Lighthouse reports only on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: preview-test-reports
-          path: |
-            playwright-report
-            test-results
-            .lighthouseci
+          name: preview-lighthouse-reports
+          path: .lighthouseci
 
   promote:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [preview, preview-tests]
+    needs: [preview, preview-tests, preview-lighthouse]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
