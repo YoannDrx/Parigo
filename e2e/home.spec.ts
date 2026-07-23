@@ -6,11 +6,83 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await expect(
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveAttribute("href", "/search");
   const search = page.getByLabel("Décrivez la musique que vous imaginez");
   await search.fill("Un piano intime pour un documentaire");
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: /Trouver la bonne musique/i })).toBeVisible();
+});
+
+test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol du CTA est un comportement desktop.");
+  await page.goto("/");
+  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
+  if (await rejectCookies.isVisible()) await rejectCookies.click();
+  const cta = page.getByRole("link", { name: "Envoyer un brief" });
+  await cta.scrollIntoViewIfNeeded();
+  await cta.hover();
+  await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(cta).toHaveCSS("color", "rgb(16, 20, 16)");
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.style.colorScheme = "dark";
+  });
+  await cta.hover();
+  await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(cta).toHaveCSS("color", "rgb(16, 20, 16)");
+});
+
+test("la navbar reste minimaliste et expose la signature Parigo dans l’onglet", async ({ page }, testInfo) => {
+  await page.goto("/search");
+
+  const iconHref = await page.locator('head link[rel="icon"]').getAttribute("href");
+  expect(iconHref).toMatch(/^\/icon\.svg/);
+  const iconResponse = await page.request.get(new URL(iconHref!, page.url()).toString());
+  expect(iconResponse.ok()).toBe(true);
+  expect(iconResponse.headers()["content-type"]).toContain("image/svg+xml");
+  expect(await iconResponse.text()).toContain("Parigo Music");
+
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+    await expect(page.locator("#global-menu").getByText(/^0[1-7]$/)).toHaveCount(0);
+    return;
+  }
+
+  const mainNavigation = page.getByRole("navigation", { name: "Navigation principale" });
+  const activeLink = mainNavigation.getByRole("link", { name: "Recherche", exact: true });
+  await expect(activeLink).toHaveAttribute("aria-current", "page");
+  const activeStyles = await activeLink.evaluate((node) => {
+    const style = getComputedStyle(node);
+    const marker = getComputedStyle(node, "::after");
+    return { background: style.backgroundColor, radius: style.borderRadius, markerHeight: marker.height, markerTransform: marker.transform };
+  });
+  expect(activeStyles.background).toBe("rgba(0, 0, 0, 0)");
+  expect(activeStyles.radius).toBe("0px");
+  expect(activeStyles.markerHeight).toBe("2px");
+  expect(activeStyles.markerTransform).toBe("matrix(1, 0, 0, 1, 0, 0)");
+
+  const albumsLink = mainNavigation.getByRole("link", { name: "Albums", exact: true });
+  await albumsLink.focus();
+  await expect.poll(() => albumsLink.evaluate((node) => getComputedStyle(node, "::after").transform)).toBe("matrix(1, 0, 0, 1, 0, 0)");
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await expect(page.locator("#global-menu").getByText(/^0[1-7]$/)).toHaveCount(0);
+});
+
+test("la connexion reprend les codes éditoriaux sans indentation artificielle", async ({ page }, testInfo) => {
+  await page.goto("/");
+  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await page.getByRole("button", { name: "Ouvrir la connexion" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Se connecter" });
+  await expect(dialog).toBeVisible();
+  const email = dialog.locator("#login-email");
+  const password = dialog.locator("#login-password");
+  await expect(email).toHaveCSS("padding-left", "16px");
+  await expect(password).toHaveCSS("padding-left", "16px");
+  const forgot = dialog.getByRole("button", { name: "Mot de passe oublié" });
+  await expect(forgot).toHaveCSS("text-transform", "none");
+  expect(Number.parseFloat(await forgot.evaluate((node) => getComputedStyle(node).fontSize))).toBeLessThan(12);
 });
 
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
