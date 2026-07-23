@@ -31,5 +31,7 @@ export function DeferredHomeStorySections(props: StoryProps) {
     };
   }, []);
 
-  return Sections ? <Sections {...props} /> : <div aria-hidden="true" className="h-px" />;
+  return Sections
+    ? <Sections {...props} />
+    : <div aria-hidden="true" className="h-[795svh] lg:h-[753svh]" />;
 }
