@@ -279,12 +279,12 @@ export function MiniPlayer() {
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 120, opacity: 0, scale: .98 }}
         transition={{ duration: .42, ease: [.22, 1, .36, 1] }}
-        className="fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden rounded-[1.35rem] border border-white/14 bg-[#101410]/94 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5"
+        className="parigo-player fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden border border-white/18 bg-[#101410]/96 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5"
       >
-        <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_14%_0%,rgba(92,190,116,.18),transparent_27%),linear-gradient(115deg,transparent_0%,rgba(255,255,255,.025)_48%,transparent_48.2%)]" />
+        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(100deg,rgba(60,156,97,.24)_0%,rgba(16,20,16,.96)_23%,rgba(8,10,8,.99)_100%),linear-gradient(115deg,transparent_0%,rgba(255,255,255,.035)_48%,transparent_48.2%)]" />
         <div className="relative grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2 px-3 py-3 sm:px-4 md:grid-cols-[minmax(210px,.8fr)_auto_minmax(300px,1.45fr)_auto] md:gap-x-5 md:px-5">
           <div className="flex min-w-0 items-center gap-3 md:pr-2">
-            <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-[.7rem] border border-white/16 bg-white/6 sm:h-14 sm:w-14">
+            <div className="parigo-player__art relative h-12 w-12 flex-shrink-0 overflow-hidden border border-white/16 bg-white/6 sm:h-14 sm:w-14">
               {albumCover ? (
                 <Image
                   src={albumCover}
@@ -304,9 +304,9 @@ export function MiniPlayer() {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-0.5 md:justify-center md:gap-1">
+          <div className="parigo-player__transport flex items-center justify-end gap-0.5 md:justify-center md:gap-1">
             <Tooltip label={locale === "fr" ? "Piste précédente" : "Previous track"} className="hidden sm:inline-flex"><button onClick={previous} className="flex h-10 w-10 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Piste précédente" : "Previous track"}><SkipBack size={17} /></button></Tooltip>
-            <Tooltip label={isPlaying ? t("common.pause") : t("common.play")}><button onClick={() => (isPlaying ? pause() : resume())} className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--signal)] text-[#0c120d] shadow-[0_0_0_5px_rgba(92,190,116,.12)] transition duration-300 hover:scale-105 hover:bg-white" aria-label={isPlaying ? t("common.pause") : t("common.play")}>
+            <Tooltip label={isPlaying ? t("common.pause") : t("common.play")}><button onClick={() => (isPlaying ? pause() : resume())} className="parigo-player__play flex h-12 w-12 items-center justify-center bg-[var(--signal)] text-[#0c120d] shadow-[0_0_0_5px_rgba(92,190,116,.12)] transition duration-300 hover:scale-105 hover:bg-white" aria-label={isPlaying ? t("common.pause") : t("common.play")}>
               {isPlaying ? <Pause size={18} className="fill-current" /> : <Play size={18} className="ml-0.5 fill-current" />}
             </button></Tooltip>
             <Tooltip label={locale === "fr" ? "Piste suivante" : "Next track"} className="hidden sm:inline-flex"><button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Piste suivante" : "Next track"}><SkipForward size={17} /></button></Tooltip>
@@ -325,14 +325,14 @@ export function MiniPlayer() {
           </div>
 
           <div className={cn("relative col-span-3 mt-2 min-w-0 md:order-3 md:col-span-1 md:mt-0", isExpanded ? "h-[72px]" : "h-9")}>
-            <div ref={waveformRef} data-testid="player-waveform" className={cn("h-full w-full cursor-pointer overflow-hidden rounded-md transition-opacity", hasError && "pointer-events-none opacity-0")} />
+            <div ref={waveformRef} data-testid="player-waveform" className={cn("parigo-player__wave h-full w-full cursor-pointer overflow-hidden transition-opacity", hasError && "pointer-events-none opacity-0")} />
             {(hasError || isLoading) && <div className="absolute inset-0"><TrackWaveform trackId={currentTrack.id} initialData={currentTrack.waveform} progress={progressPercent} height={isExpanded ? 72 : 36} interactive onSeek={handleStaticSeek} /></div>}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-between font-mono text-[.5rem] text-white/62"><span data-testid="player-time-current">{formatDuration(progress)}</span><span>{formatDuration(duration)}</span></div>
           </div>
         </div>
 
         <AnimatePresence initial={false}>
-          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: .32, ease: [.22, 1, .36, 1] }} className="relative overflow-hidden border-t border-white/10">
+          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: .32, ease: [.22, 1, .36, 1] }} className="parigo-player__expanded relative overflow-hidden border-t border-white/10">
             <div className="grid gap-5 px-4 py-4 sm:grid-cols-[auto_1fr] md:px-6">
               <div className="flex items-center gap-1 sm:flex-col sm:items-stretch sm:border-r sm:border-white/10 sm:pr-5 lg:flex-row lg:border-r-0 lg:pr-0">
                 <div className="flex items-center gap-0.5 xl:hidden">
@@ -348,7 +348,7 @@ export function MiniPlayer() {
               </div>
               <div className="min-w-0">
                 <div className="mb-3 flex items-center justify-between"><p className="font-mono text-[.55rem] uppercase tracking-[.13em] text-white/62">{locale === "fr" ? "À suivre" : "Up next"} · {Math.max(0, queue.length - 1)}</p>{hasError && <span className="flex items-center gap-1.5 text-[.62rem] text-amber-200/70" role="status"><AlertCircle size={13} />{locale === "fr" ? "Waveform de secours" : "Fallback waveform"}</span>}</div>
-                {nextTracks.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{nextTracks.map((track, index) => <div key={`${track.id}-${index}`} className="flex min-w-0 items-center gap-3 rounded-lg border border-white/9 bg-white/[.035] p-2.5"><span className="font-mono text-[.52rem] text-[var(--signal)]">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-white">{track.title}</p><p className="mt-1 truncate text-[.6rem] text-white/62">{track.albumTitle}</p></div></div>)}</div> : <p className="text-xs text-white/62">{locale === "fr" ? "Aucune autre piste dans la file." : "No other tracks in the queue."}</p>}
+                {nextTracks.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{nextTracks.map((track, index) => <div key={`${track.id}-${index}`} className="parigo-player__queue-card flex min-w-0 items-center gap-3 border border-white/12 bg-white/[.035] p-2.5"><span className="font-mono text-[.52rem] text-[var(--signal)]">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-white">{track.title}</p><p className="mt-1 truncate text-[.6rem] text-white/62">{track.albumTitle}</p></div></div>)}</div> : <p className="text-xs text-white/62">{locale === "fr" ? "Aucune autre piste dans la file." : "No other tracks in the queue."}</p>}
               </div>
             </div>
           </motion.div>}

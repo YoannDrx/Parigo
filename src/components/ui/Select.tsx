@@ -15,10 +15,12 @@ interface SelectProps<T extends string = string> {
   options: readonly SelectOption<T>[];
   onValueChange: (value: T) => void;
   ariaLabel: string;
+  caption?: string;
   className?: string;
   disabled?: boolean;
   id?: string;
   name?: string;
+  variant?: "default" | "editorial";
 }
 
 export function Select<T extends string>({
@@ -26,10 +28,12 @@ export function Select<T extends string>({
   options,
   onValueChange,
   ariaLabel,
+  caption,
   className,
   disabled = false,
   id,
   name,
+  variant = "default",
 }: SelectProps<T>) {
   const generatedId = useId();
   const listboxId = `${id || generatedId}-listbox`;
@@ -87,7 +91,12 @@ export function Select<T extends string>({
   };
 
   return (
-    <div ref={rootRef} className={cn("relative min-w-0", className)} onKeyDown={onKeyDown}>
+    <div
+      ref={rootRef}
+      data-variant={variant}
+      className={cn("parigo-select relative min-w-0", className)}
+      onKeyDown={onKeyDown}
+    >
       {name && <input type="hidden" name={name} value={value} />}
       <button
         id={id}
@@ -102,16 +111,22 @@ export function Select<T extends string>({
           if (!open) setActiveIndex(selectedIndex);
           setOpen((current) => !current);
         }}
-        className="flex min-h-10 w-full items-center justify-between gap-4 rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] py-2 pl-3.5 pr-3.5 text-left text-xs font-semibold shadow-[var(--shadow-sm)] transition hover:border-[var(--line-strong)] focus-visible:border-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]/25 disabled:opacity-45"
+        className={cn(
+          "parigo-select__trigger flex min-h-10 w-full items-center justify-between gap-4 border border-[var(--line)] bg-[var(--surface)] py-2 pl-3.5 pr-3.5 text-left text-xs font-semibold shadow-[var(--shadow-sm)] transition hover:border-[var(--line-strong)] focus-visible:border-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]/25 disabled:opacity-45",
+          variant === "default" && "rounded-[var(--radius-md)]",
+        )}
       >
-        <span className="truncate">{selected?.label ?? value}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          {caption && <span className="parigo-select__caption shrink-0">{caption}</span>}
+          <span className="truncate">{selected?.label ?? value}</span>
+        </span>
         <span className="flex h-6 w-5 shrink-0 items-center justify-end text-[var(--text-muted)]">
           <ChevronDown size={14} strokeWidth={1.6} className={cn("transition duration-300", open ? "rotate-180 text-[var(--signal-strong)]" : "opacity-70")} />
         </span>
       </button>
 
       {open && (
-        <div id={listboxId} role="listbox" aria-label={ariaLabel} className="absolute right-0 top-[calc(100%+.45rem)] z-[70] max-h-72 min-w-full overflow-y-auto rounded-[var(--radius-md)] border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[0_22px_60px_rgba(15,22,16,.18)]">
+        <div id={listboxId} role="listbox" aria-label={ariaLabel} className={cn("parigo-select__listbox absolute right-0 top-[calc(100%+.45rem)] z-[70] max-h-72 min-w-full overflow-y-auto border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[0_22px_60px_rgba(15,22,16,.18)]", variant === "default" && "rounded-[var(--radius-md)]")}>
           {options.map((option, index) => {
             const isSelected = option.value === value;
             return (
@@ -125,7 +140,8 @@ export function Select<T extends string>({
                 onFocus={() => setActiveIndex(index)}
                 onClick={() => choose(option)}
                 className={cn(
-                  "flex min-h-10 w-full items-center justify-between gap-5 whitespace-nowrap rounded-md px-3 text-left text-xs transition focus-visible:outline-none",
+                  "parigo-select__option flex min-h-10 w-full items-center justify-between gap-5 whitespace-nowrap px-3 text-left text-xs transition focus-visible:outline-none",
+                  variant === "default" && "rounded-md",
                   activeIndex === index && "bg-[var(--surface-soft)]",
                   isSelected && "font-semibold text-[var(--signal-strong)]",
                   option.disabled && "opacity-35",

@@ -21,7 +21,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          "rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-sm)] transition-all duration-300",
+          "parigo-card border border-[var(--line)] bg-[var(--surface)] shadow-[var(--shadow-sm)] transition-all duration-300",
           hover &&
             "hover:shadow-[var(--shadow-md)] hover:-translate-y-1",
           paddings[padding],

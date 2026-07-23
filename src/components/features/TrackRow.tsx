@@ -35,7 +35,7 @@ interface TrackRowProps {
 const openMobileActionMenus = new Set<symbol>();
 
 function MobileAction({ label, children }: { label: string; children: ReactNode }) {
-  return <div className="flex min-h-14 items-center justify-between gap-3 rounded-lg border border-[var(--line)] bg-[var(--background)] px-3 py-2"><span className="text-xs font-semibold leading-4">{label}</span><div className="shrink-0">{children}</div></div>;
+  return <div className="track-mobile-action flex min-h-14 items-center justify-between gap-3 border border-[var(--line)] bg-[var(--background)] px-3 py-2"><span className="text-xs font-semibold leading-4">{label}</span><div className="shrink-0">{children}</div></div>;
 }
 
 export function TrackRow({
@@ -129,12 +129,13 @@ export function TrackRow({
   return (
     <motion.article
       data-mobile-track-actions={mobileActionsOpen ? "open" : undefined}
-      className={cn("group relative border-b border-[var(--line)] transition-all duration-150 last:border-b-0", isCurrentTrack ? "bg-[var(--color-primary-light)]" : "hover:bg-black/[.04]")}
+      data-state={isCurrentTrack ? "playing" : "idle"}
+      className={cn("parigo-track-row group relative border-b border-[var(--line)] transition-all duration-150 last:border-b-0", isCurrentTrack ? "bg-[var(--color-primary-light)]" : "")}
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <div className={cn("flex items-center gap-2 px-2 md:gap-3 md:px-3", density === "full" ? "py-3.5" : density === "mid" ? "py-2.5" : "py-1.5")}>
+      <div className={cn("parigo-track-row__main flex items-center gap-2 px-2 md:gap-3 md:px-3", density === "full" ? "py-3.5" : density === "mid" ? "py-2.5" : "py-1.5")}>
       {/* Index / Play button */}
       <div className="flex w-10 flex-shrink-0 items-center justify-center md:w-8">
         <Tooltip label={isPlayingThis ? t("common.pause") : t("common.play")}>
@@ -142,7 +143,7 @@ export function TrackRow({
           onClick={handlePlay}
           aria-label={isPlayingThis ? `${t("common.pause")} ${track.title}` : `${t("common.play")} ${track.title}`}
           className={cn(
-            "flex h-10 w-10 items-center justify-center rounded-full transition-all md:h-8 md:w-8",
+            "parigo-track-row__play flex h-10 w-10 items-center justify-center transition-all md:h-8 md:w-8",
             isPlayingThis
               ? "bg-[var(--color-primary)] text-white"
               : "text-[var(--text-muted)] group-hover:bg-[var(--surface-soft)] group-hover:text-[var(--foreground)]"
@@ -168,7 +169,7 @@ export function TrackRow({
 
       {/* Album cover */}
       {showAlbumCover && album && density !== "light" && (
-        <div className={cn("relative flex-shrink-0 overflow-hidden border border-[var(--line)]", density === "full" ? "h-16 w-16" : "h-10 w-10")}>
+        <div className={cn("parigo-track-row__cover relative flex-shrink-0 overflow-hidden border border-[var(--line)]", density === "full" ? "h-16 w-16" : "h-10 w-10")}>
           <Image
             src={album.cover}
             alt={album.title}
@@ -182,7 +183,7 @@ export function TrackRow({
       {/* Track info + Waveform */}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen} className="min-w-0 text-left">
+          <button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen} className="parigo-track-row__title min-w-0 text-left">
           <p
             className={cn(
               "font-medium truncate",
@@ -228,7 +229,7 @@ export function TrackRow({
             <Tag variant="mood" size="sm">{localizeCatalogTerm(mood, locale)}</Tag>
           </Tooltip>
         ))}
-        {additionalTerms.length > 0 && <Tooltip label={`${locale === "fr" ? "Autres tags" : "Other tags"} · ${additionalTermsLabel}${additionalTerms.length > 12 ? "…" : ""}`}><button type="button" onClick={() => { setDetailsTab("information"); setDetailsOpen(true); }} className="inline-flex min-h-7 items-center rounded-full border border-dashed border-[var(--line-strong)] px-2 text-[.65rem] font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Voir tous les tags" : "View all tags"} : ${track.title}`}>+{additionalTerms.length}</button></Tooltip>}
+        {additionalTerms.length > 0 && <Tooltip label={`${locale === "fr" ? "Autres tags" : "Other tags"} · ${additionalTermsLabel}${additionalTerms.length > 12 ? "…" : ""}`}><button type="button" onClick={() => { setDetailsTab("information"); setDetailsOpen(true); }} className="parigo-track-row__more-tags inline-flex min-h-7 items-center border border-dashed border-[var(--line-strong)] px-2 text-[.65rem] font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Voir tous les tags" : "View all tags"} : ${track.title}`}>+{additionalTerms.length}</button></Tooltip>}
       </div>}
 
       {/* BPM */}
@@ -246,17 +247,17 @@ export function TrackRow({
       </div>
 
       {/* Actions */}
-      <div className="flex flex-shrink-0 items-center gap-0.5">
+      <div className="parigo-track-row__actions flex flex-shrink-0 items-center gap-0.5">
         <div className="hidden lg:contents"><FavoriteButton type="track" itemId={track.id} size="sm" />
         <Tooltip label={locale === "fr" ? "Informations sur la piste" : "Track information"}><button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen && detailsTab === "information"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "information" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></Tooltip>{session?.user && <Tooltip label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => toggleDetails("notes")} aria-expanded={detailsOpen && detailsTab === "notes"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "notes" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></Tooltip>}</div>
         <div className="hidden lg:contents"><DownloadButton trackId={track.id} trackTitle={track.title} /><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /><AddTagButton trackId={track.id} trackTitle={track.title} /><CueSheetButton compact title={track.title} trackIds={[track.id]} /></div>
         <Tooltip label={locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} className="hidden xl:inline-flex"><button onClick={() => addToQueue(track)} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}>
           <ListEnd size={17} className="text-[var(--color-gray-500)]" />
         </button></Tooltip>
-        <Tooltip label={isShortlisted ? (locale === "fr" ? "Déjà dans la sélection — retirer" : "Already selected — remove") : (locale === "fr" ? "Ajouter à la sélection" : "Add to selection")}><button onClick={() => isShortlisted ? removeFromShortlist(track.id) : addToShortlist(track)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center rounded-full border transition-colors", isShortlisted ? "border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal)_16%,transparent)]" : "border-[var(--signal-strong)]/45 text-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${track.title}`}>
+        <Tooltip label={isShortlisted ? (locale === "fr" ? "Déjà dans la sélection — retirer" : "Already selected — remove") : (locale === "fr" ? "Ajouter à la sélection" : "Add to selection")}><button onClick={() => isShortlisted ? removeFromShortlist(track.id) : addToShortlist(track)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center border transition-colors", isShortlisted ? "border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal)_16%,transparent)]" : "border-[var(--signal-strong)]/45 text-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${track.title}`}>
           {isShortlisted ? <Check size={17} /> : <ListPlus size={17} />}
         </button></Tooltip>
-        <button type="button" onClick={() => setMobileActionsOpen((value) => !value)} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} className={cn("flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line-strong)] transition lg:hidden", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
+        <button type="button" onClick={() => setMobileActionsOpen((value) => !value)} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} className={cn("flex h-10 w-10 items-center justify-center border border-[var(--line-strong)] transition lg:hidden", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
           <Plus size={18} className={cn("transition-transform", mobileActionsOpen && "rotate-45")} />
         </button>
         <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="hidden xl:inline-flex"><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></Tooltip>
@@ -265,8 +266,8 @@ export function TrackRow({
         </Link></Tooltip>
       </div>
       </div>
-      {mobileActionsOpen && <div id={mobileActionsId} role="region" aria-label={`${locale === "fr" ? "Actions pour" : "Actions for"} ${track.title}`} className="border-t border-[var(--line)] bg-[var(--surface)] px-3 pb-4 pt-3 lg:hidden">
-        <div className="mb-3 flex items-center justify-between"><p className="eyebrow text-[var(--text-muted)]">{locale === "fr" ? "Actions de la piste" : "Track actions"}</p><button type="button" onClick={() => setMobileActionsOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer les actions" : "Close actions"}><X size={15} /></button></div>
+      {mobileActionsOpen && <div id={mobileActionsId} role="region" aria-label={`${locale === "fr" ? "Actions pour" : "Actions for"} ${track.title}`} className="parigo-track-row__mobile-actions border-t border-[var(--line)] bg-[var(--surface)] px-3 pb-4 pt-3 lg:hidden">
+        <div className="mb-3 flex items-center justify-between"><p className="eyebrow text-[var(--text-muted)]">{locale === "fr" ? "Actions de la piste" : "Track actions"}</p><button type="button" onClick={() => setMobileActionsOpen(false)} className="flex h-9 w-9 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer les actions" : "Close actions"}><X size={15} /></button></div>
         <div className="grid grid-cols-2 gap-2">
           <MobileAction label={locale === "fr" ? "Favoris" : "Favourite"}><FavoriteButton type="track" itemId={track.id} size="md" showTooltip={false} /></MobileAction>
           <MobileAction label={locale === "fr" ? "Informations" : "Information"}><button type="button" onClick={() => { toggleDetails("information"); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></MobileAction>
@@ -280,7 +281,7 @@ export function TrackRow({
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
       </div>}
-      {detailsOpen && <TrackDetailsPanel track={track} activeTab={detailsTab} onTabChange={setDetailsTab} />}
+      {detailsOpen && <TrackDetailsPanel track={track} activeTab={detailsTab} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} />}
     </motion.article>
   );
 }

@@ -25,9 +25,7 @@ export function Switch({ checked, label, onCheckedChange, className, disabled, .
       <span aria-hidden="true" className="parigo-switch__corner parigo-switch__corner--top" />
       <span aria-hidden="true" className="parigo-switch__track">
         <span className="parigo-switch__rail" />
-        <span className="parigo-switch__thumb">
-          <span className="parigo-switch__state">{checked ? "1" : "0"}</span>
-        </span>
+        <span className="parigo-switch__thumb" />
       </span>
       <span aria-hidden="true" className="parigo-switch__corner parigo-switch__corner--bottom" />
     </button>

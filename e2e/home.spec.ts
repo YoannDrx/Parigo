@@ -353,14 +353,15 @@ test("une playlist Harvest avec une plage de BPM ouvre son détail", async ({ pa
   expect(await page.getByRole("button", { name: /^Écouter / }).count()).toBeGreaterThan(5);
 });
 
-test("la recherche par mot-clé préserve la requête et alimente le lecteur persistant", async ({ page }, testInfo) => {
+test("la recherche depuis l’accueil interprète l’intention et alimente le lecteur persistant", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   test.skip(testInfo.project.name === "mobile", "Le parcours mobile du menu est couvert séparément.");
   await page.goto("/");
   await page.getByLabel("Décrivez la musique que vous imaginez").fill("piano");
   await page.getByRole("button", { name: "Recherche", exact: true }).click();
-  await expect(page).toHaveURL(/q=piano/);
-  expect(new URL(page.url()).searchParams.has("categories")).toBe(false);
+  await expect(page).toHaveURL(/brief=piano/);
+  await expect(page).toHaveURL(/categories=ATT_51bcfc1bd83261cd/);
+  expect(new URL(page.url()).searchParams.get("categories")).toBe("ATT_51bcfc1bd83261cd");
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
   const firstTrack = page.getByRole("button", { name: /^Écouter / }).first();
   const trackTitle = (await firstTrack.getAttribute("aria-label"))?.replace(/^Écouter /, "") || "";
@@ -391,7 +392,7 @@ test("les suggestions sont visibles à vide et la shortlist expose son état", a
   const searchInput = page.locator("#catalog-search");
   await searchInput.focus();
   const focusedForm = searchInput.locator("xpath=ancestor::form");
-  expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe("none");
+  expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).toBe("none");
   await expect(searchInput).toHaveCSS("outline-style", "none");
   const suggestionRail = page.locator(".suggestion-rail");
   expect(await suggestionRail.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
@@ -504,6 +505,7 @@ test("la recherche expose des vues, tris et filtres partageables", async ({ page
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 
   if (testInfo.project.name === "mobile") {
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await page.getByRole("button", { name: "Filtres" }).click();
     await expect(page.getByRole("dialog", { name: "Filtres" })).toBeVisible();
     await page.waitForTimeout(400);
@@ -535,11 +537,11 @@ test("les filtres tri-état rendent inclusions et exclusions visibles", async ({
   await expect(includePiano).toBeVisible({ timeout: 30_000 });
   await includePiano.click();
   await expect(page).toHaveURL(/categories=ATT_51bcfc1bd83261cd/);
-  await expect(page.getByText(/1 inclus, 0 exclus/)).toBeVisible();
+  await expect(page.getByText(/1 inclus · 0 exclus/)).toBeVisible();
   const excludeAmbient = page.getByRole("button", { name: "Exclure Ambient" }).first();
   await excludeAmbient.click();
   await expect(page).toHaveURL(/categories=.*-ATT_df36fdca961e0855/);
-  await expect(page.getByText(/1 inclus, 1 exclus/)).toBeVisible();
+  await expect(page.getByText(/1 inclus · 1 exclus/)).toBeVisible();
 });
 
 test("une piste expose ses informations, versions et paroles", async ({ page }, testInfo) => {
