@@ -12,11 +12,22 @@ interface InstitutionalShellProps {
 
 export function InstitutionalShell({ eyebrow, title, intro, children }: InstitutionalShellProps) {
   return (
-    <div className="page-shell">
+    <div className="page-shell overflow-x-clip">
       <Header />
       <main>
-        <header className="border-b border-[var(--line)] bg-[var(--surface)] px-4 pb-20 pt-32 md:px-8 md:pb-28 md:pt-40">
-          <div className="mx-auto max-w-[1700px]"><p className="eyebrow mb-7 text-[var(--signal-strong)]">{eyebrow}</p><RevealText as="h1" className="section-title-serif max-w-5xl">{title}</RevealText><p className="mt-9 max-w-2xl text-lg leading-relaxed text-[var(--text-muted)] md:text-xl">{intro}</p></div>
+        <header className="institutional-hero border-b border-[var(--line)] px-4 pb-16 pt-28 md:px-8 md:pb-24 md:pt-36">
+          <div className="mx-auto max-w-[1700px]">
+            <div className="institutional-hero__frame parigo-frame grid gap-10 border border-[var(--line-strong)] bg-[var(--surface)] p-6 md:grid-cols-12 md:p-10 lg:p-14">
+              <div className="relative min-w-0 md:col-span-8">
+                <p className="eyebrow mb-7 text-[var(--signal-strong)]">{eyebrow}</p>
+                <RevealText as="h1" className="section-title-serif max-w-5xl break-words">{title}</RevealText>
+              </div>
+              <div className="relative flex flex-col justify-between border-t border-[var(--line)] pt-6 md:col-span-3 md:col-start-10 md:border-l md:border-t-0 md:pl-8 md:pt-0">
+                <p className="max-w-xl text-base leading-7 text-[var(--text-muted)] md:text-lg">{intro}</p>
+                <p className="mt-10 font-mono text-[.56rem] uppercase tracking-[.14em] text-[var(--text-muted)]">Parigo Music · Paris · France</p>
+              </div>
+            </div>
+          </div>
         </header>
         {children}
       </main>

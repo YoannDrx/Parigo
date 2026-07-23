@@ -109,6 +109,7 @@
   --motion-medium: 300ms;
   --motion-reveal: 640ms;
   --ease-out: cubic-bezier(.22, 1, .36, 1);
+  --sticky-offset: calc(74px + 1.5rem);
 }
 
 @theme inline {
@@ -311,6 +312,295 @@ textarea {
   background: color-mix(in srgb, var(--signal) 7%, var(--surface));
   transform: translateY(-1px);
 }
+.process-shell {
+  border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
+}
+.process-shell::before,
+.process-shell::after {
+  content: "";
+  position: absolute;
+  z-index: 6;
+  width: 3.5rem;
+  height: 1.25rem;
+  pointer-events: none;
+}
+.process-shell::before {
+  top: -1px;
+  right: -1px;
+  border-top: 2px solid rgba(255,255,255,.32);
+  border-right: 2px solid rgba(255,255,255,.32);
+  border-top-right-radius: var(--parigo-turn-lg);
+}
+.process-shell::after {
+  bottom: -1px;
+  left: -1px;
+  border-bottom: 2px solid var(--signal);
+  border-left: 2px solid var(--signal);
+  border-bottom-left-radius: var(--parigo-turn-lg);
+}
+.process-step__number {
+  border-radius: var(--parigo-corner-md) var(--parigo-turn-lg);
+}
+.process-step__signal {
+  position: relative;
+  display: block;
+  width: 1.5rem;
+  height: 1.1rem;
+}
+.process-step__signal-ink,
+.process-step__signal-green {
+  position: absolute;
+  display: block;
+  width: .95rem;
+  height: .7rem;
+  border-right: 1px solid;
+  border-bottom: 1px solid;
+  border-bottom-right-radius: var(--parigo-turn-sm);
+  transition:
+    width var(--motion-medium) var(--ease-out),
+    transform var(--motion-medium) var(--ease-out);
+}
+.process-step__signal-ink {
+  top: 0;
+  right: 0;
+  border-color: rgba(255,255,255,.42);
+}
+.process-step__signal-green {
+  right: .35rem;
+  bottom: 0;
+  border-color: var(--signal);
+}
+.process-step:hover .process-step__signal-ink {
+  width: 1.2rem;
+  transform: translate(2px, -1px);
+}
+.process-step:hover .process-step__signal-green {
+  width: 1.2rem;
+  transform: translate(-2px, 1px);
+}
+.sensation-card {
+  min-width: 0;
+  background:
+    linear-gradient(130deg, transparent 62%, color-mix(in srgb, var(--signal) 5%, transparent)),
+    var(--surface);
+  transition:
+    color var(--motion-fast) ease,
+    background-color var(--motion-medium) var(--ease-out),
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-medium) var(--ease-out),
+    transform var(--motion-medium) var(--ease-out);
+}
+.sensation-card:is(:hover, :focus-visible) {
+  border-color: color-mix(in srgb, var(--signal-strong) 74%, var(--line));
+  background:
+    radial-gradient(circle at 84% 18%, color-mix(in srgb, var(--signal) 26%, transparent), transparent 31%),
+    #0b0f0c;
+  color: #f7f8f4;
+  box-shadow: 8px 9px 0 color-mix(in srgb, var(--signal) 20%, transparent);
+  transform: translateY(-4px);
+}
+.sensation-card:is(:hover, :focus-visible)::before {
+  border-top-color: rgba(255,255,255,.58);
+  border-right-color: rgba(255,255,255,.58);
+}
+.sensation-card:is(:hover, :focus-visible)::after {
+  border-bottom-color: var(--signal);
+  border-left-color: var(--signal);
+}
+.sensation-card:is(:hover, :focus-visible) .sensation-card__note {
+  color: rgba(247,248,244,.74);
+}
+.sensation-card:is(:hover, :focus-visible) .sensation-card__title {
+  color: #fff;
+}
+.sensation-card:is(:hover, :focus-visible) :is(.sensation-card__index, .sensation-card__cta) {
+  color: var(--signal);
+}
+@media (hover: none) {
+  .sensation-card:hover:not(:focus-visible) {
+    border-color: var(--line-strong);
+    background:
+      linear-gradient(130deg, transparent 62%, color-mix(in srgb, var(--signal) 5%, transparent)),
+      var(--surface);
+    color: var(--foreground);
+    box-shadow: 6px 7px 0 color-mix(in srgb, var(--signal) 10%, transparent);
+    transform: none;
+  }
+  .sensation-card:active:not(:focus-visible) {
+    transform: translateY(-1px);
+  }
+  .sensation-card:hover:not(:focus-visible) .sensation-card__note {
+    color: var(--text-muted);
+  }
+  .sensation-card:hover:not(:focus-visible) .sensation-card__title {
+    color: var(--foreground);
+  }
+}
+.project-invitation {
+  background:
+    radial-gradient(circle at 87% 14%, color-mix(in srgb, var(--signal) 24%, transparent), transparent 24%),
+    repeating-linear-gradient(115deg, transparent 0, transparent 92px, rgba(255,255,255,.028) 93px, transparent 94px),
+    #0b0f0c;
+}
+.project-invitation::before {
+  border-top-color: rgba(255,255,255,.48);
+  border-right-color: rgba(255,255,255,.48);
+}
+.signal-field-fallback {
+  overflow: visible;
+  opacity: .68;
+  filter: blur(.15px);
+}
+.signal-field-fallback__wave {
+  transform-box: view-box;
+  transform-origin: center;
+  animation: signal-field-shift 11s linear infinite;
+  will-change: transform;
+}
+.signal-field-fallback__wave path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+}
+.signal-field-fallback__wave--primary {
+  color: var(--signal);
+  animation-duration: 10s;
+}
+.signal-field-fallback__wave--primary path {
+  stroke: currentColor;
+  stroke-width: 2.2;
+  filter: drop-shadow(0 0 13px color-mix(in srgb, var(--signal) 36%, transparent));
+}
+.signal-field-fallback__wave--soft {
+  color: color-mix(in srgb, var(--signal) 52%, #efffed);
+  animation-direction: reverse;
+  animation-duration: 14s;
+  opacity: .58;
+}
+.signal-field-fallback__wave--soft path {
+  stroke: currentColor;
+  stroke-width: 1.25;
+}
+.signal-field-fallback__wave--muted {
+  color: color-mix(in srgb, var(--signal-strong) 58%, var(--text-muted));
+  animation-duration: 18s;
+  opacity: .38;
+}
+.signal-field-fallback__wave--muted path {
+  stroke: currentColor;
+  stroke-width: 1;
+}
+.signal-field-fallback[data-active="false"] .signal-field-fallback__wave {
+  animation-play-state: paused;
+}
+.signal-field-fallback[data-static="true"] .signal-field-fallback__wave {
+  animation: none;
+}
+@keyframes signal-field-shift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-40%, 0, 0); }
+}
+.institutional-hero {
+  background:
+    linear-gradient(130deg, transparent 0 68%, color-mix(in srgb, var(--signal) 7%, transparent) 68% 100%),
+    var(--background);
+}
+.institutional-hero__frame {
+  background:
+    linear-gradient(90deg, transparent calc(100% - 5rem), color-mix(in srgb, var(--signal) 5%, transparent) calc(100% - 5rem)),
+    var(--surface);
+}
+.institutional-hero__frame::before,
+.institutional-statement::before {
+  width: 5rem;
+}
+.institutional-hero__frame::after,
+.institutional-statement::after {
+  width: 4rem;
+}
+.institutional-statement {
+  background:
+    radial-gradient(circle at 87% 18%, color-mix(in srgb, var(--signal) 11%, transparent), transparent 27%),
+    var(--surface);
+}
+.legal-section {
+  transition:
+    border-color var(--motion-fast) ease,
+    box-shadow var(--motion-medium) var(--ease-out),
+    transform var(--motion-medium) var(--ease-out);
+}
+.legal-section:target {
+  border-color: var(--signal-strong);
+  box-shadow:
+    7px 8px 0 color-mix(in srgb, var(--signal) 16%, transparent),
+    inset 3px 0 0 var(--signal-strong);
+}
+.legal-toc {
+  scrollbar-gutter: stable;
+}
+@media (min-width: 1024px) {
+  .legal-toc,
+  .account-nav-shell {
+    position: sticky;
+    top: var(--sticky-offset);
+  }
+}
+.legal-toc__link {
+  position: relative;
+  border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
+  transition:
+    color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease,
+    padding-left var(--motion-medium) var(--ease-out);
+}
+.legal-toc__link::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: .15rem;
+  width: .75rem;
+  height: 1.15rem;
+  border-right: 2px solid var(--signal-strong);
+  border-bottom: 2px solid var(--signal-strong);
+  border-bottom-right-radius: var(--parigo-turn-sm);
+  opacity: 0;
+  transform: translate(-.35rem, -50%);
+  transition:
+    opacity var(--motion-fast) ease,
+    transform var(--motion-medium) var(--ease-out);
+}
+.legal-toc__link:hover,
+.legal-toc__link:focus-visible {
+  padding-left: .35rem;
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--signal) 6%, var(--surface));
+}
+.legal-toc__link[data-active="true"] {
+  padding-left: .35rem;
+  background: color-mix(in srgb, var(--signal) 10%, var(--surface));
+  color: var(--foreground);
+  font-weight: 650;
+}
+.legal-toc__link[data-active="true"]::after {
+  opacity: 1;
+  transform: translate(0, -50%);
+}
+.legal-toc-mobile summary::-webkit-details-marker {
+  display: none;
+}
+.legal-toc-mobile__chevron {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
+  color: var(--signal-strong);
+  transition: transform var(--motion-medium) var(--ease-out);
+}
+.legal-toc-mobile[open] .legal-toc-mobile__chevron {
+  transform: rotate(180deg);
+}
 .parigo-popover {
   border-radius: var(--parigo-corner-md) var(--parigo-turn-lg);
   box-shadow:
@@ -325,19 +615,27 @@ textarea {
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(90deg, transparent calc(100% - 5rem), color-mix(in srgb, var(--signal) 5%, transparent) calc(100% - 5rem)),
-    var(--surface);
+    linear-gradient(130deg, transparent 0 68%, color-mix(in srgb, var(--signal) 7%, transparent) 68% 100%),
+    var(--background);
 }
 .account-hero::after {
   content: "";
   position: absolute;
   right: clamp(1rem, 5vw, 5rem);
-  bottom: -4rem;
-  width: clamp(8rem, 18vw, 17rem);
-  height: clamp(8rem, 18vw, 17rem);
-  border: clamp(1.5rem, 3vw, 3rem) solid color-mix(in srgb, var(--signal) 8%, transparent);
-  border-radius: 42%;
+  bottom: 2rem;
+  width: clamp(8rem, 16vw, 15rem);
+  height: clamp(4rem, 9vw, 8rem);
+  border-right: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--signal) 45%, transparent);
+  border-bottom-right-radius: var(--parigo-turn-lg);
+  opacity: .48;
   pointer-events: none;
+  transform: translate3d(0, 0, 0);
+}
+.account-hero__frame {
+  background:
+    linear-gradient(90deg, transparent calc(100% - 5rem), color-mix(in srgb, var(--signal) 5%, transparent) calc(100% - 5rem)),
+    var(--surface);
 }
 .account-nav {
   background: var(--surface);
@@ -346,33 +644,58 @@ textarea {
   position: relative;
   border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
   transition:
-    padding-left var(--motion-medium) var(--ease-out),
     color var(--motion-fast) ease,
-    background-color var(--motion-fast) ease;
-}
-.account-nav__link::after {
-  content: "";
-  position: absolute;
-  right: .75rem;
-  bottom: .45rem;
-  width: 0;
-  height: 2px;
-  border-radius: var(--parigo-turn-sm);
-  background: var(--signal);
-  transition: width 360ms var(--ease-out);
+    transform var(--motion-medium) var(--ease-out);
 }
 .account-nav__link:hover {
-  padding-left: 1.25rem;
   background: color-mix(in srgb, var(--signal) 7%, var(--surface));
   color: var(--foreground);
+  transform: translateX(2px);
 }
-.account-nav__link:hover::after { width: 1.75rem; }
 .account-nav__link[data-active="true"] {
-  background: var(--foreground);
   color: var(--background);
 }
 .account-nav__link[data-active="true"] svg { color: var(--signal); }
-.account-nav__link[data-active="true"]::after { width: 2.5rem; }
+.account-nav__active-surface {
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--signal) 14%, transparent), transparent 46%),
+    var(--foreground);
+}
+.account-nav__angle::before,
+.account-nav__angle::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  border-bottom-right-radius: var(--parigo-turn-sm);
+  transition: transform var(--motion-medium) var(--ease-out);
+}
+.account-nav__angle::before {
+  width: 1rem;
+  height: .65rem;
+  color: var(--signal-strong);
+}
+.account-nav__angle::after {
+  right: .3rem;
+  bottom: .3rem;
+  width: .7rem;
+  height: .45rem;
+  color: var(--line-strong);
+}
+.account-nav__link:hover .account-nav__angle::before,
+.account-nav__link:focus-visible .account-nav__angle::before {
+  transform: translate(2px, 1px);
+}
+.account-nav__link[data-active="true"] .account-nav__angle::after {
+  color: color-mix(in srgb, var(--background) 48%, transparent);
+}
+.account-page__actions {
+  position: relative;
+  z-index: 2;
+}
 .account-page__header {
   position: relative;
   min-height: 5rem;

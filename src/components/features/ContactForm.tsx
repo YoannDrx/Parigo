@@ -27,10 +27,10 @@ export function ContactForm({ track, requestedTrackId }: { track?: Track | null;
     setOpened(true);
   };
 
-  if (opened) return <div className="border border-[var(--line)] bg-[var(--signal-soft)] p-8 text-[var(--foreground)]"><Check className="mb-4" /><h2 className="font-[var(--font-editorial)] text-4xl font-normal">{locale === "fr" ? "Votre messagerie a été ouverte" : "Your email app has opened"}</h2><p className="mt-3 text-[var(--text-muted)]">{locale === "fr" ? "Vérifiez puis envoyez votre message depuis votre application e-mail. Si elle ne s’est pas ouverte, écrivez à" : "Review and send the message from your email app. If it did not open, email"} <a className="underline" href="mailto:contact@parigomusic.com">contact@parigomusic.com</a>.</p></div>;
+  if (opened) return <div className="parigo-frame border border-[var(--line)] bg-[var(--signal-soft)] p-8 text-[var(--foreground)]"><Check className="mb-4" /><h2 className="font-[var(--font-editorial)] text-4xl font-normal">{locale === "fr" ? "Votre messagerie a été ouverte" : "Your email app has opened"}</h2><p className="mt-3 text-[var(--text-muted)]">{locale === "fr" ? "Vérifiez puis envoyez votre message depuis votre application e-mail. Si elle ne s’est pas ouverte, écrivez à" : "Review and send the message from your email app. If it did not open, email"} <a className="underline" href="mailto:contact@parigomusic.com">contact@parigomusic.com</a>.</p></div>;
 
   return (
-    <form onSubmit={submit} className="contact-form border-t border-[var(--line-strong)]" aria-label={t("institutional.contactForm")}>
+    <form onSubmit={submit} className="contact-form min-w-0" aria-label={t("institutional.contactForm")}>
       <div className="grid sm:grid-cols-2">
         <label className="contact-field sm:border-r"><span><b>01</b>{t("institutional.name")}</span><input required name="name" autoComplete="name" /></label>
         <label className="contact-field"><span><b>02</b>{t("institutional.company")}</span><input name="company" autoComplete="organization" /></label>

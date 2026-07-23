@@ -48,7 +48,7 @@ export function Footer() {
               <Link href="/" aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group flex"><ParigoLogo className="text-[clamp(2.8rem,5.5vw,5.6rem)]" /></Link>
               <p className="mt-5 font-mono text-[.62rem] font-semibold uppercase tracking-[.2em] text-[var(--signal)]">Music for images</p>
             </div>
-            <p className="mt-6 max-w-sm text-sm leading-relaxed opacity-64">{locale === "fr" ? "Music for images. Membre de la SACEM depuis 2013." : "Music for images. Member of SACEM since 2013."}</p>
+            <p className="mt-6 max-w-sm text-sm leading-relaxed opacity-64">{locale === "fr" ? "Membre de la SACEM depuis 2013." : "Member of SACEM since 2013."}</p>
             <a href="mailto:hello@parigomusic.com" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold underline decoration-current/30 underline-offset-4 transition hover:text-[var(--signal)]"><span>hello@parigomusic.com</span><ArrowUpRight size={14} /></a>
           </div>
           <div className="grid grid-cols-2 gap-8 md:col-span-6 md:col-start-7 md:grid-cols-3">
