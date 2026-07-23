@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowUpRight,
   User,
@@ -21,7 +20,8 @@ import {
   Loader2,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
-import { Button, Tooltip } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
@@ -168,17 +168,12 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
     <div ref={menuRef} className="relative">
       {compact ? <Tooltip label={locale === "fr" ? "Mon compte" : "My account"} side="bottom">{trigger}</Tooltip> : trigger}
 
-      <AnimatePresence>
         {isOpen && (
-          <motion.div
+          <div
             data-testid="account-menu"
             role="dialog"
             aria-label={locale === "fr" ? "Navigation du compte" : "Account navigation"}
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="parigo-popover absolute right-0 z-50 mt-3 w-[min(23rem,calc(100vw-2rem))] overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]"
+            className="parigo-popover absolute right-0 z-50 mt-3 w-[min(23rem,calc(100vw-2rem))] origin-top-right animate-[fade-in_.2s_ease-out_both] overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]"
           >
             <span aria-hidden="true" className="absolute right-6 top-0 h-[3px] w-20 bg-[var(--signal)]" />
             <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 px-5 pb-5 pt-6">
@@ -237,9 +232,8 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
                 </span>
               </button>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }

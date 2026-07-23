@@ -1,15 +1,18 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { LoginForm } from "@/components/features/AuthModal";
-import { Card } from "@/components/ui";
+import { LoginForm } from "@/components/features/LoginForm";
+import { Card } from "@/components/ui/Card";
+import { useSearchParams } from "next/navigation";
+import { safeInternalPath } from "@/lib/locale";
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const nextPath = safeInternalPath(searchParams.get("next"));
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-lg">
+    <div className="w-full max-w-lg animate-[fade-in_.3s_ease-out_both]">
       <Card hover={false} padding="lg" className="border-[var(--line)] bg-[var(--surface)] shadow-none">
-        <LoginForm />
+        <LoginForm nextPath={nextPath} />
       </Card>
-    </motion.div>
+    </div>
   );
 }

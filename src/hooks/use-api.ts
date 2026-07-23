@@ -17,11 +17,16 @@ import {
 } from "@/lib/api-client";
 
 // Albums hooks
-export function useAlbums(params?: Parameters<typeof fetchAlbums>[0], enabled = true) {
+export function useAlbums(
+  params?: Parameters<typeof fetchAlbums>[0],
+  enabled = true,
+  initialData?: Awaited<ReturnType<typeof fetchAlbums>>,
+) {
   return useQuery({
     queryKey: ["albums", params],
     queryFn: ({ signal }) => fetchAlbums(params, signal),
     enabled,
+    initialData,
   });
 }
 
@@ -84,10 +89,11 @@ export function useSearch(query: string, type?: "all" | "albums" | "tracks") {
 }
 
 // Labels hooks
-export function useLabels(params?: Parameters<typeof fetchLabels>[0]) {
+export function useLabels(params?: Parameters<typeof fetchLabels>[0], initialData?: Awaited<ReturnType<typeof fetchLabels>>) {
   return useQuery({
     queryKey: ["labels", params],
     queryFn: () => fetchLabels(params),
+    initialData,
   });
 }
 
@@ -99,18 +105,25 @@ export function usePlaylists(params?: Parameters<typeof fetchPlaylists>[0]) {
   });
 }
 
-export function useFeaturedPlaylists(limit = 4) {
+export function useFeaturedPlaylists(
+  limit = 4,
+  enabled = true,
+  initialData?: Awaited<ReturnType<typeof fetchPlaylists>>,
+) {
   return useQuery({
     queryKey: ["playlists", "featured", limit],
     queryFn: () => fetchPlaylists({ featured: true, limit }),
+    enabled,
+    initialData,
   });
 }
 
 // Genres and Moods hooks
-export function useGenres() {
+export function useGenres(initialData?: Awaited<ReturnType<typeof fetchGenres>>) {
   return useQuery({
     queryKey: ["genres"],
     queryFn: fetchGenres,
+    initialData,
     staleTime: 1000 * 60 * 60, // Cache for 1 hour
   });
 }

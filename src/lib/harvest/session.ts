@@ -8,7 +8,10 @@ import { getParigoSessionConfig } from "./config";
 import { HarvestError } from "./errors";
 import { refreshMember, type HarvestLoginResult } from "./member";
 
-const COOKIE_NAME = "parigo_session";
+const LEGACY_COOKIE_NAME = "parigo_session";
+const COOKIE_NAME = process.env.NODE_ENV === "production"
+  ? "__Host-parigo_session"
+  : LEGACY_COOKIE_NAME;
 
 export interface HarvestSessionPayload {
   memberToken: string;
@@ -86,16 +89,25 @@ export async function setHarvestSession(result: HarvestLoginResult | HarvestSess
 export async function clearHarvestSession(): Promise<void> {
   const store = await cookies();
   store.delete(COOKIE_NAME);
+  if (COOKIE_NAME !== LEGACY_COOKIE_NAME) store.delete(LEGACY_COOKIE_NAME);
 }
 
-export async function readHarvestSession(options: { refresh?: boolean } = {}): Promise<HarvestSessionPayload | null> {
+export async function readHarvestSession(options: { refresh?: boolean; migrateLegacy?: boolean } = {}): Promise<HarvestSessionPayload | null> {
   const store = await cookies();
-  const value = store.get(COOKIE_NAME)?.value;
+  const currentValue = store.get(COOKIE_NAME)?.value;
+  const legacyValue = COOKIE_NAME === LEGACY_COOKIE_NAME
+    ? undefined
+    : store.get(LEGACY_COOKIE_NAME)?.value;
+  const value = currentValue || legacyValue;
   if (!value) return null;
   const payload = await unsealHarvestSession(value);
   if (!payload || payload.persistentExpiresAt <= Date.now()) {
     store.delete(COOKIE_NAME);
     return null;
+  }
+  if (legacyValue && !currentValue && options.migrateLegacy !== false) {
+    await setHarvestSession(payload);
+    store.delete(LEGACY_COOKIE_NAME);
   }
   if (payload.memberExpiresAt > Date.now() + 60_000 || options.refresh === false) return payload;
   try {

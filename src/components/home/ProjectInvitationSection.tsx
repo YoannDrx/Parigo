@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { Button } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
 
 export function ProjectInvitationSection() {
   const { locale, t } = useI18n();

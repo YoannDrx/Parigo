@@ -3,6 +3,7 @@ import "server-only";
 import { getHarvestApiConfig } from "./config";
 import { assertNoHarvestError, HarvestError, isRecord } from "./errors";
 import { asIsoDate, asNumber, asString, pick } from "./values";
+import { logEvent } from "@/lib/logger";
 
 interface CachedToken {
   value: string;
@@ -147,7 +148,7 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
     throw error;
   }
   const payload = await readJson(response);
-  console.info(JSON.stringify({ event: "harvest.request", endpoint, durationMs: Date.now() - startedAt, status: response.ok ? "ok" : "http_error", upstreamStatus: response.status, requestId }));
+  logEvent({ level: response.ok ? "info" : "warn", message: "harvest_request", route: endpoint, durationMs: Date.now() - startedAt, status: response.status, requestId });
   if (response.status === 429) {
     if (retry && idempotent) {
       await new Promise((resolve) => setTimeout(resolve, 400 + Math.random() * 400));
@@ -165,7 +166,7 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
   try {
     assertNoHarvestError(payload);
   } catch (error) {
-    console.warn(JSON.stringify({ event: "harvest.request", endpoint, durationMs: Date.now() - startedAt, status: "harvest_error", harvestCode: error instanceof HarvestError ? error.upstreamCode : undefined, requestId }));
+    logEvent({ level: "warn", message: "harvest_upstream_error", route: endpoint, durationMs: Date.now() - startedAt, status: error instanceof HarvestError ? error.status : 502, code: error instanceof HarvestError ? error.upstreamCode : undefined, requestId });
     if (retry && error instanceof HarvestError && error.retryable) {
       accessToken = undefined;
       await getAccessToken(true);

@@ -9,7 +9,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 
 export function AccountNavigation() {
   const pathname = usePathname();
-  const { locale, t } = useI18n();
+  const { locale, t, localizedPath } = useI18n();
   const railRef = useRef<HTMLElement>(null);
   const navItems = [
     { icon: User, label: t("account.profile"), href: "/account" },
@@ -45,7 +45,7 @@ export function AccountNavigation() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={localizedPath(item.href)}
                 aria-current={active ? "page" : undefined}
                 data-active={active}
                 className="account-nav__link relative flex min-h-12 shrink-0 snap-center items-center gap-3 overflow-hidden px-4 py-3 text-[var(--text-muted)] lg:w-full"

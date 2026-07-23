@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { FileText, Loader2 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
-import { Button, Tooltip } from "@/components/ui";
+import { Button } from "@/components/ui/Button";
+import { Tooltip } from "@/components/ui/Tooltip";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export function CueSheetButton({ title, trackIds, compact = false }: { title: string; trackIds: string[]; compact?: boolean }) {

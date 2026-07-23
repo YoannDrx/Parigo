@@ -42,7 +42,7 @@ test("les actions et tooltips de recherche suivent la langue active", async ({ p
   test.skip(testInfo.project.name === "mobile", "Le tooltip au survol est vérifié sur un pointeur desktop.");
   await mockMemberSearch(page);
   await page.goto("/search?q=piano&view=tracks&type=main");
-  await page.getByRole("button", { name: /English version/ }).click();
+  await page.getByRole("link", { name: /English version/ }).click();
   await expect(page.getByRole("heading", { name: "Find the right music." })).toBeVisible();
   const favourite = page.getByRole("button", { name: "Add to favourites" }).first();
   await favourite.hover();

@@ -1,0 +1,28 @@
+{
+  "name": "Sensitive public mutations - 10 req/min/IP",
+  "active": true,
+  "conditionGroup": [
+    {
+      "conditions": [
+        { "type": "method", "op": "eq", "value": "POST" },
+        {
+          "type": "path",
+          "op": "re",
+          "value": "^/api/(contact|auth/(login|register|forgot-password|reset-password))$"
+        }
+      ]
+    }
+  ],
+  "action": {
+    "mitigate": {
+      "action": "rate_limit",
+      "rateLimit": {
+        "algo": "fixed_window",
+        "window": 60,
+        "limit": 10,
+        "keys": ["ip"],
+        "action": "deny"
+      }
+    }
+  }
+}

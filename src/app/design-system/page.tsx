@@ -7,6 +7,8 @@ const colors = [
   ["Surface négative", "#161714"], ["Brouillard", "#E3E0D6"],
 ];
 
+export const metadata = { robots: { index: false, follow: false } };
+
 export default function DesignSystemPage() {
   if (process.env.NODE_ENV === "production") notFound();
   return <main className="min-h-screen bg-[var(--background)] px-4 py-16 text-[var(--foreground)] md:px-8"><div className="mx-auto max-w-6xl"><p className="eyebrow text-[var(--color-primary-dark)]">Interne · développement uniquement</p><h1 className="mt-5 font-[var(--font-editorial)] text-8xl font-normal tracking-[-.06em]">Négatif sonore</h1><p className="mt-6 max-w-2xl text-[var(--text-muted)]">Référence exécutable de la nouvelle identité éditoriale, des thèmes clair et sombre, des états et des composants structurants de Parigo.</p>

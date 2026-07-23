@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import type { Playlist } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
 
@@ -11,14 +10,10 @@ interface PlaylistCardProps {
 }
 
 export function PlaylistCard({ playlist }: PlaylistCardProps) {
-  const { t } = useI18n();
+  const { t, localizedPath } = useI18n();
   return (
-    <Link href={`/playlists/${playlist.id}`}>
-      <motion.div
-        className="parigo-frame group/card border border-[var(--line)] bg-[var(--surface)]"
-        whileHover={{ y: -4 }}
-        whileTap={{ scale: 0.98 }}
-      >
+    <Link href={localizedPath(`/playlists/${playlist.id}`)}>
+      <div className="parigo-frame group/card border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
         {/* Cover Image */}
         <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
           <Image
@@ -54,7 +49,7 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
             {playlist.trackCount ?? playlist.trackIds?.length ?? 0} {t("catalog.tracks")}
           </p>
         </div>
-      </motion.div>
+      </div>
     </Link>
   );
 }

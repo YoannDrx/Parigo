@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { installMemberSession } from "./helpers/member-session";
 
 const sessionPayload = {
   data: {
@@ -36,7 +37,8 @@ async function mockSession(page: Page) {
   await page.route("**/api/auth/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
 }
 
-test.beforeEach(async ({ page }) => {
+test.beforeEach(async ({ page, context, baseURL }) => {
+  await installMemberSession(context, baseURL!);
   await page.addInitScript(() => {
     window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({ necessary: true, preferences: false, analytics: false, marketing: false, updatedAt: "2026-07-23T00:00:00.000Z" }));
   });

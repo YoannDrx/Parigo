@@ -1,0 +1,169 @@
+name: Quality, Preview and promotion
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: parigo-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: "22"
+  PNPM_VERSION: "9.15.0"
+  VERCEL_CLI_VERSION: "56.5.0"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm audit --prod --audit-level=high
+      - run: pnpm validate:assets
+
+  preview:
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm dlx vercel@${VERCEL_CLI_VERSION} pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - run: pnpm dlx vercel@${VERCEL_CLI_VERSION} build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      - run: pnpm validate:budgets
+      - id: deploy
+        run: echo "url=$(pnpm dlx vercel@${VERCEL_CLI_VERSION} deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})" >> "$GITHUB_OUTPUT"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  preview-tests:
+    needs: preview
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+        env:
+          # Must match the Preview value pulled into Vercel so the account
+          # fixtures can mint a valid encrypted test session.
+          HARVEST_SESSION_SECRET: ${{ secrets.HARVEST_SESSION_SECRET }}
+          PLAYWRIGHT_BASE_URL: ${{ needs.preview.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - run: pnpm test:seo
+        env:
+          SEO_BASE_URL: ${{ needs.preview.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - name: Keep browser reports only on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-browser-reports
+          path: |
+            playwright-report
+            test-results
+
+  preview-lighthouse:
+    needs: preview
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Discover a live album for Lighthouse
+        run: node --import tsx scripts/discover-lighthouse-album.ts
+        env:
+          LIGHTHOUSE_BASE_URL: ${{ needs.preview.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - run: pnpm test:lighthouse
+        env:
+          LIGHTHOUSE_BASE_URL: ${{ needs.preview.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - name: Keep Lighthouse reports only on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: preview-lighthouse-reports
+          path: .lighthouseci
+
+  promote:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [preview, preview-tests, preview-lighthouse]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Promote the verified Preview artifact
+        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} promote ${{ needs.preview.outputs.url }} --token=${{ secrets.VERCEL_TOKEN }} --yes
+      - name: Wait for the public alias
+        run: curl --fail --silent --show-error --retry 12 --retry-delay 5 --retry-all-errors https://parigo-ten.vercel.app/api/health > /dev/null
+      - name: Verify production SEO contracts
+        run: pnpm test:seo
+        env:
+          SEO_BASE_URL: https://parigo-ten.vercel.app
+      - name: Discover a live production album
+        run: node --import tsx scripts/discover-lighthouse-album.ts
+        env:
+          LIGHTHOUSE_BASE_URL: https://parigo-ten.vercel.app
+      - name: Verify final production Lighthouse targets
+        run: pnpm test:lighthouse
+        env:
+          LIGHTHOUSE_BASE_URL: https://parigo-ten.vercel.app
+          LIGHTHOUSE_EXPECT_PRODUCTION: "1"
+      - name: Keep production Lighthouse reports only on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-lighthouse-reports
+          path: .lighthouseci

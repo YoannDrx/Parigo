@@ -3,9 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
+    "analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
@@ -13,19 +18,28 @@
     "test:e2e": "playwright test",
     "test:harvest": "node --env-file=.env --import tsx docs/harvest/smoke-tests/harvest-api-smoke-test.ts",
     "test:harvest:member": "node --env-file=.env --import tsx docs/harvest/smoke-tests/member-mutations.ts",
-    "test:search-parity": "node --import tsx docs/harvest/smoke-tests/search-parity.ts"
+    "test:search-parity": "node --import tsx docs/harvest/smoke-tests/search-parity.ts",
+    "validate:assets": "node --import tsx scripts/validate-public-assets.ts",
+    "validate:budgets": "node --import tsx scripts/validate-build-budgets.ts",
+    "test:seo": "node --env-file-if-exists=.env --import tsx scripts/verify-seo.ts",
+    "test:lighthouse": "pnpm dlx @lhci/cli@0.15.1 autorun"
   },
   "dependencies": {
+    "@react-email/render": "2.1.0",
     "@react-three/fiber": "^9",
+    "@sentry/nextjs": "10.67.0",
     "@tanstack/react-query": "^5.90.12",
+    "@vercel/analytics": "2.0.1",
+    "@vercel/speed-insights": "2.0.0",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.26",
     "howler": "^2.2.4",
     "jose": "^6.2.3",
     "lucide-react": "^0.562.0",
-    "next": "16.1.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "next": "16.2.11",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "resend": "6.18.0",
     "tailwind-merge": "^3.4.0",
     "three": "^0.185.1",
     "wavesurfer.js": "^7.12.1",
@@ -34,8 +48,9 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
+    "@next/bundle-analyzer": "16.2.11",
     "@playwright/test": "^1.61.1",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@types/howler": "^2.2.12",
@@ -44,11 +59,17 @@
     "@types/react-dom": "^19",
     "@types/three": "^0.185.1",
     "eslint": "^9",
-    "eslint-config-next": "16.1.1",
+    "eslint-config-next": "16.2.11",
     "jsdom": "^29.1.1",
-    "tailwindcss": "^4",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.21.0",
     "typescript": "^5",
     "vitest": "^4.1.10"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.12",
+      "sharp": "0.35.0"
+    }
   }
 }

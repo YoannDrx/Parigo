@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
-import { Input, Button } from "@/components/ui";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 interface SearchBarProps {

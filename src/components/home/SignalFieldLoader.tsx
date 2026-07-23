@@ -16,18 +16,30 @@ export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValu
   const [isActive, setIsActive] = useState(true);
   const [staticFallback, setStaticFallback] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
-  const intersectingRef = useRef(true);
+  const intersectingRef = useRef(false);
 
   useEffect(() => {
-    const desktop = window.matchMedia("(min-width: 768px)");
+    const desktop = window.matchMedia("(min-width: 1024px)");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const connection = navigator as Navigator & { connection?: { saveData?: boolean } };
     const canvas = document.createElement("canvas");
     const hasWebGL = Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+    let idleHandle: number | null = null;
+    let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
     const assessRenderer = () => {
       const staticMode = reducedMotion.matches || Boolean(connection.connection?.saveData);
       setStaticFallback(staticMode);
-      setCanRender(desktop.matches && !staticMode && hasWebGL);
+      const eligible = desktop.matches && !staticMode && hasWebGL && intersectingRef.current;
+      if (!eligible) {
+        setCanRender(false);
+        return;
+      }
+      const activate = () => setCanRender(true);
+      if ("requestIdleCallback" in window) {
+        idleHandle = window.requestIdleCallback(activate, { timeout: 1200 });
+      } else {
+        timeoutHandle = globalThis.setTimeout(activate, 180);
+      }
     };
     const syncActivity = () => setIsActive(intersectingRef.current && !document.hidden);
     const frame = window.requestAnimationFrame(assessRenderer);
@@ -35,6 +47,7 @@ export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValu
       ([entry]) => {
         intersectingRef.current = entry.isIntersecting;
         syncActivity();
+        assessRenderer();
       },
       { rootMargin: "160px" },
     );
@@ -44,6 +57,8 @@ export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValu
     document.addEventListener("visibilitychange", syncActivity);
     return () => {
       window.cancelAnimationFrame(frame);
+      if (idleHandle !== null && "cancelIdleCallback" in window) window.cancelIdleCallback(idleHandle);
+      if (timeoutHandle !== null) window.clearTimeout(timeoutHandle);
       observer.disconnect();
       desktop.removeEventListener("change", assessRenderer);
       reducedMotion.removeEventListener("change", assessRenderer);

@@ -6,7 +6,8 @@ import { Check, Loader2, Tag, X } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { MemberTag } from "@/types";
-import { AnchoredPopover, Tooltip } from "@/components/ui";
+import { AnchoredPopover } from "@/components/ui/AnchoredPopover";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 export function AddTagButton({ trackId, trackTitle }: { trackId: string; trackTitle: string }) {
   const { data: session } = useSession();

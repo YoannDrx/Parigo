@@ -6,7 +6,7 @@ const track: Track = {
   id: "track-1",
   title: "Signal",
   duration: 120,
-  audioUrl: "/audio/sample-1.mp3",
+  audioUrl: "https://media.invalid.test/sample-1.mp3",
   albumId: "album-1",
   genres: [],
   moods: [],

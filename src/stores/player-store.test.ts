@@ -6,7 +6,7 @@ const makeTrack = (id: string): Track => ({
   id,
   title: id,
   duration: 120,
-  audioUrl: `/audio/${id}.mp3`,
+  audioUrl: `https://media.invalid.test/${id}.mp3`,
   albumId: "album-1",
   genres: [],
   moods: [],

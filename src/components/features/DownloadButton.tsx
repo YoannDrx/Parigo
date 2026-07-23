@@ -6,7 +6,7 @@ import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { cn } from "@/lib/utils";
-import { Tooltip } from "@/components/ui";
+import { Tooltip } from "@/components/ui/Tooltip";
 
 interface DownloadButtonProps {
   trackId: string;

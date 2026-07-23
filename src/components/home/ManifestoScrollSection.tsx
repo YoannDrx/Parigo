@@ -89,7 +89,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   );
 
   return (
-    <section id="manifesto" ref={sectionRef} data-reveal-completed={completed} className={completed ? "relative min-h-[100svh] overflow-clip bg-[var(--background)] md:min-h-screen" : "relative min-h-[225svh] overflow-clip bg-[var(--background)] md:min-h-[235svh]"}>
+    <section id="manifesto" ref={sectionRef} data-reveal-completed={completed} className={reduceMotion ? "relative min-h-[100svh] overflow-clip bg-[var(--background)] md:min-h-screen" : "relative min-h-[225svh] overflow-clip bg-[var(--background)] md:min-h-[235svh]"}>
       <div className={completed ? "relative flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16" : "sticky top-0 flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16"}>
         <div className="relative z-10 w-full px-3 md:px-8">
           <div className="mx-auto max-w-[1580px] text-left lg:text-center">

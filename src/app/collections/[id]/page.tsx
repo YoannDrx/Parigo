@@ -1,38 +1,59 @@
-"use client";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { CollectionDetailClient } from "@/components/catalog/CollectionDetailClient";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { getCachedAlbums, getCachedStyles } from "@/lib/harvest/catalog-cache";
+import { getRequestLocale } from "@/lib/locale-server";
+import { absoluteUrl, buildMetadata } from "@/lib/seo";
 
-import { use, useEffect, useState } from "react";
-import Link from "next/link";
-import { ArrowLeft, Loader2 } from "lucide-react";
-import { Header, Footer } from "@/components/layout";
-import { CatalogHero } from "@/components/catalog";
-import { AlbumCard } from "@/components/features";
-import { useAlbums } from "@/hooks/use-api";
-import { useI18n } from "@/components/providers/I18nProvider";
-import type { CatalogCategory } from "@/types";
+interface CollectionPageProps {
+  params: Promise<{ id: string }>;
+}
 
-export default function CollectionPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const { locale } = useI18n();
-  const [collection, setCollection] = useState<CatalogCategory | null>(null);
-  const { data, isLoading } = useAlbums({ styles: [id], limit: 60, sort: "releaseDate" });
+async function loadCollection(id: string) {
+  const [collections, albums] = await Promise.all([
+    getCachedStyles(),
+    getCachedAlbums({ style: id, limit: 60, sort: "releaseDate" }),
+  ]);
+  const collection = collections.find((item) => item.id === id || item.slug === id);
+  if (!collection) notFound();
+  return { collection, albums: albums.items };
+}
 
-  useEffect(() => {
-    fetch("/api/collections").then((response) => response.json()).then((payload) => {
-      setCollection((payload.data?.collections || []).find((item: CatalogCategory) => item.id === id) || null);
-    });
-  }, [id]);
+export async function generateMetadata({ params }: CollectionPageProps): Promise<Metadata> {
+  const [{ id }, locale] = await Promise.all([params, getRequestLocale()]);
+  const { collection } = await loadCollection(id);
+  return buildMetadata({
+    locale,
+    path: `/collections/${id}`,
+    title: collection.name,
+    description: locale === "fr"
+      ? `Explorez la collection ${collection.name} et trouvez une musique adaptée à vos images.`
+      : `Explore the ${collection.name} collection and find music for your visual project.`,
+  });
+}
 
+export default async function CollectionPage({ params }: CollectionPageProps) {
+  const [{ id }, locale] = await Promise.all([params, getRequestLocale()]);
+  const { collection, albums } = await loadCollection(id);
   return (
-    <div className="page-shell flex min-h-screen flex-col">
-      <Header />
-      <main className="flex-1">
-        <CatalogHero eyebrow="Parigo / Collection" title={collection?.name || "Collection"} intro={locale === "fr" ? "Albums associés à cette collection Parigo." : "Albums associated with this Parigo collection."} meta={`${data?.pagination.total || 0} albums`} />
-        <section className="mx-auto max-w-[1600px] px-4 py-16 md:px-8 md:py-24">
-          <Link href="/collections" className="mb-10 inline-flex items-center gap-2 text-sm"><ArrowLeft size={16} />{locale === "fr" ? "Toutes les collections" : "All collections"}</Link>
-          {isLoading ? <Loader2 className="mx-auto animate-spin" /> : <div className="grid gap-x-4 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{(data?.albums || []).map((album) => <AlbumCard key={album.id} album={album} />)}</div>}
-        </section>
-      </main>
-      <Footer />
-    </div>
+    <>
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        name: collection.name,
+        url: absoluteUrl(`${locale === "en" ? "/en" : ""}/collections/${id}`),
+        mainEntity: {
+          "@type": "ItemList",
+          itemListElement: albums.map((album, position) => ({
+            "@type": "ListItem",
+            position: position + 1,
+            name: album.title,
+            url: absoluteUrl(`${locale === "en" ? "/en" : ""}/albums/${album.id}`),
+          })),
+        },
+      }} />
+      <CollectionDetailClient collection={collection} albums={albums} />
+    </>
   );
 }
