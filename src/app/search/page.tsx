@@ -397,9 +397,9 @@ function SearchContent() {
   );
 
   return (
-    <div className="page-shell flex min-h-screen flex-col">
+    <div className="page-shell flex min-h-screen min-w-0 flex-col overflow-x-clip">
       <Header />
-      <main className="flex-1 pb-28 pt-28 md:pt-32">
+      <main className="min-w-0 flex-1 overflow-x-clip pb-28 pt-28 md:pt-32">
         <section className="border-b border-[var(--line)] px-4 pb-7 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-[1800px]">
             <div className="grid items-end gap-6 lg:grid-cols-[minmax(240px,.45fr)_minmax(0,1fr)]">
