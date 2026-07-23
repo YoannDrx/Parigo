@@ -150,22 +150,67 @@ test("les commandes de photo de profil sont intégrées à l’avatar", async ({
   await expect(page.getByRole("button", { name: "Enregistrer", exact: true })).toBeVisible();
 });
 
-test("l’historique chargé reste stable", async ({ page }) => {
+test("l’historique chargé reste stable et réserve la place des actions", async ({ page }, testInfo) => {
   await mockSession(page);
   let historyReads = 0;
+  const oldestTrack = { ...track, id: "track-oldest", title: "Écoute ancienne" };
+  const middleTrack = { ...track, id: "track-middle", title: "Écoute intermédiaire" };
+  const newestTrack = { ...track, id: "track-newest", title: "Écoute récente" };
   await page.route("**/api/user/history", (route) => {
     historyReads += 1;
-    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { history: [{ id: "listen-1", playedAt: "2026-07-22T20:15:00.000Z", track }] } }) });
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { history: [
+      { id: "listen-oldest", playedAt: "2026-07-20T08:00:00.000Z", track: oldestTrack },
+      { id: "listen-newest", playedAt: "2026-07-23T20:15:00.000Z", track: newestTrack },
+      { id: "listen-middle", playedAt: "2026-07-22T12:30:00.000Z", track: middleTrack },
+    ] } }) });
   });
   await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
 
+  if (testInfo.project.name !== "mobile") {
+    await page.setViewportSize({ width: 1720, height: 900 });
+  }
   await page.goto("/account/history");
-  await expect(page.getByText(track.title, { exact: true })).toBeVisible();
+  await expect(page.getByText(newestTrack.title, { exact: true })).toBeVisible();
+  const historyText = await page.locator("main").innerText();
+  expect(historyText.indexOf(newestTrack.title)).toBeLessThan(historyText.indexOf(middleTrack.title));
+  expect(historyText.indexOf(middleTrack.title)).toBeLessThan(historyText.indexOf(oldestTrack.title));
   await page.waitForTimeout(250);
   const settledHistoryReads = historyReads;
   await page.waitForTimeout(600);
   expect(settledHistoryReads).toBeLessThanOrEqual(2);
   expect(historyReads).toBe(settledHistoryReads);
+
+  if (testInfo.project.name !== "mobile") {
+    const newestEntry = page.getByTestId("history-entry").filter({ hasText: newestTrack.title });
+    const playedAtBox = await newestEntry.getByTestId("history-played-at").boundingBox();
+    const licenceBox = await newestEntry.getByRole("link", { name: `Demander une licence : ${newestTrack.title}` }).boundingBox();
+    expect(playedAtBox).not.toBeNull();
+    expect(licenceBox).not.toBeNull();
+    expect(playedAtBox!.x + playedAtBox!.width).toBeLessThanOrEqual(licenceBox!.x);
+  }
+});
+
+test("les notifications utilisent un switch Parigo et enregistrent la préférence", async ({ page }) => {
+  await mockSession(page);
+  let subscriptionPayload: Record<string, unknown> | null = null;
+  await page.route("**/api/user/profile", async (route) => {
+    if (route.request().method() === "PUT") {
+      subscriptionPayload = route.request().postDataJSON() as Record<string, unknown>;
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { profile: { subscribed: true } } }) });
+    }
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { profile: { subscribed: false } } }) });
+  });
+
+  await page.goto("/account/settings");
+  const notifications = page.getByRole("switch", { name: "Recevoir les nouvelles sorties Parigo" });
+  await expect(notifications).toBeEnabled();
+  await expect(notifications).toHaveAttribute("aria-checked", "false");
+  await expect(page.locator('input[type="checkbox"]')).toHaveCount(0);
+  await notifications.click();
+
+  await expect.poll(() => subscriptionPayload).toEqual({ subscribed: true });
+  await expect(notifications).toHaveAttribute("aria-checked", "true");
+  await expect(page.getByRole("status")).toHaveText("Préférence enregistrée.");
 });
 
 test("la suppression du compte utilise une alerte éditoriale progressive", async ({ page }) => {

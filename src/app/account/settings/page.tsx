@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui";
+import { Button, Switch } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function SettingsPage() {
@@ -28,14 +28,22 @@ export default function SettingsPage() {
   const [passwordSuccess, setPasswordSuccess] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
   const [isSavingSubscription, setIsSavingSubscription] = useState(false);
   const [subscriptionMessage, setSubscriptionMessage] = useState("");
 
   useEffect(() => {
-    void fetch("/api/user/profile", { cache: "no-store" })
+    const controller = new AbortController();
+    void fetch("/api/user/profile", { cache: "no-store", signal: controller.signal })
       .then((response) => response.ok ? response.json() : null)
-      .then((payload) => setSubscribed(Boolean(payload?.data?.profile?.subscribed)))
-      .catch(() => undefined);
+      .then((payload) => {
+        if (!controller.signal.aborted) setSubscribed(Boolean(payload?.data?.profile?.subscribed));
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoadingSubscription(false);
+      });
+    return () => controller.abort();
   }, []);
 
   const handlePasswordChange = async (e: React.FormEvent) => {
@@ -63,6 +71,8 @@ export default function SettingsPage() {
   };
 
   const handleSubscriptionChange = async (next: boolean) => {
+    const previous = subscribed;
+    setSubscribed(next);
     setIsSavingSubscription(true);
     setSubscriptionMessage("");
     try {
@@ -75,6 +85,7 @@ export default function SettingsPage() {
       setSubscribed(next);
       setSubscriptionMessage(locale === "fr" ? "Préférence enregistrée." : "Preference saved.");
     } catch {
+      setSubscribed(previous);
       setSubscriptionMessage(locale === "fr" ? "Impossible d’enregistrer cette préférence." : "Could not save this preference.");
     } finally {
       setIsSavingSubscription(false);
@@ -181,20 +192,26 @@ export default function SettingsPage() {
           </h2>
         </div>
 
-        <div className="space-y-4">
-          <label className="flex items-center justify-between cursor-pointer">
-            <span className="text-[var(--foreground)]">
+        <div className="grid gap-5 border-t border-[var(--line)] pt-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+          <div>
+            <p id="release-notifications-label" className="font-medium text-[var(--foreground)]">
               {locale === "fr" ? "Recevoir les nouvelles sorties Parigo" : "Receive Parigo new releases"}
-            </span>
-            <input
-              type="checkbox"
+            </p>
+            <p id="release-notifications-description" className="mt-1 max-w-xl text-xs leading-5 text-[var(--text-muted)]">
+              {locale === "fr" ? "Une veille ponctuelle sur les nouveaux albums et les sélections éditoriales." : "Occasional updates about new albums and editorial selections."}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {(isLoadingSubscription || isSavingSubscription) && <Loader2 size={15} className="animate-spin text-[var(--text-muted)]" aria-hidden="true" />}
+            <Switch
               checked={subscribed}
-              disabled={isSavingSubscription}
-              onChange={(event) => void handleSubscriptionChange(event.target.checked)}
-              className="w-5 h-5 rounded accent-[var(--color-primary)]"
+              disabled={isLoadingSubscription || isSavingSubscription}
+              onCheckedChange={(next) => void handleSubscriptionChange(next)}
+              label={locale === "fr" ? "Recevoir les nouvelles sorties Parigo" : "Receive Parigo new releases"}
+              aria-describedby="release-notifications-description"
             />
-          </label>
-          {subscriptionMessage && <p className="text-sm text-[var(--color-gray-600)]">{subscriptionMessage}</p>}
+          </div>
+          {subscriptionMessage && <p id="subscription-status" role="status" className="text-sm text-[var(--text-muted)] sm:col-span-2">{subscriptionMessage}</p>}
         </div>
       </motion.div>
 
