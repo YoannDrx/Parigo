@@ -5,3 +5,4 @@ export { Tag, type TagProps } from "./Tag";
 export { Skeleton, AlbumCardSkeleton, TrackRowSkeleton } from "./Skeleton";
 export { Select, type SelectOption } from "./Select";
 export { Tooltip } from "./Tooltip";
+export { AnchoredPopover } from "./AnchoredPopover";

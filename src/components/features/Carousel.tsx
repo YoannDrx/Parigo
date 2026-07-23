@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, ReactNode } from "react";
 import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface CarouselProps {
   children: ReactNode[];
@@ -27,6 +28,7 @@ export function Carousel({
   showIndicators = true,
   showArrows = true,
 }: CarouselProps) {
+  const { locale } = useI18n();
   const [currentPage, setCurrentPage] = useState(0);
   const [visibleItems, setVisibleItems] = useState(itemsPerView.desktop);
   const [containerWidth, setContainerWidth] = useState(0);
@@ -245,7 +247,7 @@ export function Carousel({
         <button
           onClick={goToPrevious}
           className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-white border-2 border-[var(--color-black)] rounded-full shadow-[3px_3px_0px_var(--color-black)] flex items-center justify-center hover:shadow-[4px_4px_0px_var(--color-black)] hover:-translate-y-[calc(50%+1px)] hover:translate-x-[-1px] transition-all opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
-          aria-label="Précédent"
+          aria-label={locale === "fr" ? "Précédent" : "Previous"}
         >
           <ChevronLeft className="w-5 h-5 text-[var(--color-black)]" />
         </button>
@@ -255,7 +257,7 @@ export function Carousel({
         <button
           onClick={goToNext}
           className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-white border-2 border-[var(--color-black)] rounded-full shadow-[3px_3px_0px_var(--color-black)] flex items-center justify-center hover:shadow-[4px_4px_0px_var(--color-black)] hover:-translate-y-[calc(50%+1px)] hover:translate-x-[1px] transition-all opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
-          aria-label="Suivant"
+          aria-label={locale === "fr" ? "Suivant" : "Next"}
         >
           <ChevronRight className="w-5 h-5 text-[var(--color-black)]" />
         </button>

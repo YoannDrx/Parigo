@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
 import { Input, Button } from "@/components/ui";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface SearchBarProps {
   defaultValue?: string;
@@ -18,6 +19,7 @@ export function SearchBar({
   size = "md",
   onSearch,
 }: SearchBarProps) {
+  const { locale } = useI18n();
   const [query, setQuery] = useState(defaultValue);
   const router = useRouter();
 
@@ -50,7 +52,7 @@ export function SearchBar({
           className="px-6"
         >
           <Search size={size === "lg" ? 22 : 18} className="sm:mr-2" />
-          <span className="hidden sm:inline">Rechercher</span>
+          <span className="hidden sm:inline">{locale === "fr" ? "Rechercher" : "Search"}</span>
         </Button>
       </div>
     </form>

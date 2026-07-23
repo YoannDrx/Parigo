@@ -203,41 +203,47 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-red-50 border-2 border-red-500 rounded-[var(--radius-md)] p-6"
+        className="relative overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]"
       >
-        <div className="flex items-center gap-3 mb-4">
-          <AlertTriangle size={20} className="text-red-500" />
-          <h2 className="text-xl font-semibold text-red-600">
-            {locale === "fr" ? "Zone de danger" : "Danger zone"}
-          </h2>
+        <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[var(--danger)]" />
+        <div className="grid gap-6 px-6 py-7 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start md:px-8 md:py-8">
+          <div className="max-w-2xl">
+            <p className="eyebrow mb-4 flex items-center gap-2 text-[var(--danger)]"><AlertTriangle size={14} />{locale === "fr" ? "Action irréversible" : "Irreversible action"}</p>
+            <h2 className="font-[var(--font-editorial)] text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[.94] tracking-[-.05em] text-[var(--foreground)]">
+              {locale === "fr" ? "Supprimer votre espace Parigo." : "Delete your Parigo space."}
+            </h2>
+            <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
+              {locale === "fr" ? "Votre profil, vos playlists et vos favoris seront définitivement supprimés. Prenez le temps de vérifier vos sélections avant de continuer." : "Your profile, playlists and favourites will be permanently removed. Take a moment to review your selections before continuing."}
+            </p>
+          </div>
+          <div className="hidden border-l border-[var(--line)] pl-6 md:block">
+            <span className="font-mono text-[3.6rem] leading-none tracking-[-.08em] text-[color-mix(in_srgb,var(--danger)_26%,transparent)]">!</span>
+            <p className="mt-3 font-mono text-[.58rem] uppercase leading-5 tracking-[.12em] text-[var(--text-muted)]">{locale === "fr" ? "Aucun retour en arrière" : "No undo available"}</p>
+          </div>
         </div>
 
-        <p className="text-[var(--color-gray-600)] mb-4">
-          {locale === "fr" ? "La suppression de votre compte est irréversible. Toutes vos données, playlists et favoris seront définitivement supprimés." : "Deleting your account is irreversible. All data, playlists and favourites will be permanently removed."}
-        </p>
-
         {!showDeleteConfirm ? (
-          <Button
-            variant="outline"
-            onClick={() => setShowDeleteConfirm(true)}
-            className="text-red-500 border-red-500 hover:bg-red-100"
-          >
-            <Trash2 size={18} className="mr-2" />
-            {locale === "fr" ? "Supprimer mon compte" : "Delete my account"}
-          </Button>
+          <div className="border-t border-[var(--line)] px-6 py-5 md:px-8">
+            <button type="button" onClick={() => setShowDeleteConfirm(true)} className="group/delete inline-flex min-h-11 items-center gap-3 border-b border-[color-mix(in_srgb,var(--danger)_50%,transparent)] font-mono text-[.63rem] font-semibold uppercase tracking-[.09em] text-[var(--danger)] transition-colors hover:border-[var(--danger)]">
+              <Trash2 size={16} />{locale === "fr" ? "Supprimer mon compte" : "Delete my account"}<span aria-hidden="true" className="transition-transform group-hover/delete:translate-x-1">→</span>
+            </button>
+          </div>
         ) : (
-          <div className="space-y-4">
-            <p className="text-sm text-red-600 font-medium">
-              {locale === "fr" ? "Tapez « SUPPRIMER » pour confirmer la suppression de votre compte" : "Type “DELETE” to confirm account deletion"}
-            </p>
-            <input
-              type="text"
-              value={deleteConfirmText}
-              onChange={(e) => setDeleteConfirmText(e.target.value)}
-              placeholder={locale === "fr" ? "SUPPRIMER" : "DELETE"}
-              className="w-full max-w-xs px-4 py-2.5 border-2 border-red-500 rounded-[var(--radius-sm)] focus:outline-none focus:ring-2 focus:ring-red-500"
-            />
-            <div className="flex gap-2">
+          <div className="border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--danger)_5%,var(--surface))] px-6 py-6 md:px-8">
+            <div className="max-w-xl">
+              <p className="text-sm font-medium leading-6 text-[var(--foreground)]">
+                {locale === "fr" ? <>Écrivez <strong className="font-mono text-[var(--danger)]">SUPPRIMER</strong> pour confirmer.</> : <>Type <strong className="font-mono text-[var(--danger)]">DELETE</strong> to confirm.</>}
+              </p>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                placeholder={locale === "fr" ? "SUPPRIMER" : "DELETE"}
+                autoComplete="off"
+                className="mt-4 min-h-12 w-full border border-[var(--line-strong)] bg-[var(--surface)] px-4 font-mono text-sm tracking-[.08em] text-[var(--foreground)] outline-none transition focus:border-[var(--danger)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--danger)_14%,transparent)]"
+              />
+            </div>
+            <div className="mt-5 flex flex-wrap gap-3">
               <Button
                 variant="outline"
                 onClick={() => {
@@ -251,7 +257,7 @@ export default function SettingsPage() {
                 variant="primary"
                 onClick={handleDeleteAccount}
                 disabled={deleteConfirmText !== (locale === "fr" ? "SUPPRIMER" : "DELETE") || isDeleting}
-                className="bg-red-500 hover:bg-red-600"
+                className="border-[var(--danger)] bg-[var(--danger)] text-white hover:!border-[var(--danger)] hover:!bg-[var(--danger)] hover:!text-white"
               >
                 {isDeleting ? (
                   <>

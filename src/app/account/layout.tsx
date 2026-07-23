@@ -11,6 +11,7 @@ import {
   Download,
   Settings,
   Tags,
+  Search,
 } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { redirect } from "next/navigation";
@@ -29,9 +30,10 @@ export default function AccountLayout({
     { icon: User, label: t("account.profile"), href: "/account" },
     { icon: Heart, label: t("account.favorites"), href: "/account/favorites" },
     { icon: ListMusic, label: t("account.playlists"), href: "/account/playlists" },
+    { icon: Search, label: t("account.searches"), href: "/account/searches" },
     { icon: Clock, label: t("account.history"), href: "/account/history" },
     { icon: Download, label: t("account.downloads"), href: "/account/downloads" },
-    { icon: Tags, label: "Tag Manager", href: "/account/tags" },
+    { icon: Tags, label: t("account.tags"), href: "/account/tags" },
     { icon: Settings, label: t("account.settings"), href: "/account/settings" },
   ];
 

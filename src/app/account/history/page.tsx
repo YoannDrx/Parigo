@@ -22,29 +22,27 @@ function albumFromTrack(track: Track): Album | undefined {
 export default function HistoryPage() {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
+  const userId = session?.user?.id;
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user) {
-      loadHistory();
-    }
-  }, [session?.user]);
-
-  const loadHistory = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/user/history");
-      if (response.ok) {
+    if (!userId) return;
+    const controller = new AbortController();
+    void fetch("/api/user/history", { cache: "no-store", signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) return;
         const data = await response.json();
         setHistory(data.data?.history || []);
-      }
-    } catch (error) {
-      console.error("Error loading history:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) console.error("Error loading history:", error);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsLoading(false);
+      });
+    return () => controller.abort();
+  }, [userId]);
 
   // Group history by date
   const groupedHistory = history.reduce(

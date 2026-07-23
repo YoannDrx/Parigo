@@ -48,7 +48,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
       <div className={completed ? "relative flex min-h-screen w-full items-center overflow-hidden py-10 md:py-16" : "sticky top-0 flex min-h-screen w-full items-center overflow-hidden py-10 md:py-16"}>
         <div className="relative z-10 w-full px-3 md:px-8">
           <div className="mx-auto max-w-[1580px] text-left lg:text-center">
-            <p className="eyebrow text-[var(--signal-strong)]">Parigo / Manifesto</p>
+            <p className="eyebrow text-[var(--signal-strong)]">Parigo / {locale === "fr" ? "Manifeste" : "Manifesto"}</p>
             <div className="relative mt-8 md:mt-7">
               {completed ? title("text-[clamp(4rem,17vw,5.8rem)] font-semibold uppercase leading-[.8] tracking-[-.075em] text-[var(--foreground)] lg:text-[clamp(2.25rem,6.3vw,7rem)] lg:leading-[.9] lg:tracking-[-.06em]") : <>
                 {title("select-none text-[clamp(4rem,17vw,5.8rem)] font-semibold uppercase leading-[.8] tracking-[-.075em] text-transparent lg:text-[clamp(2.25rem,6.3vw,7rem)] lg:leading-[.9] lg:tracking-[-.06em]")}

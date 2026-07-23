@@ -8,6 +8,7 @@ import { useFavoritesStore } from "@/stores/favorites-store";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { cn } from "@/lib/utils";
 import { Tooltip } from "@/components/ui";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 interface FavoriteButtonProps {
   type: "track" | "album";
@@ -24,7 +25,9 @@ export function FavoriteButton({
   className,
   showTooltip = true,
 }: FavoriteButtonProps) {
+  const { locale } = useI18n();
   const { data: session } = useSession();
+  const userId = session?.user?.id;
   const openLogin = useAuthModalStore((state) => state.openLogin);
   const {
     isLoading,
@@ -38,10 +41,10 @@ export function FavoriteButton({
 
   // Load favorites when user is logged in
   useEffect(() => {
-    if (session?.user && !isLoaded && !isLoading) {
+    if (userId && !isLoaded && !isLoading) {
       loadFavorites();
     }
-  }, [session?.user, isLoaded, isLoading, loadFavorites]);
+  }, [userId, isLoaded, isLoading, loadFavorites]);
 
   const isFavorite = type === "track" ? isTrackFavorite(itemId) : isAlbumFavorite(itemId);
 
@@ -73,7 +76,11 @@ export function FavoriteButton({
     lg: 22,
   };
 
-  const tooltipLabel = !session?.user ? "Se connecter pour ajouter aux favoris" : isFavorite ? "Retirer des favoris" : "Ajouter aux favoris";
+  const tooltipLabel = !session?.user
+    ? (locale === "fr" ? "Se connecter pour ajouter aux favoris" : "Sign in to add to favourites")
+    : isFavorite
+      ? (locale === "fr" ? "Retirer des favoris" : "Remove from favourites")
+      : (locale === "fr" ? "Ajouter aux favoris" : "Add to favourites");
   const control = (
       <motion.button
         onClick={handleToggle}

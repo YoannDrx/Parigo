@@ -3,8 +3,10 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/components/providers/I18nProvider";
 
 export function HorizontalRail({ children, label, wide = false, cinema = false }: { children: ReactNode; label: string; wide?: boolean; cinema?: boolean }) {
+  const { locale } = useI18n();
   const railRef = useRef<HTMLDivElement>(null);
   const [bounds, setBounds] = useState({ start: true, end: false, overflow: false });
   const [progress, setProgress] = useState(0);
@@ -51,8 +53,8 @@ export function HorizontalRail({ children, label, wide = false, cinema = false }
         <span className="hidden font-mono text-[.56rem] uppercase tracking-[.14em] text-[var(--text-muted)] lg:block">{label}</span>
         <div aria-hidden="true" className="relative h-[2px] overflow-hidden"><div style={{ transform: `scaleX(${bounds.overflow ? Math.max(.06, progress) : 1})` }} className="absolute inset-0 origin-left bg-[var(--signal)] transition-transform duration-300" /></div>
         <div className="hidden gap-2 lg:flex">
-        <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label="Précédent"><ChevronLeft size={20} className="transition-transform group-hover:-translate-x-1" /></button>
-        <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label="Suivant"><ChevronRight size={20} className="transition-transform group-hover:translate-x-1" /></button>
+        <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label={locale === "fr" ? "Précédent" : "Previous"}><ChevronLeft size={20} className="transition-transform group-hover:-translate-x-1" /></button>
+        <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className="group flex h-12 w-16 items-center justify-center overflow-hidden rounded-full border border-current transition enabled:hover:border-[var(--signal)] enabled:hover:bg-[var(--signal)] enabled:hover:text-white disabled:cursor-not-allowed disabled:opacity-25" aria-label={locale === "fr" ? "Suivant" : "Next"}><ChevronRight size={20} className="transition-transform group-hover:translate-x-1" /></button>
         </div>
       </div>
     </div>

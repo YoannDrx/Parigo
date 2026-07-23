@@ -15,7 +15,7 @@ interface AISearchProps {
   onSearch?: (query: string) => void;
 }
 
-const labels: Record<string, string> = {
+const labelsFr: Record<string, string> = {
   cinematic: "Cinématique", electronic: "Électronique", ambient: "Ambient", jazz: "Jazz", techno: "Techno",
   "hip-hop": "Hip-hop", rock: "Rock", pop: "Pop", uplifting: "Solaire", dark: "Sombre",
   energetic: "Énergique", peaceful: "Calme", melancholic: "Mélancolique", tense: "Tension",
@@ -23,17 +23,26 @@ const labels: Record<string, string> = {
   drums: "Batterie", synth: "Synthé", percussion: "Percussions",
 };
 
+const labelsEn: Record<string, string> = {
+  cinematic: "Cinematic", electronic: "Electronic", ambient: "Ambient", jazz: "Jazz", techno: "Techno",
+  "hip-hop": "Hip-hop", rock: "Rock", pop: "Pop", uplifting: "Uplifting", dark: "Dark",
+  energetic: "Energetic", peaceful: "Peaceful", melancholic: "Melancholic", tense: "Tense",
+  epic: "Epic", playful: "Playful", piano: "Piano", guitar: "Guitar", strings: "Strings",
+  drums: "Drums", synth: "Synth", percussion: "Percussion",
+};
+
 export function AISearch({ defaultValue = "", compact = false, showExamples = false, mode = "keyword", onSearch }: AISearchProps) {
   const { locale, t } = useI18n();
   const [query, setQuery] = useState(defaultValue);
   const router = useRouter();
+  const labels = locale === "fr" ? labelsFr : labelsEn;
   const intent = useMemo(() => parseSearchIntent(query), [query]);
   const chips = mode === "assisted" ? [
     ...intent.genres.map((item) => labels[item] ?? item),
     ...intent.moods.map((item) => labels[item] ?? item),
     ...intent.instruments.map((item) => labels[item] ?? item),
     ...(intent.bpmRange ? [`${intent.bpmRange[0]}–${intent.bpmRange[1]} BPM`] : []),
-    ...(intent.isVocal === false ? ["Instrumental"] : intent.isVocal === true ? [locale === "fr" ? "Avec voix" : "Vocals"] : []),
+    ...(intent.isVocal === false ? [locale === "fr" ? "Instrumental" : "Instrumental"] : intent.isVocal === true ? [locale === "fr" ? "Avec voix" : "Vocals"] : []),
   ] : [];
   const examples = locale === "fr" ? [
     "Une techno magnétique sans voix",

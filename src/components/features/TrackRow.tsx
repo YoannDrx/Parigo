@@ -2,13 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2, Plus, X } from "lucide-react";
+import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2, Plus, X, NotebookPen } from "lucide-react";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Track, Album } from "@/types";
 import { Tag, Tooltip } from "@/components/ui";
 import { TrackWaveform } from "./TrackWaveform";
-import { TrackDetailsPanel } from "./TrackDetailsPanel";
+import { TrackDetailsPanel, type TrackDetailsTab } from "./TrackDetailsPanel";
 import { FavoriteButton } from "./FavoriteButton";
 import { DownloadButton } from "./DownloadButton";
 import { AddToPlaylistButton } from "./AddToPlaylistButton";
@@ -57,6 +57,7 @@ export function TrackRow({
   const isCurrentTrack = currentTrack?.id === track.id;
   const isPlayingThis = isCurrentTrack && isPlaying;
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>("information");
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const mobileActionsToken = useRef(Symbol(track.id));
   const displayedTerms = [track.genres[0], track.moods[0]].filter(Boolean) as string[];
@@ -117,6 +118,13 @@ export function TrackRow({
     if (navigator.share) await navigator.share({ title: track.title, text: track.description, url }).catch(() => undefined);
     else await navigator.clipboard.writeText(url);
   };
+  const toggleDetails = (tab: TrackDetailsTab) => {
+    if (detailsOpen && detailsTab === tab) setDetailsOpen(false);
+    else {
+      setDetailsTab(tab);
+      setDetailsOpen(true);
+    }
+  };
 
   return (
     <motion.article
@@ -174,7 +182,7 @@ export function TrackRow({
       {/* Track info + Waveform */}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setDetailsOpen((value) => !value)} aria-expanded={detailsOpen} className="min-w-0 text-left">
+          <button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen} className="min-w-0 text-left">
           <p
             className={cn(
               "font-medium truncate",
@@ -220,7 +228,7 @@ export function TrackRow({
             <Tag variant="mood" size="sm">{localizeCatalogTerm(mood, locale)}</Tag>
           </Tooltip>
         ))}
-        {additionalTerms.length > 0 && <Tooltip label={`${locale === "fr" ? "Autres tags" : "Other tags"} · ${additionalTermsLabel}${additionalTerms.length > 12 ? "…" : ""}`}><button type="button" onClick={() => setDetailsOpen(true)} className="inline-flex min-h-7 items-center rounded-full border border-dashed border-[var(--line-strong)] px-2 text-[.65rem] font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Voir tous les tags" : "View all tags"} : ${track.title}`}>+{additionalTerms.length}</button></Tooltip>}
+        {additionalTerms.length > 0 && <Tooltip label={`${locale === "fr" ? "Autres tags" : "Other tags"} · ${additionalTermsLabel}${additionalTerms.length > 12 ? "…" : ""}`}><button type="button" onClick={() => { setDetailsTab("information"); setDetailsOpen(true); }} className="inline-flex min-h-7 items-center rounded-full border border-dashed border-[var(--line-strong)] px-2 text-[.65rem] font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Voir tous les tags" : "View all tags"} : ${track.title}`}>+{additionalTerms.length}</button></Tooltip>}
       </div>}
 
       {/* BPM */}
@@ -240,7 +248,7 @@ export function TrackRow({
       {/* Actions */}
       <div className="flex flex-shrink-0 items-center gap-0.5">
         <div className="hidden lg:contents"><FavoriteButton type="track" itemId={track.id} size="sm" />
-        <Tooltip label={locale === "fr" ? "Informations sur la piste" : "Track information"}><button type="button" onClick={() => setDetailsOpen((value) => !value)} aria-expanded={detailsOpen} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></Tooltip></div>
+        <Tooltip label={locale === "fr" ? "Informations sur la piste" : "Track information"}><button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen && detailsTab === "information"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "information" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></Tooltip>{session?.user && <Tooltip label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => toggleDetails("notes")} aria-expanded={detailsOpen && detailsTab === "notes"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "notes" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></Tooltip>}</div>
         <div className="hidden lg:contents"><DownloadButton trackId={track.id} trackTitle={track.title} /><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /><AddTagButton trackId={track.id} trackTitle={track.title} /><CueSheetButton compact title={track.title} trackIds={[track.id]} /></div>
         <Tooltip label={locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} className="hidden xl:inline-flex"><button onClick={() => addToQueue(track)} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}>
           <ListEnd size={17} className="text-[var(--color-gray-500)]" />
@@ -261,7 +269,8 @@ export function TrackRow({
         <div className="mb-3 flex items-center justify-between"><p className="eyebrow text-[var(--text-muted)]">{locale === "fr" ? "Actions de la piste" : "Track actions"}</p><button type="button" onClick={() => setMobileActionsOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer les actions" : "Close actions"}><X size={15} /></button></div>
         <div className="grid grid-cols-2 gap-2">
           <MobileAction label={locale === "fr" ? "Favoris" : "Favourite"}><FavoriteButton type="track" itemId={track.id} size="md" showTooltip={false} /></MobileAction>
-          <MobileAction label={locale === "fr" ? "Informations" : "Information"}><button type="button" onClick={() => { setDetailsOpen((value) => !value); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></MobileAction>
+          <MobileAction label={locale === "fr" ? "Informations" : "Information"}><button type="button" onClick={() => { toggleDetails("information"); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></MobileAction>
+          {session?.user && <MobileAction label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => { toggleDetails("notes"); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></MobileAction>}
           <MobileAction label={locale === "fr" ? "Télécharger" : "Download"}><DownloadButton trackId={track.id} trackTitle={track.title} /></MobileAction>
           <MobileAction label={locale === "fr" ? "Playlist" : "Playlist"}><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /></MobileAction>
           {session?.user && <MobileAction label={locale === "fr" ? "Tag personnel" : "Personal tag"}><AddTagButton trackId={track.id} trackTitle={track.title} /></MobileAction>}
@@ -271,7 +280,7 @@ export function TrackRow({
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
       </div>}
-      {detailsOpen && <TrackDetailsPanel track={track} />}
+      {detailsOpen && <TrackDetailsPanel track={track} activeTab={detailsTab} onTabChange={setDetailsTab} />}
     </motion.article>
   );
 }

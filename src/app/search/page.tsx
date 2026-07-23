@@ -7,6 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Check,
+  BookmarkPlus,
   ChevronLeft,
   ChevronRight,
   Disc3,
@@ -28,6 +29,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, resolveIntentCategoryIds } from "@/lib/search-intent";
 import { cn, formatDuration } from "@/lib/utils";
 import type { Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, Track } from "@/types";
+import { useSession } from "@/lib/auth-client";
 
 type ResultView = "tracks" | "albums";
 type Density = "full" | "mid" | "light";
@@ -100,6 +102,7 @@ function useDebounced<T>(value: T, delay = 300): T {
 
 function SearchContent() {
   const { locale, t } = useI18n();
+  const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = stripQuotes(searchParams.get("q") ?? searchParams.get("keyword") ?? "");
@@ -135,6 +138,9 @@ function SearchContent() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [assistedOpen, setAssistedOpen] = useState(false);
   const [assistedDraft, setAssistedDraft] = useState("");
+  const [saveSearchOpen, setSaveSearchOpen] = useState(false);
+  const [saveSearchName, setSaveSearchName] = useState("");
+  const [saveSearchState, setSaveSearchState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const dialogRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
 
@@ -261,6 +267,7 @@ function SearchContent() {
   const total = view === "tracks" ? tracksQuery.data?.pagination.total ?? 0 : albumsQuery.data?.pagination.total ?? 0;
   const facets: SearchFacets | undefined = view === "tracks" ? tracksQuery.data?.facets : albumsQuery.data?.facets;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const searchHistoryId = view === "tracks" ? tracksQuery.data?.searchHistoryId : albumsQuery.data?.searchHistoryId;
 
   const assisted = useMemo(() => parseSearchIntent(assistedDraft), [assistedDraft]);
   const detectedNames = [...new Set([...assisted.genres, ...assisted.moods, ...assisted.instruments])];
@@ -300,6 +307,26 @@ function SearchContent() {
     setPage(1);
   };
 
+  const openSaveSearch = () => {
+    const fallback = query.replaceAll('"', "").trim() || (locale === "fr" ? "Ma recherche Parigo" : "My Parigo search");
+    setSaveSearchName(fallback.slice(0, 160));
+    setSaveSearchState("idle");
+    setSaveSearchOpen(true);
+  };
+
+  const saveCurrentSearch = async () => {
+    if (!searchHistoryId || !saveSearchName.trim()) return;
+    setSaveSearchState("saving");
+    const searchUrl = `${window.location.pathname}${window.location.search}`;
+    const response = await fetch("/api/user/searches", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: saveSearchName.trim(), searchHistoryId, searchUrl }),
+    });
+    setSaveSearchState(response.ok ? "saved" : "error");
+    if (response.ok) window.setTimeout(() => setSaveSearchOpen(false), 900);
+  };
+
   const filterPanel = (
     <SearchFilterPanel
       groups={filterGroups}
@@ -333,7 +360,7 @@ function SearchContent() {
                 <h1 className="text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92] tracking-[-.06em]">{locale === "fr" ? "Trouver la bonne musique." : "Find the right music."}</h1>
               </div>
               <div>
-                <form onSubmit={(event) => { event.preventDefault(); setQuery(queryDraft.trim()); setPage(1); }} className="flex min-h-15 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-sm)] transition-[border-color,box-shadow] focus-within:border-[var(--signal-strong)] focus-within:shadow-[0_0_0_2px_var(--background),0_0_0_4px_var(--signal-strong),var(--shadow-sm)]">
+                <form onSubmit={(event) => { event.preventDefault(); setQuery(queryDraft.trim()); setPage(1); }} className="flex min-h-15 items-center rounded-xl border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[var(--shadow-sm)]">
                   <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />
                   <label htmlFor="catalog-search" className="sr-only">{t("common.search")}</label>
                   <input id="catalog-search" value={queryDraft} onChange={(event) => setQueryDraft(event.target.value)} placeholder={locale === "fr" ? "Titre, mot-clé, compositeur, instrument…" : "Title, keyword, composer, instrument…"} className="min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
@@ -393,10 +420,12 @@ function SearchContent() {
               </div>
             )}
 
-            <div className="mb-4 flex items-center justify-between border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
-              <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
+              <div className="flex items-center gap-3"><span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>{session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 border-l border-[var(--line)] pl-3 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}</div>
               {query && <span>{locale === "fr" ? "Résultats pour" : "Results for"} « {query} »</span>}
             </div>
+
+            {saveSearchOpen && <div className="mb-4 grid gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nom de la recherche" : "Search name"}</span><input autoFocus value={saveSearchName} onChange={(event) => { setSaveSearchName(event.target.value); setSaveSearchState("idle"); }} maxLength={160} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--foreground)]" /></label><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setSaveSearchOpen(false)}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button size="sm" disabled={!saveSearchName.trim() || !searchHistoryId || saveSearchState === "saving"} onClick={() => void saveCurrentSearch()}>{saveSearchState === "saving" ? <Loader2 className="animate-spin" size={14} /> : <BookmarkPlus size={14} />}{saveSearchState === "saved" ? (locale === "fr" ? "Sauvegardée" : "Saved") : (locale === "fr" ? "Enregistrer" : "Save")}</Button></div>{saveSearchState === "error" && <p className="text-xs text-[var(--danger)] sm:col-span-2">{locale === "fr" ? "La recherche n’a pas pu être sauvegardée." : "The search could not be saved."}</p>}</div>}
 
             {!activeQuery.isError && (
               <section className="mb-5 overflow-hidden border-y border-[var(--line)] bg-[var(--surface)] py-3" aria-labelledby="suggested-searches-title">

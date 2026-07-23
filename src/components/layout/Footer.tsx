@@ -10,7 +10,7 @@ export function Footer() {
   const { locale, t } = useI18n();
   const openRegister = useAuthModalStore((state) => state.openRegister);
   const groups = [
-    { title: t("footer.explore"), links: [{ name: t("common.search"), href: "/search" }, { name: t("common.albums"), href: "/albums" }, { name: t("common.playlists"), href: "/playlists" }, { name: locale === "fr" ? "Synchronisations" : "Synchronisations", href: "/synchronisations" }, { name: "Collections", href: "/collections" }] },
+    { title: t("footer.explore"), links: [{ name: t("common.search"), href: "/search" }, { name: t("common.albums"), href: "/albums" }, { name: t("common.playlists"), href: "/playlists" }, { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations" }, { name: "Collections", href: "/collections" }] },
     { title: t("footer.studio"), links: [{ name: t("common.about"), href: "/about" }, { name: t("common.licensing"), href: "/licensing" }, { name: t("common.contact"), href: "/contact" }] },
     { title: t("footer.legal"), links: [{ name: t("footer.legalNotice"), href: "/legal" }, { name: t("footer.privacy"), href: "/privacy" }, { name: t("footer.terms"), href: "/terms" }, { name: locale === "fr" ? "Réservation des droits" : "Reservation of rights", href: "/rights" }] },
   ];
@@ -36,7 +36,7 @@ export function Footer() {
             <div className="md:col-span-4 md:col-start-9">
               <p className="max-w-lg text-sm leading-7 opacity-68">{locale === "fr" ? "Parlez-nous de votre projet, de votre deadline et de vos références. Nos superviseurs musicaux construisent une sélection sur mesure sous 24 heures." : "Tell us about your project, deadline and references. Our music supervisors build a tailored selection within 24 hours."}</p>
               <div className="mt-7 flex flex-wrap gap-3">
-                <Link href="/contact?subject=brief" className="inline-flex min-h-12 items-center gap-2 rounded-md bg-[var(--signal)] px-5 text-sm font-semibold text-[#101410] transition hover:bg-[var(--background)]">{locale === "fr" ? "Envoyer un brief" : "Send a brief"}<ArrowRight size={16} /></Link>
+                <Link href="/contact?subject=brief" style={{ color: "#101410" }} className="footer-brief-cta inline-flex min-h-12 items-center gap-2 rounded-md border border-[var(--signal)] bg-[var(--signal)] px-5 text-sm font-semibold transition hover:border-white hover:bg-white">{locale === "fr" ? "Envoyer un brief" : "Send a brief"}<ArrowRight size={16} /></Link>
                 <a href="mailto:hello@parigomusic.com" className="inline-flex min-h-12 items-center gap-2 rounded-md border border-current/32 px-5 text-sm font-semibold transition hover:border-[var(--signal)] hover:text-[var(--signal)]">{locale === "fr" ? "Contacter l’équipe" : "Contact the team"}<Mail size={15} /></a>
               </div>
             </div>
@@ -48,7 +48,7 @@ export function Footer() {
               <Link href="/" aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group flex"><ParigoLogo className="text-[clamp(2.8rem,5.5vw,5.6rem)]" /></Link>
               <p className="mt-5 font-mono text-[.62rem] font-semibold uppercase tracking-[.2em] text-[var(--signal)]">Music for images</p>
             </div>
-            <p className="mt-6 max-w-sm text-sm leading-relaxed opacity-64">Music for images. Member of SACEM since 2013.</p>
+            <p className="mt-6 max-w-sm text-sm leading-relaxed opacity-64">{locale === "fr" ? "Music for images. Membre de la SACEM depuis 2013." : "Music for images. Member of SACEM since 2013."}</p>
             <a href="mailto:hello@parigomusic.com" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold underline decoration-current/30 underline-offset-4 transition hover:text-[var(--signal)]"><span>hello@parigomusic.com</span><ArrowUpRight size={14} /></a>
           </div>
           <div className="grid grid-cols-2 gap-8 md:col-span-6 md:col-start-7 md:grid-cols-3">

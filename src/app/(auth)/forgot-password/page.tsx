@@ -28,7 +28,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <Card padding="lg" className="w-full max-w-lg border-[var(--line)] bg-[var(--surface)] shadow-none">
-      <p className="eyebrow text-[var(--color-primary-dark)]">Parigo Member</p>
+      <p className="eyebrow text-[var(--color-primary-dark)]">{locale === "fr" ? "Membre Parigo" : "Parigo member"}</p>
       <h1 className="mt-5 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
         {locale === "fr" ? "Mot de passe oublié" : "Forgot password"}
       </h1>
@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
         </div>
       ) : (
         <form onSubmit={submit} className="mt-8 space-y-5">
-          <label className="block text-sm font-medium" htmlFor="reset-email">Email</label>
+          <label className="block text-sm font-medium" htmlFor="reset-email">{locale === "fr" ? "E-mail" : "Email"}</label>
           <Input id="reset-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <Button type="submit" disabled={pending} className="w-full">{pending ? "…" : locale === "fr" ? "Envoyer le lien" : "Send reset link"}</Button>
