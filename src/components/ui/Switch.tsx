@@ -1,6 +1,5 @@
 "use client";
 
-import { Check } from "lucide-react";
 import type { ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +24,10 @@ export function Switch({ checked, label, onCheckedChange, className, disabled, .
     >
       <span aria-hidden="true" className="parigo-switch__corner parigo-switch__corner--top" />
       <span aria-hidden="true" className="parigo-switch__track">
-        <span className="parigo-switch__thumb">{checked && <Check size={12} strokeWidth={2.4} />}</span>
+        <span className="parigo-switch__rail" />
+        <span className="parigo-switch__thumb">
+          <span className="parigo-switch__state">{checked ? "1" : "0"}</span>
+        </span>
       </span>
       <span aria-hidden="true" className="parigo-switch__corner parigo-switch__corner--bottom" />
     </button>

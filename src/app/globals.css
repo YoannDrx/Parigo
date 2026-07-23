@@ -488,8 +488,8 @@ img { filter: var(--image-filter); }
 .parigo-switch {
   position: relative;
   display: inline-grid;
-  width: 4.5rem;
-  height: 2.75rem;
+  width: 4.75rem;
+  height: 2.875rem;
   flex: 0 0 auto;
   place-items: center;
   color: var(--foreground);
@@ -497,61 +497,98 @@ img { filter: var(--image-filter); }
 .parigo-switch__track {
   position: relative;
   display: block;
-  width: 3.75rem;
-  height: 1.875rem;
+  width: 4rem;
+  height: 2rem;
+  overflow: hidden;
   border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  background: var(--surface-soft);
+  border-radius: 2px;
+  background:
+    linear-gradient(90deg, transparent calc(50% - .5px), var(--line) calc(50% - .5px), var(--line) calc(50% + .5px), transparent calc(50% + .5px)),
+    var(--surface-soft);
   transition: border-color 280ms ease, background-color 280ms ease, box-shadow 280ms ease;
+}
+.parigo-switch__rail {
+  position: absolute;
+  left: .35rem;
+  right: .35rem;
+  top: 50%;
+  height: 1px;
+  background: var(--line-strong);
+  opacity: .7;
+  transform: translateY(-50%);
+  transition: background-color 280ms ease, opacity 280ms ease;
 }
 .parigo-switch__thumb {
   position: absolute;
-  top: 2px;
-  left: 2px;
+  left: 3px;
+  top: 3px;
   display: grid;
-  width: 1.5rem;
+  width: 1.625rem;
   height: 1.5rem;
   place-items: center;
-  border-radius: 999px;
+  clip-path: polygon(0 0, 100% 0, 100% 72%, 76% 100%, 0 100%);
   background: var(--foreground);
   color: var(--background);
-  box-shadow: 0 3px 10px rgba(15, 22, 16, .18);
-  transition: transform 360ms var(--ease-out), background-color 280ms ease, color 280ms ease;
+  box-shadow: 0 4px 12px rgba(15, 22, 16, .2);
+  transition: transform 420ms var(--ease-out), background-color 280ms ease, color 280ms ease, clip-path 420ms var(--ease-out);
+}
+.parigo-switch__state {
+  font-family: var(--font-mono);
+  font-size: .6rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: 0;
 }
 .parigo-switch__corner {
   position: absolute;
-  width: .9rem;
-  height: 1rem;
-  transition: width 360ms var(--ease-out), border-color 240ms ease;
+  width: .85rem;
+  height: .9rem;
+  transition: width 400ms var(--ease-out), border-color 240ms ease, transform 400ms var(--ease-out);
 }
 .parigo-switch__corner--top {
-  top: 1px;
-  right: 1px;
+  top: 0;
+  right: 0;
   border-top: 1px solid currentColor;
   border-right: 1px solid currentColor;
 }
 .parigo-switch__corner--bottom {
-  bottom: 1px;
-  left: 1px;
+  bottom: 0;
+  left: 0;
   border-bottom: 1px solid var(--signal-strong);
   border-left: 1px solid var(--signal-strong);
 }
 .parigo-switch[data-state="checked"] .parigo-switch__track {
   border-color: var(--signal-strong);
-  background: var(--signal-soft);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 18%, transparent);
+  background:
+    linear-gradient(90deg, transparent calc(50% - .5px), color-mix(in srgb, var(--signal-strong) 46%, transparent) calc(50% - .5px), color-mix(in srgb, var(--signal-strong) 46%, transparent) calc(50% + .5px), transparent calc(50% + .5px)),
+    color-mix(in srgb, var(--signal) 15%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 12%, transparent);
 }
 .parigo-switch[data-state="checked"] .parigo-switch__thumb {
-  transform: translateX(1.75rem);
+  clip-path: polygon(24% 0, 100% 0, 100% 100%, 0 100%, 0 28%);
+  transform: translateX(1.875rem);
   background: var(--signal-strong);
   color: #fff;
 }
+.parigo-switch[data-state="checked"] .parigo-switch__rail {
+  background: var(--signal-strong);
+  opacity: .82;
+}
 .parigo-switch:not(:disabled):hover .parigo-switch__corner,
-.parigo-switch:focus-visible .parigo-switch__corner { width: 1.6rem; }
-.parigo-switch:not(:disabled):hover .parigo-switch__track { border-color: var(--signal-strong); }
+.parigo-switch:focus-visible .parigo-switch__corner { width: 1.7rem; }
+.parigo-switch:not(:disabled):hover .parigo-switch__corner--top,
+.parigo-switch:focus-visible .parigo-switch__corner--top { transform: translate(-1px, 1px); }
+.parigo-switch:not(:disabled):hover .parigo-switch__corner--bottom,
+.parigo-switch:focus-visible .parigo-switch__corner--bottom { transform: translate(1px, -1px); }
+.parigo-switch:not(:disabled):hover .parigo-switch__track {
+  border-color: var(--signal-strong);
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--signal) 14%, transparent);
+}
+.parigo-switch:not(:disabled):active .parigo-switch__thumb { transform: translateX(1px) scale(.94); }
+.parigo-switch[data-state="checked"]:not(:disabled):active .parigo-switch__thumb { transform: translateX(calc(1.875rem - 1px)) scale(.94); }
 .parigo-switch:focus-visible {
   outline: none;
-  filter: drop-shadow(0 0 0.3rem color-mix(in srgb, var(--signal) 30%, transparent));
+  filter: drop-shadow(0 0 0.35rem color-mix(in srgb, var(--signal) 28%, transparent));
 }
 .parigo-switch:disabled { cursor: not-allowed; opacity: .48; }
 
