@@ -26,7 +26,7 @@ export function SyncCard({ sync, priority = false }: SyncCardProps) {
 
   return (
     <motion.div
-      className="group/card cursor-pointer overflow-hidden rounded-[var(--radius-md)] border-2 border-[var(--color-black)] bg-[var(--surface)] shadow-[5px_5px_0px_var(--color-black)] transition-all duration-200 hover:-translate-x-[3px] hover:-translate-y-[3px] hover:shadow-[8px_8px_0px_var(--color-black)]"
+      className="parigo-frame group/card cursor-pointer overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] transition-all duration-200 hover:-translate-y-[3px]"
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       onClick={handleClick}
@@ -48,7 +48,7 @@ export function SyncCard({ sync, priority = false }: SyncCardProps) {
         {/* Play button on hover */}
         {sync.youtubeUrl && (
           <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity">
-            <div className="w-14 h-14 bg-[var(--color-primary)] rounded-full border-2 border-[var(--color-black)] shadow-[4px_4px_0px_var(--color-black)] flex items-center justify-center">
+            <div className="parigo-frame flex h-14 w-14 items-center justify-center border border-white/50 bg-[var(--color-primary)] text-white">
               <Play size={24} className="text-white fill-white ml-1" />
             </div>
           </div>

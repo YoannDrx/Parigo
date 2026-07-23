@@ -53,24 +53,25 @@ export default function AccountLayout({
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
-      <header className="border-b border-[var(--line)] bg-[var(--surface)] px-4 pb-16 pt-32 md:px-8 md:pb-20 md:pt-40"><div className="mx-auto max-w-[1600px]"><p className="eyebrow mb-5 text-[var(--color-primary-dark)]">{t("account.eyebrow")}</p><h1 className="text-6xl font-semibold tracking-[-.055em] md:text-8xl">{t("account.title")}</h1></div></header>
+      <header className="account-hero border-b border-[var(--line)] px-4 pb-16 pt-32 md:px-8 md:pb-20 md:pt-40"><div className="relative z-[1] mx-auto max-w-[1600px]"><p className="eyebrow mb-5 text-[var(--color-primary-dark)]">{t("account.eyebrow")}</p><h1 className="text-6xl font-semibold tracking-[-.055em] md:text-8xl">{t("account.title")}</h1></div></header>
       <div className="flex-1 pb-32 pt-10 md:pt-16">
       <div className="mx-auto max-w-[1600px] px-4 lg:px-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Navigation */}
           <aside className="flex-shrink-0 lg:w-64">
             <div className="sticky top-24">
-              <nav className="flex overflow-x-auto border-y border-[var(--line)] lg:block">
+              <nav className="account-nav flex overflow-x-auto border border-[var(--line-strong)] p-1.5 lg:block">
                 {navItems.map((item) => {
                   const isActive = pathname === item.href;
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex min-h-12 shrink-0 items-center gap-3 border-b border-transparent px-4 py-3 transition-colors lg:w-full ${
+                      data-active={isActive}
+                      className={`account-nav__link flex min-h-12 shrink-0 items-center gap-3 px-4 py-3 lg:w-full ${
                         isActive
-                          ? "border-[var(--foreground)] text-[var(--color-primary-dark)]"
-                          : "text-[var(--text-muted)] hover:text-[var(--foreground)]"
+                          ? ""
+                          : "text-[var(--text-muted)]"
                       }`}
                     >
                       <item.icon size={20} />

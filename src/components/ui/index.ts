@@ -7,3 +7,4 @@ export { Select, type SelectOption } from "./Select";
 export { Switch, type SwitchProps } from "./Switch";
 export { Tooltip } from "./Tooltip";
 export { AnchoredPopover } from "./AnchoredPopover";
+export { ParigoDialog } from "./ParigoDialog";

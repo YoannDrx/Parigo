@@ -121,10 +121,10 @@ export default function PlaylistsPage() {
   const filtersActive = query.trim() || visibility !== "all";
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+    <div className="account-page space-y-8">
+      <div className="account-page__header flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--signal-soft)]">
+          <div className="account-page__mark">
             <ListMusic size={24} className="text-[var(--signal-strong)]" />
           </div>
           <div>
@@ -139,7 +139,7 @@ export default function PlaylistsPage() {
       </div>
 
       {!isLoading && playlists.length > 0 && (
-        <section aria-label={locale === "fr" ? "Rechercher et filtrer les playlists" : "Search and filter playlists"} className="grid gap-3 border-y border-[var(--line)] py-4 md:grid-cols-[minmax(15rem,1fr)_12rem_12rem]">
+        <section aria-label={locale === "fr" ? "Rechercher et filtrer les playlists" : "Search and filter playlists"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(15rem,1fr)_12rem_12rem]">
           <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Rechercher une playlist…" : "Search playlists…"} aria-label={locale === "fr" ? "Rechercher dans mes playlists" : "Search my playlists"} />
           <Select value={visibility} onValueChange={setVisibility} ariaLabel={locale === "fr" ? "Filtrer par visibilité" : "Filter by visibility"} options={[
             { value: "all", label: locale === "fr" ? "Toutes les visibilités" : "All visibility" },
@@ -158,14 +158,14 @@ export default function PlaylistsPage() {
       {isLoading ? (
         <div className="flex items-center justify-center py-20"><Loader2 size={32} className="animate-spin text-[var(--signal-strong)]" /></div>
       ) : playlists.length === 0 ? (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20 text-center">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="account-empty flex flex-col items-center justify-center px-6 py-20 text-center">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--surface-soft)]"><ListMusic size={40} className="text-[var(--text-muted)]" /></div>
           <h3 className="mb-2 text-xl font-semibold text-[var(--foreground)]">{locale === "fr" ? "Aucune playlist" : "No playlists"}</h3>
           <p className="mb-6 max-w-md text-[var(--text-muted)]">{locale === "fr" ? "Créez votre première playlist pour organiser vos pistes préférées." : "Create your first playlist to organise your favourite tracks."}</p>
           <Button variant="primary" className="gap-2" onClick={openCreate}><Plus size={18} />{locale === "fr" ? "Créer ma première playlist" : "Create my first playlist"}</Button>
         </motion.div>
       ) : filteredPlaylists.length === 0 ? (
-        <div className="border border-[var(--line)] px-6 py-16 text-center">
+        <div className="account-empty px-6 py-16 text-center">
           <Search className="mx-auto mb-4 text-[var(--text-muted)]" />
           <h2 className="font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Aucune playlist ne correspond." : "No playlist matches."}</h2>
           <p className="mt-2 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Essayez un autre terme ou retirez un filtre." : "Try another term or remove a filter."}</p>
@@ -175,7 +175,7 @@ export default function PlaylistsPage() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredPlaylists.map((playlist, index) => (
             <motion.div key={playlist.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, .25) }}>
-              <Link href={`/account/playlists/${playlist.id}`} className="group block overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[var(--theme-shadow)]">
+              <Link href={`/account/playlists/${playlist.id}`} className="parigo-frame group block overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[var(--theme-shadow)]">
                 <div className="relative aspect-square overflow-hidden">
                   <Image src={playlist.cover || "/images/placeholder-playlist.jpg"} alt={playlist.title} width={640} height={640} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]" />
                   <div className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/30 bg-black/55 text-white backdrop-blur-md" aria-label={playlist.isPublic ? (locale === "fr" ? "Playlist publique" : "Public playlist") : (locale === "fr" ? "Playlist privée" : "Private playlist")}>{playlist.isPublic ? <Globe size={14} /> : <Lock size={14} />}</div>
@@ -190,7 +190,7 @@ export default function PlaylistsPage() {
       <AnimatePresence>
         {createOpen && (
           <motion.div className="fixed inset-0 z-[180] flex items-center justify-center bg-[#0c110d]/68 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.currentTarget === event.target) closeCreate(); }}>
-            <motion.section role="dialog" aria-modal="true" aria-labelledby="create-playlist-title" className="parigo-panel relative w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)] shadow-[0_34px_120px_rgba(0,0,0,.42)]" initial={{ opacity: 0, y: 24, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .98 }} transition={{ duration: .22 }}>
+            <motion.section role="dialog" aria-modal="true" aria-labelledby="create-playlist-title" className="parigo-modal relative w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]" initial={{ opacity: 0, y: 24, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .98 }} transition={{ duration: .22 }}>
               <span aria-hidden="true" className="absolute left-0 top-0 h-1 w-32 bg-[var(--signal)]" />
               <button type="button" onClick={closeCreate} disabled={isCreating} aria-label={locale === "fr" ? "Fermer" : "Close"} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] transition hover:border-[var(--foreground)]"><X size={17} /></button>
               <form onSubmit={createPlaylist} className="p-6 pt-10 sm:p-9 sm:pt-11">

@@ -51,10 +51,10 @@ export default function DownloadsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="account-page space-y-8">
       {/* Page Header */}
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+      <div className="account-page__header flex items-center gap-3">
+        <div className="account-page__mark">
           <Download size={24} className="text-green-500" />
         </div>
         <div>
@@ -76,7 +76,7 @@ export default function DownloadsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center justify-center py-20 text-center"
+          className="account-empty flex flex-col items-center justify-center px-6 py-20 text-center"
         >
           <div className="w-20 h-20 bg-[var(--color-gray-100)] rounded-full flex items-center justify-center mb-4">
             <Download size={40} className="text-[var(--color-gray-400)]" />
@@ -98,11 +98,11 @@ export default function DownloadsPage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="border border-[var(--line)] bg-[var(--surface)] p-4"
+                className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-4"
               >
                 <div className="flex items-center gap-4">
                   {/* Cover */}
-                  <div className="w-16 h-16 rounded-[var(--radius-sm)] overflow-hidden border border-[var(--color-gray-100)] flex-shrink-0">
+                  <div className="media-frame h-16 w-16 flex-shrink-0 overflow-hidden border border-[var(--color-gray-100)]">
                     {download.track.albumCover ? (
                       <Image
                         src={download.track.albumCover}
@@ -144,7 +144,7 @@ export default function DownloadsPage() {
 
                   {/* License Badge */}
                   <div
-                    className={`px-3 py-1.5 rounded-full text-sm font-medium ${license.color}`}
+                    className={`parigo-tag px-3 py-1.5 text-sm font-medium ${license.color}`}
                   >
                     {license.label}
                   </div>

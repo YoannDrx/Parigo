@@ -240,7 +240,7 @@ export function AlbumCarousel({
       {canGoPrevious && (
         <button
           onClick={goToPrevious}
-          className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-white border-2 border-[var(--color-black)] rounded-full shadow-[3px_3px_0px_var(--color-black)] flex items-center justify-center hover:shadow-[4px_4px_0px_var(--color-black)] hover:-translate-y-[calc(50%+1px)] hover:translate-x-[-1px] transition-all opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
+          className="parigo-frame absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[var(--line-strong)] bg-[var(--surface)] opacity-0 transition-all hover:-translate-y-[calc(50%+1px)] hover:translate-x-[-1px] group-hover/carousel:opacity-100 focus:opacity-100"
           aria-label={locale === "fr" ? "Albums précédents" : "Previous albums"}
         >
           <ChevronLeft className="w-5 h-5 text-[var(--color-black)]" />
@@ -250,7 +250,7 @@ export function AlbumCarousel({
       {canGoNext && (
         <button
           onClick={goToNext}
-          className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-white border-2 border-[var(--color-black)] rounded-full shadow-[3px_3px_0px_var(--color-black)] flex items-center justify-center hover:shadow-[4px_4px_0px_var(--color-black)] hover:-translate-y-[calc(50%+1px)] hover:translate-x-[1px] transition-all opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
+          className="parigo-frame absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[var(--line-strong)] bg-[var(--surface)] opacity-0 transition-all hover:-translate-y-[calc(50%+1px)] hover:translate-x-[1px] group-hover/carousel:opacity-100 focus:opacity-100"
           aria-label={locale === "fr" ? "Albums suivants" : "Next albums"}
         >
           <ChevronRight className="w-5 h-5 text-[var(--color-black)]" />

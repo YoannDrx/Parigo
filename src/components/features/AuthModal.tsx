@@ -103,7 +103,7 @@ export function AuthModal() {
     <AnimatePresence>
       {isOpen && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4">
         <motion.button type="button" aria-label={t("common.close")} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 cursor-default bg-black/50 backdrop-blur-md" onClick={close} />
-        <motion.div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={view === "login" ? "auth-login-title" : "auth-register-title"} initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 20 }} className="parigo-panel relative h-[min(820px,94dvh)] w-full max-w-[1120px] overflow-hidden border border-white/20 bg-[var(--surface)] shadow-[0_34px_120px_rgba(0,0,0,.28)]">
+        <motion.div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={view === "login" ? "auth-login-title" : "auth-register-title"} initial={{ opacity: 0, scale: 0.96, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 20 }} className="parigo-modal relative h-[min(820px,94dvh)] w-full max-w-[1120px] overflow-hidden border border-white/20 bg-[var(--surface)]">
           <button type="button" onClick={close} className="nav-control absolute right-4 top-4 z-30 h-10 w-10 rounded-full border border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_82%,transparent)] backdrop-blur-xl" aria-label={t("common.close")}><X size={20} /></button>
 
           <div className="grid h-full md:grid-cols-[36%_minmax(0,1fr)]">
