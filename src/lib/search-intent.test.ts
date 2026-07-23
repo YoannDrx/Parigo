@@ -53,6 +53,16 @@ describe("parseSearchIntent", () => {
     expect(intent.moods).toContain("energetic");
   });
 
+  it("relie le vocabulaire éditorial aux libellés réels de la taxonomie Harvest", () => {
+    const groups: SearchFilterGroup[] = [
+      { key: "genre", label: "Genre", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_film", name: "Film" }] },
+      { key: "moods", label: "Moods", selection: "include-exclude", total: 2, available: 2, items: [{ id: "ATT_cinematic", name: "Cinematic" }, { id: "ATT_tension", name: "Tension" }] },
+    ];
+
+    expect(resolveIntentCategoryIds(parseSearchIntent("documentaire cinématique"), groups)).toEqual(["ATT_cinematic"]);
+    expect(resolveIntentCategoryIds(parseSearchIntent("fiction sous tension"), groups)).toEqual(["ATT_tension"]);
+  });
+
   it("n'ajoute pas la phrase libre quand des critères structurés seront appliqués", () => {
     const params = intentToSearchParams(parseSearchIntent("Une techno qui tabasse."));
 

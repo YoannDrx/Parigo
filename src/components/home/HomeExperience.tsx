@@ -8,7 +8,6 @@ import { useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features";
 import { Footer, Header } from "@/components/layout";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { Button } from "@/components/ui";
 import { SYNCHRONISATIONS as syncs } from "@/content/synchronisations";
 import { useAlbums, useFeaturedPlaylists } from "@/hooks/use-api";
 import { OrganicHeroBackdrop } from "./OrganicHeroBackdrop";
@@ -16,6 +15,8 @@ import { HorizontalRail } from "./HorizontalRail";
 import { EditorialScrollStory } from "./EditorialScrollStory";
 import { ManifestoScrollSection } from "./ManifestoScrollSection";
 import { ProcessSignalSection } from "./ProcessSignalSection";
+import { ProjectInvitationSection } from "./ProjectInvitationSection";
+import { SensationSignalSection } from "./SensationSignalSection";
 
 const PARIGO_LABEL_ID = "b9d701733704e2d7";
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
@@ -29,15 +30,6 @@ const LINKTREE_PLATFORMS: Array<{ name: PlatformName; position: string }> = [
   { name: "TikTok", position: "left-[11.2rem] top-[4.6rem] rotate-[9deg] group-hover:translate-x-2 group-hover:translate-y-1" },
   { name: "Bandcamp", position: "left-[12.1rem] top-0 -rotate-[5deg] group-hover:translate-x-2 group-hover:-translate-y-2" },
 ];
-
-const SENSATION_LAYOUTS = [
-  "lg:col-span-5 lg:min-h-[23rem]",
-  "lg:col-span-4 lg:min-h-[23rem]",
-  "lg:col-span-3 lg:min-h-[23rem]",
-  "lg:col-span-4 lg:min-h-[18rem]",
-  "lg:col-span-3 lg:min-h-[18rem]",
-  "lg:col-span-5 lg:min-h-[18rem]",
-] as const;
 
 function PlatformIcon({ name }: { name: PlatformName }) {
   if (name === "Instagram") return <Instagram size={20} />;
@@ -69,22 +61,6 @@ export function HomeExperience() {
   const releases = releaseData?.albums || [];
   const editorialPlaylists = playlistData?.playlists || [];
   const parigoAlbums = parigoQuery.data?.albums || [];
-  const sensations = locale === "fr" ? [
-    { label: "Publicité", query: "publicité", note: "Impact immédiat" },
-    { label: "Documentaire", query: "documentaire", note: "Récit & profondeur" },
-    { label: "Fiction", query: "fiction", note: "Tension narrative" },
-    { label: "Sport", query: "sport énergique", note: "Rythme & mouvement" },
-    { label: "Mode", query: "mode élégante", note: "Allure contemporaine" },
-    { label: "Émotion", query: "émotion intime", note: "Sensible & humain" },
-  ] : [
-    { label: "Advertising", query: "advertising", note: "Immediate impact" },
-    { label: "Documentary", query: "documentary", note: "Story & depth" },
-    { label: "Fiction", query: "fiction", note: "Narrative tension" },
-    { label: "Sport", query: "energetic sport", note: "Rhythm & movement" },
-    { label: "Fashion", query: "elegant fashion", note: "Contemporary edge" },
-    { label: "Emotion", query: "intimate emotion", note: "Sensitive & human" },
-  ];
-
   return (
     <div className="page-shell home-shell">
       <Header variant="overlay" />
@@ -156,6 +132,10 @@ export function HomeExperience() {
 
         <ProcessSignalSection locale={locale} />
 
+        <ProjectInvitationSection />
+
+        <SensationSignalSection locale={locale} />
+
         <EditorialScrollStory playlists={editorialPlaylists} locale={locale} />
 
         <section className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
@@ -166,23 +146,7 @@ export function HomeExperience() {
           </div>
         </section>
 
-        <section className="px-4 py-20 md:px-8 md:py-28">
-          <div className="mx-auto max-w-[1580px]">
-            <SectionReveal className="grid gap-8 md:grid-cols-12">
-              <div className="md:col-span-7"><p className="eyebrow text-[var(--signal-strong)]">{t("home.usesEyebrow")}</p><h2 className="mt-5 max-w-[10ch] text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92] text-[var(--foreground)]">{t("home.usesTitle")}</h2></div>
-              <div className="max-w-md self-end md:col-span-4 md:col-start-9"><p className="text-sm leading-relaxed text-[var(--text-muted)]">{locale === "fr" ? "Choisissez un point de départ sensible. Chaque carte interroge le catalogue Parigo en direct, puis vous laisse affiner le résultat par humeur, genre, instrument, BPM ou durée." : "Choose a feeling as your starting point. Each card searches the live Parigo catalogue, then lets you refine by mood, genre, instrument, BPM or duration."}</p><Link href="/search" className="mt-5 inline-flex min-h-10 items-center gap-2 font-mono text-[.62rem] font-semibold uppercase tracking-[.12em] text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]">{locale === "fr" ? "Ou décrire votre propre intention" : "Or describe your own intention"}<ArrowRight size={14} className="text-[var(--signal-strong)]" /></Link></div>
-            </SectionReveal>
-            <div className="mt-14 grid gap-px border border-[var(--line)] bg-[var(--line)] sm:grid-cols-2 lg:grid-cols-12">
-              {sensations.map((item, index) => <Link key={item.label} href={`/search?q=${encodeURIComponent(item.query)}&view=tracks&type=main`} aria-label={`${item.label} — ${locale === "fr" ? "chercher dans le catalogue" : "search the catalogue"}`} className={`group relative flex min-h-52 flex-col justify-between overflow-hidden bg-[var(--background)] p-6 text-[var(--foreground)] transition duration-500 hover:z-10 hover:bg-[color-mix(in_srgb,var(--signal-strong)_22%,#0b0f0c)] hover:text-white hover:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--signal)_42%,transparent)] md:p-8 ${SENSATION_LAYOUTS[index]}`}>
-                <span aria-hidden="true" className="absolute -bottom-10 -right-3 font-[var(--font-editorial)] text-[9rem] leading-none text-[var(--signal)] opacity-0 transition duration-500 group-hover:-translate-y-3 group-hover:opacity-[.09]">{index + 1}</span>
-                <div className="relative flex items-start justify-between gap-6"><span className="max-w-[18ch] font-mono text-[.58rem] uppercase tracking-[.14em] text-[var(--text-muted)] transition group-hover:text-white/76">{item.note}</span><ArrowUpRight size={17} className="shrink-0 text-[var(--signal-strong)] transition duration-500 group-hover:-translate-y-1 group-hover:translate-x-1 group-hover:text-[var(--signal)]" /></div>
-                <div className="relative min-w-0"><span className="mb-4 block h-px w-10 bg-[var(--signal-strong)] transition-all duration-500 group-hover:w-20 group-hover:bg-[var(--signal)]" /><h3 className="max-w-full break-words text-[clamp(1.85rem,3vw,4rem)] leading-[.9] tracking-[-.06em] text-[var(--foreground)] transition-colors group-hover:text-white">{item.label}</h3><p className="mt-5 font-mono text-[.55rem] uppercase tracking-[.12em] text-[var(--text-muted)] transition group-hover:text-white/72">{locale === "fr" ? "Écouter cette direction" : "Listen in this direction"} · 0{index + 1}</p></div>
-              </Link>)}
-            </div>
-          </div>
-        </section>
-
-        <section className="px-4 pb-20 md:px-8 md:pb-28">
+        <section data-testid="social-follow-section" className="px-4 py-20 md:px-8 md:py-28">
           <SectionReveal className="group relative mx-auto grid max-w-[1580px] overflow-hidden rounded-[1.2rem] bg-[var(--signal-strong)] p-6 text-white md:grid-cols-12 md:items-center md:p-10 lg:p-14">
             <div aria-hidden="true" className="absolute -right-16 -top-24 h-72 w-72 rounded-full border-[44px] border-white/10 transition duration-700 group-hover:scale-110" />
             <div className="relative md:col-span-9 md:flex md:items-center md:gap-4"><div className="relative h-28 w-full max-w-[15rem] shrink-0" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform) => <span key={platform.name} aria-label={platform.name} className={`absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><PlatformIcon name={platform.name} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-4 md:mt-0"><p className="eyebrow text-white/62">{locale === "fr" ? "Parigo ailleurs" : "Parigo elsewhere"}</p><h2 className="mt-3 text-[clamp(2rem,4vw,4.5rem)] leading-[.94]">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</h2><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/68">{locale === "fr" ? "Sorties, playlists, images et actualités du studio — tous nos liens réunis au même endroit." : "Releases, playlists, images and studio news — all our links in one place."}</p></div></div>
@@ -190,12 +154,6 @@ export function HomeExperience() {
           </SectionReveal>
         </section>
 
-        <section className="border-t border-[var(--line)] bg-[var(--surface)] px-4 py-20 md:px-8 md:py-28">
-          <SectionReveal className="mx-auto grid max-w-[1580px] gap-10 md:grid-cols-12 md:items-end">
-            <div className="md:col-span-8"><p className="eyebrow text-[var(--signal-strong)]">{t("home.licenseEyebrow")}</p><h2 className="mt-6 max-w-[13ch] text-[clamp(2.8rem,5.8vw,6.2rem)] leading-[.92]">{t("home.licenseTitle")}</h2></div>
-            <div className="md:col-span-3 md:col-start-10"><p className="mb-7 leading-relaxed text-[var(--text-muted)]">{t("home.licenseCopy")}</p><div className="flex flex-wrap gap-3"><Link href="/contact"><Button className="home-project-cta">{t("home.licenseCta")}</Button></Link><Link href="/licensing"><Button variant="outline">{t("home.discoverLicensing")}</Button></Link></div></div>
-          </SectionReveal>
-        </section>
       </main>
       <Footer />
     </div>

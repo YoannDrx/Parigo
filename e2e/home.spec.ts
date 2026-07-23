@@ -166,20 +166,9 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   test.setTimeout(90_000);
   await page.goto("/");
   await expect(page.getByText(/démo locale/i)).toHaveCount(0);
-  await page.getByRole("tab", { name: "Nouveautés" }).click();
-  await expect(page.locator('#featured a[href^="/albums/"]').first()).toBeVisible({ timeout: 30_000 });
-  expect(await page.locator('#featured a[href^="/albums/"]').count()).toBeGreaterThan(4);
-  expect(await page.locator("main img").count()).toBeGreaterThanOrEqual(8);
-
-  const playlistsTitle = page.getByRole("heading", {
-    name: "Une sélection, plusieurs récits.",
-  });
-  await playlistsTitle.scrollIntoViewIfNeeded();
-  await expect(playlistsTitle).toBeVisible();
-
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
-  await expect(page.getByRole("button", { name: "Ouvrir le menu" })).toBeVisible();
-  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  const menuTrigger = page.getByRole("button", { name: "Ouvrir le menu" });
+  await expect(menuTrigger).toBeVisible();
+  await menuTrigger.click();
   const menu = page.getByRole("dialog", { name: "Menu principal" });
   await expect(menu).toBeVisible();
   if (testInfo.project.name === "mobile") {
@@ -192,12 +181,29 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "Menu principal" })).toHaveCount(0);
+
+  await page.getByRole("tab", { name: "Nouveautés" }).click();
+  await expect(page.locator('#featured a[href^="/albums/"]').first()).toBeVisible({ timeout: 30_000 });
+  expect(await page.locator('#featured a[href^="/albums/"]').count()).toBeGreaterThan(4);
+  expect(await page.locator("main img").count()).toBeGreaterThanOrEqual(8);
+
+  const playlistsTitle = page.getByRole("heading", {
+    name: "Une sélection, plusieurs récits.",
+  });
+  await playlistsTitle.scrollIntoViewIfNeeded();
+  await expect(playlistsTitle).toBeVisible();
 });
 
 test("la home et les pistes proposent des interactions tactiles dédiées", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   test.skip(testInfo.project.name !== "mobile", "Ce parcours contrôle spécifiquement la composition tactile.");
   await page.goto("/");
+  const manifesto = page.locator("#manifesto");
+  const manifestoTitle = manifesto.locator("h2").first();
+  expect(await manifesto.evaluate((node) => node.clientHeight)).toBeGreaterThan((await page.evaluate(() => innerHeight)) * 2);
+  await expect(page.getByTestId("manifesto-reveal-edge")).toBeVisible();
+  expect(Number.parseFloat(await manifestoTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(60);
+
   const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
   if (await rejectCookies.isVisible()) await rejectCookies.click();
 
@@ -206,12 +212,7 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   expect(await carouselArrows.count()).toBeGreaterThan(0);
   for (let index = 0; index < await carouselArrows.count(); index += 1) await expect(carouselArrows.nth(index)).toBeHidden();
 
-  const manifesto = page.locator("#manifesto");
-  const manifestoTitle = manifesto.locator("h2").first();
   await manifestoTitle.scrollIntoViewIfNeeded();
-  expect(Number.parseFloat(await manifestoTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(60);
-  expect(await manifesto.evaluate((node) => node.clientHeight)).toBeGreaterThan((await page.evaluate(() => innerHeight)) * 2);
-  await expect(page.getByTestId("manifesto-reveal-edge")).toBeVisible();
 
   const process = page.locator("#process");
   await process.scrollIntoViewIfNeeded();
@@ -238,7 +239,7 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   await expect(shortlistTrigger).toBeVisible();
   await page.getByRole("dialog", { name: "Shortlist" }).getByRole("button", { name: "Fermer" }).click();
   await expect(shortlistTrigger).toHaveCSS("right", "12px");
-  await expect(shortlistTrigger).toHaveCSS("bottom", "12px");
+  await expect(shortlistTrigger).toHaveCSS("bottom", "8px");
   const moreActions = page.getByRole("button", { name: /^Plus d’actions :/ }).first();
   await expect(moreActions).toBeVisible();
   await moreActions.click();
@@ -261,7 +262,7 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   else {
     await expect(nextButton).toBeEnabled();
     await expect(nextButton).toHaveClass(/home-rail-nav--next/);
-    await expect(nextButton).toHaveCSS("border-radius", "0px");
+    await expect(nextButton).toHaveCSS("border-radius", "8px 16px");
     expect((await nextButton.boundingBox())!.width).toBeGreaterThanOrEqual(76);
     expect((await nextButton.boundingBox())!.height).toBeGreaterThanOrEqual(56);
     await nextButton.hover();
@@ -402,7 +403,7 @@ test("les suggestions sont visibles à vide et la shortlist expose son état", a
   await add.click();
   await expect(page.getByRole("dialog", { name: "Shortlist" })).toBeVisible();
   await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("right", "20px");
-  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("bottom", "20px");
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("bottom", "12px");
   await page.getByRole("button", { name: "Connectez-vous", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: "Se connecter" })).toBeVisible();
   await page.keyboard.press("Escape");
@@ -440,7 +441,7 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   expect(url.searchParams.has("q")).toBe(false);
   expect(url.searchParams.get("brief")).toBe("Une techno qui tabasse.");
   expect(url.searchParams.get("categories")?.split(",")).toEqual(["ATT_8c1be9ece2483e34", "ATT_b242dfd7a2cf175e"]);
-  await expect(page.getByText("2 inclus, 0 exclus", { exact: true })).toBeVisible();
+  await expect(page.getByText("2 critères actifs", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 });
 
@@ -549,7 +550,9 @@ test("une piste expose ses informations, versions et paroles", async ({ page }, 
   await page.goto("/search?q=piano&view=tracks&type=main");
   await expect(page.getByText("Piano On My Mind", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: /Informations sur la piste : Piano On My Mind/ }).click();
-  await expect(page.getByRole("tab", { name: "Informations" })).toBeVisible();
+  const detailTabs = page.getByRole("tablist").filter({ has: page.getByRole("tab", { name: "Informations" }) });
+  await expect(detailTabs.getByRole("tab", { name: "Informations" })).toBeVisible();
+  await expect(detailTabs.getByText(/^(01|02|03|04)$/)).toHaveCount(0);
   await page.getByRole("tab", { name: "Versions" }).click();
   await expect(page.locator("span").filter({ hasText: /^underscore$/ })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("tab", { name: "Paroles" }).click();

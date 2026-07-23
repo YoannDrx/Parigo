@@ -135,7 +135,7 @@ export function ShortlistDrawer() {
           <motion.button
             data-shortlist-trigger
             onClick={() => setOpen(true)}
-            className="group fixed bottom-[max(.75rem,env(safe-area-inset-bottom))] right-3 z-[58] flex h-14 max-w-[4.65rem] items-center gap-2 overflow-hidden rounded-full bg-[var(--signal)] px-3 text-sm font-semibold text-[#11120f] shadow-[var(--shadow-md)] transition-[bottom,max-width,transform,box-shadow,opacity] duration-300 hover:max-w-[11rem] hover:-translate-y-0.5 hover:shadow-lg focus-visible:max-w-[11rem] md:bottom-5 md:right-5"
+            className="group fixed bottom-[max(.5rem,env(safe-area-inset-bottom))] right-3 z-[58] flex h-14 max-w-[4.65rem] items-center gap-2 overflow-hidden rounded-full bg-[var(--signal)] px-3 text-sm font-semibold text-[#11120f] shadow-[var(--shadow-md)] transition-[bottom,max-width,transform,box-shadow,opacity] duration-300 hover:max-w-[11rem] hover:-translate-y-0.5 hover:shadow-lg focus-visible:max-w-[11rem] md:bottom-3 md:right-5"
             style={playerClearance === null ? undefined : { bottom: playerClearance }}
             initial={{ opacity: 0, scale: 0.84, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}

@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import type { MotionValue } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import type { SignalFieldProps } from "./SignalField";
+import { SignalFieldFallback } from "./SignalFieldFallback";
 
 const DynamicSignalField = dynamic<SignalFieldProps>(
   () => import("./SignalField").then((module) => module.SignalField),
@@ -13,39 +14,48 @@ const DynamicSignalField = dynamic<SignalFieldProps>(
 export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValue<number>; pointerY: MotionValue<number> }) {
   const [canRender, setCanRender] = useState(false);
   const [isActive, setIsActive] = useState(true);
+  const [staticFallback, setStaticFallback] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
+  const intersectingRef = useRef(true);
 
   useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const desktop = window.matchMedia("(min-width: 768px)");
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const connection = navigator as Navigator & { connection?: { saveData?: boolean } };
     const canvas = document.createElement("canvas");
     const hasWebGL = Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
-    const frame = window.requestAnimationFrame(() => {
-      setCanRender(window.innerWidth >= 768 && !reduced && !connection.connection?.saveData && hasWebGL);
-    });
-    const onVisibility = () => setIsActive(!document.hidden);
+    const assessRenderer = () => {
+      const staticMode = reducedMotion.matches || Boolean(connection.connection?.saveData);
+      setStaticFallback(staticMode);
+      setCanRender(desktop.matches && !staticMode && hasWebGL);
+    };
+    const syncActivity = () => setIsActive(intersectingRef.current && !document.hidden);
+    const frame = window.requestAnimationFrame(assessRenderer);
     const observer = new IntersectionObserver(
-      ([entry]) => setIsActive(entry.isIntersecting && !document.hidden),
+      ([entry]) => {
+        intersectingRef.current = entry.isIntersecting;
+        syncActivity();
+      },
       { rootMargin: "160px" },
     );
     if (containerRef.current) observer.observe(containerRef.current);
-    document.addEventListener("visibilitychange", onVisibility);
+    desktop.addEventListener("change", assessRenderer);
+    reducedMotion.addEventListener("change", assessRenderer);
+    document.addEventListener("visibilitychange", syncActivity);
     return () => {
       window.cancelAnimationFrame(frame);
       observer.disconnect();
-      document.removeEventListener("visibilitychange", onVisibility);
+      desktop.removeEventListener("change", assessRenderer);
+      reducedMotion.removeEventListener("change", assessRenderer);
+      document.removeEventListener("visibilitychange", syncActivity);
     };
   }, []);
 
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      {canRender && isActive ? <DynamicSignalField pointerX={pointerX} pointerY={pointerY} /> : (
-        <>
-        <div className="absolute left-[-10%] top-[42%] h-px w-[120%] rotate-[-6deg] bg-[var(--color-signal)] shadow-[0_0_38px_8px_rgba(108,255,103,.3)]" />
-        <div className="absolute left-[-10%] top-[48%] h-px w-[120%] rotate-[3deg] bg-white/35" />
-        <div className="absolute left-[-10%] top-[54%] h-px w-[120%] rotate-[-2deg] bg-emerald-200/25" />
-        </>
-      )}
+      {canRender && isActive
+        ? <DynamicSignalField pointerX={pointerX} pointerY={pointerY} />
+        : <SignalFieldFallback active={isActive && !staticFallback} staticMode={staticFallback} />}
     </div>
   );
 }
