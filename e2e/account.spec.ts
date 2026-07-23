@@ -190,7 +190,7 @@ test("l’historique chargé reste stable et réserve la place des actions", asy
   }
 });
 
-test("les notifications utilisent un switch Parigo et enregistrent la préférence", async ({ page }) => {
+test("les notifications utilisent un switch Parigo et enregistrent la préférence", async ({ page }, testInfo) => {
   await mockSession(page);
   let subscriptionPayload: Record<string, unknown> | null = null;
   await page.route("**/api/user/profile", async (route) => {
@@ -202,6 +202,11 @@ test("les notifications utilisent un switch Parigo et enregistrent la préféren
   });
 
   await page.goto("/account/settings");
+  if (testInfo.project.name === "desktop") {
+    const navigationShell = page.locator(".account-nav-shell");
+    await expect(navigationShell).toHaveCSS("position", "sticky");
+    await expect(navigationShell).toHaveCSS("top", "98px");
+  }
   const notifications = page.getByRole("switch", { name: "Recevoir les nouvelles sorties Parigo" });
   await expect(notifications).toBeEnabled();
   await expect(notifications).toHaveAttribute("aria-checked", "false");
@@ -226,12 +231,48 @@ test("la suppression du compte utilise une alerte éditoriale progressive", asyn
   await expect(page.getByRole("button", { name: "Confirmer la suppression" })).toBeDisabled();
 });
 
-test("les recherches sauvegardées restent relançables et supprimables", async ({ page }) => {
+test("les recherches sauvegardées restent relançables et supprimables", async ({ page }, testInfo) => {
   await mockSession(page);
   await page.route("**/api/user/searches", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { searches: [{ id: "search-1", name: "Piano documentaire", searchUrl: "/search?q=piano&view=tracks", searchTermsCount: 2, createdAt: "2026-07-20T10:00:00.000Z" }] } }) }));
   await page.route("**/api/user/searches?id=search-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { removed: true } }) }));
   await page.goto("/account/searches");
-  await expect(page.getByRole("heading", { name: "Recherches sauvegardées" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Votre espace" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Recherches sauvegardées" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+  const memberNavigation = page.getByRole("navigation", { name: "Navigation du compte" });
+  const activeMemberLink = memberNavigation.getByRole("link", { name: "Recherches sauvegardées" });
+  await expect(activeMemberLink).toHaveAttribute("aria-current", "page");
+  if (testInfo.project.name === "mobile") {
+    await expect(activeMemberLink).toBeInViewport();
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+    expect(await memberNavigation.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
+  }
+  const newSearch = page.getByRole("link", { name: "Nouvelle recherche" });
+  if (testInfo.project.name !== "mobile") {
+    await newSearch.hover();
+    await expect.poll(() => newSearch.evaluate((node) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--background)";
+      node.append(probe);
+      const hasExpectedColor = getComputedStyle(node).color === getComputedStyle(probe).color;
+      probe.remove();
+      return hasExpectedColor;
+    })).toBe(true);
+  }
+  const newSearchColors = await newSearch.evaluate((node) => {
+    const colors = {
+      background: getComputedStyle(node).backgroundColor,
+      foreground: getComputedStyle(node).color,
+    };
+    return colors;
+  });
+  expect(newSearchColors.background).not.toBe(newSearchColors.foreground);
+  const savedSearchTitle = page.getByText("Piano documentaire", { exact: true });
+  const savedSearchCard = savedSearchTitle.locator("xpath=ancestor::article");
+  const [savedSearchTitleBox, savedSearchCardBox] = await Promise.all([savedSearchTitle.boundingBox(), savedSearchCard.boundingBox()]);
+  expect(savedSearchTitleBox).not.toBeNull();
+  expect(savedSearchCardBox).not.toBeNull();
+  expect(savedSearchTitleBox!.x - savedSearchCardBox!.x).toBeGreaterThanOrEqual(20);
   await expect(page.getByRole("link", { name: "Relancer" })).toHaveAttribute("href", "/search?q=piano&view=tracks");
   await page.getByRole("button", { name: "Supprimer Piano documentaire" }).click();
   await expect(page.getByText("Piano documentaire", { exact: true })).toHaveCount(0);
@@ -251,6 +292,7 @@ test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   });
   await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
   await page.goto("/account/playlists/playlist-1");
+  await expect(page.getByRole("navigation", { name: "Navigation du compte" }).getByRole("link", { name: "Playlists" })).toHaveAttribute("aria-current", "page");
   await page.getByRole("button", { name: "Renommer", exact: true }).click();
   const renameDialog = page.getByRole("dialog", { name: "Renommer la playlist." });
   await expect(renameDialog).toBeVisible();

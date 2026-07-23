@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Download, Loader2, FileAudio, Calendar, Tag } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Track } from "@/types";
 
 interface DownloadEntry {
@@ -52,20 +53,12 @@ export default function DownloadsPage() {
 
   return (
     <div className="account-page space-y-8">
-      {/* Page Header */}
-      <div className="account-page__header flex items-center gap-3">
-        <div className="account-page__mark">
-          <Download size={24} className="text-green-500" />
-        </div>
-        <div>
-          <h1 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
-            {t("account.downloads")}
-          </h1>
-          <p className="text-[var(--color-gray-600)]">
-            {downloads.length} {locale === "fr" ? `téléchargement${downloads.length > 1 ? "s" : ""}` : `download${downloads.length === 1 ? "" : "s"}`}
-          </p>
-        </div>
-      </div>
+      <AccountPageHeader
+        icon={Download}
+        eyebrow={locale === "fr" ? "Vos fichiers autorisés" : "Your authorised files"}
+        title={t("account.downloads")}
+        description={locale === "fr" ? `${downloads.length} téléchargement${downloads.length > 1 ? "s" : ""} associé${downloads.length > 1 ? "s" : ""} à vos projets.` : `${downloads.length} download${downloads.length === 1 ? "" : "s"} associated with your projects.`}
+      />
 
       {/* Content */}
       {isLoading ? (
