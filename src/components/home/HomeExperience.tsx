@@ -99,7 +99,7 @@ export function HomeExperience() {
             <p className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
               {locale === "fr" ? <>Un catalogue édité pour les monteurs, superviseurs musicaux et producteurs.<br className="hidden sm:block" />Cherchez, écoutez, comparez et licenciez — sans bruit inutile.</> : <>A curated catalogue built for editors, music supervisors and producers.<br className="hidden sm:block" />Search, listen, compare and license — without the noise.</>}
             </p>
-            <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch /></div>
+            <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch mode="assisted" /></div>
             <Link href="/search" className="pointer-events-auto mx-auto mt-11 inline-flex min-h-9 items-center gap-2 font-mono text-[.56rem] uppercase tracking-[.16em] text-[var(--text-muted)]/65 transition hover:text-[var(--foreground)]">{t("home.scroll")} <ArrowRight size={12} /></Link>
           </div>
         </section>
