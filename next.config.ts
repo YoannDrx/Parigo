@@ -48,9 +48,7 @@ const nextConfig: NextConfig = {
             value: "max-age=31536000; includeSubDomains",
           },
           {
-            key: isProduction
-              ? "Content-Security-Policy"
-              : "Content-Security-Policy-Report-Only",
+            key: "Content-Security-Policy",
             value: contentSecurityPolicy,
           },
         ],
