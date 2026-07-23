@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { AlbumDetailClient } from "@/components/catalog/AlbumDetailClient";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getCachedAlbum } from "@/lib/harvest/catalog-cache";
@@ -11,6 +12,7 @@ interface AlbumPageProps {
 }
 
 async function loadAlbum(id: string) {
+  if (!/^[a-f0-9]{16}$/i.test(id)) notFound();
   try {
     return await getCachedAlbum(id);
   } catch (error) {

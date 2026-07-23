@@ -286,15 +286,25 @@ export async function getAlbums(options: {
 }
 
 export async function getAlbum(id: string): Promise<{ album: Album & { tracks: Track[] }; similar: Album[] }> {
-  const [detail, tracksPayload, templates] = await Promise.all([
-    guestRequest<HarvestRecord>((token) => `/getalbum/${token}/${encodeURIComponent(id)}?returnLibraryCodes=false`),
+  const detailPromise = guestRequest<HarvestRecord>(
+    (token) => `/getalbum/${token}/${encodeURIComponent(id)}?returnLibraryCodes=false`,
+  );
+  const secondaryResult = Promise.all([
     guestRequest<HarvestRecord>((token) =>
       `/getalbumtracks/${token}/${encodeURIComponent(id)}/mainonly?skip=0&limit=200`,
     ),
     getAssetTemplates(),
-  ]);
+  ]).then(
+    (value) => ({ ok: true as const, value }),
+    (error: unknown) => ({ ok: false as const, error }),
+  );
+
+  const detail = await detailPromise;
   const rawAlbum = isRecord(detail.Album) ? detail.Album : undefined;
   if (!rawAlbum || !asString(rawAlbum.ID)) throw new HarvestError("Album not found", "NOT_FOUND", 404);
+  const secondary = await secondaryResult;
+  if (!secondary.ok) throw secondary.error;
+  const [tracksPayload, templates] = secondary.value;
   const base = mapAlbum(rawAlbum, templates);
   const tracks = recordArray(tracksPayload, "Tracks").map((item) => mapTrack(item, templates, base, "album"));
   const related = await cloudSearch({
