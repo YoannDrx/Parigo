@@ -90,7 +90,7 @@ export function AnchoredPopover({ open, onClose, anchorRef, label, children, cla
         maxHeight: position?.maxHeight,
         visibility: position ? "visible" : "hidden",
       }}
-      className={cn("fixed z-[210] overflow-y-auto border border-[var(--line-strong)] bg-[var(--surface)] p-2 text-[var(--foreground)] shadow-[var(--shadow-lg)]", className)}
+      className={cn("parigo-popover fixed z-[210] overflow-y-auto border border-[var(--line-strong)] bg-[var(--surface)] p-2 text-[var(--foreground)]", className)}
     >
       {children}
     </div>,

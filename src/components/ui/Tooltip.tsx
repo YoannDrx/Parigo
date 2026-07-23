@@ -80,7 +80,7 @@ export function Tooltip({
           role="tooltip"
           style={{ left: position.left, top: position.top }}
           className={cn(
-            "pointer-events-none fixed z-[220] max-w-64 -translate-x-1/2 rounded-md border border-white/12 bg-[#101410]/96 px-2.5 py-1.5 text-center font-mono text-[.56rem] font-semibold uppercase leading-tight tracking-[.1em] text-white shadow-[0_12px_38px_rgba(0,0,0,.28)] backdrop-blur-xl",
+            "pointer-events-none fixed z-[220] max-w-64 -translate-x-1/2 rounded-[var(--parigo-corner-sm)] rounded-tr-[var(--parigo-turn-md)] rounded-bl-[var(--parigo-turn-md)] border border-white/12 bg-[#101410]/96 px-2.5 py-1.5 text-center font-mono text-[.56rem] font-semibold uppercase leading-tight tracking-[.1em] text-white shadow-[0_12px_38px_rgba(0,0,0,.28)] backdrop-blur-xl",
             side === "top" ? "-translate-y-full" : "translate-y-0",
           )}
         >

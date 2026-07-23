@@ -99,7 +99,7 @@ export default function AccountPage() {
   return <div className="space-y-8">
     <div><p className="eyebrow mb-4">{locale === "fr" ? "Membre Parigo" : "Parigo member"}</p><h1 className="font-[var(--font-editorial)] text-5xl tracking-[-.05em] md:text-6xl">{t("account.profile")}</h1><p className="mt-2 text-[var(--text-muted)]">{locale === "fr" ? "Retrouvez et mettez à jour les informations liées à votre compte." : "View and update the information associated with your account."}</p></div>
 
-    <section className="grid gap-6 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[auto_1fr] md:p-8">
+    <section className="parigo-panel grid gap-6 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[auto_1fr] md:p-8">
       <div className="flex flex-col items-center gap-4">
         <div className="relative h-40 w-40" data-testid="profile-image-control">
           <div className="h-40 w-40 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--foreground)] shadow-[0_16px_44px_rgba(15,22,16,.14)]">
@@ -126,14 +126,14 @@ export default function AccountPage() {
       {[{ label: locale === "fr" ? "Téléchargements utilisés" : "Downloads used", value: profile.downloadsUsed ?? "—" }, { label: locale === "fr" ? "Restants" : "Remaining", value: profile.downloadsRemaining ?? "—" }, { label: locale === "fr" ? "Limite" : "Limit", value: profile.downloadLimit ?? "—" }, { label: "Stems", value: profile.downloadStem ? (locale === "fr" ? "Autorisés" : "Allowed") : (locale === "fr" ? "Non autorisés" : "Not allowed") }].map((item) => <div key={item.label} className="min-h-28 border border-[var(--line)] p-5"><p className="eyebrow">{item.label}</p><p className="mt-4 font-[var(--font-editorial)] text-3xl">{item.value}</p></div>)}
     </section>
 
-    <section className="grid gap-4 border border-[var(--line)] bg-[var(--surface)] p-6 text-sm sm:grid-cols-2 lg:grid-cols-4 md:p-8">
+    <section className="parigo-panel grid gap-4 border border-[var(--line)] bg-[var(--surface)] p-6 text-sm sm:grid-cols-2 lg:grid-cols-4 md:p-8">
       <div><p className="eyebrow mb-2">{locale === "fr" ? "Écoute" : "Preview"}</p><p>{profile.sampleEnabled ? (locale === "fr" ? "Écoute autorisée" : "Playback allowed") : (locale === "fr" ? "Écoute restreinte" : "Playback restricted")}</p></div>
       <div><p className="eyebrow mb-2">{locale === "fr" ? "Téléchargement" : "Download"}</p><p>{profile.downloadEnabled ? (profile.downloadEnabledType || (locale === "fr" ? "Autorisé" : "Allowed")) : (locale === "fr" ? "Restreint" : "Restricted")}</p></div>
       <div><p className="eyebrow mb-2">{locale === "fr" ? "Type de poste" : "Position type"}</p><p>{profile.positionType || "—"}{profile.freelancer ? ` · ${locale === "fr" ? "Indépendant" : "Freelance"}` : ""}</p></div>
       <div><p className="eyebrow mb-2">{locale === "fr" ? "Contact gestionnaire" : "Account manager"}</p><p>{profile.managedBy?.name || "—"}</p>{profile.managedBy?.email && <a className="mt-1 block break-all underline" href={`mailto:${profile.managedBy.email}`}>{profile.managedBy.email}</a>}</div>
     </section>
 
-    <form onSubmit={save} className="border border-[var(--line)] bg-[var(--surface)] p-6 md:p-8">
+    <form onSubmit={save} className="parigo-panel border border-[var(--line)] bg-[var(--surface)] p-6 md:p-8">
       <div className="mb-6"><h2 className="font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Identité et activité" : "Identity and business"}</h2><p className="mt-2 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Les champs professionnels et postaux sont facultatifs." : "Business and postal fields are optional."}</p></div>
       <div className="grid gap-5 sm:grid-cols-2">{fields.map((field) => <label key={field.key} className="text-sm"><span className="mb-2 block">{locale === "fr" ? field.fr : field.en}{field.key === "firstName" || field.key === "lastName" || field.key === "country" ? " *" : ""}</span><Input type={field.type || "text"} value={String(form[field.key] ?? "")} required={field.key === "firstName" || field.key === "lastName" || field.key === "country"} onChange={(event) => setForm((current) => current ? { ...current, [field.key]: event.target.value } : current)} /></label>)}</div>
       {profile.fileFormats?.length ? <label className="mt-5 block max-w-md text-sm"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><Select value={form.fileFormatId || ""} onValueChange={(value) => setForm((current) => current ? { ...current, fileFormatId: value } : current)} ariaLabel={locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"} className="w-full [&_[role=combobox]]:min-h-12" options={profile.fileFormats.map((format) => ({ value: format.id, label: format.label }))} /></label> : null}

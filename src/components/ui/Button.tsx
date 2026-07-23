@@ -11,7 +11,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "primary", size = "md", children, ...props }, ref) => {
     const baseStyles =
-      "inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 font-semibold transition-colors duration-200 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-2";
+      "parigo-button inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 font-semibold transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)] focus-visible:ring-offset-2";
 
     const variants = {
       primary:
@@ -25,9 +25,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: "rounded-[var(--radius-md)] px-3.5 py-2 text-sm",
-      md: "rounded-[var(--radius-md)] px-5 py-2.5 text-sm",
-      lg: "rounded-[var(--radius-md)] px-7 py-3.5 text-base",
+      sm: "px-3.5 py-2 text-sm",
+      md: "px-5 py-2.5 text-sm",
+      lg: "px-7 py-3.5 text-base",
     };
 
     return (

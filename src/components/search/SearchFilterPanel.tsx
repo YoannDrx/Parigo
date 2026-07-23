@@ -107,9 +107,9 @@ function FilterItemRow({
   return (
     <li>
       <div
+        data-state={state}
         className={cn(
-          "group/item flex min-h-9 items-center gap-1 rounded-md px-1.5 text-sm transition hover:bg-[var(--surface-soft)]",
-          state === "include" && "bg-[color-mix(in_srgb,var(--signal)_11%,transparent)]",
+          "search-filter-item group/item flex min-h-10 items-center gap-1 px-1.5 text-sm transition hover:bg-[var(--surface-soft)]",
           state === "exclude" && "filter-row-excluded",
         )}
         style={{ paddingLeft: `${6 + depth * 14}px` }}
@@ -119,21 +119,21 @@ function FilterItemRow({
             type="button"
             aria-expanded={open}
             onClick={() => setOpen((value) => !value)}
-            className="flex h-8 w-7 shrink-0 items-center justify-center rounded hover:bg-black/5"
+            className="flex h-8 w-7 shrink-0 items-center justify-center hover:bg-black/5"
             aria-label={`${open ? (locale === "fr" ? "Replier" : "Collapse") : (locale === "fr" ? "Déplier" : "Expand")} ${name}`}
           >
             <ChevronDown size={13} className={cn("transition", !open && "-rotate-90")} />
           </button>
         ) : <span className="w-7 shrink-0" />}
         <span className={cn("min-w-0 flex-1 truncate", state === "exclude" && "line-through decoration-[var(--danger)]/65")}>{name}</span>
-        {!open && descendantCount > 0 && <span className="mr-2 flex min-w-6 items-center justify-center gap-1 rounded-full border border-[var(--line-strong)] bg-[var(--background)] px-1.5 py-0.5 font-mono text-[.52rem]" aria-label={locale === "fr" ? `${descendants.included} sous-filtres inclus et ${descendants.excluded} exclus` : `${descendants.included} included and ${descendants.excluded} excluded subfilters`}>{descendantCount}</span>}
+        {!open && descendantCount > 0 && <span className="mr-2 flex min-w-6 items-center justify-center gap-1 border border-[var(--line-strong)] bg-[var(--background)] px-1.5 py-0.5 font-mono text-[.52rem]" aria-label={locale === "fr" ? `${descendants.included} sous-filtres inclus et ${descendants.excluded} exclus` : `${descendants.included} included and ${descendants.excluded} excluded subfilters`}>{descendantCount}</span>}
         {count !== undefined && <span className="min-w-7 text-right font-mono text-[.6rem] opacity-45">{count}</span>}
         <button
           type="button"
           aria-pressed={state === "include"}
           onClick={() => onChange(nextValues(values, item.id, "include"))}
           className={cn(
-            "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition",
+            "search-filter-action flex h-7 w-7 shrink-0 items-center justify-center border transition",
             state === "include"
               ? "border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white"
               : "border-[var(--line-strong)] text-[var(--text-muted)] hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]",
@@ -148,7 +148,7 @@ function FilterItemRow({
             aria-pressed={state === "exclude"}
             onClick={() => onChange(nextValues(values, item.id, "exclude"))}
             className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border transition",
+              "search-filter-action flex h-7 w-7 shrink-0 items-center justify-center border transition",
               state === "exclude"
                 ? "border-[var(--danger)] bg-[var(--danger)] text-white"
                 : "border-[var(--line-strong)] text-[var(--text-muted)] hover:border-[var(--danger)] hover:text-[var(--danger)]",
@@ -181,12 +181,14 @@ function FilterItemRow({
 
 function FilterGroupSection({
   group,
+  index,
   values,
   facets,
   locale,
   onChange,
 }: {
   group: SearchFilterGroup;
+  index: number;
   values: string[];
   facets: SearchFacetItem[];
   locale: "fr" | "en";
@@ -201,9 +203,10 @@ function FilterGroupSection({
     ? [...groupIds].filter((id) => counts.has(id.replace(/^ATT_/i, ""))).length
     : group.available;
   return (
-    <details open={group.key === "genre" || group.key === "labels" || undefined} className="group border-b border-[var(--line)] px-4 transition-colors hover:bg-[var(--surface-soft)] focus-within:bg-[var(--surface-soft)]">
-      <summary className="flex min-h-14 cursor-pointer list-none items-center py-3 [&::-webkit-details-marker]:hidden">
-        <span className="flex-1 font-medium">{labelsByKey[group.key]?.[locale] ?? group.label}</span>
+    <details open={group.key === "genre" || group.key === "labels" || undefined} className="search-filter-group group border-b border-[var(--line)] transition-colors">
+      <summary className="search-filter-group__summary flex min-h-14 cursor-pointer list-none items-center py-3 [&::-webkit-details-marker]:hidden">
+        <span className="search-filter-group__index font-mono text-[.55rem] tracking-[.08em]">{String(index + 1).padStart(2, "0")}</span>
+        <span className="min-w-0 flex-1 truncate font-semibold tracking-[-.025em]">{labelsByKey[group.key]?.[locale] ?? group.label}</span>
         <span className="ml-5 flex items-center gap-3">
           <span
             className="font-mono text-[.62rem] text-[var(--text-muted)]"
@@ -211,18 +214,18 @@ function FilterGroupSection({
           >
             {group.total}/{available}
           </span>
-          {selected > 0 && <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[var(--signal-strong)] px-1.5 text-[.6rem] font-semibold text-white">{selected}</span>}
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-transparent transition group-hover:border-[var(--line)]"><ChevronDown size={15} className="transition group-open:rotate-180" /></span>
+          {selected > 0 && <span className="flex h-6 min-w-6 items-center justify-center bg-[var(--signal-strong)] px-1.5 font-mono text-[.6rem] font-semibold text-white">{selected}</span>}
+          <span className="flex h-8 w-8 items-center justify-center border border-transparent transition group-hover:border-[var(--line-strong)]"><ChevronDown size={15} className="transition group-open:rotate-180" /></span>
         </span>
       </summary>
-      <div className="pb-5 pt-1">
-        <div className="relative mb-2.5">
+      <div className="search-filter-group__body px-4 pb-5 pt-3">
+        <div className="search-filter-field relative mb-2.5">
           <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-45" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={locale === "fr" ? `Filtrer ${labelsByKey[group.key]?.fr.toLocaleLowerCase("fr") ?? ""}` : `Filter ${labelsByKey[group.key]?.en.toLocaleLowerCase("en") ?? ""}`}
-            className="h-10 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--signal-strong)]"
+            className="h-10 w-full border border-[var(--line)] bg-[var(--surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--signal-strong)]"
           />
         </div>
         {selected > 0 && (
@@ -260,23 +263,23 @@ function RangeControl({
   const start = ((value[0] - min) / (max - min)) * 100;
   const end = ((value[1] - min) / (max - min)) * 100;
   return (
-    <div className="border-b border-[var(--line)] px-4 py-5">
+    <div className="search-range-control border-b border-[var(--line)] px-4 py-5">
       <div className="mb-3 flex items-center justify-between">
         <p className="font-medium">{label}</p>
         <span className="font-mono text-[.66rem] text-[var(--text-muted)]">{format(value[0])} — {format(value[1])}</span>
       </div>
       <div className="pointer-events-none relative mb-4 h-7" style={{ "--range-start": `${start}%`, "--range-end": `${end}%` } as React.CSSProperties}>
-        <div className="absolute left-0 right-0 top-3 h-1 rounded-full bg-[var(--line)]" />
-        <div className="absolute top-3 h-1 rounded-full bg-[var(--signal-strong)]" style={{ left: `${start}%`, right: `${100 - end}%` }} />
-        <input aria-label={`${label} minimum`} type="range" min={min} max={max} value={value[0]} onChange={(event) => onChange([Math.min(Number(event.target.value), value[1]), value[1]])} className="range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent" />
-        <input aria-label={`${label} maximum`} type="range" min={min} max={max} value={value[1]} onChange={(event) => onChange([value[0], Math.max(Number(event.target.value), value[0])])} className="range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent" />
+        <div className="absolute left-0 right-0 top-3 h-px bg-[var(--line-strong)]" />
+        <div className="absolute top-[10px] h-[5px] bg-[var(--signal-strong)]" style={{ left: `${start}%`, right: `${100 - end}%` }} />
+        <input aria-label={`${label} minimum`} type="range" min={min} max={max} value={value[0]} onChange={(event) => onChange([Math.min(Number(event.target.value), value[1]), value[1]])} className="range-thumb search-range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent" />
+        <input aria-label={`${label} maximum`} type="range" min={min} max={max} value={value[1]} onChange={(event) => onChange([value[0], Math.max(Number(event.target.value), value[0])])} className="range-thumb search-range-thumb pointer-events-none absolute inset-0 w-full appearance-none bg-transparent" />
       </div>
       <div className="grid grid-cols-2 gap-2">
         <label className="text-[.62rem] uppercase tracking-[.1em] text-[var(--text-muted)]">Min
-          <input type="number" min={min} max={value[1]} value={value[0]} onChange={(event) => onChange([Math.min(Number(event.target.value), value[1]), value[1]])} className="mt-1 h-10 w-full rounded-md border border-[var(--line)] bg-transparent px-3 font-mono text-xs" />
+          <input type="number" min={min} max={value[1]} value={value[0]} onChange={(event) => onChange([Math.min(Number(event.target.value), value[1]), value[1]])} className="mt-1 h-10 w-full border border-[var(--line)] bg-transparent px-3 font-mono text-xs focus:border-[var(--signal-strong)] focus:outline-none" />
         </label>
         <label className="text-[.62rem] uppercase tracking-[.1em] text-[var(--text-muted)]">Max
-          <input type="number" min={value[0]} max={max} value={value[1]} onChange={(event) => onChange([value[0], Math.max(Number(event.target.value), value[0])])} className="mt-1 h-10 w-full rounded-md border border-[var(--line)] bg-transparent px-3 font-mono text-xs" />
+          <input type="number" min={value[0]} max={max} value={value[1]} onChange={(event) => onChange([value[0], Math.max(Number(event.target.value), value[0])])} className="mt-1 h-10 w-full border border-[var(--line)] bg-transparent px-3 font-mono text-xs focus:border-[var(--signal-strong)] focus:outline-none" />
         </label>
       </div>
       <span className="sr-only">{locale === "fr" ? "Les deux curseurs définissent la plage incluse" : "The two sliders define the included range"}</span>
@@ -307,18 +310,20 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
     + (bpmRange[0] !== 50 || bpmRange[1] !== 200 ? 1 : 0)
     + (durationRange[0] !== 0 || durationRange[1] !== 300 ? 1 : 0);
   return (
-    <div className="overflow-hidden rounded-xl border border-[var(--line)] bg-[var(--background)] shadow-[var(--shadow-sm)]">
-      <div className="flex min-h-16 items-center justify-between border-b border-[var(--line)] px-4 py-3">
+    <div className="search-filter-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--background)]">
+      <div className="search-filter-panel__header flex min-h-20 items-center justify-between border-b border-[var(--line)] px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold">{locale === "fr" ? "Affiner la recherche" : "Refine search"}</h2>
+          <p className="mb-1 font-mono text-[.55rem] uppercase tracking-[.14em] text-[var(--signal)]">{locale === "fr" ? "Table de sélection" : "Selection desk"}</p>
+          <h2 className="text-base font-semibold text-white">{locale === "fr" ? "Affiner la recherche" : "Refine search"}</h2>
           {activeCount > 0 && <p className="mt-0.5 text-[.65rem] text-[var(--text-muted)]">{activeCount} {locale === "fr" ? "critères actifs" : "active filters"}</p>}
         </div>
-        {activeCount > 0 && <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--surface)] px-3 text-[.68rem] font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button>}
+        {activeCount > 0 && <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center gap-2 border border-white/30 px-3 text-[.68rem] font-semibold text-white transition hover:border-[var(--signal)] hover:text-[var(--signal)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button>}
       </div>
-      {groups.map((group) => (
+      {groups.map((group, index) => (
         <FilterGroupSection
           key={group.key}
           group={group}
+          index={index}
           values={group.key === "labels" ? labels : group.key === "styles" ? styles : categories}
           facets={group.key === "labels" ? labelFacets : group.key === "styles" ? styleFacets : categoryFacets}
           locale={locale}
@@ -328,7 +333,7 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
       <RangeControl label="BPM" value={bpmRange} min={50} max={200} locale={locale} format={(value) => String(value)} onChange={onBpmChange} />
       <div className="flex gap-2 border-b border-[var(--line)] px-4 py-4">
         {([[50, 90], [90, 130], [130, 200]] as Array<[number, number]>).map((range, index) => (
-          <button key={range.join("-")} type="button" onClick={() => onBpmChange(range)} className="min-h-9 flex-1 rounded-full border border-[var(--line)] px-2 text-[.65rem] font-semibold hover:border-[var(--signal-strong)]">
+          <button key={range.join("-")} type="button" onClick={() => onBpmChange(range)} className="search-preset min-h-9 flex-1 border border-[var(--line)] px-2 text-[.65rem] font-semibold hover:border-[var(--signal-strong)]">
             {locale === "fr" ? ["Lent", "Moyen", "Rapide"][index] : ["Slow", "Medium", "Fast"][index]}
           </button>
         ))}

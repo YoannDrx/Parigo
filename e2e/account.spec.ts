@@ -206,6 +206,8 @@ test("les notifications utilisent un switch Parigo et enregistrent la préféren
   await expect(notifications).toBeEnabled();
   await expect(notifications).toHaveAttribute("aria-checked", "false");
   await expect(page.locator('input[type="checkbox"]')).toHaveCount(0);
+  await expect(notifications.locator(".parigo-switch__state")).toHaveCount(0);
+  await expect(notifications.locator(".parigo-switch__track")).toHaveCSS("border-radius", "8px 11px");
   await notifications.click();
 
   await expect.poll(() => subscriptionPayload).toEqual({ subscribed: true });

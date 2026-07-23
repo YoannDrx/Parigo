@@ -31,7 +31,7 @@ const Tag = forwardRef<HTMLSpanElement, TagProps>(
       <span
         ref={ref}
         className={cn(
-          "inline-flex min-h-7 items-center rounded-full border border-[var(--line)] font-medium transition-all duration-200",
+          "parigo-tag inline-flex min-h-7 items-center border border-[var(--line)] font-medium transition-all duration-200",
           variants[variant],
           sizes[size],
           clickable &&

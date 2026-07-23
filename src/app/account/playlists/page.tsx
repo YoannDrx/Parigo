@@ -190,7 +190,7 @@ export default function PlaylistsPage() {
       <AnimatePresence>
         {createOpen && (
           <motion.div className="fixed inset-0 z-[180] flex items-center justify-center bg-[#0c110d]/68 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.currentTarget === event.target) closeCreate(); }}>
-            <motion.section role="dialog" aria-modal="true" aria-labelledby="create-playlist-title" className="relative w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)] shadow-[0_34px_120px_rgba(0,0,0,.42)]" initial={{ opacity: 0, y: 24, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .98 }} transition={{ duration: .22 }}>
+            <motion.section role="dialog" aria-modal="true" aria-labelledby="create-playlist-title" className="parigo-panel relative w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)] shadow-[0_34px_120px_rgba(0,0,0,.42)]" initial={{ opacity: 0, y: 24, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .98 }} transition={{ duration: .22 }}>
               <span aria-hidden="true" className="absolute left-0 top-0 h-1 w-32 bg-[var(--signal)]" />
               <button type="button" onClick={closeCreate} disabled={isCreating} aria-label={locale === "fr" ? "Fermer" : "Close"} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] transition hover:border-[var(--foreground)]"><X size={17} /></button>
               <form onSubmit={createPlaylist} className="p-6 pt-10 sm:p-9 sm:pt-11">
