@@ -80,6 +80,25 @@ export interface Playlist {
   createdAt?: string;
 }
 
+export interface MemberSavedSearch {
+  id: string;
+  name: string;
+  description?: string;
+  searchUrl?: string;
+  searchTermsCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface MemberTrackComment {
+  id: string;
+  trackId: string;
+  text: string;
+  createdAt?: string;
+  updatedAt?: string;
+  isAdmin?: boolean;
+}
+
 export interface Label {
   id: string;
   slug?: string;

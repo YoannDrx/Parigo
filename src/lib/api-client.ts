@@ -44,7 +44,7 @@ export interface PaginatedResponse {
 
 interface SearchApiResponse<T extends Track | Album> {
   data: { items: T[]; view: "tracks" | "albums"; facets: SearchFacets };
-  meta: { page: number; pageSize: number; total: number; requestId: string };
+  meta: { page: number; pageSize: number; total: number; requestId: string; searchHistoryId?: string };
 }
 
 // API Functions
@@ -70,7 +70,7 @@ export async function fetchAlbums(params?: {
   maxBpm?: number;
   minDuration?: number;
   maxDuration?: number;
-}, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets } & PaginatedResponse> {
+}, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets; searchHistoryId?: string } & PaginatedResponse> {
   const usesSearch = Boolean(params?.forceSearch || params?.query || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.styles?.length || params?.categories?.length || params?.labels?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
   if (usesSearch) {
     const searchParams = new URLSearchParams({
@@ -97,6 +97,7 @@ export async function fetchAlbums(params?: {
     return {
       albums: payload.data.items,
       facets: payload.data.facets,
+      searchHistoryId: payload.meta.searchHistoryId,
       pagination: { total: payload.meta.total, limit: payload.meta.pageSize, offset: (payload.meta.page - 1) * payload.meta.pageSize, hasMore: payload.meta.page * payload.meta.pageSize < payload.meta.total },
     };
   }
@@ -151,7 +152,7 @@ export async function fetchTracks(params?: {
   type?: "main" | "alternate" | "all";
   language?: "fr" | "en";
   sort?: "relevance" | "recent" | "oldest" | "title" | "title-desc" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
-}, signal?: AbortSignal): Promise<{ tracks: ApiTrack[]; facets?: SearchFacets } & PaginatedResponse> {
+}, signal?: AbortSignal): Promise<{ tracks: ApiTrack[]; facets?: SearchFacets; searchHistoryId?: string } & PaginatedResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
@@ -183,6 +184,7 @@ export async function fetchTracks(params?: {
   return {
     tracks: payload.data.items,
     facets: payload.data.facets,
+    searchHistoryId: payload.meta.searchHistoryId,
     pagination: { total: payload.meta.total, limit: payload.meta.pageSize, offset: (payload.meta.page - 1) * payload.meta.pageSize, hasMore: payload.meta.page * payload.meta.pageSize < payload.meta.total },
   };
 }

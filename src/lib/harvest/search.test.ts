@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCloudSearch, harvestCategoryId, mapSearchFacets, splitSignedValues } from "./search";
+import { buildCloudSearch, harvestCategoryId, mapSearchFacets, searchHistoryIdFromResponse, splitSignedValues } from "./search";
 
 describe("Harvest Cloud Search", () => {
   it("serializes supported filters and clamps BPM", () => {
@@ -60,6 +60,11 @@ describe("Harvest Cloud Search", () => {
 
   it("normalizes signed values deterministically", () => {
     expect(splitSignedValues(["b", "-c", "a", "b"])).toEqual({ include: ["a", "b"], exclude: ["c"] });
+  });
+
+  it("reads saved search history IDs from both documented response shapes", () => {
+    expect(searchHistoryIdFromResponse({ SearchFilters: { parentsearchhistoryid: "history-current" } })).toBe("history-current");
+    expect(searchHistoryIdFromResponse({ SearchParameters: { ParentSearchHistoryID: "history-legacy" } })).toBe("history-legacy");
   });
 
   it("maps nested facet items", () => {

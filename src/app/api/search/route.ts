@@ -84,6 +84,7 @@ export async function GET(request: NextRequest) {
         page: input.page,
         pageSize: input.limit,
         total: result.total,
+        searchHistoryId: result.searchHistoryId,
         requestId: id,
       },
     }, {
