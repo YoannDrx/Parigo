@@ -27,6 +27,10 @@ async function main() {
     new RegExp(`rel="canonical" href="${escapedOrigin}/search"`, "i"),
   ]);
   await check("/fr/albums", [], 308);
+  await check("/albums/__parigo_seo_missing_album__", [
+    /name="robots" content="noindex/i,
+    /404/i,
+  ], 404);
   await check("/sitemap.xml", [/<sitemapindex/i]);
   await check("/robots.txt", [new RegExp(`sitemap: ${escapedOrigin}/sitemap\\.xml`, "i")]);
   console.log(`Contrats SEO principaux validés pour ${canonicalOrigin}.`);
