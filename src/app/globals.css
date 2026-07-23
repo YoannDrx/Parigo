@@ -137,6 +137,7 @@
 * { box-sizing: border-box; }
 
 html { background: var(--background); scroll-behavior: auto; }
+html:has(body .home-shell) { background: var(--surface); }
 
 body {
   min-height: 100vh;
@@ -308,6 +309,11 @@ img { filter: var(--image-filter); }
   font-weight: 600;
   letter-spacing: .035em;
 }
+.account-mark--large .account-mark__content {
+  width: 80%;
+  height: 80%;
+  font-size: .72rem;
+}
 .group\/account:hover .account-mark__corner,
 .group\/account:focus-visible .account-mark__corner { width: 64%; }
 
@@ -465,10 +471,10 @@ img { filter: var(--image-filter); }
 @media (min-width: 640px) { .contact-field { padding: 1.45rem 0; } }
 @media (max-width: 767px) { .section-title, .section-title-serif { line-height: .94; } }
 @media (max-width: 1023px) {
-  body[data-mobile-track-actions-open="true"] [data-shortlist-trigger] {
+  body:has([data-mobile-track-actions="open"]) [data-shortlist-trigger] {
     pointer-events: none;
-    opacity: 0;
-    transform: translateY(1rem);
+    opacity: 0 !important;
+    transform: translateY(1rem) !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -1,33 +1,78 @@
 "use client";
 
 import { motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+
+const MOBILE_SCROLL_MEDIA = "(max-width: 1023px), (hover: none) and (pointer: coarse)";
 
 export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const completingRef = useRef(false);
+  const completedRef = useRef(false);
+  const completionPendingRef = useRef(false);
+  const completionTimerRef = useRef<number | null>(null);
   const [completed, setCompleted] = useState(false);
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
   const furthestProgress = useMotionValue(0);
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    if (completed) return;
-    if (latest > furthestProgress.get()) furthestProgress.set(latest);
-    if (latest < .995 || completingRef.current) return;
+
+  const completePreservingAnchor = useCallback(() => {
+    if (completedRef.current) return;
     const section = sectionRef.current;
     if (!section) return;
-    completingRef.current = true;
-    const previousHeight = section.offsetHeight;
-    const sectionTop = section.offsetTop;
+
+    const anchor = section.nextElementSibling as HTMLElement | null;
+    const anchorTopBefore = anchor?.getBoundingClientRect().top ?? section.getBoundingClientRect().bottom;
+    completedRef.current = true;
+    completionPendingRef.current = false;
     furthestProgress.set(1);
-    setCompleted(true);
-    window.requestAnimationFrame(() => {
-      const nextHeight = section.offsetHeight;
-      const heightDelta = Math.max(0, previousHeight - nextHeight);
-      if (heightDelta > 0 && window.scrollY > sectionTop) {
-        window.scrollTo({ top: Math.max(sectionTop, window.scrollY - heightDelta), behavior: "instant" });
+
+    flushSync(() => setCompleted(true));
+
+    const preserveAnchor = () => {
+      const anchorTopAfter = anchor?.getBoundingClientRect().top ?? section.getBoundingClientRect().bottom;
+      const correction = anchorTopAfter - anchorTopBefore;
+      if (Math.abs(correction) > .5) window.scrollBy(0, correction);
+    };
+
+    preserveAnchor();
+    window.requestAnimationFrame(preserveAnchor);
+  }, [furthestProgress]);
+
+  const scheduleMobileCompletion = useCallback(() => {
+    if (completionTimerRef.current) window.clearTimeout(completionTimerRef.current);
+    completionTimerRef.current = window.setTimeout(() => {
+      completionTimerRef.current = null;
+      if (scrollYProgress.get() < .99) {
+        completionPendingRef.current = false;
+        return;
       }
-    });
+      completePreservingAnchor();
+    }, 180);
+  }, [completePreservingAnchor, scrollYProgress]);
+
+  useEffect(() => {
+    const rescheduleWhileScrolling = () => {
+      if (completionPendingRef.current && !completedRef.current) scheduleMobileCompletion();
+    };
+    window.addEventListener("scroll", rescheduleWhileScrolling, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", rescheduleWhileScrolling);
+      if (completionTimerRef.current) window.clearTimeout(completionTimerRef.current);
+    };
+  }, [scheduleMobileCompletion]);
+
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    if (completedRef.current) return;
+    if (latest > furthestProgress.get()) furthestProgress.set(latest);
+    if (latest < .995 || completionPendingRef.current) return;
+    furthestProgress.set(1);
+    if (window.matchMedia(MOBILE_SCROLL_MEDIA).matches) {
+      completionPendingRef.current = true;
+      scheduleMobileCompletion();
+      return;
+    }
+    completePreservingAnchor();
   });
   const reveal = useTransform(furthestProgress, [.1, .91], ["inset(0 100% 0 0)", "inset(0 0% 0 0)"]);
   const revealEdge = useTransform(furthestProgress, [.1, .91], ["0%", "100%"]);
@@ -44,8 +89,8 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   );
 
   return (
-    <section id="manifesto" ref={sectionRef} data-reveal-completed={completed} className={completed ? "relative min-h-screen overflow-clip bg-[var(--background)]" : "relative min-h-[225svh] overflow-clip bg-[var(--background)] md:min-h-[235svh]"}>
-      <div className={completed ? "relative flex min-h-screen w-full items-center overflow-hidden py-10 md:py-16" : "sticky top-0 flex min-h-screen w-full items-center overflow-hidden py-10 md:py-16"}>
+    <section id="manifesto" ref={sectionRef} data-reveal-completed={completed} className={completed ? "relative min-h-[100svh] overflow-clip bg-[var(--background)] md:min-h-screen" : "relative min-h-[225svh] overflow-clip bg-[var(--background)] md:min-h-[235svh]"}>
+      <div className={completed ? "relative flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16" : "sticky top-0 flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16"}>
         <div className="relative z-10 w-full px-3 md:px-8">
           <div className="mx-auto max-w-[1580px] text-left lg:text-center">
             <p className="eyebrow text-[var(--signal-strong)]">Parigo / {locale === "fr" ? "Manifeste" : "Manifesto"}</p>

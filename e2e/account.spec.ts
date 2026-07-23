@@ -62,6 +62,7 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(accountMark).toBeVisible();
   await expect(accountMark.locator(".account-mark__corner")).toHaveCount(2);
   await expect(accountMark).toHaveCSS("border-radius", "0px");
+  await expect(accountMark).toHaveCSS("width", "64px");
   if (testInfo.project.name === "mobile") {
     await expect(menu.getByText("Yoann Andrieux", { exact: true })).toBeVisible();
     const accountBox = await menu.boundingBox();
@@ -142,6 +143,7 @@ test("les commandes de photo de profil sont intégrées à l’avatar", async ({
   await page.goto("/account");
   const control = page.getByTestId("profile-image-control");
   await expect(control).toBeVisible();
+  expect((await control.boundingBox())!.width).toBeGreaterThanOrEqual(160);
   await expect(control.getByText("Changer", { exact: true })).toHaveCount(0);
   await expect(control.getByRole("button", { name: "Supprimer la photo" })).toBeVisible();
   await expect(control.locator('input[type="file"]')).toHaveCount(1);

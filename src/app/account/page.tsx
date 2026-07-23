@@ -101,9 +101,9 @@ export default function AccountPage() {
 
     <section className="grid gap-6 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[auto_1fr] md:p-8">
       <div className="flex flex-col items-center gap-4">
-        <div className="relative h-32 w-32" data-testid="profile-image-control">
-          <div className="h-32 w-32 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--foreground)] shadow-[0_16px_44px_rgba(15,22,16,.14)]">
-            {profile.image ? <Image src={profile.image} alt={locale === "fr" ? "Photo de profil" : "Profile photo"} width={128} height={128} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center font-[var(--font-editorial)] text-3xl text-[var(--background)]">{initials}</div>}
+        <div className="relative h-40 w-40" data-testid="profile-image-control">
+          <div className="h-40 w-40 overflow-hidden rounded-full border border-[var(--line-strong)] bg-[var(--foreground)] shadow-[0_16px_44px_rgba(15,22,16,.14)]">
+            {profile.image ? <Image src={profile.image} alt={locale === "fr" ? "Photo de profil" : "Profile photo"} width={160} height={160} className="h-full w-full object-cover" /> : <div className="flex h-full w-full items-center justify-center font-[var(--font-editorial)] text-4xl text-[var(--background)]">{initials}</div>}
           </div>
           <Tooltip label={locale === "fr" ? "Changer la photo" : "Change photo"}>
             <label className="absolute -bottom-1 -right-1 inline-flex h-11 w-11 cursor-pointer items-center justify-center rounded-full border-2 border-[var(--surface)] bg-[var(--signal)] text-[#07140b] shadow-[0_8px_24px_rgba(15,22,16,.25)] transition-transform hover:scale-105 focus-within:ring-2 focus-within:ring-[var(--signal-strong)]">

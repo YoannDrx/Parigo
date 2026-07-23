@@ -3,6 +3,13 @@ import AxeBuilder from "@axe-core/playwright";
 
 test("la homepage rend la recherche principale et navigue vers les résultats", async ({ page }) => {
   await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero).toBeVisible();
+  const backgrounds = await page.evaluate(() => ({
+    canvas: getComputedStyle(document.documentElement).backgroundColor,
+    hero: getComputedStyle(document.querySelector<HTMLElement>("[data-testid='home-hero']")!).backgroundColor,
+  }));
+  expect(backgrounds.canvas).toBe(backgrounds.hero);
   await expect(
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
@@ -201,13 +208,20 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const firstPlay = page.getByRole("button", { name: /^Écouter / }).first();
   await expect(firstPlay).toBeVisible({ timeout: 30_000 });
   await expect(firstPlay.getByTestId("track-play-icon")).toBeVisible();
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCount(0);
+  await page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).first().click();
+  const shortlistTrigger = page.locator("[data-shortlist-trigger]");
+  await expect(shortlistTrigger).toBeVisible();
+  await page.getByRole("dialog", { name: "Shortlist" }).getByRole("button", { name: "Fermer" }).click();
+  await expect(shortlistTrigger).toHaveCSS("right", "12px");
+  await expect(shortlistTrigger).toHaveCSS("bottom", "12px");
   const moreActions = page.getByRole("button", { name: /^Plus d’actions :/ }).first();
   await expect(moreActions).toBeVisible();
   await moreActions.click();
   const actions = page.getByRole("region", { name: /^Actions pour/ }).first();
   await expect(actions).toBeVisible();
-  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("opacity", "0");
-  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("pointer-events", "none");
+  await expect(shortlistTrigger).toHaveCSS("opacity", "0");
+  await expect(shortlistTrigger).toHaveCSS("pointer-events", "none");
   await expect(actions.getByText("Télécharger", { exact: true })).toBeVisible();
   await expect(actions.getByText("Playlist", { exact: true })).toBeVisible();
   await expect(actions.getByText("Partager", { exact: true })).toBeVisible();
@@ -255,6 +269,28 @@ test("le manifesto libère le scroll une fois révélé", async ({ page }, testI
   await page.waitForTimeout(120);
   await section.evaluate((node) => window.scrollTo({ top: (node as HTMLElement).offsetTop + node.clientHeight + 120, behavior: "instant" }));
   await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(0);
+});
+
+test("le manifesto mobile attend la fin du geste avant de libérer le sticky", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La temporisation contrôle spécifiquement les navigations mobiles.");
+  await page.goto("/");
+  await page.waitForLoadState("networkidle");
+  const section = page.locator("#manifesto");
+  await section.evaluate((node) => window.scrollTo({
+    top: (node as HTMLElement).offsetTop + node.clientHeight - window.innerHeight,
+    behavior: "instant",
+  }));
+  await page.waitForTimeout(70);
+  await expect(section).toHaveAttribute("data-reveal-completed", "false");
+  await page.evaluate(() => window.scrollBy({ top: 28, behavior: "instant" }));
+  await page.waitForTimeout(70);
+  await expect(section).toHaveAttribute("data-reveal-completed", "false");
+
+  const processTopBefore = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
+  await expect(section).toHaveAttribute("data-reveal-completed", "true", { timeout: 1_000 });
+  const processTopAfter = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
+  expect(Math.abs(processTopAfter - processTopBefore)).toBeLessThanOrEqual(2);
+  await expect(section.locator(":scope > div")).toHaveCSS("position", "relative");
 });
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }) => {
@@ -320,12 +356,23 @@ test("les suggestions sont visibles à vide et la shortlist expose son état", a
   const suggestionRail = page.locator(".suggestion-rail");
   expect(await suggestionRail.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCount(0);
   const add = page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).first();
   await add.click();
   await expect(page.getByRole("dialog", { name: "Shortlist" })).toBeVisible();
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("right", "20px");
+  await expect(page.locator("[data-shortlist-trigger]")).toHaveCSS("bottom", "20px");
   await page.getByRole("button", { name: "Connectez-vous", exact: true }).click();
   await expect(page.getByRole("dialog").getByRole("heading", { name: "Se connecter" })).toBeVisible();
   await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /^Écouter / }).first().click();
+  const playerDock = page.getByTestId("player-dock");
+  const shortlistTrigger = page.locator("[data-shortlist-trigger]");
+  await expect(playerDock).toBeVisible();
+  await expect.poll(async () => {
+    const [playerBox, triggerBox] = await Promise.all([playerDock.boundingBox(), shortlistTrigger.boundingBox()]);
+    return playerBox && triggerBox ? playerBox.y - (triggerBox.y + triggerBox.height) : -1;
+  }).toBeGreaterThanOrEqual(10);
   const remove = page.getByRole("button", { name: /^Retirer de la shortlist :/ }).first();
   await expect(remove).toHaveAttribute("aria-pressed", "true");
 });

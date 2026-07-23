@@ -86,10 +86,10 @@ export function HomeExperience() {
   ];
 
   return (
-    <div className="page-shell">
+    <div className="page-shell home-shell">
       <Header variant="overlay" />
       <main>
-        <section className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-hidden bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
+        <section data-testid="home-hero" className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-hidden bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
           <OrganicHeroBackdrop />
           <div className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center">
             <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .5 }} className="eyebrow text-[var(--signal-strong)]">Parigo Music · Paris</motion.p>

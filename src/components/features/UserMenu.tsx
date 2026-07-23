@@ -29,9 +29,9 @@ import { cn } from "@/lib/utils";
 const subscribeToHydration = () => () => undefined;
 
 function AccountMark({ initials, image, large = false }: { initials: string; image?: string | null; large?: boolean }) {
-  const dimension = large ? 48 : 40;
+  const dimension = large ? 64 : 40;
   return (
-    <span data-testid="account-mark" className={cn("account-mark", large ? "h-12 w-12" : "h-10 w-10")}>
+    <span data-testid="account-mark" className={cn("account-mark", large ? "account-mark--large h-16 w-16" : "h-10 w-10")}>
       <span aria-hidden="true" className="account-mark__corner account-mark__corner--top" />
       <span aria-hidden="true" className="account-mark__corner account-mark__corner--bottom" />
       <span className="account-mark__content">
