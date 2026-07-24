@@ -1,89 +1,115 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
 import type { MotionValue } from "framer-motion";
-import { useEffect, useMemo, useRef } from "react";
-import * as THREE from "three";
+import { useEffect, useRef } from "react";
 
 export interface SignalFieldProps {
   pointerX: MotionValue<number>;
   pointerY: MotionValue<number>;
 }
 
-interface RibbonProps {
+interface Ribbon {
   color: string;
   amplitude: number;
   speed: number;
   offset: number;
   opacity: number;
-  pointerX: MotionValue<number>;
-  pointerY: MotionValue<number>;
+  width: number;
 }
 
-function Ribbon({ color, amplitude, speed, offset, opacity, pointerX, pointerY }: RibbonProps) {
-  const line = useMemo(() => {
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(new Float32Array(180 * 3), 3));
-    const material = new THREE.LineBasicMaterial({ color, transparent: true, opacity });
-    return new THREE.Line(geometry, material);
-  }, [color, opacity]);
+const RIBBONS: Ribbon[] = [
+  { color: "#6cff67", amplitude: 0.19, speed: 0.56, offset: 0, opacity: 1, width: 2.2 },
+  { color: "#dfffdc", amplitude: 0.13, speed: 0.4, offset: 2.1, opacity: 0.68, width: 1.35 },
+  { color: "#75a995", amplitude: 0.23, speed: 0.28, offset: 4.2, opacity: 0.46, width: 1 },
+];
 
-  useEffect(() => () => {
-    line.geometry.dispose();
-    (line.material as THREE.Material).dispose();
-  }, [line]);
-
-  useFrame(({ clock }) => {
-    const time = clock.getElapsedTime() * speed;
-    const mouseX = pointerX.get();
-    const mouseY = pointerY.get();
-    const attribute = line.geometry.getAttribute("position") as THREE.BufferAttribute;
-    for (let index = 0; index < attribute.count; index += 1) {
-      const progress = index / (attribute.count - 1);
-      const x = THREE.MathUtils.lerp(-7.6, 7.6, progress);
-      const envelope = Math.sin(progress * Math.PI);
-      const y = Math.sin(progress * 16 + time + offset) * amplitude * envelope;
-      const detail = Math.sin(progress * 41 - time * 1.4) * amplitude * 0.22;
-      attribute.setXYZ(
-        index,
-        x,
-        y + detail - mouseY * 0.22,
-        mouseX * 0.45 + Math.cos(progress * 8 + time) * 0.16,
-      );
-    }
-    attribute.needsUpdate = true;
-  });
-
-  return <primitive object={line} />;
-}
-
-function Scene({ pointerX, pointerY }: SignalFieldProps) {
-  const group = useRef<THREE.Group>(null);
-  useFrame((_, delta) => {
-    if (!group.current) return;
-    group.current.rotation.y = THREE.MathUtils.damp(group.current.rotation.y, pointerX.get() * 0.08, 4.5, delta);
-    group.current.rotation.x = THREE.MathUtils.damp(group.current.rotation.x, -pointerY.get() * 0.05, 4.5, delta);
-  });
-
-  return (
-    <group ref={group} rotation={[0.12, 0, -0.08]}>
-      <Ribbon color="#6cff67" amplitude={1.54} speed={0.56} offset={0} opacity={1} pointerX={pointerX} pointerY={pointerY} />
-      <Ribbon color="#dfffdc" amplitude={1.08} speed={0.4} offset={2.1} opacity={0.68} pointerX={pointerX} pointerY={pointerY} />
-      <Ribbon color="#75a995" amplitude={1.88} speed={0.28} offset={4.2} opacity={0.46} pointerX={pointerX} pointerY={pointerY} />
-    </group>
-  );
+function drawRibbon(
+  context: CanvasRenderingContext2D,
+  ribbon: Ribbon,
+  width: number,
+  height: number,
+  elapsed: number,
+  pointerX: number,
+  pointerY: number,
+) {
+  const points = 180;
+  const centreY = height * 0.5 - pointerY * height * 0.025;
+  context.beginPath();
+  for (let index = 0; index < points; index += 1) {
+    const progress = index / (points - 1);
+    const envelope = Math.sin(progress * Math.PI);
+    const time = elapsed * ribbon.speed;
+    const wave = Math.sin(progress * 16 + time + ribbon.offset) * ribbon.amplitude * height * envelope;
+    const detail = Math.sin(progress * 41 - time * 1.4) * ribbon.amplitude * height * 0.22;
+    const x = progress * width + pointerX * 7 * envelope;
+    const y = centreY + wave + detail;
+    if (index === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  }
+  context.globalAlpha = ribbon.opacity;
+  context.strokeStyle = ribbon.color;
+  context.lineWidth = ribbon.width;
+  context.lineCap = "round";
+  context.stroke();
 }
 
 export function SignalField({ pointerX, pointerY }: SignalFieldProps) {
-  return (
-    <Canvas
-      aria-hidden="true"
-      dpr={[1, 1.5]}
-      camera={{ position: [0, 0, 7], fov: 48 }}
-      gl={{ antialias: true, alpha: true, powerPreference: "low-power" }}
-      frameloop="always"
-    >
-      <Scene pointerX={pointerX} pointerY={pointerY} />
-    </Canvas>
-  );
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const context = canvas.getContext("2d", { alpha: true });
+    if (!context) return;
+
+    let animationFrame = 0;
+    let visible = true;
+    let width = 0;
+    let height = 0;
+    const startedAt = performance.now();
+
+    const resize = () => {
+      const bounds = canvas.getBoundingClientRect();
+      const ratio = Math.min(window.devicePixelRatio || 1, 1.5);
+      width = Math.max(1, bounds.width);
+      height = Math.max(1, bounds.height);
+      canvas.width = Math.round(width * ratio);
+      canvas.height = Math.round(height * ratio);
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    };
+
+    const render = (now: number) => {
+      if (!visible) return;
+      context.clearRect(0, 0, width, height);
+      const elapsed = (now - startedAt) / 1000;
+      for (const ribbon of RIBBONS) {
+        drawRibbon(context, ribbon, width, height, elapsed, pointerX.get(), pointerY.get());
+      }
+      context.globalAlpha = 1;
+      animationFrame = window.requestAnimationFrame(render);
+    };
+
+    const resizeObserver = new ResizeObserver(resize);
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      const nextVisible = Boolean(entry?.isIntersecting);
+      if (nextVisible === visible) return;
+      visible = nextVisible;
+      window.cancelAnimationFrame(animationFrame);
+      if (visible) animationFrame = window.requestAnimationFrame(render);
+    }, { rootMargin: "120px" });
+
+    resizeObserver.observe(canvas);
+    intersectionObserver.observe(canvas);
+    resize();
+    animationFrame = window.requestAnimationFrame(render);
+
+    return () => {
+      visible = false;
+      window.cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+    };
+  }, [pointerX, pointerY]);
+
+  return <canvas ref={canvasRef} aria-hidden="true" className="h-full w-full" />;
 }

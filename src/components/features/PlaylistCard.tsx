@@ -7,9 +7,10 @@ import { useI18n } from "@/components/providers/I18nProvider";
 
 interface PlaylistCardProps {
   playlist: Playlist;
+  priority?: boolean;
 }
 
-export function PlaylistCard({ playlist }: PlaylistCardProps) {
+export function PlaylistCard({ playlist, priority = false }: PlaylistCardProps) {
   const { t, localizedPath } = useI18n();
   return (
     <Link href={localizedPath(`/playlists/${playlist.id}`)}>
@@ -22,19 +23,13 @@ export function PlaylistCard({ playlist }: PlaylistCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover transition duration-[900ms] ease-out group-hover/card:scale-[1.035]"
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
           />
 
           {/* Overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-          {/* Category badge */}
-          {playlist.category && (
-            <div className="absolute top-3 left-3">
-              <span className="px-2 py-1 bg-[var(--color-black)] text-white text-xs font-medium rounded-full">
-                {playlist.category}
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Info - fixed height for uniform cards */}

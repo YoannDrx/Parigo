@@ -1,7 +1,9 @@
 import "server-only";
 
+import { verifiedLabelLogo } from "@/content/label-logo-health";
 import type {
   Album,
+  AlbumDiscoveryResult,
   CatalogCategory,
   Label,
   PaginatedResult,
@@ -142,7 +144,7 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
     labelSlug: labelId,
     cover: templates.albumArt
       ? assetUrl(templates.albumArt, { id, width: 800, height: 800 })
-      : "/images/placeholder-album.jpg",
+      : "/images/placeholder-album.svg",
     description: parsed.Detail || parsed.Description || null,
     genres,
     moods: asList(parsed.Mood),
@@ -168,7 +170,7 @@ export function mapPlaylist(item: HarvestRecord, templates: HarvestAssetTemplate
     description: parsed.Description || undefined,
     cover: templates.playlistArt
       ? assetUrl(templates.playlistArt, { id, width: 800, height: 800 })
-      : "/images/placeholder-playlist.jpg",
+      : "/images/placeholder-playlist.svg",
     trackCount: parsed.TrackCount || parsed.Tracks.length,
     category: parsed.Type || parsed.Category || undefined,
     isFeatured: true,
@@ -256,7 +258,6 @@ export async function getAlbums(options: {
   sort?: string;
 } = {}): Promise<PaginatedResult<Album>> {
   const limit = Math.min(Math.max(options.limit ?? 30, 1), 100);
-  const offset = Math.max(options.offset ?? 0, 0);
   const templates = await getAssetTemplates();
 
   if (options.featured) {
@@ -271,18 +272,57 @@ export async function getAlbums(options: {
     return { items: items.map((item) => mapAlbum(item, templates)), total: items.length, page: 1, pageSize: limit };
   }
 
+  return getAlbumDiscovery(options);
+}
+
+function albumSort(sort?: string): string {
+  if (sort === "oldest") return "ReleaseDate_Asc";
+  if (sort === "relevance") return "RankExpression";
+  return "ReleaseDate_Desc";
+}
+
+export async function getAlbumDiscovery(options: {
+  limit?: number;
+  offset?: number;
+  label?: string;
+  style?: string;
+  category?: string;
+  categories?: string[];
+  labels?: string[];
+  styles?: string[];
+  query?: string;
+  sort?: string;
+  language?: "fr" | "en";
+  minBpm?: number;
+  maxBpm?: number;
+  minDuration?: number;
+  maxDuration?: number;
+} = {}): Promise<AlbumDiscoveryResult> {
+  const limit = Math.min(Math.max(options.limit ?? 30, 1), 100);
+  const offset = Math.max(options.offset ?? 0, 0);
   const requestedCategories = options.categories?.length ? options.categories : options.category ? [options.category] : undefined;
   const result = await cloudSearch({
     view: "Album",
     skip: offset,
     limit,
-    sort: options.sort === "title" ? "Name_Asc" : "ReleaseDate_Desc",
+    sort: albumSort(options.sort),
     query: options.query,
-    labels: options.label ? [options.label] : undefined,
-    styles: options.style ? [options.style] : undefined,
+    labels: [...(options.labels ?? []), ...(options.label ? [options.label] : [])],
+    styles: [...(options.styles ?? []), ...(options.style ? [options.style] : [])],
     categories: requestedCategories,
+    language: options.language,
+    minBpm: options.minBpm,
+    maxBpm: options.maxBpm,
+    minDuration: options.minDuration,
+    maxDuration: options.maxDuration,
   });
-  return { items: result.albums, total: result.total, page: Math.floor(offset / limit) + 1, pageSize: limit };
+  return {
+    items: result.albums,
+    total: result.total,
+    page: Math.floor(offset / limit) + 1,
+    pageSize: limit,
+    facets: result.facets,
+  };
 }
 
 export async function getAlbum(id: string): Promise<{ album: Album & { tracks: Track[] }; similar: Album[] }> {
@@ -321,18 +361,24 @@ export async function getAlbum(id: string): Promise<{ album: Album & { tracks: T
 }
 
 export async function getLabels(): Promise<Label[]> {
-  const payload = await guestRequest<HarvestRecord>((token) => `/getlibraries/${token}`);
+  const [payload, albumFacets] = await Promise.all([
+    guestRequest<HarvestRecord>((token) => `/getlibraries/${token}`),
+    cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc" })
+      .then((result) => new Map(result.facets.labels.map((item) => [item.id, item.count])))
+      .catch(() => new Map<string, number>()),
+  ]);
   return recordArray(payload, "Libraries")
     .map((item) => {
       const id = asString(item.ID);
+      const logoUrl = asString(item.LibraryLogoUrl);
       return {
         id,
         slug: id,
         name: asString(item.Name),
-        logo: asString(item.LibraryLogoUrl) || null,
+        logo: verifiedLabelLogo(id, logoUrl),
         description: asString(pick(item, "Detail", "Profile")) || undefined,
         website: asString(item.Website) || undefined,
-        albumCount: asNumber(item.AlbumCount),
+        albumCount: albumFacets.get(id) ?? 0,
         location: asString(item.Location) || undefined,
         featured: asBoolean(item.Featured),
         updatedAt: asIsoDate(item.LastUpdated),
@@ -343,19 +389,29 @@ export async function getLabels(): Promise<Label[]> {
 }
 
 export async function getLabel(id: string): Promise<Label | null> {
-  const payload = await guestRequest<HarvestRecord>((token) =>
-    `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true`,
-  );
+  const [payload, albumCount, trackCount] = await Promise.all([
+    guestRequest<HarvestRecord>((token) =>
+      `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true`,
+    ),
+    cloudSearch({ view: "Album", limit: 1, labels: [id], sort: "ReleaseDate_Desc" })
+      .then((result) => result.total)
+      .catch(() => 0),
+    cloudSearch({ view: "Track", limit: 1, labels: [id], sort: "RankExpression" })
+      .then((result) => result.total)
+      .catch(() => 0),
+  ]);
   const item = isRecord(payload.Library) ? payload.Library : undefined;
   if (!item) return null;
+  const logoUrl = asString(item.LibraryLogoUrl);
   return {
     id,
     slug: id,
     name: asString(item.Name),
-    logo: asString(item.LibraryLogoUrl) || null,
+    logo: verifiedLabelLogo(id, logoUrl),
     description: asString(pick(item, "Detail", "Profile")) || undefined,
     website: asString(item.Website) || undefined,
-    albumCount: asNumber(item.AlbumCount),
+    albumCount,
+    trackCount,
     location: asString(item.Location) || undefined,
     featured: asBoolean(item.Featured),
     updatedAt: asIsoDate(item.LastUpdated),
@@ -406,6 +462,37 @@ export async function getPlaylist(id: string): Promise<Playlist & { tracks: Trac
   return { ...playlist, trackCount: tracks.length, tracks };
 }
 
+function uniqueTerms(values: Array<string[] | undefined>): string[] {
+  return [...new Set(values.flatMap((value) => value ?? []).map((value) => value.trim()).filter(Boolean))]
+    .sort((left, right) => left.localeCompare(right, "fr", { sensitivity: "base" }));
+}
+
+export async function getPlaylistDiscovery(): Promise<Playlist[]> {
+  const playlists = (await getPlaylists({ limit: 100 })).items;
+  const enriched: Playlist[] = [];
+  const concurrency = 6;
+  for (let offset = 0; offset < playlists.length; offset += concurrency) {
+    const batch = playlists.slice(offset, offset + concurrency);
+    const details = await Promise.all(batch.map(async (playlist) => {
+      try {
+        const detail = await getPlaylist(playlist.id);
+        return {
+          ...playlist,
+          trackCount: detail.tracks.length,
+          genres: uniqueTerms(detail.tracks.map((track) => track.genres)),
+          moods: uniqueTerms(detail.tracks.map((track) => track.moods)),
+          instruments: uniqueTerms(detail.tracks.map((track) => track.instruments)),
+          musicFor: uniqueTerms(detail.tracks.map((track) => track.musicFor)),
+        } satisfies Playlist;
+      } catch {
+        return playlist;
+      }
+    }));
+    enriched.push(...details);
+  }
+  return enriched;
+}
+
 export async function getCategories(language: "fr" | "en" = "en"): Promise<CatalogCategory[]> {
   const payload = await guestRequest<HarvestRecord>((token) =>
     `/getcategories/${token}/hasactivetrackonly?languagecode=${language}`,
@@ -424,12 +511,18 @@ export async function getCategories(language: "fr" | "en" = "en"): Promise<Catal
 }
 
 export async function getStyles(): Promise<CatalogCategory[]> {
-  const payload = await guestRequest<HarvestRecord>((token) =>
-    `/getstyles/${token}?allowEmptyStyle=false`,
-  );
+  const [payload, albumFacets] = await Promise.all([
+    guestRequest<HarvestRecord>((token) =>
+      `/getstyles/${token}?allowEmptyStyle=false`,
+    ),
+    cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc" })
+      .then((result) => new Map(result.facets.styles.map((item) => [item.id, item.count])))
+      .catch(() => new Map<string, number>()),
+  ]);
   return recordArray(payload, "Styles").map((item) => ({
     id: asString(item.ID),
     name: asString(item.Name),
     slug: asString(item.ID),
+    count: albumFacets.get(asString(item.ID)) ?? 0,
   }));
 }

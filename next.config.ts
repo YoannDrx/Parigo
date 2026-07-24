@@ -7,6 +7,7 @@ const withBundleAnalyzer = bundleAnalyzer({
 });
 
 const isProduction = process.env.VERCEL_ENV === "production";
+const isDevelopment = process.env.NODE_ENV === "development";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -14,7 +15,7 @@ const contentSecurityPolicy = [
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline'",
+  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
   "img-src 'self' data: blob: https://d3vy0pmxxxelni.cloudfront.net",
@@ -27,6 +28,7 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  allowedDevOrigins: ["127.0.0.1"],
   productionBrowserSourceMaps: false,
   // Metadata is part of the first HTML response for browsers, auditors and
   // crawlers alike. This also makes no-JavaScript SEO contracts deterministic.
@@ -71,6 +73,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "d3vy0pmxxxelni.cloudfront.net",
+      },
+      {
+        protocol: "https",
+        hostname: "i.ytimg.com",
       },
     ],
   },

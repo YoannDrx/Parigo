@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Pochette Parigo">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e4efe5"/>
+      <stop offset="1" stop-color="#b8d8c1"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#paper)"/>
+  <circle cx="400" cy="400" r="232" fill="none" stroke="#247b43" stroke-width="2" opacity=".34"/>
+  <circle cx="400" cy="400" r="150" fill="#151815"/>
+  <circle cx="400" cy="400" r="28" fill="#68bf83"/>
+  <path d="M92 170h616M92 630h616" stroke="#247b43" stroke-width="4" opacity=".42"/>
+  <text x="92" y="116" fill="#151815" font-family="Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="8">PARIGO MUSIC</text>
+  <text x="92" y="700" fill="#247b43" font-family="monospace" font-size="22" letter-spacing="5">PRODUCTION CATALOGUE</text>
+</svg>

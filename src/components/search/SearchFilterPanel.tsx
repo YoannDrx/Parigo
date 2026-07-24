@@ -195,6 +195,7 @@ function FilterGroupSection({
   onChange: (values: string[]) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [open, setOpen] = useState(false);
   const visibleItems = useMemo(() => filterTree(group.items, query, locale), [group.items, locale, query]);
   const counts = useMemo(() => facetMap(facets), [facets]);
   const groupIds = useMemo(() => new Set(flatFilterIds(group.items)), [group.items]);
@@ -203,7 +204,11 @@ function FilterGroupSection({
     ? [...groupIds].filter((id) => counts.has(id.replace(/^ATT_/i, ""))).length
     : group.available;
   return (
-    <details open={group.key === "genre" || group.key === "labels" || undefined} className="search-filter-group group border-b border-[var(--line)] transition-colors">
+    <details
+      open={open}
+      onToggle={(event) => setOpen(event.currentTarget.open)}
+      className="search-filter-group group border-b border-[var(--line)] transition-colors"
+    >
       <summary className="search-filter-group__summary flex min-h-14 cursor-pointer list-none items-center py-3 [&::-webkit-details-marker]:hidden">
         <span className="search-filter-group__index font-mono text-[.55rem] tracking-[.08em]">{String(index + 1).padStart(2, "0")}</span>
         <span className="min-w-0 flex-1 truncate font-semibold tracking-[-.025em]">{labelsByKey[group.key]?.[locale] ?? group.label}</span>
@@ -218,7 +223,7 @@ function FilterGroupSection({
           <span className="flex h-8 w-8 items-center justify-center border border-transparent transition group-hover:border-[var(--line-strong)]"><ChevronDown size={15} className="transition group-open:rotate-180" /></span>
         </span>
       </summary>
-      <div className="search-filter-group__body px-4 pb-5 pt-3">
+      {open && <div className="search-filter-group__body px-4 pb-5 pt-3">
         <div className="search-filter-field relative mb-2.5">
           <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-45" />
           <input
@@ -238,7 +243,7 @@ function FilterGroupSection({
             <FilterItemRow key={item.id} item={item} values={values} selection={group.selection} counts={counts} locale={locale} onChange={onChange} />
           ))}
         </ul>
-      </div>
+      </div>}
     </details>
   );
 }

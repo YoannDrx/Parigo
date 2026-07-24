@@ -151,7 +151,7 @@
 
 * { box-sizing: border-box; }
 
-html { background: var(--background); scroll-behavior: auto; }
+html { position: relative; background: var(--background); scroll-behavior: auto; }
 html:has(body .home-shell) { background: var(--surface); }
 
 body {
@@ -354,43 +354,6 @@ textarea {
 }
 .process-step__number {
   border-radius: var(--parigo-corner-md) var(--parigo-turn-lg);
-}
-.process-step__signal {
-  position: relative;
-  display: block;
-  width: 1.5rem;
-  height: 1.1rem;
-}
-.process-step__signal-ink,
-.process-step__signal-green {
-  position: absolute;
-  display: block;
-  width: .95rem;
-  height: .7rem;
-  border-right: 1px solid;
-  border-bottom: 1px solid;
-  border-bottom-right-radius: var(--parigo-turn-sm);
-  transition:
-    width var(--motion-medium) var(--ease-out),
-    transform var(--motion-medium) var(--ease-out);
-}
-.process-step__signal-ink {
-  top: 0;
-  right: 0;
-  border-color: rgba(255,255,255,.42);
-}
-.process-step__signal-green {
-  right: .35rem;
-  bottom: 0;
-  border-color: var(--signal);
-}
-.process-step:hover .process-step__signal-ink {
-  width: 1.2rem;
-  transform: translate(2px, -1px);
-}
-.process-step:hover .process-step__signal-green {
-  width: 1.2rem;
-  transform: translate(-2px, 1px);
 }
 .sensation-card {
   min-width: 0;
@@ -675,36 +638,6 @@ textarea {
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--signal) 14%, transparent), transparent 46%),
     var(--foreground);
-}
-.account-nav__angle::before,
-.account-nav__angle::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  border-right: 1px solid currentColor;
-  border-bottom: 1px solid currentColor;
-  border-bottom-right-radius: var(--parigo-turn-sm);
-  transition: transform var(--motion-medium) var(--ease-out);
-}
-.account-nav__angle::before {
-  width: 1rem;
-  height: .65rem;
-  color: var(--signal-strong);
-}
-.account-nav__angle::after {
-  right: .3rem;
-  bottom: .3rem;
-  width: .7rem;
-  height: .45rem;
-  color: var(--line-strong);
-}
-.account-nav__link:hover .account-nav__angle::before,
-.account-nav__link:focus-visible .account-nav__angle::before {
-  transform: translate(2px, 1px);
-}
-.account-nav__link[data-active="true"] .account-nav__angle::after {
-  color: color-mix(in srgb, var(--background) 48%, transparent);
 }
 .account-page__actions {
   position: relative;

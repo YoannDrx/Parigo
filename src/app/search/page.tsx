@@ -77,7 +77,7 @@ function albumFromTrack(track: Track): Album {
     id: track.albumId,
     slug: track.albumSlug,
     title: track.albumTitle || "",
-    cover: track.albumCover || "/images/placeholder-album.jpg",
+    cover: track.albumCover || "/images/placeholder-album.svg",
     label: track.albumLabel || "Parigo",
     labelSlug: track.albumLabelSlug,
     genres: track.genres,
@@ -456,7 +456,6 @@ function SearchContent() {
                   { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
                   { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
                   { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
-                  { value: "title", label: "A–Z" }, { value: "title-desc", label: "Z–A" },
                   ...(view === "tracks" ? [{ value: "bpm-asc" as const, label: "BPM ↑" }, { value: "bpm-desc" as const, label: "BPM ↓" }, { value: "duration-asc" as const, label: locale === "fr" ? "Durée ↑" : "Duration ↑" }, { value: "duration-desc" as const, label: locale === "fr" ? "Durée ↓" : "Duration ↓" }] : []),
                 ]} />
               </div>

@@ -80,6 +80,10 @@ export interface Playlist {
   tracks?: Track[];
   createdAt?: string;
   updatedAt?: string;
+  genres?: string[];
+  moods?: string[];
+  instruments?: string[];
+  musicFor?: string[];
 }
 
 export interface MemberSavedSearch {
@@ -109,6 +113,7 @@ export interface Label {
   description?: string;
   website?: string;
   albumCount: number;
+  trackCount?: number;
   location?: string;
   featured?: boolean;
   updatedAt?: string;
@@ -118,8 +123,13 @@ export interface CatalogCategory {
   id: string;
   name: string;
   slug: string;
+  count?: number;
   parentId?: string;
   children?: CatalogCategory[];
+}
+
+export interface AlbumDiscoveryResult extends PaginatedResult<Album> {
+  facets: SearchFacets;
 }
 
 export interface SearchFacetItem {

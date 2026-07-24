@@ -1,11 +1,22 @@
 import { SynchronisationsExperience } from "@/components/features/SynchronisationsExperience";
-import { staticMetadata } from "@/lib/seo-server";
+import { getSynchronisations } from "@/lib/youtube/synchronisations";
+import { getRequestLocale } from "@/lib/locale-server";
+import { buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
 
-export const generateMetadata = staticMetadata("/synchronisations", {
-  fr: { title: "Nos synchronisations", description: "Découvrez une sélection de films, séries et campagnes mis en musique avec le catalogue Parigo." },
-  en: { title: "Our sync placements", description: "Discover films, series and campaigns featuring music from the Parigo catalogue." },
-});
+export async function generateMetadata({ searchParams }: { searchParams: PageSearchParams }) {
+  const [locale, filtered] = await Promise.all([getRequestLocale(), hasSearchParams(searchParams)]);
+  return buildMetadata({
+    locale,
+    path: "/synchronisations",
+    title: locale === "fr" ? "Nos synchronisations" : "Our sync placements",
+    description: locale === "fr"
+      ? "Découvrez une sélection de films, séries et campagnes mis en musique avec le catalogue Parigo."
+      : "Discover films, series and campaigns featuring music from the Parigo catalogue.",
+    index: !filtered,
+    follow: true,
+  });
+}
 
-export default function SynchronisationsPage() {
-  return <SynchronisationsExperience />;
+export default async function SynchronisationsPage() {
+  return <SynchronisationsExperience synchronisations={await getSynchronisations()} />;
 }

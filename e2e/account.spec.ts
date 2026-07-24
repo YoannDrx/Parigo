@@ -25,7 +25,7 @@ const track = {
   audioUrl: null,
   albumId: "album-1",
   albumTitle: "Parigo Test Pressing",
-  albumCover: "/images/placeholder-album.jpg",
+  albumCover: "/images/placeholder-album.svg",
   albumLabel: "Parigo",
   genres: ["Documentary"],
   moods: ["Intimate"],
@@ -114,7 +114,7 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   await page.route("**/api/user/playlists", async (route) => {
     if (route.request().method() === "POST") {
       createdPayload = route.request().postDataJSON() as Record<string, unknown>;
-      playlists = [{ id: "playlist-new", slug: "premier-film", title: createdPayload.title, description: createdPayload.description, cover: "/images/placeholder-playlist.jpg", trackCount: 0, isPublic: createdPayload.isPublic, createdAt: "2026-07-23T09:00:00.000Z" }];
+      playlists = [{ id: "playlist-new", slug: "premier-film", title: createdPayload.title, description: createdPayload.description, cover: "/images/placeholder-playlist.svg", trackCount: 0, isPublic: createdPayload.isPublic, createdAt: "2026-07-23T09:00:00.000Z" }];
       return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ data: { playlist: playlists[0] } }) });
     }
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlists } }) });
@@ -141,7 +141,7 @@ test("la création d’une première playlist utilise une modale Parigo et alime
 
 test("les commandes de photo de profil sont intégrées à l’avatar", async ({ page }) => {
   await mockSession(page);
-  await page.route("**/api/user/profile", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { profile: { email: "yoann@parigo.test", firstName: "Yoann", lastName: "Andrieux", country: "FR", image: "/images/placeholder-album.jpg", status: "active", subscribed: false, fileFormats: [] } } }) }));
+  await page.route("**/api/user/profile", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { profile: { email: "yoann@parigo.test", firstName: "Yoann", lastName: "Andrieux", country: "FR", image: "/images/placeholder-album.svg", status: "active", subscribed: false, fileFormats: [] } } }) }));
   await page.goto("/account");
   const control = page.getByTestId("profile-image-control");
   await expect(control).toBeVisible();

@@ -47,6 +47,16 @@ export function truncateDescription(value: string, max = 158): string {
   return `${candidate.slice(0, boundary > 100 ? boundary : max).replace(/[.,;:!?-]+$/, "")}…`;
 }
 
+export type PageSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
+export async function hasSearchParams(searchParams?: PageSearchParams): Promise<boolean> {
+  if (!searchParams) return false;
+  const resolved = await searchParams;
+  return Object.values(resolved).some((value) => (
+    Array.isArray(value) ? value.some(Boolean) : Boolean(value)
+  ));
+}
+
 interface BuildMetadataOptions {
   locale: Locale;
   path: string;

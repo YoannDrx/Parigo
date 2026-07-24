@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LabelDetailClient } from "@/components/catalog/LabelDetailClient";
+import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getCachedAlbums, getCachedLabel } from "@/lib/harvest/catalog-cache";
+import { getCachedAlbumDiscovery, getCachedLabel } from "@/lib/harvest/catalog-cache";
 import { getRequestLocale } from "@/lib/locale-server";
-import { absoluteUrl, buildMetadata } from "@/lib/seo";
+import { absoluteUrl, buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
 
 interface LabelPageProps {
   params: Promise<{ slug: string }>;
+  searchParams: PageSearchParams;
 }
 
 async function loadLabel(slug: string) {
   const [label, albums] = await Promise.all([
     getCachedLabel(slug),
-    getCachedAlbums({ label: slug, limit: 100 }),
+    getCachedAlbumDiscovery({ label: slug, limit: 30, sort: "recent" }),
   ]);
   if (!label) notFound();
   return {
@@ -22,13 +24,22 @@ async function loadLabel(slug: string) {
     description: label.description || null,
     website: label.website || null,
     albumCount: albums.total,
-    trackCount: albums.items.reduce((total, album) => total + album.trackCount, 0),
-    albums: albums.items,
+    trackCount: label.trackCount ?? 0,
+    albums: {
+      albums: albums.items,
+      facets: albums.facets,
+      pagination: {
+        total: albums.total,
+        limit: albums.pageSize,
+        offset: 0,
+        hasMore: albums.items.length < albums.total,
+      },
+    },
   };
 }
 
-export async function generateMetadata({ params }: LabelPageProps): Promise<Metadata> {
-  const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
+export async function generateMetadata({ params, searchParams }: LabelPageProps): Promise<Metadata> {
+  const [{ slug }, locale, filtered] = await Promise.all([params, getRequestLocale(), hasSearchParams(searchParams)]);
   const label = await loadLabel(slug);
   return buildMetadata({
     locale,
@@ -37,7 +48,8 @@ export async function generateMetadata({ params }: LabelPageProps): Promise<Meta
     description: label.description || (locale === "fr"
       ? `Découvrez les albums du label ${label.name} dans le catalogue Parigo Music.`
       : `Discover releases from ${label.name} in the Parigo Music catalogue.`),
-    image: label.logo,
+    index: !filtered,
+    follow: true,
   });
 }
 
@@ -51,10 +63,9 @@ export default async function LabelPage({ params }: LabelPageProps) {
         "@type": "Organization",
         name: label.name,
         url: absoluteUrl(`${locale === "en" ? "/en" : ""}/labels/${slug}`),
-        logo: label.logo ? absoluteUrl(label.logo) : undefined,
         description: label.description || undefined,
       }} />
-      <LabelDetailClient label={label} />
+      <ReactQueryProvider><LabelDetailClient label={label} /></ReactQueryProvider>
     </>
   );
 }

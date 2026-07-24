@@ -12,7 +12,7 @@ import type { Album, Track } from "@/types";
 interface MemberPlaylist { id: string; title: string; description?: string; tracks: Track[]; }
 
 function albumFor(track: Track): Album {
-  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", cover: track.albumCover || "/images/placeholder-album.jpg", label: track.albumLabel || "Parigo", genres: track.genres, moods: track.moods, trackCount: 0 };
+  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", cover: track.albumCover || "/images/placeholder-album.svg", label: track.albumLabel || "Parigo", genres: track.genres, moods: track.moods, trackCount: 0 };
 }
 
 export default function MemberPlaylistPage({ params }: { params: Promise<{ id: string }> }) {

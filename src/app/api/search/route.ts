@@ -8,8 +8,11 @@ const sortMap = {
   relevance: "RankExpression",
   recent: "ReleaseDate_Desc",
   oldest: "ReleaseDate_Asc",
-  title: "Name_Asc",
-  "title-desc": "Name_Desc",
+  // Harvest currently accepts the legacy title values in our public URLs but
+  // rejects its documented name sorts for this tenant. Keep those URLs alive
+  // with a deterministic relevance fallback; the UI does not advertise A–Z.
+  title: "RankExpression",
+  "title-desc": "RankExpression",
   "bpm-asc": "BPM_Asc",
   "bpm-desc": "BPM_Desc",
   "duration-asc": "Duration_Asc",
