@@ -6,6 +6,10 @@ export interface Synchronisation {
   youtubeId: string;
   descriptionFr: string;
   descriptionEn: string;
+  publishedAt?: string;
+  position?: number;
+  year?: number;
+  source: "youtube" | "editorial";
 }
 
 // Synchronisations are editorial case studies from Parigo's historical site.
@@ -20,6 +24,7 @@ export const SYNCHRONISATIONS: Synchronisation[] = [
     youtubeId: "Ke41rOP9Nm8",
     descriptionFr: "Une œuvre du catalogue Parigo choisie pour accompagner l’univers de Tokyo Vice.",
     descriptionEn: "A work from the Parigo catalogue selected for the world of Tokyo Vice.",
+    source: "editorial",
   },
   {
     slug: "tapie",
@@ -29,6 +34,7 @@ export const SYNCHRONISATIONS: Synchronisation[] = [
     youtubeId: "FgWtZznWyno",
     descriptionFr: "Une synchronisation Parigo au service du rythme et de la personnalité de la série Tapie.",
     descriptionEn: "A Parigo synchronisation supporting the pace and personality of the series Tapie.",
+    source: "editorial",
   },
   {
     slug: "pinterest",
@@ -38,6 +44,7 @@ export const SYNCHRONISATIONS: Synchronisation[] = [
     youtubeId: "x--kTXN1DTY",
     descriptionFr: "Une couleur musicale Parigo retenue pour une campagne Pinterest.",
     descriptionEn: "A Parigo musical colour selected for a Pinterest campaign.",
+    source: "editorial",
   },
   {
     slug: "emily-in-paris",
@@ -47,6 +54,7 @@ export const SYNCHRONISATIONS: Synchronisation[] = [
     youtubeId: "Lvq-nel3_HY",
     descriptionFr: "Une œuvre Parigo synchronisée dans l’univers parisien de la série.",
     descriptionEn: "A Parigo work synchronised within the Parisian world of the series.",
+    source: "editorial",
   },
   {
     slug: "kleo",
@@ -56,6 +64,7 @@ export const SYNCHRONISATIONS: Synchronisation[] = [
     youtubeId: "xxVgORUhQ3E",
     descriptionFr: "Une synchronisation au caractère affirmé pour la série Kleo.",
     descriptionEn: "A bold synchronisation for the series Kleo.",
+    source: "editorial",
   },
   {
     slug: "true-lies",
@@ -65,6 +74,7 @@ export const SYNCHRONISATIONS: Synchronisation[] = [
     youtubeId: "ngBH8bsqvV8",
     descriptionFr: "Le catalogue Parigo accompagne une séquence de la série True Lies.",
     descriptionEn: "The Parigo catalogue accompanies a sequence from the series True Lies.",
+    source: "editorial",
   },
   {
     slug: "captain-fall",
@@ -74,6 +84,7 @@ export const SYNCHRONISATIONS: Synchronisation[] = [
     youtubeId: "KES5ncRZxBA",
     descriptionFr: "Une musique Parigo choisie pour l’univers animé de Captain Fall.",
     descriptionEn: "Parigo music selected for the animated world of Captain Fall.",
+    source: "editorial",
   },
 ];
 

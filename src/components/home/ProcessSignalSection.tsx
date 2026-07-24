@@ -12,10 +12,6 @@ function ProcessStep({ number, title, copy, progress, index, stepLabel, reduceMo
     <motion.article style={reduceMotion ? { opacity: 1, y: 0 } : { opacity, y }} className="process-step group relative flex min-h-[245px] flex-col px-5 py-7 transition-colors duration-500 hover:bg-white/[.055] lg:min-h-[360px] lg:px-8 lg:py-10">
       <div className="flex items-center justify-between gap-4">
         <span className="font-mono text-[.6rem] uppercase tracking-[.14em] text-[var(--signal)]">{stepLabel} {number}</span>
-        <span aria-hidden="true" className="process-step__signal">
-          <span className="process-step__signal-ink" />
-          <span className="process-step__signal-green" />
-        </span>
       </div>
       <span aria-hidden="true" className="process-step__number mt-5 w-fit border border-white/10 px-4 py-2 text-[4.1rem] font-semibold leading-none tracking-[-.09em] text-white/[.12] transition duration-500 group-hover:border-[var(--signal)]/34 group-hover:text-[var(--signal)] lg:mt-7 lg:text-[clamp(4.5rem,7vw,7.6rem)]">{number}</span>
       <div className="mt-auto pt-5 lg:pt-8"><h3 className="text-2xl font-semibold tracking-[-.045em] text-white lg:text-3xl">{title}</h3><p className="mt-3 max-w-sm text-sm leading-6 text-white/74 lg:mt-4">{copy}</p></div>
@@ -38,7 +34,7 @@ export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
   ];
 
   return (
-    <section id="process" ref={sectionRef} className="px-4 py-16 md:px-8 md:py-32">
+    <section id="process" ref={sectionRef} className="relative px-4 py-16 md:px-8 md:py-32">
       <div className="mx-auto max-w-[1580px]">
         <div className="mb-8 grid gap-5 md:mb-10 md:grid-cols-12 md:items-end md:gap-6"><div className="md:col-span-7"><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Comment ça marche" : "How it works"}</p><h2 className="mt-4 text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)] md:mt-5">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</h2></div><p className="max-w-md text-sm leading-6 text-[var(--text-muted)] md:col-span-3 md:col-start-10">{locale === "fr" ? "Un parcours direct, pensé pour garder l’intuition créative au centre." : "A direct workflow designed to keep creative intuition at the centre."}</p></div>
         <div className="process-shell relative isolate overflow-hidden border border-white/14 bg-[#090c09] shadow-[0_34px_100px_rgba(5,10,6,.22)]">

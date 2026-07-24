@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Playlist Parigo">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#101511"/>
+      <stop offset="1" stop-color="#243b2b"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="800" fill="url(#night)"/>
+  <g fill="none" stroke="#68bf83" stroke-width="6">
+    <path d="M110 240c80-88 132 88 212 0s132 88 212 0 116 42 156 4"/>
+    <path d="M110 400c80-88 132 88 212 0s132 88 212 0 116 42 156 4" opacity=".72"/>
+    <path d="M110 560c80-88 132 88 212 0s132 88 212 0 116 42 156 4" opacity=".42"/>
+  </g>
+  <text x="110" y="118" fill="#f2f1ed" font-family="Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="8">PARIGO MUSIC</text>
+  <text x="110" y="704" fill="#8bd2a0" font-family="monospace" font-size="22" letter-spacing="5">EDITORIAL PLAYLIST</text>
+</svg>

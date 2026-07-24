@@ -315,31 +315,34 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   const syncFrame = await firstSync.locator(".home-sync-card__frame").boundingBox();
   expect(syncFrame).not.toBeNull();
   expect(syncFrame!.width / syncFrame!.height).toBeGreaterThan(1.7);
+  const syncHref = await firstSync.getAttribute("href");
+  expect(syncHref).toMatch(/^\/synchronisations\/[^/]+$/);
   await firstSync.click();
-  await expect(page).toHaveURL(/\/synchronisations\/tokyo-vice$/);
-  await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/Ke41rOP9Nm8"]')).toBeVisible();
+  await expect(page).toHaveURL(new RegExp(`${syncHref}$`));
+  await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toBeVisible();
 });
 
 test("le manifesto quitte le sticky sans saut en desktop", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "La continuité desktop est contrôlée séparément.");
-  await page.addInitScript(() => window.sessionStorage.setItem("parigo-manifesto-revealed", "true"));
   await page.goto("/");
   const section = page.locator("#manifesto");
   const stickyPanel = section.locator(":scope > div");
-  await expect(section).toHaveAttribute("data-reveal-completed", "false");
   const edge = page.getByTestId("manifesto-reveal-edge");
   await expect(edge).toBeVisible();
-  const geometry = await section.evaluate((node) => ({ top: (node as HTMLElement).offsetTop, travel: Math.max(1, node.clientHeight - window.innerHeight) }));
+  const geometry = await section.evaluate((node) => ({
+    top: (node as HTMLElement).offsetTop,
+    travel: Math.max(1, node.clientHeight - window.innerHeight),
+    height: node.clientHeight,
+  }));
   await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel * .5, behavior: "instant" }), geometry);
   await expect.poll(async () => Number.parseFloat(await edge.evaluate((node) => getComputedStyle(node).left))).toBeGreaterThan(100);
   await expect.poll(async () => Number.parseFloat(await edge.evaluate((node) => getComputedStyle(node).left))).toBeLessThan(1340);
   await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel * .999, behavior: "instant" }), geometry);
-  await expect(section).toHaveAttribute("data-reveal-completed", "true");
-  await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(0);
+  await expect(edge).toBeVisible();
   await expect(stickyPanel).toHaveCSS("position", "sticky");
   expect(Math.abs(await stickyPanel.evaluate((node) => node.getBoundingClientRect().top))).toBeLessThanOrEqual(2);
-  const completedHeight = await section.evaluate((node) => node.clientHeight);
-  expect(completedHeight).toBeGreaterThanOrEqual((await page.evaluate(() => window.innerHeight)) * 2);
+  expect(await section.evaluate((node) => node.clientHeight)).toBe(geometry.height);
+  expect(geometry.height).toBeGreaterThanOrEqual((await page.evaluate(() => window.innerHeight)) * 2);
 
   await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel - 24, behavior: "instant" }), geometry);
   const beforeBoundary = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
@@ -351,28 +354,28 @@ test("le manifesto quitte le sticky sans saut en desktop", async ({ page }, test
 });
 
 test("le manifesto mobile attend la fin du geste sans sauter", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "La temporisation contrôle spécifiquement les navigations mobiles.");
+  test.skip(testInfo.project.name !== "mobile", "La continuité mobile est contrôlée séparément.");
   await page.goto("/");
   await page.waitForLoadState("networkidle");
   const section = page.locator("#manifesto");
   const stickyPanel = section.locator(":scope > div");
-  await section.evaluate((node) => window.scrollTo({
-    top: (node as HTMLElement).offsetTop + node.clientHeight - window.innerHeight,
-    behavior: "instant",
+  const geometry = await section.evaluate((node) => ({
+    top: (node as HTMLElement).offsetTop,
+    travel: node.clientHeight - window.innerHeight,
+    height: node.clientHeight,
   }));
-  await page.waitForTimeout(70);
-  await expect(section).toHaveAttribute("data-reveal-completed", "false");
-  await page.evaluate(() => window.scrollBy({ top: 28, behavior: "instant" }));
-  await page.waitForTimeout(70);
-  await expect(section).toHaveAttribute("data-reveal-completed", "false");
-
+  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel - 28, behavior: "instant" }), geometry);
   const processTopBefore = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
   const panelTopBefore = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
-  await expect(section).toHaveAttribute("data-reveal-completed", "true", { timeout: 1_000 });
+  await page.evaluate(() => window.scrollBy({ top: 56, behavior: "instant" }));
   const processTopAfter = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
   const panelTopAfter = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
-  expect(Math.abs(processTopAfter - processTopBefore)).toBeLessThanOrEqual(2);
-  expect(Math.abs(panelTopAfter - panelTopBefore)).toBeLessThanOrEqual(2);
+  expect(await section.evaluate((node) => node.clientHeight)).toBe(geometry.height);
+  expect(processTopAfter - processTopBefore).toBeLessThanOrEqual(-54);
+  expect(processTopAfter - processTopBefore).toBeGreaterThanOrEqual(-58);
+  expect(Math.abs(panelTopBefore)).toBeLessThanOrEqual(2);
+  expect(panelTopAfter).toBeGreaterThanOrEqual(-30);
+  expect(panelTopAfter).toBeLessThanOrEqual(-26);
   await expect(stickyPanel).toHaveCSS("position", "sticky");
 });
 
@@ -568,8 +571,8 @@ test("la recherche expose des vues, tris et filtres partageables", async ({ page
   await expect(page).toHaveURL(/view=albums/);
   await expect(page.locator('main a[href^="/albums/"] h2').first()).toBeVisible({ timeout: 30_000 });
   await page.getByRole("combobox", { name: "Trier les résultats" }).click();
-  await page.getByRole("option", { name: "A–Z" }).click();
-  await expect(page).toHaveURL(/sort=title/);
+  await page.getByRole("option", { name: "Plus récents" }).click();
+  await expect(page).toHaveURL(/sort=recent/);
 });
 
 test("les filtres tri-état rendent inclusions et exclusions visibles", async ({ page }, testInfo) => {

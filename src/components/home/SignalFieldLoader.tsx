@@ -22,14 +22,12 @@ export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValu
     const desktop = window.matchMedia("(min-width: 1024px)");
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     const connection = navigator as Navigator & { connection?: { saveData?: boolean } };
-    const canvas = document.createElement("canvas");
-    const hasWebGL = Boolean(canvas.getContext("webgl2") || canvas.getContext("webgl"));
     let idleHandle: number | null = null;
     let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
     const assessRenderer = () => {
       const staticMode = reducedMotion.matches || Boolean(connection.connection?.saveData);
       setStaticFallback(staticMode);
-      const eligible = desktop.matches && !staticMode && hasWebGL && intersectingRef.current;
+      const eligible = desktop.matches && !staticMode && intersectingRef.current;
       if (!eligible) {
         setCanRender(false);
         return;

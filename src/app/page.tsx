@@ -3,6 +3,7 @@ import { staticMetadata } from "@/lib/seo-server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, siteConfig } from "@/lib/seo";
 import { getCachedPlaylists } from "@/lib/harvest/catalog-cache";
+import { getSynchronisations } from "@/lib/youtube/synchronisations";
 
 export const generateMetadata = staticMetadata("/", {
   fr: { title: "Musique de production pour l’image", description: "Parigo Music accompagne films, séries, publicités et contenus de marque avec une sélection musicale exigeante et un licensing clair." },
@@ -10,7 +11,10 @@ export const generateMetadata = staticMetadata("/", {
 });
 
 export default async function HomePage() {
-  const playlists = await getCachedPlaylists({ limit: 12 });
+  const [playlists, synchronisations] = await Promise.all([
+    getCachedPlaylists({ limit: 12 }),
+    getSynchronisations(),
+  ]);
   const initialPlaylists = {
     playlists: playlists.items,
     pagination: {
@@ -26,6 +30,6 @@ export default async function HomePage() {
       { "@context": "https://schema.org", "@type": "Organization", name: siteConfig.name, url: SITE_URL, email: siteConfig.email },
       { "@context": "https://schema.org", "@type": "WebSite", name: siteConfig.name, url: SITE_URL, inLanguage: ["fr", "en"] },
     ]} />
-    <HomeExperience initialPlaylists={initialPlaylists} />
+    <HomeExperience initialPlaylists={initialPlaylists} initialSynchronisations={synchronisations.slice(0, 12)} />
   </>;
 }

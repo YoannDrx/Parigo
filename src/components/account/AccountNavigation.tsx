@@ -53,7 +53,6 @@ export function AccountNavigation() {
                 {active && <motion.span layoutId="account-nav-active" className="account-nav__active-surface absolute inset-0" transition={{ duration: .28, ease: [0.22, 1, 0.36, 1] }} />}
                 <item.icon className="relative z-[1] shrink-0" size={19} />
                 <span className="relative z-[1] whitespace-nowrap font-medium">{item.label}</span>
-                <span className="account-nav__angle relative z-[1] ml-auto hidden h-4 w-5 shrink-0 lg:block" aria-hidden="true" />
               </Link>
             );
           })}

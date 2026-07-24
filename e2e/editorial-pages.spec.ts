@@ -38,8 +38,7 @@ test("la home hiérarchise le process, le projet puis les sensations", async ({ 
   await expect(process.getByText(/Progression du parcours|Parigo · supervision musicale|Chercher · Écouter · Sélectionner/)).toHaveCount(0);
   await expect(process.locator(".process-step")).toHaveCount(3);
   await expect(process.locator(".process-step > span.absolute")).toHaveCount(0);
-  await expect(process.locator(".process-step__signal")).toHaveCount(3);
-  await expect(process.locator(".process-step__signal > span")).toHaveCount(6);
+  await expect(process.locator(".process-step__signal")).toHaveCount(0);
   await expect(sensations.locator(".sensation-card")).toHaveCount(6);
   const firstSensation = sensations.locator(".sensation-card").first();
   if (testInfo.project.name !== "mobile") {

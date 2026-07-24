@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const sessionPayload = { data: { session: { user: { id: "member-1", email: "yoann@parigo.test", name: "Yoann Andrieux", image: null, role: "USER", createdAt: "2026-01-01T00:00:00.000Z" }, session: { expiresAt: "2026-08-01T00:00:00.000Z" } } } };
-const track = { id: "track-1", title: "Piano documentaire", duration: 148, bpm: 92, audioUrl: null, albumId: "album-1", albumTitle: "Parigo Test Pressing", albumCover: "/images/placeholder-album.jpg", albumLabel: "Parigo", genres: ["Documentary"], moods: ["Intimate"], isVocal: false, waveform: null };
+const track = { id: "track-1", title: "Piano documentaire", duration: 148, bpm: 92, audioUrl: null, albumId: "album-1", albumTitle: "Parigo Test Pressing", albumCover: "/images/placeholder-album.svg", albumLabel: "Parigo", genres: ["Documentary"], moods: ["Intimate"], isVocal: false, waveform: null };
 const facets = { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [], styles: [] };
 
 test.beforeEach(async ({ page }) => {
@@ -109,11 +109,13 @@ test("un attribut injecté par une extension sur body ne déclenche plus l’ove
   page.on("console", (message) => {
     if (message.type() === "error" && message.text().includes("A tree hydrated but some attributes")) hydrationErrors.push(message.text());
   });
-  await page.route("**/*", async (route) => {
-    if (route.request().resourceType() !== "document") return route.fallback();
-    const response = await route.fetch();
-    const html = (await response.text()).replace("<body ", '<body cz-shortcut-listen="true" ');
-    await route.fulfill({ response, body: html });
+  await page.addInitScript(() => {
+    const observer = new MutationObserver(() => {
+      if (!document.body) return;
+      document.body.setAttribute("cz-shortcut-listen", "true");
+      observer.disconnect();
+    });
+    observer.observe(document, { childList: true, subtree: true });
   });
   await page.goto("/search?q=piano&view=tracks&type=main");
   await expect(page.getByText(track.title, { exact: true })).toBeVisible();

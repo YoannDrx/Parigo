@@ -25,20 +25,28 @@ test.beforeEach(async ({ page, context, baseURL }) => {
 
 test("les routes principales ne débordent sur aucun viewport cible", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "La matrice configure explicitement ses six viewports.");
-  test.setTimeout(180_000);
+  test.setTimeout(300_000);
 
   await page.goto("/albums");
   const albumPath = await page.locator('main a[href^="/albums/"]').first().getAttribute("href");
   await page.goto("/playlists");
   const playlistPath = await page.locator('main a[href^="/playlists/"]').first().getAttribute("href");
+  await page.goto("/collections");
+  const collectionPath = await page.locator('main a[href^="/collections/"]').first().getAttribute("href");
   expect(albumPath).toBeTruthy();
   expect(playlistPath).toBeTruthy();
+  expect(collectionPath).toBeTruthy();
 
   const routes = [
     "/",
     "/search",
     "/albums",
     "/labels",
+    "/labels/0f9769346759ee5a",
+    "/collections",
+    collectionPath!,
+    "/playlists",
+    "/synchronisations",
     albumPath!,
     playlistPath!,
     "/contact",

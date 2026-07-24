@@ -8,7 +8,7 @@ import { AISearch } from "@/components/features/AISearch";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { SYNCHRONISATIONS as syncs } from "@/content/synchronisations";
+import type { Synchronisation } from "@/content/synchronisations";
 import { fetchAlbums } from "@/lib/api-client";
 import { DeferredOrganicHeroBackdrop } from "./DeferredOrganicHeroBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
@@ -47,9 +47,10 @@ interface HomeExperienceProps {
     playlists: Playlist[];
     pagination: { total: number; limit: number; offset: number; hasMore: boolean };
   };
+  initialSynchronisations: Synchronisation[];
 }
 
-export function HomeExperience({ initialPlaylists }: HomeExperienceProps) {
+export function HomeExperience({ initialPlaylists, initialSynchronisations: syncs }: HomeExperienceProps) {
   const { locale, t } = useI18n();
   const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "syncs" | "parigo">("playlists");
   const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>([]);
@@ -99,7 +100,7 @@ export function HomeExperience({ initialPlaylists }: HomeExperienceProps) {
         <section id="about" className="px-4 py-16 md:px-8 md:py-24">
           <SectionReveal className="mx-auto max-w-[1580px]">
             <div className="relative min-h-[610px] overflow-hidden rounded-xl md:min-h-[760px]">
-              <Image src="/images/parigo-studio.jpg" alt="Studio PARIGO avec une sélection de vinyles" fill loading="lazy" quality={78} sizes="100vw" className="object-cover" />
+              <Image src="/images/parigo-studio.jpg" alt="Studio PARIGO avec une sélection de vinyles" fill loading="lazy" quality={75} sizes="100vw" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
               <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
                 <p className="eyebrow mb-5 text-emerald-200">{locale === "fr" ? "Parigo depuis 2013" : "Parigo since 2013"}</p>
@@ -157,8 +158,8 @@ export function HomeExperience({ initialPlaylists }: HomeExperienceProps) {
         <section data-testid="social-follow-section" className="px-4 py-20 md:px-8 md:py-28">
           <SectionReveal className="group relative mx-auto grid max-w-[1580px] overflow-hidden rounded-[1.2rem] bg-[var(--signal-strong)] p-6 text-white md:grid-cols-12 md:items-center md:p-10 lg:p-14">
             <div aria-hidden="true" className="absolute -right-16 -top-24 h-72 w-72 rounded-full border-[44px] border-white/10 transition duration-700 group-hover:scale-110" />
-            <div className="relative md:col-span-9 md:flex md:items-center md:gap-4"><div className="relative h-28 w-full max-w-[15rem] shrink-0" role="list" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform) => <span key={platform.name} role="listitem" aria-label={platform.name} className={`absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><PlatformIcon name={platform.name} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-4 text-[#123f24] md:mt-0"><p className="eyebrow">{locale === "fr" ? "Parigo ailleurs" : "Parigo elsewhere"}</p><h2 className="mt-3 text-[clamp(2rem,4vw,4.5rem)] leading-[.94]">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</h2><p className="mt-4 max-w-xl text-sm leading-relaxed">{locale === "fr" ? "Sorties, playlists, images et actualités du studio — tous nos liens réunis au même endroit." : "Releases, playlists, images and studio news — all our links in one place."}</p></div></div>
-            <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href="https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-3 rounded-full border border-[#123f24]/55 px-5 text-sm font-semibold !text-[#123f24] transition hover:border-[#123f24] hover:bg-[#123f24] hover:!text-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
+            <div className="relative md:col-span-9 md:flex md:items-center md:gap-4"><div className="relative h-28 w-full max-w-[15rem] shrink-0" role="list" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform) => <span key={platform.name} role="listitem" aria-label={platform.name} className={`absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><PlatformIcon name={platform.name} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-4 text-white md:mt-0"><p className="eyebrow text-white/82">{locale === "fr" ? "Parigo ailleurs" : "Parigo elsewhere"}</p><h2 className="mt-3 text-[clamp(2rem,4vw,4.5rem)] leading-[.94] text-white">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</h2><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/82">{locale === "fr" ? "Sorties, playlists, images et actualités du studio — tous nos liens réunis au même endroit." : "Releases, playlists, images and studio news — all our links in one place."}</p></div></div>
+            <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href="https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-3 rounded-full border border-white/78 px-5 text-sm font-semibold !text-white transition hover:border-white hover:bg-white hover:!text-[#123f24] focus-visible:outline-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
           </SectionReveal>
         </section>
 

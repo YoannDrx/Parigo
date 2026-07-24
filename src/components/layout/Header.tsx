@@ -68,7 +68,7 @@ export function Header({ variant = "default" }: HeaderProps) {
     <header
       data-variant={variant}
       style={{ top: headerVisible || open ? 0 : -82 }}
-      className="fixed inset-x-0 z-[80] w-full text-[var(--foreground)] transition-[top] duration-300 ease-out"
+      className={cn("fixed inset-x-0 z-[80] w-full text-[var(--foreground)] transition-[top] duration-300 ease-out", open && "h-[100dvh] overflow-hidden")}
     >
       <nav aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"} className="relative z-[2] grid h-[74px] w-full grid-cols-[1fr_auto] items-center border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] px-4 backdrop-blur-xl md:px-8 lg:grid-cols-[190px_minmax(0,1fr)_auto]">
         <Link href={hrefFor("/")} aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group justify-self-start focus-visible:outline-offset-8">
@@ -97,8 +97,8 @@ export function Header({ variant = "default" }: HeaderProps) {
       </nav>
 
         {open && (
-          <div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom fixed inset-x-0 bottom-0 top-[74px] z-[1] overflow-y-auto bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[var(--foreground)] backdrop-blur-2xl">
-            <div className="mx-auto grid min-h-full max-w-[1760px] px-4 py-8 md:grid-cols-12 md:px-8 md:py-12">
+          <div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[var(--foreground)] backdrop-blur-2xl">
+            <div className="mx-auto grid min-h-max max-w-[1760px] px-4 py-8 md:grid-cols-12 md:px-8 md:py-12">
               <div className="mb-9 xl:hidden md:col-span-12"><UserMenu embedded /></div>
               <div className="md:col-span-8 lg:col-span-9 lg:pr-12">
                 <p className="eyebrow mb-5 text-[var(--signal-strong)]">{locale === "fr" ? "Explorer Parigo" : "Explore Parigo"}</p>

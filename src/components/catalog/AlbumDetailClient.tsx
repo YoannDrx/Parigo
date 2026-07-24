@@ -127,7 +127,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
                 <div className="flex flex-wrap items-center gap-2 mb-4">
                   <span className="text-sm text-[var(--color-gray-600)]">{locale === "fr" ? "Par" : "By"}</span>
                   {album.artists.map((artist, index) => (
-                    <span key={artist.slug}>
+                    <span key={`${artist.slug}-${index}`}>
                       <span className="text-sm font-medium text-[var(--foreground)]">{artist.name}</span>
                       {index < album.artists!.length - 1 && ", "}
                     </span>
