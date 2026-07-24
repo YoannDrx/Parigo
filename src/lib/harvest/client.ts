@@ -74,16 +74,34 @@ async function readJson(response: Response): Promise<unknown> {
   }
 }
 
-async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs: number): Promise<Response> {
+export async function fetchHarvestJsonWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number,
+): Promise<{ response: Response; payload: unknown }> {
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  const timeoutFailure = new Promise<never>((_resolve, reject) => {
+    timeout = setTimeout(() => {
+      controller.abort();
+      reject(new HarvestError("Harvest request timed out", "HARVEST_UNAVAILABLE", 503, true));
+    }, timeoutMs);
+  });
   try {
-    return await fetch(url, { ...init, signal: controller.signal, cache: "no-store" });
+    return await Promise.race([
+      (async () => {
+        const response = await fetch(url, { ...init, signal: controller.signal, cache: "no-store" });
+        const payload = await readJson(response);
+        return { response, payload };
+      })(),
+      timeoutFailure,
+    ]);
   } catch (error) {
+    if (error instanceof HarvestError) throw error;
     const message = error instanceof Error ? error.message : "Harvest request failed";
     throw new HarvestError(message, "HARVEST_UNAVAILABLE", 503, true);
   } finally {
-    clearTimeout(timeout);
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -93,7 +111,7 @@ async function getAccessToken(force = false): Promise<CachedToken> {
 
   accessTokenPromise = (async () => {
     const config = getHarvestApiConfig();
-    const response = await fetchWithTimeout(
+    const { response, payload } = await fetchHarvestJsonWithTimeout(
       config.authUrl,
       {
         method: "POST",
@@ -106,7 +124,6 @@ async function getAccessToken(force = false): Promise<CachedToken> {
       },
       10_000,
     );
-    const payload = await readJson(response);
     if (!response.ok) throw new HarvestError("Unable to authenticate with Harvest", "HARVEST_UNAVAILABLE", 503, true);
     const value = findToken(payload);
     if (!value) throw new HarvestError("Harvest OAuth token is missing", "HARVEST_INVALID_RESPONSE");
@@ -126,8 +143,9 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
   const oauth = await getAccessToken();
   const idempotent = !init.method || init.method === "GET" || /\/(cloudsearch|autocomplete)\//.test(path);
   let response: Response;
+  let payload: unknown;
   try {
-    response = await fetchWithTimeout(
+    const result = await fetchHarvestJsonWithTimeout(
       `${config.serviceUrl}${path}`,
       {
         ...init,
@@ -140,6 +158,8 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
       },
       timeoutMs,
     );
+    response = result.response;
+    payload = result.payload;
   } catch (error) {
     if (retry && idempotent && error instanceof HarvestError && error.retryable) {
       await new Promise((resolve) => setTimeout(resolve, 250 + Math.random() * 250));
@@ -147,7 +167,6 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
     }
     throw error;
   }
-  const payload = await readJson(response);
   logEvent({ level: response.ok ? "info" : "warn", message: "harvest_request", route: endpoint, durationMs: Date.now() - startedAt, status: response.status, requestId });
   if (response.status === 429) {
     if (retry && idempotent) {
@@ -184,12 +203,11 @@ export async function getServiceToken(force = false): Promise<CachedToken> {
   serviceTokenPromise = (async () => {
     const config = getHarvestApiConfig();
     const oauth = await getAccessToken();
-    const response = await fetchWithTimeout(
+    const { payload } = await fetchHarvestJsonWithTimeout(
       `${config.serviceUrl}/getservicetoken`,
       { headers: { Accept: "application/json", AccessKey: config.accessKey, Authorization: oauth.value } },
       10_000,
     );
-    const payload = await readJson(response);
     assertNoHarvestError(payload);
     const value = findToken(payload);
     if (!value) throw new HarvestError("Harvest service token is missing", "HARVEST_INVALID_RESPONSE");
