@@ -1,6 +1,18 @@
 import { expect, test } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({
+      necessary: true,
+      preferences: false,
+      analytics: false,
+      marketing: false,
+      updatedAt: "2026-07-23T00:00:00.000Z",
+    }));
+  });
+});
+
 test("la homepage rend la recherche principale et navigue vers les résultats", async ({ page }) => {
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
