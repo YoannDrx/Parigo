@@ -626,8 +626,6 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
 
 test("l’inscription Parigo expose le profil complet en deux étapes", async ({ page }) => {
   await page.goto("/register");
-  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
-  if (await rejectCookies.isVisible()) await rejectCookies.click();
   await page.getByLabel("Prénom *").fill("Test");
   await page.getByLabel("Nom *", { exact: true }).fill("Parigo");
   await page.getByLabel(/E-mail.*utilisé comme identifiant/i).fill("test@example.invalid");
