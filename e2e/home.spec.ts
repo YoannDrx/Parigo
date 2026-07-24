@@ -585,6 +585,7 @@ test("les filtres tri-état rendent inclusions et exclusions visibles", async ({
   await includePiano.click();
   await expect(page).toHaveURL(/categories=ATT_51bcfc1bd83261cd/);
   await expect(page.getByText(/1 inclus · 0 exclus/)).toBeVisible();
+  await page.locator("aside").locator("summary").filter({ hasText: "Genre" }).click();
   const excludeAmbient = page.getByRole("button", { name: "Exclure Ambient" }).first();
   await excludeAmbient.click();
   await expect(page).toHaveURL(/categories=.*-ATT_df36fdca961e0855/);
