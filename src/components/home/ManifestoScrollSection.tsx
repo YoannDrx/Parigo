@@ -2,7 +2,6 @@
 
 import { motion, useMotionValue, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { flushSync } from "react-dom";
 
 const MOBILE_SCROLL_MEDIA = "(max-width: 1023px), (hover: none) and (pointer: coarse)";
 
@@ -16,27 +15,12 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
   const furthestProgress = useMotionValue(0);
 
-  const completePreservingAnchor = useCallback(() => {
+  const completeReveal = useCallback(() => {
     if (completedRef.current) return;
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const anchor = section.nextElementSibling as HTMLElement | null;
-    const anchorTopBefore = anchor?.getBoundingClientRect().top ?? section.getBoundingClientRect().bottom;
     completedRef.current = true;
     completionPendingRef.current = false;
     furthestProgress.set(1);
-
-    flushSync(() => setCompleted(true));
-
-    const preserveAnchor = () => {
-      const anchorTopAfter = anchor?.getBoundingClientRect().top ?? section.getBoundingClientRect().bottom;
-      const correction = anchorTopAfter - anchorTopBefore;
-      if (Math.abs(correction) > .5) window.scrollBy(0, correction);
-    };
-
-    preserveAnchor();
-    window.requestAnimationFrame(preserveAnchor);
+    setCompleted(true);
   }, [furthestProgress]);
 
   const scheduleMobileCompletion = useCallback(() => {
@@ -47,9 +31,9 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
         completionPendingRef.current = false;
         return;
       }
-      completePreservingAnchor();
+      completeReveal();
     }, 180);
-  }, [completePreservingAnchor, scrollYProgress]);
+  }, [completeReveal, scrollYProgress]);
 
   useEffect(() => {
     const rescheduleWhileScrolling = () => {
@@ -72,7 +56,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
       scheduleMobileCompletion();
       return;
     }
-    completePreservingAnchor();
+    completeReveal();
   });
   const reveal = useTransform(furthestProgress, [.1, .91], ["inset(0 100% 0 0)", "inset(0 0% 0 0)"]);
   const revealEdge = useTransform(furthestProgress, [.1, .91], ["0%", "100%"]);
@@ -90,7 +74,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
 
   return (
     <section id="manifesto" ref={sectionRef} data-reveal-completed={completed} className={reduceMotion ? "relative min-h-[100svh] overflow-clip bg-[var(--background)] md:min-h-screen" : "relative min-h-[225svh] overflow-clip bg-[var(--background)] md:min-h-[235svh]"}>
-      <div className={completed ? "relative flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16" : "sticky top-0 flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16"}>
+      <div className={reduceMotion ? "relative flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16" : "sticky top-0 flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16"}>
         <div className="relative z-10 w-full px-3 md:px-8">
           <div className="mx-auto max-w-[1580px] text-left lg:text-center">
             <p className="eyebrow text-[var(--signal-strong)]">Parigo / {locale === "fr" ? "Manifeste" : "Manifesto"}</p>

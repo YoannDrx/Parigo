@@ -320,11 +320,12 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/Ke41rOP9Nm8"]')).toBeVisible();
 });
 
-test("le manifesto libère le scroll une fois révélé", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "La libération du sticky est contrôlée en desktop.");
+test("le manifesto quitte le sticky sans saut en desktop", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "La continuité desktop est contrôlée séparément.");
   await page.addInitScript(() => window.sessionStorage.setItem("parigo-manifesto-revealed", "true"));
   await page.goto("/");
   const section = page.locator("#manifesto");
+  const stickyPanel = section.locator(":scope > div");
   await expect(section).toHaveAttribute("data-reveal-completed", "false");
   const edge = page.getByTestId("manifesto-reveal-edge");
   await expect(edge).toBeVisible();
@@ -332,23 +333,29 @@ test("le manifesto libère le scroll une fois révélé", async ({ page }, testI
   await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel * .5, behavior: "instant" }), geometry);
   await expect.poll(async () => Number.parseFloat(await edge.evaluate((node) => getComputedStyle(node).left))).toBeGreaterThan(100);
   await expect.poll(async () => Number.parseFloat(await edge.evaluate((node) => getComputedStyle(node).left))).toBeLessThan(1340);
-  await section.evaluate((node) => window.scrollTo({ top: (node as HTMLElement).offsetTop + node.clientHeight, behavior: "instant" }));
+  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel * .999, behavior: "instant" }), geometry);
   await expect(section).toHaveAttribute("data-reveal-completed", "true");
   await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(0);
-  await expect(section.locator(":scope > div")).toHaveCSS("position", "relative");
+  await expect(stickyPanel).toHaveCSS("position", "sticky");
+  expect(Math.abs(await stickyPanel.evaluate((node) => node.getBoundingClientRect().top))).toBeLessThanOrEqual(2);
   const completedHeight = await section.evaluate((node) => node.clientHeight);
   expect(completedHeight).toBeGreaterThanOrEqual((await page.evaluate(() => window.innerHeight)) * 2);
-  await section.evaluate((node) => window.scrollTo({ top: (node as HTMLElement).offsetTop - 120, behavior: "instant" }));
-  await page.waitForTimeout(120);
-  await section.evaluate((node) => window.scrollTo({ top: (node as HTMLElement).offsetTop + node.clientHeight + 120, behavior: "instant" }));
-  await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(0);
+
+  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel - 24, behavior: "instant" }), geometry);
+  const beforeBoundary = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
+  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel + 24, behavior: "instant" }), geometry);
+  const afterBoundary = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
+  expect(Math.abs(beforeBoundary)).toBeLessThanOrEqual(2);
+  expect(afterBoundary).toBeGreaterThanOrEqual(-26);
+  expect(afterBoundary).toBeLessThanOrEqual(-22);
 });
 
-test("le manifesto mobile attend la fin du geste avant de libérer le sticky", async ({ page }, testInfo) => {
+test("le manifesto mobile attend la fin du geste sans sauter", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "La temporisation contrôle spécifiquement les navigations mobiles.");
   await page.goto("/");
   await page.waitForLoadState("networkidle");
   const section = page.locator("#manifesto");
+  const stickyPanel = section.locator(":scope > div");
   await section.evaluate((node) => window.scrollTo({
     top: (node as HTMLElement).offsetTop + node.clientHeight - window.innerHeight,
     behavior: "instant",
@@ -360,10 +367,13 @@ test("le manifesto mobile attend la fin du geste avant de libérer le sticky", a
   await expect(section).toHaveAttribute("data-reveal-completed", "false");
 
   const processTopBefore = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
+  const panelTopBefore = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
   await expect(section).toHaveAttribute("data-reveal-completed", "true", { timeout: 1_000 });
   const processTopAfter = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
+  const panelTopAfter = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
   expect(Math.abs(processTopAfter - processTopBefore)).toBeLessThanOrEqual(2);
-  await expect(section.locator(":scope > div")).toHaveCSS("position", "relative");
+  expect(Math.abs(panelTopAfter - panelTopBefore)).toBeLessThanOrEqual(2);
+  await expect(stickyPanel).toHaveCSS("position", "sticky");
 });
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }) => {
