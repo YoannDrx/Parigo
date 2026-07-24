@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import type { Locale } from "@/i18n/messages";
 import {
   CONSENT_BANNER_ID,
@@ -13,7 +13,7 @@ import {
 } from "@/lib/consent";
 
 export function CookieConsentActions({ locale }: { locale: Locale }) {
-  useEffect(() => {
+  useLayoutEffect(() => {
     const stored = normalizeConsentSnapshot(window.localStorage.getItem(CONSENT_STORAGE_KEY));
     if (stored === CONSENT_UNSET) return;
     const banner = document.getElementById(CONSENT_BANNER_ID);
