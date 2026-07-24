@@ -303,6 +303,12 @@ textarea {
     -30px 0 80px rgba(0,0,0,.28);
 }
 .parigo-drawer--bottom {
+  max-height: calc(100dvh - 74px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   border-radius: var(--parigo-turn-lg) var(--parigo-turn-lg) 0 0;
   box-shadow:
     inset 0 3px 0 var(--signal-strong),

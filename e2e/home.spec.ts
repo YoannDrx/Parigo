@@ -197,6 +197,15 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   if (testInfo.project.name === "mobile") {
     await expect(menu.getByText("Compte", { exact: true })).toBeVisible();
     await expect(menu.getByText("Préférences", { exact: true })).toBeVisible();
+    await expect(menu).toHaveCSS("overflow-y", "auto");
+    const initialScrollMetrics = await menu.evaluate((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    }));
+    expect(initialScrollMetrics.scrollHeight).toBeGreaterThan(initialScrollMetrics.clientHeight);
+    await menu.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
+    await expect.poll(() => menu.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+    await expect(menu.getByRole("link", { name: "Confidentialité" })).toBeVisible();
   } else {
     await expect(menu.getByText("Compte", { exact: true })).not.toBeVisible();
     await expect(menu.getByText("Préférences", { exact: true })).not.toBeVisible();
