@@ -1,8 +1,11 @@
-import { AlbumsPageClient } from "@/components/catalog/AlbumsPageClient";
+import { AlbumExplorer } from "@/components/catalog/AlbumExplorer";
+import { CatalogHero } from "@/components/catalog/CatalogHero";
+import { Footer, Header } from "@/components/layout";
+import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
+import { messages } from "@/i18n/messages";
 import { getCachedAlbumDiscovery } from "@/lib/harvest/catalog-cache";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
-import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 
 export async function generateMetadata({ searchParams }: { searchParams: PageSearchParams }) {
   const [locale, filtered] = await Promise.all([
@@ -20,8 +23,34 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
 }
 
 export default async function AlbumsPage() {
-  const albums = await getCachedAlbumDiscovery({ limit: 20, sort: "recent" });
-  return <ReactQueryProvider><AlbumsPageClient
-    initialAlbums={{ albums: albums.items, facets: albums.facets, pagination: { total: albums.total, limit: albums.pageSize, offset: 0, hasMore: albums.items.length < albums.total } }}
-  /></ReactQueryProvider>;
+  const [albums, locale] = await Promise.all([
+    getCachedAlbumDiscovery({ limit: 20, sort: "recent" }),
+    getRequestLocale(),
+  ]);
+  const copy = messages[locale];
+  const initialAlbums = {
+    albums: albums.items,
+    facets: albums.facets,
+    pagination: { total: albums.total, limit: albums.pageSize, offset: 0, hasMore: albums.items.length < albums.total },
+  };
+
+  return (
+    <div className="page-shell flex min-h-screen flex-col">
+      <Header />
+      <main className="flex-1">
+        <CatalogHero
+          eyebrow={copy.catalog.albumsEyebrow}
+          title={copy.catalog.albumsTitle}
+          intro={copy.catalog.albumsIntro}
+          meta={`${albums.total} ${copy.common.albums.toLowerCase()}`}
+        />
+        <div className="mx-auto max-w-[1700px] px-4 py-10 sm:px-6 md:py-16 lg:px-8">
+          <ReactQueryProvider>
+            <AlbumExplorer initialData={initialAlbums} />
+          </ReactQueryProvider>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 }

@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Archivo, Manrope, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { isLocale } from "@/lib/locale";
 import { siteConfig } from "@/lib/seo";
+import { CONSENT_COOKIE_NAME, CONSENT_UNSET, normalizeConsentSnapshot } from "@/lib/consent";
+import { CookieConsentBanner } from "@/components/privacy/CookieConsentBanner";
 
 const archivo = Archivo({
   variable: "--font-heading",
@@ -16,12 +18,15 @@ const manrope = Manrope({
   variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "optional",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+  display: "optional",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -56,8 +61,10 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const localeHeader = (await headers()).get("x-parigo-locale");
+  const [headerStore, cookieStore] = await Promise.all([headers(), cookies()]);
+  const localeHeader = headerStore.get("x-parigo-locale");
   const locale = isLocale(localeHeader) ? localeHeader : "fr";
+  const initialConsentSnapshot = normalizeConsentSnapshot(cookieStore.get(CONSENT_COOKIE_NAME)?.value);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -72,7 +79,10 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} antialiased`}
       >
-        <QueryProvider initialLocale={locale}>{children}</QueryProvider>
+        <QueryProvider initialLocale={locale} initialConsentSnapshot={initialConsentSnapshot}>
+          {children}
+        </QueryProvider>
+        {initialConsentSnapshot === CONSENT_UNSET && <CookieConsentBanner locale={locale} />}
       </body>
     </html>
   );
