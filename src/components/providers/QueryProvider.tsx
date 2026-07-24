@@ -55,13 +55,13 @@ function GlobalOverlays() {
   );
 }
 
-export function QueryProvider({ children, initialLocale }: { children: ReactNode; initialLocale: Locale }) {
+export function QueryProvider({ children, initialLocale, initialConsentSnapshot }: { children: ReactNode; initialLocale: Locale; initialConsentSnapshot: string }) {
   return (
     <ThemeProvider>
       <I18nProvider initialLocale={initialLocale}>
           {children}
           <GlobalOverlays />
-          <CookieConsent />
+          <CookieConsent initialSnapshot={initialConsentSnapshot} />
           <AnalyticsGate />
           <ClientErrorMonitor />
       </I18nProvider>
