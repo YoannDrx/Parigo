@@ -129,6 +129,7 @@ jobs:
         with:
           name: preview-lighthouse-reports
           path: .lighthouseci
+          include-hidden-files: true
 
   promote:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
@@ -167,3 +168,4 @@ jobs:
         with:
           name: production-lighthouse-reports
           path: .lighthouseci
+          include-hidden-files: true
