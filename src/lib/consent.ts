@@ -21,7 +21,8 @@ export function persistConsentPreferences(preferences: ConsentPreferences) {
   const value = JSON.stringify({ ...preferences, necessary: true, updatedAt: new Date().toISOString() });
   window.localStorage.setItem(CONSENT_STORAGE_KEY, value);
   document.cookie = `${CONSENT_COOKIE_NAME}=${encodeURIComponent(value)};path=/;max-age=31536000;samesite=lax`;
-  document.getElementById(CONSENT_BANNER_ID)?.remove();
+  const banner = document.getElementById(CONSENT_BANNER_ID);
+  if (banner) banner.hidden = true;
   window.dispatchEvent(new Event(CONSENT_CHANGE_EVENT));
 }
 

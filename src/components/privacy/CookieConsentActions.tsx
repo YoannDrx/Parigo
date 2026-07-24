@@ -14,9 +14,11 @@ import {
 
 export function CookieConsentActions({ locale }: { locale: Locale }) {
   useEffect(() => {
-    if (normalizeConsentSnapshot(window.localStorage.getItem(CONSENT_STORAGE_KEY)) !== CONSENT_UNSET) {
-      document.getElementById(CONSENT_BANNER_ID)?.remove();
-    }
+    const stored = normalizeConsentSnapshot(window.localStorage.getItem(CONSENT_STORAGE_KEY));
+    if (stored === CONSENT_UNSET) return;
+    const banner = document.getElementById(CONSENT_BANNER_ID);
+    if (banner) banner.hidden = true;
+    persistConsentPreferences(JSON.parse(stored));
   }, []);
 
   return (
