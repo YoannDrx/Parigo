@@ -20,7 +20,7 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
 }
 
 export default async function AlbumsPage() {
-  const albums = await getCachedAlbumDiscovery({ limit: 30, sort: "recent" });
+  const albums = await getCachedAlbumDiscovery({ limit: 20, sort: "recent" });
   return <ReactQueryProvider><AlbumsPageClient
     initialAlbums={{ albums: albums.items, facets: albums.facets, pagination: { total: albums.total, limit: albums.pageSize, offset: 0, hasMore: albums.items.length < albums.total } }}
   /></ReactQueryProvider>;

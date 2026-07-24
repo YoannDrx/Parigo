@@ -18,7 +18,7 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
   const { locale, t, localizedPath } = useI18n();
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4";
   return (
-    <Link href={localizedPath(`/albums/${album.id}`)}>
+    <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false}>
       <div className="parigo-frame group/card border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
         {/* Cover Image */}
         <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">

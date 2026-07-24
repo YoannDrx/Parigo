@@ -30,7 +30,6 @@ interface AlbumExplorerProps {
   headingLevel?: 2 | 3;
 }
 
-const PAGE_SIZE = 30;
 const DEFAULT_BPM: [number, number] = [50, 200];
 const DEFAULT_DURATION: [number, number] = [0, 300];
 
@@ -76,6 +75,7 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
     Number(searchParams.get("durationMax")) || DEFAULT_DURATION[1],
   ]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const pageSize = initialData.pagination.limit || 30;
   const dialogRef = useRef<HTMLDivElement>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const filtersQuery = useSearchFilters(locale);
@@ -89,8 +89,8 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
 
   const requestParams = useMemo(() => ({
     forceSearch: true,
-    limit: PAGE_SIZE,
-    offset: (page - 1) * PAGE_SIZE,
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
     query: debouncedQuery || undefined,
     labels: [...labels, ...(fixedLabel ? [fixedLabel] : [])],
     styles: [...styles, ...(fixedStyle ? [fixedStyle] : [])],
@@ -101,7 +101,7 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
     maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
     language: locale,
     sort,
-  }), [bpmRange, categories, debouncedQuery, durationRange, fixedLabel, fixedStyle, labels, locale, page, sort, styles]);
+  }), [bpmRange, categories, debouncedQuery, durationRange, fixedLabel, fixedStyle, labels, locale, page, pageSize, sort, styles]);
   const isInitialState = !query && page === 1 && sort === "recent" && !categories.length && !labels.length && !styles.length
     && bpmRange[0] === DEFAULT_BPM[0] && bpmRange[1] === DEFAULT_BPM[1]
     && durationRange[0] === DEFAULT_DURATION[0] && durationRange[1] === DEFAULT_DURATION[1];
@@ -109,7 +109,7 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
   const albums = albumsQuery.data?.albums ?? [];
   const facets = albumsQuery.data?.facets ?? initialData.facets;
   const total = albumsQuery.data?.pagination.total ?? initialData.pagination.total;
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   useEffect(() => {
     if (mobileFiltersOpen) return;
@@ -225,8 +225,8 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
           ) : albums.length ? (
             <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-4 gap-y-12 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
               {albums.map((album, index) => view === "grid"
-                ? <AlbumCard key={album.id} album={album} headingLevel={headingLevel} priority={index < 4} />
-                : <Link key={album.id} href={localizedPath(`/albums/${album.slug || album.id}`)} className="group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 last:border-0 hover:bg-[var(--surface-soft)] sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:px-4">
+                ? <AlbumCard key={album.id} album={album} headingLevel={headingLevel} priority={index < 2} />
+                : <Link key={album.id} href={localizedPath(`/albums/${album.slug || album.id}`)} prefetch={false} className="group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 last:border-0 hover:bg-[var(--surface-soft)] sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:px-4">
                     <div className="relative aspect-square overflow-hidden border border-[var(--line)]"><Image src={album.cover} alt="" fill sizes="96px" className="object-cover" /></div>
                     <div className="min-w-0"><p className="truncate font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">{album.label}</p><ResultHeading className="mt-2 truncate text-lg font-semibold sm:text-2xl">{album.title}</ResultHeading><p className="mt-2 text-xs text-[var(--text-muted)]">{album.genres.slice(0, 3).join(" · ")}</p></div>
                     <span className="pr-2 font-mono text-xs text-[var(--text-muted)]">{album.trackCount} {t("catalog.tracks")}</span>

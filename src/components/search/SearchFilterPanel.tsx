@@ -203,7 +203,7 @@ function FilterGroupSection({
     ? [...groupIds].filter((id) => counts.has(id.replace(/^ATT_/i, ""))).length
     : group.available;
   return (
-    <details open={group.key === "genre" || group.key === "labels" || undefined} className="search-filter-group group border-b border-[var(--line)] transition-colors">
+    <details open={group.key === "genre" || undefined} className="search-filter-group group border-b border-[var(--line)] transition-colors">
       <summary className="search-filter-group__summary flex min-h-14 cursor-pointer list-none items-center py-3 [&::-webkit-details-marker]:hidden">
         <span className="search-filter-group__index font-mono text-[.55rem] tracking-[.08em]">{String(index + 1).padStart(2, "0")}</span>
         <span className="min-w-0 flex-1 truncate font-semibold tracking-[-.025em]">{labelsByKey[group.key]?.[locale] ?? group.label}</span>
