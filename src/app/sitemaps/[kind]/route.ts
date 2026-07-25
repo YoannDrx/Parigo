@@ -1,10 +1,14 @@
 import { SEO_SELECTIONS } from "@/content/seo-selections";
 import { SYNCHRONISATIONS } from "@/content/synchronisations";
+import { clips, publishedComposerProfiles } from "@/lib/editorial/contracts";
+import { getEditorialVideos } from "@/lib/editorial/videos";
+import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { getCachedLabels, getCachedPlaylists, getCachedStyles } from "@/lib/harvest/catalog-cache";
 import { renderUrlSet, unavailableSitemap, xmlResponse } from "@/lib/sitemap-xml";
 
 const staticPaths = [
   "", "/albums", "/labels", "/collections", "/playlists", "/synchronisations",
+  "/label-parigo", "/compositeurs", "/clips",
   "/licensing", "/contact", "/about", "/legal", "/privacy", "/terms", "/rights",
 ];
 
@@ -31,6 +35,18 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
     }
     if (kind === "selections") {
       return xmlResponse(renderUrlSet(SEO_SELECTIONS.map((selection) => ({ fr: `/selections/${selection.content.fr.slug}`, en: `/en/selections/${selection.content.en.slug}`, priority: 0.8 }))));
+    }
+    if (kind === "editorial") {
+      let videos: EditorialVideo[];
+      try {
+        videos = await getEditorialVideos();
+      } catch {
+        videos = clips;
+      }
+      return xmlResponse(renderUrlSet([
+        ...publishedComposerProfiles.map(({ slug }) => ({ fr: `/compositeurs/${slug}`, en: `/en/compositeurs/${slug}`, priority: 0.7 })),
+        ...videos.map(({ slug, publishedAt }) => ({ fr: `/clips/${slug}`, en: `/en/clips/${slug}`, lastModified: publishedAt, priority: 0.65 })),
+      ]));
     }
     return new Response("Not found", { status: 404 });
   } catch {

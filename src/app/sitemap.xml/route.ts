@@ -18,6 +18,7 @@ export async function GET() {
     "playlists",
     "collections",
     "selections",
+    "editorial",
     ...Array.from({ length: albumPages }, (_, index) => `albums/${index + 1}`),
   ];
   const nodes = children.map((path) => `<sitemap><loc>${escapeXml(`${SITE_URL}/sitemaps/${path}.xml`)}</loc></sitemap>`).join("");

@@ -1,11 +1,12 @@
 "use client";
 
 import { Loader2, Pause, Pencil, Play, Save, Trash2, X } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn, formatBPM, formatDuration } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
-import type { MemberTrackComment, Track } from "@/types";
+import type { ComposerCreditLink, MemberTrackComment, Track } from "@/types";
 import { TrackWaveform } from "./TrackWaveform";
 import { useSession } from "@/lib/auth-client";
 
@@ -22,8 +23,8 @@ function VersionRow({ track }: { track: Track }) {
   return <div className="track-detail-version grid grid-cols-[44px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] py-3 last:border-0"><button type="button" onClick={() => active ? (isPlaying ? pause() : resume()) : play(track)} className="track-detail-version__play flex h-10 w-10 items-center justify-center border border-[var(--line)] hover:border-[var(--signal-strong)]" aria-label={isPlaying && active ? "Pause" : "Play"}>{isPlaying && active ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" />}</button><div className="min-w-0"><div className="flex items-center gap-2"><p className="truncate text-sm font-semibold">{track.title}</p>{track.version && <span className="track-detail-term border border-[var(--line)] px-2 py-0.5 font-mono text-[.58rem] uppercase text-[var(--text-muted)]">{track.version}</span>}</div><TrackWaveform trackId={track.id} initialData={track.waveform} height={22} /></div><span className="font-mono text-[.65rem] text-[var(--text-muted)]">{formatDuration(track.duration)}</span></div>;
 }
 
-export function TrackDetailsPanel({ track, activeTab, onTabChange, onClose }: { track: Track; activeTab: TrackDetailsTab; onTabChange: (tab: TrackDetailsTab) => void; onClose: () => void }) {
-  const { locale } = useI18n();
+export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChange, onClose }: { track: Track; composerCredits?: ComposerCreditLink[]; activeTab: TrackDetailsTab; onTabChange: (tab: TrackDetailsTab) => void; onClose: () => void }) {
+  const { locale, localizedPath } = useI18n();
   const { data: session } = useSession();
   const [detail, setDetail] = useState<Track | null>(null);
   const [notes, setNotes] = useState<MemberTrackComment[]>([]);
@@ -83,7 +84,6 @@ export function TrackDetailsPanel({ track, activeTab, onTabChange, onClose }: { 
     ["BPM", formatBPM(displayed.bpm)],
     [locale === "fr" ? "Durée" : "Duration", formatDuration(displayed.duration)],
     [locale === "fr" ? "Code CD" : "CD code", displayed.cdCode],
-    [locale === "fr" ? "Compositeurs" : "Composers", displayed.composers?.join(", ")],
     [locale === "fr" ? "Éditeurs" : "Publishers", displayed.publishers?.join(", ")],
     ["ISRC", displayed.isrc],
   ].filter((item): item is [string, string] => Boolean(item[1]));
@@ -106,7 +106,22 @@ export function TrackDetailsPanel({ track, activeTab, onTabChange, onClose }: { 
         {activeTab === "information" && <div role="tabpanel" className="grid gap-8 xl:grid-cols-[minmax(280px,.85fr)_1.4fr]">
           <div>
             {displayed.description && <p className="mb-6 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">{displayed.description}</p>}
-            <dl className="track-detail-facts grid content-start sm:grid-cols-2 xl:grid-cols-1">{facts.map(([label, value]) => <div key={label} className="track-detail-fact grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 border-t border-[var(--line)] py-3"><dt className="font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{label}</dt><dd className="min-w-0 break-words text-sm font-semibold">{value}</dd></div>)}</dl>
+            <dl className="track-detail-facts grid content-start sm:grid-cols-2 xl:grid-cols-1">
+              {displayed.composers?.length ? (
+                <div className="track-detail-fact grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 border-t border-[var(--line)] py-3">
+                  <dt className="font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{locale === "fr" ? "Compositeurs" : "Composers"}</dt>
+                  <dd className="flex min-w-0 flex-wrap gap-x-2 gap-y-1 text-sm font-semibold">
+                    {displayed.composers.map((credit) => {
+                      const profile = composerCredits?.find((item) => item.credit === credit && item.slug);
+                      return profile?.slug
+                        ? <Link key={credit} href={localizedPath(`/compositeurs/${profile.slug}`)} className="underline decoration-[var(--line-strong)] underline-offset-4 hover:decoration-current">{profile.name}</Link>
+                        : <span key={credit}>{credit}</span>;
+                    })}
+                  </dd>
+                </div>
+              ) : null}
+              {facts.map(([label, value]) => <div key={label} className="track-detail-fact grid grid-cols-[6.5rem_minmax(0,1fr)] gap-3 border-t border-[var(--line)] py-3"><dt className="font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{label}</dt><dd className="min-w-0 break-words text-sm font-semibold">{value}</dd></div>)}
+            </dl>
           </div>
           <div className="track-detail-taxonomy grid content-start gap-x-6 gap-y-5 sm:grid-cols-2"><Terms title={locale === "fr" ? "Mots clés" : "Keywords"} values={[...(displayed.tags ?? []), ...(displayed.keywords ?? [])]} /><Terms title="Genre" values={displayed.genres} /><Terms title={locale === "fr" ? "Instruments" : "Instruments"} values={displayed.instruments} /><Terms title={locale === "fr" ? "Humeur" : "Mood"} values={displayed.moods} /><Terms title={locale === "fr" ? "Musique pour" : "Music for"} values={displayed.musicFor} /><Terms title={locale === "fr" ? "Ayants droit" : "Right holders"} values={displayed.rightHolders?.map((holder) => holder.name)} /></div>
         </div>}

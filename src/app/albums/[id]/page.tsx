@@ -2,10 +2,16 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AlbumDetailClient } from "@/components/catalog/AlbumDetailClient";
 import { JsonLd } from "@/components/seo/JsonLd";
+import {
+  getComposerByCredit,
+  getComposerProfile,
+} from "@/lib/editorial/contracts";
+import { getEditorialVideos } from "@/lib/editorial/videos";
 import { getCachedAlbum } from "@/lib/harvest/catalog-cache";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
+import type { ComposerCreditLink } from "@/types";
 
 interface AlbumPageProps {
   params: Promise<{ id: string }>;
@@ -40,6 +46,28 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
   const [{ id }, locale] = await Promise.all([params, getRequestLocale()]);
   const result = await loadAlbum(id);
   const album = result.album;
+  const composerCredits: ComposerCreditLink[] = [...new Set(
+    album.tracks.flatMap((track) => track.composers ?? []),
+  )].map((credit) => {
+    const profile = getComposerByCredit(credit);
+    return {
+      credit,
+      name: profile?.name || credit,
+      slug: profile?.slug,
+    };
+  });
+  const videos = album.code ? await getEditorialVideos() : [];
+  const relatedClips = album.code
+    ? videos
+      .filter((clip) => clip.relatedAlbumCode === album.code)
+      .map((clip) => ({
+        clip,
+        composers: clip.composerSlugs
+          .map(getComposerProfile)
+          .filter((profile): profile is NonNullable<typeof profile> => Boolean(profile))
+          .map(({ slug, name }) => ({ slug, name })),
+      }))
+    : [];
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "MusicAlbum",
@@ -57,7 +85,7 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
   return (
     <>
       <JsonLd data={structuredData} />
-      <AlbumDetailClient data={{ album, similarAlbums: result.similar }} />
+      <AlbumDetailClient data={{ album, similarAlbums: result.similar, composerCredits, relatedClips }} />
     </>
   );
 }

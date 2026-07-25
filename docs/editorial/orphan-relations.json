@@ -1,0 +1,784 @@
+{
+  "summary": {
+    "auditedAt": "2026-07-25T12:47:08.656Z",
+    "playlistItems": 60,
+    "canonicalVideos": 59,
+    "albums": 55,
+    "publishedComposers": 43,
+    "videosWithIncompleteRelations": 51,
+    "albumsWithoutPublishedComposerProfile": 19,
+    "publishedComposerOrphans": 0,
+    "historicalComposerCandidates": 26,
+    "totalQuestions": 96
+  },
+  "rows": [
+    {
+      "category": "Vidéo",
+      "item": "Modulhater - Acid Body Music (Official Teaser)",
+      "reference": "https://www.youtube.com/watch?v=l3iFO626BFw",
+      "missing": "album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Compositeur(s) : Modulhater | Type proposé : teaser",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Garden Of Eden by N'zeng & Charlotte Savary - Official Video",
+      "reference": "https://www.youtube.com/watch?v=6JYSP7NekGo",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Hexahedre by Jb Hanak (dDamage) & Cyril Laurent (Lambwool) - The Vinyl",
+      "reference": "https://www.youtube.com/watch?v=10LSc8MjTmM",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Odyssey Suites & Remixes (Parigo No. 49) - Official Video",
+      "reference": "https://www.youtube.com/watch?v=OL5vveNVmkA",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Bonne année 2023! Et bonne santé...",
+      "reference": "https://www.youtube.com/watch?v=yEutNCbLufM",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : announcement",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "🏆Mark Awards 2022🌴Reggae Track Of The Year 🌴 Midnight Dub🌴 Winner Parigo🏆",
+      "reference": "https://www.youtube.com/watch?v=BGk1zSoiOEM",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : award",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Dub Experience (Parigo No. 46) - Official Video",
+      "reference": "https://www.youtube.com/watch?v=AaxPsUElbKQ",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Hand Funktion By Aeon Seven- Vinyl Edition on Bigwax",
+      "reference": "https://www.youtube.com/watch?v=UiXv7loB0XQ",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : teaser",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Watch Me by Macha (Official Video)",
+      "reference": "https://www.youtube.com/watch?v=EOEhBfWEgFw",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Parigo et Henri Salvador vous souhaitent une bonne année 2022!",
+      "reference": "https://www.youtube.com/watch?v=GHNX8mWjoxg",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : announcement",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "🏆Mark Awards 2021🏆Winner Parigo🏆The Man From Monte Carlo🏆",
+      "reference": "https://www.youtube.com/watch?v=441aiku168c",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : award",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "🏆Mark Awards 2021🏆🕵️Best Crime/Investigative Track 🕵️ \"The Man From Monte Carlo\" nominated!",
+      "reference": "https://www.youtube.com/watch?v=t1VUJjwnu9I",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : award",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Astral Funk Flight by Aeon Seven from the Album Lazer Funk",
+      "reference": "https://www.youtube.com/watch?v=40kKuMVSI2o",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Videoclub (Parigo No. 39) - Official Video",
+      "reference": "https://www.youtube.com/watch?v=anT5ocBumDk",
+      "missing": "album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Compositeur(s) : Dan Amozig, Yann Kornowicz | Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Videoclub - Gold vinyl limited edition  (Official teaser)",
+      "reference": "https://www.youtube.com/watch?v=v-x0qFiM5ik",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : teaser",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "JB Hanak feat Zoé Wolf \"Une Première Fois\"",
+      "reference": "https://www.youtube.com/watch?v=EPnfDdfOx94",
+      "missing": "album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Compositeur(s) : JB Hanak, Cédric Hanak | Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Mustang Force \"Hollywood Hustlers\" Teaser 2020",
+      "reference": "https://www.youtube.com/watch?v=KDGvqhbCkSg",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : teaser",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "BEST HIP HOP TRACK - Nominee \"Warp Zone Feat. Kokane\" by Liqid, Bonetrips & Kokane",
+      "reference": "https://www.youtube.com/watch?v=debSJ46FCaA",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : award",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "BEST WORLD TRACK - Nominee \"C’est toi et toi\" by Franck Sinnassamy & Syra",
+      "reference": "https://www.youtube.com/watch?v=i9i2_eoGVa4",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : award",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "NY PARIGO_Ugly Mac Beer feat F.Stokes 2020",
+      "reference": "https://www.youtube.com/watch?v=jfTecY6qM2Q",
+      "missing": "album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Compositeur(s) : F.Stokes, Ugly Mac Beer | Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Modulhater - Klang Brutt",
+      "reference": "https://www.youtube.com/watch?v=FPhmJMAzsQ4",
+      "missing": "compositeur(s)",
+      "knownRelations": "Album : PGO0025 | Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Arat Kilo - Mamani Keita / MADALA",
+      "reference": "https://www.youtube.com/watch?v=YwoM5ozETlw",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Ana Kap  \"trauma Show\" version salle Teaser 2017",
+      "reference": "https://www.youtube.com/watch?v=Sxs9U_Mzu0o",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : teaser",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "* LANCINANT * ARAT KILO Feat. Mike Ladd & Nardos Tesfaw",
+      "reference": "https://www.youtube.com/watch?v=5-CVAHYnG2I",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "9 O'clock - Blackout (Official Video)",
+      "reference": "https://www.youtube.com/watch?v=6uWDbe6IhEg",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "9 O'clock - APNEA (Official Unrated Version)",
+      "reference": "https://www.youtube.com/watch?v=TA-luBMQTD4",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "9 O'clock - DMC DJ 2015 World Team Champion",
+      "reference": "https://www.youtube.com/watch?v=Q_MQ3XQIoso",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : performance",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "The Real Fake MC - Bye Bye Planet Earth",
+      "reference": "https://www.youtube.com/watch?v=5BoZ_BsM_uM",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "9 O'clock - DMC DJ 2014 World Team Champion",
+      "reference": "https://www.youtube.com/watch?v=v0-tsDTGjnE",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : performance",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Ugly Mac Beer - Scratch in London",
+      "reference": "https://www.youtube.com/watch?v=T6SZ-s3PKs4",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : performance",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "HEY BOY ! by GERZ & MAC BEER",
+      "reference": "https://www.youtube.com/watch?v=H5cHj1S7c0o",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "The Real Fake MC - Disco House",
+      "reference": "https://www.youtube.com/watch?v=OL2EKlqmbhg",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "The Real Fake MC \"ROCK IT UP\"",
+      "reference": "https://www.youtube.com/watch?v=ncquq4aUjnA",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Pling Plang Plung By Minimatic",
+      "reference": "https://www.youtube.com/watch?v=bpXnpB-wpEI",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Of ivory and horn",
+      "reference": "https://www.youtube.com/watch?v=t5Wqe4stjDw",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "VEGOMATIC  \"Allons Déjeuner \"",
+      "reference": "https://www.youtube.com/watch?v=Crgnta0yfMc",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Ugly Mac Beer - Scratch in Guadeloupe",
+      "reference": "https://www.youtube.com/watch?v=KaznLxfSUtA",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : performance",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Myles Sanko- My Inspiration - Live @ Blue Note Milano",
+      "reference": "https://www.youtube.com/watch?v=IUaSPUiykTo",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : live",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "VEGOMATIC ft MYLES SANKO \"Stay Away\"  (2/18 from Vegomatic Trip - musical road movie)",
+      "reference": "https://www.youtube.com/watch?v=BGiQ5geHzNQ",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "VEGOMATIC ft MACHA  \"Baïkal\"",
+      "reference": "https://www.youtube.com/watch?v=GjkpUarLgIs",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "VEGOMATIC ft MYLES SANKO \"My Inspiration\"  (3/18 from Vegomatic Trip - musical road movie)",
+      "reference": "https://www.youtube.com/watch?v=qXJVSbyCUyo",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Myles Sanko - My Inspiration (Beach Version)",
+      "reference": "https://www.youtube.com/watch?v=Lk-_yCe5kXM",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : other",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "MACHA Watch Me Baba Yaga",
+      "reference": "https://www.youtube.com/watch?v=-t07_HuGbIA",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "MONTLERY Don't Give Up Now (electro song)",
+      "reference": "https://www.youtube.com/watch?v=caHy91rtMbU",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "MONTLERY Don't Give Up Now (disco song)",
+      "reference": "https://www.youtube.com/watch?v=JFGPbi7vNCc",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "MACHA +Thierry Los - Vodka Reglisse  (videhome)",
+      "reference": "https://www.youtube.com/watch?v=ZJHzh9bA-kc",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "VEGOMATIC \"Quelque Chose\"",
+      "reference": "https://www.youtube.com/watch?v=GMa-HQwGp-M",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "THE SURFIN' ROBOTS  \"Danger Surf\"  Clip TV 2003",
+      "reference": "https://www.youtube.com/watch?v=Ds0J7Dh4B8I",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : official-video",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "THE SURFIN' ROBOTS \"Dance The Surfin' Robot\"",
+      "reference": "https://www.youtube.com/watch?v=tmDHjflqSy8",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "Vegomatic - 3 BIKINIS (remix by Davide Loi)",
+      "reference": "https://www.youtube.com/watch?v=8Jy3oJvcuZQ",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Vidéo",
+      "item": "VEGOMATIC  3 bikinis (original version)",
+      "reference": "https://www.youtube.com/watch?v=FNoeX3pfJdc",
+      "missing": "compositeur(s) + album Parigo ou confirmation « aucun album »",
+      "knownRelations": "Type proposé : archive",
+      "questionForCaroline": "Qui doit être crédité pour cette vidéo et à quel album PGO faut-il la relier ? Si aucun album ne correspond, merci d’indiquer « aucun album »."
+    },
+    {
+      "category": "Album",
+      "item": "PGO0053 — PGO0053 Synthwave Retrowave",
+      "reference": "http://127.0.0.1:3000/albums/48b4b95fe1f09019",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Franck Sinnassamy (SACEM)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0050 — PGO0050 Riviera Bizarre",
+      "reference": "http://127.0.0.1:3000/albums/9f243af3f3bbbbdd",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Aucun crédit compositeur renvoyé",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0046 — PGO0046 Dub Experience",
+      "reference": "http://127.0.0.1:3000/albums/1ae37aca2b3dfa51",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thomas Cirade (NS) · Jimmy Zaccardelli (NS) · Nicodrum (NS) · Yann Jaffre (SACEM)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0041 — PGO0041 Lazer Funk",
+      "reference": "http://127.0.0.1:3000/albums/a3cec9f568a3578a",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Stéphane DELPLANQUE (SACEM)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0036 — PGO0036 Afro Pop",
+      "reference": "http://127.0.0.1:3000/albums/a22bd8e11bbd82a2",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Franck Sinnassamy (SACEM) · Rudy Ludon (NS) · Scherazade Aissahine (NS) · Syra (NS) · Victor Baillet (SACEM) · Vincent BOUHELIER (SACEM) · Sosth�ne Fanou (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0033 — PGO0033 Surf Fiction",
+      "reference": "http://127.0.0.1:3000/albums/8b4986739468cfd8",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Molenat Alexis (SACEM) · Raynier Maxime (SACEM) · Dambrine Patrice (SACEM) · Sornin Emile (SACEM) · Mallet Marie Sophie (SACEM)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0031 — PGO0031 The Projectionist",
+      "reference": "http://127.0.0.1:3000/albums/750a3d73a7f4dae6",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Jean-Michel Vallet (SACEM) · Claire Michael (SACEM) · Patrick Chartol (SACEM)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0021 — PGO0021 Moombanana",
+      "reference": "http://127.0.0.1:3000/albums/190ca2b3aff9c741",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Sebastien Delazzer (SACEM) · Lydia Diab (SACEM) · Thierry Tixier (SACEM) · Rafael Victor Felipe Aragon (SACEM) · Jean Alain Nieder (SACEM) · Romain Marx (SACEM) · Stanislav Bendajevski (SACEM)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0020 — PGO0020 A French Romance",
+      "reference": "http://127.0.0.1:3000/albums/72137b38ce6f8cb4",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Jean-Michel Vallet (SACEM) · Claire Michael (SACEM) · Patrick Chartol (SACEM)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0018 — PGO0018 Middle Eastern Journey",
+      "reference": "http://127.0.0.1:3000/albums/94e149484f9fa7ea",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Wamid AL WAHAB (NS) · Naufalle AL WAHAB (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0015 — PGO0015 Reggae Experience",
+      "reference": "http://127.0.0.1:3000/albums/75cd54152a6afd17",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Nicodrum (NS) · Mellow Mood (NS) · Bertrand Gueugneau (NS) · Thomas Cirade (NS) · Nicolas Belouet (NS) · Xavier Begue (NS) · Bastien Belmokadem (NS) · Mathieu Livio (NS) · Julien Cirade (NS) · Thomas Join Lambert (NS) · Jimmy Zaccadrelli (NS) · Alexandre Reiss (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0014 — PGO0014 Vintage Rock And Remixes",
+      "reference": "http://127.0.0.1:3000/albums/a4596e8be97b780b",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thierry Loshouarn (NS) · Philippe Almosnino (NS) · Yann Martin (NS) · Maria Kouznetsova (NS) · Mikael Sala (NS) · Valérie Labro (NS) · Emmanuel Berthe (NS) · Davide Loi (NS) · Marie Martin (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0011 — PGO0011 New Wave Drive",
+      "reference": "http://127.0.0.1:3000/albums/3bac5275f333cf74",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thierry Loshouarn (NS) · Emmanuel Berthe (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0009 — PGO0009 Dance Fever",
+      "reference": "http://127.0.0.1:3000/albums/c4b37d802bce2532",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thierry Loshouarn (NS) · Philippe Hebrard (NS) · Yvan Tarlay (NS) · Davide Loi (NS) · Cyril Baud (NS) · François-Olivier Nolorgues (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0008 — PGO0008 Paris Postcards",
+      "reference": "http://127.0.0.1:3000/albums/f8bf53afae79c5b5",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Patrick Chartol (SACEM) · Claire Michael (SACEM) · Jean-Michel Vallet (SACEM) · Jean-Michel Haye (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0006 — PGO0006 Acoustic Trip",
+      "reference": "http://127.0.0.1:3000/albums/f252ec3a4b6ba814",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thierry Loshouarn (NS) · Eric Loshouarn (NS) · Massimo Guadalupi (NS) · Yann Martin (NS) · Carla Andipatin (NS) · Philippe Almosnino (NS) · Maria Kouznetsova (NS) · Alain Lubrano (NS) · Cedric Denis (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0003 — PGO0003 Electro Boutique",
+      "reference": "http://127.0.0.1:3000/albums/cfca9cd22ed282dd",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thierry Loshouarn (NS) · Muriel Illouz (NS) · Jean-Michel Haye (NS) · Gerard Gacoin (NS) · Maria Kouznetsova (NS) · Cyril Baud (NS) · Philippe Almosnino (NS) · Halim Talahari (NS) · Benoit Bernardi (NS) · Franck Lepretre (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0002 — PGO0002 Parfum Pop",
+      "reference": "http://127.0.0.1:3000/albums/60763fe497bd648d",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thierry Loshouarn (NS) · Massimo Guadalupi (NS) · Davide Loi (NS) · Muriel Illouz (NS) · Jean-Michel Haye (NS) · Gerard Gacoin (NS) · Cedric Denis (NS) · Maria Kouznetsova (NS) · Eric Loshouarn (NS) · Laurent Levesque (NS) · Carla Andipatin (NS) · Cyril Baud (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Album",
+      "item": "PGO0001 — PGO0001 Paris Rocks",
+      "reference": "http://127.0.0.1:3000/albums/3d401caa45dd4a4e",
+      "missing": "Profil(s) compositeur(s) relié(s)",
+      "knownRelations": "Crédits Harvest : Thierry Loshouarn (NS) · Eric Loshouarn (NS) · Cyril Baud (NS) · Maria Kouznetsova (NS) · Gerard Gacoin (NS) · Philippe Almosnino (NS) · Muriel Illouz (NS)",
+      "questionForCaroline": "Quels compositeurs de cet album devons-nous relier à un profil existant ou créer comme nouveau profil ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "9 O'Clock",
+      "reference": "Profil historique : 9-o-clock",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Aeon Seven",
+      "reference": "Profil historique : aeon-seven",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "After In Paris",
+      "reference": "Profil historique : after-in-paris",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Alexis Molenat (Les Cavaliers)",
+      "reference": "Profil historique : alexis-molenat-les-cavaliers",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Ana Kap",
+      "reference": "Profil historique : ana-kap",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Aociz",
+      "reference": "Profil historique : aociz",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Arat Kilo",
+      "reference": "Profil historique : arat-kilo",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Blanka",
+      "reference": "Profil historique : blanka",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Charlotte Savary",
+      "reference": "Profil historique : charlotte-savary",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Coeur",
+      "reference": "Profil historique : coeur",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Cyril Laurent",
+      "reference": "Profil historique : cyril-laurent",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "DaXoVii",
+      "reference": "Profil historique : daxovii",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "dDamage",
+      "reference": "Profil historique : ddamage",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Emile Sornin (Forever Pavot)",
+      "reference": "Profil historique : emile-sornin-forever-pavot",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Flore",
+      "reference": "Profil historique : flore",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Maxime Raynier (Les Arondes)",
+      "reference": "Profil historique : maxime-raynier-les-arondes",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Mr Viktor",
+      "reference": "Profil historique : mr-viktor",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Nicodrums & Friends",
+      "reference": "Profil historique : nicodrums-friends",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "NSDOS",
+      "reference": "Profil historique : nsdos",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Pana Black",
+      "reference": "Profil historique : pana-black",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Patrice Dambrine (Viro Major Records )",
+      "reference": "Profil historique : patrice-dambrine-viro-major-records",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Roma Luca",
+      "reference": "Profil historique : roma-luca",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Schérazade",
+      "reference": "Profil historique : scherazade",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Sébastien Blanchon / N'ZENG",
+      "reference": "Profil historique : sebastien-blanchon-n-zeng",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Stan Galouo (Palma Coco Reccords)",
+      "reference": "Profil historique : stan-galouo-palma-coco-reccords",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    },
+    {
+      "category": "Compositeur",
+      "item": "Well Quartet",
+      "reference": "Profil historique : well-quartet",
+      "missing": "Relation vérifiée permettant la publication",
+      "knownRelations": "Profil retrouvé dans l’ancien portfolio, non publié actuellement sur Parigo",
+      "questionForCaroline": "Ce profil a-t-il participé à un album PGO ou à une vidéo de la playlist ? Si oui, lesquels ?"
+    }
+  ]
+}

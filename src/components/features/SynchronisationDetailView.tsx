@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Play } from "lucide-react";
 import { Footer, Header } from "@/components/layout";
+import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/content/synchronisations";
-import { youtubeEmbedUrl } from "@/content/synchronisations";
 
 export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   const { locale, localizedPath } = useI18n();
@@ -19,8 +19,12 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
           <div className="mt-9 grid gap-7 lg:grid-cols-12 lg:items-start">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
               <div className="flex items-center justify-between border-b border-white/12 px-3 py-2.5 text-white/46"><span className="font-mono text-[.54rem] uppercase tracking-[.14em]">Parigo screening room</span><span className="font-mono text-[.54rem]">16:9</span></div>
-              <div className="relative aspect-video overflow-hidden rounded-b-[.7rem]">
-                <iframe src={youtubeEmbedUrl(sync.youtubeId)} title={`${sync.title} — ${locale === "fr" ? "bande-annonce" : "trailer"}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="lazy" className="absolute inset-0 h-full w-full border-0" />
+              <div className="overflow-hidden rounded-b-[.7rem]">
+                <ConsentAwareYouTubeEmbed
+                  title={`${sync.title} — ${locale === "fr" ? "bande-annonce" : "trailer"}`}
+                  cover={sync.image}
+                  youtubeId={sync.youtubeId}
+                />
               </div>
             </div>
             <aside className="flex min-h-full flex-col rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 lg:col-span-4 lg:p-8">

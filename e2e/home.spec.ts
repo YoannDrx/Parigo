@@ -322,6 +322,17 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   expect(syncHref).toMatch(/^\/synchronisations\/[^/]+$/);
   await firstSync.click();
   await expect(page).toHaveURL(new RegExp(`${syncHref}$`));
+  await expect(page.getByText(/nécessite votre autorisation/)).toBeVisible();
+  await page.evaluate(() => {
+    window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({
+      necessary: true,
+      preferences: false,
+      analytics: false,
+      marketing: true,
+      updatedAt: "2026-07-25T00:00:00.000Z",
+    }));
+    window.dispatchEvent(new Event("parigo:cookie-consent-change"));
+  });
   await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toBeVisible();
 });
 
@@ -384,7 +395,7 @@ test("le manifesto mobile attend la fin du geste sans sauter", async ({ page }, 
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }) => {
   await page.goto("/albums");
-  await expect(page.getByRole("heading", { level: 1, name: "Nos albums" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Albums", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Vue liste" }).click();
   const firstRow = page.locator('main a[href^="/albums/"]').filter({ has: page.locator("h2") }).first();
   await expect(firstRow).toBeVisible({ timeout: 30_000 });

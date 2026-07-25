@@ -54,12 +54,15 @@ export function Header({ variant = "default" }: HeaderProps) {
     { name: t("common.albums"), href: "/albums", note: locale === "fr" ? "Explorer le catalogue" : "Explore the catalogue" },
     { name: t("common.playlists"), href: "/playlists", note: locale === "fr" ? "Sélections éditoriales" : "Editorial selections" },
     { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations", note: locale === "fr" ? "La musique en images" : "Music in motion" },
+    { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo", note: locale === "fr" ? "Les productions du label" : "Releases from the label" },
+    { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs", note: locale === "fr" ? "Les talents du label" : "The label’s talent" },
+    { name: "Clips", href: "/clips", note: locale === "fr" ? "Créations audiovisuelles" : "Audiovisual work" },
     { name: "Collections", href: "/collections", note: locale === "fr" ? "Répertoires choisis" : "Curated repertoires" },
     { name: t("common.labels"), href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
     { name: t("common.licensing"), href: "/licensing", note: locale === "fr" ? "Comprendre les droits" : "Understand the rights" },
   ];
 
-  const primaryNav = nav.slice(0, 4);
+  const primaryNav = nav.filter((item) => ["/search", "/albums", "/playlists", "/synchronisations"].includes(item.href));
   const currentPath = stripLocalePrefix(pathname);
   const languageHref = alternateLocalePath(pathname, locale);
   const hrefFor = (href: string) => localizedPath(locale, href);

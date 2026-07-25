@@ -14,8 +14,10 @@ import { DeferredOrganicHeroBackdrop } from "./DeferredOrganicHeroBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
 import { DeferredHomeStorySections } from "./DeferredHomeStorySections";
 import type { Playlist } from "@/types";
+import { PARIGO_LABEL_ID } from "@/config/catalog";
+import { ParigoVideoCard } from "@/components/editorial/ParigoVideoCard";
+import type { EditorialVideo } from "@/lib/editorial/video-types";
 
-const PARIGO_LABEL_ID = "b9d701733704e2d7";
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
 
 const LINKTREE_PLATFORMS: Array<{ name: PlatformName; position: string }> = [
@@ -48,10 +50,11 @@ interface HomeExperienceProps {
     pagination: { total: number; limit: number; offset: number; hasMore: boolean };
   };
   initialSynchronisations: Synchronisation[];
+  initialClips: EditorialVideo[];
 }
 
-export function HomeExperience({ initialPlaylists, initialSynchronisations: syncs }: HomeExperienceProps) {
-  const { locale, t } = useI18n();
+export function HomeExperience({ initialPlaylists, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
+  const { locale, t, localizedPath } = useI18n();
   const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "syncs" | "parigo">("playlists");
   const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>([]);
   const [parigoAlbums, setParigoAlbums] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>([]);
@@ -141,7 +144,46 @@ export function HomeExperience({ initialPlaylists, initialSynchronisations: sync
               ))}
             </HorizontalRail>
             )}
-            <div className="mt-8 text-right"><Link href={featuredTab === "playlists" ? "/playlists" : featuredTab === "syncs" ? "/synchronisations" : "/albums"} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">{t("common.seeAll")}<ArrowRight size={16} /></Link></div>
+            <div className="mt-8 text-right"><Link href={localizedPath(featuredTab === "playlists" ? "/playlists" : featuredTab === "syncs" ? "/synchronisations" : featuredTab === "parigo" ? "/label-parigo" : "/albums")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">{t("common.seeAll")}<ArrowRight size={16} /></Link></div>
+          </div>
+        </section>
+
+        <section data-testid="home-clips-section" className="border-b border-[var(--line)] px-4 py-20 md:px-8 md:py-28">
+          <div className="mx-auto max-w-[1580px]">
+            <SectionReveal className="mb-12 grid gap-6 md:grid-cols-12 md:items-end">
+              <div className="md:col-span-7">
+                <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Parigo en images" : "Parigo in motion"}</p>
+                <h2 className="mt-5 text-[clamp(2.8rem,5vw,5.6rem)] font-semibold leading-[.92] tracking-[-.055em]">
+                  {locale === "fr" ? "Clips, films et coulisses." : "Videos, films and behind the scenes."}
+                </h2>
+              </div>
+              <p className="max-w-md text-[var(--text-muted)] md:col-span-4 md:col-start-9">
+                {locale === "fr"
+                  ? "Les créations audiovisuelles du label, reliées aux compositeurs et aux albums lorsque les crédits sont vérifiés."
+                  : "The label’s audiovisual work, linked to composers and albums whenever credits are verified."}
+              </p>
+            </SectionReveal>
+            <HorizontalRail cinema label={locale === "fr" ? "Clips Parigo" : "Parigo videos"}>
+              {clips.map((clip, index) => (
+                <ParigoVideoCard
+                  key={clip.slug}
+                  href={localizedPath(`/clips/${clip.slug}`)}
+                  image={clip.cover}
+                  title={clip.title[locale]}
+                  eyebrow={clip.channelTitle || (locale === "fr" ? "Clip Parigo" : "Parigo video")}
+                  detail={clip.subtitle?.[locale]}
+                  index={index}
+                  className="snap-start"
+                  headingLevel="h3"
+                  sizes="(max-width:768px) 91vw, 53vw"
+                />
+              ))}
+            </HorizontalRail>
+            <div className="mt-3 text-right">
+              <Link href={localizedPath("/clips")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">
+                {locale === "fr" ? "Voir tous les clips" : "View all videos"}<ArrowRight size={16} />
+              </Link>
+            </div>
           </div>
         </section>
 

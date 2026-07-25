@@ -29,6 +29,39 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   expect(firstCard!.x + firstCard!.width).toBeLessThanOrEqual(320);
 });
 
+test("la bordure et les corners des synchronisations restent visibles au survol", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop.");
+  await page.goto("/synchronisations");
+  const card = page.locator(".sync-gallery-card").first();
+  const ring = card.locator(".parigo-video-card__ring");
+  await card.hover();
+  const ringStyle = await ring.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return { colour: style.borderTopColor, width: style.borderTopWidth };
+  });
+  expect(ringStyle.width).not.toBe("0px");
+  expect(ringStyle.colour).not.toBe("rgba(0, 0, 0, 0)");
+  const topCorner = await card.evaluate((node) => getComputedStyle(node, "::before").width);
+  expect(Number.parseFloat(topCorner)).toBeGreaterThan(100);
+});
+
+test("la home expose une section Clips reliée à la vidéothèque", async ({ page }) => {
+  await page.goto("/");
+  const section = page.getByTestId("home-clips-section");
+  await expect(section.getByRole("heading", { name: "Clips, films et coulisses." })).toBeVisible();
+  await expect(section.getByRole("link", { name: /Voir tous les clips/ })).toHaveAttribute("href", "/clips");
+  await expect(section.locator(".parigo-video-card").first()).toBeVisible();
+});
+
+test("la recherche et les cards compositeurs utilisent la DA Parigo", async ({ page }) => {
+  await page.goto("/compositeurs");
+  await expect(page.getByPlaceholder("Rechercher par nom…")).toBeVisible();
+  await expect(page.locator(".catalog-search-frame.search-query-frame")).toBeVisible();
+  const card = page.locator(".composer-card").first();
+  await expect(card).toBeVisible();
+  await expect(card.locator(".composer-card__corner")).toHaveCount(2);
+});
+
 test("la home hiérarchise le process, le projet puis les sensations", async ({ page }, testInfo) => {
   await page.goto("/");
 
