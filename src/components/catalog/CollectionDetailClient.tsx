@@ -16,6 +16,7 @@ interface CollectionAlbums {
 
 export function CollectionDetailClient({ collection, albums }: { collection: CatalogCategory; albums: CollectionAlbums }) {
   const { locale, localizedPath } = useI18n();
+  const albumCountLabel = `${albums.pagination.total} ${albums.pagination.total === 1 ? "album" : "albums"}`;
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
@@ -24,7 +25,7 @@ export function CollectionDetailClient({ collection, albums }: { collection: Cat
           eyebrow="Parigo / Collection"
           title={collection.name}
           intro={locale === "fr" ? "Explorez tous les albums associés à cet univers, puis affinez par ambiance, instrument, période ou usage." : "Explore every album associated with this musical world, then refine by mood, instrument, period or use."}
-          meta={`${albums.pagination.total} albums`}
+          meta={albumCountLabel}
         />
         <section className="mx-auto max-w-[1700px] px-4 py-16 md:px-8 md:py-24">
           <Link href={localizedPath("/collections")} className="mb-10 inline-flex min-h-11 items-center gap-2 text-sm"><ArrowLeft size={16} />{locale === "fr" ? "Toutes les collections" : "All collections"}</Link>

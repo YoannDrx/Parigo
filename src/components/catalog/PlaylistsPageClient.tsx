@@ -8,6 +8,8 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Header, Footer } from "@/components/layout";
 import { PlaylistCard } from "@/components/features/PlaylistCard";
 import { CatalogHero } from "@/components/catalog";
+import { CatalogActiveFilters, type CatalogActiveFilter } from "@/components/catalog/CatalogActiveFilters";
+import { CatalogFacetDropdown, type CatalogFacetOption } from "@/components/catalog/CatalogFacetDropdown";
 import { CatalogToolbar } from "@/components/catalog/CatalogToolbar";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Playlist as CatalogPlaylist, ViewMode } from "@/types";
@@ -30,10 +32,29 @@ interface ApiPlaylist {
   musicFor?: string[];
 }
 
-function topTerms(playlists: ApiPlaylist[], key: DiscoveryFilter, limit = 12): string[] {
+function topTerms(playlists: ApiPlaylist[], key: DiscoveryFilter, limit = 18): CatalogFacetOption[] {
   const counts = new Map<string, number>();
   playlists.forEach((playlist) => playlist[key]?.forEach((term) => counts.set(term, (counts.get(term) ?? 0) + 1)));
-  return [...counts].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0])).slice(0, limit).map(([term]) => term);
+  return [...counts]
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .slice(0, limit)
+    .map(([term, count]) => ({ value: term, label: term, count }));
+}
+
+function csv(value: string | null) {
+  return value?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
+}
+
+function unsigned(value: string) {
+  return value.startsWith("-") ? value.slice(1) : value;
+}
+
+function matchesFacet(terms: string[] | undefined, values: string[]) {
+  const included = values.filter((value) => !value.startsWith("-"));
+  const excluded = values.filter((value) => value.startsWith("-")).map(unsigned);
+  const available = terms ?? [];
+  return (!included.length || included.some((value) => available.includes(value)))
+    && !excluded.some((value) => available.includes(value));
 }
 
 export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] }) {
@@ -48,10 +69,10 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
       : "title-asc",
   );
   const [view, setView] = useState<ViewMode>(searchParams.get("view") === "list" ? "list" : "grid");
-  const [mood, setMood] = useState(searchParams.get("mood") ?? "");
-  const [genre, setGenre] = useState(searchParams.get("genre") ?? "");
-  const [instrument, setInstrument] = useState(searchParams.get("instrument") ?? "");
-  const [musicFor, setMusicFor] = useState(searchParams.get("musicFor") ?? "");
+  const [moods, setMoods] = useState(csv(searchParams.get("moods") ?? searchParams.get("mood")));
+  const [genres, setGenres] = useState(csv(searchParams.get("genres") ?? searchParams.get("genre")));
+  const [instruments, setInstruments] = useState(csv(searchParams.get("instruments") ?? searchParams.get("instrument")));
+  const [musicFor, setMusicFor] = useState(csv(searchParams.get("musicFor")));
   const filterSets = useMemo(() => ({
     moods: topTerms(playlists, "moods"),
     genres: topTerms(playlists, "genres"),
@@ -62,36 +83,49 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
     const normalized = query.trim().toLocaleLowerCase(locale);
     return playlists
       .filter((playlist) => !normalized || `${playlist.title} ${playlist.description ?? ""}`.toLocaleLowerCase(locale).includes(normalized))
-      .filter((playlist) => !mood || playlist.moods?.includes(mood))
-      .filter((playlist) => !genre || playlist.genres?.includes(genre))
-      .filter((playlist) => !instrument || playlist.instruments?.includes(instrument))
-      .filter((playlist) => !musicFor || playlist.musicFor?.includes(musicFor))
+      .filter((playlist) => matchesFacet(playlist.moods, moods))
+      .filter((playlist) => matchesFacet(playlist.genres, genres))
+      .filter((playlist) => matchesFacet(playlist.instruments, instruments))
+      .filter((playlist) => matchesFacet(playlist.musicFor, musicFor))
       .sort((left, right) => {
         if (sort === "tracks-desc") return right.trackCount - left.trackCount || left.title.localeCompare(right.title, locale);
         const comparison = left.title.localeCompare(right.title, locale, { sensitivity: "base" });
         return sort === "title-desc" ? -comparison : comparison;
       });
-  }, [genre, instrument, locale, mood, musicFor, playlists, query, sort]);
+  }, [genres, instruments, locale, moods, musicFor, playlists, query, sort]);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (sort !== "title-asc") params.set("sort", sort);
     if (view !== "grid") params.set("view", view);
-    if (mood) params.set("mood", mood);
-    if (genre) params.set("genre", genre);
-    if (instrument) params.set("instrument", instrument);
-    if (musicFor) params.set("musicFor", musicFor);
+    if (moods.length) params.set("moods", moods.join(","));
+    if (genres.length) params.set("genres", genres.join(","));
+    if (instruments.length) params.set("instruments", instruments.join(","));
+    if (musicFor.length) params.set("musicFor", musicFor.join(","));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
-  }, [genre, instrument, mood, musicFor, pathname, query, router, searchParams, sort, view]);
+  }, [genres, instruments, moods, musicFor, pathname, query, router, searchParams, sort, view]);
 
-  const filterGroups: Array<{ label: string; value: string; setter: (value: string) => void; terms: string[] }> = [
-    { label: locale === "fr" ? "Ambiance" : "Mood", value: mood, setter: setMood, terms: filterSets.moods },
-    { label: "Genre", value: genre, setter: setGenre, terms: filterSets.genres },
-    { label: locale === "fr" ? "Instrument" : "Instrument", value: instrument, setter: setInstrument, terms: filterSets.instruments },
-    { label: locale === "fr" ? "Musique pour" : "Music for", value: musicFor, setter: setMusicFor, terms: filterSets.musicFor },
+  const filterGroups: Array<{ key: string; label: string; values: string[]; setter: (value: string[]) => void; terms: CatalogFacetOption[] }> = [
+    { key: "moods", label: locale === "fr" ? "Ambiance" : "Mood", values: moods, setter: setMoods, terms: filterSets.moods },
+    { key: "genres", label: "Genre", values: genres, setter: setGenres, terms: filterSets.genres },
+    { key: "instruments", label: locale === "fr" ? "Instrument" : "Instrument", values: instruments, setter: setInstruments, terms: filterSets.instruments },
+    { key: "music-for", label: locale === "fr" ? "Musique pour" : "Music for", values: musicFor, setter: setMusicFor, terms: filterSets.musicFor },
   ];
+  const activeFilters: CatalogActiveFilter[] = filterGroups.flatMap((group) => group.values.map((value) => ({
+    id: `${group.key}-${value}`,
+    label: unsigned(value),
+    group: group.label,
+    state: value.startsWith("-") ? "exclude" as const : "include" as const,
+    onRemove: () => group.setter(group.values.filter((item) => item !== value)),
+  })));
+  const resetFilters = () => {
+    setMoods([]);
+    setGenres([]);
+    setInstruments([]);
+    setMusicFor([]);
+  };
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
@@ -117,15 +151,17 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
           >
             <div className="mt-4 grid gap-3 border-t border-[var(--line)] pt-4 md:grid-cols-2 xl:grid-cols-4">
               {filterGroups.map((group) => (
-                <label key={group.label} className="grid gap-1.5 text-xs font-semibold">
-                  <span>{group.label}</span>
-                  <select value={group.value} onChange={(event) => group.setter(event.target.value)} className="h-11 border border-[var(--line)] bg-[var(--background)] px-3 text-sm font-normal">
-                    <option value="">{locale === "fr" ? "Tous" : "All"}</option>
-                    {group.terms.map((term) => <option key={term} value={term}>{term}</option>)}
-                  </select>
-                </label>
+                <CatalogFacetDropdown
+                  key={group.key}
+                  label={group.label}
+                  options={group.terms}
+                  values={group.values}
+                  locale={locale}
+                  onValuesChange={group.setter}
+                />
               ))}
             </div>
+            <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={resetFilters} />
           </CatalogToolbar>
 
           {visible.length === 0 ? (

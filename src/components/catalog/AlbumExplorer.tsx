@@ -12,6 +12,7 @@ import { useAlbums, useSearchFilters } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
 import type { Album, SearchFacets, SearchFilterItem, ViewMode } from "@/types";
+import { CatalogActiveFilters, type CatalogActiveFilter } from "./CatalogActiveFilters";
 import { CatalogToolbar } from "./CatalogToolbar";
 
 type AlbumSort = "relevance" | "recent" | "oldest";
@@ -166,7 +167,48 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
     setDurationRange(DEFAULT_DURATION);
     setPage(1);
   }, []);
-  const selectedNames = [...categories, ...labels, ...styles].map((value) => names.get(value.replace(/^-/, "")) ?? value);
+  const removeSignedValue = useCallback((
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    value: string,
+  ) => {
+    setter((current) => current.filter((item) => item !== value));
+    setPage(1);
+  }, []);
+  const activeFilters: CatalogActiveFilter[] = [
+    ...categories.map((value) => ({
+      id: `category-${value}`,
+      label: names.get(value.replace(/^-/, "")) ?? value.replace(/^-/, ""),
+      group: locale === "fr" ? "Critère" : "Criterion",
+      state: value.startsWith("-") ? "exclude" as const : "include" as const,
+      onRemove: () => removeSignedValue(setCategories, value),
+    })),
+    ...labels.map((value) => ({
+      id: `label-${value}`,
+      label: names.get(value.replace(/^-/, "")) ?? value.replace(/^-/, ""),
+      group: "Label",
+      state: value.startsWith("-") ? "exclude" as const : "include" as const,
+      onRemove: () => removeSignedValue(setLabels, value),
+    })),
+    ...styles.map((value) => ({
+      id: `style-${value}`,
+      label: names.get(value.replace(/^-/, "")) ?? value.replace(/^-/, ""),
+      group: "Style",
+      state: value.startsWith("-") ? "exclude" as const : "include" as const,
+      onRemove: () => removeSignedValue(setStyles, value),
+    })),
+    ...(bpmRange[0] !== DEFAULT_BPM[0] || bpmRange[1] !== DEFAULT_BPM[1] ? [{
+      id: "bpm",
+      label: `BPM ${bpmRange[0]}–${bpmRange[1]}`,
+      state: "include" as const,
+      onRemove: () => update(setBpmRange, DEFAULT_BPM),
+    }] : []),
+    ...(durationRange[0] !== DEFAULT_DURATION[0] || durationRange[1] !== DEFAULT_DURATION[1] ? [{
+      id: "duration",
+      label: `${Math.floor(durationRange[0] / 60)}:${String(durationRange[0] % 60).padStart(2, "0")}–${Math.floor(durationRange[1] / 60)}:${String(durationRange[1] % 60).padStart(2, "0")}`,
+      state: "include" as const,
+      onRemove: () => update(setDurationRange, DEFAULT_DURATION),
+    }] : []),
+  ];
   const ResultHeading = `h${headingLevel}` as "h2" | "h3";
 
   const filterPanel = (
@@ -212,9 +254,8 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
           <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="gap-2 lg:hidden">
             <SlidersHorizontal size={16} />{locale === "fr" ? "Tous les filtres" : "All filters"}
           </Button>
-          {selectedNames.slice(0, 6).map((name, index) => <span key={`${name}-${index}`} className="border border-[var(--line)] bg-[var(--background)] px-2.5 py-1 text-xs">{name}</span>)}
-          {selectedNames.length > 6 && <span className="text-xs text-[var(--text-muted)]">+{selectedNames.length - 6}</span>}
         </div>
+        <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={reset} />
       </CatalogToolbar>
 
       <div className="grid min-w-0 gap-8 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[21rem_minmax(0,1fr)]">
