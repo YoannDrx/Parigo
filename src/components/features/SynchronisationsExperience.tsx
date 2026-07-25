@@ -6,12 +6,18 @@ import { ArrowUpRight, Play, Youtube } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Footer, Header } from "@/components/layout";
+import { CatalogActiveFilters, type CatalogActiveFilter } from "@/components/catalog/CatalogActiveFilters";
+import { CatalogFacetDropdown } from "@/components/catalog/CatalogFacetDropdown";
 import { CatalogToolbar } from "@/components/catalog/CatalogToolbar";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SYNCHRONISATIONS_PLAYLIST_URL, type Synchronisation } from "@/content/synchronisations";
 import type { ViewMode } from "@/types";
 
 type SyncSort = "playlist" | "recent" | "oldest" | "title";
+
+function csv(value: string | null) {
+  return value?.split(",").map((item) => item.trim()).filter(Boolean) ?? [];
+}
 
 export function SynchronisationsExperience({ synchronisations }: { synchronisations: Synchronisation[] }) {
   const { locale, localizedPath } = useI18n();
@@ -25,30 +31,45 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
       : "playlist",
   );
   const [view, setView] = useState<ViewMode>(searchParams.get("view") === "list" ? "list" : "grid");
-  const [year, setYear] = useState(searchParams.get("year") ?? "");
+  const [yearsFilter, setYearsFilter] = useState(csv(searchParams.get("years") ?? searchParams.get("year")));
   const years = useMemo(() => [...new Set(synchronisations.map((item) => item.year).filter((value): value is number => Boolean(value)))].sort((a, b) => b - a), [synchronisations]);
+  const yearOptions = useMemo(() => years.map((year) => ({
+    value: String(year),
+    label: String(year),
+    count: synchronisations.filter((item) => item.year === year).length,
+  })), [synchronisations, years]);
   const visible = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase(locale);
+    const includedYears = yearsFilter.filter((value) => !value.startsWith("-")).map(Number);
+    const excludedYears = yearsFilter.filter((value) => value.startsWith("-")).map((value) => Number(value.slice(1)));
     return synchronisations
       .filter((item) => !normalized || `${item.title} ${item.client} ${item.descriptionFr} ${item.descriptionEn}`.toLocaleLowerCase(locale).includes(normalized))
-      .filter((item) => !year || item.year === Number(year))
+      .filter((item) => (!includedYears.length || (item.year !== undefined && includedYears.includes(item.year)))
+        && (item.year === undefined || !excludedYears.includes(item.year)))
       .sort((left, right) => {
         if (sort === "title") return left.title.localeCompare(right.title, locale, { sensitivity: "base" });
         if (sort === "recent") return (right.publishedAt ?? "").localeCompare(left.publishedAt ?? "");
         if (sort === "oldest") return (left.publishedAt ?? "").localeCompare(right.publishedAt ?? "");
         return (left.position ?? Number.MAX_SAFE_INTEGER) - (right.position ?? Number.MAX_SAFE_INTEGER);
       });
-  }, [locale, query, sort, synchronisations, year]);
+  }, [locale, query, sort, synchronisations, yearsFilter]);
 
   useEffect(() => {
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (sort !== "playlist") params.set("sort", sort);
     if (view !== "grid") params.set("view", view);
-    if (year) params.set("year", year);
+    if (yearsFilter.length) params.set("years", yearsFilter.join(","));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
-  }, [pathname, query, router, searchParams, sort, view, year]);
+  }, [pathname, query, router, searchParams, sort, view, yearsFilter]);
+  const activeFilters: CatalogActiveFilter[] = yearsFilter.map((value) => ({
+    id: `year-${value}`,
+    label: value.replace(/^-/, ""),
+    group: locale === "fr" ? "Année" : "Year",
+    state: value.startsWith("-") ? "exclude" : "include",
+    onRemove: () => setYearsFilter((current) => current.filter((item) => item !== value)),
+  }));
 
   return <div className="page-shell">
     <Header />
@@ -83,12 +104,13 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
             onViewChange={setView}
             resultCount={visible.length}
           >
-            {years.length > 0 && <label className="mt-4 grid max-w-56 gap-1.5 border-t border-[var(--line)] pt-4 text-xs font-semibold"><span>{locale === "fr" ? "Année de publication" : "Publication year"}</span><select value={year} onChange={(event) => setYear(event.target.value)} className="h-11 border border-[var(--line)] bg-[var(--background)] px-3 text-sm font-normal"><option value="">{locale === "fr" ? "Toutes les années" : "All years"}</option>{years.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>}
+            {years.length > 0 && <div className="mt-4 max-w-72 border-t border-[var(--line)] pt-4"><CatalogFacetDropdown label={locale === "fr" ? "Année de publication" : "Publication year"} options={yearOptions} values={yearsFilter} locale={locale} onValuesChange={setYearsFilter} /></div>}
+            <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={() => setYearsFilter([])} />
           </CatalogToolbar>
         </div>
 
         {view === "grid" ? (
-          <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-7">{visible.map((sync, index) => <Link key={sync.youtubeId} href={localizedPath(`/synchronisations/${sync.slug}`)} className="home-sync-card group block min-w-0"><div className="home-sync-card__frame relative aspect-video min-w-0 overflow-hidden bg-[#0b0e0b]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:1024px) 100vw, 50vw" loading={index === 0 ? "eager" : "lazy"} fetchPriority={index === 0 ? "high" : "auto"} className="object-cover transition duration-700 group-hover:scale-[1.018]" /><div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/5" /><span className="absolute right-4 top-4 font-mono text-[.54rem] text-white/65">SYNC / {String(index + 1).padStart(2, "0")}</span><span className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center border border-white/45 bg-black/25 text-white shadow-xl backdrop-blur-md transition duration-500 group-hover:scale-110 group-hover:bg-[var(--signal)]"><Play size={16} fill="currentColor" /></span><div className="absolute inset-x-0 bottom-0 flex min-w-0 items-end justify-between gap-4 p-4 text-white sm:p-6 md:p-8"><div className="min-w-0"><p className="truncate font-mono text-[.54rem] uppercase tracking-[.13em] text-white/65">{sync.client}</p><h2 className="mt-1.5 line-clamp-2 text-2xl font-semibold tracking-[-.045em] sm:text-3xl md:text-4xl">{sync.title}</h2></div></div></div></Link>)}</div>
+          <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-7">{visible.map((sync, index) => <Link key={sync.youtubeId} href={localizedPath(`/synchronisations/${sync.slug}`)} className="home-sync-card sync-gallery-card group block min-w-0"><div className="home-sync-card__frame relative aspect-video min-w-0 overflow-hidden bg-[#0b0e0b]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:1024px) 100vw, 50vw" loading={index === 0 ? "eager" : "lazy"} fetchPriority={index === 0 ? "high" : "auto"} className="object-contain transition duration-700 group-hover:scale-[1.018] group-focus-visible:scale-[1.018]" /><div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/5" /><span className="absolute right-4 top-4 font-mono text-[.54rem] text-white/65">SYNC / {String(index + 1).padStart(2, "0")}</span><span className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-black/25 text-white shadow-xl backdrop-blur-md transition duration-500 group-hover:rotate-[8deg] group-hover:scale-110 group-hover:bg-[var(--signal)] group-focus-visible:rotate-[8deg] group-focus-visible:scale-110 group-focus-visible:bg-[var(--signal)]"><Play size={16} fill="currentColor" /></span><div className="absolute inset-x-0 bottom-0 flex min-w-0 items-end justify-between gap-4 p-4 text-white sm:p-6 md:p-8"><div className="min-w-0"><p className="truncate font-mono text-[.54rem] uppercase tracking-[.13em] text-white/65">{sync.client}</p><h2 className="mt-1.5 line-clamp-2 text-2xl font-semibold tracking-[-.045em] sm:text-3xl md:text-4xl">{sync.title}</h2></div></div></div></Link>)}</div>
         ) : (
           <div className="border-t border-[var(--line)]">{visible.map((sync) => <Link key={sync.youtubeId} href={localizedPath(`/synchronisations/${sync.slug}`)} className="grid min-h-24 grid-cols-[7rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-3 sm:grid-cols-[10rem_minmax(0,1fr)_auto]"><div className="relative aspect-video overflow-hidden bg-black"><Image src={sync.image} alt="" fill sizes="160px" className="object-cover" /></div><div className="min-w-0"><h2 className="truncate text-xl font-semibold">{sync.title}</h2><p className="mt-1 truncate text-sm text-[var(--text-muted)]">{sync.client}</p></div><span className="pr-2 font-mono text-xs text-[var(--text-muted)]">{sync.year ?? "—"}</span></Link>)}</div>
         )}

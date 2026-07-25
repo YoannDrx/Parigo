@@ -123,7 +123,7 @@ export interface CatalogCategory {
   id: string;
   name: string;
   slug: string;
-  count?: number;
+  trackCount?: number;
   parentId?: string;
   children?: CatalogCategory[];
 }

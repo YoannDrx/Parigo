@@ -54,6 +54,15 @@ test("les playlists proposent recherche, ambiance, genre, instrument et usage", 
   for (const label of ["Ambiance", "Genre", "Instrument", "Musique pour"]) {
     await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
+  await expect(page.locator("main select")).toHaveCount(0);
+  const moodFilter = page.locator(".catalog-facet").filter({ hasText: "Ambiance" });
+  await moodFilter.getByRole("button").first().click();
+  const firstInclude = moodFilter.getByRole("button", { name: /^Inclure / }).first();
+  const selectedMood = (await firstInclude.getAttribute("aria-label"))?.replace(/^Inclure /, "");
+  await firstInclude.click();
+  await expect(page.getByText("1 inclus · 0 exclus", { exact: true })).toBeVisible();
+  if (selectedMood) await expect(page.getByRole("button", { name: `Retirer ${selectedMood}` })).toBeVisible();
+  await page.keyboard.press("Escape");
   await expect(page.getByText(/Sélection par Hugo/i)).toHaveCount(0);
   await page.getByRole("button", { name: "Vue liste" }).click();
   await expect(page).toHaveURL(/view=list/);
@@ -77,12 +86,25 @@ test("les collections expliquent leur rôle et réutilisent l’explorateur d’
   await expect(filterScope.getByLabel("BPM minimum")).toBeVisible();
 });
 
+test("une collection distingue pistes indexées et albums réels", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto("/collections");
+  const seventies = page.locator('a[href="/collections/f0924b3e05a93ff2"]');
+  await expect(seventies).toContainText(/\d+ pistes indexées/);
+  await expect(seventies).not.toContainText("38 albums");
+  await seventies.click();
+  await expect(page.getByText("1 album", { exact: true })).toBeVisible();
+  await expect(page.getByText("1 albums", { exact: true })).toHaveCount(0);
+});
+
 test("les synchronisations reprennent toute la playlist YouTube et se filtrent", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/synchronisations");
   const resultStatus = page.getByRole("status");
   await expect(resultStatus).toContainText(/6\d résultats/);
   expect(await page.locator(".home-sync-card").count()).toBeGreaterThan(60);
+  await expect(page.locator("main select")).toHaveCount(0);
+  await expect(page.locator(".sync-gallery-card").first()).toBeVisible();
 
   const query = page.getByPlaceholder(/Rechercher une synchronisation/);
   await query.fill("Tokyo Vice");

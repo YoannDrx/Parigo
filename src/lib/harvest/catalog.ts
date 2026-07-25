@@ -511,7 +511,7 @@ export async function getCategories(language: "fr" | "en" = "en"): Promise<Catal
 }
 
 export async function getStyles(): Promise<CatalogCategory[]> {
-  const [payload, albumFacets] = await Promise.all([
+  const [payload, styleTrackFacets] = await Promise.all([
     guestRequest<HarvestRecord>((token) =>
       `/getstyles/${token}?allowEmptyStyle=false`,
     ),
@@ -523,6 +523,8 @@ export async function getStyles(): Promise<CatalogCategory[]> {
     id: asString(item.ID),
     name: asString(item.Name),
     slug: asString(item.ID),
-    count: albumFacets.get(asString(item.ID)) ?? 0,
+    // Harvest exposes style-facet occurrences here. Those occurrences count
+    // indexed tracks/versions, not distinct albums, even with an Album view.
+    trackCount: styleTrackFacets.get(asString(item.ID)) ?? 0,
   }));
 }
