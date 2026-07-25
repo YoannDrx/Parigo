@@ -1,5 +1,12 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+async function waitForHeaderHydration(page: Page) {
+  await page.waitForFunction(() => {
+    const trigger = document.querySelector('button[aria-controls="global-menu"]');
+    return Boolean(trigger && Object.keys(trigger).some((key) => key.startsWith("__reactProps")));
+  });
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -60,8 +67,6 @@ test("le CTA Qui sommes-nous conserve un contraste lisible dans les deux thèmes
 test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol du CTA est un comportement desktop.");
   await page.goto("/");
-  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
-  if (await rejectCookies.isVisible()) await rejectCookies.click();
   const cta = page.getByRole("link", { name: "Envoyer un brief" });
   await cta.scrollIntoViewIfNeeded();
   await cta.hover();
@@ -130,8 +135,6 @@ test("la connexion reprend les codes éditoriaux sans indentation artificielle",
 
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
   await page.goto("/");
-  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
-  if (await rejectCookies.isVisible()) await rejectCookies.click();
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   }
@@ -139,9 +142,12 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
     ? page.locator("#global-menu")
     : page.locator("body");
   await controls.getByRole("link", { name: /English version/ }).click();
+  await expect(page).toHaveURL(/\/en(?:\/|$)/);
   await expect(page.getByRole("heading", { level: 1, name: /Find the right music/i })).toBeVisible();
+  await waitForHeaderHydration(page);
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.locator("#global-menu")).toBeVisible();
   }
   const themeControls = testInfo.project.name === "mobile"
     ? page.locator("#global-menu")
@@ -236,9 +242,6 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   expect(await manifesto.evaluate((node) => node.clientHeight)).toBeGreaterThan((await page.evaluate(() => innerHeight)) * 2);
   await expect(page.getByTestId("manifesto-reveal-edge")).toBeVisible();
   expect(Number.parseFloat(await manifestoTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(60);
-
-  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
-  if (await rejectCookies.isVisible()) await rejectCookies.click();
 
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
   const carouselArrows = page.locator('button[aria-label="Précédent"], button[aria-label="Suivant"]');
@@ -545,8 +548,6 @@ test("les héros playlists et synchronisations conservent leurs contenus", async
 test("la recherche expose des vues, tris et filtres partageables", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/search?q=techno&view=tracks&type=main");
-  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
-  if (await rejectCookies.isVisible()) await rejectCookies.click({ force: true });
 
   await expect(page.getByRole("heading", { name: /Trouver la bonne musique/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
@@ -608,8 +609,6 @@ test("une piste expose ses informations, versions et paroles", async ({ page }, 
 
 test("la modale de compte bascule entre connexion et inscription complète", async ({ page }, testInfo) => {
   await page.goto("/");
-  const rejectCookies = page.getByRole("button", { name: "Tout refuser" });
-  if (await rejectCookies.isVisible()) await rejectCookies.click();
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   }
