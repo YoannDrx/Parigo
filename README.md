@@ -1,6 +1,6 @@
 # Parigo
 
-Site catalogue et lecteur audio de Parigo Music, alimenté exclusivement par la Public API Harvest. Le navigateur appelle les routes Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
+Site catalogue et lecteur audio de Parigo Music. Harvest reste la source de vérité du catalogue musical, tandis que les profils éditoriaux et les relations encore absentes du CMS/API sont versionnés localement. Les inventaires vidéo proviennent des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
 
 ## Installation
 
@@ -41,6 +41,8 @@ pnpm build
 pnpm test:e2e
 HARVEST_LIVE_TESTS=1 pnpm test:harvest
 HARVEST_MEMBER_MUTATION_TESTS=1 pnpm test:harvest:member
+pnpm audit:youtube:clips
+pnpm audit:harvest:gaps
 ```
 
 La suite Harvest live standard est strictement en lecture. La suite membre exige en plus `HARVEST_TEST_MEMBER_EMAIL` et `HARVEST_TEST_MEMBER_PASSWORD`, ne s’exécute jamais en CI standard et nettoie les ressources qu’elle crée. L’inscription et le reset par e-mail nécessitent une boîte Gmail de test réauthentifiée et restent une validation Preview explicite.
@@ -48,8 +50,10 @@ La suite Harvest live standard est strictement en lecture. La suite membre exige
 ## Architecture
 
 - `src/lib/harvest/` : OAuth, service/guest/member tokens, client résilient, mappers, recherche, assets, session chiffrée et activités membre.
+- `src/lib/editorial/` : profils, relations vérifiées et adaptateurs temporaires destinés à migrer vers le CMS Harvest.
+- `src/lib/youtube/` : inventaires vidéo officiels, avec API YouTube préférée et lecture publique de secours.
 - `src/app/api/` : BFF public de Parigo ; aucun secret Harvest n’est envoyé au navigateur.
 - `src/app/` : catalogue, recherche, collections, playlists, comptes et pages institutionnelles.
-- `docs/harvest/` : rapport d’audit, inventaire d’endpoints et smoke tests live.
+- `docs/harvest/` : rapport d’audit, inventaire d’endpoints, registre des écarts et smoke tests live.
 
 Les données membre sont servies avec `Cache-Control: no-store`. Le catalogue et les référentiels utilisent des caches courts côté BFF. Les URLs audio Harvest restent directes afin de préserver les requêtes Range, le suivi d’audition et les droits du service.

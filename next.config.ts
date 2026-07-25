@@ -63,6 +63,8 @@ const nextConfig: NextConfig = {
       { source: "/labels/profile/uncategorised/parigo", destination: "/labels/b9d701733704e2d7", permanent: true },
       { source: "/licensing/licensing", destination: "/licensing", permanent: true },
       { source: "/pages/terms-and-conditions", destination: "/terms", permanent: true },
+      { source: "/sorties-parigo", destination: "/label-parigo", permanent: true },
+      { source: "/en/sorties-parigo", destination: "/en/label-parigo", permanent: true },
       { source: "/lost-password/:token", destination: "/reset-password?token=:token", permanent: false },
       { source: "/member/reset-password/:token", destination: "/reset-password?token=:token", permanent: false },
     ];

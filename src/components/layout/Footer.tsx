@@ -10,7 +10,7 @@ export function Footer() {
   const { locale, t, localizedPath } = useI18n();
   const openRegister = useAuthModalStore((state) => state.openRegister);
   const groups = [
-    { title: t("footer.explore"), links: [{ name: t("common.search"), href: "/search" }, { name: t("common.albums"), href: "/albums" }, { name: t("common.playlists"), href: "/playlists" }, { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations" }, { name: "Collections", href: "/collections" }] },
+    { title: t("footer.explore"), links: [{ name: t("common.search"), href: "/search" }, { name: t("common.albums"), href: "/albums" }, { name: t("common.playlists"), href: "/playlists" }, { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations" }, { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo" }, { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs" }, { name: "Clips", href: "/clips" }, { name: "Collections", href: "/collections" }] },
     { title: t("footer.studio"), links: [{ name: t("common.about"), href: "/about" }, { name: t("common.licensing"), href: "/licensing" }, { name: t("common.contact"), href: "/contact" }] },
     { title: t("footer.legal"), links: [{ name: t("footer.legalNotice"), href: "/legal" }, { name: t("footer.privacy"), href: "/privacy" }, { name: t("footer.terms"), href: "/terms" }, { name: locale === "fr" ? "Réservation des droits" : "Reservation of rights", href: "/rights" }] },
   ];

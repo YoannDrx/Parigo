@@ -90,7 +90,7 @@ export const messages = {
     },
     catalog: {
       albumsEyebrow: "Catalogue / Albums",
-      albumsTitle: "Nos albums",
+      albumsTitle: "Albums",
       albumsIntro: "Des collections pensées comme des univers, prêtes à rencontrer les vôtres.",
       playlistsEyebrow: "Catalogue / Sélections",
       playlistsTitle: "Les playlists",

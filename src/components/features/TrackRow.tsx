@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2, Plus, X, NotebookPen } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import type { Track, Album } from "@/types";
+import type { Track, Album, ComposerCreditLink } from "@/types";
 import { Tag } from "@/components/ui/Tag";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { TrackWaveform } from "./TrackWaveform";
@@ -30,6 +30,7 @@ interface TrackRowProps {
   queue?: Track[];
   compact?: boolean;
   density?: "full" | "mid" | "light";
+  composerCredits?: ComposerCreditLink[];
 }
 
 const openMobileActionMenus = new Set<symbol>();
@@ -47,6 +48,7 @@ export function TrackRow({
   queue,
   compact = false,
   density = compact ? "mid" : "full",
+  composerCredits,
 }: TrackRowProps) {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
@@ -279,7 +281,7 @@ export function TrackRow({
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
       </div>}
-      {detailsOpen && <TrackDetailsPanel track={track} activeTab={detailsTab} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} />}
+      {detailsOpen && <TrackDetailsPanel track={track} composerCredits={composerCredits} activeTab={detailsTab} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} />}
     </article>
   );
 }

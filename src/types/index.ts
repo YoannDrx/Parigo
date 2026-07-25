@@ -43,6 +43,12 @@ export interface Track {
   highlighted?: boolean;
 }
 
+export interface ComposerCreditLink {
+  credit: string;
+  name: string;
+  slug?: string;
+}
+
 export interface Album {
   id: string;
   slug?: string;

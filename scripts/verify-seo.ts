@@ -26,12 +26,23 @@ async function main() {
     /name="robots" content="noindex, follow"/i,
     new RegExp(`rel="canonical" href="${escapedOrigin}/search"`, "i"),
   ]);
+  await check("/label-parigo", [/Label Parigo/i, /hreflang="en"/i]);
+  await check("/en/label-parigo", [/Parigo Label/i, /hreflang="fr"/i]);
+  await check("/compositeurs", [/Compositeurs/i, /rel="canonical"/i]);
+  await check("/compositeurs?q=ugly", [
+    /name="robots" content="noindex, follow"/i,
+    new RegExp(`rel="canonical" href="${escapedOrigin}/compositeurs"`, "i"),
+  ]);
+  await check("/clips", [/Clips/i, /rel="canonical"/i]);
+  await check("/compositeurs/__parigo_seo_missing_profile__", [/404/i], 404);
+  await check("/clips/__parigo_seo_missing_clip__", [/404/i], 404);
   await check("/fr/albums", [], 308);
   await check("/albums/__parigo_seo_missing_album__", [
     /name="robots" content="noindex/i,
     /404/i,
   ], 404);
   await check("/sitemap.xml", [/<sitemapindex/i]);
+  await check("/sitemaps/editorial.xml", [/\/compositeurs\/ugly-mac-beer/i, /\/clips\/ny-parigo-2/i]);
   await check("/robots.txt", [new RegExp(`sitemap: ${escapedOrigin}/sitemap\\.xml`, "i")]);
   console.log(`Contrats SEO principaux validés pour ${canonicalOrigin}.`);
 }

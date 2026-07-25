@@ -11,10 +11,13 @@ import { Tag } from "@/components/ui/Tag";
 import { TrackRow } from "@/components/features/TrackRow";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { CueSheetButton } from "@/components/features/CueSheetButton";
+import { ClipCard } from "@/components/editorial/ClipCard";
 import { FavoriteButton } from "@/components/features/FavoriteButton";
 import { formatDuration } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
-import type { Album } from "@/types";
+import type { Album, ComposerCreditLink } from "@/types";
+import type { ComposerProfile } from "@/lib/editorial/contracts";
+import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 
@@ -22,6 +25,8 @@ interface AlbumDetailClientProps {
   data: {
     album: Album & { tracks: NonNullable<Album["tracks"]> };
     similarAlbums: Album[];
+    composerCredits: ComposerCreditLink[];
+    relatedClips: Array<{ clip: EditorialVideo; composers: Array<Pick<ComposerProfile, "slug" | "name">> }>;
   };
 }
 
@@ -189,6 +194,33 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
           </div>
         </section>
 
+        {data.composerCredits.length > 0 && (
+          <section className="mx-auto max-w-[1500px] px-4 pb-4 sm:px-6 lg:px-8">
+            <div className="border-y border-[var(--line)] py-8">
+              <p className="eyebrow mb-4 text-[var(--text-muted)]">
+                {locale === "fr" ? "Crédits compositeurs" : "Composer credits"}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {data.composerCredits.map((composer) => (
+                  composer.slug ? (
+                    <Link
+                      key={composer.credit}
+                      href={localizedPath(`/compositeurs/${composer.slug}`)}
+                      className="border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold transition hover:bg-[var(--surface-soft)]"
+                    >
+                      {composer.name}
+                    </Link>
+                  ) : (
+                    <span key={composer.credit} className="border border-[var(--line)] px-3 py-2 text-sm text-[var(--text-muted)]">
+                      {composer.credit}
+                    </span>
+                  )
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Tracks */}
         <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4"><div><p className="eyebrow text-[var(--signal-strong)]">{album.code || album.label}</p><h2 className="mt-3 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.tracks")}</h2></div><div className="flex flex-wrap items-center gap-2"><Select value={trackSort} onValueChange={setTrackSort} ariaLabel={locale === "fr" ? "Trier les pistes" : "Sort tracks"} className="min-w-[10.5rem]" options={[{ value: "album", label: locale === "fr" ? "Ordre de l’album" : "Album order" }, { value: "title-asc", label: "A–Z" }, { value: "title-desc", label: "Z–A" }]} /><div className="inline-flex rounded-md border border-[var(--line)] p-1" role="group" aria-label={locale === "fr" ? "Versions des pistes" : "Track versions"}><button type="button" aria-pressed={!showAllVersions} onClick={() => setShowAllVersions(false)} className={`min-h-10 rounded px-4 text-xs font-semibold ${!showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Pistes principales" : "Main tracks"}</button><button type="button" aria-pressed={showAllVersions} onClick={() => setShowAllVersions(true)} className={`min-h-10 rounded px-4 text-xs font-semibold ${showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>{locale === "fr" ? "Toutes les versions" : "All versions"}</button></div></div></div>
@@ -201,6 +233,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
                     album={albumWithTracks}
                     index={index}
                     showAlbumCover={false}
+                    composerCredits={data.composerCredits}
                   />
                 </div>
               ))}
@@ -209,6 +242,17 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
             <p className="border-y border-[var(--line)] py-16 text-center text-[var(--text-muted)]">{locale === "fr" ? "Aucune piste disponible pour cet album." : "No tracks are available for this album."}</p>
           )}
         </section>
+
+        {data.relatedClips.length > 0 && (
+          <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
+            <h2 className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">Clips</h2>
+            <div className="grid gap-5 md:grid-cols-2">
+              {data.relatedClips.map(({ clip, composers }, index) => (
+                <ClipCard key={clip.slug} clip={clip} composers={composers} locale={locale} index={index} />
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Similar Albums */}
         {similarAlbums.length > 0 && (
