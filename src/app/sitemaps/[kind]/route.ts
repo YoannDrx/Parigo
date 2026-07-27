@@ -3,11 +3,11 @@ import { SYNCHRONISATIONS } from "@/content/synchronisations";
 import { clips, publishedComposerProfiles } from "@/lib/editorial/contracts";
 import { getEditorialVideos } from "@/lib/editorial/videos";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
-import { getCachedLabels, getCachedPlaylists, getCachedStyles } from "@/lib/harvest/catalog-cache";
+import { getCachedLabels, getCachedPlaylists } from "@/lib/harvest/catalog-cache";
 import { renderUrlSet, unavailableSitemap, xmlResponse } from "@/lib/sitemap-xml";
 
 const staticPaths = [
-  "", "/albums", "/labels", "/collections", "/playlists", "/synchronisations",
+  "", "/albums", "/labels", "/playlists", "/synchronisations",
   "/label-parigo", "/compositeurs", "/clips",
   "/licensing", "/contact", "/about", "/legal", "/privacy", "/terms", "/rights",
 ];
@@ -28,10 +28,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
     if (kind === "playlists") {
       const playlists = await getCachedPlaylists({ limit: 100 });
       return xmlResponse(renderUrlSet(playlists.items.map((playlist) => ({ fr: `/playlists/${playlist.id}`, en: `/en/playlists/${playlist.id}`, lastModified: playlist.updatedAt || playlist.createdAt, priority: 0.7 }))));
-    }
-    if (kind === "collections") {
-      const collections = await getCachedStyles();
-      return xmlResponse(renderUrlSet(collections.map((collection) => ({ fr: `/collections/${collection.id}`, en: `/en/collections/${collection.id}`, priority: 0.6 }))));
     }
     if (kind === "selections") {
       return xmlResponse(renderUrlSet(SEO_SELECTIONS.map((selection) => ({ fr: `/selections/${selection.content.fr.slug}`, en: `/en/selections/${selection.content.en.slug}`, priority: 0.8 }))));

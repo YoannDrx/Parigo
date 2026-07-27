@@ -31,6 +31,7 @@ import { FavoriteButton } from "./FavoriteButton";
 import { DownloadButton } from "./DownloadButton";
 import { AddToPlaylistButton } from "./AddToPlaylistButton";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 
 export function MiniPlayer() {
   const playerInstanceId = useId();
@@ -268,7 +269,11 @@ export function MiniPlayer() {
           <div className="parigo-player__transport flex items-center justify-end gap-0.5 md:justify-center md:gap-1">
             <Tooltip label={locale === "fr" ? "Piste précédente" : "Previous track"} className="hidden sm:inline-flex"><button onClick={previous} className="flex h-10 w-10 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Piste précédente" : "Previous track"}><SkipBack size={17} /></button></Tooltip>
             <Tooltip label={isPlaying ? t("common.pause") : t("common.play")}><button onClick={() => (isPlaying ? pause() : resume())} className="parigo-player__play flex h-12 w-12 items-center justify-center bg-[var(--signal)] text-[#0c120d] shadow-[0_0_0_5px_rgba(92,190,116,.12)] transition duration-300 hover:scale-105 hover:bg-white" aria-label={isPlaying ? t("common.pause") : t("common.play")}>
-              {isPlaying ? <Pause size={18} className="fill-current" /> : <Play size={18} className="ml-0.5 fill-current" />}
+              {isLoading
+                ? <ParigoLoader size="icon" label={locale === "fr" ? "Chargement de la piste" : "Loading track"} />
+                : isPlaying
+                  ? <Pause size={18} className="fill-current" />
+                  : <Play size={18} className="ml-0.5 fill-current" />}
             </button></Tooltip>
             <Tooltip label={locale === "fr" ? "Piste suivante" : "Next track"} className="hidden sm:inline-flex"><button onClick={next} className="flex h-10 w-10 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Piste suivante" : "Next track"}><SkipForward size={17} /></button></Tooltip>
           </div>

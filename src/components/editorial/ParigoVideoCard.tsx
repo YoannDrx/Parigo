@@ -9,7 +9,6 @@ export function ParigoVideoCard({
   title,
   eyebrow,
   detail,
-  index,
   sizes = "(max-width: 1024px) 100vw, 50vw",
   className,
   headingLevel = "h2",
@@ -19,7 +18,6 @@ export function ParigoVideoCard({
   title: string;
   eyebrow: string;
   detail?: string;
-  index: number;
   sizes?: string;
   className?: string;
   headingLevel?: "h2" | "h3";
@@ -36,9 +34,6 @@ export function ParigoVideoCard({
           className="object-cover transition-transform duration-700 group-hover:scale-[1.025] group-focus-visible:scale-[1.025]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/84 via-black/8 to-black/10" />
-        <span className="absolute right-4 top-4 z-[2] font-mono text-[.54rem] text-white/65">
-          {String(index + 1).padStart(2, "0")}
-        </span>
         <span className="absolute left-4 top-4 z-[2] flex h-10 w-10 items-center justify-center rounded-full border border-white/45 bg-black/25 text-white shadow-xl backdrop-blur-md transition duration-500 group-hover:rotate-[8deg] group-hover:scale-110 group-hover:bg-[var(--signal)] group-focus-visible:rotate-[8deg] group-focus-visible:scale-110 group-focus-visible:bg-[var(--signal)]">
           <Play size={16} fill="currentColor" />
         </span>

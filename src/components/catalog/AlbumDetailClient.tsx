@@ -106,21 +106,19 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
 
             {/* Info */}
             <div className="self-center md:col-span-7 md:col-start-6">
-              {album.labelSlug ? (
-                <Link href={localizedPath(`/labels/${album.labelSlug}`)}>
-                  <p className="text-sm font-medium text-[var(--color-primary)] mb-2 hover:underline">
-                    {album.label}
-                  </p>
-                </Link>
-              ) : (
-                <p className="text-sm font-medium text-[var(--color-primary)] mb-2">
-                  {album.label}
-                </p>
-              )}
-              {album.code && <p className="mb-3 font-mono text-[.65rem] uppercase tracking-[.14em] text-[var(--text-muted)]">{album.code}</p>}
               <h1 className="mb-6 font-[var(--font-editorial)] text-5xl font-normal leading-[.9] tracking-[-.055em] md:text-7xl lg:text-8xl">
                 {album.title}
               </h1>
+              <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+                {album.labelSlug ? (
+                  <Link href={localizedPath(`/labels/${album.labelSlug}`)} className="font-medium text-[var(--color-primary)] hover:underline">
+                    {album.label}
+                  </Link>
+                ) : (
+                  <span className="font-medium text-[var(--color-primary)]">{album.label}</span>
+                )}
+                {album.code && <span className="font-mono text-[.65rem] uppercase tracking-[.14em] text-[var(--text-muted)]">{album.code}</span>}
+              </div>
               {album.description && (
                 <p className="text-[var(--color-gray-600)] mb-6 max-w-xl">
                   {album.description}
@@ -247,8 +245,8 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
           <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
             <h2 className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">Clips</h2>
             <div className="grid gap-5 md:grid-cols-2">
-              {data.relatedClips.map(({ clip, composers }, index) => (
-                <ClipCard key={clip.slug} clip={clip} composers={composers} locale={locale} index={index} />
+              {data.relatedClips.map(({ clip, composers }) => (
+                <ClipCard key={clip.slug} clip={clip} composers={composers} locale={locale} />
               ))}
             </div>
           </section>

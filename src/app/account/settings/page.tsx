@@ -9,13 +9,13 @@ import {
   Trash2,
   AlertTriangle,
   Check,
-  Loader2,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { Button, Switch } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 
 export default function SettingsPage() {
   useSession();
@@ -156,7 +156,7 @@ export default function SettingsPage() {
           >
             {isChangingPassword ? (
               <>
-                <Loader2 size={18} className="animate-spin" />
+                <ParigoLoader size="icon" label={locale === "fr" ? "Envoi en cours" : "Sending"} />
                 {locale === "fr" ? "Envoi…" : "Sending…"}
               </>
             ) : (
@@ -190,7 +190,7 @@ export default function SettingsPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {(isLoadingSubscription || isSavingSubscription) && <Loader2 size={15} className="animate-spin text-[var(--text-muted)]" aria-hidden="true" />}
+            {(isLoadingSubscription || isSavingSubscription) && <ParigoLoader size="icon" label={locale === "fr" ? "Mise à jour des notifications" : "Updating notifications"} />}
             <Switch
               checked={subscribed}
               disabled={isLoadingSubscription || isSavingSubscription}
@@ -266,7 +266,7 @@ export default function SettingsPage() {
               >
                 {isDeleting ? (
                   <>
-                    <Loader2 size={18} className="animate-spin mr-2" />
+                    <ParigoLoader size="icon" label={locale === "fr" ? "Suppression du compte" : "Deleting account"} />
                     {locale === "fr" ? "Suppression…" : "Deleting…"}
                   </>
                 ) : (

@@ -1,20 +1,19 @@
-"use client";
-
-import type { Playlist } from "@/types";
-import { EditorialScrollStory } from "./EditorialScrollStory";
 import { ManifestoScrollSection } from "./ManifestoScrollSection";
 import { ProcessSignalSection } from "./ProcessSignalSection";
 import { ProjectInvitationSection } from "./ProjectInvitationSection";
-import { SensationSignalSection } from "./SensationSignalSection";
 
-export function HomeStorySections({ locale, playlists }: { locale: "fr" | "en"; playlists: Playlist[] }) {
+export function HomeStorySections({
+  locale,
+  albumCovers,
+}: {
+  locale: "fr" | "en";
+  albumCovers: Array<{ src: string; title: string }>;
+}) {
   return (
     <>
-      <ManifestoScrollSection locale={locale} />
+      <ManifestoScrollSection locale={locale} albumCovers={albumCovers} />
       <ProcessSignalSection locale={locale} />
       <ProjectInvitationSection />
-      <SensationSignalSection locale={locale} />
-      <EditorialScrollStory playlists={playlists} locale={locale} />
     </>
   );
 }

@@ -23,5 +23,5 @@ export default function LegalPage() {
     { title: "Liability & links", content: <><p>PARIGO seeks to keep information accurate but cannot guarantee continuous availability or an absolute absence of errors. Third-party links are provided for information; their publishers remain responsible for their content and practices.</p><p>Licensing rates and information are indicative. Only a signed quotation and licence define the rights granted.</p></> },
     { title: "Contact", content: <p>To report content, exercise a right or request information: <a href="mailto:info@parigomusic.com">info@parigomusic.com</a> or PARIGO, 9 rue Rémy Dumoncel, 75014 Paris, France.</p> },
   ];
-  return <InstitutionalShell eyebrow={locale === "fr" ? "Informations légales" : "Legal information"} title={locale === "fr" ? "Mentions légales" : "Legal notice"} intro={locale === "fr" ? "L’éditeur, l’hébergement et les règles qui encadrent ce site." : "The publisher, hosting provider and rules governing this website."}><LegalDocument sections={sections} /></InstitutionalShell>;
+  return <InstitutionalShell title={locale === "fr" ? "Mentions légales" : "Legal notice"} intro={locale === "fr" ? "L’éditeur, l’hébergement et les règles qui encadrent ce site." : "The publisher, hosting provider and rules governing this website."}><LegalDocument sections={sections} /></InstitutionalShell>;
 }

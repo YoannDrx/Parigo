@@ -65,6 +65,8 @@ const nextConfig: NextConfig = {
       { source: "/pages/terms-and-conditions", destination: "/terms", permanent: true },
       { source: "/sorties-parigo", destination: "/label-parigo", permanent: true },
       { source: "/en/sorties-parigo", destination: "/en/label-parigo", permanent: true },
+      { source: "/collections/:path*", destination: "/albums", permanent: true },
+      { source: "/en/collections/:path*", destination: "/en/albums", permanent: true },
       { source: "/lost-password/:token", destination: "/reset-password?token=:token", permanent: false },
       { source: "/member/reset-password/:token", destination: "/reset-password?token=:token", permanent: false },
     ];

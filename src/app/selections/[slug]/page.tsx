@@ -68,8 +68,7 @@ export default async function SelectionPage({ params }: SelectionPageProps) {
       <main className="pb-28 pt-[74px]">
         <header className="border-b border-[var(--line)] px-4 py-20 md:px-8 md:py-32">
           <div className="mx-auto max-w-[1500px]">
-            <p className="eyebrow text-[var(--signal-strong)]">Parigo / {locale === "fr" ? "Sélection" : "Selection"}</p>
-            <h1 className="mt-6 max-w-[13ch] font-[var(--font-editorial)] text-[clamp(4rem,9vw,9rem)] font-normal leading-[.83] tracking-[-.06em]">{content.title}</h1>
+            <h1 className="max-w-[13ch] font-[var(--font-editorial)] text-[clamp(4rem,9vw,9rem)] font-normal leading-[.83] tracking-[-.06em]">{content.title}</h1>
             <p className="mt-8 max-w-3xl text-lg leading-8 text-[var(--text-muted)] md:text-xl">{content.introduction}</p>
           </div>
         </header>

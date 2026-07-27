@@ -12,7 +12,6 @@ import {
   fetchMoods,
   fetchInstruments,
   fetchCategoryGroups,
-  fetchStyles,
   fetchSearchFilters,
 } from "@/lib/api-client";
 
@@ -42,14 +41,6 @@ export function useCategoryGroups(language: "fr" | "en") {
   return useQuery({
     queryKey: ["harvest-categories", language],
     queryFn: () => fetchCategoryGroups(language),
-    staleTime: 1000 * 60 * 60,
-  });
-}
-
-export function useStyles() {
-  return useQuery({
-    queryKey: ["harvest-styles"],
-    queryFn: fetchStyles,
     staleTime: 1000 * 60 * 60,
   });
 }

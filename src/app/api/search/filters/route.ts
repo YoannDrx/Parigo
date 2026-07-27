@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { apiError, requestId } from "@/lib/harvest/api";
-import { getCategories, getLabels, getStyles } from "@/lib/harvest/catalog";
+import { getCategories, getLabels } from "@/lib/harvest/catalog";
 import type {
   CatalogCategory,
   SearchFilterGroup,
@@ -36,10 +36,9 @@ export async function GET(request: NextRequest) {
   const id = requestId();
   try {
     const language = request.nextUrl.searchParams.get("language") === "en" ? "en" : "fr";
-    const [categoryGroups, labels, styles] = await Promise.all([
+    const [categoryGroups, labels] = await Promise.all([
       getCategories(language),
       getLabels(),
-      getStyles(),
     ]);
     const groups: SearchFilterGroup[] = [
       {
@@ -64,14 +63,6 @@ export async function GET(request: NextRequest) {
           items,
         }];
       }),
-      {
-        key: "styles",
-        label: "Styles",
-        selection: "include-exclude",
-        total: styles.length,
-        available: styles.length,
-        items: styles.map((style) => ({ id: style.id, name: style.name })),
-      },
     ];
     return NextResponse.json(
       { data: { groups }, meta: { requestId: id } },

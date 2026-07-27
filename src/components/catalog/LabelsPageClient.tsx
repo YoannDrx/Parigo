@@ -59,7 +59,7 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 pb-32">
-        <CatalogHero eyebrow={t("catalog.labelsEyebrow")} title={t("catalog.labelsTitle")} intro={t("catalog.labelsIntro")} meta={`${labels.length} ${t("common.labels").toLowerCase()}`} />
+        <CatalogHero title={t("catalog.labelsTitle")} intro={t("catalog.labelsIntro")} meta={`${labels.length} ${t("common.labels").toLowerCase()}`} />
         <div className="mx-auto max-w-[1700px] px-4 py-12 md:py-20 lg:px-8">
           <CatalogToolbar
             locale={locale}

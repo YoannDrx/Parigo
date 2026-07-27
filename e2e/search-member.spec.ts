@@ -2,7 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 
 const sessionPayload = { data: { session: { user: { id: "member-1", email: "yoann@parigo.test", name: "Yoann Andrieux", image: null, role: "USER", createdAt: "2026-01-01T00:00:00.000Z" }, session: { expiresAt: "2026-08-01T00:00:00.000Z" } } } };
 const track = { id: "track-1", title: "Piano documentaire", duration: 148, bpm: 92, audioUrl: null, albumId: "album-1", albumTitle: "Parigo Test Pressing", albumCover: "/images/placeholder-album.svg", albumLabel: "Parigo", genres: ["Documentary"], moods: ["Intimate"], isVocal: false, waveform: null };
-const facets = { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [], styles: [] };
+const facets = { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [] };
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {

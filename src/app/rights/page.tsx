@@ -17,5 +17,5 @@ export default function RightsPage() {
     { title: "Automated systems & AI", content: <p>Content may not be used to build a dataset, train, test or supply a generative model or music-recognition system without prior agreement defining works, uses, term and consideration.</p> },
     { title: "Request permission", content: <p>For licensing, search, data partnerships or any reuse: <a href="mailto:info@parigomusic.com">info@parigomusic.com</a>.</p> },
   ];
-  return <InstitutionalShell eyebrow={locale === "fr" ? "Propriété intellectuelle" : "Intellectual property"} title={locale === "fr" ? "Réservation des droits" : "Reservation of rights"} intro={locale === "fr" ? "Les œuvres sont faites pour circuler avec une autorisation claire, pas pour être absorbées sans consentement." : "Works are made to circulate with clear permission, not to be absorbed without consent."}><LegalDocument sections={sections} /></InstitutionalShell>;
+  return <InstitutionalShell title={locale === "fr" ? "Réservation des droits" : "Reservation of rights"} intro={locale === "fr" ? "Les œuvres sont faites pour circuler avec une autorisation claire, pas pour être absorbées sans consentement." : "Works are made to circulate with clear permission, not to be absorbed without consent."}><LegalDocument sections={sections} /></InstitutionalShell>;
 }

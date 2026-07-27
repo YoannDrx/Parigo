@@ -38,8 +38,18 @@ describe("Harvest Cloud Search", () => {
     expect(filters.TranslateKeyword).toBe("fr");
     expect(view.Sort_Predefined).toBe("RankExpression");
     expect(view.ReturnRates).toBe(true);
+    expect(view.Facet_Style).toBe(false);
     expect(bundle.St_Category.IDs).toBe("ATT_51bcfc1bd83261cd");
     expect(harvestCategoryId("ATT_51bcfc1bd83261cd_Piano")).toBe("ATT_51bcfc1bd83261cd");
+  });
+
+  it("serializes exact title matching without wildcards", () => {
+    const payload = buildCloudSearch({ query: "crime", match: "exact" });
+    const filters = payload.SearchFilters as Record<string, unknown>;
+    const bundle = filters.SearchTermBundle as Record<string, Record<string, unknown>>;
+
+    expect(bundle.St_Keyword_Aggregated.ExactPhrase).toBe(true);
+    expect(bundle.St_Keyword_Aggregated.Wildcard).toBe(false);
   });
 
   it("serializes included and excluded filters exactly once", () => {

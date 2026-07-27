@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -27,5 +28,5 @@ export function CueSheetButton({ title, trackIds, compact = false }: { title: st
       setLoading(false);
     }
   };
-  return <div>{compact ? <Tooltip label={error || "Cue sheet"}><button type="button" onClick={() => void create()} disabled={loading} className="flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]" aria-label={`Cue sheet : ${title}`}>{loading ? <Loader2 size={17} className="animate-spin" /> : <FileText size={17} />}</button></Tooltip> : <Button variant="outline" size="lg" onClick={() => void create()} disabled={loading}>{loading ? <Loader2 size={18} className="animate-spin" /> : <FileText size={18} />} {locale === "fr" ? "Cue sheet" : "Cue sheet"}</Button>}{error && <span className="sr-only" role="alert">{error}</span>}</div>;
+  return <div>{compact ? <Tooltip label={error || "Cue sheet"}><button type="button" onClick={() => void create()} disabled={loading} className="flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]" aria-label={`Cue sheet : ${title}`}>{loading ? <ParigoLoader size="icon" label={locale === "fr" ? "Création de la cue sheet" : "Creating cue sheet"} /> : <FileText size={17} />}</button></Tooltip> : <Button variant="outline" size="lg" onClick={() => void create()} disabled={loading}>{loading ? <ParigoLoader size="icon" label={locale === "fr" ? "Création de la cue sheet" : "Creating cue sheet"} /> : <FileText size={18} />} {locale === "fr" ? "Cue sheet" : "Cue sheet"}</Button>}{error && <span className="sr-only" role="alert">{error}</span>}</div>;
 }

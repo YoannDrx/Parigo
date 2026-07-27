@@ -17,7 +17,6 @@ import {
   Tags,
   ChevronDown,
   Shield,
-  Loader2,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
@@ -25,6 +24,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 
 const subscribeToHydration = () => () => undefined;
 
@@ -88,7 +88,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
   if (!isHydrated || isPending) {
     return (
       <div className="w-8 h-8 flex items-center justify-center">
-        <Loader2 className="w-5 h-5 animate-spin text-[var(--color-gray-400)]" />
+        <ParigoLoader size="icon" label={locale === "fr" ? "Chargement du compte" : "Loading account"} />
       </div>
     );
   }
@@ -146,7 +146,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
             return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("group/item grid min-h-[4.35rem] grid-cols-[1.8rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-3 transition-colors hover:bg-[var(--signal-soft)] sm:px-5 sm:odd:border-r", active && "bg-[var(--signal-soft)]")}><item.icon size={16} className={cn("text-[var(--text-muted)] transition-colors group-hover/item:text-[var(--signal-strong)]", active && "text-[var(--signal-strong)]")} /><span className="min-w-0"><span className="block text-sm font-semibold">{item.label}</span><span className="mt-0.5 block truncate text-[.68rem] text-[var(--text-muted)]">{item.note}</span></span><ArrowUpRight size={15} className="opacity-35 transition-transform group-hover/item:-rotate-12 group-hover/item:opacity-100" /></Link>;
           })}
         </div>
-        <div className="flex items-center justify-between gap-4 bg-[var(--surface-soft)] px-3 py-4 sm:px-5"><p className="text-[.67rem] leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Votre catalogue, gardé à portée de main." : "Your catalogue, kept close at hand."}</p><button onClick={handleSignOut} disabled={isSigningOut} style={{ fontSize: ".7rem", fontWeight: 500, letterSpacing: 0, textTransform: "none" }} className="inline-flex min-h-9 shrink-0 items-center gap-2 border-b border-[color-mix(in_srgb,var(--danger)_38%,transparent)] text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50">{isSigningOut ? <Loader2 size={17} className="animate-spin" /> : <LogOut size={17} />}<span>{isSigningOut ? `${t("auth.logout")}…` : t("auth.logout")}</span></button></div>
+        <div className="flex items-center justify-between gap-4 bg-[var(--surface-soft)] px-3 py-4 sm:px-5"><p className="text-[.67rem] leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Votre catalogue, gardé à portée de main." : "Your catalogue, kept close at hand."}</p><button onClick={handleSignOut} disabled={isSigningOut} style={{ fontSize: ".7rem", fontWeight: 500, letterSpacing: 0, textTransform: "none" }} className="inline-flex min-h-9 shrink-0 items-center gap-2 border-b border-[color-mix(in_srgb,var(--danger)_38%,transparent)] text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50">{isSigningOut ? <ParigoLoader size="icon" label={`${t("auth.logout")}…`} /> : <LogOut size={17} />}<span>{isSigningOut ? `${t("auth.logout")}…` : t("auth.logout")}</span></button></div>
       </section>
     );
   }
@@ -223,7 +223,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
                 className="inline-flex min-h-9 items-center gap-2 border-b border-[color-mix(in_srgb,var(--danger)_38%,transparent)] text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50"
               >
                 {isSigningOut ? (
-                  <Loader2 size={18} className="animate-spin" />
+                  <ParigoLoader size="icon" label={`${t("auth.logout")}…`} />
                 ) : (
                   <LogOut size={18} />
                 )}

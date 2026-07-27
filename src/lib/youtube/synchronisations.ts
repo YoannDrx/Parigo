@@ -20,15 +20,14 @@ function mapVideo(input: YouTubePlaylistVideo): Synchronisation {
       source: "youtube",
     };
   }
-  const description = input.description?.replace(/\s+/g, " ").trim();
   return {
     slug: input.youtubeId,
     title: input.title.replace(/\s+/g, " ").trim() || "Synchronisation Parigo",
     client: input.channelTitle || "Parigo Music",
     image: input.thumbnail,
     youtubeId: input.youtubeId,
-    descriptionFr: description || "Une synchronisation issue de la sélection audiovisuelle Parigo Music.",
-    descriptionEn: description || "A synchronisation from Parigo Music’s audiovisual selection.",
+    descriptionFr: "Une synchronisation issue de la sélection audiovisuelle Parigo Music.",
+    descriptionEn: "A synchronisation from Parigo Music’s audiovisual selection.",
     publishedAt: input.publishedAt,
     position: input.position,
     year,

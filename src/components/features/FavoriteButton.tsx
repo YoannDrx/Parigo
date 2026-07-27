@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { useFavoritesStore } from "@/stores/favorites-store";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
@@ -99,7 +100,7 @@ export function FavoriteButton({
       >
           {isLoading ? (
             <span className="animate-[fade-in_.18s_ease-out_both]">
-              <Loader2 size={iconSizes[size]} className="animate-spin" />
+              <ParigoLoader size="icon" label={locale === "fr" ? "Mise à jour du favori" : "Updating favourite"} />
             </span>
           ) : (
             <span

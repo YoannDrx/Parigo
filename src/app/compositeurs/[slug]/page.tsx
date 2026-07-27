@@ -75,12 +75,12 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               <Image src={profile.image} alt={profile.name} fill priority sizes="(max-width: 768px) 100vw, 42vw" className="object-cover" />
             </div>
             <div className="self-center md:col-span-6 md:col-start-7">
-              <p className="eyebrow mb-5 text-[var(--signal-strong)]">
+              <h1 className="font-[var(--font-editorial)] text-6xl leading-[.9] tracking-[-.055em] md:text-8xl">{profile.name}</h1>
+              <p className="mt-5 font-mono text-[.62rem] uppercase tracking-[.13em] text-[var(--signal-strong)]">
                 {profile.kind === "group"
                   ? (locale === "fr" ? "Collectif" : "Group")
                   : (locale === "fr" ? "Compositeur·rice" : "Composer")}
               </p>
-              <h1 className="font-[var(--font-editorial)] text-6xl leading-[.9] tracking-[-.055em] md:text-8xl">{profile.name}</h1>
               {bio && <div className="mt-8 space-y-4 whitespace-pre-line text-base leading-7 text-[var(--text-muted)]">{bio}</div>}
               {profile.links.length > 0 && (
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -120,13 +120,12 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
             <div className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
               <h2 className="mb-10 font-[var(--font-editorial)] text-5xl tracking-[-.05em]">Clips</h2>
               <div className="grid gap-5 md:grid-cols-2">
-                {profileClips.map((clip, index) => (
+                {profileClips.map((clip) => (
                   <ClipCard
                     key={clip.slug}
                     clip={clip}
                     composers={clip.composerSlugs.map(getComposerProfile).filter((item): item is NonNullable<typeof item> => Boolean(item))}
                     locale={locale}
-                    index={index}
                   />
                 ))}
               </div>

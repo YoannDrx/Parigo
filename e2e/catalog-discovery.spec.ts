@@ -45,6 +45,7 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await expect(filterScope.getByRole("heading", { level: 2, name: "Affiner la recherche" })).toBeVisible();
   await expect(filterScope.getByLabel("BPM minimum")).toBeVisible();
   await expect(filterScope.getByLabel("Durée minimum")).toBeVisible();
+  await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
 });
 
 test("les playlists proposent recherche, ambiance, genre, instrument et usage", async ({ page }) => {
@@ -68,46 +69,31 @@ test("les playlists proposent recherche, ambiance, genre, instrument et usage", 
   await expect(page).toHaveURL(/view=list/);
 });
 
-test("les collections expliquent leur rôle et réutilisent l’explorateur d’albums", async ({ page }, testInfo) => {
-  test.setTimeout(90_000);
-  await page.goto("/collections");
-  await expect(page.getByText(/styles et univers musicaux/)).toBeVisible();
-  await expect(page.getByPlaceholder("Rechercher une collection ou un style")).toBeVisible();
-  const firstCollection = page.locator('main a[href^="/collections/"]').first();
-  await expect(firstCollection).toBeVisible();
-  await firstCollection.click();
-  await expect(page.getByPlaceholder(/Rechercher dans la collection/)).toBeVisible({ timeout: 30_000 });
-  if (testInfo.project.name === "mobile") {
-    await page.getByRole("button", { name: "Tous les filtres" }).click();
-  }
-  const filterScope = testInfo.project.name === "mobile"
-    ? page.getByRole("dialog", { name: "Filtres du catalogue" })
-    : page.locator("aside");
-  await expect(filterScope.getByLabel("BPM minimum")).toBeVisible();
+test("les anciennes collections redirigent vers les albums et ne sont plus navigables", async ({ page }) => {
+  await page.goto("/collections/f0924b3e05a93ff2");
+  await expect(page).toHaveURL(/\/albums$/);
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await expect(page.getByRole("dialog", { name: "Menu principal" }).getByRole("link", { name: "Collections" })).toHaveCount(0);
 });
 
-test("une collection distingue pistes indexées et albums réels", async ({ page }) => {
+test("les synchronisations reprennent toute la playlist YouTube avec uniquement les deux vues", async ({ page }) => {
   test.setTimeout(90_000);
-  await page.goto("/collections");
-  const seventies = page.locator('a[href="/collections/f0924b3e05a93ff2"]');
-  await expect(seventies).toContainText(/\d+ pistes indexées/);
-  await expect(seventies).not.toContainText("38 albums");
-  await seventies.click();
-  await expect(page.getByText("1 album", { exact: true })).toBeVisible();
-  await expect(page.getByText("1 albums", { exact: true })).toHaveCount(0);
-});
-
-test("les synchronisations reprennent toute la playlist YouTube et se filtrent", async ({ page }) => {
-  test.setTimeout(90_000);
-  await page.goto("/synchronisations");
-  const resultStatus = page.getByRole("status");
-  await expect(resultStatus).toContainText(/6\d résultats/);
+  await page.goto("/synchronisations?q=crime&sort=recent&year=2024");
+  await expect(page).toHaveURL(/\/synchronisations$/);
   expect(await page.locator(".home-sync-card").count()).toBeGreaterThan(60);
   await expect(page.locator("main select")).toHaveCount(0);
   await expect(page.locator(".sync-gallery-card").first()).toBeVisible();
+  await expect(page.getByPlaceholder(/Rechercher une synchronisation/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Cartes" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Liste" }).click();
+  await expect(page).toHaveURL(/view=list/);
+});
 
-  const query = page.getByPlaceholder(/Rechercher une synchronisation/);
-  await query.fill("Tokyo Vice");
-  await expect(resultStatus).toContainText(/1 résultats/);
-  await expect(page.getByRole("heading", { level: 2, name: /Tokyo Vice/i })).toBeVisible();
+test("les clips affichent la sélection éditoriale sans recherche ni filtres et nettoient les anciennes URL", async ({ page }) => {
+  await page.goto("/clips?q=crime&type=official-video");
+  await expect(page).toHaveURL(/\/clips$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Clips" })).toBeVisible();
+  await expect(page.locator("main input")).toHaveCount(0);
+  await expect(page.locator("main select")).toHaveCount(0);
+  await expect(page.locator('main a[href^="/clips/"]').first()).toBeVisible();
 });

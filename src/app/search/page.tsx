@@ -12,7 +12,7 @@ import {
   ChevronRight,
   Disc3,
   LayoutGrid,
-  Loader2,
+  List,
   Minus,
   RotateCcw,
   Search,
@@ -22,25 +22,27 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
+import { PredictiveSearch } from "@/components/search/PredictiveSearch";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
-import { DeferredSearchSuggestions } from "@/components/search/DeferredSearchSuggestions";
+import { TrackGridCard } from "@/components/search/TrackGridCard";
 import { Button } from "@/components/ui/Button";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { Select } from "@/components/ui/Select";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, resolveIntentCategoryIds, searchIntentChips } from "@/lib/search-intent";
 import { cn, formatDuration } from "@/lib/utils";
-import type { Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, Track } from "@/types";
+import type { Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SortMode, Track } from "@/types";
 import { useSession } from "@/lib/auth-client";
 
 const TrackRow = dynamic(
   () => import("@/components/features/TrackRow").then((module) => module.TrackRow),
-  { ssr: false, loading: () => <div className="h-20 animate-pulse border-b border-[var(--line)] bg-[var(--surface-soft)]" /> },
+  { ssr: false, loading: () => <div className="grid min-h-20 place-items-center border-b border-[var(--line)] bg-[var(--surface-soft)]"><ParigoLoader size="compact" /></div> },
 );
 
 type ResultView = "tracks" | "albums";
+type ResultLayout = "list" | "grid";
 type Density = "full" | "mid" | "light";
-type SortMode = "relevance" | "recent" | "oldest" | "title" | "title-desc" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
 type VersionType = "main" | "all";
 type SearchMode = "intent" | "exact";
 
@@ -49,6 +51,12 @@ const DEFAULT_BPM: [number, number] = [50, 200];
 const DEFAULT_DURATION: [number, number] = [0, 300];
 function stripQuotes(value: string): string {
   return value.replace(/^["']+|["']+$/g, "");
+}
+
+function isQuoted(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed.length >= 2
+    && ((trimmed.startsWith('"') && trimmed.endsWith('"')) || (trimmed.startsWith("'") && trimmed.endsWith("'")));
 }
 
 function csv(value: string | null): string[] {
@@ -100,8 +108,11 @@ function SearchContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialQuery = stripQuotes(searchParams.get("q") ?? searchParams.get("keyword") ?? "");
+  const legacyKeyword = searchParams.get("keyword") ?? "";
+  const rawInitialQuery = searchParams.get("q") ?? legacyKeyword;
+  const initialQuery = stripQuotes(rawInitialQuery);
   const initialBrief = stripQuotes(searchParams.get("brief") ?? "");
+  const initialMatch = searchParams.get("match") === "exact" || isQuoted(rawInitialQuery) ? "exact" : "normal";
   const shouldResolveInitialBrief = searchParams.get("resolve") === "1";
   const legacyEntries = useMemo(() => ([
     ["category", null],
@@ -115,18 +126,32 @@ function SearchContent() {
   const [brief, setBrief] = useState(initialBrief);
   const [queryDraft, setQueryDraft] = useState(initialBrief || initialQuery);
   const [searchMode, setSearchMode] = useState<SearchMode>(initialBrief || !initialQuery ? "intent" : "exact");
+  const [matchMode, setMatchMode] = useState<"normal" | "exact">(initialMatch);
+  const [predictiveOpen, setPredictiveOpen] = useState(false);
   const [intentResolutionPending, setIntentResolutionPending] = useState(Boolean(initialBrief && shouldResolveInitialBrief));
-  const [view, setView] = useState<ResultView>(searchParams.get("view") === "albums" ? "albums" : "tracks");
+  const initialResultView: ResultView = searchParams.get("view") === "albums" ? "albums" : "tracks";
+  const [view, setView] = useState<ResultView>(initialResultView);
+  const [resultLayout, setResultLayout] = useState<ResultLayout>(
+    searchParams.get("layout") === "grid"
+      ? "grid"
+      : searchParams.get("layout") === "list"
+        ? "list"
+        : initialResultView === "albums" ? "grid" : "list",
+  );
   const [type, setType] = useState<VersionType>(searchParams.get("type") === "all" ? "all" : "main");
   const [density, setDensity] = useState<Density>(searchParams.get("density") === "mid" || searchParams.get("density") === "light" ? searchParams.get("density") as Density : "full");
-  const [sort, setSort] = useState<SortMode>((searchParams.get("sort") as SortMode) || "relevance");
+  const initialSort = searchParams.get("sort");
+  const [sort, setSort] = useState<SortMode>(
+    initialSort === "recent" || initialSort === "oldest" || initialSort === "title" || initialSort === "title-desc"
+      ? initialSort
+      : "relevance",
+  );
   const [page, setPage] = useState(Math.max(1, Number(searchParams.get("page")) || 1));
   const [categories, setCategories] = useState<string[]>(sorted([
     ...csv(searchParams.get("categories")),
     ...legacyRaw,
   ].map(categoryId).filter((value): value is string => Boolean(value))));
   const [labels, setLabels] = useState<string[]>(sorted(csv(searchParams.get("labels") ?? searchParams.get("label")).filter((value) => !value.startsWith("-"))));
-  const [styles, setStyles] = useState<string[]>(sorted(csv(searchParams.get("styles"))));
   const [bpmRange, setBpmRange] = useState<[number, number]>([
     Number(searchParams.get("bpmMin") ?? searchParams.get("minBpm")) || DEFAULT_BPM[0],
     Number(searchParams.get("bpmMax") ?? searchParams.get("maxBpm")) || DEFAULT_BPM[1],
@@ -141,6 +166,9 @@ function SearchContent() {
   const [saveSearchState, setSaveSearchState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const dialogRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
+  const automaticCategoryIdsRef = useRef<string[]>([]);
+  const automaticBpmRef = useRef(false);
+  const exactModeArmedRef = useRef(initialMatch === "exact");
 
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
@@ -182,12 +210,24 @@ function SearchContent() {
     const intent = parseSearchIntent(brief);
     const detectedIds = resolveIntentCategoryIds(intent, filterGroups);
     const hasResolvedCriteria = Boolean(detectedIds.length || intent.bpmRange);
+    const previousAutomaticIds = new Set(automaticCategoryIdsRef.current);
     const frame = window.requestAnimationFrame(() => {
       setQuery(hasResolvedCriteria ? "" : brief);
-      setCategories(sorted(detectedIds));
-      setBpmRange(intent.bpmRange
-        ? [Math.max(DEFAULT_BPM[0], intent.bpmRange[0]), Math.min(DEFAULT_BPM[1], intent.bpmRange[1])]
-        : DEFAULT_BPM);
+      setCategories((current) => sorted([
+        ...current.filter((value) => !previousAutomaticIds.has(value)),
+        ...detectedIds,
+      ]));
+      automaticCategoryIdsRef.current = detectedIds;
+      if (intent.bpmRange) {
+        automaticBpmRef.current = true;
+        setBpmRange([
+          Math.max(DEFAULT_BPM[0], intent.bpmRange[0]),
+          Math.min(DEFAULT_BPM[1], intent.bpmRange[1]),
+        ]);
+      } else if (automaticBpmRef.current) {
+        automaticBpmRef.current = false;
+        setBpmRange(DEFAULT_BPM);
+      }
       setIntentResolutionPending(false);
     });
     return () => window.cancelAnimationFrame(frame);
@@ -202,10 +242,17 @@ function SearchContent() {
     return () => window.cancelAnimationFrame(frame);
   }, [brief, filtersQuery.isError, intentResolutionPending]);
 
-  const updateCategories = useCallback((values: string[]) => { setCategories(sorted(values)); setPage(1); }, []);
+  const updateCategories = useCallback((values: string[]) => {
+    automaticCategoryIdsRef.current = [];
+    setCategories(sorted(values));
+    setPage(1);
+  }, []);
   const updateLabels = useCallback((values: string[]) => { setLabels(sorted(values)); setPage(1); }, []);
-  const updateStyles = useCallback((values: string[]) => { setStyles(sorted(values)); setPage(1); }, []);
-  const updateBpm = useCallback((value: [number, number]) => { setBpmRange(value); setPage(1); }, []);
+  const updateBpm = useCallback((value: [number, number]) => {
+    automaticBpmRef.current = false;
+    setBpmRange(value);
+    setPage(1);
+  }, []);
   const updateDuration = useCallback((value: [number, number]) => { setDurationRange(value); setPage(1); }, []);
 
   useEffect(() => {
@@ -216,13 +263,14 @@ function SearchContent() {
     const params = new URLSearchParams();
     if (brief) params.set("brief", brief);
     if (query) params.set("q", query);
+    if (query && matchMode === "exact") params.set("match", "exact");
     params.set("view", view);
     params.set("type", type);
+    if (resultLayout !== (view === "albums" ? "grid" : "list")) params.set("layout", resultLayout);
     if (page > 1) params.set("page", String(page));
     if (sort !== "relevance") params.set("sort", sort);
     if (density !== "full") params.set("density", density);
     if (labels.length) params.set("labels", sorted(labels).join(","));
-    if (styles.length) params.set("styles", sorted(styles).join(","));
     if (categories.length) params.set("categories", sorted(categories).join(","));
     if (bpmRange[0] !== DEFAULT_BPM[0]) params.set("bpmMin", String(bpmRange[0]));
     if (bpmRange[1] !== DEFAULT_BPM[1]) params.set("bpmMax", String(bpmRange[1]));
@@ -230,7 +278,7 @@ function SearchContent() {
     if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`/search${next ? `?${next}` : ""}`, { scroll: false });
-  }, [bpmRange, brief, categories, density, durationRange, labels, mobileFiltersOpen, page, query, router, searchParams, sort, styles, type, view]);
+  }, [bpmRange, brief, categories, density, durationRange, labels, matchMode, mobileFiltersOpen, page, query, resultLayout, router, searchParams, sort, type, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -258,9 +306,10 @@ function SearchContent() {
   }, [mobileFiltersOpen]);
 
   const resetFilters = useCallback(() => {
+    automaticCategoryIdsRef.current = [];
+    automaticBpmRef.current = false;
     setCategories([]);
     setLabels([]);
-    setStyles([]);
     setBpmRange(DEFAULT_BPM);
     setDurationRange(DEFAULT_DURATION);
     setType("main");
@@ -272,7 +321,6 @@ function SearchContent() {
     offset: (page - 1) * PAGE_SIZE,
     query: query || undefined,
     labels,
-    styles,
     categories,
     minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
     maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
@@ -281,7 +329,8 @@ function SearchContent() {
     type,
     language: locale,
     sort,
-  }), [bpmRange, categories, durationRange, labels, locale, page, query, sort, styles, type]);
+    match: matchMode,
+  }), [bpmRange, categories, durationRange, labels, locale, matchMode, page, query, sort, type]);
   const debouncedParams = useDebounced(requestParams, 300);
   const tracksQuery = useTracks(debouncedParams, view === "tracks" && !intentResolutionPending);
   const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, view === "albums" && !intentResolutionPending);
@@ -295,60 +344,96 @@ function SearchContent() {
 
   const draftIntent = useMemo(() => parseSearchIntent(searchMode === "intent" ? queryDraft : ""), [queryDraft, searchMode]);
   const draftIntentChips = useMemo(() => searchIntentChips(draftIntent, locale), [draftIntent, locale]);
-  const hasTaxonomyIntent = Boolean(draftIntent.genres.length || draftIntent.moods.length || draftIntent.instruments.length);
+  const liveQueryDraft = useDebounced(queryDraft, 400);
 
-  const applyUnifiedSearch = () => {
-    const value = queryDraft.trim();
-    if (!value) return;
+  const commitSearchDraft = useCallback((rawValue: string) => {
+    const value = rawValue.trim();
+    if (!value) {
+      const previousAutomaticIds = new Set(automaticCategoryIdsRef.current);
+      automaticCategoryIdsRef.current = [];
+      setCategories((current) => sorted(current.filter((item) => !previousAutomaticIds.has(item))));
+      if (automaticBpmRef.current) setBpmRange(DEFAULT_BPM);
+      automaticBpmRef.current = false;
+      setQuery("");
+      setBrief("");
+      setMatchMode("normal");
+      setIntentResolutionPending(false);
+      setPage(1);
+      return;
+    }
+    if (value.length < 2) return;
     setPage(1);
-    setLabels([]);
-    setStyles([]);
-    setDurationRange(DEFAULT_DURATION);
-    setType("main");
 
     if (searchMode === "exact") {
+      const previousAutomaticIds = new Set(automaticCategoryIdsRef.current);
+      automaticCategoryIdsRef.current = [];
+      setCategories((current) => sorted(current.filter((item) => !previousAutomaticIds.has(item))));
+      if (automaticBpmRef.current) setBpmRange(DEFAULT_BPM);
+      automaticBpmRef.current = false;
       setBrief("");
       setQuery(value);
-      setCategories([]);
-      setBpmRange(DEFAULT_BPM);
+      setMatchMode(exactModeArmedRef.current ? "exact" : "normal");
       setIntentResolutionPending(false);
       return;
     }
 
-    const detectedIds = filterGroups.length ? resolveIntentCategoryIds(draftIntent, filterGroups) : [];
+    const intent = parseSearchIntent(value);
+    const detectedIds = filterGroups.length ? resolveIntentCategoryIds(intent, filterGroups) : [];
+    const hasTaxonomyIntent = Boolean(intent.genres.length || intent.moods.length || intent.instruments.length);
     const waitingForTaxonomy = hasTaxonomyIntent && !filterGroups.length;
-    const hasResolvedCriteria = Boolean(detectedIds.length || draftIntent.bpmRange);
+    const hasResolvedCriteria = Boolean(detectedIds.length || intent.bpmRange);
+    const previousAutomaticIds = new Set(automaticCategoryIdsRef.current);
+    automaticCategoryIdsRef.current = detectedIds;
     setBrief(value);
+    setMatchMode("normal");
     setQuery(waitingForTaxonomy || hasResolvedCriteria ? "" : value);
-    setCategories(sorted(detectedIds));
-    setBpmRange(draftIntent.bpmRange
-      ? [Math.max(DEFAULT_BPM[0], draftIntent.bpmRange[0]), Math.min(DEFAULT_BPM[1], draftIntent.bpmRange[1])]
-      : DEFAULT_BPM);
+    setCategories((current) => sorted([
+      ...current.filter((item) => !previousAutomaticIds.has(item)),
+      ...detectedIds,
+    ]));
+    if (intent.bpmRange) {
+      automaticBpmRef.current = true;
+      setBpmRange([
+        Math.max(DEFAULT_BPM[0], intent.bpmRange[0]),
+        Math.min(DEFAULT_BPM[1], intent.bpmRange[1]),
+      ]);
+    } else if (automaticBpmRef.current) {
+      automaticBpmRef.current = false;
+      setBpmRange(DEFAULT_BPM);
+    }
     setIntentResolutionPending(waitingForTaxonomy);
-  };
+  }, [filterGroups, searchMode]);
+
+  useEffect(() => {
+    commitSearchDraft(liveQueryDraft);
+  }, [commitSearchDraft, liveQueryDraft]);
+
+  const applyUnifiedSearch = () => commitSearchDraft(queryDraft);
 
   const clearUnifiedSearch = () => {
     setQueryDraft("");
     setQuery("");
     setBrief("");
+    setMatchMode("normal");
     setIntentResolutionPending(false);
     resetFilters();
   };
 
-  const activeValues = [...categories, ...styles];
+  const activeValues = categories;
   const includedCount = activeValues.filter((value) => !value.startsWith("-")).length + labels.length;
   const excludedCount = activeValues.filter((value) => value.startsWith("-")).length;
   const resultStart = total ? (page - 1) * PAGE_SIZE + 1 : 0;
   const resultEnd = Math.min(page * PAGE_SIZE, total);
-  const removeValue = (value: string, source: "categories" | "styles" | "labels") => {
-    const setter = source === "categories" ? updateCategories : source === "styles" ? updateStyles : updateLabels;
-    setter((source === "categories" ? categories : source === "styles" ? styles : labels).filter((item) => item !== value));
+  const removeValue = (value: string, source: "categories" | "labels") => {
+    const setter = source === "categories" ? updateCategories : updateLabels;
+    setter((source === "categories" ? categories : labels).filter((item) => item !== value));
   };
-  const addSuggestion = (suggestion: string) => {
-    const terms = query.match(/"[^"]+"|\S+/g)?.map((term) => stripQuotes(term)) ?? [];
-    const nextQuery = [...terms, suggestion].filter((term, index, all) => all.findIndex((candidate) => candidate.toLocaleLowerCase() === term.toLocaleLowerCase()) === index).map((term) => `"${term}"`).join(" ");
+  const applyPredictiveWord = (suggestion: string) => {
+    const nextQuery = suggestion.trim();
     setBrief("");
-    setSearchMode("exact");
+    exactModeArmedRef.current = false;
+    setSearchMode("intent");
+    setMatchMode("normal");
     setIntentResolutionPending(false);
     setQuery(nextQuery);
     setQueryDraft(nextQuery);
@@ -380,16 +465,13 @@ function SearchContent() {
       groups={filterGroups}
       categories={categories}
       labels={labels}
-      styles={styles}
       bpmRange={bpmRange}
       durationRange={durationRange}
       categoryFacets={facets?.categories ?? []}
       labelFacets={facets?.labels ?? []}
-      styleFacets={facets?.styles ?? []}
       locale={locale}
       onCategoriesChange={updateCategories}
       onLabelsChange={updateLabels}
-      onStylesChange={updateStyles}
       onBpmChange={updateBpm}
       onDurationChange={updateDuration}
       onReset={resetFilters}
@@ -404,28 +486,46 @@ function SearchContent() {
           <div className="mx-auto max-w-[1800px]">
             <div className="grid items-end gap-6 lg:grid-cols-[minmax(240px,.45fr)_minmax(0,1fr)]">
               <div>
-                <p className="eyebrow mb-3 text-[var(--signal-strong)]">{locale === "fr" ? "Catalogue Parigo" : "Parigo catalogue"}</p>
                 <h1 className="text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92] tracking-[-.06em]">{locale === "fr" ? "Trouver la bonne musique." : "Find the right music."}</h1>
               </div>
               <div>
-                <form onSubmit={(event) => { event.preventDefault(); applyUnifiedSearch(); }} className="ai-search-shell search-query-frame flex min-h-16 items-center border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 transition">
-                  {searchMode === "intent" ? <Sparkles size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" /> : <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />}
-                  <label htmlFor="catalog-search" className="sr-only">{searchMode === "intent" ? (locale === "fr" ? "Décrivez votre intention musicale" : "Describe your music brief") : (locale === "fr" ? "Rechercher un titre, un album ou un compositeur" : "Search for a title, album or composer")}</label>
-                  <input id="catalog-search" value={queryDraft} onChange={(event) => setQueryDraft(event.target.value)} maxLength={500} placeholder={searchMode === "intent" ? (locale === "fr" ? "Une techno énergique entre 120 et 140 BPM…" : "Energetic techno between 120 and 140 BPM…") : (locale === "fr" ? "Titre, album, compositeur ou mot-clé exact…" : "Title, album, composer or exact keyword…")} className="ai-search-input min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
-                  {queryDraft && <button type="button" onClick={clearUnifiedSearch} className="flex h-10 w-10 items-center justify-center hover:bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}><X size={16} /></button>}
-                  <Button type="submit" size="sm" disabled={!queryDraft.trim() || intentResolutionPending} aria-label={searchMode === "intent" ? (locale === "fr" ? "Interpréter et rechercher" : "Interpret and search") : t("common.search")}><span className="hidden sm:inline">{intentResolutionPending ? (locale === "fr" ? "Interprétation…" : "Interpreting…") : t("common.search")}</span>{intentResolutionPending ? <Loader2 className="animate-spin sm:hidden" size={17} /> : <ChevronRight className="sm:hidden" size={17} />}</Button>
-                </form>
+                <div className="relative">
+                  <form onSubmit={(event) => { event.preventDefault(); applyUnifiedSearch(); }} className="ai-search-shell search-query-frame flex min-h-16 items-center border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 transition">
+                    {searchMode === "intent" ? <Sparkles size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" /> : <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />}
+                    <label htmlFor="catalog-search" className="sr-only">{searchMode === "intent" ? (locale === "fr" ? "Décrivez votre intention musicale" : "Describe your music brief") : (locale === "fr" ? "Rechercher un titre, un album ou un compositeur" : "Search for a title, album or composer")}</label>
+                    <input id="catalog-search" role="combobox" value={queryDraft} onChange={(event) => {
+                      if (searchMode === "exact") exactModeArmedRef.current = true;
+                      setQueryDraft(event.target.value);
+                    }} maxLength={500} autoComplete="off" aria-autocomplete="list" aria-expanded={predictiveOpen} aria-controls="catalog-search-listbox" placeholder={searchMode === "intent" ? (locale === "fr" ? "Une techno énergique entre 120 et 140 BPM…" : "Energetic techno between 120 and 140 BPM…") : (locale === "fr" ? "Titre, album, compositeur ou mot-clé exact…" : "Title, album, composer or exact keyword…")} className="ai-search-input min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
+                    {queryDraft && <button type="button" onClick={clearUnifiedSearch} className="flex h-10 w-10 items-center justify-center hover:bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}><X size={16} /></button>}
+                    <Button type="submit" size="sm" disabled={!queryDraft.trim() || intentResolutionPending} aria-label={searchMode === "intent" ? (locale === "fr" ? "Analyser et rechercher" : "Analyse and search") : t("common.search")}><span className="hidden sm:inline">{intentResolutionPending ? (locale === "fr" ? "Analyse…" : "Analysing…") : t("common.search")}</span>{intentResolutionPending ? <ParigoLoader size="icon" label={locale === "fr" ? "Analyse en cours" : "Analysing"} className="sm:hidden" /> : <ChevronRight className="sm:hidden" size={17} />}</Button>
+                  </form>
+                  <PredictiveSearch
+                    query={queryDraft}
+                    locale={locale}
+                    view={view}
+                    localizedPath={localizedPath}
+                    onViewChange={(nextView) => { setView(nextView); setPage(1); }}
+                    onWordSelect={applyPredictiveWord}
+                    onOpenChange={setPredictiveOpen}
+                  />
+                </div>
                 <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div data-testid="search-interpretation" className="flex min-h-9 flex-1 flex-wrap items-center gap-2 text-[var(--text-muted)]" aria-live="polite">
-                    {searchMode === "intent" ? <>
-                      <span className="eyebrow">{locale === "fr" ? "Interprétation" : "Interpretation"}</span>
+                  {searchMode === "intent" && draftIntentChips.length > 0 ? (
+                    <div data-testid="search-detected-criteria" className="flex flex-1 flex-wrap items-center gap-2 text-[var(--text-muted)]" aria-live="polite">
+                      <span className="eyebrow">{locale === "fr" ? "Critères détectés" : "Detected criteria"}</span>
                       {draftIntentChips.map((chip) => <span key={chip.key} className="search-chip search-chip--included px-2.5 py-1 text-xs text-[var(--foreground)]">{chip.label}</span>)}
-                      {draftIntent.isVocal !== null && <span className="search-chip border-dashed px-2.5 py-1 text-xs">{locale === "fr" ? "Voix détectée · filtre bientôt disponible" : "Vocals detected · filter coming soon"}</span>}
-                      {queryDraft.trim() && !draftIntentChips.length && draftIntent.isVocal === null && <span className="text-xs">{locale === "fr" ? "Aucun critère structuré détecté : recherche par mots-clés." : "No structured criteria detected: keyword search."}</span>}
-                      {!queryDraft.trim() && <span className="text-xs">{locale === "fr" ? "Les critères compris apparaîtront ici avant la recherche." : "Recognised criteria will appear here before searching."}</span>}
-                    </> : <span className="text-xs">{locale === "fr" ? "Recherche littérale dans les titres, albums, compositeurs et métadonnées." : "Literal search across titles, albums, composers and metadata."}</span>}
-                  </div>
-                  <button type="button" onClick={() => setSearchMode((current) => current === "intent" ? "exact" : "intent")} className="inline-flex min-h-9 shrink-0 items-center gap-2 self-start border-b border-[var(--line-strong)] text-xs font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
+                    </div>
+                  ) : <span className="flex-1" aria-live="polite" />}
+                  <button type="button" onClick={() => setSearchMode((current) => {
+                    if (current === "exact") {
+                      exactModeArmedRef.current = false;
+                      setMatchMode("normal");
+                    } else {
+                      exactModeArmedRef.current = true;
+                    }
+                    return current === "intent" ? "exact" : "intent";
+                  })} className="inline-flex min-h-9 shrink-0 items-center gap-2 self-start border-b border-[var(--line-strong)] text-xs font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
                     {searchMode === "intent" ? <Search size={13} /> : <Sparkles size={13} />}
                     {searchMode === "intent" ? (locale === "fr" ? "Rechercher un titre précis" : "Search for an exact title") : (locale === "fr" ? "Décrire une intention" : "Describe a brief")}
                   </button>
@@ -437,37 +537,41 @@ function SearchContent() {
 
         <div className="mx-auto grid max-w-[1800px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:px-8">
           <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
-            {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><Loader2 className="animate-spin" /></div> : filterPanel}
+            {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
           </aside>
 
           <section className="min-w-0" aria-live="polite">
             <div className="search-toolbar mb-4 flex flex-wrap items-stretch justify-between gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-2.5">
               <div className="flex flex-wrap items-center gap-2">
                 <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 items-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
-                <div className="search-view-toggle inline-flex border border-[var(--line-strong)] p-1" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
+                <div className="search-view-toggle inline-flex min-h-11 border border-[var(--line-strong)] p-1" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
                   <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("min-h-10 px-3 text-xs font-semibold transition", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={14} className="mr-1.5 inline" />{locale === "fr" ? "Pistes" : "Tracks"}</button>
                   <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("min-h-10 px-3 text-xs font-semibold transition", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} className="mr-1.5 inline" />Albums</button>
                 </div>
-                <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Versions principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} />
+                {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Versions principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
               </div>
-              <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:w-auto sm:items-center">
-                <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Densité des pistes" : "Track density"} className="min-w-0 sm:min-w-[9.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste complète" : "Full track" }, { value: "mid", label: locale === "fr" ? "Mi-piste" : "Medium track" }, { value: "light", label: locale === "fr" ? "Piste légère" : "Light track" }]} />
+              <div className="flex w-full flex-wrap items-stretch justify-end gap-2 sm:w-auto">
+                <div className="search-view-toggle inline-flex min-h-11 border border-[var(--line-strong)] p-1" role="group" aria-label={locale === "fr" ? "Mode d’affichage des résultats" : "Results display mode"}>
+                  <button type="button" aria-pressed={resultLayout === "list"} onClick={() => setResultLayout("list")} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", resultLayout === "list" && "bg-[var(--foreground)] text-[var(--background)]")}><List size={14} />{locale === "fr" ? "Liste" : "List"}</button>
+                  <button type="button" aria-pressed={resultLayout === "grid"} onClick={() => setResultLayout("grid")} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", resultLayout === "grid" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} />{locale === "fr" ? "Grille" : "Grid"}</button>
+                </div>
+                {view === "tracks" && resultLayout === "list" ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="min-w-[10.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
                 <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="min-w-0 sm:min-w-[9rem]" options={[
                   { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
                   { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
                   { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
-                  ...(view === "tracks" ? [{ value: "bpm-asc" as const, label: "BPM ↑" }, { value: "bpm-desc" as const, label: "BPM ↓" }, { value: "duration-asc" as const, label: locale === "fr" ? "Durée ↑" : "Duration ↑" }, { value: "duration-desc" as const, label: locale === "fr" ? "Durée ↓" : "Duration ↓" }] : []),
+                  { value: "title", label: "A–Z" },
+                  { value: "title-desc", label: "Z–A" },
                 ]} />
               </div>
             </div>
 
-            {(categories.length > 0 || labels.length > 0 || styles.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
+            {(categories.length > 0 || labels.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
               <div className="search-active-filters mb-4 border border-[var(--line-strong)] bg-[var(--background)] p-3">
                 <div className="mb-3 flex items-center justify-between gap-4"><p className="font-mono text-[.62rem] font-semibold uppercase tracking-[.1em]">{locale === "fr" ? `${includedCount} inclus · ${excludedCount} exclus` : `${includedCount} included · ${excludedCount} excluded`}</p><button type="button" onClick={resetFilters} className="inline-flex min-h-9 items-center gap-2 border border-[var(--line)] bg-[var(--surface)] px-3 text-[.68rem] font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button></div>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "categories")} className={cn("search-chip inline-flex min-h-9 items-center gap-1.5 px-3 text-xs", negative ? "search-chip--excluded filter-chip-excluded" : "search-chip--included")}><span className={cn("search-chip__mark flex h-4 w-4 items-center justify-center", negative ? "bg-[var(--danger)] text-white" : "bg-[var(--signal-strong)] text-white")}>{negative ? <Minus size={10} /> : <Check size={10} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
                   {labels.map((value) => <button key={value} type="button" onClick={() => removeValue(value, "labels")} className="search-chip search-chip--included inline-flex min-h-9 items-center gap-1.5 px-3 text-xs"><span className="search-chip__mark flex h-4 w-4 items-center justify-center bg-[var(--signal-strong)] text-white"><Check size={10} /></span>{itemNames.get(value) ?? value}<X size={12} /></button>)}
-                  {styles.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "styles")} className={cn("search-chip inline-flex min-h-9 items-center gap-1.5 px-3 text-xs", negative ? "search-chip--excluded filter-chip-excluded" : "search-chip--included")} ><span className={cn("search-chip__mark flex h-4 w-4 items-center justify-center", negative ? "bg-[var(--danger)] text-white" : "bg-[var(--signal-strong)] text-white")}>{negative ? <Minus size={10} /> : <Check size={10} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
                   {(bpmRange[0] !== 50 || bpmRange[1] !== 200) && <button type="button" onClick={() => updateBpm(DEFAULT_BPM)} className="search-chip inline-flex min-h-9 items-center gap-1.5 px-3 font-mono text-xs">BPM {bpmRange[0]}–{bpmRange[1]}<X size={12} /></button>}
                   {(durationRange[0] !== 0 || durationRange[1] !== 300) && <button type="button" onClick={() => updateDuration(DEFAULT_DURATION)} className="search-chip inline-flex min-h-9 items-center gap-1.5 px-3 font-mono text-xs">{formatDuration(durationRange[0])}–{formatDuration(durationRange[1])}<X size={12} /></button>}
                 </div>
@@ -479,28 +583,42 @@ function SearchContent() {
               {(brief || query) && <span>{brief ? (locale === "fr" ? "Brief interprété" : "Interpreted brief") : (locale === "fr" ? "Résultats pour" : "Results for")} « {brief || query} »</span>}
             </div>
 
-            {saveSearchOpen && <div className="mb-4 grid gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nom de la recherche" : "Search name"}</span><input autoFocus value={saveSearchName} onChange={(event) => { setSaveSearchName(event.target.value); setSaveSearchState("idle"); }} maxLength={160} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--foreground)]" /></label><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setSaveSearchOpen(false)}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button size="sm" disabled={!saveSearchName.trim() || !searchHistoryId || saveSearchState === "saving"} onClick={() => void saveCurrentSearch()}>{saveSearchState === "saving" ? <Loader2 className="animate-spin" size={14} /> : <BookmarkPlus size={14} />}{saveSearchState === "saved" ? (locale === "fr" ? "Sauvegardée" : "Saved") : (locale === "fr" ? "Enregistrer" : "Save")}</Button></div>{saveSearchState === "error" && <p className="text-xs text-[var(--danger)] sm:col-span-2">{locale === "fr" ? "La recherche n’a pas pu être sauvegardée." : "The search could not be saved."}</p>}</div>}
-
-            {!activeQuery.isError && (
-              <DeferredSearchSuggestions locale={locale} onSelect={addSuggestion} />
-            )}
+            {saveSearchOpen && <div className="mb-4 grid gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nom de la recherche" : "Search name"}</span><input autoFocus value={saveSearchName} onChange={(event) => { setSaveSearchName(event.target.value); setSaveSearchState("idle"); }} maxLength={160} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--foreground)]" /></label><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setSaveSearchOpen(false)}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button size="sm" disabled={!saveSearchName.trim() || !searchHistoryId || saveSearchState === "saving"} onClick={() => void saveCurrentSearch()}>{saveSearchState === "saving" ? <ParigoLoader size="icon" label={locale === "fr" ? "Enregistrement" : "Saving"} /> : <BookmarkPlus size={14} />}{saveSearchState === "saved" ? (locale === "fr" ? "Sauvegardée" : "Saved") : (locale === "fr" ? "Enregistrer" : "Save")}</Button></div>{saveSearchState === "error" && <p className="text-xs text-[var(--danger)] sm:col-span-2">{locale === "fr" ? "La recherche n’a pas pu être sauvegardée." : "The search could not be saved."}</p>}</div>}
 
             {intentResolutionPending || activeQuery.isLoading || activeQuery.isFetching && !activeQuery.data ? (
-              <div className="flex min-h-96 items-center justify-center"><Loader2 className="animate-spin text-[var(--signal-strong)]" size={32} /><span className="sr-only">{t("common.loading")}</span></div>
+              <div className="flex min-h-96 items-center justify-center"><ParigoLoader size="page" label={t("common.loading")} /></div>
             ) : activeQuery.isError ? (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-3xl">{locale === "fr" ? "La recherche est temporairement indisponible." : "Search is temporarily unavailable."}</h2><p className="mt-3 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Réessayez dans quelques instants." : "Please try again in a moment."}</p><Button variant="outline" onClick={() => activeQuery.refetch()} className="mt-7">{t("common.retry")}</Button></div>
             ) : view === "tracks" ? tracks.length ? (
-              <div className="search-results-ledger overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]">
-                <div className="search-results-ledger__header hidden min-h-10 items-center justify-between gap-6 border-b border-[var(--line-strong)] px-4 font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--text-muted)] xl:flex">
-                  <span>{locale === "fr" ? "Piste · album · waveform" : "Track · album · waveform"}</span>
-                  <span>{locale === "fr" ? "Couleurs · tempo · durée · actions" : "Colours · tempo · duration · actions"}</span>
+              resultLayout === "list" ? (
+                <div className="search-results-ledger overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]">
+                  <div className="search-results-ledger__header hidden min-h-10 items-center justify-between gap-6 border-b border-[var(--line-strong)] px-4 font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--text-muted)] xl:flex">
+                    <span>{locale === "fr" ? "Piste · album · waveform" : "Track · album · waveform"}</span>
+                    <span>{locale === "fr" ? "Couleurs · tempo · durée · actions" : "Colours · tempo · duration · actions"}</span>
+                  </div>
+                  {tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFromTrack(track)} queue={tracks} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} />)}
                 </div>
-                {tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFromTrack(track)} queue={tracks} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} />)}
-              </div>
+              ) : (
+                <div data-testid="search-track-grid" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                  {tracks.map((track, index) => <TrackGridCard key={track.id} track={track} album={albumFromTrack(track)} queue={tracks} index={index} />)}
+                </div>
+              )
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             ) : albums.length ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{albums.map((album, index) => <article key={album.id} style={{ animationDelay: `${index * 18}ms` }} className="parigo-card animate-[fade-in_.25s_ease-out_both] border border-[var(--line)] bg-[var(--surface)] p-2.5"><Link href={localizedPath(`/albums/${album.slug || album.id}`)} className="group block"><div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div><div className="flex items-start justify-between gap-3 py-3"><div className="min-w-0"><h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2><p className="mt-1 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p></div><span className="font-mono text-[.55rem] opacity-40">{String(index + 1).padStart(2, "0")}</span></div></Link></article>)}</div>
+              resultLayout === "grid" ? (
+                <div data-testid="search-album-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{albums.map((album, index) => <article key={album.id} style={{ animationDelay: `${index * 18}ms` }} className="parigo-card animate-[fade-in_.25s_ease-out_both] border border-[var(--line)] bg-[var(--surface)] p-2.5"><Link href={localizedPath(`/albums/${album.slug || album.id}`)} className="group block"><div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div><div className="py-3"><h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2><p className="mt-1 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p></div></Link></article>)}</div>
+              ) : (
+                <div data-testid="search-album-list" className="search-results-ledger overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]">
+                  {albums.map((album) => (
+                    <Link key={album.id} href={localizedPath(`/albums/${album.slug || album.id}`)} className="group grid min-h-24 grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] p-2.5 last:border-b-0 sm:grid-cols-[7rem_minmax(0,1fr)_auto]">
+                      <div className="relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt="" fill sizes="112px" className="object-cover transition duration-500 group-hover:scale-[1.035]" /></div>
+                      <div className="min-w-0"><h2 className="truncate text-lg font-semibold tracking-[-.03em] sm:text-xl">{album.title}</h2><p className="mt-1 truncate text-sm text-[var(--text-muted)]">{album.label}</p></div>
+                      <span className="hidden pr-4 font-mono text-[.6rem] uppercase tracking-[.1em] text-[var(--text-muted)] sm:block">{album.trackCount} {locale === "fr" ? "pistes" : "tracks"}</span>
+                    </Link>
+                  ))}
+                </div>
+              )
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             )}
@@ -532,5 +650,5 @@ function SearchContent() {
 }
 
 export default function SearchPage() {
-  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><Loader2 className="animate-spin text-[var(--signal-strong)]" size={32} /></div>}><SearchContent /></Suspense>;
+  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><ParigoLoader size="page" /></div>}><SearchContent /></Suspense>;
 }

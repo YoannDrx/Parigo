@@ -32,7 +32,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await expect(
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
-  await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveAttribute("href", "/search");
+  await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveCount(0);
   await expect(hero.getByText("Interprétation", { exact: true })).toHaveCount(0);
   const search = page.getByLabel("Décrivez la musique que vous imaginez");
   await search.fill("Un piano intime pour un documentaire");
@@ -157,7 +157,7 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.getByRole("main").getByText(/A curated catalogue built for editors, music supervisors and producers/)).toBeVisible();
-  for (const heading of ["Who are we?", "From brief to selection.", "Begin with a feeling."]) {
+  for (const heading of ["Who are we?", "From brief to selection."]) {
     const element = page.getByRole("heading", { name: heading });
     const color = await element.evaluate((node) => getComputedStyle(node).color);
     const channels = color.match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
@@ -166,11 +166,11 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   const instagramTile = page.locator('[role="listitem"]').filter({ hasText: "Instagram" });
   await expect(instagramTile).toHaveCSS("background-color", "rgb(255, 255, 255)");
   if (testInfo.project.name === "desktop") {
-    const projectCta = page.getByRole("button", { name: "Discuss a project" });
+    const projectCta = page.getByRole("link", { name: "Send a brief" });
     await projectCta.scrollIntoViewIfNeeded();
     await page.waitForTimeout(800);
     await projectCta.hover();
-    await expect(projectCta).toHaveCSS("color", "rgb(17, 20, 17)");
+    await expect(projectCta).toHaveCSS("color", "rgb(16, 20, 16)");
   }
 });
 
@@ -200,6 +200,17 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await menuTrigger.click();
   const menu = page.getByRole("dialog", { name: "Menu principal" });
   await expect(menu).toBeVisible();
+  expect(await menu.getByTestId("drawer-navigation").getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
+    "/search",
+    "/labels",
+    "/label-parigo",
+    "/albums",
+    "/synchronisations",
+    "/playlists",
+    "/licensing",
+    "/clips",
+    "/compositeurs",
+  ]);
   if (testInfo.project.name === "mobile") {
     await expect(menu.getByText("Compte", { exact: true })).toBeVisible();
     await expect(menu.getByText("Préférences", { exact: true })).toBeVisible();
@@ -225,11 +236,8 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   expect(await page.locator('#featured a[href^="/albums/"]').count()).toBeGreaterThan(4);
   expect(await page.locator("main img").count()).toBeGreaterThanOrEqual(8);
 
-  const playlistsTitle = page.getByRole("heading", {
-    name: "Une sélection, plusieurs récits.",
-  });
-  await playlistsTitle.scrollIntoViewIfNeeded();
-  await expect(playlistsTitle).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Une sélection, plusieurs récits." })).toHaveCount(0);
+  await expect(page.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
 });
 
 test("la home et les pistes proposent des interactions tactiles dédiées", async ({ page }, testInfo) => {
@@ -239,8 +247,8 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const manifesto = page.locator("#manifesto");
   const manifestoTitle = manifesto.locator("h2").first();
   await expect(manifesto).toBeVisible({ timeout: 30_000 });
-  expect(await manifesto.evaluate((node) => node.clientHeight)).toBeGreaterThan((await page.evaluate(() => innerHeight)) * 2);
-  await expect(page.getByTestId("manifesto-reveal-edge")).toBeVisible();
+  expect(await manifesto.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual((await page.evaluate(() => innerHeight)) * 1.2);
+  await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(1);
   expect(Number.parseFloat(await manifestoTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(60);
 
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
@@ -254,16 +262,7 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   await process.scrollIntoViewIfNeeded();
   expect((await page.getByTestId("process-progress").boundingBox())!.height).toBeGreaterThanOrEqual(4);
 
-  const editorialRail = page.getByTestId("editorial-mobile-rail");
-  await editorialRail.scrollIntoViewIfNeeded();
-  expect(await editorialRail.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
-  const editorialCards = editorialRail.locator('a[href^="/playlists/"]');
-  const firstCard = await editorialCards.nth(0).boundingBox();
-  const secondCard = await editorialCards.nth(1).boundingBox();
-  expect(firstCard).not.toBeNull();
-  expect(secondCard).not.toBeNull();
-  expect(Math.abs(firstCard!.y - secondCard!.y)).toBeLessThanOrEqual(2);
-  expect(secondCard!.x).toBeGreaterThan(firstCard!.x);
+  await expect(page.getByTestId("editorial-mobile-rail")).toHaveCount(0);
 
   await page.goto("/search?q=piano&view=tracks&type=main");
   const firstPlay = page.getByRole("button", { name: /^Écouter / }).first();
@@ -311,13 +310,23 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     }));
     expect(inverseColors.control).not.toBe(inverseColors.section);
   }
-  await featured.getByRole("tab", { name: "Synchronisations" }).click();
-  const firstSync = featured.locator('a[href^="/synchronisations/"]').first();
+  await expect(featured.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
+  const dedicatedSyncSection = page.getByRole("heading", { name: "Nos synchronisations." }).locator("xpath=ancestor::section");
+  const firstSync = dedicatedSyncSection.locator('a[href^="/synchronisations/"]').first();
   await expect(firstSync).toBeVisible();
   await expect(firstSync.locator("img")).toHaveClass(/object-contain/);
   const syncFrame = await firstSync.locator(".home-sync-card__frame").boundingBox();
   expect(syncFrame).not.toBeNull();
   expect(syncFrame!.width / syncFrame!.height).toBeGreaterThan(1.7);
+  const syncCaption = firstSync.locator(".home-sync-card__caption");
+  if (testInfo.project.name === "mobile") {
+    await expect(syncCaption).toHaveCSS("opacity", "1");
+  } else {
+    await expect(syncCaption).toHaveCSS("opacity", "0");
+    await firstSync.hover();
+    await expect(syncCaption).toHaveCSS("opacity", "1");
+    await expect(firstSync.locator(".home-sync-card__image")).toHaveCSS("filter", "blur(5px)");
+  }
   const syncHref = await firstSync.getAttribute("href");
   expect(syncHref).toMatch(/^\/synchronisations\/[^/]+$/);
   await firstSync.click();
@@ -336,61 +345,62 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toBeVisible();
 });
 
-test("le manifesto quitte le sticky sans saut en desktop", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "La continuité desktop est contrôlée séparément.");
+test("le manifesto se révèle automatiquement sans sticky ni hauteur artificielle", async ({ page }) => {
   await page.goto("/");
   const section = page.locator("#manifesto");
-  const stickyPanel = section.locator(":scope > div");
-  const edge = page.getByTestId("manifesto-reveal-edge");
-  await expect(edge).toBeVisible();
-  const geometry = await section.evaluate((node) => ({
-    top: (node as HTMLElement).offsetTop,
-    travel: Math.max(1, node.clientHeight - window.innerHeight),
-    height: node.clientHeight,
-  }));
-  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel * .5, behavior: "instant" }), geometry);
-  await expect.poll(async () => Number.parseFloat(await edge.evaluate((node) => getComputedStyle(node).left))).toBeGreaterThan(100);
-  await expect.poll(async () => Number.parseFloat(await edge.evaluate((node) => getComputedStyle(node).left))).toBeLessThan(1340);
-  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel * .999, behavior: "instant" }), geometry);
-  await expect(edge).toBeVisible();
-  await expect(stickyPanel).toHaveCSS("position", "sticky");
-  expect(Math.abs(await stickyPanel.evaluate((node) => node.getBoundingClientRect().top))).toBeLessThanOrEqual(2);
-  expect(await section.evaluate((node) => node.clientHeight)).toBe(geometry.height);
-  expect(geometry.height).toBeGreaterThanOrEqual((await page.evaluate(() => window.innerHeight)) * 2);
-
-  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel - 24, behavior: "instant" }), geometry);
-  const beforeBoundary = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
-  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel + 24, behavior: "instant" }), geometry);
-  const afterBoundary = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
-  expect(Math.abs(beforeBoundary)).toBeLessThanOrEqual(2);
-  expect(afterBoundary).toBeGreaterThanOrEqual(-26);
-  expect(afterBoundary).toBeLessThanOrEqual(-22);
+  await section.scrollIntoViewIfNeeded();
+  await expect(section).toHaveAttribute("data-reveal-complete", "true", { timeout: 10_000 });
+  expect(Number(await section.getAttribute("data-cover-pool-size"))).toBeGreaterThanOrEqual(50);
+  const revealOverlay = page.getByTestId("manifesto-reveal-edge");
+  await expect(revealOverlay).toHaveCount(1);
+  await expect(revealOverlay).toHaveAttribute("data-reveal-overlay", "true");
+  const revealStyle = await revealOverlay.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return {
+      background: style.backgroundColor,
+      border: style.borderLeftWidth,
+      opacity: style.opacity,
+    };
+  });
+  expect(revealStyle.background).not.toBe("rgba(0, 0, 0, 0)");
+  expect(revealStyle.border).toBe("3px");
+  expect(revealStyle.opacity).toBe("1");
+  await expect(section.locator(":scope > div")).not.toHaveCSS("position", "sticky");
+  expect(await section.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual((await page.evaluate(() => innerHeight)) * 1.2);
 });
 
-test("le manifesto mobile attend la fin du geste sans sauter", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "La continuité mobile est contrôlée séparément.");
+test("le manifesto révèle des pochettes Parigo dans différentes zones après l’animation", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "L’exploration des pochettes est une interaction au pointeur.");
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
   const section = page.locator("#manifesto");
-  const stickyPanel = section.locator(":scope > div");
-  const geometry = await section.evaluate((node) => ({
-    top: (node as HTMLElement).offsetTop,
-    travel: node.clientHeight - window.innerHeight,
-    height: node.clientHeight,
-  }));
-  await page.evaluate(({ top, travel }) => window.scrollTo({ top: top + travel - 28, behavior: "instant" }), geometry);
-  const processTopBefore = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
-  const panelTopBefore = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
-  await page.evaluate(() => window.scrollBy({ top: 56, behavior: "instant" }));
-  const processTopAfter = await page.locator("#process").evaluate((node) => node.getBoundingClientRect().top);
-  const panelTopAfter = await stickyPanel.evaluate((node) => node.getBoundingClientRect().top);
-  expect(await section.evaluate((node) => node.clientHeight)).toBe(geometry.height);
-  expect(processTopAfter - processTopBefore).toBeLessThanOrEqual(-54);
-  expect(processTopAfter - processTopBefore).toBeGreaterThanOrEqual(-58);
-  expect(Math.abs(panelTopBefore)).toBeLessThanOrEqual(2);
-  expect(panelTopAfter).toBeGreaterThanOrEqual(-30);
-  expect(panelTopAfter).toBeLessThanOrEqual(-26);
-  await expect(stickyPanel).toHaveCSS("position", "sticky");
+  await section.scrollIntoViewIfNeeded();
+  await expect(section).toHaveAttribute("data-reveal-complete", "true", { timeout: 10_000 });
+  const box = await section.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width * .14, box!.y + box!.height * .22);
+  const firstCover = page.getByTestId("manifesto-album-cover");
+  await expect(firstCover).toBeVisible();
+  const firstSource = await firstCover.locator("img").getAttribute("src");
+  const zones = [
+    [.31, .66],
+    [.52, .28],
+    [.69, .58],
+    [.84, .72],
+  ] as const;
+  for (const [x, y] of zones) {
+    await page.mouse.move(box!.x + box!.width * x, box!.y + box!.height * y);
+    await page.waitForTimeout(80);
+  }
+  await expect.poll(() => page.getByTestId("manifesto-album-cover").count()).toBeGreaterThanOrEqual(12);
+  await expect.poll(async () => page.getByTestId("manifesto-album-cover").evaluateAll((covers) => (
+    covers.length > 0 && covers.every((cover) => Number(getComputedStyle(cover).opacity) === 1)
+  ))).toBe(true);
+  await expect.poll(async () => page.getByTestId("manifesto-album-cover").last().locator("img").getAttribute("src")).not.toBe(firstSource);
+  const coverAngles = await page.getByTestId("manifesto-album-cover").evaluateAll((covers) => (
+    covers.map((cover) => getComputedStyle(cover).transform)
+  ));
+  expect(new Set(coverAngles).size).toBeGreaterThan(2);
+  await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0, { timeout: 7_000 });
 });
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }) => {
@@ -444,19 +454,17 @@ test("la recherche depuis l’accueil interprète l’intention et alimente le l
   expect(elapsedBeforeNavigation).not.toBe("0:00");
 });
 
-test("les suggestions sont visibles à vide et la shortlist expose son état", async ({ page }, testInfo) => {
+test("la shortlist expose son état sans contenu prédictif persistant à vide", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
   test.skip(testInfo.project.name === "mobile", "L’état compact de la shortlist est vérifié en desktop.");
   await page.goto("/search");
-  await expect(page.getByRole("heading", { name: "Recherches suggérées" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "upbeat", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Recherches suggérées" })).toHaveCount(0);
+  await expect(page.getByRole("region", { name: "Suggestions de recherche" })).toHaveCount(0);
   const searchInput = page.locator("#catalog-search");
   await searchInput.focus();
   const focusedForm = searchInput.locator("xpath=ancestor::form");
   expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).toBe("none");
   await expect(searchInput).toHaveCSS("outline-style", "none");
-  const suggestionRail = page.locator(".suggestion-rail");
-  expect(await suggestionRail.evaluate((node) => node.scrollWidth > node.clientWidth)).toBe(true);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("[data-shortlist-trigger]")).toHaveCount(0);
   const add = page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).first();
@@ -485,16 +493,13 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   await page.goto("/search");
   const input = page.getByLabel("Décrivez votre intention musicale");
   await input.fill("Une techno magnétique avec voix");
-  const interpretation = page.getByTestId("search-interpretation");
+  const interpretation = page.getByTestId("search-detected-criteria");
   await expect(interpretation).toContainText("Techno");
-  await expect(interpretation).toContainText("Voix détectée · filtre bientôt disponible");
+  await expect(interpretation).not.toContainText("bientôt disponible");
 
   await input.fill("Une techno qui tabasse.");
   await expect(interpretation).toContainText("Techno");
   await expect(interpretation).toContainText("Énergique");
-  const apply = page.getByRole("button", { name: "Interpréter et rechercher" });
-  await expect(apply).toBeEnabled({ timeout: 30_000 });
-  await apply.click();
   await expect(page).toHaveURL(/categories=ATT_8c1be9ece2483e34/, { timeout: 30_000 });
 
   const url = new URL(page.url());
@@ -522,15 +527,6 @@ test("la recherche exacte reste accessible depuis le champ unifié", async ({ pa
 test("les suggestions et les tags enrichis restent lisibles", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Les tags de piste détaillés sont réservés à la densité desktop.");
   await page.goto("/search?q=piano&view=tracks&type=main");
-  const rail = page.getByLabel("Faire défiler les recherches suggérées horizontalement");
-  const firstSuggestion = rail.locator("button").first();
-  await firstSuggestion.hover();
-  const railBox = await rail.boundingBox();
-  const suggestionBox = await firstSuggestion.boundingBox();
-  expect(railBox).not.toBeNull();
-  expect(suggestionBox).not.toBeNull();
-  expect(suggestionBox!.y).toBeGreaterThanOrEqual(railBox!.y);
-
   const moreTags = page.getByRole("button", { name: /^Voir tous les tags :/ }).first();
   await expect(moreTags).toBeVisible({ timeout: 30_000 });
   await moreTags.hover();

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Clock, Loader2 } from "lucide-react";
+import { Clock } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -74,7 +75,7 @@ export default function HistoryPage() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={32} className="animate-spin text-[var(--color-primary)]" />
+          <ParigoLoader size="page" label={locale === "fr" ? "Chargement de l’historique" : "Loading history"} />
         </div>
       ) : history.length === 0 ? (
         <motion.div
