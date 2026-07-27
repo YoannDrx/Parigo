@@ -130,7 +130,6 @@ Ce rapport est généré par `pnpm migrate:editorial` depuis les données suivie
 
 ## Clips sans crédit compositeur vérifié
 
-- acid-body-music-2
 - egocentric-visuo-spatial-perspective-2
 - garden-of-eden
 - klang-brutt
@@ -139,7 +138,7 @@ Ce rapport est généré par `pnpm migrate:editorial` depuis les données suivie
 
 | Clip | Compositeurs vérifiés | Album relié |
 | --- | --- | --- |
-| acid-body-music-2 | non vérifié | — |
+| acid-body-music-2 | modulhater | PGO0025 |
 | ailleurs | arom | PGO0035 |
 | alien-suites-remixes | n-zeng | PGO0049 |
 | dark-ambient-2-making-of | ugly-mac-beer, yann-kornowicz | PGO0044 |

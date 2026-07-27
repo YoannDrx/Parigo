@@ -16,9 +16,6 @@ export const playlistVideoOverrides: Record<string, PlaylistVideoOverride> = {
   l3iFO626BFw: {
     localSlug: "acid-body-music-2",
     videoType: "teaser",
-    composerSlugs: ["modulhater"],
-    reviewState: "verified",
-    composerRelationSource: "manual",
   },
   m3khGsiRDoU: {
     duplicateOf: "ny-parigo-2",

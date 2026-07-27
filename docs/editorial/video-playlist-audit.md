@@ -14,7 +14,7 @@ La playlist constitue la source de l’inventaire, du titre, de la miniature et 
 
 ## Points nécessitant une validation éditoriale
 
-- `Acid Body Music` : le teaser officiel est relié explicitement à la fiche et à Modulhater.
+- `Acid Body Music` : relation validée le 27/07/2026 avec Modulhater et l’album `PGO0025 — Acid`. Cette relation reste un override manuel tant que Harvest n’expose pas les vidéos et leurs liens structurés.
 - `NY Parigo` : la seconde vidéo détectée est traitée comme doublon de la fiche canonique.
 - `Une Dernière Fois` / `Une Première Fois` : l’affichage reprend le titre de la vidéo officielle « Une Première Fois » ; le titre source Portfolio doit encore être corrigé.
 - `Dub Experience` : présent dans la playlist mais absent de la migration publiée initiale.
