@@ -1017,10 +1017,15 @@
       },
       "description": {},
       "cover": "/images/clips/acid-body-music-2.webp",
-      "composerSlugs": [],
+      "composerSlugs": [
+        "modulhater"
+      ],
+      "relatedAlbumCode": "PGO0025",
       "videoType": "official-video",
       "source": "portfolio-caro",
       "reviewState": "verified",
+      "composerRelationSource": "manual",
+      "albumRelationSource": "manual",
       "order": 31,
       "published": true
     },

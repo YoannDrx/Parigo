@@ -93,6 +93,7 @@ const exactHarvestProfiles = new Set([
 ]);
 
 const clipCredits: Record<string, string[]> = {
+  "acid-body-music-2": ["modulhater"],
   ailleurs: ["arom"],
   "alien-suites-remixes": ["n-zeng"],
   "dark-ambient-2-making-of": ["ugly-mac-beer", "yann-kornowicz"],
@@ -104,6 +105,11 @@ const clipCredits: Record<string, string[]> = {
   "riviera-bizarre-2": ["minimatic"],
   "une-derniere-fois-2": ["jb-hanak", "cedric-hanak"],
   "videoclub-2": ["dan-amozig", "yann-kornowicz"],
+};
+
+const manualClipCreditSlugs = new Set(["acid-body-music-2"]);
+const manualClipAlbumCodes: Record<string, string> = {
+  "acid-body-music-2": "PGO0025",
 };
 
 const groupProfiles = new Set([
@@ -124,6 +130,8 @@ function youtubeId(value?: string | null): string | undefined {
 }
 
 function relatedAlbumCode(work: SourceWork, worksBySlug: Map<string, SourceWork>): string | undefined {
+  const manualCode = manualClipAlbumCodes[work.slug];
+  if (manualCode) return manualCode;
   for (const slug of work.relatedProjectSlugs ?? []) {
     const related = worksBySlug.get(slug);
     const code = related?.coverImage.match(/\b(pgo\d{4})\b/i)?.[1];
@@ -219,6 +227,7 @@ async function main() {
     clipWorks.map(async (work) => {
       const target = path.join(clipAssetRoot, `${work.slug}.webp`);
       await optimize(path.join(portfolioRoot, work.coverImage), target, 78);
+      const albumCode = relatedAlbumCode(work, worksBySlug);
       return {
         slug: work.slug,
         title: { fr: work.titleFr, en: work.titleEn },
@@ -227,12 +236,16 @@ async function main() {
         cover: `/images/clips/${work.slug}.webp`,
         youtubeId: youtubeId(work.youtubeUrl),
         composerSlugs: clipCredits[work.slug] ?? [],
-        relatedAlbumCode: relatedAlbumCode(work, worksBySlug),
+        relatedAlbumCode: albumCode,
         videoType: /making.of/i.test(work.slug) ? "making-of" : "official-video",
         source: "portfolio-caro",
         reviewState: "verified",
-        composerRelationSource: (clipCredits[work.slug]?.length ?? 0) > 0 ? "portfolio-caro" : undefined,
-        albumRelationSource: relatedAlbumCode(work, worksBySlug) ? "portfolio-caro" : undefined,
+        composerRelationSource: (clipCredits[work.slug]?.length ?? 0) > 0
+          ? (manualClipCreditSlugs.has(work.slug) ? "manual" : "portfolio-caro")
+          : undefined,
+        albumRelationSource: albumCode
+          ? (manualClipAlbumCodes[work.slug] ? "manual" : "portfolio-caro")
+          : undefined,
         order: work.order,
         published: true,
       };

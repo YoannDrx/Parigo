@@ -36,11 +36,22 @@ describe("editorial content", () => {
     expect(clips).toHaveLength(15);
     expect(clips.filter((clip) => clip.youtubeId)).toHaveLength(14);
     expect(clips.filter((clip) => !clip.composerSlugs.length).map((clip) => clip.slug).sort()).toEqual([
-      "acid-body-music-2",
       "egocentric-visuo-spatial-perspective-2",
       "garden-of-eden",
       "klang-brutt",
     ]);
+  });
+
+  it("keeps the confirmed Acid Body Music relations in the offline editorial manifest", () => {
+    const clip = clips.find((item) => item.slug === "acid-body-music-2");
+
+    expect(clip).toMatchObject({
+      composerSlugs: ["modulhater"],
+      relatedAlbumCode: "PGO0025",
+      reviewState: "verified",
+      composerRelationSource: "manual",
+      albumRelationSource: "manual",
+    });
   });
 
   it("resolves exact published composer aliases", () => {
