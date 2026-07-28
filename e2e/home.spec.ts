@@ -298,8 +298,12 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     "src",
     /^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/playlistart\//,
   );
-  await expect(featuredArtwork).toHaveAttribute("srcset", /width=256.*width=800/);
-  expect(await featuredArtwork.getAttribute("srcset")).not.toContain("/_next/image");
+  const featuredSrcset = await featuredArtwork.getAttribute("srcset");
+  const featuredWidths = [...(featuredSrcset ?? "").matchAll(/[?&]width=(\d+)/g)]
+    .map((match) => Number(match[1]));
+  expect(featuredWidths.length).toBeGreaterThan(0);
+  expect(Math.max(...featuredWidths)).toBe(320);
+  expect(featuredSrcset).not.toContain("/_next/image");
   const nextButton = featured.locator('button[aria-label="Suivant"]');
   if (testInfo.project.name === "mobile") await expect(nextButton).toBeHidden();
   else {
