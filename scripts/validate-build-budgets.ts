@@ -6,7 +6,8 @@ const root = process.cwd();
 const nextRoot = path.join(root, ".next");
 const staticRoot = path.join(nextRoot, "static");
 const CSS_BUDGET = 120 * 1024;
-const DEFAULT_JS_BUDGET = 200 * 1024;
+// Next.js 16.2.12 adds less than 1 KiB Brotli to the shared public runtime.
+const DEFAULT_JS_BUDGET = 201 * 1024;
 const HOME_JS_BUDGET = 220 * 1024;
 
 async function walk(directory: string): Promise<string[]> {
