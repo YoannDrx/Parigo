@@ -25,6 +25,13 @@ interface UserPlaylist {
 type Visibility = "all" | "private" | "public";
 type Sort = "recent" | "title" | "tracks";
 
+async function fetchUserPlaylists(): Promise<UserPlaylist[]> {
+  const response = await fetch("/api/user/playlists", { cache: "no-store" });
+  if (!response.ok) return [];
+  const data = await response.json();
+  return data.data?.playlists ?? [];
+}
+
 export default function PlaylistsPage() {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
@@ -44,11 +51,7 @@ export default function PlaylistsPage() {
   const loadPlaylists = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/user/playlists", { cache: "no-store" });
-      if (response.ok) {
-        const data = await response.json();
-        setPlaylists(data.data?.playlists || []);
-      }
+      setPlaylists(await fetchUserPlaylists());
     } catch (error) {
       console.error("Error loading playlists:", error);
     } finally {
@@ -57,7 +60,21 @@ export default function PlaylistsPage() {
   };
 
   useEffect(() => {
-    if (userId) void loadPlaylists();
+    if (!userId) return;
+    let active = true;
+    void fetchUserPlaylists()
+      .then((nextPlaylists) => {
+        if (active) setPlaylists(nextPlaylists);
+      })
+      .catch((error) => {
+        console.error("Error loading playlists:", error);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, [userId]);
 
   useEffect(() => {

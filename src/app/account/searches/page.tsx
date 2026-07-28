@@ -9,6 +9,13 @@ import { Button } from "@/components/ui";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { MemberSavedSearch } from "@/types";
 
+async function fetchSavedSearches(): Promise<MemberSavedSearch[]> {
+  const response = await fetch("/api/user/searches", { cache: "no-store" });
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error?.message || "Unable to load saved searches");
+  return payload.data?.searches ?? [];
+}
+
 export default function SavedSearchesPage() {
   const { locale } = useI18n();
   const [searches, setSearches] = useState<MemberSavedSearch[]>([]);
@@ -20,10 +27,7 @@ export default function SavedSearchesPage() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("/api/user/searches", { cache: "no-store" });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error?.message || "Unable to load saved searches");
-      setSearches(payload.data?.searches ?? []);
+      setSearches(await fetchSavedSearches());
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Unable to load saved searches");
     } finally {
@@ -31,7 +35,22 @@ export default function SavedSearchesPage() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    let active = true;
+    void fetchSavedSearches()
+      .then((nextSearches) => {
+        if (active) setSearches(nextSearches);
+      })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Unable to load saved searches");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const remove = async (id: string) => {
     setRemoving(id);

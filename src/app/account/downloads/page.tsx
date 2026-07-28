@@ -32,25 +32,25 @@ export default function DownloadsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (session?.user) {
-      loadDownloads();
-    }
-  }, [session?.user]);
+    if (!session?.user) return;
+    let active = true;
 
-  const loadDownloads = async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/user/downloads");
-      if (response.ok) {
-        const data = await response.json();
-        setDownloads(data.data?.downloads || []);
-      }
-    } catch (error) {
-      console.error("Error loading downloads:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    void fetch("/api/user/downloads")
+      .then((response) => response.ok ? response.json() : null)
+      .then((data) => {
+        if (active) setDownloads(data?.data?.downloads ?? []);
+      })
+      .catch((error) => {
+        console.error("Error loading downloads:", error);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [session?.user]);
 
   return (
     <div className="account-page space-y-8">

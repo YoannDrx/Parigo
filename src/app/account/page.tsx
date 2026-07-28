@@ -18,6 +18,13 @@ function editable(profile: FullProfile): EditableProfile {
   return Object.fromEntries(editableKeys.map((key) => [key, profile[key] ?? ""])) as EditableProfile;
 }
 
+async function fetchProfile(): Promise<FullProfile> {
+  const response = await fetch("/api/user/profile", { cache: "no-store" });
+  if (!response.ok) throw new Error("profile");
+  const payload = await response.json() as { data: { profile: FullProfile } };
+  return payload.data.profile;
+}
+
 export default function AccountPage() {
   const { locale, t } = useI18n();
   const [profile, setProfile] = useState<FullProfile | null>(null);
@@ -30,15 +37,28 @@ export default function AccountPage() {
   const loadProfile = async () => {
     setLoading(true);
     try {
-      const response = await fetch("/api/user/profile", { cache: "no-store" });
-      if (!response.ok) throw new Error("profile");
-      const payload = await response.json() as { data: { profile: FullProfile } };
-      setProfile(payload.data.profile);
-      setForm(editable(payload.data.profile));
+      const nextProfile = await fetchProfile();
+      setProfile(nextProfile);
+      setForm(editable(nextProfile));
     } finally { setLoading(false); }
   };
 
-  useEffect(() => { void loadProfile(); }, []);
+  useEffect(() => {
+    let active = true;
+    void fetchProfile()
+      .then((nextProfile) => {
+        if (!active) return;
+        setProfile(nextProfile);
+        setForm(editable(nextProfile));
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const save = async (event: FormEvent) => {
     event.preventDefault();

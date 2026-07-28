@@ -82,18 +82,22 @@ export function MiniPlayer() {
 
     let isMounted = true;
     let localWaveSurfer: WaveSurfer | null = null;
-    setIsReady(false);
-    setHasError(false);
-    setIsLoading(true);
+    const hasAudio = Boolean(currentTrack.audioUrl);
+    queueMicrotask(() => {
+      if (!isMounted) return;
+      setIsReady(false);
+      setHasError(!hasAudio);
+      setIsLoading(hasAudio);
+      if (!hasAudio) setDuration(currentTrack.duration);
+    });
     if (wavesurferRef.current) {
       try { wavesurferRef.current.destroy(); } catch {}
       wavesurferRef.current = null;
     }
     if (!currentTrack.audioUrl) {
-      setHasError(true);
-      setIsLoading(false);
-      setDuration(currentTrack.duration);
-      return;
+      return () => {
+        isMounted = false;
+      };
     }
     const audioUrl = currentTrack.audioUrl;
     const container = waveformRef.current;
