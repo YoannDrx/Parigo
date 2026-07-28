@@ -7,6 +7,7 @@ import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { Button } from "@/components/ui";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
+import { formatParigoDate } from "@/lib/date-time";
 import type { MemberSavedSearch } from "@/types";
 
 async function fetchSavedSearches(): Promise<MemberSavedSearch[]> {
@@ -70,7 +71,7 @@ export default function SavedSearchesPage() {
     <div className="mt-9">
     {loading ? <div className="flex min-h-56 items-center justify-center"><ParigoLoader size="page" label={locale === "fr" ? "Chargement des recherches" : "Loading searches"} /></div> : error ? <div className="parigo-frame border border-[var(--line)] p-6"><p className="text-sm text-[var(--danger)]">{error}</p><Button variant="outline" className="mt-4" onClick={() => void load()}>{locale === "fr" ? "Réessayer" : "Retry"}</Button></div> : searches.length === 0 ? <div className="account-empty py-16 text-center"><Search className="mx-auto opacity-25" size={36} /><h3 className="mt-5 text-2xl">{locale === "fr" ? "Aucune recherche enregistrée" : "No saved search"}</h3><p className="mx-auto mt-3 max-w-md text-sm text-[var(--text-muted)]">{locale === "fr" ? "Lancez une recherche dans le catalogue puis utilisez « Sauvegarder » au-dessus des résultats." : "Run a catalogue search, then use Save above the results."}</p></div> : <div className="parigo-frame border border-[var(--line)] bg-[var(--surface)]">
       {searches.map((search) => <article key={search.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] px-5 py-5 last:border-b-0 sm:px-6">
-        <div className="min-w-0"><h3 className="truncate text-lg font-semibold">{search.name}</h3><p className="mt-1 text-xs text-[var(--text-muted)]">{search.searchTermsCount ? `${search.searchTermsCount} ${locale === "fr" ? "critère(s)" : "criteria"}` : (locale === "fr" ? "Recherche Parigo" : "Parigo search")}{search.createdAt ? ` · ${new Date(search.createdAt).toLocaleDateString(locale)}` : ""}</p></div>
+        <div className="min-w-0"><h3 className="truncate text-lg font-semibold">{search.name}</h3><p className="mt-1 text-xs text-[var(--text-muted)]">{search.searchTermsCount ? `${search.searchTermsCount} ${locale === "fr" ? "critère(s)" : "criteria"}` : (locale === "fr" ? "Recherche Parigo" : "Parigo search")}{search.createdAt ? ` · ${formatParigoDate(search.createdAt, locale)}` : ""}</p></div>
         <div className="flex items-center gap-1">{search.searchUrl && <Link href={search.searchUrl} className="inline-flex min-h-10 items-center gap-2 border border-[var(--line)] px-3 text-xs font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">{locale === "fr" ? "Relancer" : "Run again"}<ArrowUpRight size={14} /></Link>}<button type="button" disabled={removing === search.id} onClick={() => void remove(search.id)} className="flex h-10 w-10 items-center justify-center text-[var(--text-muted)] transition hover:text-[var(--danger)] disabled:opacity-40" aria-label={`${locale === "fr" ? "Supprimer" : "Delete"} ${search.name}`}>{removing === search.id ? <ParigoLoader size="icon" label={locale === "fr" ? "Suppression" : "Deleting"} /> : <Trash2 size={15} />}</button></div>
       </article>)}
     </div>}

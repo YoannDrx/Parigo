@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   buildAddTracksToTags,
+  buildAddTracksToPlaylists,
+  buildCopyFeaturedPlaylist,
+  buildDownloadRequest,
+  buildDownloadValidation,
+  buildMemberPlaylist,
   buildPlaylistShare,
   buildPlaylistSuggestions,
+  buildReorderPlaylistTracks,
   buildSavedSearch,
   buildSavedSearchQuery,
   buildTrackComment,
@@ -37,6 +43,53 @@ describe("Harvest member request contracts", () => {
 
   it("uses Harvest object and tag ID arrays without aliases", () => {
     expect(buildAddTracksToTags(["tag-1"], ["track-1", "track-2"])).toEqual({ ObjectType: "Track", ObjectIDs: ["track-1", "track-2"], AddToTagIDs: ["tag-1"] });
+  });
+
+  it("uses the documented Harvest member playlist contracts without aliases", () => {
+    expect(buildMemberPlaylist("Piano intime", "Montage final")).toEqual({
+      PlaylistName: "Piano intime",
+      PlaylistDescription: "Montage final",
+    });
+    expect(buildCopyFeaturedPlaylist("featured-1")).toEqual({
+      PlaylistID: "featured-1",
+      CopyTracks: true,
+    });
+    expect(buildAddTracksToPlaylists(["playlist-1"], ["track-1", "track-2"])).toEqual({
+      ObjectType: "Track",
+      ObjectIDs: ["track-1", "track-2"],
+      AddToPlaylistIDs: ["playlist-1"],
+    });
+    expect(buildReorderPlaylistTracks("playlist-1", ["track-2"], { succeedingTrackId: "track-1" })).toEqual({
+      FromPlaylistID: "playlist-1",
+      ToPlaylistID: "playlist-1",
+      TrackIDs: ["track-2"],
+      SucceedingTrackID: "track-1",
+    });
+    expect(() => buildReorderPlaylistTracks("playlist-1", ["track-1"], {})).toThrow(TypeError);
+  });
+
+  it("uses the documented Harvest download field names", () => {
+    expect(buildDownloadValidation(["track-1", "track-2"], "format-1", true)).toEqual({
+      downloadtype: "track",
+      identifier: "track-1,track-2",
+      format: "format-1",
+      trimstartsecs: 0,
+      trimendsecs: 0,
+      includeversioncheck: true,
+    });
+    expect(buildDownloadRequest(["track-1"], "format-1", "member@example.invalid")).toEqual({
+      downloadtype: "track",
+      identifier: "track-1",
+      format: "format-1",
+      trimstartsecs: 0,
+      trimendsecs: 0,
+      email: "member@example.invalid",
+      isshare: false,
+      forceemail: false,
+      message: "",
+      senderemail: "member@example.invalid",
+      includeversions: false,
+    });
   });
 
   it("serializes saved searches, private notes and playlist suggestions", () => {

@@ -101,7 +101,8 @@ async function main() {
     headers: { ...headers, "Content-Type": "application/json" },
     body: JSON.stringify({ UserName: email, Password: password, PersistentLogin: true, ReturnMemberDetails: true }),
   });
-  const memberToken = findString(findObject(login, "Token"), ["Value"]);
+  const memberTokenContainer = findObject(login, "MemberToken") || findObject(login, "Token");
+  const memberToken = findString(memberTokenContainer, ["Value", "Token"]);
   if (!memberToken) throw new Error("Harvest did not return a member token");
 
   let tagId = "";

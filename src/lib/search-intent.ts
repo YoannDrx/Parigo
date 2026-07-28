@@ -41,6 +41,9 @@ const dictionaries = {
     synth: ["synthé", "synth", "synthétiseur"],
     percussion: ["percussions", "percussion"],
   },
+  musicFor: {
+    wedding: ["mariage", "noces", "wedding", "marriage"],
+  },
 } as const;
 
 const displayLabels: Record<"fr" | "en", Record<string, string>> = {
@@ -52,6 +55,7 @@ const displayLabels: Record<"fr" | "en", Record<string, string>> = {
     energetic: "Énergique", peaceful: "Calme", melancholic: "Mélancolique", tense: "Tension",
     epic: "Épique", playful: "Ludique", piano: "Piano", guitar: "Guitare", strings: "Cordes",
     drums: "Batterie", synth: "Synthé", percussion: "Percussions",
+    wedding: "Mariage",
   },
   en: {
     cinematic: "Cinematic", electronic: "Electronic", ambient: "Ambient", jazz: "Jazz", techno: "Techno",
@@ -61,6 +65,7 @@ const displayLabels: Record<"fr" | "en", Record<string, string>> = {
     energetic: "Energetic", peaceful: "Peaceful", melancholic: "Melancholic", tense: "Tense",
     epic: "Epic", playful: "Playful", piano: "Piano", guitar: "Guitar", strings: "Strings",
     drums: "Drums", synth: "Synth", percussion: "Percussion",
+    wedding: "Wedding",
   },
 };
 
@@ -98,6 +103,7 @@ export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFil
     ...intent.genres.map((value): [SearchFilterGroupKey, string] => ["genre", value]),
     ...intent.moods.map((value): [SearchFilterGroupKey, string] => ["moods", value]),
     ...intent.instruments.map((value): [SearchFilterGroupKey, string] => ["instruments", value]),
+    ...intent.musicFor.map((value): [SearchFilterGroupKey, string] => ["musicFor", value]),
   ];
   return [...new Set(requested.flatMap(([group, value]) => {
     const candidates: Array<[SearchFilterGroupKey, string]> = group === "genre" && value === "cinematic"
@@ -131,7 +137,7 @@ export function canonicalizeCategoryValues(values: string[], groups: SearchFilte
 }
 
 export function hasAppliedStructuredIntent(intent: SearchIntent): boolean {
-  return Boolean(intent.genres.length || intent.moods.length || intent.instruments.length || intent.bpmRange);
+  return Boolean(intent.genres.length || intent.moods.length || intent.instruments.length || intent.musicFor.length || intent.bpmRange);
 }
 
 export function searchIntentChips(intent: SearchIntent, locale: "fr" | "en"): Array<{ key: string; label: string }> {
@@ -140,6 +146,7 @@ export function searchIntentChips(intent: SearchIntent, locale: "fr" | "en"): Ar
     ...intent.genres.map((value) => ({ key: `genre:${value}`, label: labels[value] ?? value })),
     ...intent.moods.map((value) => ({ key: `mood:${value}`, label: labels[value] ?? value })),
     ...intent.instruments.map((value) => ({ key: `instrument:${value}`, label: labels[value] ?? value })),
+    ...intent.musicFor.map((value) => ({ key: `musicFor:${value}`, label: labels[value] ?? value })),
     ...(intent.bpmRange ? [{ key: "bpm", label: `${intent.bpmRange[0]}–${intent.bpmRange[1]} BPM` }] : []),
   ];
 }
@@ -159,6 +166,9 @@ export function parseSearchIntent(raw: string): SearchIntent {
   const instruments = Object.entries(dictionaries.instruments)
     .filter(([, terms]) => matches(normalized, terms))
     .map(([slug]) => slug);
+  const musicFor = Object.entries(dictionaries.musicFor)
+    .filter(([, terms]) => matches(normalized, terms))
+    .map(([slug]) => slug);
 
   let bpmRange: [number, number] | null = null;
   const explicitBpm = normalized.match(/(\d{2,3})\s*(?:a|à|et|-|–|to|and)\s*(\d{2,3})\s*bpm/);
@@ -171,14 +181,13 @@ export function parseSearchIntent(raw: string): SearchIntent {
   if (/\b(instrumental|sans voix|sans chant|no vocals|no vocal|without vocals|without voice)\b/.test(normalized)) isVocal = false;
   else if (/\b(vocal|vocals|voice|voix|chant|chante|sung)\b/.test(normalized)) isVocal = true;
 
-  return { raw: raw.trim(), freeText: raw.trim(), genres, moods, instruments, bpmRange, isVocal };
+  return { raw: raw.trim(), freeText: raw.trim(), genres, moods, instruments, musicFor, bpmRange, isVocal };
 }
 
 export function intentToSearchParams(intent: SearchIntent) {
   const params = new URLSearchParams();
   if (intent.raw) params.set("brief", intent.raw);
   if (hasAppliedStructuredIntent(intent)) params.set("resolve", "1");
-  else if (intent.freeText) params.set("q", intent.freeText);
   params.set("view", "tracks");
   params.set("type", "main");
   return params;

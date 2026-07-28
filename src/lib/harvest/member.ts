@@ -9,7 +9,7 @@ import {
   serviceRequest,
 } from "./client";
 import { HarvestError, isRecord } from "./errors";
-import { asIsoDate, asString, pick, recordArray } from "./values";
+import { asIsoDate, asNumber, asString, pick, recordArray } from "./values";
 import { assetUrl, getDownloadFormats } from "./assets";
 import { buildMemberRegistration, buildMemberSubscription, buildPersistentLogin } from "./member-contracts";
 
@@ -25,11 +25,23 @@ function objectByKey(payload: unknown, key: string): HarvestRecord | undefined {
   return undefined;
 }
 
-function tokenByKey(payload: unknown, key: string): { value: string; expiresAt: number } | undefined {
+function tokenByKey(payload: unknown, key: string): {
+  value: string;
+  expiresAt: number;
+  utcOffsetHours?: number;
+} | undefined {
   const object = objectByKey(payload, key);
   if (object) {
     const value = asString(pick(object, "Value", "TokenValue", "Token"));
-    if (value) return { value, expiresAt: getHarvestTokenExpiry(object) };
+    const rawUtcOffset = pick(object, "UTCOffset", "UtcOffset");
+    const utcOffsetHours = rawUtcOffset === undefined ? undefined : asNumber(rawUtcOffset, Number.NaN);
+    if (value) {
+      return {
+        value,
+        expiresAt: getHarvestTokenExpiry(object),
+        ...(Number.isFinite(utcOffsetHours) ? { utcOffsetHours } : {}),
+      };
+    }
   }
   if (isRecord(payload) && typeof payload[key] === "string") {
     return { value: payload[key], expiresAt: Date.now() + 23 * 60 * 60_000 };
@@ -44,7 +56,10 @@ function findMemberObject(payload: unknown): HarvestMemberPayload | undefined {
   return parsed.success ? parsed.data : undefined;
 }
 
-export function mapMemberProfile(payload: unknown): MemberProfile & { createdAt?: string; image?: string } {
+export function mapMemberProfile(
+  payload: unknown,
+  utcOffsetHours?: number,
+): MemberProfile & { createdAt?: string; image?: string } {
   const member = findMemberObject(payload);
   if (!member) throw new HarvestError("Harvest member payload is invalid", "HARVEST_INVALID_RESPONSE");
   const firstName = member.FirstName;
@@ -98,7 +113,7 @@ export function mapMemberProfile(payload: unknown): MemberProfile & { createdAt?
       email: member.ManagedBy.Email || undefined,
       phone: member.ManagedBy.Phone || undefined,
     } : undefined,
-    createdAt: asIsoDate((member as HarvestRecord).CreatedDate),
+    createdAt: asIsoDate((member as HarvestRecord).CreatedDate, utcOffsetHours),
     image: member.HasProfileImage && profileImageTemplate
       ? assetUrl(profileImageTemplate, { id: member.ID, width: 320, height: 320 })
       : asString((member as HarvestRecord).ProfileImageUrl || (member as HarvestRecord).ImageUrl) || undefined,
@@ -108,6 +123,7 @@ export function mapMemberProfile(payload: unknown): MemberProfile & { createdAt?
 export interface HarvestLoginResult {
   memberToken: string;
   memberExpiresAt: number;
+  memberUtcOffsetHours?: number;
   persistentToken: string;
   persistentExpiresAt: number;
   profile: MemberProfile & { createdAt?: string; image?: string };
@@ -131,7 +147,7 @@ export async function loginMember(username: string, password: string): Promise<H
   if (!member?.value || !persistent?.value) {
     throw new HarvestError("Harvest did not return a persistent member session", "HARVEST_INVALID_RESPONSE");
   }
-  const profile = mapMemberProfile(payload);
+  const profile = mapMemberProfile(payload, member.utcOffsetHours);
   const status = profile.status?.toLowerCase();
   if (status && !["active", "approved"].includes(status)) {
     const message = status.includes("pending")
@@ -144,6 +160,7 @@ export async function loginMember(username: string, password: string): Promise<H
   return {
     memberToken: member.value,
     memberExpiresAt: member.expiresAt,
+    memberUtcOffsetHours: member.utcOffsetHours,
     persistentToken: persistent.value,
     persistentExpiresAt: persistent.expiresAt,
     profile,
@@ -168,9 +185,10 @@ export async function refreshMember(persistentToken: string): Promise<HarvestLog
   return {
     memberToken: member?.value || fallback!,
     memberExpiresAt: member?.expiresAt || Date.now() + 23 * 60 * 60_000,
+    memberUtcOffsetHours: member?.utcOffsetHours,
     persistentToken: persistent.value,
     persistentExpiresAt: persistent.expiresAt,
-    profile: mapMemberProfile(payload),
+    profile: mapMemberProfile(payload, member?.utcOffsetHours),
   };
 }
 
@@ -224,12 +242,15 @@ export async function getRegistrationCountries(): Promise<Array<{ code: string; 
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
-export async function getMemberProfile(memberToken: string): Promise<MemberProfile & { createdAt?: string; image?: string }> {
+export async function getMemberProfile(
+  memberToken: string,
+  utcOffsetHours?: number,
+): Promise<MemberProfile & { createdAt?: string; image?: string }> {
   const [payload, formats] = await Promise.all([
     memberRequest<HarvestRecord>(memberToken, (token) => `/getmember/${token}`),
     getDownloadFormats(),
   ]);
-  const profile = mapMemberProfile(payload);
+  const profile = mapMemberProfile(payload, utcOffsetHours);
   const allowedIds = new Set(profile.fileFormats?.map((format) => format.id) || []);
   profile.fileFormats = formats
     .filter((format) => allowedIds.size === 0 || allowedIds.has(format.id))

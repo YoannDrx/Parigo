@@ -3,6 +3,8 @@ import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { cloudSearch } from "@/lib/harvest/catalog";
 import { readHarvestSession } from "@/lib/harvest/session";
+import { translateFrenchSearchQuery } from "@/lib/search-translation";
+import type { QueryResolution } from "@/types";
 
 const sortMap = {
   relevance: "RankExpression",
@@ -18,7 +20,7 @@ const querySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(30),
   sort: z.enum(["relevance", "recent", "oldest", "title", "title-desc"]).catch("relevance").default("relevance"),
-  match: z.enum(["normal", "exact"]).default("normal"),
+  translate: z.enum(["0", "1"]).default("1"),
   type: z.enum(["main", "alternate", "all"]).default("main"),
   labels: z.string().optional(),
   categories: z.string().optional(),
@@ -51,13 +53,13 @@ export async function GET(request: NextRequest) {
     const session = await readHarvestSession();
     const categories = [...(list(input.categories) || []), ...legacyCategoryValues(request)];
     const skip = (input.page - 1) * input.limit;
-    const result = await cloudSearch({
+    const searchInput = {
       query: input.q.trim() || "%",
       view: input.view === "albums" ? "Album" : "Track",
+      textScope: "title",
       skip,
       limit: input.limit,
       sort: sortMap[input.sort],
-      match: input.match,
       type: input.type,
       labels: list(input.labels),
       categories: categories.length ? [...new Set(categories)] : undefined,
@@ -67,7 +69,20 @@ export async function GET(request: NextRequest) {
       maxDuration: input.durationMax,
       language: input.language,
       saveSearchHistory: Boolean(session),
-    }, session?.memberToken);
+    } as const;
+    let result = await cloudSearch(searchInput, session?.memberToken);
+    let appliedQueryResolution: QueryResolution | undefined;
+    if (result.total === 0 && input.q !== "%" && input.translate !== "0") {
+      const queryResolution = await translateFrenchSearchQuery(input.q);
+      if (queryResolution) {
+        result = await cloudSearch({
+          ...searchInput,
+          query: queryResolution.effective,
+          saveSearchHistory: Boolean(session),
+        }, session?.memberToken);
+        if (result.total > 0) appliedQueryResolution = queryResolution;
+      }
+    }
     const items = input.view === "albums" ? result.albums : result.tracks;
     const publicFacets = {
       bpm: result.facets.bpm,
@@ -87,6 +102,7 @@ export async function GET(request: NextRequest) {
         pageSize: input.limit,
         total: result.total,
         searchHistoryId: result.searchHistoryId,
+        ...(appliedQueryResolution ? { queryResolution: appliedQueryResolution } : {}),
         requestId: id,
       },
     }, {

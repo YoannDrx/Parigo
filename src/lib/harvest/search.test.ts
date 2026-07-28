@@ -43,13 +43,30 @@ describe("Harvest Cloud Search", () => {
     expect(harvestCategoryId("ATT_51bcfc1bd83261cd_Piano")).toBe("ATT_51bcfc1bd83261cd");
   });
 
-  it("serializes exact title matching without wildcards", () => {
-    const payload = buildCloudSearch({ query: "crime", match: "exact" });
+  it("limits public track searches to a strict title substring", () => {
+    const payload = buildCloudSearch({ query: "crime", view: "Track", textScope: "title" });
     const filters = payload.SearchFilters as Record<string, unknown>;
     const bundle = filters.SearchTermBundle as Record<string, Record<string, unknown>>;
 
-    expect(bundle.St_Keyword_Aggregated.ExactPhrase).toBe(true);
-    expect(bundle.St_Keyword_Aggregated.Wildcard).toBe(false);
+    expect(bundle.St_Keyword).toMatchObject({
+      Fields: "TrackDisplayTitle",
+      ExactPhrase: false,
+      Wildcard: true,
+      DisableKeywordGroup: true,
+      OrOperation: false,
+      Keywords: "crime",
+    });
+    expect(bundle.St_Keyword_Aggregated).toBeUndefined();
+  });
+
+  it("uses the album title field without changing aggregate internal searches", () => {
+    const titlePayload = buildCloudSearch({ query: "crime", view: "Album", textScope: "title" });
+    const aggregatePayload = buildCloudSearch({ query: "crime", view: "Album" });
+    const titleBundle = (titlePayload.SearchFilters as Record<string, unknown>).SearchTermBundle as Record<string, Record<string, unknown>>;
+    const aggregateBundle = (aggregatePayload.SearchFilters as Record<string, unknown>).SearchTermBundle as Record<string, Record<string, unknown>>;
+
+    expect(titleBundle.St_Keyword.Fields).toBe("AlbumDisplayTitle");
+    expect(aggregateBundle.St_Keyword_Aggregated.Keywords).toBe("crime");
   });
 
   it("serializes included and excluded filters exactly once", () => {

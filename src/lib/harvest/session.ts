@@ -16,6 +16,8 @@ const COOKIE_NAME = process.env.NODE_ENV === "production"
 export interface HarvestSessionPayload {
   memberToken: string;
   memberExpiresAt: number;
+  memberUtcOffsetHours?: number;
+  memberUtcOffsetResolved?: boolean;
   persistentToken: string;
   persistentExpiresAt: number;
   user: HarvestSessionUser;
@@ -68,6 +70,8 @@ function toPayload(result: HarvestLoginResult): HarvestSessionPayload {
   return {
     memberToken: result.memberToken,
     memberExpiresAt: result.memberExpiresAt,
+    memberUtcOffsetHours: result.memberUtcOffsetHours,
+    memberUtcOffsetResolved: true,
     persistentToken: result.persistentToken,
     persistentExpiresAt: result.persistentExpiresAt,
     user: sessionUser(result.profile),
@@ -109,7 +113,12 @@ export async function readHarvestSession(options: { refresh?: boolean; migrateLe
     await setHarvestSession(payload);
     store.delete(LEGACY_COOKIE_NAME);
   }
-  if (payload.memberExpiresAt > Date.now() + 60_000 || options.refresh === false) return payload;
+  const needsOffsetMigration = payload.memberUtcOffsetResolved !== true;
+  if (
+    !needsOffsetMigration &&
+    (payload.memberExpiresAt > Date.now() + 60_000 || options.refresh === false)
+  ) return payload;
+  if (options.refresh === false) return payload;
   try {
     const refreshed = toPayload(await refreshMember(payload.persistentToken));
     if (!refreshed.user.id) refreshed.user = payload.user;

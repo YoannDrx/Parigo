@@ -7,6 +7,7 @@ import { Download, FileAudio, Calendar, Tag } from "lucide-react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { formatParigoDate } from "@/lib/date-time";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Track } from "@/types";
 
@@ -125,7 +126,7 @@ export default function DownloadsPage() {
                     <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-gray-500)]">
                       <span className="flex items-center gap-1">
                         <Calendar size={12} />
-                        {new Date(download.downloadedAt).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB")}
+                        {formatParigoDate(download.downloadedAt, locale === "fr" ? "fr-FR" : "en-GB")}
                       </span>
                       {download.projectName && (
                         <span className="flex items-center gap-1">

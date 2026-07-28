@@ -19,6 +19,7 @@ import type { Album, ComposerCreditLink } from "@/types";
 import type { ComposerProfile } from "@/lib/editorial/contracts";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { formatParigoDate } from "@/lib/date-time";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { resizeArtworkSource } from "@/lib/image-loader";
 
@@ -151,7 +152,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
                 </span>
                 {album.releaseDate && (
                   <span>
-                    {locale === "fr" ? "Sorti le" : "Released"} {new Date(album.releaseDate).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB")}
+                    {locale === "fr" ? "Sorti le" : "Released"} {formatParigoDate(album.releaseDate, locale === "fr" ? "fr-FR" : "en-GB")}
                   </span>
                 )}
               </div>
