@@ -165,12 +165,12 @@ test("les ondes du héros gagnent du contraste uniquement en thème clair", asyn
   await page.goto("/");
   const signal = page.getByTestId("home-hero").locator(".hero-signal-field");
   await expect(signal).toBeVisible();
+  await expect(signal).toHaveCSS("mix-blend-mode", "multiply");
   const lightStyle = await signal.evaluate((node) => {
     const style = getComputedStyle(node);
-    return { filter: style.filter, blend: style.mixBlendMode, opacity: Number(style.opacity) };
+    return { filter: style.filter, opacity: Number(style.opacity) };
   });
   expect(lightStyle.filter).not.toBe("none");
-  expect(lightStyle.blend).toBe("multiply");
   expect(lightStyle.opacity).toBeGreaterThanOrEqual(.9);
 
   await page.evaluate(() => {

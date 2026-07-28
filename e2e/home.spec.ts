@@ -518,7 +518,16 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   await input.fill("Une techno qui tabasse.");
   await expect(interpretation).toContainText("Techno");
   await expect(interpretation).toContainText("Énergique");
-  await expect(page).toHaveURL(/categories=ATT_8c1be9ece2483e34/, { timeout: 30_000 });
+  await expect.poll(() => {
+    const params = new URL(page.url()).searchParams;
+    return {
+      brief: params.get("brief"),
+      categories: params.get("categories")?.split(","),
+    };
+  }, { timeout: 30_000 }).toEqual({
+    brief: "Une techno qui tabasse.",
+    categories: ["ATT_8c1be9ece2483e34", "ATT_b242dfd7a2cf175e"],
+  });
 
   const url = new URL(page.url());
   expect(url.searchParams.has("q")).toBe(false);
