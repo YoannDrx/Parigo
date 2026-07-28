@@ -509,7 +509,8 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   test.setTimeout(60_000);
   test.skip(testInfo.project.name === "mobile", "La résolution de taxonomie est identique sur la feuille mobile.");
   await page.goto("/search");
-  const input = page.getByLabel("Décrivez votre intention musicale");
+  await page.getByRole("button", { name: "Par intention" }).click();
+  const input = page.getByRole("searchbox", { name: "Décrivez votre intention musicale" });
   await input.fill("Une techno magnétique avec voix");
   const interpretation = page.getByTestId("search-detected-criteria");
   await expect(interpretation).toContainText("Techno");
@@ -540,8 +541,7 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
 test("la recherche exacte reste accessible depuis le champ unifié", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/search");
-  await page.getByRole("button", { name: "Rechercher un titre précis" }).click();
-  const input = page.getByLabel("Rechercher un titre, un album ou un compositeur");
+  const input = page.getByRole("searchbox", { name: "Rechercher dans les titres de pistes" });
   await input.fill("piano");
   await input.press("Enter");
   await expect(page).toHaveURL(/q=piano/, { timeout: 30_000 });
@@ -629,7 +629,7 @@ test("les filtres tri-état rendent inclusions et exclusions visibles", async ({
 
 test("une piste expose ses informations, versions et paroles", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le panneau détaillé est vérifié en desktop.");
-  await page.goto("/search?q=piano&view=tracks&type=main");
+  await page.goto("/search?q=Piano%20On%20My%20Mind&view=tracks&type=main");
   await expect(page.getByText("Piano On My Mind", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: /Informations sur la piste : Piano On My Mind/ }).click();
   const detailTabs = page.getByRole("tablist").filter({ has: page.getByRole("tab", { name: "Informations" }) });
