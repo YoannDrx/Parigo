@@ -101,7 +101,8 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
                   fill
                   sizes="(max-width: 768px) 100vw, 520px"
                   className="object-contain"
-                  preload
+                  loading="eager"
+                  fetchPriority="high"
                 />
               </div>
             </div>
