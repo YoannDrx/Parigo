@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import parigoImageLoader, { resizeHarvestImageSource } from "./image-loader";
+import parigoImageLoader, { resizeArtworkSource } from "./image-loader";
 
 describe("parigoImageLoader", () => {
   it("requests the responsive size directly from Harvest", () => {
@@ -26,7 +26,7 @@ describe("parigoImageLoader", () => {
   });
 
   it("creates a smaller Harvest source for a known display ceiling", () => {
-    const result = new URL(resizeHarvestImageSource(
+    const result = new URL(resizeArtworkSource(
       "https://d3vy0pmxxxelni.cloudfront.net/assets/albumart/cover?token=secret&width=800&height=800",
       640,
     ));

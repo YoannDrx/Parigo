@@ -20,7 +20,7 @@ import type { ComposerProfile } from "@/lib/editorial/contracts";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
-import { resizeHarvestImageSource } from "@/lib/image-loader";
+import { resizeArtworkSource } from "@/lib/image-loader";
 
 interface AlbumDetailClientProps {
   data: {
@@ -38,7 +38,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
   const [trackSort, setTrackSort] = useState<"album" | "title-asc" | "title-desc">("album");
 
   const album = data.album;
-  const albumCover = resizeHarvestImageSource(album.cover, 640);
+  const albumCover = resizeArtworkSource(album.cover, 640);
   const mainTracks = data.album.tracks ?? [];
   const unsortedTracks = showAllVersions
     ? mainTracks.flatMap((track) => [track, ...(track.alternateTracks ?? [])])

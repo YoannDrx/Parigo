@@ -23,7 +23,7 @@ function resizeHarvestUrl(url: URL, width: number): string {
   return url.href;
 }
 
-export function resizeHarvestImageSource(src: string, width: number): string {
+export function resizeArtworkSource(src: string, width: number): string {
   const url = new URL(src, LOCAL_URL_ORIGIN);
   return url.origin === HARVEST_IMAGE_ORIGIN
     ? resizeHarvestUrl(url, width)
