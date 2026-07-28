@@ -34,11 +34,12 @@ module.exports = {
     },
     assert: {
       assertions: {
-        // Protected Vercel Previews add an authentication hop and force
-        // X-Robots-Tag: noindex. Preview therefore validates a narrow
-        // performance tolerance while the promoted public artifact is checked
-        // against the final production targets below.
-        "categories:performance": ["error", { minScore: productionAudit ? 0.9 : 0.89, aggregationMethod: performanceAggregation }],
+        // Protected Vercel Previews and shared GitHub runners make the
+        // composite performance score fluctuate even for an unchanged
+        // artifact. Keep the preview target visible without letting that
+        // aggregate duplicate the blocking LCP, TBT and CLS budgets below.
+        // Production continues to enforce the complete score as an error.
+        "categories:performance": [productionAudit ? "error" : "warn", { minScore: productionAudit ? 0.9 : 0.89, aggregationMethod: performanceAggregation }],
         "categories:accessibility": ["error", { minScore: 0.95 }],
         ...(productionAudit ? { "categories:seo": ["error", { minScore: 1 }] } : {}),
         "categories:best-practices": ["warn", { minScore: 0.9 }],
