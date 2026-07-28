@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Download, Loader2 } from "lucide-react";
+import { Download } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
@@ -78,7 +79,7 @@ export function DownloadButton({ trackId, trackTitle, className }: DownloadButto
         className={cn("flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-50", className)}
         aria-label={`${locale === "fr" ? "Télécharger" : "Download"} : ${trackTitle}`}
       >
-        {loading ? <Loader2 size={17} className="animate-spin" /> : <Download size={17} className="text-[var(--color-gray-500)]" />}
+        {loading ? <ParigoLoader size="icon" label={locale === "fr" ? "Préparation du téléchargement" : "Preparing download"} /> : <Download size={17} className="text-[var(--color-gray-500)]" />}
       </button>
       </Tooltip>
       {message && <span role="alert" className="sr-only">{message}</span>}

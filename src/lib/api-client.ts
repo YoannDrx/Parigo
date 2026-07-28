@@ -2,7 +2,7 @@
  * API Client for fetching data from our backend
  */
 
-import type { Album, CatalogCategory, Label, Playlist, SearchFacets, SearchFilterGroup, Track } from "@/types";
+import type { Album, AutocompleteGroup, CatalogCategory, Label, Playlist, SearchFacets, SearchFilterGroup, SortMode, Track } from "@/types";
 
 const API_BASE = "/api";
 
@@ -59,19 +59,19 @@ export async function fetchAlbums(params?: {
   instruments?: string[];
   query?: string;
   featured?: boolean;
-  sort?: "order" | "releaseDate" | "title" | "relevance" | "recent" | "oldest" | "title-desc" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
+  sort?: "order" | "releaseDate" | SortMode;
   forceSearch?: boolean;
-  styles?: string[];
   categories?: string[];
   labels?: string[];
   type?: "main" | "alternate" | "all";
   language?: "fr" | "en";
+  match?: "normal" | "exact";
   minBpm?: number;
   maxBpm?: number;
   minDuration?: number;
   maxDuration?: number;
 }, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets; searchHistoryId?: string } & PaginatedResponse> {
-  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.styles?.length || params?.categories?.length || params?.labels?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
+  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.categories?.length || params?.labels?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
   if (usesSearch) {
     const searchParams = new URLSearchParams({
       view: "albums",
@@ -84,9 +84,9 @@ export async function fetchAlbums(params?: {
     if (labels.length) searchParams.set("labels", [...new Set(labels)].join(","));
     const categories = [...(params?.genres || []), ...(params?.moods || []), ...(params?.instruments || []), ...(params?.categories || [])];
     if (categories.length) searchParams.set("categories", categories.join(","));
-    if (params?.styles?.length) searchParams.set("styles", params.styles.join(","));
     if (params?.type) searchParams.set("type", params.type);
     if (params?.language) searchParams.set("language", params.language);
+    if (params?.match === "exact") searchParams.set("match", "exact");
     if (params?.minBpm !== undefined) searchParams.set("bpmMin", String(params.minBpm));
     if (params?.maxBpm !== undefined) searchParams.set("bpmMax", String(params.maxBpm));
     if (params?.minDuration !== undefined) searchParams.set("durationMin", String(params.minDuration));
@@ -147,11 +147,11 @@ export async function fetchTracks(params?: {
   isVocal?: boolean;
   label?: string;
   labels?: string[];
-  styles?: string[];
   categories?: string[];
   type?: "main" | "alternate" | "all";
   language?: "fr" | "en";
-  sort?: "relevance" | "recent" | "oldest" | "title" | "title-desc" | "bpm-asc" | "bpm-desc" | "duration-asc" | "duration-desc";
+  sort?: SortMode;
+  match?: "normal" | "exact";
 }, signal?: AbortSignal): Promise<{ tracks: ApiTrack[]; facets?: SearchFacets; searchHistoryId?: string } & PaginatedResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
@@ -167,7 +167,6 @@ export async function fetchTracks(params?: {
   if (params?.query) searchParams.set("q", params.query);
   const categories = [params?.genre, params?.mood, params?.instrument, ...(params?.genres || []), ...(params?.moods || []), ...(params?.instruments || []), ...(params?.categories || [])].filter(Boolean) as string[];
   if (categories.length) searchParams.set("categories", [...new Set(categories)].join(","));
-  if (params?.styles?.length) searchParams.set("styles", params.styles.join(","));
   if (params?.minBpm) searchParams.set("bpmMin", params.minBpm.toString());
   if (params?.maxBpm) searchParams.set("bpmMax", params.maxBpm.toString());
   if (params?.minDuration) searchParams.set("durationMin", params.minDuration.toString());
@@ -175,6 +174,7 @@ export async function fetchTracks(params?: {
   const labels = [...(params?.labels || []), ...(params?.label ? [params.label] : [])];
   if (labels.length) searchParams.set("labels", [...new Set(labels)].join(","));
   if (params?.sort) searchParams.set("sort", params.sort);
+  if (params?.match === "exact") searchParams.set("match", "exact");
   if (params?.type) searchParams.set("type", params.type);
   if (params?.language) searchParams.set("language", params.language);
 
@@ -273,9 +273,10 @@ export async function fetchSearchFilters(language: "fr" | "en", signal?: AbortSi
   return payload.data.groups;
 }
 
-export async function fetchStyles(): Promise<CatalogCategory[]> {
-  const response = await fetch(`${API_BASE}/collections`);
-  if (!response.ok) throw new Error("Failed to fetch Harvest styles");
-  const payload = await response.json() as { data: { collections: CatalogCategory[] } };
-  return payload.data.collections;
+export async function fetchAutocomplete(query: string, language: "fr" | "en", signal?: AbortSignal): Promise<AutocompleteGroup[]> {
+  const params = new URLSearchParams({ q: query, language });
+  const response = await fetch(`${API_BASE}/autocomplete?${params}`, { signal });
+  if (!response.ok) throw new Error("Failed to fetch autocomplete suggestions");
+  const payload = await response.json() as { data: { groups: AutocompleteGroup[] } };
+  return payload.data.groups;
 }

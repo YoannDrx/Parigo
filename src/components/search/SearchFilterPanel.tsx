@@ -11,16 +11,13 @@ interface SearchFilterPanelProps {
   groups: SearchFilterGroup[];
   categories: string[];
   labels: string[];
-  styles: string[];
   bpmRange: [number, number];
   durationRange: [number, number];
   categoryFacets: SearchFacetItem[];
   labelFacets: SearchFacetItem[];
-  styleFacets: SearchFacetItem[];
   locale: "fr" | "en";
   onCategoriesChange: (values: string[]) => void;
   onLabelsChange: (values: string[]) => void;
-  onStylesChange: (values: string[]) => void;
   onBpmChange: (value: [number, number]) => void;
   onDurationChange: (value: [number, number]) => void;
   onReset: () => void;
@@ -34,7 +31,6 @@ const labelsByKey: Record<string, { fr: string; en: string }> = {
   period: { fr: "Période", en: "Period" },
   instruments: { fr: "Instruments", en: "Instruments" },
   area: { fr: "Zone", en: "Area" },
-  styles: { fr: "Style", en: "Style" },
 };
 
 function unsigned(value: string): string {
@@ -297,28 +293,24 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
     groups,
     categories,
     labels,
-    styles,
     bpmRange,
     durationRange,
     categoryFacets,
     labelFacets,
-    styleFacets,
     locale,
     onCategoriesChange,
     onLabelsChange,
-    onStylesChange,
     onBpmChange,
     onDurationChange,
     onReset,
   } = props;
-  const activeCount = categories.length + labels.length + styles.length
+  const activeCount = categories.length + labels.length
     + (bpmRange[0] !== 50 || bpmRange[1] !== 200 ? 1 : 0)
     + (durationRange[0] !== 0 || durationRange[1] !== 300 ? 1 : 0);
   return (
     <div className="search-filter-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--background)]">
       <div className="search-filter-panel__header flex min-h-20 items-center justify-between border-b border-[var(--line)] px-4 py-3">
         <div>
-          <p className="mb-1 font-mono text-[.55rem] uppercase tracking-[.14em] text-[var(--signal)]">{locale === "fr" ? "Table de sélection" : "Selection desk"}</p>
           <h2 className="text-base font-semibold text-white">{locale === "fr" ? "Affiner la recherche" : "Refine search"}</h2>
           {activeCount > 0 && <p className="mt-0.5 text-[.65rem] text-[var(--text-muted)]">{activeCount} {locale === "fr" ? "critères actifs" : "active filters"}</p>}
         </div>
@@ -329,10 +321,10 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
           key={group.key}
           group={group}
           index={index}
-          values={group.key === "labels" ? labels : group.key === "styles" ? styles : categories}
-          facets={group.key === "labels" ? labelFacets : group.key === "styles" ? styleFacets : categoryFacets}
+          values={group.key === "labels" ? labels : categories}
+          facets={group.key === "labels" ? labelFacets : categoryFacets}
           locale={locale}
-          onChange={group.key === "labels" ? onLabelsChange : group.key === "styles" ? onStylesChange : onCategoriesChange}
+          onChange={group.key === "labels" ? onLabelsChange : onCategoriesChange}
         />
       ))}
       <RangeControl label="BPM" value={bpmRange} min={50} max={200} locale={locale} format={(value) => String(value)} onChange={onBpmChange} />

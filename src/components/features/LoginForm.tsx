@@ -2,7 +2,8 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, ArrowRight, Loader2 } from "lucide-react";
+import { AlertCircle, ArrowRight } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { signIn } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -60,7 +61,7 @@ export function LoginForm({ onRegister, onSuccess, onForgot, headingId = "auth-l
             {locale === "fr" ? "Mot de passe oublié" : "Forgot password"}<ArrowRight size={11} className="transition-transform group-hover/forgot:translate-x-0.5" />
           </button>
         </div>
-        <Button type="submit" size="lg" className="w-full" disabled={isLoading}>{isLoading && <Loader2 className="animate-spin" size={18} />}{isLoading ? t("auth.loggingIn") : t("auth.login")}</Button>
+        <Button type="submit" size="lg" className="w-full" disabled={isLoading}>{isLoading ? <ParigoLoader size="icon" label={t("auth.loggingIn")} /> : null}{isLoading ? t("auth.loggingIn") : t("auth.login")}</Button>
       </form>
       <p className="mt-6 text-center text-sm text-[var(--text-muted)]">{t("auth.noAccount")} <button type="button" onClick={() => onRegister ? onRegister() : router.push("/register")} className="font-medium underline">{t("auth.register")}</button></p>
     </>

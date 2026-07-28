@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import { Heart, Music, Disc3, Loader2, Search, X } from "lucide-react";
+import { Heart, Music, Disc3, Search, X } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow, AlbumCard } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -91,7 +92,7 @@ export default function FavoritesPage() {
     <div className="account-page space-y-8">
       <AccountPageHeader
         icon={Heart}
-        eyebrow={locale === "fr" ? "Votre collection" : "Your collection"}
+        eyebrow={locale === "fr" ? "Vos favoris" : "Your favourites"}
         title={t("account.favorites")}
         description={locale === "fr" ? `${tracks.length + albums.length} éléments conservés pour les retrouver rapidement.` : `${tracks.length + albums.length} items kept close for quick access.`}
       />
@@ -135,7 +136,7 @@ export default function FavoritesPage() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={32} className="animate-spin text-[var(--color-primary)]" />
+          <ParigoLoader size="page" label={locale === "fr" ? "Chargement des favoris" : "Loading favourites"} />
         </div>
       ) : (
         <AnimatePresence mode="wait">

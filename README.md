@@ -53,7 +53,7 @@ La suite Harvest live standard est strictement en lecture. La suite membre exige
 - `src/lib/editorial/` : profils, relations vérifiées et adaptateurs temporaires destinés à migrer vers le CMS Harvest.
 - `src/lib/youtube/` : inventaires vidéo officiels, avec API YouTube préférée et lecture publique de secours.
 - `src/app/api/` : BFF public de Parigo ; aucun secret Harvest n’est envoyé au navigateur.
-- `src/app/` : catalogue, recherche, collections, playlists, comptes et pages institutionnelles.
+- `src/app/` : catalogue, recherche, playlists, comptes et pages institutionnelles.
 - `docs/harvest/` : rapport d’audit, inventaire d’endpoints, registre des écarts et smoke tests live.
 
 Les données membre sont servies avec `Cache-Control: no-store`. Le catalogue et les référentiels utilisent des caches courts côté BFF. Les URLs audio Harvest restent directes afin de préserver les requêtes Range, le suivi d’audition et les droits du service.

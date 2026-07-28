@@ -49,20 +49,35 @@ export function Header({ variant = "default" }: HeaderProps) {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [open, pathname]);
 
-  const nav = [
-    { name: t("common.search"), href: "/search", note: locale === "fr" ? "Par humeur, style ou usage" : "By mood, style or use" },
-    { name: t("common.albums"), href: "/albums", note: locale === "fr" ? "Explorer le catalogue" : "Explore the catalogue" },
-    { name: t("common.playlists"), href: "/playlists", note: locale === "fr" ? "Sélections éditoriales" : "Editorial selections" },
-    { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations", note: locale === "fr" ? "La musique en images" : "Music in motion" },
-    { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo", note: locale === "fr" ? "Les productions du label" : "Releases from the label" },
-    { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs", note: locale === "fr" ? "Les talents du label" : "The label’s talent" },
-    { name: "Clips", href: "/clips", note: locale === "fr" ? "Créations audiovisuelles" : "Audiovisual work" },
-    { name: "Collections", href: "/collections", note: locale === "fr" ? "Répertoires choisis" : "Curated repertoires" },
-    { name: t("common.labels"), href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
-    { name: t("common.licensing"), href: "/licensing", note: locale === "fr" ? "Comprendre les droits" : "Understand the rights" },
+  const navigationItems = {
+    search: { name: t("common.search"), href: "/search", note: locale === "fr" ? "Par humeur, instrument ou usage" : "By mood, instrument or use" },
+    albums: { name: t("common.albums"), href: "/albums", note: locale === "fr" ? "Explorer le catalogue" : "Explore the catalogue" },
+    synchronisations: { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations", note: locale === "fr" ? "La musique en images" : "Music in motion" },
+    playlists: { name: t("common.playlists"), href: "/playlists", note: locale === "fr" ? "Sélections éditoriales" : "Editorial selections" },
+    licensing: { name: t("common.licensing"), href: "/licensing", note: locale === "fr" ? "Comprendre les droits" : "Understand the rights" },
+    parigoLabel: { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo", note: locale === "fr" ? "Les productions du label" : "Releases from the label" },
+    composers: { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs", note: locale === "fr" ? "Les talents du label" : "The label’s talent" },
+    clips: { name: "Clips", href: "/clips", note: locale === "fr" ? "Créations audiovisuelles" : "Audiovisual work" },
+    labels: { name: t("common.labels"), href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
+  };
+  const primaryNav = [
+    navigationItems.search,
+    navigationItems.albums,
+    navigationItems.synchronisations,
+    navigationItems.playlists,
+    navigationItems.licensing,
   ];
-
-  const primaryNav = nav.filter((item) => ["/search", "/albums", "/playlists", "/synchronisations"].includes(item.href));
+  const drawerNav = [
+    navigationItems.search,
+    navigationItems.labels,
+    navigationItems.parigoLabel,
+    navigationItems.albums,
+    navigationItems.synchronisations,
+    navigationItems.playlists,
+    navigationItems.licensing,
+    navigationItems.clips,
+    navigationItems.composers,
+  ];
   const currentPath = stripLocalePrefix(pathname);
   const languageHref = alternateLocalePath(pathname, locale);
   const hrefFor = (href: string) => localizedPath(locale, href);
@@ -105,8 +120,8 @@ export function Header({ variant = "default" }: HeaderProps) {
               <div className="mb-9 xl:hidden md:col-span-12"><UserMenu embedded /></div>
               <div className="md:col-span-8 lg:col-span-9 lg:pr-12">
                 <p className="eyebrow mb-5 text-[var(--signal-strong)]">{locale === "fr" ? "Explorer Parigo" : "Explore Parigo"}</p>
-                <div className="border-t border-[var(--line)]">
-                  {nav.map((item, index) => {
+                <div data-testid="drawer-navigation" className="border-t border-[var(--line)]">
+                  {drawerNav.map((item, index) => {
                     const active = currentPath === item.href || currentPath.startsWith(`${item.href}/`);
                     return (
                       <div key={item.href} style={{ animationDelay: `${index * 28}ms` }} className="animate-[fade-in_.25s_ease-out_both]">
@@ -136,7 +151,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <Link href={hrefFor("/legal")} className="min-h-9 hover:text-[var(--foreground)]">{t("footer.legalNotice")}</Link>
                   <Link href={hrefFor("/privacy")} className="min-h-9 hover:text-[var(--foreground)]">{t("footer.privacy")}</Link>
                 </div>
-                <p className="eyebrow mt-auto text-[var(--text-muted)]">Music for images<br />Paris · France</p>
+                <p className="eyebrow mt-auto text-[var(--text-muted)]">Paris · France</p>
               </aside>
             </div>
           </div>

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, Input } from "@/components/ui";
+import { Button, Card, Input, ParigoLoader } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function ForgotPasswordPage() {
@@ -42,7 +42,10 @@ export default function ForgotPasswordPage() {
           <label className="block text-sm font-medium" htmlFor="reset-email">{locale === "fr" ? "E-mail" : "Email"}</label>
           <Input id="reset-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
           {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button type="submit" disabled={pending} className="w-full">{pending ? "…" : locale === "fr" ? "Envoyer le lien" : "Send reset link"}</Button>
+          <Button type="submit" disabled={pending} className="w-full">
+            {pending ? <ParigoLoader size="icon" label={locale === "fr" ? "Envoi du lien" : "Sending reset link"} /> : null}
+            {pending ? (locale === "fr" ? "Envoi…" : "Sending…") : locale === "fr" ? "Envoyer le lien" : "Send reset link"}
+          </Button>
         </form>
       )}
     </Card>

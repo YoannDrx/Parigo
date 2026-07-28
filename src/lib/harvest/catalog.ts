@@ -8,7 +8,6 @@ import type {
   Label,
   PaginatedResult,
   Playlist,
-  SearchFacets,
   Track,
 } from "@/types";
 import { assetUrl, getAssetTemplates, type HarvestAssetTemplates } from "./assets";
@@ -23,7 +22,7 @@ import {
   type HarvestTrackPayload,
 } from "./contracts";
 import { HarvestError, isRecord } from "./errors";
-import { buildCloudSearch, mapSearchFacets, searchHistoryIdFromResponse, type HarvestSearchInput } from "./search";
+import { buildCloudSearch, mapSearchFacets, searchHistoryIdFromResponse, type HarvestSearchFacets, type HarvestSearchInput } from "./search";
 import {
   asBoolean,
   asIsoDate,
@@ -183,7 +182,7 @@ export async function cloudSearch(input: HarvestSearchInput, authenticatedMember
   tracks: Track[];
   albums: Album[];
   total: number;
-  facets: SearchFacets;
+  facets: HarvestSearchFacets;
   searchHistoryId?: string;
 }> {
   const regionId = input.regionId || await getRegionId();
@@ -352,7 +351,7 @@ export async function getAlbum(id: string): Promise<{ album: Album & { tracks: T
     limit: 7,
     labels: base.labelSlug ? [base.labelSlug] : undefined,
   }).catch(() => ({ albums: [] as Album[], tracks: [] as Track[], total: 0, facets: {
-    bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [], styles: [],
+    bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [],
   } }));
   return {
     album: { ...base, trackCount: tracks.length, tracks },
@@ -515,8 +514,8 @@ export async function getStyles(): Promise<CatalogCategory[]> {
     guestRequest<HarvestRecord>((token) =>
       `/getstyles/${token}?allowEmptyStyle=false`,
     ),
-    cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc" })
-      .then((result) => new Map(result.facets.styles.map((item) => [item.id, item.count])))
+    cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc", includeStyleFacets: true })
+      .then((result) => new Map((result.facets.styles ?? []).map((item) => [item.id, item.count])))
       .catch(() => new Map<string, number>()),
   ]);
   return recordArray(payload, "Styles").map((item) => ({

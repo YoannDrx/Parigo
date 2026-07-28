@@ -16,7 +16,6 @@ export async function GET() {
     "static",
     "labels",
     "playlists",
-    "collections",
     "selections",
     "editorial",
     ...Array.from({ length: albumPages }, (_, index) => `albums/${index + 1}`),

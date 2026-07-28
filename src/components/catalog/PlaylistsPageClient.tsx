@@ -131,7 +131,7 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 pb-32">
-        <CatalogHero eyebrow={t("catalog.playlistsEyebrow")} title={t("catalog.playlistsTitle")} intro={t("catalog.playlistsIntro")} meta={`${playlists.length} ${t("common.playlists").toLowerCase()}`} />
+        <CatalogHero title={t("catalog.playlistsTitle")} intro={t("catalog.playlistsIntro")} meta={`${playlists.length} ${t("common.playlists").toLowerCase()}`} />
         <div className="mx-auto max-w-[1700px] px-4 py-12 md:py-16 lg:px-8">
           <CatalogToolbar
             locale={locale}

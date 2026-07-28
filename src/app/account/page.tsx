@@ -2,8 +2,9 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
-import { Check, ImagePlus, Loader2, Save, Trash2, User } from "lucide-react";
+import { Check, ImagePlus, Save, Trash2, User } from "lucide-react";
 import { Button, Input, Select, Tooltip } from "@/components/ui";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { MemberProfile } from "@/types";
@@ -82,7 +83,7 @@ export default function AccountPage() {
     }
   };
 
-  if (loading) return <div className="flex min-h-72 items-center justify-center"><Loader2 className="animate-spin" /></div>;
+  if (loading) return <div className="flex min-h-72 items-center justify-center"><ParigoLoader size="page" label={locale === "fr" ? "Chargement du profil" : "Loading profile"} /></div>;
   if (!profile || !form) return <p>{locale === "fr" ? "Profil Parigo indisponible." : "Parigo profile unavailable."}</p>;
 
   const statusLabel = profile.status === "active" ? (locale === "fr" ? "Actif" : "Active") : profile.status || (locale === "fr" ? "Non renseigné" : "Not provided");
@@ -114,7 +115,7 @@ export default function AccountPage() {
             </label>
           </Tooltip>
           {profile.image && <Tooltip label={locale === "fr" ? "Supprimer la photo" : "Remove photo"}><button type="button" onClick={() => void removeImage()} disabled={imageBusy} aria-label={locale === "fr" ? "Supprimer la photo" : "Remove photo"} className="absolute -left-1 top-2 inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-[var(--surface)] bg-[var(--surface)] text-[var(--danger)] shadow-[0_8px_20px_rgba(15,22,16,.18)] transition hover:border-[var(--danger)] disabled:opacity-50"><Trash2 size={15} /></button></Tooltip>}
-          {imageBusy && <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--surface)]/75"><Loader2 size={22} className="animate-spin" /></span>}
+          {imageBusy && <span className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--surface)]/75"><ParigoLoader size="icon" label={locale === "fr" ? "Mise à jour de l’image" : "Updating image"} /></span>}
         </div>
         <p className="max-w-40 text-center text-[.68rem] leading-5 text-[var(--text-muted)]">{locale === "fr" ? "JPG, PNG ou WebP" : "JPG, PNG or WebP"}</p>
       </div>
@@ -138,7 +139,7 @@ export default function AccountPage() {
       <div className="mb-6"><h2 className="font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Identité et activité" : "Identity and business"}</h2><p className="mt-2 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Les champs professionnels et postaux sont facultatifs." : "Business and postal fields are optional."}</p></div>
       <div className="grid gap-5 sm:grid-cols-2">{fields.map((field) => <label key={field.key} className="text-sm"><span className="mb-2 block">{locale === "fr" ? field.fr : field.en}{field.key === "firstName" || field.key === "lastName" || field.key === "country" ? " *" : ""}</span><Input type={field.type || "text"} value={String(form[field.key] ?? "")} required={field.key === "firstName" || field.key === "lastName" || field.key === "country"} onChange={(event) => setForm((current) => current ? { ...current, [field.key]: event.target.value } : current)} /></label>)}</div>
       {profile.fileFormats?.length ? <label className="mt-5 block max-w-md text-sm"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><Select value={form.fileFormatId || ""} onValueChange={(value) => setForm((current) => current ? { ...current, fileFormatId: value } : current)} ariaLabel={locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"} className="w-full [&_[role=combobox]]:min-h-12" options={profile.fileFormats.map((format) => ({ value: format.id, label: format.label }))} /></label> : null}
-      <div className="mt-7 flex flex-wrap items-center gap-4"><Button type="submit" disabled={saving}>{saving ? <Loader2 className="animate-spin" size={17} /> : <Save size={17} />}{locale === "fr" ? "Enregistrer" : "Save"}</Button>{message && <p role="status" className="inline-flex items-center gap-2 text-sm"><Check size={15} />{message}</p>}</div>
+      <div className="mt-7 flex flex-wrap items-center gap-4"><Button type="submit" disabled={saving}>{saving ? <ParigoLoader size="icon" label={locale === "fr" ? "Enregistrement" : "Saving"} /> : <Save size={17} />}{locale === "fr" ? "Enregistrer" : "Save"}</Button>{message && <p role="status" className="inline-flex items-center gap-2 text-sm"><Check size={15} />{message}</p>}</div>
     </form>
   </div>;
 }

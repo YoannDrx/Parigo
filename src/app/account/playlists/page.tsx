@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Globe, ListMusic, Loader2, Lock, Plus, Search, X } from "lucide-react";
+import { Globe, ListMusic, Lock, Plus, Search, X } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Button, Input, Select } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 
 interface UserPlaylist {
   id: string;
@@ -152,7 +153,7 @@ export default function PlaylistsPage() {
       )}
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20"><Loader2 size={32} className="animate-spin text-[var(--signal-strong)]" /></div>
+        <div className="flex items-center justify-center py-20"><ParigoLoader size="page" label={locale === "fr" ? "Chargement des playlists" : "Loading playlists"} /></div>
       ) : playlists.length === 0 ? (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="account-empty flex flex-col items-center justify-center px-6 py-20 text-center">
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-[var(--surface-soft)]"><ListMusic size={40} className="text-[var(--text-muted)]" /></div>
@@ -197,7 +198,7 @@ export default function PlaylistsPage() {
                 <label className="mt-5 block text-sm"><span className="mb-2 block font-medium">{locale === "fr" ? "Note d’intention" : "Intent note"} <span className="text-[var(--text-muted)]">({locale === "fr" ? "facultatif" : "optional"})</span></span><textarea value={description} onChange={(event) => setDescription(event.target.value)} maxLength={1000} rows={4} className="w-full resize-none rounded-[var(--radius-md)] border border-[var(--line)] bg-[var(--surface)] px-4 py-3 text-sm outline-none transition focus:border-[var(--signal-strong)] focus:ring-2 focus:ring-[var(--signal)]/20" /></label>
                 <label className="mt-5 flex cursor-pointer items-start gap-3 border-y border-[var(--line)] py-4"><input type="checkbox" checked={isPublic} onChange={(event) => setIsPublic(event.target.checked)} className="mt-0.5 h-4 w-4 accent-[var(--signal-strong)]" /><span><span className="block text-sm font-semibold">{locale === "fr" ? "Rendre cette playlist publique" : "Make this playlist public"}</span><span className="mt-1 block text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Elle pourra être consultée via son lien de partage." : "It can be viewed through its sharing link."}</span></span></label>
                 {createError && <p role="alert" className="mt-5 border-l-2 border-[var(--danger)] bg-[color-mix(in_srgb,var(--danger)_8%,transparent)] px-4 py-3 text-sm text-[var(--danger)]">{createError}</p>}
-                <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><Button type="button" variant="ghost" onClick={closeCreate} disabled={isCreating}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button type="submit" disabled={isCreating || !title.trim()}>{isCreating ? <Loader2 size={17} className="animate-spin" /> : <Plus size={17} />}{locale === "fr" ? "Créer la playlist" : "Create playlist"}</Button></div>
+                <div className="mt-7 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><Button type="button" variant="ghost" onClick={closeCreate} disabled={isCreating}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button type="submit" disabled={isCreating || !title.trim()}>{isCreating ? <ParigoLoader size="icon" label={locale === "fr" ? "Création de la playlist" : "Creating playlist"} /> : <Plus size={17} />}{locale === "fr" ? "Créer la playlist" : "Create playlist"}</Button></div>
               </form>
             </motion.section>
           </motion.div>

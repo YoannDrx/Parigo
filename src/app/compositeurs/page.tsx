@@ -37,7 +37,6 @@ export default async function ComposersPage({ searchParams }: ComposersPageProps
       <Header />
       <main>
         <CatalogHero
-          eyebrow={locale === "fr" ? "Talents Parigo" : "Parigo talent"}
           title={locale === "fr" ? "Compositeurs" : "Composers"}
           intro={locale === "fr"
             ? "Portraits et discographies des artistes qui composent les sorties du label."
@@ -54,7 +53,7 @@ export default async function ComposersPage({ searchParams }: ComposersPageProps
           />
           {profiles.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
-              {profiles.map((profile, index) => <ComposerCard key={profile.slug} profile={profile} locale={locale} index={index} />)}
+              {profiles.map((profile) => <ComposerCard key={profile.slug} profile={profile} locale={locale} />)}
             </div>
           ) : (
             <p className="border-y border-[var(--line)] py-16 text-center text-[var(--text-muted)]">

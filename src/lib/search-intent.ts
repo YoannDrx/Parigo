@@ -111,7 +111,7 @@ export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFil
 }
 
 export function canonicalizeCategoryValues(values: string[], groups: SearchFilterGroup[]): string[] {
-  const categoryGroups = groups.filter((group) => group.key !== "labels" && group.key !== "styles");
+  const categoryGroups = groups.filter((group) => group.key !== "labels");
   const itemsByOpaqueId = new Map(categoryGroups.flatMap((group) => flattenFilterItems(group.items)).map((item) => [item.id.replace(/^ATT_/i, "").split("_")[0], item]));
   const seenMeanings = new Set<string>();
   const canonical: string[] = [];

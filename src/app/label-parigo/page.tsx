@@ -42,7 +42,6 @@ export default async function ParigoLabelPage() {
       <Header />
       <main className="flex-1">
         <CatalogHero
-          eyebrow={locale === "fr" ? "Parigo / Discographie" : "Parigo / Discography"}
           title={locale === "fr" ? "Label Parigo" : "Parigo Label"}
           intro={locale === "fr"
             ? "Les productions originales du label Parigo, de la toute première référence aux dernières nouveautés."

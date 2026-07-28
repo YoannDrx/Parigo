@@ -18,7 +18,7 @@ export default function AboutPage() {
     ["03", "Support", "Make search, rights and release clear from the brief through broadcast."],
   ];
   return (
-    <InstitutionalShell eyebrow={t("institutional.aboutEyebrow")} title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")}>
+    <InstitutionalShell title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")}>
       <section className="px-4 py-20 md:px-8 md:py-32">
         <div className="mx-auto grid max-w-[1700px] gap-16 md:grid-cols-12">
           <div className="parigo-frame relative aspect-[4/3] overflow-hidden border border-[var(--line-strong)] md:col-span-7"><Image src="/images/synchros/le-monde-de-demain2.jpg" alt="Le Monde de demain — Parigo" fill sizes="(max-width:768px) 100vw, 58vw" className="object-cover grayscale transition duration-1000 hover:grayscale-0" /></div>

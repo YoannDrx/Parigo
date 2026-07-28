@@ -31,11 +31,8 @@ test("les routes principales ne débordent sur aucun viewport cible", async ({ p
   const albumPath = await page.locator('main a[href^="/albums/"]').first().getAttribute("href");
   await page.goto("/playlists");
   const playlistPath = await page.locator('main a[href^="/playlists/"]').first().getAttribute("href");
-  await page.goto("/collections");
-  const collectionPath = await page.locator('main a[href^="/collections/"]').first().getAttribute("href");
   expect(albumPath).toBeTruthy();
   expect(playlistPath).toBeTruthy();
-  expect(collectionPath).toBeTruthy();
 
   const routes = [
     "/",
@@ -43,8 +40,6 @@ test("les routes principales ne débordent sur aucun viewport cible", async ({ p
     "/albums",
     "/labels",
     "/labels/0f9769346759ee5a",
-    "/collections",
-    collectionPath!,
     "/playlists",
     "/synchronisations",
     "/label-parigo",

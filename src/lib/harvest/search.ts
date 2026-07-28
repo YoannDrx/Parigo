@@ -20,6 +20,8 @@ export interface HarvestSearchInput {
   regionId?: string;
   saveSearchHistory?: boolean;
   returnRates?: boolean;
+  match?: "normal" | "exact";
+  includeStyleFacets?: boolean;
 }
 
 export interface SignedSearchValues {
@@ -71,8 +73,8 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
   const type = input.type ?? "main";
   const bundle: Record<string, unknown> = {
     St_Keyword_Aggregated: {
-      ExactPhrase: false,
-      Wildcard: true,
+      ExactPhrase: input.match === "exact",
+      Wildcard: input.match !== "exact",
       DisableKeywordGroup: false,
       OrOperation: false,
       Keywords: input.query?.trim() || "%",
@@ -133,7 +135,7 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
         Limit: String(input.limit ?? 30),
         ReturnRates: Boolean(input.returnRates),
         Facet_Library: true,
-        Facet_Style: true,
+        Facet_Style: Boolean(input.includeStyleFacets),
         Facet_BPM: true,
         Facet_Duration: true,
         Facet_Category: true,
@@ -142,7 +144,11 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
   };
 }
 
-export function mapSearchFacets(payload: unknown): SearchFacets {
+export interface HarvestSearchFacets extends SearchFacets {
+  styles: SearchFacets["categories"];
+}
+
+export function mapSearchFacets(payload: unknown): HarvestSearchFacets {
   const source = isRecord(payload) && isRecord(payload.Facets) ? payload.Facets : {};
   const bpm = isRecord(source.BPM) ? source.BPM : {};
   const duration = isRecord(source.Duration) ? source.Duration : {};

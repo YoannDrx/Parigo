@@ -8,15 +8,8 @@ const sortMap = {
   relevance: "RankExpression",
   recent: "ReleaseDate_Desc",
   oldest: "ReleaseDate_Asc",
-  // Harvest currently accepts the legacy title values in our public URLs but
-  // rejects its documented name sorts for this tenant. Keep those URLs alive
-  // with a deterministic relevance fallback; the UI does not advertise A–Z.
-  title: "RankExpression",
-  "title-desc": "RankExpression",
-  "bpm-asc": "BPM_Asc",
-  "bpm-desc": "BPM_Desc",
-  "duration-asc": "Duration_Asc",
-  "duration-desc": "Duration_Desc",
+  title: "Alphabetic_Asc",
+  "title-desc": "Alphabetic_Desc",
 } as const;
 
 const querySchema = z.object({
@@ -24,10 +17,10 @@ const querySchema = z.object({
   view: z.enum(["tracks", "albums"]).default("tracks"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(30),
-  sort: z.enum(["relevance", "recent", "oldest", "title", "title-desc", "bpm-asc", "bpm-desc", "duration-asc", "duration-desc"]).default("relevance"),
+  sort: z.enum(["relevance", "recent", "oldest", "title", "title-desc"]).catch("relevance").default("relevance"),
+  match: z.enum(["normal", "exact"]).default("normal"),
   type: z.enum(["main", "alternate", "all"]).default("main"),
   labels: z.string().optional(),
-  styles: z.string().optional(),
   categories: z.string().optional(),
   bpmMin: z.coerce.number().min(1).max(300).optional(),
   bpmMax: z.coerce.number().min(1).max(300).optional(),
@@ -64,9 +57,9 @@ export async function GET(request: NextRequest) {
       skip,
       limit: input.limit,
       sort: sortMap[input.sort],
+      match: input.match,
       type: input.type,
       labels: list(input.labels),
-      styles: list(input.styles),
       categories: categories.length ? [...new Set(categories)] : undefined,
       minBpm: input.bpmMin,
       maxBpm: input.bpmMax,
@@ -76,11 +69,17 @@ export async function GET(request: NextRequest) {
       saveSearchHistory: Boolean(session),
     }, session?.memberToken);
     const items = input.view === "albums" ? result.albums : result.tracks;
+    const publicFacets = {
+      bpm: result.facets.bpm,
+      duration: result.facets.duration,
+      labels: result.facets.labels,
+      categories: result.facets.categories,
+    };
     return NextResponse.json({
       data: {
         items,
         view: input.view,
-        facets: result.facets,
+        facets: publicFacets,
         appliedSearch: { ...input, q: input.q === "%" ? "" : input.q },
       },
       meta: {

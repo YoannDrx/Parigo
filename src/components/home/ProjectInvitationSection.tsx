@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Mail } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { Button } from "@/components/ui/Button";
 
 export function ProjectInvitationSection() {
-  const { locale, t } = useI18n();
+  const { locale, localizedPath } = useI18n();
   const reduceMotion = useReducedMotion();
 
   return (
@@ -20,20 +19,24 @@ export function ProjectInvitationSection() {
         className="project-invitation parigo-frame mx-auto grid max-w-[1580px] gap-10 border border-white/14 bg-[#0b0f0c] p-6 text-white md:grid-cols-12 md:items-end md:p-10 lg:p-12"
       >
         <div className="relative md:col-span-8">
-          <p className="eyebrow text-[var(--signal)]">{t("home.licenseEyebrow")}</p>
-          <h2 className="mt-5 max-w-[14ch] text-[clamp(2.6rem,5vw,5.4rem)] leading-[.92] tracking-[-.055em] text-white">{t("home.licenseTitle")}</h2>
+          <h2 className="max-w-[15ch] text-[clamp(2.6rem,5vw,5.4rem)] leading-[.92] tracking-[-.055em] text-white">
+            {locale === "fr" ? <>Envoyez-nous un brief.<br />Nous sélectionnons pour vous.</> : <>Send us a brief.<br />We’ll curate for you.</>}
+          </h2>
         </div>
         <div className="relative md:col-span-3 md:col-start-10">
-          <p className="leading-7 text-white/66">{t("home.licenseCopy")}</p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link href="/contact"><Button className="home-project-cta">{t("home.licenseCta")}</Button></Link>
-            <Link href="/licensing" className="inline-flex min-h-11 items-center gap-2 border-b border-white/32 text-sm font-semibold text-white transition hover:border-[var(--signal)] hover:text-[var(--signal)]">
-              {t("home.discoverLicensing")}<ArrowRight size={15} />
-            </Link>
-          </div>
-          <p className="mt-7 font-mono text-[.56rem] uppercase tracking-[.13em] text-white/36">
-            {locale === "fr" ? "Paris · Recherche humaine · Droits cadrés" : "Paris · Human search · Rights cleared"}
+          <p className="leading-7 text-white/66">
+            {locale === "fr"
+              ? "Parlez-nous de votre projet, de votre deadline et de vos références, Nous construisons une sélection pour vous."
+              : "Tell us about your project, your deadline and your references. We’ll build a selection for you."}
           </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            <Link href={localizedPath("/contact?subject=brief")} className="home-project-cta inline-flex min-h-11 items-center gap-2 rounded-md bg-[var(--signal)] px-5 text-sm font-semibold text-[#101410] transition hover:bg-white">
+              {locale === "fr" ? "Envoyer un brief" : "Send a brief"}<ArrowRight size={15} />
+            </Link>
+            <a href="mailto:info@parigomusic.com" className="inline-flex min-h-11 items-center gap-2 border-b border-white/32 text-sm font-semibold text-white transition hover:border-[var(--signal)] hover:text-[var(--signal)]">
+              {locale === "fr" ? "Contacter l’équipe" : "Contact the team"}<Mail size={15} />
+            </a>
+          </div>
         </div>
       </motion.div>
     </section>

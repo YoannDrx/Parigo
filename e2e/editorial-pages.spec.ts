@@ -48,7 +48,7 @@ test("la bordure et les corners des synchronisations restent visibles au survol"
 test("la home expose une section Clips reliée à la vidéothèque", async ({ page }) => {
   await page.goto("/");
   const section = page.getByTestId("home-clips-section");
-  await expect(section.getByRole("heading", { name: "Clips, films et coulisses." })).toBeVisible();
+  await expect(section.getByRole("heading", { name: "Clips, teasers et performances" })).toBeVisible();
   await expect(section.getByRole("link", { name: /Voir tous les clips/ })).toHaveAttribute("href", "/clips");
   await expect(section.locator(".parigo-video-card").first()).toBeVisible();
 });
@@ -60,28 +60,49 @@ test("la recherche et les cards compositeurs utilisent la DA Parigo", async ({ p
   const card = page.locator(".composer-card").first();
   await expect(card).toBeVisible();
   await expect(card.locator(".composer-card__corner")).toHaveCount(2);
+  await expect(page.locator(".composer-card").getByText(/^C\s*\/\s*\d+$/)).toHaveCount(0);
 });
 
-test("la home hiérarchise le process, le projet puis les sensations", async ({ page }, testInfo) => {
+test("le détail d’une synchronisation contient son titre et masque la description YouTube", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/synchronisations/ajvhKSKcas8");
+
+  const title = page.locator("main h1");
+  await expect(title).toBeVisible();
+  const mobileVideo = page.getByRole("region", { name: "Lecteur vidéo" });
+  expect((await mobileVideo.boundingBox())!.y).toBeLessThan((await title.boundingBox())!.y);
+  expect(await title.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+  await expect(page.locator("main")).not.toContainText("spotify.com");
+  await expect(page.locator("main")).not.toContainText("@parigoproductionmusic");
+  const actions = page.getByRole("complementary");
+  await expect(actions.getByRole("link", { name: "YouTube", exact: true })).toBeVisible();
+  await expect(actions.getByRole("link", { name: "Parler à l’équipe" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.reload();
+  const desktopVideoBox = await page.getByRole("region", { name: "Lecteur vidéo" }).boundingBox();
+  const desktopTitleBox = await page.locator("main h1").boundingBox();
+  expect(desktopVideoBox).not.toBeNull();
+  expect(desktopTitleBox).not.toBeNull();
+  expect(desktopVideoBox!.x).toBeLessThan(desktopTitleBox!.x);
+  expect(await page.locator("main h1").evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+});
+
+test("la home conserve le process et le brief sans les deux sections supprimées", async ({ page }) => {
   await page.goto("/");
 
   const process = page.locator("#process");
-  const sensations = page.locator("#sensations");
   await expect(process.getByTestId("process-progress")).toBeVisible();
   await expect(process.getByText(/Progression du parcours|Parigo · supervision musicale|Chercher · Écouter · Sélectionner/)).toHaveCount(0);
   await expect(process.locator(".process-step")).toHaveCount(3);
   await expect(process.locator(".process-step > span.absolute")).toHaveCount(0);
   await expect(process.locator(".process-step__signal")).toHaveCount(0);
-  await expect(sensations.locator(".sensation-card")).toHaveCount(6);
-  const firstSensation = sensations.locator(".sensation-card").first();
-  if (testInfo.project.name !== "mobile") {
-    await firstSensation.hover();
-    await expect(firstSensation).toHaveCSS("background-color", "rgb(11, 15, 12)");
-    await expect(firstSensation.locator(".sensation-card__title")).toHaveCSS("color", "rgb(255, 255, 255)");
-    await expect(firstSensation.locator(".sensation-card__note")).toHaveCSS("color", "rgba(247, 248, 244, 0.74)");
-    await firstSensation.focus();
-    await expect(firstSensation.locator(".sensation-card__title")).toHaveCSS("color", "rgb(255, 255, 255)");
-  }
+  await expect(page.locator("#sensations")).toHaveCount(0);
+  await expect(page.locator("#editorial-playlists")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: /Envoyez-nous un brief/ })).toBeVisible();
+  await expect(page.getByText("Parlez-nous de votre projet, de votre deadline et de vos références, Nous construisons une sélection pour vous.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Sorties, playlists, images et actualités du label — tous nos liens réunis au même endroit.", { exact: true })).toBeVisible();
 
   const socialSection = page.getByTestId("social-follow-section");
   const socialSpacing = await socialSection.evaluate((node) => {
@@ -91,14 +112,9 @@ test("la home hiérarchise le process, le projet puis les sensations", async ({ 
   expect(socialSpacing.top).toBe(socialSpacing.bottom);
 
   expect(await page.evaluate(() => {
-    const nodes = ["process", "sensations", "editorial-playlists"].map((id) => document.getElementById(id));
+    const processNode = document.getElementById("process");
     const projectNode = document.querySelector(".project-invitation");
-    if (nodes.some((node) => !node) || !projectNode) return false;
-    return Boolean(
-      nodes[0]!.compareDocumentPosition(projectNode) & Node.DOCUMENT_POSITION_FOLLOWING
-      && projectNode.compareDocumentPosition(nodes[1]!) & Node.DOCUMENT_POSITION_FOLLOWING
-      && nodes[1]!.compareDocumentPosition(nodes[2]!) & Node.DOCUMENT_POSITION_FOLLOWING
-    );
+    return Boolean(processNode && projectNode && processNode.compareDocumentPosition(projectNode) & Node.DOCUMENT_POSITION_FOLLOWING);
   })).toBe(true);
 });
 
@@ -132,7 +148,7 @@ test("l’onde du héros reste animée sur mobile sans charger WebGL", async ({ 
   await expect(hero.locator("canvas")).toHaveCount(0);
   const fallback = hero.locator(".signal-field-fallback");
   await expect(fallback).toHaveAttribute("data-static", "false");
-  const wave = fallback.locator(".signal-field-fallback__wave--primary");
+  const wave = fallback.locator(".signal-field-fallback__wave").first();
   const before = await wave.evaluate((node) => getComputedStyle(node).transform);
   await page.waitForTimeout(300);
   const after = await wave.evaluate((node) => getComputedStyle(node).transform);
@@ -142,38 +158,27 @@ test("l’onde du héros reste animée sur mobile sans charger WebGL", async ({ 
   await page.reload();
   const reducedFallback = page.getByTestId("home-hero").locator(".signal-field-fallback");
   await expect(reducedFallback).toHaveAttribute("data-static", "true");
-  await expect(reducedFallback.locator(".signal-field-fallback__wave--primary")).toHaveCSS("animation-name", "none");
+  await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
 });
 
-test("les six sensations ouvrent une recherche structurée avec des résultats", async ({ page }) => {
-  test.setTimeout(120_000);
+test("les ondes du héros gagnent du contraste uniquement en thème clair", async ({ page }) => {
   await page.goto("/");
-  const expected = [
-    ["Publicité", "publicité solaire"],
-    ["Documentaire", "documentaire cinématique"],
-    ["Fiction", "fiction sous tension"],
-    ["Sport", "sport énergique"],
-    ["Mode", "mode électronique"],
-    ["Émotion", "émotion"],
-  ] as const;
+  const signal = page.getByTestId("home-hero").locator(".hero-signal-field");
+  await expect(signal).toBeVisible();
+  await expect(signal).toHaveCSS("mix-blend-mode", "multiply");
+  const lightStyle = await signal.evaluate((node) => {
+    const style = getComputedStyle(node);
+    return { filter: style.filter, opacity: Number(style.opacity) };
+  });
+  expect(lightStyle.filter).not.toBe("none");
+  expect(lightStyle.opacity).toBeGreaterThanOrEqual(.9);
 
-  for (const [label, brief] of expected) {
-    await page.goto("/");
-    const card = page.locator("#sensations").getByRole("link", { name: new RegExp(`^${label} —`) });
-    const href = await card.getAttribute("href");
-    expect(href).not.toBeNull();
-    const destination = new URL(href!, "http://parigo.test");
-    expect(destination.searchParams.get("brief")).toBe(brief);
-    expect(destination.searchParams.get("resolve")).toBe("1");
-    expect(destination.searchParams.has("q")).toBe(false);
-
-    await card.click();
-    await expect(page).toHaveURL(/\/search\?/);
-    await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
-    const resolved = new URL(page.url());
-    expect(resolved.searchParams.get("categories"), `${label} doit appliquer un filtre`).toMatch(/^ATT_/);
-    expect(resolved.searchParams.has("q")).toBe(false);
-  }
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.style.colorScheme = "dark";
+  });
+  await expect(signal).toHaveCSS("mix-blend-mode", "screen");
+  await expect(signal).toHaveCSS("filter", "none");
 });
 
 test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) => {
@@ -196,4 +201,39 @@ test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) 
   await page.getByRole("navigation", { name: "Sommaire du document" }).getByRole("link", { name: /Hébergement/ }).click();
   await expect(mobileContents).not.toHaveAttribute("open", "");
   await expect(page.locator(".legal-section")).toHaveCount(7);
+});
+
+test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {
+  const cases = [
+    ["/search", "Catalogue Parigo"],
+    ["/albums", "Catalogue / Albums"],
+    ["/synchronisations", "Music for images"],
+    ["/playlists", "Catalogue / Sélections"],
+    ["/licensing", "Licensing"],
+    ["/label-parigo", "Parigo / Discographie"],
+    ["/compositeurs", "Talents Parigo"],
+    ["/clips", "Images en musique"],
+    ["/labels", "Catalogue / Labels"],
+    ["/about", "Parigo / Maison indépendante"],
+    ["/contact", "Nous contacter"],
+    ["/legal", "Informations légales"],
+    ["/privacy", "Données & choix"],
+    ["/terms", "Règles du service"],
+    ["/rights", "Propriété intellectuelle"],
+  ] as const;
+  for (const [path, label] of cases) {
+    await page.goto(path);
+    await expect(page.locator("main h1")).toBeVisible();
+    await expect(page.locator("main").getByText(label, { exact: true })).toHaveCount(0);
+  }
+});
+
+test("le formulaire Contact conserve sa composition d’origine et laisse respirer le champ Entreprise", async ({ page }) => {
+  await page.setViewportSize({ width: 1024, height: 800 });
+  await page.goto("/contact");
+  await expect(page.getByText("Racontez-nous votre projet.", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Parigo Music", { exact: true }).last()).toBeVisible();
+  const companyField = page.locator('input[name="company"]').locator("..");
+  const paddingLeft = await companyField.evaluate((node) => Number.parseFloat(getComputedStyle(node).paddingLeft));
+  expect(paddingLeft).toBeGreaterThanOrEqual(20);
 });

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { AlertCircle, Check, Loader2, Send } from "lucide-react";
+import { AlertCircle, Check, Send } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Track } from "@/types";
 
@@ -52,7 +53,7 @@ export function ContactForm({ track, requestedTrackId }: { track?: Track | null;
     <form onSubmit={submit} className="contact-form min-w-0" aria-label={t("institutional.contactForm")}>
       <div className="grid sm:grid-cols-2">
         <label className="contact-field sm:border-r"><span><b>01</b>{t("institutional.name")}</span><input required name="name" autoComplete="name" /></label>
-        <label className="contact-field"><span><b>02</b>{t("institutional.company")}</span><input name="company" autoComplete="organization" /></label>
+        <label className="contact-field sm:!pl-5 sm:focus-within:!pl-5"><span><b>02</b>{t("institutional.company")}</span><input name="company" autoComplete="organization" /></label>
       </div>
       <label className="contact-field"><span><b>03</b>{t("auth.email")}</span><input required type="email" name="email" autoComplete="email" /></label>
       <label className="contact-field"><span><b>04</b>{requestedTrackId ? (locale === "fr" ? "Projet & licence" : "Project & licence") : t("institutional.project")}</span><textarea required name="message" rows={requestedTrackId ? 13 : 6} defaultValue={defaultMessage} placeholder={t("institutional.projectPlaceholder")} /></label>
@@ -63,7 +64,7 @@ export function ContactForm({ track, requestedTrackId }: { track?: Track | null;
           <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center border border-[var(--line-strong)] bg-transparent text-transparent transition group-hover:border-[var(--color-primary-dark)] peer-checked:rotate-[-4deg] peer-checked:border-[var(--color-primary-dark)] peer-checked:bg-[var(--signal)] peer-checked:text-[#10110e] peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-[var(--color-primary-dark)]"><Check size={15} strokeWidth={3} /></span>
           <span>{t("institutional.consent")}</span>
         </label>
-        <button type="submit" disabled={status === "sending"} className="contact-submit disabled:cursor-wait disabled:opacity-60">{status === "sending" ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />} {status === "sending" ? (locale === "fr" ? "Envoi…" : "Sending…") : t("institutional.send")}</button>
+        <button type="submit" disabled={status === "sending"} className="contact-submit disabled:cursor-wait disabled:opacity-60">{status === "sending" ? <ParigoLoader size="icon" label={locale === "fr" ? "Envoi en cours" : "Sending"} /> : <Send size={17} />} {status === "sending" ? (locale === "fr" ? "Envoi…" : "Sending…") : t("institutional.send")}</button>
       </div>
       {status === "error" && <div role="alert" className="mt-5 flex items-start gap-3 border border-red-500/30 bg-red-500/10 p-4 text-sm"><AlertCircle size={18} className="mt-0.5 shrink-0" /><p>{errorMessage} {locale === "fr" ? "Vous pouvez aussi écrire à" : "You can also email"} <a href="mailto:info@parigomusic.com" className="underline">info@parigomusic.com</a>.</p></div>}
     </form>

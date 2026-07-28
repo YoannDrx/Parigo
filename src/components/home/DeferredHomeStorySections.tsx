@@ -1,11 +1,16 @@
 "use client";
 
 import { useEffect, useState, type ComponentType } from "react";
-import type { Playlist } from "@/types";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { useI18n } from "@/components/providers/I18nProvider";
 
-type StoryProps = { locale: "fr" | "en"; playlists: Playlist[] };
+type StoryProps = {
+  locale: "fr" | "en";
+  albumCovers: Array<{ src: string; title: string }>;
+};
 
 export function DeferredHomeStorySections(props: StoryProps) {
+  const { locale } = useI18n();
   const [Sections, setSections] = useState<ComponentType<StoryProps> | null>(null);
 
   useEffect(() => {
@@ -18,10 +23,7 @@ export function DeferredHomeStorySections(props: StoryProps) {
         if (active) setSections(() => module.HomeStorySections);
       });
     };
-    // These long-form, below-the-fold animations are intentionally kept out of
-    // the LCP window. A user who scrolls gets them immediately; an idle page
-    // receives them after the critical rendering work has settled.
-    const timeout = globalThis.setTimeout(load, 6_000);
+    const timeout = globalThis.setTimeout(load, 2_000);
     const loadOnIntent = () => load();
     window.addEventListener("scroll", loadOnIntent, { once: true, passive: true });
     return () => {
@@ -33,5 +35,12 @@ export function DeferredHomeStorySections(props: StoryProps) {
 
   return Sections
     ? <Sections {...props} />
-    : <div aria-hidden="true" className="h-[795svh] lg:h-[753svh]" />;
+    : (
+      <div className="flex min-h-[100svh] items-center justify-center bg-[var(--background)]">
+        <ParigoLoader
+          size="page"
+          label={locale === "fr" ? "Chargement de la suite de la page" : "Loading the rest of the page"}
+        />
+      </div>
+    );
 }

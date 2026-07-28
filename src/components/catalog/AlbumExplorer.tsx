@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, Loader2, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import type { Album, SearchFacets, SearchFilterItem, ViewMode } from "@/types";
 import { CatalogActiveFilters, type CatalogActiveFilter } from "./CatalogActiveFilters";
 import { CatalogToolbar } from "./CatalogToolbar";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 
 type AlbumSort = "relevance" | "recent" | "oldest";
 
@@ -26,7 +27,6 @@ interface InitialAlbums {
 interface AlbumExplorerProps {
   initialData: InitialAlbums;
   fixedLabel?: string;
-  fixedStyle?: string;
   queryPlaceholder?: { fr: string; en: string };
   headingLevel?: 2 | 3;
 }
@@ -51,7 +51,7 @@ function flatten(items: SearchFilterItem[]): SearchFilterItem[] {
   return items.flatMap((item) => [item, ...flatten(item.children ?? [])]);
 }
 
-export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceholder, headingLevel = 2 }: AlbumExplorerProps) {
+export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headingLevel = 2 }: AlbumExplorerProps) {
   const { locale, t, localizedPath } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
@@ -66,7 +66,6 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
   const [page, setPage] = useState(Math.max(1, Number(searchParams.get("page")) || 1));
   const [categories, setCategories] = useState(csv(searchParams.get("categories")));
   const [labels, setLabels] = useState(csv(searchParams.get("labels")));
-  const [styles, setStyles] = useState(csv(searchParams.get("styles")));
   const [bpmRange, setBpmRange] = useState<[number, number]>([
     Number(searchParams.get("bpmMin")) || DEFAULT_BPM[0],
     Number(searchParams.get("bpmMax")) || DEFAULT_BPM[1],
@@ -81,8 +80,8 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(
-    () => (filtersQuery.data ?? []).filter((group) => !(fixedLabel && group.key === "labels") && !(fixedStyle && group.key === "styles")),
-    [filtersQuery.data, fixedLabel, fixedStyle],
+    () => (filtersQuery.data ?? []).filter((group) => !(fixedLabel && group.key === "labels")),
+    [filtersQuery.data, fixedLabel],
   );
   const allItems = useMemo(() => filterGroups.flatMap((group) => flatten(group.items)), [filterGroups]);
   const names = useMemo(() => new Map(allItems.map((item) => [item.id.replace(/^-/, ""), item.name])), [allItems]);
@@ -94,7 +93,6 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
     offset: (page - 1) * pageSize,
     query: debouncedQuery || undefined,
     labels: [...labels, ...(fixedLabel ? [fixedLabel] : [])],
-    styles: [...styles, ...(fixedStyle ? [fixedStyle] : [])],
     categories,
     minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
     maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
@@ -102,8 +100,8 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
     maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
     language: locale,
     sort,
-  }), [bpmRange, categories, debouncedQuery, durationRange, fixedLabel, fixedStyle, labels, locale, page, pageSize, sort, styles]);
-  const isInitialState = !query && page === 1 && sort === "recent" && !categories.length && !labels.length && !styles.length
+  }), [bpmRange, categories, debouncedQuery, durationRange, fixedLabel, labels, locale, page, pageSize, sort]);
+  const isInitialState = !query && page === 1 && sort === "recent" && !categories.length && !labels.length
     && bpmRange[0] === DEFAULT_BPM[0] && bpmRange[1] === DEFAULT_BPM[1]
     && durationRange[0] === DEFAULT_DURATION[0] && durationRange[1] === DEFAULT_DURATION[1];
   const albumsQuery = useAlbums(requestParams, true, isInitialState ? initialData : undefined);
@@ -120,7 +118,6 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
     if (view !== "grid") params.set("view", view);
     if (page > 1) params.set("page", String(page));
     if (labels.length) params.set("labels", labels.join(","));
-    if (styles.length) params.set("styles", styles.join(","));
     if (categories.length) params.set("categories", categories.join(","));
     if (bpmRange[0] !== DEFAULT_BPM[0]) params.set("bpmMin", String(bpmRange[0]));
     if (bpmRange[1] !== DEFAULT_BPM[1]) params.set("bpmMax", String(bpmRange[1]));
@@ -128,7 +125,7 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
     if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
-  }, [bpmRange, categories, durationRange, labels, mobileFiltersOpen, page, pathname, query, router, searchParams, sort, styles, view]);
+  }, [bpmRange, categories, durationRange, labels, mobileFiltersOpen, page, pathname, query, router, searchParams, sort, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -162,7 +159,6 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
   const reset = useCallback(() => {
     setCategories([]);
     setLabels([]);
-    setStyles([]);
     setBpmRange(DEFAULT_BPM);
     setDurationRange(DEFAULT_DURATION);
     setPage(1);
@@ -189,13 +185,6 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
       state: value.startsWith("-") ? "exclude" as const : "include" as const,
       onRemove: () => removeSignedValue(setLabels, value),
     })),
-    ...styles.map((value) => ({
-      id: `style-${value}`,
-      label: names.get(value.replace(/^-/, "")) ?? value.replace(/^-/, ""),
-      group: "Style",
-      state: value.startsWith("-") ? "exclude" as const : "include" as const,
-      onRemove: () => removeSignedValue(setStyles, value),
-    })),
     ...(bpmRange[0] !== DEFAULT_BPM[0] || bpmRange[1] !== DEFAULT_BPM[1] ? [{
       id: "bpm",
       label: `BPM ${bpmRange[0]}–${bpmRange[1]}`,
@@ -216,16 +205,13 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
       groups={filterGroups}
       categories={categories}
       labels={labels}
-      styles={styles}
       bpmRange={bpmRange}
       durationRange={durationRange}
       categoryFacets={facets?.categories ?? []}
       labelFacets={facets?.labels ?? []}
-      styleFacets={facets?.styles ?? []}
       locale={locale}
       onCategoriesChange={(value) => update(setCategories, value)}
       onLabelsChange={(value) => update(setLabels, value)}
-      onStylesChange={(value) => update(setStyles, value)}
       onBpmChange={(value) => update(setBpmRange, value)}
       onDurationChange={(value) => update(setDurationRange, value)}
       onReset={reset}
@@ -262,7 +248,7 @@ export function AlbumExplorer({ initialData, fixedLabel, fixedStyle, queryPlaceh
         <aside className="hidden min-w-0 lg:block">{filterPanel}</aside>
         <div className="min-w-0">
           {albumsQuery.isFetching && !albumsQuery.data ? (
-            <div className="grid min-h-72 place-items-center"><Loader2 className="animate-spin text-[var(--signal-strong)]" /></div>
+            <div className="grid min-h-72 place-items-center"><ParigoLoader size="page" label={t("common.loading")} /></div>
           ) : albums.length ? (
             <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-4 gap-y-12 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
               {albums.map((album, index) => view === "grid"

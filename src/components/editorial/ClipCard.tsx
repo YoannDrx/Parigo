@@ -8,12 +8,10 @@ export function ClipCard({
   clip,
   composers,
   locale,
-  index,
 }: {
   clip: EditorialVideo;
   composers: Array<Pick<ComposerProfile, "slug" | "name">>;
   locale: Locale;
-  index: number;
 }) {
   const title = clip.title[locale];
   return (
@@ -25,7 +23,6 @@ export function ClipCard({
       detail={composers.length > 0
         ? composers.map((profile) => profile.name).join(" · ")
         : clip.channelTitle || clip.subtitle?.[locale]}
-      index={index}
     />
   );
 }

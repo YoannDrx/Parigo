@@ -25,5 +25,5 @@ export default function TermsPage() {
     { title: "Governing law", content: <p>These terms are governed by French law. After an attempt at amicable resolution, jurisdiction is determined under applicable rules; business-to-business disputes fall within the jurisdiction of the Paris courts.</p> },
     { title: "Contact", content: <p>Questions about these terms, the catalogue or a licence: <a href="mailto:info@parigomusic.com">info@parigomusic.com</a>.</p> },
   ];
-  return <InstitutionalShell eyebrow={locale === "fr" ? "Règles du service" : "Service rules"} title={locale === "fr" ? "Conditions d’utilisation" : "Terms of use"} intro={locale === "fr" ? "Écouter, sélectionner, télécharger et licencier : le cadre d’utilisation du service Parigo." : "Listening, selecting, downloading and licensing: the framework for using Parigo."}><LegalDocument sections={sections} /></InstitutionalShell>;
+  return <InstitutionalShell title={locale === "fr" ? "Conditions d’utilisation" : "Terms of use"} intro={locale === "fr" ? "Écouter, sélectionner, télécharger et licencier : le cadre d’utilisation du service Parigo." : "Listening, selecting, downloading and licensing: the framework for using Parigo."}><LegalDocument sections={sections} /></InstitutionalShell>;
 }

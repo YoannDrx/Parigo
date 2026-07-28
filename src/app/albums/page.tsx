@@ -39,7 +39,6 @@ export default async function AlbumsPage() {
       <Header />
       <main className="flex-1">
         <CatalogHero
-          eyebrow={copy.catalog.albumsEyebrow}
           title={copy.catalog.albumsTitle}
           intro={copy.catalog.albumsIntro}
           meta={`${albums.total} ${copy.common.albums.toLowerCase()}`}

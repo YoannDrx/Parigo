@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Download, Loader2, FileAudio, Calendar, Tag } from "lucide-react";
+import { Download, FileAudio, Calendar, Tag } from "lucide-react";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
@@ -63,7 +64,7 @@ export default function DownloadsPage() {
       {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <Loader2 size={32} className="animate-spin text-[var(--color-primary)]" />
+          <ParigoLoader size="page" label={locale === "fr" ? "Chargement des téléchargements" : "Loading downloads"} />
         </div>
       ) : downloads.length === 0 ? (
         <motion.div

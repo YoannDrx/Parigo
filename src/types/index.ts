@@ -145,12 +145,13 @@ export interface SearchFacetItem {
   parentId?: string;
 }
 
+export type SortMode = "relevance" | "recent" | "oldest" | "title" | "title-desc";
+
 export interface SearchFacets {
   bpm: { min: number; max: number };
   duration: { min: number; max: number };
   labels: SearchFacetItem[];
   categories: SearchFacetItem[];
-  styles: SearchFacetItem[];
 }
 
 export type SearchFilterGroupKey =
@@ -160,8 +161,31 @@ export type SearchFilterGroupKey =
   | "musicFor"
   | "period"
   | "instruments"
-  | "area"
-  | "styles";
+  | "area";
+
+export type AutocompleteKind =
+  | "track"
+  | "album"
+  | "playlist"
+  | "label"
+  | "composer"
+  | "lyrics"
+  | "keyword";
+
+export interface AutocompleteItem {
+  id: string;
+  kind: AutocompleteKind;
+  label: string;
+  subtitle?: string;
+  image?: string;
+  href?: string;
+}
+
+export interface AutocompleteGroup {
+  key: "tracks" | "albums" | "playlists" | "labels" | "composers" | "words";
+  count: number;
+  items: AutocompleteItem[];
+}
 
 export interface SearchFilterItem {
   id: string;

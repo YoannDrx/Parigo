@@ -4,7 +4,7 @@ import type { ComposerProfile } from "@/lib/editorial/contracts";
 import type { Locale } from "@/i18n/messages";
 import { localizedPath } from "@/lib/locale";
 
-export function ComposerCard({ profile, locale, index }: { profile: ComposerProfile; locale: Locale; index: number }) {
+export function ComposerCard({ profile, locale }: { profile: ComposerProfile; locale: Locale }) {
   const type = profile.kind === "group"
     ? (locale === "fr" ? "Collectif" : "Group")
     : (locale === "fr" ? "Compositeur·rice" : "Composer");
@@ -22,9 +22,6 @@ export function ComposerCard({ profile, locale, index }: { profile: ComposerProf
           className="object-cover transition duration-700 group-hover:scale-[1.035] group-focus-visible:scale-[1.035]"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/36 via-transparent to-transparent opacity-70 transition group-hover:opacity-90" />
-        <span className="absolute right-3 top-3 rounded-full border border-white/35 bg-black/42 px-2.5 py-1.5 font-mono text-[.52rem] text-white backdrop-blur">
-          C / {String(index + 1).padStart(2, "0")}
-        </span>
       </div>
       <div className="relative min-h-28 p-4 sm:p-5">
         <p className="font-mono text-[.54rem] uppercase tracking-[.14em] text-[var(--signal-strong)]">{type}</p>

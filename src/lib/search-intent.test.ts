@@ -41,11 +41,10 @@ describe("parseSearchIntent", () => {
     expect(intent.isVocal).toBe(true);
   });
 
-  it("ne cumule pas un genre et un style portant tous les deux le nom Techno", () => {
+  it("ne cumule pas des critères structurés de groupes différents", () => {
     const groups: SearchFilterGroup[] = [
       { key: "genre", label: "Genre", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_genre-techno", name: "Techno" }] },
       { key: "moods", label: "Moods", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_mood-energetic", name: "Energetic" }] },
-      { key: "styles", label: "Styles", selection: "include-exclude", total: 1, available: 1, items: [{ id: "style-techno", name: "Techno" }] },
     ];
     const intent = parseSearchIntent("Une techno qui tabasse.");
 
@@ -89,10 +88,9 @@ describe("parseSearchIntent", () => {
     ]);
   });
 
-  it("nettoie une ancienne URL où un style a été sérialisé comme une catégorie", () => {
+  it("nettoie une ancienne URL où un identifiant inconnu a été sérialisé comme une catégorie", () => {
     const groups: SearchFilterGroup[] = [
       { key: "genre", label: "Genre", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_8c1be9ece2483e34", name: "Techno" }] },
-      { key: "styles", label: "Styles", selection: "include-exclude", total: 1, available: 1, items: [{ id: "b80dffcee47aad5c", name: "Techno" }] },
     ];
 
     expect(canonicalizeCategoryValues(["ATT_8c1be9ece2483e34", "ATT_b80dffcee47aad5c"], groups)).toEqual(["ATT_8c1be9ece2483e34"]);

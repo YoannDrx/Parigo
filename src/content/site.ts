@@ -12,8 +12,9 @@ export const siteContent = {
   navigation: [
     { name: "Recherche", href: "/search" },
     { name: "Albums", href: "/albums" },
+    { name: "Synchronisations", href: "/synchronisations" },
     { name: "Playlists", href: "/playlists" },
-    { name: "Collections", href: "/collections" },
+    { name: "Licensing", href: "/licensing" },
     { name: "Labels", href: "/labels" },
   ],
 } as const;

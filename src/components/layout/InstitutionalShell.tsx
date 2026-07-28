@@ -3,13 +3,12 @@ import { Footer } from "./Footer";
 import { Header } from "./Header";
 
 interface InstitutionalShellProps {
-  eyebrow: string;
   title: string;
   intro: string;
   children: ReactNode;
 }
 
-export function InstitutionalShell({ eyebrow, title, intro, children }: InstitutionalShellProps) {
+export function InstitutionalShell({ title, intro, children }: InstitutionalShellProps) {
   return (
     <div className="page-shell overflow-x-clip">
       <Header />
@@ -18,7 +17,6 @@ export function InstitutionalShell({ eyebrow, title, intro, children }: Institut
           <div className="mx-auto max-w-[1700px]">
             <div className="institutional-hero__frame parigo-frame grid gap-10 border border-[var(--line-strong)] bg-[var(--surface)] p-6 md:grid-cols-12 md:p-10 lg:p-14">
               <div className="relative min-w-0 md:col-span-8">
-                <p className="eyebrow mb-7 text-[var(--signal-strong)]">{eyebrow}</p>
                 <h1 className="section-title-serif max-w-5xl break-words">{title}</h1>
               </div>
               <div className="relative flex flex-col justify-between border-t border-[var(--line)] pt-6 md:col-span-3 md:col-start-10 md:border-l md:border-t-0 md:pl-8 md:pt-0">

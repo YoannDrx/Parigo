@@ -95,8 +95,7 @@ export default async function ClipPage({ params }: ClipPageProps) {
               </div>
             </div>
             <aside className="flex min-h-full flex-col rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 lg:col-span-4 lg:p-8">
-              <p className="eyebrow text-[var(--signal-strong)]">Parigo / {clip.videoType}</p>
-              <h1 className="mt-5 text-[clamp(2.8rem,5.2vw,5.3rem)] font-semibold leading-[.88] tracking-[-.06em]">{title}<span className="text-[var(--signal)]">.</span></h1>
+              <h1 className="text-[clamp(2.8rem,5.2vw,5.3rem)] font-semibold leading-[.88] tracking-[-.06em]">{title}<span className="text-[var(--signal)]">.</span></h1>
               {subtitle && <p className="mt-5 font-semibold">{subtitle}</p>}
               {description && <p className="mt-6 whitespace-pre-line text-base leading-7 text-[var(--text-muted)]">{description}</p>}
               {clip.source === "youtube" && clip.reviewState === "needs-review" && (
