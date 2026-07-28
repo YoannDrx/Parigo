@@ -8,22 +8,6 @@ async function waitForHeaderHydration(page: Page) {
   });
 }
 
-function isExpectedPreviewArtworkProxyError(text: string, locationUrl: string) {
-  if (!text.includes("Failed to load resource") || !text.includes("status of 402")) {
-    return false;
-  }
-
-  try {
-    const proxyUrl = new URL(locationUrl);
-    const sourceUrl = proxyUrl.searchParams.get("url");
-    return proxyUrl.hostname.endsWith(".vercel.app")
-      && proxyUrl.pathname === "/_next/image"
-      && sourceUrl?.startsWith("https://d3vy0pmxxxelni.cloudfront.net/assets/playlistart/") === true;
-  } catch {
-    return false;
-  }
-}
-
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({
@@ -198,8 +182,7 @@ test("la homepage ne contient pas de violation critique axe", async ({ page }) =
     const locationUrl = message.location().url;
     const blockedPreviewToolbar = text.includes("https://vercel.live/_next-live/feedback/feedback.js")
       && text.includes("Content Security Policy");
-    const expectedArtworkProxyError = isExpectedPreviewArtworkProxyError(text, locationUrl);
-    if (message.type() === "error" && !blockedPreviewToolbar && !expectedArtworkProxyError) {
+    if (message.type() === "error" && !blockedPreviewToolbar) {
       consoleErrors.push(`${text} @ ${locationUrl}`);
     }
   });
@@ -310,6 +293,13 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await page.goto("/");
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
   const featured = page.locator("#featured");
+  const featuredArtwork = featured.locator('a[href^="/playlists/"] img').first();
+  await expect(featuredArtwork).toHaveAttribute(
+    "src",
+    /^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/playlistart\//,
+  );
+  await expect(featuredArtwork).toHaveAttribute("srcset", /width=256.*width=800/);
+  expect(await featuredArtwork.getAttribute("srcset")).not.toContain("/_next/image");
   const nextButton = featured.locator('button[aria-label="Suivant"]');
   if (testInfo.project.name === "mobile") await expect(nextButton).toBeHidden();
   else {
@@ -399,6 +389,8 @@ test("le manifesto révèle des pochettes Parigo dans différentes zones après 
   const firstCover = page.getByTestId("manifesto-album-cover");
   await expect(firstCover).toBeVisible();
   const firstSource = await firstCover.locator("img").getAttribute("src");
+  expect(firstSource).toMatch(/^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/albumart\//);
+  expect(firstSource).not.toContain("/_next/image");
   const zones = [
     [.31, .66],
     [.52, .28],
@@ -406,7 +398,11 @@ test("le manifesto révèle des pochettes Parigo dans différentes zones après 
     [.84, .72],
   ] as const;
   for (const [x, y] of zones) {
-    await page.mouse.move(box!.x + box!.width * x, box!.y + box!.height * y);
+    await section.dispatchEvent("pointermove", {
+      clientX: box!.x + box!.width * x,
+      clientY: box!.y + box!.height * y,
+      pointerType: "mouse",
+    });
     await page.waitForTimeout(80);
   }
   await expect.poll(() => page.getByTestId("manifesto-album-cover").count()).toBeGreaterThanOrEqual(12);

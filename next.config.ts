@@ -18,7 +18,7 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  "img-src 'self' data: blob: https://d3vy0pmxxxelni.cloudfront.net",
+  "img-src 'self' data: blob: https://d3vy0pmxxxelni.cloudfront.net https://i.ytimg.com",
   "media-src 'self' blob: https://d3vy0pmxxxelni.cloudfront.net",
   "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
   "connect-src 'self' https://*.ingest.sentry.io https://*.vercel-insights.com https://d3vy0pmxxxelni.cloudfront.net",
@@ -72,7 +72,13 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    formats: ["image/avif", "image/webp"],
+    // Harvest already resizes and caches artwork at the CDN edge. The custom
+    // loader keeps Next.js responsive srcsets without consuming Vercel's
+    // /_next/image allowance.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
+    deviceSizes: [640, 750, 800],
+    imageSizes: [32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: "https",
