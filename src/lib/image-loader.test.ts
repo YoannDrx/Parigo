@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import parigoImageLoader from "./image-loader";
+import parigoImageLoader, { resizeHarvestImageSource } from "./image-loader";
 
 describe("parigoImageLoader", () => {
   it("requests the responsive size directly from Harvest", () => {
@@ -15,14 +15,25 @@ describe("parigoImageLoader", () => {
     expect(result.searchParams.get("height")).toBe("160");
   });
 
-  it("caps Harvest artwork at the catalogue display ceiling", () => {
+  it("does not upscale Harvest artwork beyond its source dimensions", () => {
     const result = new URL(parigoImageLoader({
       src: "https://d3vy0pmxxxelni.cloudfront.net/assets/albumart/cover?width=640&height=640",
       width: 1920,
     }));
 
-    expect(result.searchParams.get("width")).toBe("800");
-    expect(result.searchParams.get("height")).toBe("800");
+    expect(result.searchParams.get("width")).toBe("640");
+    expect(result.searchParams.get("height")).toBe("640");
+  });
+
+  it("creates a smaller Harvest source for a known display ceiling", () => {
+    const result = new URL(resizeHarvestImageSource(
+      "https://d3vy0pmxxxelni.cloudfront.net/assets/albumart/cover?token=secret&width=800&height=800",
+      640,
+    ));
+
+    expect(result.searchParams.get("token")).toBe("secret");
+    expect(result.searchParams.get("width")).toBe("640");
+    expect(result.searchParams.get("height")).toBe("640");
   });
 
   it("keeps local and third-party images direct", () => {

@@ -10,6 +10,26 @@ function positiveInteger(value: string | null): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+function resizeHarvestUrl(url: URL, width: number): string {
+  const sourceWidth = positiveInteger(url.searchParams.get("width"));
+  const sourceHeight = positiveInteger(url.searchParams.get("height"));
+  const targetWidth = Math.min(width, sourceWidth ?? MAX_HARVEST_IMAGE_WIDTH, MAX_HARVEST_IMAGE_WIDTH);
+  const targetHeight = sourceWidth && sourceHeight
+    ? Math.max(1, Math.round(sourceHeight * targetWidth / sourceWidth))
+    : targetWidth;
+
+  url.searchParams.set("width", String(targetWidth));
+  url.searchParams.set("height", String(targetHeight));
+  return url.href;
+}
+
+export function resizeHarvestImageSource(src: string, width: number): string {
+  const url = new URL(src, LOCAL_URL_ORIGIN);
+  return url.origin === HARVEST_IMAGE_ORIGIN
+    ? resizeHarvestUrl(url, width)
+    : src;
+}
+
 export default function parigoImageLoader({ src, width }: ImageLoaderProps): string {
   if (src.startsWith("data:") || src.startsWith("blob:")) return src;
 
@@ -17,16 +37,7 @@ export default function parigoImageLoader({ src, width }: ImageLoaderProps): str
   const url = new URL(src, LOCAL_URL_ORIGIN);
 
   if (url.origin === HARVEST_IMAGE_ORIGIN) {
-    const sourceWidth = positiveInteger(url.searchParams.get("width"));
-    const sourceHeight = positiveInteger(url.searchParams.get("height"));
-    const targetWidth = Math.min(width, MAX_HARVEST_IMAGE_WIDTH);
-    const targetHeight = sourceWidth && sourceHeight
-      ? Math.max(1, Math.round(sourceHeight * targetWidth / sourceWidth))
-      : targetWidth;
-
-    url.searchParams.set("width", String(targetWidth));
-    url.searchParams.set("height", String(targetHeight));
-    return url.href;
+    return resizeHarvestUrl(url, width);
   }
 
   // Keep local assets and third-party thumbnails direct while making the
