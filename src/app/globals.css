@@ -808,6 +808,10 @@ textarea {
 .group\/account:hover .account-mark__corner,
 .group\/account:focus-visible .account-mark__corner { width: 64%; }
 
+[data-theme] .home-project-cta,
+[data-theme] .home-project-cta:visited {
+  color: #101410 !important;
+}
 [data-theme] .home-project-cta:is(:hover, :focus-visible) {
   border-color: #fff !important;
   background: #fff !important;

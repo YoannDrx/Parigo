@@ -9,10 +9,15 @@ export async function GET(request: NextRequest) {
     const session = await requireHarvestSession();
     const limit = Math.min(Number(request.nextUrl.searchParams.get("limit") || 50), 100);
     const offset = Math.max(Number(request.nextUrl.searchParams.get("offset") || 0), 0);
-    const history = await getAuditionHistory(session.memberToken, offset, limit);
+    const history = await getAuditionHistory(
+      session.memberToken,
+      offset,
+      limit,
+      session.memberUtcOffsetHours,
+    );
     return NextResponse.json({
-      data: { history: history.map((entry) => ({ ...entry, track: historyTrackResponse(entry.track) })) },
-      meta: { total: history.length, page: Math.floor(offset / limit) + 1, pageSize: limit, requestId: id },
+      data: { history: history.items.map((entry) => ({ ...entry, track: historyTrackResponse(entry.track) })) },
+      meta: { total: history.total, page: Math.floor(offset / limit) + 1, pageSize: limit, requestId: id },
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

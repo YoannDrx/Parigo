@@ -2,18 +2,29 @@ import { describe, expect, it } from "vitest";
 import { buildAutocompletePayload, mapAutocompleteResponse } from "./autocomplete";
 
 describe("Harvest autocomplete", () => {
-  it("requests useful predictive groups without styles", () => {
-    const payload = buildAutocompletePayload("crime");
+  it("requests only strict track-title suggestions for the active view", () => {
+    const payload = buildAutocompletePayload("crime", "tracks");
     expect(payload).toMatchObject({
       Keyword: "crime",
       ReturnTracks: true,
       ReturnTracks_MainOnly: true,
+      ReturnTracks_Fields: "DisplayTitle",
+      ReturnTracks_DisableKeywordGroup: true,
       ReturnTracks_Limit: 10,
-      ReturnAlbums: true,
-      ReturnLibraries: true,
-      ReturnRightHolders: true,
-      ReturnFeaturedPlaylists: true,
+      ReturnAlbums: false,
+      ReturnLibraries: false,
+      ReturnRightHolders: false,
+      ReturnFeaturedPlaylists: false,
       ReturnStyles: false,
+    });
+  });
+
+  it("switches the strict autocomplete field to albums", () => {
+    expect(buildAutocompletePayload("crime", "albums")).toMatchObject({
+      ReturnTracks: false,
+      ReturnAlbums: true,
+      ReturnAlbums_Fields: "DisplayTitle",
+      ReturnAlbums_DisableKeywordGroup: true,
     });
   });
 

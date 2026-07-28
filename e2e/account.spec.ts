@@ -114,7 +114,7 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   await page.route("**/api/user/playlists", async (route) => {
     if (route.request().method() === "POST") {
       createdPayload = route.request().postDataJSON() as Record<string, unknown>;
-      playlists = [{ id: "playlist-new", slug: "premier-film", title: createdPayload.title, description: createdPayload.description, cover: "/images/placeholder-playlist.svg", trackCount: 0, isPublic: createdPayload.isPublic, createdAt: "2026-07-23T09:00:00.000Z" }];
+      playlists = [{ id: "playlist-new", slug: "premier-film", title: createdPayload.title, description: createdPayload.description, cover: "/images/placeholder-playlist.svg", trackCount: 0, createdAt: "2026-07-23T09:00:00.000Z" }];
       return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ data: { playlist: playlists[0] } }) });
     }
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlists } }) });
@@ -131,7 +131,7 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   await dialog.getByRole("button", { name: "Créer la playlist" }).click();
   await expect(dialog).toHaveCount(0);
   await expect(page.getByText("Premier film", { exact: true })).toBeVisible();
-  expect(createdPayload).toMatchObject({ title: "Premier film", description: "Piano documentaire et texture intime", isPublic: false });
+  expect(createdPayload).toEqual({ title: "Premier film", description: "Piano documentaire et texture intime" });
   expect(nativeDialog).toBeNull();
 
   const search = page.getByRole("textbox", { name: "Rechercher dans mes playlists" });

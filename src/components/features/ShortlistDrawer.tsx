@@ -11,6 +11,7 @@ import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { Select } from "@/components/ui/Select";
 import { CueSheetButton } from "./CueSheetButton";
+import { formatParigoDate } from "@/lib/date-time";
 import type { Playlist } from "@/types";
 
 export function ShortlistDrawer() {
@@ -22,7 +23,7 @@ export function ShortlistDrawer() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [targetPlaylist, setTargetPlaylist] = useState("");
   const [playlistTitle, setPlaylistTitle] = useState(
-    () => `${locale === "fr" ? "Sélection Parigo" : "Parigo selection"} · ${new Date().toLocaleDateString(locale)}`,
+    () => `${locale === "fr" ? "Sélection Parigo" : "Parigo selection"} · ${formatParigoDate(new Date(), locale)}`,
   );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");

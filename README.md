@@ -31,6 +31,8 @@ la valeur de référence est `https://parigo-ten.vercel.app`.
 
 `HARVEST_AUTH_URL`, `HARVEST_SERVICE_URL` et `HARVEST_AUTH_GRANT_TYPE` ont des valeurs officielles par défaut. `HARVEST_DEFAULT_REGION_ID` est facultatif : la région globale du service est découverte automatiquement. Les anciens alias `HM_ServiceAPI_*` ne sont plus pris en charge.
 
+La traduction générique des recherches françaises sans résultat utilise DeepL côté serveur. Ajouter `DEEPL_AUTH_KEY` pour l’activer ; une clé API Free (`:fx`) sélectionne automatiquement `https://api-free.deepl.com`, sinon l’endpoint Pro est utilisé. `DEEPL_API_URL` permet uniquement de remplacer explicitement cet endpoint. Sans clé, la recherche littérale Harvest continue de fonctionner mais aucun fallback traduit n’est exécuté.
+
 ## Commandes
 
 ```bash

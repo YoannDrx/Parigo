@@ -30,23 +30,55 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-export function assertNoHarvestError(payload: unknown): void {
-  if (!isRecord(payload) || !isRecord(payload.Error)) return;
-  const rawCode = payload.Error.Code;
+function errorEnvelope(payload: unknown): Record<string, unknown> | undefined {
+  if (!isRecord(payload)) return undefined;
+  for (const [key, value] of Object.entries(payload)) {
+    if (key.toLowerCase() === "error" && isRecord(value)) return value;
+  }
+  return undefined;
+}
+
+export function harvestErrorFromPayload(payload: unknown): HarvestError | null {
+  const error = errorEnvelope(payload);
+  if (!error) return null;
+  const rawCode = error.Code ?? error.code;
   const code = rawCode == null ? "" : String(rawCode);
-  if (!code || code === "0") return;
+  if (!code || code === "0") return null;
 
   const description =
-    typeof payload.Error.Description === "string"
-      ? payload.Error.Description
+    typeof (error.Description ?? error.description ?? error.Message ?? error.message) === "string"
+      ? String(error.Description ?? error.description ?? error.Message ?? error.message)
       : "Harvest rejected the request";
-  const authFailure = ["3", "5", "21"].includes(code);
-  const transientFailure = /internal|operation|timeout|temporar/i.test(code) || /temporar|timeout/i.test(description);
-  throw new HarvestError(
+
+  if (["1", "2"].includes(code)) {
+    return new HarvestError(description, "VALIDATION_FAILED", 400, false, code);
+  }
+  if (code === "3") {
+    return new HarvestError(description, "FORBIDDEN", 403, false, code);
+  }
+  if (["5", "6", "21"].includes(code)) {
+    return new HarvestError(description, "UNAUTHENTICATED", 401, ["5", "21"].includes(code), code);
+  }
+  if (["7", "8", "9", "10", "11", "16", "22"].includes(code)) {
+    return new HarvestError(description, "NOT_FOUND", 404, false, code);
+  }
+  if (["12", "13", "14", "18", "19"].includes(code)) {
+    return new HarvestError(description, "FORBIDDEN", 403, false, code);
+  }
+  if (code === "17") {
+    return new HarvestError(description, "VALIDATION_FAILED", 409, false, code);
+  }
+  const transientFailure = code === "4" || /temporar|timeout/i.test(description);
+  return new HarvestError(
     description,
-    authFailure ? "UNAUTHENTICATED" : "HARVEST_UNAVAILABLE",
-    authFailure ? 401 : transientFailure ? 503 : 502,
-    authFailure || transientFailure,
+    "HARVEST_UNAVAILABLE",
+    transientFailure ? 503 : 502,
+    transientFailure,
     code,
   );
+}
+
+export function assertNoHarvestError(payload: unknown): void {
+  const error = harvestErrorFromPayload(payload);
+  if (error) throw error;
 }

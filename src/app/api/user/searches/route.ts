@@ -14,7 +14,7 @@ export async function GET() {
   const id = requestId();
   try {
     const session = await requireHarvestSession();
-    const searches = await getMemberSavedSearches(session.memberToken);
+    const searches = await getMemberSavedSearches(session.memberToken, session.memberUtcOffsetHours);
     return NextResponse.json({ data: { searches }, meta: { total: searches.length, requestId: id } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }
@@ -24,7 +24,11 @@ export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
     const session = await requireHarvestSession();
-    const search = await createMemberSavedSearch(session.memberToken, createSchema.parse(await request.json()));
+    const search = await createMemberSavedSearch(
+      session.memberToken,
+      createSchema.parse(await request.json()),
+      session.memberUtcOffsetHours,
+    );
     return NextResponse.json({ data: { search }, meta: { requestId: id } }, { status: 201, headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

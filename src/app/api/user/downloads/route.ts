@@ -37,6 +37,14 @@ export async function POST(request: NextRequest) {
     const formats = input.formatId ? [] : await getDownloadFormats();
     const formatId = input.formatId || formats.find((format) => format.extension === "MP3" && format.bitRate === 320)?.id || formats.find((format) => format.isDefault)?.id || formats[0]?.id;
     if (!formatId) return NextResponse.json({ error: { code: "INVALID_UPSTREAM_RESPONSE", message: "No download format is available", retryable: false, requestId: id } }, { status: 502 });
-    return NextResponse.json({ data: await requestDownload(session.memberToken, { ...input, formatId, trackIds }), meta: { requestId: id } }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({
+      data: await requestDownload(session.memberToken, {
+        ...input,
+        email: session.user.email,
+        formatId,
+        trackIds,
+      }),
+      meta: { requestId: id },
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

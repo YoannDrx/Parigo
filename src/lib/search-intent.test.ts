@@ -41,6 +41,18 @@ describe("parseSearchIntent", () => {
     expect(intent.isVocal).toBe(true);
   });
 
+  it("convertit mariage et wedding vers l'usage Harvest Wedding", () => {
+    const groups: SearchFilterGroup[] = [
+      { key: "musicFor", label: "Music For", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_wedding", name: "Wedding" }] },
+    ];
+
+    for (const brief of ["mariage", "noces", "wedding", "marriage"]) {
+      const intent = parseSearchIntent(brief);
+      expect(intent.musicFor).toEqual(["wedding"]);
+      expect(resolveIntentCategoryIds(intent, groups)).toEqual(["ATT_wedding"]);
+    }
+  });
+
   it("ne cumule pas des critères structurés de groupes différents", () => {
     const groups: SearchFilterGroup[] = [
       { key: "genre", label: "Genre", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_genre-techno", name: "Techno" }] },
@@ -70,11 +82,11 @@ describe("parseSearchIntent", () => {
     expect(params.get("resolve")).toBe("1");
   });
 
-  it("conserve une recherche littérale quand aucun critère structuré n'est compris", () => {
+  it("n'élargit pas une intention inconnue en recherche agrégée", () => {
     const params = intentToSearchParams(parseSearchIntent("Armand Dupont"));
 
     expect(params.get("brief")).toBe("Armand Dupont");
-    expect(params.get("q")).toBe("Armand Dupont");
+    expect(params.get("q")).toBeNull();
     expect(params.has("resolve")).toBe(false);
   });
 

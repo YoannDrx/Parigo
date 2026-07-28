@@ -78,6 +78,88 @@ export function buildAddTracksToTags(tagIds: string[], trackIds: string[]) {
   return { ObjectType: "Track", ObjectIDs: trackIds, AddToTagIDs: tagIds };
 }
 
+export function buildMemberPlaylist(title: string, description = "") {
+  return {
+    PlaylistName: title,
+    PlaylistDescription: description,
+  };
+}
+
+export function buildCopyFeaturedPlaylist(playlistId: string, playlistName?: string) {
+  return {
+    PlaylistID: playlistId,
+    ...(playlistName ? { PlaylistName: playlistName } : {}),
+    CopyTracks: true,
+  };
+}
+
+export function buildAddTracksToPlaylists(playlistIds: string[], trackIds: string[]) {
+  return {
+    ObjectType: "Track",
+    ObjectIDs: trackIds,
+    AddToPlaylistIDs: playlistIds,
+  };
+}
+
+export function buildReorderPlaylistTracks(
+  playlistId: string,
+  trackIds: string[],
+  position: { precedingTrackId?: string; succeedingTrackId?: string; orderId?: number },
+) {
+  const positions = [
+    position.precedingTrackId !== undefined,
+    position.succeedingTrackId !== undefined,
+    position.orderId !== undefined,
+  ].filter(Boolean);
+  if (positions.length !== 1) {
+    throw new TypeError("Exactly one Harvest playlist position must be provided");
+  }
+  return {
+    FromPlaylistID: playlistId,
+    ToPlaylistID: playlistId,
+    TrackIDs: trackIds,
+    ...(position.precedingTrackId !== undefined ? { PrecedingTrackID: position.precedingTrackId } : {}),
+    ...(position.succeedingTrackId !== undefined ? { SucceedingTrackID: position.succeedingTrackId } : {}),
+    ...(position.orderId !== undefined ? { OrderID: position.orderId } : {}),
+  };
+}
+
+export function buildDownloadValidation(
+  trackIds: string[],
+  formatId: string,
+  includeVersions = false,
+) {
+  return {
+    downloadtype: "track",
+    identifier: trackIds.join(","),
+    format: formatId,
+    trimstartsecs: 0,
+    trimendsecs: 0,
+    includeversioncheck: includeVersions,
+  };
+}
+
+export function buildDownloadRequest(
+  trackIds: string[],
+  formatId: string,
+  email: string,
+  includeVersions = false,
+) {
+  return {
+    downloadtype: "track",
+    identifier: trackIds.join(","),
+    format: formatId,
+    trimstartsecs: 0,
+    trimendsecs: 0,
+    email,
+    isshare: false,
+    forceemail: false,
+    message: "",
+    senderemail: email,
+    includeversions: includeVersions,
+  };
+}
+
 export function buildSavedSearch(name: string, description: string, searchHistoryId: string) {
   return { Name: name, Description: description, SearchHistoryID: searchHistoryId };
 }

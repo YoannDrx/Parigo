@@ -24,8 +24,8 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     assertSameOrigin(request);
     const session = await requireHarvestSession();
     const id = idSchema.parse((await context.params).id);
-    await updateMemberPlaylist(session.memberToken, id, updateSchema.parse(await request.json()));
-    return NextResponse.json({ data: { updated: true }, meta: { requestId: requestID } }, { headers: { "Cache-Control": "no-store" } });
+    const playlist = await updateMemberPlaylist(session.memberToken, id, updateSchema.parse(await request.json()));
+    return NextResponse.json({ data: { updated: true, playlist: apiPlaylist(playlist) }, meta: { requestId: requestID } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, requestID, { surface: "account" }); }
 }
 

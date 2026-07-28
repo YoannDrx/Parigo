@@ -8,22 +8,6 @@ async function waitForHeaderHydration(page: Page) {
   });
 }
 
-function isExpectedPreviewArtworkProxyError(text: string, locationUrl: string) {
-  if (!text.includes("Failed to load resource") || !text.includes("status of 402")) {
-    return false;
-  }
-
-  try {
-    const proxyUrl = new URL(locationUrl);
-    const sourceUrl = proxyUrl.searchParams.get("url");
-    return proxyUrl.hostname.endsWith(".vercel.app")
-      && proxyUrl.pathname === "/_next/image"
-      && sourceUrl?.startsWith("https://d3vy0pmxxxelni.cloudfront.net/assets/playlistart/") === true;
-  } catch {
-    return false;
-  }
-}
-
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({
@@ -198,8 +182,7 @@ test("la homepage ne contient pas de violation critique axe", async ({ page }) =
     const locationUrl = message.location().url;
     const blockedPreviewToolbar = text.includes("https://vercel.live/_next-live/feedback/feedback.js")
       && text.includes("Content Security Policy");
-    const expectedArtworkProxyError = isExpectedPreviewArtworkProxyError(text, locationUrl);
-    if (message.type() === "error" && !blockedPreviewToolbar && !expectedArtworkProxyError) {
+    if (message.type() === "error" && !blockedPreviewToolbar) {
       consoleErrors.push(`${text} @ ${locationUrl}`);
     }
   });
@@ -310,6 +293,17 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await page.goto("/");
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
   const featured = page.locator("#featured");
+  const featuredArtwork = featured.locator('a[href^="/playlists/"] img').first();
+  await expect(featuredArtwork).toHaveAttribute(
+    "src",
+    /^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/playlistart\//,
+  );
+  const featuredSrcset = await featuredArtwork.getAttribute("srcset");
+  const featuredWidths = [...(featuredSrcset ?? "").matchAll(/[?&]width=(\d+)/g)]
+    .map((match) => Number(match[1]));
+  expect(featuredWidths.length).toBeGreaterThan(0);
+  expect(Math.max(...featuredWidths)).toBe(320);
+  expect(featuredSrcset).not.toContain("/_next/image");
   const nextButton = featured.locator('button[aria-label="Suivant"]');
   if (testInfo.project.name === "mobile") await expect(nextButton).toBeHidden();
   else {
@@ -399,6 +393,8 @@ test("le manifesto révèle des pochettes Parigo dans différentes zones après 
   const firstCover = page.getByTestId("manifesto-album-cover");
   await expect(firstCover).toBeVisible();
   const firstSource = await firstCover.locator("img").getAttribute("src");
+  expect(firstSource).toMatch(/^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/albumart\//);
+  expect(firstSource).not.toContain("/_next/image");
   const zones = [
     [.31, .66],
     [.52, .28],
@@ -406,7 +402,11 @@ test("le manifesto révèle des pochettes Parigo dans différentes zones après 
     [.84, .72],
   ] as const;
   for (const [x, y] of zones) {
-    await page.mouse.move(box!.x + box!.width * x, box!.y + box!.height * y);
+    await section.dispatchEvent("pointermove", {
+      clientX: box!.x + box!.width * x,
+      clientY: box!.y + box!.height * y,
+      pointerType: "mouse",
+    });
     await page.waitForTimeout(80);
   }
   await expect.poll(() => page.getByTestId("manifesto-album-cover").count()).toBeGreaterThanOrEqual(12);
@@ -509,7 +509,8 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   test.setTimeout(60_000);
   test.skip(testInfo.project.name === "mobile", "La résolution de taxonomie est identique sur la feuille mobile.");
   await page.goto("/search");
-  const input = page.getByLabel("Décrivez votre intention musicale");
+  await page.getByRole("button", { name: "Par intention" }).click();
+  const input = page.getByRole("searchbox", { name: "Décrivez votre intention musicale" });
   await input.fill("Une techno magnétique avec voix");
   const interpretation = page.getByTestId("search-detected-criteria");
   await expect(interpretation).toContainText("Techno");
@@ -540,8 +541,7 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
 test("la recherche exacte reste accessible depuis le champ unifié", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/search");
-  await page.getByRole("button", { name: "Rechercher un titre précis" }).click();
-  const input = page.getByLabel("Rechercher un titre, un album ou un compositeur");
+  const input = page.getByRole("searchbox", { name: "Rechercher dans les titres de pistes" });
   await input.fill("piano");
   await input.press("Enter");
   await expect(page).toHaveURL(/q=piano/, { timeout: 30_000 });
@@ -629,7 +629,7 @@ test("les filtres tri-état rendent inclusions et exclusions visibles", async ({
 
 test("une piste expose ses informations, versions et paroles", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le panneau détaillé est vérifié en desktop.");
-  await page.goto("/search?q=piano&view=tracks&type=main");
+  await page.goto("/search?q=Piano%20On%20My%20Mind&view=tracks&type=main");
   await expect(page.getByText("Piano On My Mind", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
   await page.getByRole("button", { name: /Informations sur la piste : Piano On My Mind/ }).click();
   const detailTabs = page.getByRole("tablist").filter({ has: page.getByRole("tab", { name: "Informations" }) });

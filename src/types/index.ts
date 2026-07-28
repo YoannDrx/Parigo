@@ -154,6 +154,12 @@ export interface SearchFacets {
   categories: SearchFacetItem[];
 }
 
+export interface QueryResolution {
+  original: string;
+  effective: string;
+  source: "machine-translation";
+}
+
 export type SearchFilterGroupKey =
   | "labels"
   | "genre"
@@ -307,6 +313,7 @@ export interface SearchIntent {
   genres: string[];
   moods: string[];
   instruments: string[];
+  musicFor: string[];
   bpmRange: [number, number] | null;
   isVocal: boolean | null;
 }

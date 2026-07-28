@@ -26,13 +26,68 @@ export function asList(value: unknown): string[] {
     .filter(Boolean);
 }
 
-export function asIsoDate(value: unknown): string | undefined {
+const PARIGO_TIME_ZONE = "Europe/Paris";
+const NAIVE_DATE_TIME =
+  /^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{1,3}))?)?$/;
+
+function timeZoneOffsetMilliseconds(timestamp: number, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(timestamp));
+  const value = (type: Intl.DateTimeFormatPartTypes) =>
+    Number(parts.find((part) => part.type === type)?.value || 0);
+  const representedAsUtc = Date.UTC(
+    value("year"),
+    value("month") - 1,
+    value("day"),
+    value("hour"),
+    value("minute"),
+    value("second"),
+  );
+  return representedAsUtc - timestamp;
+}
+
+function naiveDateTimeToUtc(match: RegExpMatchArray, utcOffsetHours?: number): Date {
+  const [, year, month, day, hour, minute, second = "0", milliseconds = "0"] = match;
+  const wallClockAsUtc = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+    Number(second),
+  );
+  const millisecondValue = Number(milliseconds.padEnd(3, "0"));
+  if (utcOffsetHours !== undefined && Number.isFinite(utcOffsetHours)) {
+    return new Date(wallClockAsUtc - utcOffsetHours * 60 * 60_000 + millisecondValue);
+  }
+
+  let offset = timeZoneOffsetMilliseconds(wallClockAsUtc, PARIGO_TIME_ZONE);
+  const firstPass = wallClockAsUtc - offset;
+  const correctedOffset = timeZoneOffsetMilliseconds(firstPass, PARIGO_TIME_ZONE);
+  if (correctedOffset !== offset) offset = correctedOffset;
+  return new Date(wallClockAsUtc - offset + millisecondValue);
+}
+
+/**
+ * Harvest returns several timestamps without an offset. When an endpoint provides
+ * UTCOffset, pass it explicitly. Otherwise Parigo treats the value as a
+ * Europe/Paris wall-clock time so normalization never depends on the Node runtime.
+ */
+export function asIsoDate(value: unknown, utcOffsetHours?: number): string | undefined {
   const source = asString(value);
   if (!source) return undefined;
-  const normalized = source.includes(" ") && /^\d{4}-\d{2}-\d{2}/.test(source)
-    ? source.replace(" ", "T") + (source.endsWith("Z") ? "" : "Z")
-    : source;
-  const date = new Date(normalized);
+  const naiveMatch = source.match(NAIVE_DATE_TIME);
+  const date = naiveMatch
+    ? naiveDateTimeToUtc(naiveMatch, utcOffsetHours)
+    : new Date(source);
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
 }
 

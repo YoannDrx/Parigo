@@ -6,6 +6,8 @@ import type { HarvestSessionPayload } from "./session";
 const payload: HarvestSessionPayload = {
   memberToken: "member-token-that-is-never-exposed-to-the-client",
   memberExpiresAt: Date.now() + 60_000,
+  memberUtcOffsetHours: 10,
+  memberUtcOffsetResolved: true,
   persistentToken: "persistent-token-that-is-never-exposed-to-the-client",
   persistentExpiresAt: Date.now() + 3_600_000,
   user: { id: "member-1", email: "test@example.com", firstName: "Test", lastName: "Parigo", status: "active" },
@@ -22,6 +24,7 @@ describe("Parigo session JWE", () => {
     expect(token.split(".")).toHaveLength(5);
     await expect(unsealHarvestSession(token)).resolves.toMatchObject({
       memberToken: payload.memberToken,
+      memberUtcOffsetHours: 10,
       persistentToken: payload.persistentToken,
       user: { id: "member-1" },
     });

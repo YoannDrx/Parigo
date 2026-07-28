@@ -8,6 +8,7 @@ import { useSession } from "@/lib/auth-client";
 import { TrackRow } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
+import { formatParigoDate, formatParigoTime } from "@/lib/date-time";
 import type { Album, Track } from "@/types";
 
 interface HistoryEntry {
@@ -53,7 +54,7 @@ export default function HistoryPage() {
       return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
     })
     .reduce((acc, entry) => {
-      const date = new Date(entry.playedAt).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB", {
+      const date = formatParigoDate(entry.playedAt, locale === "fr" ? "fr-FR" : "en-GB", {
         weekday: "long",
         day: "numeric",
         month: "long",
@@ -118,7 +119,7 @@ export default function HistoryPage() {
                         data-testid="history-played-at"
                         className="text-[.68rem] font-semibold tracking-[.04em] text-[var(--foreground)]"
                       >
-                        {new Date(entry.playedAt).toLocaleTimeString(locale === "fr" ? "fr-FR" : "en-GB", {
+                        {formatParigoTime(entry.playedAt, locale === "fr" ? "fr-FR" : "en-GB", {
                           hour: "2-digit",
                           minute: "2-digit",
                         })}

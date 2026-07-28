@@ -23,6 +23,7 @@ Ce document centralise les capacités absentes, ambiguës ou défaillantes renco
 | H-008 | Ayants droit | Le smoke test live du 25/07/2026 a renvoyé trois ayants droit sur une piste testée. La stabilité, l’exhaustivité et le batch restent à valider. | Coût réseau et impossibilité de bâtir un répertoire fiable sans garanties. | Smoke test facultatif, aucune dépendance publique. | Confirmer stabilité des ID, pagination, rôles/capacités et appel batch. | Partiellement vérifié |
 | H-009 | Encodage | Des variantes comportant des caractères mal encodés ont été observées dans les crédits. | Noms erronés et échec du rapprochement. | Signalement dans l’audit, aucune correction floue. | Corriger les valeurs sources et préciser l’encodage garanti. | Ouvert |
 | H-010 | Synchronisation des mises à jour | Aucun webhook ou contrat `updatedAt` global n’est utilisé pour ces relations. | Le cache peut conserver une ancienne version après édition CMS. | Cache court et audits manuels. | Proposer webhook, flux de changements ou timestamp fiable pour invalider les caches. | À confirmer |
+| H-011 | Traduction et synonymes de recherche | `TranslateKeyword: "fr"` ne traduit pas `mariage` vers l’anglais sur le catalogue live. La Public API documente les groupes de mots-clés, mais aucun endpoint public d’inventaire ou d’administration de ces groupes n’a été identifié. | Les utilisateurs francophones peuvent obtenir zéro résultat pour un concept pourtant indexé en anglais ; activer les groupes sans audit risquerait aussi d’élargir une recherche stricte. | Recherche limitée au titre avec groupes désactivés, puis traduction générique français → anglais par DeepL dans le BFF après zéro résultat littéral. | Documenter `TranslateKeyword`, exposer les groupes/synonymes configurés et garantir leur portée par champ, ou fournir une recherche multilingue officielle. | Ouvert |
 
 ## Contrat cible souhaité
 
@@ -56,6 +57,7 @@ Ce document centralise les capacités absentes, ambiguës ou défaillantes renco
 8. L’Import API peut-elle créer et maintenir ces entités et relations ?
 9. Existe-t-il un webhook ou un flux de changements permettant d’invalider le cache Parigo ?
 10. Harvest peut-il corriger les erreurs d’encodage et séparer les sociétés de gestion des noms ?
+11. Comment `TranslateKeyword` et les groupes de mots-clés sont-ils configurés, inspectés et limités à un champ comme `TrackDisplayTitle` ou `AlbumDisplayTitle` ?
 
 ## Règle de maintenance
 

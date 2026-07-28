@@ -19,7 +19,9 @@ import type { Album, ComposerCreditLink } from "@/types";
 import type { ComposerProfile } from "@/lib/editorial/contracts";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { formatParigoDate } from "@/lib/date-time";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
+import { resizeArtworkSource } from "@/lib/image-loader";
 
 interface AlbumDetailClientProps {
   data: {
@@ -37,6 +39,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
   const [trackSort, setTrackSort] = useState<"album" | "title-asc" | "title-desc">("album");
 
   const album = data.album;
+  const albumCover = resizeArtworkSource(album.cover, 384);
   const mainTracks = data.album.tracks ?? [];
   const unsortedTracks = showAllVersions
     ? mainTracks.flatMap((track) => [track, ...(track.alternateTracks ?? [])])
@@ -93,7 +96,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
             <div className="w-full max-w-[520px] md:col-span-4">
               <div className="relative aspect-square overflow-hidden">
                 <Image
-                  src={album.cover}
+                  src={albumCover}
                   alt={album.title}
                   fill
                   sizes="(max-width: 768px) 100vw, 520px"
@@ -150,7 +153,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
                 </span>
                 {album.releaseDate && (
                   <span>
-                    {locale === "fr" ? "Sorti le" : "Released"} {new Date(album.releaseDate).toLocaleDateString(locale === "fr" ? "fr-FR" : "en-GB")}
+                    {locale === "fr" ? "Sorti le" : "Released"} {formatParigoDate(album.releaseDate, locale === "fr" ? "fr-FR" : "en-GB")}
                   </span>
                 )}
               </div>

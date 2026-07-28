@@ -8,7 +8,7 @@ export async function GET() {
   const id = requestId();
   try {
     const session = await requireHarvestSession();
-    const profile = await getMemberProfile(session.memberToken);
+    const profile = await getMemberProfile(session.memberToken, session.memberUtcOffsetHours);
     return NextResponse.json({ data: { profile }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }
@@ -43,7 +43,7 @@ export async function PUT(request: NextRequest) {
       await updateMemberProfile(session.memberToken, profileInput);
     }
     if (subscribed !== undefined) await subscribeMember(session.memberToken, subscribed);
-    const profile = await getMemberProfile(session.memberToken);
+    const profile = await getMemberProfile(session.memberToken, session.memberUtcOffsetHours);
     await setHarvestSession({
       ...session,
       user: {

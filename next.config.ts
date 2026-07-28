@@ -9,6 +9,13 @@ const withBundleAnalyzer = bundleAnalyzer({
 const isProduction = process.env.VERCEL_ENV === "production";
 const isDevelopment = process.env.NODE_ENV === "development";
 
+// Next.js 16 can incorrectly promote an AppRender.fetch span to the root span
+// in development. Local Sentry tracing is sampled at 0, so skip only those
+// fetch spans locally while preserving full tracing in preview and production.
+if (isDevelopment) {
+  process.env.NEXT_OTEL_FETCH_DISABLED ??= "1";
+}
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -18,7 +25,7 @@ const contentSecurityPolicy = [
   `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
   "font-src 'self' data:",
-  "img-src 'self' data: blob: https://d3vy0pmxxxelni.cloudfront.net",
+  "img-src 'self' data: blob: https://d3vy0pmxxxelni.cloudfront.net https://i.ytimg.com",
   "media-src 'self' blob: https://d3vy0pmxxxelni.cloudfront.net",
   "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
   "connect-src 'self' https://*.ingest.sentry.io https://*.vercel-insights.com https://d3vy0pmxxxelni.cloudfront.net",
@@ -72,7 +79,13 @@ const nextConfig: NextConfig = {
     ];
   },
   images: {
-    formats: ["image/avif", "image/webp"],
+    // Harvest already resizes and caches artwork at the CDN edge. The custom
+    // loader keeps Next.js responsive srcsets without consuming Vercel's
+    // /_next/image allowance.
+    loader: "custom",
+    loaderFile: "./src/lib/image-loader.ts",
+    deviceSizes: [640, 750, 800],
+    imageSizes: [32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: "https",
@@ -86,7 +99,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withBundleAnalyzer(nextConfig), {
+const bundledConfig = withBundleAnalyzer(nextConfig);
+
+const configuredNextConfig = isDevelopment ? bundledConfig : withSentryConfig(bundledConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -105,3 +120,5 @@ export default withSentryConfig(withBundleAnalyzer(nextConfig), {
     },
   },
 });
+
+export default configuredNextConfig;

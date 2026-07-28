@@ -141,18 +141,14 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("l’onde du héros reste animée sur mobile sans charger WebGL", async ({ page }) => {
+test("l’onde du héros reste statique sur mobile sans charger WebGL", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero.locator("canvas")).toHaveCount(0);
   const fallback = hero.locator(".signal-field-fallback");
-  await expect(fallback).toHaveAttribute("data-static", "false");
-  const wave = fallback.locator(".signal-field-fallback__wave").first();
-  const before = await wave.evaluate((node) => getComputedStyle(node).transform);
-  await page.waitForTimeout(300);
-  const after = await wave.evaluate((node) => getComputedStyle(node).transform);
-  expect(after).not.toBe(before);
+  await expect(fallback).toHaveAttribute("data-static", "true");
+  await expect(fallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();

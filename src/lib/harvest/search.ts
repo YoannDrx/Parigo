@@ -5,6 +5,7 @@ import { asNumber, asString, recordArray } from "./values";
 export interface HarvestSearchInput {
   query?: string;
   view?: "Track" | "Album";
+  textScope?: "aggregate" | "title";
   skip?: number;
   limit?: number;
   sort?: string;
@@ -71,15 +72,32 @@ export function splitSignedValues(
 
 export function buildCloudSearch(input: HarvestSearchInput): Record<string, unknown> {
   const type = input.type ?? "main";
+  const keyword = input.query?.trim() || "%";
+  const titleSearch = input.textScope === "title";
+  const keywordTerm = titleSearch
+    ? {
+        St_Keyword: {
+          Fields: input.view === "Album" ? "AlbumDisplayTitle" : "TrackDisplayTitle",
+          ExactPhrase: false,
+          Wildcard: true,
+          DisableKeywordGroup: true,
+          OrOperation: false,
+          Keywords: keyword,
+          Negative: false,
+        },
+      }
+    : {
+        St_Keyword_Aggregated: {
+          ExactPhrase: input.match === "exact",
+          Wildcard: input.match !== "exact",
+          DisableKeywordGroup: false,
+          OrOperation: false,
+          Keywords: keyword,
+          Negative: false,
+        },
+      };
   const bundle: Record<string, unknown> = {
-    St_Keyword_Aggregated: {
-      ExactPhrase: input.match === "exact",
-      Wildcard: input.match !== "exact",
-      DisableKeywordGroup: false,
-      OrOperation: false,
-      Keywords: input.query?.trim() || "%",
-      Negative: false,
-    },
+    ...keywordTerm,
   };
   // Harvest expects comma-separated opaque IDs here. Arrays deserialize but fail
   // later as a logical Error inside the service, even though HTTP remains 200.

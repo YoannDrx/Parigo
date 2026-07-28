@@ -47,18 +47,30 @@ function tokenExpiry(payload: unknown, fallbackMs: number): number {
   if (isRecord(payload)) {
     const seconds = asNumber(pick(payload, "expires_in", "ExpiresIn"), 0);
     if (seconds > 0) return Date.now() + seconds * 1000;
-    const expiry = findValueByKey(payload, "expiry");
-    const iso = asIsoDate(expiry);
+    const expiry = findValueWithUtcOffset(payload, "expiry");
+    const iso = asIsoDate(expiry?.value, expiry?.utcOffsetHours);
     if (iso) return new Date(iso).getTime();
   }
   return Date.now() + fallbackMs;
 }
 
-function findValueByKey(payload: unknown, expectedKey: string): unknown {
+function findValueWithUtcOffset(
+  payload: unknown,
+  expectedKey: string,
+): { value: unknown; utcOffsetHours?: number } | undefined {
   if (!isRecord(payload)) return undefined;
   for (const [key, value] of Object.entries(payload)) {
-    if (key.toLowerCase() === expectedKey.toLowerCase()) return value;
-    const nested = findValueByKey(value, expectedKey);
+    if (key.toLowerCase() === expectedKey.toLowerCase()) {
+      const rawOffset = pick(payload, "UTCOffset", "UtcOffset");
+      const utcOffsetHours = rawOffset === undefined
+        ? undefined
+        : asNumber(rawOffset, Number.NaN);
+      return {
+        value,
+        ...(Number.isFinite(utcOffsetHours) ? { utcOffsetHours } : {}),
+      };
+    }
+    const nested = findValueWithUtcOffset(value, expectedKey);
     if (nested !== undefined) return nested;
   }
   return undefined;
@@ -70,8 +82,45 @@ async function readJson(response: Response): Promise<unknown> {
   try {
     return JSON.parse(text) as unknown;
   } catch {
+    if (!response.ok) return {};
     throw new HarvestError("Harvest returned a non-JSON response", "HARVEST_INVALID_RESPONSE", 502, false);
   }
+}
+
+const MUTATING_ENDPOINT_PREFIX = /^(?:add|copy|delete|expire|insert|remove|reorder|send|subscribe|unsubscribe|update|verify)/i;
+
+export function isHarvestRequestRetrySafe(path: string, method = "GET"): boolean {
+  const normalizedMethod = method.toUpperCase();
+  if (normalizedMethod === "POST") return /\/(?:cloudsearch|autocomplete)\//i.test(path);
+  if (normalizedMethod !== "GET") return false;
+  const endpoint = path.split("?")[0].split("/").filter(Boolean)[0] || "";
+  return !MUTATING_ENDPOINT_PREFIX.test(endpoint);
+}
+
+function httpHarvestError(status: number): HarvestError {
+  const upstreamCode = `HTTP_${status}`;
+  if (status === 400 || status === 422) {
+    return new HarvestError("Harvest rejected the request payload", "VALIDATION_FAILED", status, false, upstreamCode);
+  }
+  if (status === 401) {
+    return new HarvestError("Harvest authentication failed", "UNAUTHENTICATED", 401, true, upstreamCode);
+  }
+  if (status === 403) {
+    return new HarvestError("Harvest denied access to the requested operation", "FORBIDDEN", 403, false, upstreamCode);
+  }
+  if (status === 404) {
+    return new HarvestError("Harvest resource was not found", "NOT_FOUND", 404, false, upstreamCode);
+  }
+  if (status === 429) {
+    return new HarvestError("Harvest rate limit reached", "RATE_LIMITED", 429, true, upstreamCode);
+  }
+  return new HarvestError(
+    "Harvest request failed",
+    "HARVEST_UNAVAILABLE",
+    status >= 500 ? 503 : 502,
+    status >= 500,
+    upstreamCode,
+  );
 }
 
 export async function fetchHarvestJsonWithTimeout(
@@ -124,7 +173,8 @@ async function getAccessToken(force = false): Promise<CachedToken> {
       },
       10_000,
     );
-    if (!response.ok) throw new HarvestError("Unable to authenticate with Harvest", "HARVEST_UNAVAILABLE", 503, true);
+    assertNoHarvestError(payload);
+    if (!response.ok) throw httpHarvestError(response.status);
     const value = findToken(payload);
     if (!value) throw new HarvestError("Harvest OAuth token is missing", "HARVEST_INVALID_RESPONSE");
     accessToken = { value, expiresAt: tokenExpiry(payload, 55 * 60_000) };
@@ -141,7 +191,7 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
   const endpoint = path.split("?")[0].split("/").filter(Boolean)[0] || "unknown";
   const config = getHarvestApiConfig();
   const oauth = await getAccessToken();
-  const idempotent = !init.method || init.method === "GET" || /\/(cloudsearch|autocomplete)\//.test(path);
+  const idempotent = isHarvestRequestRetrySafe(path, init.method || "GET");
   let response: Response;
   let payload: unknown;
   try {
@@ -173,25 +223,31 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
       await new Promise((resolve) => setTimeout(resolve, 400 + Math.random() * 400));
       return rawServiceRequest<T>(path, init, timeoutMs, false);
     }
-    throw new HarvestError("Harvest rate limit reached", "RATE_LIMITED", 429, true);
+    throw httpHarvestError(response.status);
+  }
+  try {
+    assertNoHarvestError(payload);
+  } catch (error) {
+    logEvent({ level: "warn", message: "harvest_upstream_error", route: endpoint, durationMs: Date.now() - startedAt, status: error instanceof HarvestError ? error.status : 502, code: error instanceof HarvestError ? error.upstreamCode : undefined, requestId });
+    if (
+      retry &&
+      idempotent &&
+      error instanceof HarvestError &&
+      error.retryable &&
+      error.upstreamCode === "21"
+    ) {
+      accessToken = undefined;
+      await getAccessToken(true);
+      return rawServiceRequest<T>(path, init, timeoutMs, false);
+    }
+    throw error;
   }
   if (!response.ok) {
     if (retry && idempotent && response.status >= 500) {
       await new Promise((resolve) => setTimeout(resolve, 250 + Math.random() * 250));
       return rawServiceRequest<T>(path, init, timeoutMs, false);
     }
-    throw new HarvestError("Harvest request failed", "HARVEST_UNAVAILABLE", 502, response.status >= 500);
-  }
-  try {
-    assertNoHarvestError(payload);
-  } catch (error) {
-    logEvent({ level: "warn", message: "harvest_upstream_error", route: endpoint, durationMs: Date.now() - startedAt, status: error instanceof HarvestError ? error.status : 502, code: error instanceof HarvestError ? error.upstreamCode : undefined, requestId });
-    if (retry && error instanceof HarvestError && error.retryable) {
-      accessToken = undefined;
-      await getAccessToken(true);
-      return rawServiceRequest<T>(path, init, timeoutMs, false);
-    }
-    throw error;
+    throw httpHarvestError(response.status);
   }
   return payload as T;
 }
@@ -203,12 +259,13 @@ export async function getServiceToken(force = false): Promise<CachedToken> {
   serviceTokenPromise = (async () => {
     const config = getHarvestApiConfig();
     const oauth = await getAccessToken();
-    const { payload } = await fetchHarvestJsonWithTimeout(
+    const { response, payload } = await fetchHarvestJsonWithTimeout(
       `${config.serviceUrl}/getservicetoken`,
       { headers: { Accept: "application/json", AccessKey: config.accessKey, Authorization: oauth.value } },
       10_000,
     );
     assertNoHarvestError(payload);
+    if (!response.ok) throw httpHarvestError(response.status);
     const value = findToken(payload);
     if (!value) throw new HarvestError("Harvest service token is missing", "HARVEST_INVALID_RESPONSE");
     serviceToken = { value, expiresAt: tokenExpiry(payload, 23 * 60 * 60_000) };
@@ -313,7 +370,16 @@ export async function serviceRequest<T>(
   init: RequestInit = {},
 ): Promise<T> {
   const token = await getServiceToken();
-  return rawServiceRequest<T>(path(token.value), init);
+  try {
+    return await rawServiceRequest<T>(path(token.value), init);
+  } catch (error) {
+    if (error instanceof HarvestError && error.upstreamCode === "5") {
+      serviceToken = undefined;
+      const refreshed = await getServiceToken(true);
+      return rawServiceRequest<T>(path(refreshed.value), init, 10_000, false);
+    }
+    throw error;
+  }
 }
 
 export async function memberRequest<T>(

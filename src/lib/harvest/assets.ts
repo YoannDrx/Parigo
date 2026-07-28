@@ -66,7 +66,12 @@ export function assetUrl(
   let result = template;
   for (const [key, value] of Object.entries(values)) {
     if (value === undefined) continue;
-    result = result.replace(new RegExp(`\\{${key}\\}`, "gi"), encodeURIComponent(String(value)));
+    const encodedValue = encodeURIComponent(String(value));
+    result = result
+      .replace(new RegExp(`\\{${key}\\}`, "gi"), encodedValue)
+      .replace(new RegExp(`%7B${key}%7D`, "gi"), encodedValue);
   }
-  return result.replace(/\{[^}]+\}/g, "");
+  return result
+    .replace(/\{[^}]+\}/g, "")
+    .replace(/%7B[^%]+%7D/gi, "");
 }

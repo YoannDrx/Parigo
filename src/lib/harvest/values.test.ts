@@ -13,7 +13,10 @@ describe("Harvest value normalization", () => {
   });
 
   it("normalizes Harvest dates and slugs", () => {
-    expect(asIsoDate("2026-07-14 00:00:00")).toBe("2026-07-14T00:00:00.000Z");
+    expect(asIsoDate("2026-07-14 00:00:00")).toBe("2026-07-13T22:00:00.000Z");
+    expect(asIsoDate("2026-01-14T00:00:00")).toBe("2026-01-13T23:00:00.000Z");
+    expect(asIsoDate("2026-07-29T00:24:11.477", 10)).toBe("2026-07-28T14:24:11.477Z");
+    expect(asIsoDate("2026-07-29T00:24:11.477Z")).toBe("2026-07-29T00:24:11.477Z");
     expect(slugify("Électronique française")).toBe("electronique-francaise");
   });
 });
