@@ -8,6 +8,22 @@ async function waitForHeaderHydration(page: Page) {
   });
 }
 
+function isExpectedPreviewArtworkProxyError(text: string, locationUrl: string) {
+  if (!text.includes("Failed to load resource") || !text.includes("status of 402")) {
+    return false;
+  }
+
+  try {
+    const proxyUrl = new URL(locationUrl);
+    const sourceUrl = proxyUrl.searchParams.get("url");
+    return proxyUrl.hostname.endsWith(".vercel.app")
+      && proxyUrl.pathname === "/_next/image"
+      && sourceUrl?.startsWith("https://d3vy0pmxxxelni.cloudfront.net/assets/playlistart/") === true;
+  } catch {
+    return false;
+  }
+}
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({
@@ -179,10 +195,12 @@ test("la homepage ne contient pas de violation critique axe", async ({ page }) =
   const consoleErrors: string[] = [];
   page.on("console", (message) => {
     const text = message.text();
+    const locationUrl = message.location().url;
     const blockedPreviewToolbar = text.includes("https://vercel.live/_next-live/feedback/feedback.js")
       && text.includes("Content Security Policy");
-    if (message.type() === "error" && !blockedPreviewToolbar) {
-      consoleErrors.push(`${text} @ ${message.location().url}`);
+    const expectedArtworkProxyError = isExpectedPreviewArtworkProxyError(text, locationUrl);
+    if (message.type() === "error" && !blockedPreviewToolbar && !expectedArtworkProxyError) {
+      consoleErrors.push(`${text} @ ${locationUrl}`);
     }
   });
   await page.goto("/");
