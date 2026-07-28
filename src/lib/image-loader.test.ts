@@ -23,6 +23,17 @@ describe("parigoImageLoader", () => {
 
     expect(result.searchParams.get("width")).toBe("640");
     expect(result.searchParams.get("height")).toBe("640");
+    expect(result.searchParams.get("parigo-width")).toBe("1920");
+  });
+
+  it("makes a capped responsive width visible to Next.js validation", () => {
+    const src = "https://d3vy0pmxxxelni.cloudfront.net/assets/albumart/cover?width=320&height=320";
+    const result = new URL(parigoImageLoader({ src, width: 400 }));
+
+    expect(result.href).not.toBe(src);
+    expect(result.searchParams.get("width")).toBe("320");
+    expect(result.searchParams.get("height")).toBe("320");
+    expect(result.searchParams.get("parigo-width")).toBe("400");
   });
 
   it("creates a smaller Harvest source for a known display ceiling", () => {

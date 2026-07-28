@@ -9,6 +9,13 @@ const withBundleAnalyzer = bundleAnalyzer({
 const isProduction = process.env.VERCEL_ENV === "production";
 const isDevelopment = process.env.NODE_ENV === "development";
 
+// Next.js 16 can incorrectly promote an AppRender.fetch span to the root span
+// in development. Local Sentry tracing is sampled at 0, so skip only those
+// fetch spans locally while preserving full tracing in preview and production.
+if (isDevelopment) {
+  process.env.NEXT_OTEL_FETCH_DISABLED ??= "1";
+}
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -92,7 +99,9 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withSentryConfig(withBundleAnalyzer(nextConfig), {
+const bundledConfig = withBundleAnalyzer(nextConfig);
+
+const configuredNextConfig = isDevelopment ? bundledConfig : withSentryConfig(bundledConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
@@ -111,3 +120,5 @@ export default withSentryConfig(withBundleAnalyzer(nextConfig), {
     },
   },
 });
+
+export default configuredNextConfig;

@@ -20,6 +20,14 @@ function resizeHarvestUrl(url: URL, width: number): string {
 
   url.searchParams.set("width", String(targetWidth));
   url.searchParams.set("height", String(targetHeight));
+  // Next.js checks that a custom loader changes the URL for its requested
+  // width. Keep the real Harvest transform capped while exposing larger
+  // responsive candidates through a harmless query hint.
+  if (targetWidth === width) {
+    url.searchParams.delete("parigo-width");
+  } else {
+    url.searchParams.set("parigo-width", String(width));
+  }
   return url.href;
 }
 
