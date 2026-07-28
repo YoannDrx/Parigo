@@ -10,4 +10,17 @@ updates:
         update-types:
           - minor
           - patch
+    ignore:
+      # Lucide 1.x removes the social brand icons currently used by Parigo.
+      - dependency-name: lucide-react
+        update-types:
+          - version-update:semver-major
+      # Jest DOM 7 is a deliberate test-toolchain migration, not a routine bump.
+      - dependency-name: "@testing-library/jest-dom"
+        update-types:
+          - version-update:semver-major
+      # Keep Node typings aligned with the Node 22 runtime declared by the app.
+      - dependency-name: "@types/node"
+        versions:
+          - ">=23"
     open-pull-requests-limit: 5

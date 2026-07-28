@@ -35,6 +35,9 @@ jobs:
       - run: pnpm validate:assets
 
   preview:
+    # Dependabot pull requests only receive Dependabot secrets, not the Vercel
+    # Actions secrets used below. They still run the complete quality job.
+    if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
     needs: quality
     runs-on: ubuntu-latest
     permissions:

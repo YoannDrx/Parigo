@@ -21,17 +21,16 @@ export function ShortlistDrawer() {
   const { currentTrack, setQueue, play } = usePlayerStore();
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [targetPlaylist, setTargetPlaylist] = useState("");
-  const [playlistTitle, setPlaylistTitle] = useState("");
+  const [playlistTitle, setPlaylistTitle] = useState(
+    () => `${locale === "fr" ? "Sélection Parigo" : "Parigo selection"} · ${new Date().toLocaleDateString(locale)}`,
+  );
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [saved, setSaved] = useState(false);
   const [playerClearance, setPlayerClearance] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!currentTrack) {
-      setPlayerClearance(null);
-      return;
-    }
+    if (!currentTrack) return;
 
     let resizeObserver: ResizeObserver | null = null;
     let mutationObserver: MutationObserver | null = null;
@@ -85,12 +84,8 @@ export function ShortlistDrawer() {
       .then((payload) => setPlaylists(payload?.data?.playlists ?? []));
   }, [isOpen, session?.user]);
 
-  useEffect(() => {
-    if (playlistTitle || !isOpen) return;
-    setPlaylistTitle(`${locale === "fr" ? "Sélection Parigo" : "Parigo selection"} · ${new Date().toLocaleDateString(locale)}`);
-  }, [isOpen, locale, playlistTitle]);
-
   const tracks = items.map((item) => item.track);
+  const effectivePlayerClearance = currentTrack ? playerClearance : null;
   const playAll = () => { if (!tracks.length) return; setQueue(tracks, 0); play(tracks[0]); };
 
   const saveToPlaylist = async (existingId?: string) => {
@@ -137,7 +132,7 @@ export function ShortlistDrawer() {
             data-shortlist-trigger
             onClick={() => setOpen(true)}
             className="group fixed bottom-[max(.5rem,env(safe-area-inset-bottom))] right-3 z-[58] flex h-14 max-w-[4.65rem] items-center gap-2 overflow-hidden rounded-full bg-[var(--signal)] px-3 text-sm font-semibold text-[#11120f] shadow-[var(--shadow-md)] transition-[bottom,max-width,transform,box-shadow,opacity] duration-300 hover:max-w-[11rem] hover:-translate-y-0.5 hover:shadow-lg focus-visible:max-w-[11rem] md:bottom-3 md:right-5"
-            style={playerClearance === null ? undefined : { bottom: playerClearance }}
+            style={effectivePlayerClearance === null ? undefined : { bottom: effectivePlayerClearance }}
             initial={{ opacity: 0, scale: 0.84, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.88, y: 8 }}

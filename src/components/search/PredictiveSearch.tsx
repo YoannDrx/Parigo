@@ -53,27 +53,26 @@ export function PredictiveSearch({
   const suppressFocusOpen = useRef(false);
   const previousQuery = useRef("");
   const [groups, setGroups] = useState<AutocompleteGroup[]>([]);
-  const [activeKey, setActiveKey] = useState<AutocompleteGroup["key"]>(view);
+  const [resultsQuery, setResultsQuery] = useState("");
+  const [activeSelection, setActiveSelection] = useState<{
+    view: "tracks" | "albums";
+    key: AutocompleteGroup["key"];
+  }>({ view, key: view });
   const [activeIndex, setActiveIndex] = useState(0);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const normalized = query.trim();
 
   useEffect(() => {
-    onOpenChange?.(open);
-  }, [onOpenChange, open]);
+    onOpenChange?.(open && normalized.length >= 2);
+  }, [normalized.length, onOpenChange, open]);
 
   useEffect(() => {
     if (previousQuery.current !== normalized) {
       dismissedQuery.current = "";
       previousQuery.current = normalized;
     }
-    if (normalized.length < 2) {
-      setGroups([]);
-      setOpen(false);
-      setLoading(false);
-      return;
-    }
+    if (normalized.length < 2) return;
     const controller = new AbortController();
     const currentRequest = ++requestId.current;
     const timeout = window.setTimeout(() => {
@@ -82,6 +81,7 @@ export function PredictiveSearch({
         .then((nextGroups) => {
           if (currentRequest !== requestId.current) return;
           setGroups(nextGroups);
+          setResultsQuery(normalized);
           setOpen(
             normalized !== initialQuery.current
             &&
@@ -93,6 +93,7 @@ export function PredictiveSearch({
         .catch(() => {
           if (!controller.signal.aborted && currentRequest === requestId.current) {
             setGroups([]);
+            setResultsQuery(normalized);
             setOpen(false);
           }
         })
@@ -106,17 +107,13 @@ export function PredictiveSearch({
     };
   }, [locale, normalized]);
 
-  useEffect(() => {
-    setActiveKey(view);
-  }, [view]);
-
-  const visibleGroups = useMemo(() => groups.filter((group) => group.items.length > 0), [groups]);
+  const activeKey = activeSelection.view === view ? activeSelection.key : view;
+  const visibleGroups = useMemo(
+    () => resultsQuery === normalized ? groups.filter((group) => group.items.length > 0) : [],
+    [groups, normalized, resultsQuery],
+  );
   const activeGroup = visibleGroups.find((group) => group.key === activeKey) ?? visibleGroups[0];
   const activeItem = activeGroup?.items[activeIndex];
-
-  useEffect(() => {
-    if (activeGroup && activeGroup.key !== activeKey) setActiveKey(activeGroup.key);
-  }, [activeGroup, activeKey]);
 
   const close = useCallback((returnFocus = false) => {
     dismissedQuery.current = normalized;
@@ -226,7 +223,7 @@ export function PredictiveSearch({
                 role="tab"
                 aria-selected={activeGroup?.key === group.key}
                 onClick={() => {
-                  setActiveKey(group.key);
+                  setActiveSelection({ view, key: group.key });
                   setActiveIndex(0);
                 }}
                 className={cn(

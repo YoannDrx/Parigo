@@ -2,8 +2,6 @@ import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { execFile } from "node:child_process";
 import path from "node:path";
 import { promisify } from "node:util";
-// sharp 0.35 ships declarations outside its ESM export map; runtime resolution is valid.
-// @ts-expect-error -- upstream package export map does not expose lib/index.d.ts.
 import sharp from "sharp";
 
 type SourceArtist = {
