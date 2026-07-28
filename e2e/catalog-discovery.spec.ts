@@ -21,7 +21,7 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
 
   const query = page.getByPlaceholder("Rechercher un label");
   await query.fill("101 Music Compilations");
-  await expect(page.getByRole("status")).toContainText("1 résultats");
+  await expect(page.getByRole("status").filter({ hasText: "résultats" })).toContainText("1 résultats");
   await expect(page.getByRole("heading", { level: 2, name: "101 Music Compilations" })).toBeVisible();
   await expect(page).toHaveURL(/q=101\+Music\+Compilations/);
 
