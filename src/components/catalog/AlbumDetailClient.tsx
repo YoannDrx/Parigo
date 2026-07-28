@@ -39,7 +39,7 @@ export function AlbumDetailClient({ data }: AlbumDetailClientProps) {
   const [trackSort, setTrackSort] = useState<"album" | "title-asc" | "title-desc">("album");
 
   const album = data.album;
-  const albumCover = resizeArtworkSource(album.cover, 512);
+  const albumCover = resizeArtworkSource(album.cover, 384);
   const mainTracks = data.album.tracks ?? [];
   const unsortedTracks = showAllVersions
     ? mainTracks.flatMap((track) => [track, ...(track.alternateTracks ?? [])])
