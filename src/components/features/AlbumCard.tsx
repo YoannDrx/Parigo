@@ -7,6 +7,7 @@ import { Tag } from "@/components/ui/Tag";
 import { FavoriteButton } from "./FavoriteButton";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
+import { resizeArtworkSource } from "@/lib/image-loader";
 
 interface AlbumCardProps {
   album: Album;
@@ -17,13 +18,14 @@ interface AlbumCardProps {
 export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCardProps) {
   const { locale, t, localizedPath } = useI18n();
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4";
+  const albumCover = resizeArtworkSource(album.cover, 384);
   return (
     <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false}>
       <div className="parigo-frame group/card border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
         {/* Cover Image */}
         <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
           <Image
-            src={album.cover}
+            src={albumCover}
             alt={album.title}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
