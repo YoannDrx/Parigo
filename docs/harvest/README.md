@@ -30,7 +30,7 @@ La cle API Postman personnelle n'est pas stockee dans le repo et n'a pas ete nec
 | [rapport-harvest-api.md](./rapport-harvest-api.md) | Rapport Markdown lisible directement dans le repo |
 | [rapport-harvest-api.pdf](./rapport-harvest-api.pdf) | Rapport PDF principal a partager |
 | [rapport-harvest-api.html](./rapport-harvest-api.html) | Source HTML du PDF |
-| [endpoint-inventory.csv](./endpoint-inventory.csv) | Inventaire CSV des 277 entrees documentees, dont 255 endpoints HTTP |
+| [endpoint-inventory.csv](./endpoint-inventory.csv) | Inventaire CSV des 279 entrees documentees, dont 257 endpoints HTTP |
 | [smoke-tests/](./smoke-tests/) | Script de smoke test a lancer quand les credentials Harvest seront disponibles |
 
 ## Couverture

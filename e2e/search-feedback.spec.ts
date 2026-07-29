@@ -12,9 +12,84 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("la colonne de filtres suit la navbar et libère la hauteur quand elle se masque", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "Les filtres mobiles utilisent un panneau dédié.");
+test("la pagination replace le début des résultats sous le poste de recherche", async ({ page }) => {
+  await page.route("**/api/search/filters?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { groups: [] } }),
+  }));
+  await page.route("**/api/search?**", (route) => {
+    const url = new URL(route.request().url());
+    const resultPage = Number(url.searchParams.get("page") ?? 1);
+    const offset = (resultPage - 1) * 30;
+    const itemCount = resultPage >= 2 ? 1 : 30;
+    const items = Array.from({ length: itemCount }, (_, index) => {
+      const position = offset + index + 1;
+      return {
+        id: `album-${position}`,
+        slug: `album-${position}`,
+        title: `Album crime ${position}`,
+        cover: "/images/placeholder-album.svg",
+        label: "Parigo",
+        code: `PGO ${String(position).padStart(3, "0")}`,
+        genres: [],
+        moods: [],
+        trackCount: 10,
+      };
+    });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { items, view: "albums", facets: { categories: [], labels: [] } },
+        meta: { page: resultPage, pageSize: 30, total: 31, requestId: `pagination-${resultPage}` },
+      }),
+    });
+  });
+
+  await page.goto("/search?q=crime&view=albums&type=main");
+  const pagination = page.getByRole("navigation", { name: "Pagination des résultats" });
+  await expect(pagination).toBeVisible();
+  await page.waitForTimeout(500);
+  await pagination.scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+
+  await page.getByRole("button", { name: "Suivant" }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(100);
+
+  const workspace = page.getByTestId("search-workspace");
+  const firstAlbum = page.getByTestId("search-album-grid").locator("article").first();
+  await expect(workspace).toBeVisible();
+  await expect(firstAlbum).toContainText("Album crime 31");
+  await firstAlbum.evaluate(async (album) => {
+    await Promise.all(album.getAnimations().map((animation) => animation.finished));
+  });
+  const [workspaceBox, firstAlbumBox] = await Promise.all([workspace.boundingBox(), firstAlbum.boundingBox()]);
+  expect(workspaceBox).not.toBeNull();
+  expect(firstAlbumBox).not.toBeNull();
+  expect(firstAlbumBox!.y).toBeGreaterThan(workspaceBox!.y + workspaceBox!.height);
+
+  await page.reload();
+  await page.waitForTimeout(500);
+  expect(new URL(page.url()).searchParams.get("page")).toBe("2");
+  await expect(page.getByTestId("search-album-grid").locator("article").first()).toContainText("Album crime 31");
+});
+
+test("le poste mobile défile et la colonne desktop suit la navbar", async ({ page }, testInfo) => {
   await page.goto("/search");
+  const workspace = page.getByTestId("search-workspace");
+  await expect(workspace).toBeVisible();
+
+  if (testInfo.project.name === "mobile") {
+    await expect(workspace).toHaveCSS("position", "relative");
+    await expect(workspace).toHaveCSS("top", "0px");
+    await workspace.evaluate((element) => {
+      element.scrollIntoView({ block: "start", behavior: "instant" });
+      window.scrollBy({ top: 600, behavior: "instant" });
+    });
+    await expect.poll(async () => (await workspace.boundingBox())?.y ?? 0).toBeLessThan(0);
+    return;
+  }
+
   const header = page.locator("header");
   const filters = page.getByRole("complementary", { name: "Filtres de recherche" });
   await expect(filters).toBeVisible();
@@ -60,7 +135,29 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(filterScope).toBeVisible();
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
+    const sheet = filterScope.locator(".parigo-drawer");
+    await page.waitForTimeout(350);
+    const [sheetBox, viewportHeight] = await Promise.all([
+      sheet.boundingBox(),
+      page.evaluate(() => window.innerHeight),
+    ]);
+    expect(sheetBox).not.toBeNull();
+    expect(sheetBox!.height).toBeGreaterThanOrEqual(viewportHeight - 10);
+    expect(sheetBox!.height).toBeLessThan(viewportHeight);
     await filterScope.getByRole("button", { name: "Fermer" }).last().click();
+
+    const [filterBox, resultTypeBox, versionBox, densityBox] = await Promise.all([
+      page.getByRole("button", { name: /^Filtres$/ }).boundingBox(),
+      page.getByRole("group", { name: "Type de résultats" }).boundingBox(),
+      page.getByRole("combobox", { name: "Versions des pistes" }).boundingBox(),
+      page.getByRole("combobox", { name: "Niveau de détail des pistes" }).boundingBox(),
+    ]);
+    expect(filterBox).not.toBeNull();
+    expect(resultTypeBox).not.toBeNull();
+    expect(versionBox).not.toBeNull();
+    expect(densityBox).not.toBeNull();
+    expect(Math.abs(filterBox!.y - resultTypeBox!.y)).toBeLessThan(2);
+    expect(Math.abs(versionBox!.y - densityBox!.y)).toBeLessThan(2);
   }
 
   const density = page.getByRole("combobox", { name: "Niveau de détail des pistes" });
@@ -79,6 +176,45 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(page.getByRole("option", { name: "Piste essentielle" })).toBeVisible();
   await page.keyboard.press("Escape");
 
+  if (testInfo.project.name === "desktop") {
+    await page.setViewportSize({ width: 1920, height: 1000 });
+    const firstTrack = page.locator(".parigo-track-row").first();
+    await expect(firstTrack).toHaveAttribute("data-density", "full");
+    await expect.poll(() => firstTrack.locator(".parigo-track-row__actions :is(button,a):visible").count()).toBeGreaterThanOrEqual(8);
+    const fullActionCount = await firstTrack.locator(".parigo-track-row__actions :is(button,a):visible").count();
+    for (const [label, value] of [["Piste compacte", "mid"], ["Piste essentielle", "light"]] as const) {
+      await density.click();
+      await page.getByRole("option", { name: label, exact: true }).click();
+      await expect(firstTrack).toHaveAttribute("data-density", value);
+      expect(await firstTrack.locator(".parigo-track-row__actions :is(button,a):visible").count()).toBe(fullActionCount);
+      await expect(firstTrack.getByRole("button", { name: /Plus d.actions/ })).toBeHidden();
+    }
+    await density.click();
+    await page.getByRole("option", { name: "Piste détaillée", exact: true }).click();
+    await expect(firstTrack).toHaveAttribute("data-density", "full");
+  }
+
+  const version = page.getByRole("combobox", { name: "Versions des pistes" });
+  if (testInfo.project.name === "mobile") {
+    const versionValueFits = await version.locator(".parigo-select__value").evaluate((node) => node.scrollWidth <= node.clientWidth);
+    expect(versionValueFits).toBe(true);
+    await version.click();
+    const listbox = page.getByRole("listbox", { name: "Versions des pistes" });
+    await expect(listbox).toBeVisible();
+    const [listboxBox, versionBox, viewportWidth] = await Promise.all([
+      listbox.boundingBox(),
+      version.boundingBox(),
+      page.evaluate(() => window.innerWidth),
+    ]);
+    expect(listboxBox).not.toBeNull();
+    expect(versionBox).not.toBeNull();
+    expect(listboxBox!.x).toBeGreaterThanOrEqual(0);
+    expect(listboxBox!.x + listboxBox!.width).toBeLessThanOrEqual(viewportWidth);
+    expect(listboxBox!.y).toBeGreaterThanOrEqual(versionBox!.y + versionBox!.height);
+    expect(await listbox.getByRole("option").evaluateAll((options) => options.every((option) => option.scrollWidth <= option.clientWidth))).toBe(true);
+    await page.keyboard.press("Escape");
+  }
+
   const sort = page.getByRole("combobox", { name: "Trier les résultats" });
   await sort.click();
   for (const label of ["Pertinence", "Plus récents", "Plus anciens", "A–Z", "Z–A"]) {
@@ -90,6 +226,32 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   const trackTitle = page.locator(".parigo-track-row__title").first();
   await expect(trackTitle).toBeVisible({ timeout: 30_000 });
   await expect(trackTitle).toHaveJSProperty("tagName", "P");
+  const albumTitle = page.locator(".parigo-track-row__album").first();
+  await expect(albumTitle).toBeVisible();
+  await expect(albumTitle).not.toHaveText("");
+  if (testInfo.project.name === "mobile") {
+    const albumTitleBox = await albumTitle.boundingBox();
+    expect(albumTitleBox).not.toBeNull();
+    expect(albumTitleBox!.width).toBeGreaterThan(60);
+
+    for (const [label, value] of [["Piste compacte", "mid"], ["Piste essentielle", "light"]] as const) {
+      await density.click();
+      await page.getByRole("option", { name: label, exact: true }).click();
+      const firstTrack = page.locator(".parigo-track-row").first();
+      await expect(firstTrack).toHaveAttribute("data-density", value);
+      const compactTitle = firstTrack.locator(".parigo-track-row__title");
+      const compactAlbum = firstTrack.locator(".parigo-track-row__album");
+      await expect(compactTitle).toBeVisible();
+      await expect(compactAlbum).toBeVisible();
+      const [compactTitleBox, compactAlbumBox] = await Promise.all([compactTitle.boundingBox(), compactAlbum.boundingBox()]);
+      expect(compactTitleBox).not.toBeNull();
+      expect(compactAlbumBox).not.toBeNull();
+      expect(compactTitleBox!.width).toBeGreaterThan(60);
+      expect(compactAlbumBox!.width).toBeGreaterThan(60);
+    }
+    await density.click();
+    await page.getByRole("option", { name: "Piste détaillée", exact: true }).click();
+  }
   await trackTitle.click();
   await expect(page.locator(".track-detail-panel")).toHaveCount(0);
 

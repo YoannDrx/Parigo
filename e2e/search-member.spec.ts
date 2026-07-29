@@ -18,6 +18,15 @@ async function mockMemberSearch(page: Page) {
   await page.route("**/api/user/tracks/*/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [] } }) }));
 }
 
+async function revealTrackAction(page: Page, actionName: string | RegExp, triggerName: string | RegExp) {
+  const action = page.getByRole("button", { name: actionName });
+  if (!(await action.isVisible())) {
+    await page.getByRole("button", { name: triggerName }).click();
+  }
+  await expect(action).toBeVisible();
+  return action;
+}
+
 test("la recherche connectée se sauvegarde sans ajouter un troisième focus vert", async ({ page }) => {
   await mockMemberSearch(page);
   let savedPayload: Record<string, unknown> | null = null;
@@ -39,7 +48,7 @@ test("la recherche connectée se sauvegarde sans ajouter un troisième focus ver
   expect(savedPayload).toMatchObject({ name: "Piano intime pour documentaire", searchHistoryId: "history-1", searchUrl: "/search?q=piano&view=tracks&type=main" });
 });
 
-test("toutes les versions restent groupées sous la piste principale avec leurs stems", async ({ page }) => {
+test("toutes les versions restent groupées sous la piste principale avec leurs stems", async ({ page }, testInfo) => {
   await mockMemberSearch(page);
   const alternateOne = { ...track, id: "track-1-alt-1", title: "Piano documentaire — 60 sec", version: "60 seconds", isAlternate: true };
   const alternateTwo = { ...track, id: "track-1-alt-2", title: "Piano documentaire — no drums", version: "No drums", isAlternate: true };
@@ -73,15 +82,25 @@ test("toutes les versions restent groupées sous la piste principale avec leurs 
   const albumBox = await row.getByText("Parigo Test Pressing", { exact: true }).boundingBox();
   expect(titleBox).not.toBeNull();
   expect(albumBox).not.toBeNull();
-  expect(Math.abs(titleBox!.y - albumBox!.y)).toBeLessThan(4);
+  if (testInfo.project.name === "desktop") {
+    expect(Math.abs(titleBox!.y - albumBox!.y)).toBeLessThan(4);
+  } else {
+    expect(albumBox!.y).toBeGreaterThan(titleBox!.y);
+  }
   const moreActions = page.getByRole("button", { name: `Plus d’actions : ${track.title}`, exact: true });
-  await expect(moreActions).toBeVisible();
-  await expect(moreActions.locator(".lucide-ellipsis")).toHaveCount(1);
-  await moreActions.click();
-  await expect(page.getByRole("dialog", { name: `Actions pour ${track.title}`, exact: true })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: `Actions pour ${track.title}`, exact: true })).toHaveCount(0);
-  await expect(moreActions).toBeFocused();
+  if (testInfo.project.name === "desktop") {
+    await expect(moreActions).toBeHidden();
+    await expect(page.getByRole("button", { name: `Ajouter à une playlist : ${track.title}`, exact: true })).toBeVisible();
+  } else {
+    await expect(moreActions).toBeVisible();
+    await expect(moreActions.locator(".lucide-ellipsis")).toHaveCount(1);
+    await moreActions.click();
+    const actions = page.getByRole("region", { name: `Actions pour ${track.title}`, exact: true });
+    await expect(actions).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(actions).toHaveCount(0);
+    await expect(moreActions).toBeFocused();
+  }
 });
 
 test("la piste détaillée sépare titre, album et référence sans les tronquer", async ({ page }, testInfo) => {
@@ -104,7 +123,7 @@ test("la piste détaillée sépare titre, album et référence sans les tronquer
   await expect(row).toContainText("Réf. PGO 001");
   const leftLedgerLabel = page.getByText("Titre · album · waveform", { exact: true });
   const rightLedgerLabel = page.getByText("Tags · ambiance · tempo · durée · actions", { exact: true });
-  await expect(page.getByRole("heading", { name: "Donnez le ton à vos images" }).locator(".parigo-title-signature")).toHaveCount(1);
+  await expect(page.getByTestId("search-workspace")).toBeVisible();
   if (testInfo.project.name === "desktop") {
     await expect(leftLedgerLabel).toBeVisible();
     await expect(rightLedgerLabel).toBeVisible();
@@ -122,10 +141,12 @@ test("la piste détaillée sépare titre, album et référence sans les tronquer
 test("les actions et tooltips de recherche suivent la langue active", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le tooltip au survol est vérifié sur un pointeur desktop.");
   await mockMemberSearch(page);
+  await page.setViewportSize({ width: 1800, height: 900 });
   await page.goto("/search?q=piano&view=tracks&type=main");
   await page.getByRole("link", { name: /English version/ }).click();
-  await expect(page.getByRole("heading", { name: "Set the tone for your images" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Search track titles" })).toBeVisible();
   const favourite = page.getByRole("button", { name: "Add to favourites" }).first();
+  await expect(favourite).toBeVisible();
   await favourite.hover();
   await expect(page.getByRole("tooltip", { name: "Add to favourites" })).toBeVisible();
   await expect(page.getByRole("button", { name: `Track information : ${track.title}` })).toBeVisible();
@@ -140,8 +161,7 @@ test("les actions playlist et tag utilisent un popover visible sans dialogue nat
   page.on("dialog", async (dialog) => { nativeDialog = dialog.type(); await dialog.dismiss(); });
 
   await page.goto("/search?q=piano&view=tracks&type=main");
-  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: `Plus d’actions : ${track.title}` }).click();
-  await page.getByRole("button", { name: `Ajouter à une playlist : ${track.title}` }).click();
+  await (await revealTrackAction(page, `Ajouter à une playlist : ${track.title}`, `Plus d’actions : ${track.title}`)).click();
   const playlistDialog = page.getByRole("dialog", { name: new RegExp(`Ajouter à une playlist — ${track.title}`) });
   await expect(playlistDialog).toBeVisible();
   await expect(playlistDialog.getByText("Aucune playlist pour le moment.", { exact: false })).toBeVisible();
@@ -164,13 +184,12 @@ test("les actions playlist et tag utilisent un popover visible sans dialogue nat
   expect(nativeDialog).toBeNull();
 });
 
-test("l’icône de note privée ouvre directement le bon onglet", async ({ page }, testInfo) => {
+test("l’icône de note privée ouvre directement le bon onglet", async ({ page }) => {
   await mockMemberSearch(page);
   await page.route("**/api/tracks/track-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { track } }) }));
   await page.route("**/api/user/tracks/track-1/comments", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { comments: [] } }) }));
   await page.goto("/search?q=piano&view=tracks&type=main");
-  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: `Plus d’actions : ${track.title}` }).click();
-  await page.getByRole("button", { name: `Ouvrir les notes privées : ${track.title}` }).click();
+  await (await revealTrackAction(page, `Ouvrir les notes privées : ${track.title}`, `Plus d’actions : ${track.title}`)).click();
   await expect(page.getByRole("tab", { name: "Notes privées" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByPlaceholder("Intention, timecode, retour client…")).toBeVisible();
 });

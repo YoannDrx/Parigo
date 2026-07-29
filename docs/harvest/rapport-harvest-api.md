@@ -560,4 +560,4 @@ Harvest expose des codes fonctionnels en plus des statuts HTTP. Les libelles ci-
 | `rapport-harvest-api.md` | Rapport lisible dans le repo. |
 | `rapport-harvest-api.html` | Version HTML imprimable, source du PDF. |
 | `rapport-harvest-api.pdf` | PDF a partager. |
-| `endpoint-inventory.csv` | Inventaire machine-readable des 277 entrees documentees. |
+| `endpoint-inventory.csv` | Inventaire machine-readable des 279 entrees documentees. |

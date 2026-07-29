@@ -6,6 +6,7 @@ interface ParigoEmailShellProps {
   preview: string;
   eyebrow: string;
   title: string;
+  logoSrc?: string;
   children: ReactNode;
 }
 
@@ -20,10 +21,16 @@ const colors = {
 };
 
 export const emailColors = colors;
-const emailSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://parigo-ten.vercel.app").replace(/\/+$/, "");
-const emailLogoUrl = `${emailSiteUrl}/images/parigo-logo-email.png`;
+const fallbackSiteUrl = "https://parigo-ten.vercel.app";
 
-export function ParigoEmailShell({ locale, preview, eyebrow, title, children }: ParigoEmailShellProps) {
+export function getEmailSiteUrl(): string {
+  const configuredUrl = process.env.NEXT_PUBLIC_SITE_URL || fallbackSiteUrl;
+  return configuredUrl.replace(/\\[nr]/g, "").trim().replace(/\/+$/, "") || fallbackSiteUrl;
+}
+
+export function ParigoEmailShell({ locale, preview, eyebrow, title, logoSrc, children }: ParigoEmailShellProps) {
+  const emailSiteUrl = getEmailSiteUrl();
+  const emailLogoUrl = logoSrc || `${emailSiteUrl}/images/parigo-logo-email.png`;
   return (
     <html lang={locale}>
       <head>
@@ -44,7 +51,7 @@ export function ParigoEmailShell({ locale, preview, eyebrow, title, children }: 
                         <table role="presentation" width="100%" cellPadding="0" cellSpacing="0">
                           <tbody>
                             <tr>
-                              <td><img src={emailLogoUrl} width="214" alt="Parigo" style={brandLogo} /></td>
+                              <td><img src={emailLogoUrl} width="176" alt="Parigo Music" style={brandLogo} /></td>
                               <td align="right" style={brandDescriptor}>PRODUCTION MUSIC · PARIS</td>
                             </tr>
                           </tbody>
@@ -63,7 +70,7 @@ export function ParigoEmailShell({ locale, preview, eyebrow, title, children }: 
                     </tr>
                     <tr>
                       <td style={footer}>
-                        <img src={emailLogoUrl} width="158" alt="Parigo" style={footerLogo} />
+                        <img src={emailLogoUrl} width="142" alt="Parigo Music" style={footerLogo} />
                         <p style={footerStrong}>MUSIQUE À L’IMAGE · LICENSING · SYNCHRONISATION</p>
                         <p style={footerText}>9 rue Rémy Dumoncel · 75014 Paris · France<br /><a href="tel:+33149239476" style={footerLink}>+33 (0)1 49 23 94 76</a> · <a href="mailto:info@parigomusic.com" style={footerLink}>info@parigomusic.com</a><br /><a href={emailSiteUrl} style={footerLink}>parigomusic.com</a></p>
                         <p style={legalText}>
@@ -87,18 +94,18 @@ export function ParigoEmailShell({ locale, preview, eyebrow, title, children }: 
 const body: CSSProperties = { margin: 0, padding: 0, backgroundColor: colors.paper, color: colors.ink, fontFamily: "Arial, Helvetica, sans-serif" };
 const previewText: CSSProperties = { display: "none", maxHeight: 0, overflow: "hidden", opacity: 0, color: "transparent", lineHeight: "1px" };
 const outerTable: CSSProperties = { width: "100%", backgroundColor: colors.paper };
-const outerCell: CSSProperties = { padding: "32px 12px" };
-const container: CSSProperties = { width: "100%", maxWidth: "680px", margin: "0 auto", backgroundColor: colors.surface, border: `1px solid ${colors.line}` };
-const brandBar: CSSProperties = { padding: "22px 28px", backgroundColor: colors.ink, color: colors.paper };
-const brandLogo: CSSProperties = { display: "block", width: "214px", maxWidth: "100%", height: "auto", border: 0 };
+const outerCell: CSSProperties = { padding: "36px 12px" };
+const container: CSSProperties = { width: "100%", maxWidth: "680px", margin: "0 auto", overflow: "hidden", backgroundColor: colors.surface, border: `1px solid ${colors.line}`, borderRadius: "22px", boxShadow: "8px 10px 0 rgba(200,217,91,.16)" };
+const brandBar: CSSProperties = { padding: "24px 30px", backgroundColor: colors.ink, color: colors.paper };
+const brandLogo: CSSProperties = { display: "block", width: "176px", maxWidth: "100%", height: "auto", border: 0 };
 const brandDescriptor: CSSProperties = { color: colors.signal, fontSize: "10px", lineHeight: "14px", fontWeight: 700, letterSpacing: "1.8px" };
-const hero: CSSProperties = { padding: "44px 36px 30px", backgroundColor: "#edf0e8" };
+const hero: CSSProperties = { padding: "48px 36px 34px", backgroundColor: "#edf3e9" };
 const eyebrowStyle: CSSProperties = { margin: "0 0 12px", color: colors.forest, fontSize: "11px", lineHeight: "16px", fontWeight: 700, letterSpacing: "1.8px", textTransform: "uppercase" };
 const heading: CSSProperties = { margin: 0, color: colors.ink, fontFamily: "Georgia, 'Times New Roman', serif", fontSize: "38px", lineHeight: "44px", fontWeight: 400, letterSpacing: "-1.2px" };
-const wave: CSSProperties = { width: "92px", height: "5px", marginTop: "26px", backgroundColor: colors.signal, borderRadius: "999px" };
+const wave: CSSProperties = { width: "92px", height: "5px", marginTop: "28px", backgroundColor: colors.signal, borderRadius: "999px", boxShadow: "34px 0 0 rgba(49,81,54,.18)" };
 const content: CSSProperties = { padding: "34px 36px 42px" };
 const footer: CSSProperties = { padding: "28px 36px", backgroundColor: colors.ink, color: colors.paper };
-const footerLogo: CSSProperties = { display: "block", width: "158px", maxWidth: "100%", height: "auto", margin: "0 0 22px", border: 0 };
+const footerLogo: CSSProperties = { display: "block", width: "142px", maxWidth: "100%", height: "auto", margin: "0 0 22px", border: 0 };
 const footerStrong: CSSProperties = { margin: "0 0 10px", color: colors.signal, fontSize: "10px", lineHeight: "15px", fontWeight: 800, letterSpacing: "1.5px" };
 const footerText: CSSProperties = { margin: 0, color: "#d8ddd5", fontSize: "12px", lineHeight: "20px" };
 const footerLink: CSSProperties = { color: colors.signal, textDecoration: "none" };

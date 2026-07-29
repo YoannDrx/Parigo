@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { emailColors, ParigoEmailShell } from "./ParigoEmailShell";
+import { emailColors, ParigoEmailShell } from "./_components/ParigoEmailShell";
 
 export interface ContactTrackSummary {
   title: string;
@@ -17,6 +17,7 @@ export interface ContactNotificationEmailProps {
   message: string;
   locale: "fr" | "en";
   track: ContactTrackSummary | null;
+  logoSrc?: string;
 }
 
 export function ContactNotificationEmail(props: ContactNotificationEmailProps) {
@@ -28,6 +29,7 @@ export function ContactNotificationEmail(props: ContactNotificationEmailProps) {
       preview={`Nouveau message de ${props.name}${props.company ? ` · ${props.company}` : ""}`}
       eyebrow="Nouvelle demande reçue"
       title="Un nouveau projet arrive."
+      logoSrc={props.logoSrc}
     >
       <p style={intro}>
         Une personne vient d’utiliser le formulaire Parigo Music. Voici toutes les informations nécessaires pour lui répondre et qualifier sa demande.
@@ -90,3 +92,21 @@ const messageText: CSSProperties = { margin: 0, color: emailColors.ink, fontSize
 const button: CSSProperties = { display: "inline-block", marginTop: "28px", padding: "14px 20px", backgroundColor: emailColors.ink, color: emailColors.paper, borderRadius: "999px", fontSize: "13px", lineHeight: "18px", fontWeight: 700, textDecoration: "none" };
 const requestMeta: CSSProperties = { margin: "24px 0 0", color: emailColors.muted, fontSize: "10px", lineHeight: "16px" };
 const mono: CSSProperties = { fontFamily: "monospace" };
+
+ContactNotificationEmail.PreviewProps = {
+  requestId: "contact-preview-2026",
+  receivedAt: "29 juillet 2026 à 23:21",
+  name: "Camille Martin",
+  company: "Studio Exemple",
+  email: "camille@example.com",
+  message: "Bonjour, nous cherchons une musique élégante et contemporaine pour un film de marque tourné à Paris.",
+  locale: "fr",
+  track: {
+    title: "Closure",
+    albumTitle: "Before The Future",
+    reference: "PRTM 0212",
+    verified: true,
+  },
+} satisfies ContactNotificationEmailProps;
+
+export default ContactNotificationEmail;

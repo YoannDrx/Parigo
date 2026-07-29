@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { Button } from "@/components/ui/Button";
+import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
 import { useAlbums, useSearchFilters } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
@@ -78,6 +79,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   const pageSize = initialData.pagination.limit || 30;
   const dialogRef = useRef<HTMLDivElement>(null);
   const filterTriggerRef = useRef<HTMLButtonElement>(null);
+  const catalogWorkspaceRef = useRef<HTMLElement>(null);
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(
     () => (filtersQuery.data ?? []).filter((group) => !(fixedLabel && group.key === "labels")),
@@ -109,6 +111,17 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   const facets = albumsQuery.data?.facets ?? initialData.facets;
   const total = albumsQuery.data?.pagination.total ?? initialData.pagination.total;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const goToPage = useCallback((nextPage: number) => {
+    setPage(Math.max(1, Math.min(totalPages, nextPage)));
+    window.requestAnimationFrame(() => {
+      const workspaceTop = catalogWorkspaceRef.current?.getBoundingClientRect().top;
+      if (workspaceTop === undefined) return;
+      window.scrollTo({
+        top: Math.max(0, window.scrollY + workspaceTop - 74),
+        behavior: "smooth",
+      });
+    });
+  }, [totalPages]);
 
   useEffect(() => {
     if (mobileFiltersOpen) return;
@@ -219,34 +232,34 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   );
 
   return (
-    <section>
-      <CatalogToolbar
-        locale={locale}
-        query={query}
-        onQueryChange={(value) => { setQuery(value); setPage(1); }}
-        queryPlaceholder={queryPlaceholder?.[locale] ?? (locale === "fr" ? "Rechercher un album, un artiste ou un mot-clé" : "Search an album, artist or keyword")}
-        sort={sort}
-        onSortChange={(value) => { setSort(value); setPage(1); }}
-        sortOptions={[
-          { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
-          { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
-          { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
-        ]}
-        view={view}
-        onViewChange={setView}
-        resultCount={total}
-      >
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="gap-2 lg:hidden">
-            <SlidersHorizontal size={16} />{locale === "fr" ? "Tous les filtres" : "All filters"}
-          </Button>
-        </div>
-        <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={reset} />
-      </CatalogToolbar>
-
-      <div className="grid min-w-0 gap-8 lg:grid-cols-[19rem_minmax(0,1fr)] xl:grid-cols-[21rem_minmax(0,1fr)]">
-        <aside className="hidden min-w-0 lg:block">{filterPanel}</aside>
+    <section ref={catalogWorkspaceRef}>
+      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
+        <aside className="search-filter-sticky hidden min-w-0 overflow-y-auto pb-5 lg:block">{filterPanel}</aside>
         <div className="min-w-0">
+          <CatalogToolbar
+            locale={locale}
+            query={query}
+            onQueryChange={(value) => { setQuery(value); setPage(1); }}
+            queryPlaceholder={queryPlaceholder?.[locale] ?? (locale === "fr" ? "Rechercher un album, un artiste ou un mot-clé" : "Search an album, artist or keyword")}
+            sort={sort}
+            onSortChange={(value) => { setSort(value); setPage(1); }}
+            sortOptions={[
+              { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
+              { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
+              { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
+            ]}
+            view={view}
+            onViewChange={setView}
+            resultCount={total}
+          >
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="gap-2 lg:hidden">
+                <SlidersHorizontal size={16} />{locale === "fr" ? "Tous les filtres" : "All filters"}
+              </Button>
+            </div>
+            <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={reset} />
+          </CatalogToolbar>
+
           {albumsQuery.isFetching && !albumsQuery.data ? (
             <div className="grid min-h-72 place-items-center"><ParigoLoader size="page" label={t("common.loading")} /></div>
           ) : albums.length ? (
@@ -264,25 +277,25 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
           )}
           {totalPages > 1 && (
             <nav className="mt-12 flex items-center justify-between border-t border-[var(--line)] pt-6" aria-label={locale === "fr" ? "Pagination des albums" : "Album pagination"}>
-              <Button variant="outline" disabled={page <= 1} onClick={() => setPage((value) => Math.max(1, value - 1))}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
+              <Button variant="outline" disabled={page <= 1} onClick={() => goToPage(page - 1)}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
               <span className="font-mono text-xs text-[var(--text-muted)]">{page} / {totalPages}</span>
-              <Button variant="outline" disabled={page >= totalPages} onClick={() => setPage((value) => Math.min(totalPages, value + 1))}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>
+              <Button variant="outline" disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>
             </nav>
           )}
         </div>
       </div>
 
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-[120] bg-black/55 lg:hidden" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setMobileFiltersOpen(false); }}>
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Filtres du catalogue" : "Catalogue filters"} className="absolute inset-x-0 bottom-0 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain bg-[var(--background)] p-3">
-            <div className="sticky top-0 z-10 mb-2 flex items-center justify-between border border-[var(--line)] bg-[var(--background)] p-2">
-              <strong className="px-2">{locale === "fr" ? "Filtres" : "Filters"}</strong>
-              <button type="button" onClick={() => setMobileFiltersOpen(false)} className="grid h-11 w-11 place-items-center" aria-label={locale === "fr" ? "Fermer les filtres" : "Close filters"}><X size={19} /></button>
-            </div>
-            {filterPanel}
-            <Button className="sticky bottom-2 mt-3 w-full" onClick={() => setMobileFiltersOpen(false)}>{locale === "fr" ? `Afficher ${total} résultats` : `Show ${total} results`}</Button>
-          </div>
-        </div>
+        <MobileFilterSheet
+          ref={dialogRef}
+          title={locale === "fr" ? "Filtres" : "Filters"}
+          ariaLabel={locale === "fr" ? "Filtres du catalogue" : "Catalogue filters"}
+          closeLabel={locale === "fr" ? "Fermer les filtres" : "Close filters"}
+          actionLabel={locale === "fr" ? `Afficher ${total} résultats` : `Show ${total} results`}
+          onClose={() => setMobileFiltersOpen(false)}
+        >
+          {filterPanel}
+        </MobileFilterSheet>
       )}
     </section>
   );

@@ -228,6 +228,21 @@ async function actionInventory(page: Page) {
   return { title, trackId, labels };
 }
 
+async function visibleTrackAction(page: Page, title: string, label: string) {
+  let action = page.getByRole("button", { name: label, exact: true }).filter({ visible: true }).first();
+  if (await action.isVisible().catch(() => false)) return action;
+
+  const trigger = page
+    .getByRole("button", { name: `Plus d’actions : ${title}`, exact: true })
+    .filter({ visible: true })
+    .first();
+  if (await trigger.isVisible().catch(() => false)) await trigger.click();
+
+  action = page.getByRole("button", { name: label, exact: true }).filter({ visible: true }).first();
+  await action.waitFor({ state: "visible", timeout: 10_000 });
+  return action;
+}
+
 async function testFavourite(page: Page, inventory: { title: string }) {
   let button = page.getByRole("button", { name: "Ajouter aux favoris", exact: true }).filter({ visible: true }).first();
   if (!await button.isVisible().catch(() => false)) {
@@ -308,7 +323,13 @@ async function testTrackPanels(page: Page, inventory: { title: string; trackId?:
   await openSearch(page);
   const result: JsonRecord = {};
   console.error("[ui-audit] track: information/versions/lyrics");
-  await page.getByRole("button", { name: `Informations sur la piste : ${inventory.title}` }).click();
+  await (
+    await visibleTrackAction(
+      page,
+      inventory.title,
+      `Informations sur la piste : ${inventory.title}`,
+    )
+  ).click();
   result.informationPanel = await page.getByRole("tabpanel").isVisible().catch(() => false);
   const versions = page.getByRole("button", { name: /Versions/ });
   if (await versions.count()) {
@@ -320,7 +341,13 @@ async function testTrackPanels(page: Page, inventory: { title: string; trackId?:
     await lyrics.first().click();
     result.lyricsPanel = await page.getByRole("tabpanel").isVisible().catch(() => false);
   }
-  await page.getByRole("button", { name: `Ouvrir les notes privées : ${inventory.title}` }).click();
+  await (
+    await visibleTrackAction(
+      page,
+      inventory.title,
+      `Ouvrir les notes privées : ${inventory.title}`,
+    )
+  ).click();
   const textarea = page.getByPlaceholder(/Intention, timecode/);
   await textarea.fill(`${runId} note`);
   const notePromise = page.waitForResponse((response) =>
@@ -335,7 +362,13 @@ async function testTrackPanels(page: Page, inventory: { title: string; trackId?:
     message: await page.getByText(/accès|indisponible|impossible|expir/i).first().textContent().catch(() => null),
   };
   console.error("[ui-audit] track: queue/playback/history");
-  await page.getByRole("button", { name: `Ajouter à la file d’attente : ${inventory.title}` }).click();
+  await (
+    await visibleTrackAction(
+      page,
+      inventory.title,
+      `Ajouter à la file d’attente : ${inventory.title}`,
+    )
+  ).click();
   result.queueControl = true;
   const historyBefore = await json(await page.request.get(`${baseUrl}/api/user/history`, { timeout: 20_000 }));
   await page.getByRole("button", { name: `Écouter ${inventory.title}` }).click();
@@ -413,17 +446,33 @@ async function testTrackPanels(page: Page, inventory: { title: string; trackId?:
     // the Search surface before continuing with the cue-sheet action.
     await openSearch(page);
   } else {
+    const downloadButton = await visibleTrackAction(
+      page,
+      inventory.title,
+      `Télécharger : ${inventory.title}`,
+    );
     result.download = {
-      buttonExposed: await page.getByRole("button", { name: `Télécharger : ${inventory.title}` }).first().isVisible(),
+      buttonExposed: await downloadButton.isVisible(),
       actualFileRequested: false,
       skippedReason: "Both current and official validation payloads failed in direct diagnostics",
     };
+    await page
+      .getByRole("button", { name: `Fermer les actions : ${inventory.title}`, exact: true })
+      .filter({ visible: true })
+      .first()
+      .click()
+      .catch(() => undefined);
   }
   console.error("[ui-audit] track: cue sheet");
+  const cueButton = await visibleTrackAction(
+    page,
+    inventory.title,
+    `Cue sheet : ${inventory.title}`,
+  );
   const cuePromise = page.waitForResponse((response) =>
     response.url().endsWith("/api/cuesheet") && response.request().method() === "POST",
   );
-  await page.getByRole("button", { name: `Cue sheet : ${inventory.title}` }).first().click();
+  await cueButton.click();
   const cueResponse = await cuePromise;
   const cueAlert = page.getByRole("alert").filter({ hasText: /cue sheet/i }).first();
   const errorVisible = await cueAlert.isVisible().catch(() => false);
@@ -487,7 +536,25 @@ async function testSavedSearch(page: Page) {
   const visible = body.includes(name);
   const displayedDate = body.split("\n").find((line) => /\d{1,2}\/\d{1,2}\/2026/.test(line)) || null;
   let cleanupStatus: number | null = null;
-  if (searchId) cleanupStatus = (await mutate(page.request, `/api/user/searches?id=${encodeURIComponent(searchId)}`, "DELETE")).status;
+  if (searchId) {
+    try {
+      cleanupStatus = (
+        await mutate(page.request, `/api/user/searches?id=${encodeURIComponent(searchId)}`, "DELETE")
+      ).status;
+    } catch {
+      const searchesAfterFailure = dataArray(
+        await json(await page.request.get(`${baseUrl}/api/user/searches`, { timeout: 30_000 })),
+        "searches",
+      );
+      if (!searchesAfterFailure.some((item) => item.id === searchId)) {
+        cleanupStatus = 204;
+      } else {
+        cleanupStatus = (
+          await mutate(page.request, `/api/user/searches?id=${encodeURIComponent(searchId)}`, "DELETE")
+        ).status;
+      }
+    }
+  }
   console.error(`[ui-audit] saved search: cleanup ${cleanupStatus}`);
   return {
     available,
@@ -503,7 +570,8 @@ async function testSavedSearch(page: Page) {
 async function testTagCrossPage(page: Page, inventory: { title: string }) {
   const tagName = `${runId} tag`;
   const initialTagsPromise = page.waitForResponse((response) =>
-    response.url().endsWith("/api/user/tags") && response.request().method() === "GET",
+    new URL(response.url()).pathname === "/api/user/tags" &&
+    response.request().method() === "GET",
   );
   await page.goto(`${baseUrl}/account/tags`, { waitUntil: "domcontentloaded" });
   await initialTagsPromise;
@@ -1229,6 +1297,22 @@ async function runViewport(browser: Browser, name: "desktop" | "mobile", viewpor
     if (message.type() === "error") consoleErrors.push(message.text().replace(/https?:\/\/\S+/g, "<URL>"));
   });
   try {
+    if (full && process.env.HARVEST_UI_RESUME === "saved-search") {
+      const loginStatus = await login(page.request);
+      const savedSearch = await testSavedSearch(page);
+      const logout = await page.request.post(`${baseUrl}/api/auth/logout`, { headers: { Origin: baseUrl } });
+      return {
+        viewport: name,
+        size: `${viewport.width}x${viewport.height}`,
+        resumedAt: "saved-search",
+        loginStatus,
+        savedSearch,
+        logoutStatus: logout.status(),
+        consoleErrors,
+        accountDeleted: false,
+        secretsPrinted: false,
+      };
+    }
     if (process.env.HARVEST_UI_RESUME === "capabilities") {
       const loginStatus = await login(page.request);
       const capabilities = await testNewDocumentedCapabilities(page);
@@ -1387,7 +1471,14 @@ async function main() {
   });
   try {
     const viewportMode = process.env.HARVEST_UI_VIEWPORT || "all";
-    const desktop = ["mobile", "timezone"].includes(viewportMode) ? null : await runViewport(browser, "desktop", { width: 1440, height: 900 }, true);
+    const desktop = ["mobile", "timezone"].includes(viewportMode)
+      ? null
+      : await runViewport(
+          browser,
+          "desktop",
+          { width: 1440, height: 900 },
+          process.env.HARVEST_UI_CORE_ONLY !== "1",
+        );
     const mobile = ["desktop", "timezone"].includes(viewportMode) ? null : await runViewport(browser, "mobile", { width: 390, height: 844 }, false);
     const timezones = await timezoneAudit(browser);
     console.log(JSON.stringify({

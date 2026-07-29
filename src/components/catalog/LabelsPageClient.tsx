@@ -60,7 +60,7 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
       <Header />
       <main className="flex-1 pb-32">
         <CatalogHero title={t("catalog.labelsTitle")} intro={t("catalog.labelsIntro")} meta={`${labels.length} ${t("common.labels").toLowerCase()}`} />
-        <div className="mx-auto max-w-[1700px] px-4 py-12 md:py-20 lg:px-8">
+        <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
           <CatalogToolbar
             locale={locale}
             query={query}

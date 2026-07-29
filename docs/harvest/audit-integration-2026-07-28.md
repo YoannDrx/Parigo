@@ -461,7 +461,7 @@ Yoann
 
 - `docs/harvest/audit-integration-2026-07-28.md` — présent rapport ;
 - `docs/harvest/runtime-route-matrix.csv` — preuve action par action ;
-- `docs/harvest/endpoint-classification.csv` — 255 endpoints classés ;
+- `docs/harvest/endpoint-classification.csv` — 257 endpoints classés ;
 - `docs/harvest/bff-handler-inventory.csv` — 75 handlers cartographiés ;
 - `docs/harvest/last-audit-run.json` — synthèse expurgée ;
 - `output/pdf/audit-integration-harvest-2026-07-28.pdf` — version Roland.

@@ -12,6 +12,38 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("les postes de filtrage défilent sur mobile et restent visibles sur desktop", async ({ page }, testInfo) => {
+  for (const path of ["/albums", "/playlists", "/labels"]) {
+    await page.goto(path);
+    const workspace = page.getByTestId("catalog-workspace");
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toHaveCSS("position", testInfo.project.name === "mobile" ? "relative" : "sticky");
+    if (testInfo.project.name === "mobile") await expect(workspace).toHaveCSS("top", "0px");
+    await workspace.evaluate((element) => {
+      element.scrollIntoView({ block: "start", behavior: "instant" });
+      window.scrollBy({ top: 600, behavior: "instant" });
+    });
+    await page.waitForTimeout(350);
+    const workspaceBox = await workspace.boundingBox();
+    expect(workspaceBox, `poste catalogue absent sur ${path}`).not.toBeNull();
+    if (testInfo.project.name === "mobile") {
+      expect(workspaceBox!.y, `poste catalogue encore sticky sur mobile sur ${path}`).toBeLessThan(0);
+    } else {
+      expect(workspaceBox!.y, `poste catalogue non sticky sur ${path}`).toBeGreaterThanOrEqual(0);
+      expect(workspaceBox!.y, `poste catalogue trop bas sur ${path}`).toBeLessThanOrEqual(80);
+    }
+
+    if (path === "/albums" && testInfo.project.name !== "mobile") {
+      const filters = page.locator(".search-filter-sticky");
+      await expect(filters).toHaveCSS("position", "sticky");
+      const filterBox = await filters.boundingBox();
+      expect(filterBox).not.toBeNull();
+      expect(filterBox!.y).toBeGreaterThanOrEqual(0);
+      expect(filterBox!.y).toBeLessThanOrEqual(90);
+    }
+  }
+});
+
 test("les labels exposent les vrais volumes, la recherche et les deux vues", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/labels");
@@ -55,6 +87,16 @@ test("la discographie d’un label se recherche et expose les filtres complets",
     ? page.getByRole("dialog", { name: "Filtres du catalogue" })
     : page.locator("aside");
   await expect(filterScope.getByRole("heading", { level: 2, name: "Affiner la recherche" })).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    await page.waitForTimeout(350);
+    const [sheetBox, viewportHeight] = await Promise.all([
+      filterScope.locator(".mobile-filter-sheet").boundingBox(),
+      page.evaluate(() => window.innerHeight),
+    ]);
+    expect(sheetBox).not.toBeNull();
+    expect(sheetBox!.height).toBeGreaterThanOrEqual(viewportHeight - 10);
+    expect(sheetBox!.height).toBeLessThan(viewportHeight);
+  }
   await expect(filterScope.getByLabel("BPM minimum")).toBeVisible();
   await expect(filterScope.getByLabel("Durée minimum")).toBeVisible();
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);

@@ -172,14 +172,14 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("l’onde du héros reste statique sur mobile sans charger WebGL", async ({ page }) => {
+test("l’onde du héros reste légère et animée sur mobile sans charger WebGL", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero.locator("canvas")).toHaveCount(0);
   const fallback = hero.locator(".signal-field-fallback");
-  await expect(fallback).toHaveAttribute("data-static", "true");
-  await expect(fallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
+  await expect(fallback).toHaveAttribute("data-static", "false");
+  await expect(fallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "signal-field-shift");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
@@ -188,17 +188,25 @@ test("l’onde du héros reste statique sur mobile sans charger WebGL", async ({
   await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
 });
 
+test("le héros desktop conserve sa forme organique et ses ondes animées", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le décor organique WebGL est réservé au desktop.");
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const backdrop = hero.getByTestId("organic-hero-backdrop");
+
+  await expect(backdrop).toBeVisible({ timeout: 10_000 });
+  await expect(backdrop.getByTestId("organic-hero-blob")).toBeVisible();
+  await expect(backdrop.locator("canvas")).toHaveCount(1);
+  await expect(hero.locator(".organic-hero-fallback")).toHaveCount(0);
+});
+
 test("les ondes du héros gagnent du contraste uniquement en thème clair", async ({ page }) => {
   await page.goto("/");
   const signal = page.getByTestId("home-hero").locator(".hero-signal-field");
   await expect(signal).toBeVisible();
   await expect(signal).toHaveCSS("mix-blend-mode", "multiply");
-  const lightStyle = await signal.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { filter: style.filter, opacity: Number(style.opacity) };
-  });
-  expect(lightStyle.filter).not.toBe("none");
-  expect(lightStyle.opacity).toBeGreaterThanOrEqual(.9);
+  await expect.poll(() => signal.evaluate((node) => Number(getComputedStyle(node).opacity))).toBeGreaterThanOrEqual(.9);
+  expect(await signal.evaluate((node) => getComputedStyle(node).filter)).not.toBe("none");
 
   await page.evaluate(() => {
     document.documentElement.dataset.theme = "dark";
@@ -251,7 +259,6 @@ test("la page des labels adopte l’intitulé Labels représentés", async ({ pa
 
 test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {
   const cases = [
-    ["/search", "Catalogue Parigo"],
     ["/albums", "Catalogue / Albums"],
     ["/synchronisations", "Music for images"],
     ["/playlists", "Catalogue / Sélections"],
@@ -272,6 +279,10 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
     await expect(page.locator("main h1")).toBeVisible();
     await expect(page.locator("main").getByText(label, { exact: true })).toHaveCount(0);
   }
+
+  await page.goto("/search");
+  await expect(page.locator("main h1")).toHaveText("Recherche");
+  await expect(page.locator("main")).not.toContainText("Donnez le ton à vos images");
 });
 
 test("le formulaire Contact conserve sa composition d’origine et laisse respirer le champ Entreprise", async ({ page }) => {
