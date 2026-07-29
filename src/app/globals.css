@@ -2717,6 +2717,14 @@ textarea {
     min-width: 11rem;
   }
 }
+@container (min-width: 58rem) and (max-width: 72rem) {
+  .search-results-ledger .parigo-track-row:not([data-density="full"]) .parigo-track-row__desktop-actions {
+    display: contents;
+  }
+  .search-results-ledger .parigo-track-row:not([data-density="full"]) .parigo-track-row__actions-trigger {
+    display: none;
+  }
+}
 @container (max-width: 42rem) {
   .search-results-ledger .parigo-track-row__duration {
     display: none;

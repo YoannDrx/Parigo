@@ -173,6 +173,20 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(page.getByRole("option", { name: "Piste essentielle" })).toBeVisible();
   await page.keyboard.press("Escape");
 
+  if (testInfo.project.name === "desktop") {
+    const firstTrack = page.locator(".parigo-track-row").first();
+    for (const [label, value] of [["Piste compacte", "mid"], ["Piste essentielle", "light"]] as const) {
+      await density.click();
+      await page.getByRole("option", { name: label, exact: true }).click();
+      await expect(firstTrack).toHaveAttribute("data-density", value);
+      expect(await firstTrack.locator(".parigo-track-row__actions button:visible").count()).toBeGreaterThanOrEqual(5);
+      await expect(firstTrack.getByRole("button", { name: /Plus d.actions/ })).toBeHidden();
+    }
+    await density.click();
+    await page.getByRole("option", { name: "Piste détaillée", exact: true }).click();
+    await expect(firstTrack).toHaveAttribute("data-density", "full");
+  }
+
   const version = page.getByRole("combobox", { name: "Versions des pistes" });
   if (testInfo.project.name === "mobile") {
     const versionValueFits = await version.locator(".parigo-select__value").evaluate((node) => node.scrollWidth <= node.clientWidth);

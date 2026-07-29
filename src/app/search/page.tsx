@@ -564,7 +564,7 @@ function SearchContent() {
                       : [];
                     return (
                       <section key={track.id} data-search-track-group={track.id}>
-                        <TrackRow track={track} album={albumFromTrack(track)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} condensedActions={density !== "full"} />
+                        <TrackRow track={track} album={albumFromTrack(track)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} />
                         {type === "all" && (alternates.length > 0 || stems.length > 0) && (
                           <div className="search-version-branch relative ml-5 border-l border-[color-mix(in_srgb,var(--signal)_58%,transparent)] pl-3 sm:ml-10 sm:pl-5">
                             <div className="flex min-h-9 flex-wrap items-center gap-3 border-b border-[var(--line)] px-2 font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
@@ -573,7 +573,7 @@ function SearchContent() {
                             </div>
                             {alternates.map((alternate, alternateIndex) => (
                               <div key={alternate.id} data-track-kind="alternate">
-                                <TrackRow track={alternate} album={albumFromTrack(alternate)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index + alternateIndex + 1} showAlbumCover={false} density="mid" condensedActions />
+                                <TrackRow track={alternate} album={albumFromTrack(alternate)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index + alternateIndex + 1} showAlbumCover={false} density="mid" />
                               </div>
                             ))}
                             {stems.length > 0 && (
