@@ -2301,6 +2301,24 @@ textarea {
     fill var(--motion-fast) ease,
     transform 260ms var(--ease-out);
 }
+.album-card__favorite-saved {
+  animation: album-favorite-settle 460ms cubic-bezier(.22, 1, .36, 1) both;
+  transform-origin: center;
+}
+@keyframes album-favorite-settle {
+  0% {
+    opacity: 0;
+    transform: translate(-1.75rem, -3.5rem) rotate(-9deg) scale(1.45);
+  }
+  64% {
+    opacity: 1;
+    transform: translate(.12rem, .08rem) rotate(2deg) scale(.94);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0) rotate(0) scale(1);
+  }
+}
 .album-card__favorite-button:hover,
 .album-card__favorite-button:focus,
 .album-card__favorite-button:focus-visible {
@@ -2317,6 +2335,11 @@ textarea {
   .album-card__favorite-overlay {
     background: linear-gradient(180deg, transparent 58%, rgba(0, 0, 0, .18));
     opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .album-card__favorite-saved {
+    animation: none;
   }
 }
 .search-track-card {

@@ -3,7 +3,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Check, ImagePlus, Save, Trash2, User } from "lucide-react";
-import { Button, Input, Select, SignedTitle, Tooltip } from "@/components/ui";
+import { Button, Input, Select, Tooltip } from "@/components/ui";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";

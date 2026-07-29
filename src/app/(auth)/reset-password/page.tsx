@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Button, Card, Input, SignedTitle } from "@/components/ui";
+import { Button, Card, Input } from "@/components/ui";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
 

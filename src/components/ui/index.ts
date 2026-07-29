@@ -10,4 +10,3 @@ export { AnchoredPopover } from "./AnchoredPopover";
 export { ParigoDialog } from "./ParigoDialog";
 export { ParigoLoader } from "./ParigoLoader";
 export { ViewModeControl, type ViewModeOption } from "./ViewModeControl";
-export { SignedTitle, stripTerminalTitleMark } from "./SignedTitle";

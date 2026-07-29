@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { MailCheck } from "lucide-react";
-import { Card, SignedTitle } from "@/components/ui";
+import { Card } from "@/components/ui";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 function RegistrationSuccess() {

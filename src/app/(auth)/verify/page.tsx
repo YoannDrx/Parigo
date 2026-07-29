@@ -3,7 +3,8 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Card, SignedTitle } from "@/components/ui";
+import { Card } from "@/components/ui";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 function VerifyContent() {
