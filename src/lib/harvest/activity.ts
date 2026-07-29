@@ -47,6 +47,14 @@ import {
 
 type HarvestRecord = Record<string, unknown>;
 
+function containsHarvestId(value: unknown, expectedId: string): boolean {
+  if (Array.isArray(value)) return value.some((item) => containsHarvestId(item, expectedId));
+  if (!isRecord(value)) return false;
+  return Object.entries(value).some(([key, nested]) =>
+    (key.toLowerCase() === "id" && asString(nested) === expectedId) ||
+    containsHarvestId(nested, expectedId));
+}
+
 async function pollForMemberPlaylist(
   memberToken: string,
   predicate: (playlist: Playlist) => boolean,
@@ -276,17 +284,7 @@ export async function moveMemberPlaylistToCategory(
       (token) =>
         `/getmemberplaylistcategoriesandplaylists/${token}?returnplaylistcount=true&returntrackcount=true&returnrootobjectsonly=${categoryId ? "false" : "true"}&returnautosaveonly=false&returnfirstautosave=false&returnhighlightonly=false&playlistcategoryid=${encodeURIComponent(categoryId)}&skip=0&limit=500&sort=Custom_Asc`,
     );
-    const directIds = recordArray(payload, "Playlists")
-      .map((playlist) => asString(playlist.ID))
-      .filter(Boolean);
-    const categoryIds = recordArray(payload, "PlaylistCategories")
-      .filter((category) =>
-        !categoryId ||
-        asString(category.PlaylistCategoryID || category.ID) === categoryId)
-      .flatMap((category) => recordArray(category, "Playlists"))
-      .map((playlist) => asString(playlist.ID))
-      .filter(Boolean);
-    if ([...directIds, ...categoryIds].includes(playlistId)) return;
+    if (containsHarvestId(payload.PlaylistObjects || payload, playlistId)) return;
   }
   throw new HarvestError(
     "Harvest acknowledged the playlist move but its destination could not be verified",

@@ -4,7 +4,7 @@ import { chromium, type APIRequestContext, type Browser, type BrowserContext, ty
 import { stat } from "node:fs/promises";
 
 const baseUrl = process.env.PARIGO_AUDIT_BASE_URL || "http://127.0.0.1:3000";
-const runId = `Parigo audit 20260728-ui-${new Date().toISOString().replace(/\D/g, "").slice(0, 14)}`;
+const runId = `Parigo audit 20260729-ui-${new Date().toISOString().replace(/\D/g, "").slice(0, 14)}`;
 const pollOffsets = [0, 250, 1_000, 3_000, 10_000, 30_000];
 
 type JsonRecord = Record<string, unknown>;
@@ -120,7 +120,7 @@ async function cleanupPreviousUiAuditResources(request: APIRequestContext) {
   const removed: Array<{ type: string; id: string; status: number }> = [];
   const searches = dataArray(await json(await request.get(`${baseUrl}/api/user/searches`)), "searches");
   for (const search of searches) {
-    if (!String(search.name || "").startsWith("Parigo audit 20260728-ui-")) continue;
+    if (!/^Parigo audit 2026072[89]-ui-/.test(String(search.name || ""))) continue;
     const id = String(search.id || "");
     if (!id) continue;
     const result = await mutate(request, `/api/user/searches?id=${encodeURIComponent(id)}`, "DELETE");
@@ -129,7 +129,7 @@ async function cleanupPreviousUiAuditResources(request: APIRequestContext) {
   const playlists = dataArray(await json(await request.get(`${baseUrl}/api/user/playlists`)), "playlists");
   for (const playlist of playlists) {
     const title = String(playlist.title || playlist.name || "");
-    if (!title.startsWith("Parigo audit 20260728-ui-")) continue;
+    if (!/^Parigo audit 2026072[89]-ui-/.test(title)) continue;
     const id = String(playlist.id || "");
     if (!id) continue;
     const result = await mutate(request, "/api/user/playlists", "DELETE", { playlistId: id });
@@ -1119,9 +1119,11 @@ async function testNewDocumentedCapabilities(page: Page) {
         timeout: 60_000,
       });
       await page.getByRole("combobox", { name: "Dossier de la playlist" }).click();
-      const moveResponsePromise = page.waitForResponse((response) =>
-        response.url().endsWith(`/api/user/playlists/${encodeURIComponent(sourceId)}/placement`) &&
-        response.request().method() === "PATCH",
+      const moveResponsePromise = page.waitForResponse(
+        (response) =>
+          response.url().endsWith(`/api/user/playlists/${encodeURIComponent(sourceId)}/placement`) &&
+          response.request().method() === "PATCH",
+        { timeout: 90_000 },
       );
       await page.getByRole("option", { name: categoryName }).click();
       playlistFacts.moveStatus = (await moveResponsePromise).status();
@@ -1148,9 +1150,11 @@ async function testNewDocumentedCapabilities(page: Page) {
         playlistFacts.serverSearchVisible = await page.getByText(/résultat\(s\) Harvest/).isVisible().catch(() => false);
       }
 
-      const duplicateResponsePromise = page.waitForResponse((response) =>
-        response.url().endsWith(`/api/user/playlists/${encodeURIComponent(sourceId)}/duplicate`) &&
-        response.request().method() === "POST",
+      const duplicateResponsePromise = page.waitForResponse(
+        (response) =>
+          response.url().endsWith(`/api/user/playlists/${encodeURIComponent(sourceId)}/duplicate`) &&
+          response.request().method() === "POST",
+        { timeout: 90_000 },
       );
       await page.getByRole("button", { name: "Dupliquer" }).click();
       const duplicateResponse = await duplicateResponsePromise;
@@ -1161,6 +1165,13 @@ async function testNewDocumentedCapabilities(page: Page) {
       playlistFacts.duplicateIdReturned = Boolean(duplicateId);
       if (duplicateId) {
         await page.waitForURL((url) => url.pathname === `/account/playlists/${duplicateId}`);
+        if (duplicateTitle) {
+          await page.waitForFunction(
+            (title) => document.body.innerText.includes(String(title)),
+            duplicateTitle,
+            { timeout: 60_000 },
+          ).catch(() => undefined);
+        }
         playlistFacts.duplicateVisible = duplicateTitle
           ? (await page.locator("body").innerText()).includes(duplicateTitle)
           : false;

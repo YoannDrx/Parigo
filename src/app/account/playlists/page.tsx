@@ -211,7 +211,7 @@ export default function PlaylistsPage() {
       <section className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-4 md:p-5" aria-labelledby="playlist-folders-title">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Organisation Harvest" : "Harvest organisation"}</p>
+            <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Organisation" : "Organisation"}</p>
             <h2 id="playlist-folders-title" className="mt-2 text-lg font-semibold">{locale === "fr" ? "Dossiers de playlists" : "Playlist folders"}</h2>
           </div>
           <form onSubmit={createCategory} className="flex w-full max-w-lg gap-2">
@@ -219,7 +219,7 @@ export default function PlaylistsPage() {
             <Button type="submit" disabled={categoryBusy || !categoryName.trim()} className="shrink-0"><FolderPlus size={16} />{locale === "fr" ? "Créer" : "Create"}</Button>
           </form>
         </div>
-        {categories.length ? <div className="mt-4 flex flex-wrap gap-2">{categories.map((category) => <div key={category.id} className="inline-flex min-h-9 items-center border border-[var(--line)] bg-[var(--background)]"><button type="button" onClick={() => setCategoryFilter(category.id)} className="px-3 text-xs font-semibold">{category.name} <span className="font-mono opacity-50">({category.playlistCount})</span></button><button type="button" disabled={categoryBusy} onClick={() => void removeCategory(category.id)} className="flex h-9 w-9 items-center justify-center border-l border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--danger)]" aria-label={`${locale === "fr" ? "Supprimer le dossier" : "Delete folder"} ${category.name}`}><Trash2 size={13} /></button></div>)}</div> : <p className="mt-3 text-xs text-[var(--text-muted)]">{locale === "fr" ? "Aucun dossier Harvest pour le moment." : "No Harvest folders yet."}</p>}
+        {categories.length ? <div className="mt-4 flex flex-wrap gap-2">{categories.map((category) => <div key={category.id} className="inline-flex min-h-9 items-center border border-[var(--line)] bg-[var(--background)]"><button type="button" onClick={() => setCategoryFilter(category.id)} className="px-3 text-xs font-semibold">{category.name} <span className="font-mono opacity-50">({category.playlistCount})</span></button><button type="button" disabled={categoryBusy} onClick={() => void removeCategory(category.id)} className="flex h-9 w-9 items-center justify-center border-l border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--danger)]" aria-label={`${locale === "fr" ? "Supprimer le dossier" : "Delete folder"} ${category.name}`}><Trash2 size={13} /></button></div>)}</div> : <p className="mt-3 text-xs text-[var(--text-muted)]">{locale === "fr" ? "Aucun dossier pour le moment." : "No folders yet."}</p>}
       </section>
 
       {!isLoading && playlists.length > 0 && (

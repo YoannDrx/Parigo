@@ -1,99 +1,65 @@
-# Audit ciblé de l’intégration Harvest — synthèse pour Roland
+# Audit ciblé de l'intégration Harvest - synthèse pour Roland
 
-Audit mis à jour le 29 juillet 2026 à partir de la documentation officielle Harvest `latest`, des réponses live du compte Anthlogan, des routes Parigo et des parcours navigateur desktop/mobile. Les secrets, tokens, cookies et URLs signées sont expurgés.
+Audit mis à jour le 29 juillet 2026 à partir de la documentation officielle Harvest `latest`, de tests directs, des 61 routes API Parigo (88 handlers) et de parcours navigateur desktop et mobile sur le compte Anthlogan. Les secrets, cookies, tokens et URLs signées sont expurgés.
 
 ## 1. Résumé exécutif
 
-Le socle Harvest utilisé par Parigo fonctionne. Les credentials actuels autorisent déjà les principales écritures membre :
+Le socle Harvest utilisé par Parigo fonctionne. La configuration actuelle autorise déjà les principales écritures membre. Elle ne peut donc pas être qualifiée globalement de "lecture seule".
 
-- favoris de pistes ;
-- playlists : création, modification, copie, suppression, ajout/retrait/réordre de pistes ;
-- conversion d’une shortlist en playlist ;
-- recherches sauvegardées ;
-- tags et relations tag–track ;
-- profil et image ;
-- cue sheets ;
-- téléchargement et historique associé.
-
-Plusieurs écarts initialement attribués à Harvest étaient des défauts Parigo. Ils ont été corrigés et ne doivent pas être remontés à Roland :
-
-| Sujet corrigé côté Parigo | Résultat vérifié |
+| Domaine | Résultat live |
 |---|---|
-| Contrats playlist | création et contenu persistés, ordre exact |
-| Tags | piste visible dans Account après reload et reconnexion |
-| Saved search | création relue sans retry, relance et suppression |
-| Cue sheet | `FullUrl` obtenu avec le body officiel |
-| Historique d’écoute | événement créé par le stream membre |
-| Historique download | `HistoryItems.DeliveryDate` utilisé ; 29/07 affiché |
-| Libellé download | « Téléchargement », plus de faux « Preview » |
-| Vérification membre | mutation cross-origin bloquée |
-| Erreurs playlist | message amont utile, sans supposer un manque de droits |
+| Catalogue, recherche, assets | fonctionnel |
+| Favoris de pistes | ajout, relecture Account, retrait |
+| Playlists | création, modification, copie, duplication, suppression, pistes et ordre |
+| Shortlist | conversion en playlist et ordre vérifiés |
+| Recherches sauvegardées | création, relance, renommage et suppression |
+| Tags personnels | CRUD et relation piste-tag visibles dans Account |
+| Profil et image | modification, upload, suppression et restauration |
+| Historique et téléchargements | lecture et dates corrigées |
+| Cue sheets | URL générée avec le body officiel |
+| Dossiers de playlists | CRUD et déplacement d'une playlist |
+| Recherche dans une playlist | recherche Harvest paginée avec total |
+| Ayants droit | données structurées renvoyées |
+| Communications | endpoint fonctionnel, aucune entrée pour le compte de test |
 
-Il reste cinq comportements à clarifier avec Harvest :
+Les nouveaux parcours ont été vérifiés par clic réel sur desktop `1440 x 900` et mobile `390 x 844`. Les ressources temporaires ont été relues puis supprimées. Le compte, le profil et les recherches préexistantes ont été restaurés. Aucune suppression de compte n'a été appelée.
 
-| Sujet | Observation | Qualification prudente |
+Les points à adresser à Harvest sont désormais limités aux contrats, mécanismes ou capacités qui restent non conclusifs après correction de Parigo.
+
+## 2. Corrections et extensions réalisées côté Parigo
+
+Ces sujets ne doivent pas être présentés comme des anomalies Harvest.
+
+| Sujet | Correction ou extension | Preuve |
 |---|---|---|
-| Suggestions playlist | `Error.Code=3`, message « functionality is not enabled » | configuration/capacité du compte |
-| Notes privées | payload officiel, `Error.Code=2`, « trackid is empty » | contrat, prérequis ou anomalie endpoint |
-| Abonnement | accusé positif mais `getmember` inchangé | source de vérité ou configuration newsletter |
-| Reset password | code fonctionnel `Failed` | configuration du service d’e-mail |
-| Partage playlist | invited token obtenu puis `getsharemusicurl` code 2 | contrat ou prérequis du partage |
+| Date des téléchargements | jointure `HistoryItems.TrackID -> Tracks.ID`, usage de `DeliveryDate + UTCOffset` | un download du 29/07 n'est plus affiché au 20/07 |
+| Tags d'une piste | `getmembertagsbytrack`, cases cochées, ajout/retrait vérifié | piste visible dans Account après reload et reconnexion |
+| Recherche sauvegardée | parsing des enveloppes, timeout dédié, renommage via `updatemembersavesearch` | HTTP 200, nouveau nom visible puis état initial restauré |
+| Dossiers de playlists | catégories Harvest, déplacement vérifié dans `PlaylistObjects` | création, renommage, déplacement et nettoyage HTTP 200 |
+| Duplication | `duplicatememberplaylist`, comparaison des pistes et de l'ordre | nouvelle playlist distante identifiée puis supprimée |
+| Recherche dans une playlist | `searchmemberplaylisttracks`, `Fields` séparés par virgule, `Custom_ASC` | HTTP 200, total et piste visibles dans l'UI |
+| Ayants droit | `getrightholders` et rendu société, part, rôle, IPI | 2 ayants droit en direct, 5 sur la piste testée dans l'UI |
+| Communications | `gethistorybycommunications` derrière la session membre | HTTP 200, liste vide sur Anthlogan |
+| Erreurs et persistance | plus de succès fondé uniquement sur HTTP 200 | relecture distante avant confirmation UI |
 
-Une lacune documentaire séparée subsiste pour les albums favoris : l’ajout `Type=Album` est documenté, mais aucun retrait canonique d’un album favori n’est présenté.
+Le BFF reste nécessaire pour les secrets, les tokens, la session, le same-origin, les erreurs, les caches et la preuve de persistance. Il ne recrée pas une base métier locale et Harvest reste la source de vérité.
 
-La demande à Harvest ne doit pas demander d’activation immédiate. Elle doit d’abord demander confirmation de la disponibilité, des prérequis et, lorsqu’il s’agit d’une option commerciale, des conditions et du coût. Caroline pourra alors être mise dans la boucle avant toute décision.
-
-## 2. Correction de la date des téléchargements
-
-### Réponse Harvest live
-
-Pour le téléchargement « In The Open » :
-
-```text
-HistoryItems[].TrackID       daf9…9497
-HistoryItems[].DeliveryDate  2026-07-29T22:17:27.66
-HistoryItems[].UTCOffset     10
-HistoryItems[].ItemType      Download
-Tracks[].LastUpdated         2026-07-20 22:24:27
-```
-
-La [documentation officielle](https://developer.harvestmedia.net/?version=latest#556814fb-e389-4693-9e0c-aba3fefdd9bb) sépare bien :
-
-- `History.Tracks` : métadonnées de piste ;
-- `History.HistoryItems` : événements de téléchargement ;
-- `DeliveryDate` et `UTCOffset` : date et offset de l’événement.
-
-### Défaut et correction
-
-Parigo parcourait `Tracks` et utilisait `LastUpdated`, soit la date de mise à jour du catalogue. Le BFF produisait donc `20/07/2026`.
-
-Le mapper joint maintenant chaque `HistoryItem.TrackID` à `Tracks.ID`, utilise `DeliveryDate + UTCOffset`, conserve les téléchargements répétés d’une même piste et reprend `TotalHistoryItems` pour la pagination.
-
-| Piste | Date Harvest | Ancien affichage | Nouvel affichage |
-|---|---|---|---|
-| In The Open | 29/07/2026, UTCOffset 10 | 20/07/2026 | 29/07/2026 |
-| Closure | 29/07/2026, UTCOffset 10 | 20/07/2026 | 29/07/2026 |
-| Piano Minuet | 29/07/2026, UTCOffset 10 | 11/12/2025 | 29/07/2026 |
-
-Conclusion : aucun correctif Harvest ni échange avec Roland n’est nécessaire pour ce sujet.
-
-## 3. Anomalies ou contrats restant à clarifier
+## 3. Points restant à clarifier avec Harvest
 
 ### A. Suggestions de playlist
 
 | Élément | Résultat |
 |---|---|
 | Endpoint | `suggestmemberplaylisttracks` |
-| Contrat | champs de seed et pagination documentés |
-| HTTP | 200 |
-| Réponse | `Error.Code=3` |
+| Requête | champs de seed et pagination documentés |
+| Réponse | HTTP 200, `Error.Code=3` |
 | Message | fonctionnalité non activée pour le compte |
 
-Question : Harvest peut-il confirmer que cette capacité n’est pas disponible sur notre configuration actuelle ? S’il s’agit d’un module optionnel, quelles sont ses conditions et son tarif ?
+Ce refus est clair. La question n'est pas seulement de savoir si la fonction peut être activée, mais de comprendre son fonctionnement réel: source des seeds, moteur de recommandation, critères, réglages, stabilité et bénéfice attendu dans l'expérience Parigo. Il faut également savoir si Parigo a déjà été briefé sur ce module.
 
-### B. Notes privées / commentaires
+### B. Notes privées et commentaires
 
-Requête conforme à l’exemple officiel :
+La requête suit l'exemple officiel:
 
 ```json
 {
@@ -102,7 +68,7 @@ Requête conforme à l’exemple officiel :
 }
 ```
 
-Résultat direct et BFF :
+Résultat direct et BFF:
 
 ```text
 HTTP 200
@@ -110,137 +76,116 @@ Error.Code = 2
 Description = Cannot add a tag when trackid is empty.
 ```
 
-Aucune note n’est créée. `updatetrackmembercomment` et `removetrackmembercomment` ne peuvent donc pas être validés.
+Aucune note n'est créée. Il faut confirmer le body canonique, son éventuel wrapper et les prérequis du compte avant de modifier Parigo.
 
-Question : l’exemple reste-t-il le contrat actuel ? Un champ, un wrapper, un type de compte ou une configuration préalable manque-t-il ?
+### C. Abonnement membre et mailing list
 
-### C. Abonnement et reset password
+`membersubscribe` accepte le body officiel et renvoie un accusé positif. La valeur relue dans `getmember.Subscribe` ne change toutefois pas. La documentation ne permet pas d'établir:
 
-`membersubscribe` accepte le body officiel et renvoie un accusé positif, mais la valeur relue dans `getmember` ne change pas. Il n’est pas établi que `getmember.Subscribe` soit la source de vérité de cet endpoint.
+- si cet endpoint alimente une mailing list Harvest;
+- quelle liste ou configuration est ciblée;
+- quel champ ou endpoint constitue la source de vérité;
+- comment sont gérés consentement, désabonnement, segmentation et historique.
 
-`sendpasswordresetemail` a été appelé une seule fois avec `Username`, `Email` et `ExternalResetToken`. La réponse fonctionnelle est `Failed` et aucun envoi n’a été confirmé.
+Parigo pourrait être intéressé par cette capacité, mais a besoin d'une présentation fonctionnelle et technique avant de décider de l'utiliser.
 
-Questions :
+### D. Reset password et partage
 
-- quel endpoint ou champ permet de vérifier l’état réel de l’abonnement ?
-- une newsletter ou liste de diffusion doit-elle être configurée au préalable ?
-- quels paramètres de service sont requis pour les e-mails de reset : domaine, lien, expiration, template ?
-- ces services font-ils partie de la configuration actuelle ou d’une option distincte ?
+`sendpasswordresetemail` a été appelé une fois avec les champs documentés et renvoie `Failed`.
 
-### D. Partage de playlist
+Pour le partage, `getinvitedmembertoken` renvoie bien un token destinataire, puis `getsharemusicurl` répond `Error.Code=2` sans URL avec le body documenté.
 
-`getinvitedmembertoken` renvoie un token temporaire. L’appel suivant à `getsharemusicurl`, avec les tokens sender/recipient et le body documenté, renvoie `Error.Code=2` et aucune URL.
+Il faut confirmer les paramètres de service, les prérequis du destinataire, les templates et le contrat actuel de ces deux flux.
 
-Question : quel est le contrat canonique et quels sont les prérequis du compte, du destinataire et du type de playlist ? Si le partage avancé est une option, merci d’en préciser les conditions.
+### E. Favori d'album
 
-### E. Album favori
+La documentation présente `addtofavourites/{memberToken}/Album/{id}`, mais aucun retrait canonique d'un album favori n'est identifié.
 
-La documentation présente :
+Parigo ajoute actuellement les pistes une par une puis reconstruit l'album. Cette adaptation:
 
-- `addtofavourites/{memberToken}/Album/{id}` ;
-- `removefavouritestrack/{memberToken}/{trackId}`.
+- multiplie les mutations;
+- confond potentiellement une piste favorite et un album favori;
+- rend le retrait non canonique.
 
-Aucun endpoint canonique de retrait d’un album favori n’est identifié. Parigo reconstruit actuellement les albums depuis les tracks favorites, ce qui peut confondre « une piste de cet album est favorite » avec « l’album est favori ».
+Question: Harvest permet-il d'ajouter, relire et retirer directement un album favori comme une ressource distincte?
 
-Question : comment distinguer et retirer proprement un favori de type Album ?
+### F. Archive de playlist
 
-## 4. Recherche et capacités produit à confirmer
+`archiveplaylist` et `restorearchiveplaylist` fonctionnent lorsque l'ID est connu:
+
+```text
+archive HTTP 200
+playlist absente de la liste active
+restore HTTP 200
+playlist de nouveau visible
+```
+
+Aucun endpoint ou filtre documenté n'a été trouvé pour lister les playlists archivées. Parigo n'expose donc pas encore cette fonction dans l'UI: après un reload ou sur un autre appareil, il ne disposerait plus d'une liste fiable des IDs à restaurer.
+
+Question: quel endpoint canonique permet de lister les archives?
+
+### G. Suivi des téléchargements groupés
+
+`getmusicdownloadinfo` exige exactement un `DownloadID` ou un `DownloadGroupID`. Le téléchargement unitaire observé renvoie des `DownloadTokens`, et l'historique ne contient aucun de ces deux identifiants.
+
+Le BFF accepte désormais un identifiant de job documenté, mais l'UI ne peut pas démarrer un polling tant que la provenance de cet identifiant n'est pas établie pour les téléchargements d'album, de playlist ou de dossier.
+
+Question: quelle réponse fournit l'ID à transmettre à `getmusicdownloadinfo` pour chacun de ces trois cas?
+
+## 4. Recherche et services produit
 
 ### Recherche multilingue
 
-Test direct `cloudsearch` avec `TranslateKeyword: "fr"` :
+Test direct avec `TranslateKeyword: "fr"`:
 
 | Requête | Recherche titre | Recherche agrégée |
 |---|---:|---:|
 | `mariage` | 0 | 0 |
 | `wedding` | 160 | 1 212 |
 
-Parigo utilise temporairement une résolution interne lorsque la recherche française ne retourne rien. La question à Harvest porte sur la disponibilité d’une recherche multilingue ou de groupes de synonymes administrables, et sur son éventuel modèle commercial.
+Parigo utilise actuellement une résolution interne de secours. Il serait préférable que la traduction, les synonymes et l'autocomplete multilingue soient portés par le moteur Harvest afin de conserver des totaux, facets et pages cohérents.
 
 ### Contient, commence par, titre exact
 
-Les combinaisons testées de `ExactPhrase` et `Wildcard` continuent à renvoyer des titres où « Piano » apparaît au début, au milieu ou à la fin. Elles ne démontrent ni un préfixe strict ni une égalité complète.
+Les combinaisons documentées de `ExactPhrase` et `Wildcard` ne démontrent pas un préfixe strict ni une égalité de titre. Parigo ne filtre pas les résultats après pagination, car cela fausserait les totaux et les facets.
 
-Parigo ne filtre pas après pagination, car cela fausserait les totaux et les facets. Nous demandons si des opérateurs serveur explicites existent.
+Question: existe-t-il des opérateurs serveur explicites pour:
 
-### Recherche par similarité
+- le titre contient la saisie;
+- le titre commence par la saisie;
+- le titre est égal à toute la saisie?
 
-La documentation décrit AIMS, CYANITE et HARMIX pour la similarité par piste, prompt, URL ou fichier. Le service live renvoie actuellement `SearchSimilarInfo` vide et `/api/health` indique `searchSimilar=false`.
+### Similarité AIMS
 
-Parigo n’implémente donc pas ces workflows aujourd’hui. À confirmer :
+La documentation décrit AIMS, CYANITE et HARMIX. Le service live ne renvoie pas de configuration `SearchSimilarInfo`. Le sujet AIMS est en cours côté Parigo: une demande a été transmise et Parigo attend un retour sur ses conditions.
 
-- quels moteurs sont disponibles pour le service Parigo ;
-- si une activation/configuration est nécessaire ;
-- les formats, limites et coûts éventuels.
+Nous souhaitons surtout comprendre le mécanisme de chaque moteur, les données utilisées, les réglages possibles et la valeur produit réelle avant d'envisager son usage.
 
-### E-mails et formulaire de contact
+### Contact et e-mails Harvest
 
-Parigo utilise aujourd’hui sa solution technique interne pour le formulaire de contact. Aucun endpoint Harvest générique de contact n’est identifié.
+Parigo utilise sa solution technique interne pour le formulaire de contact. Aucun endpoint générique Harvest de contact n'est identifié.
 
-Questions :
+Questions:
 
-- Harvest propose-t-il un service transactionnel générique pour un formulaire de contact ?
-- quels e-mails sont gérés par Harvest : vérification, reset, approbation, partage, newsletter, suppression ?
-- les templates peuvent-ils être personnalisés avec la charte Parigo ?
-- quel est le workflow de prévisualisation, de mise en production et le coût éventuel d’un redesign ?
+- Harvest propose-t-il un service transactionnel générique pouvant recevoir les champs du formulaire, la piste concernée et un `reply-to`?
+- Quels e-mails sont gérés par Harvest: vérification, reset, approbation, partage, abonnement ou newsletter, suppression?
+- Les templates HTML et texte peuvent-ils être redessinés avec la charte Parigo?
+- Quel workflow permet prévisualisation, validation, langues, sender domain et mise en production?
 
-## 5. Fonctionnalités Harvest que Parigo peut encore exploiter
+## 5. Pourquoi distinguer Public API, management, CMS et Import
 
-Ces éléments sont documentés et ne constituent pas des anomalies Harvest. Ils forment une feuille de route produit.
+Cette question sert à éviter de demander la mauvaise permission ou de développer une fonction sur la mauvaise famille d'API.
 
-### Priorité recommandée
-
-| Fonctionnalité | Endpoint documenté | Apport | Action |
-|---|---|---|---|
-| Tags déjà appliqués à une piste | `getmembertagsbytrack` | cocher/décocher correctement dans Search | implémentable côté Parigo |
-| Renommer une recherche sauvegardée | `updatemembersavesearch` | gestion complète dans Account | implémentable côté Parigo |
-| Dossiers de playlists | `addmemberplaylistcategory`, `getmemberplaylistcategoriesandplaylists` | organiser de gros volumes | décision UX puis implémentation |
-| Archiver/restaurer | `archiveplaylist`, `restorearchiveplaylist` | alternative à la suppression définitive | implémentable côté Parigo |
-| Dupliquer une playlist membre | `duplicatememberplaylist` | versions de travail | implémentable côté Parigo |
-| Recherche dans une playlist | `searchmemberplaylisttracks` | recherche serveur avec totaux/pagination | préférable au filtrage local à grande échelle |
-| Suivi des downloads groupés | `getmusicdownloadinfo` | état Prepared/Processing et fichiers multiples | nécessaire pour album/playlist |
-| Historique des communications | `gethistorybycommunications` | statut des e-mails Harvest | utile si exposé avec garanties de confidentialité |
-| Détail des ayants droit | `getrightholders` | sociétés, parts, IPI et rôles structurés | utile pour licensing |
-
-### Conditionnel
-
-| Fonctionnalité | Pourquoi attendre |
+| Famille | Besoin Parigo concerné |
 |---|---|
-| Gestion des partages existants | dépend de la création de partage : list/update/remove |
-| Publication et planning de playlists | relève plutôt d’un rôle éditorial/CMS |
-| Top tracks par ayant droit | nécessite de définir la valeur produit et la sémantique des métriques |
-| Short URLs Harvest | le domaine `hrvst.co` n’est pas nécessairement cohérent avec la marque Parigo |
-| Ecommerce et facturation | aucun besoin produit actuel confirmé |
-| SSO et management | rôles et architecture à cadrer séparément |
+| Public API membre | favoris, playlists, tags, recherches, profil, historique |
+| Management | administration des membres, groupes, quotas ou droits si applicable |
+| CMS | contenus éditoriaux, profils compositeurs, crédits et vidéos |
+| Import/workspace | création et modification du catalogue et de ses assets |
 
-### Capacités éditoriales/CMS à qualifier
+Nous ne supposons pas qu'un utilisateur admin Public API donne accès au CMS. Harvest doit seulement confirmer les frontières et les credentials appropriés pour cadrer les futurs besoins éditoriaux.
 
-- profils compositeurs avec identifiants stables, alias et biographies ;
-- crédits album structurés ;
-- entité vidéo et relations vers pistes, albums et contributeurs ;
-- champs personnalisés exposés à la Public API ;
-- webhook ou flux de changements pour invalider les caches ;
-- correction des problèmes d’encodage de certains crédits.
-
-Ces besoins ne doivent pas être confondus avec les mutations membre de la Public API.
-
-## 6. BFF : conclusion
-
-Le BFF reste nécessaire pour les secrets, les tokens, la session, le same-origin, les erreurs et la preuve de persistance.
-
-Il ne doit pas :
-
-- inventer une date à partir des métadonnées de piste ;
-- reconstruire une capacité métier lorsque Harvest expose un endpoint ;
-- filtrer après pagination ;
-- considérer un HTTP 200 comme une preuve de mutation ;
-- présenter une erreur générique comme un manque de droits.
-
-Les corrections de cet audit respectent cette limite : Harvest reste la source de vérité.
-
-<!-- PAGEBREAK -->
-
-## 7. cURL minimaux des points reproductibles
+## 6. cURL minimaux des anomalies reproductibles
 
 ### Notes
 
@@ -252,7 +197,7 @@ curl -X POST \
   --data '{"TrackID":"track_example","TagName":"Note privée de test"}'
 ```
 
-Réponse : HTTP 200, `Error.Code=2`, `trackid is empty`.
+Réponse: HTTP 200, `Error.Code=2`, `trackid is empty`.
 
 ### Suggestions
 
@@ -264,19 +209,7 @@ curl -X POST \
   --data '{"Skip":0,"Limit":5,"MainOnly":true,"SeedDetermination":"Created_Desc","SeedLimit":5,"SeedMin":""}'
 ```
 
-Réponse : HTTP 200, `Error.Code=3`, fonctionnalité non activée.
-
-### Abonnement
-
-```bash
-curl -X POST \
-  '<HARVEST_SERVICE_URL>/membersubscribe/<HARVEST_MEMBER_TOKEN>' \
-  -H 'Authorization: <HARVEST_OAUTH_ACCESS_TOKEN>' \
-  -H 'Content-Type: application/json' \
-  --data '{"Email":"member@example.invalid","FirstName":"Test","LastName":"Member","Subscribe":true}'
-```
-
-Réponse positive ; méthode de vérification de l’état à confirmer.
+Réponse: HTTP 200, `Error.Code=3`, fonctionnalité non activée.
 
 ### Partage
 
@@ -298,40 +231,44 @@ curl -X POST \
   }'
 ```
 
-Réponse : HTTP 200, `Error.Code=2`, aucune URL.
+Réponse: HTTP 200, `Error.Code=2`, aucune URL.
 
-## 8. Message prêt à envoyer à Roland
+Référence: [documentation officielle Harvest Media API, version latest](https://developer.harvestmedia.net/api/collections/8325040/SVYouLCf?segregateAuth=true&versionTag=latest).
 
-**Objet : Parigo × Harvest — quelques points de clarification après notre audit**
+<!-- PAGEBREAK -->
+
+## 7. Message prêt à envoyer à Roland
+
+**Objet: Parigo x Harvest - points ciblés après validation de l'intégration**
 
 Bonjour Roland,
 
-Merci encore pour ton accompagnement. Nous avons terminé une nouvelle passe complète sur l’intégration Harvest et corrigé de notre côté les écarts qui relevaient de notre implémentation. Les parcours principaux fonctionnent désormais : catalogue, recherche, favoris, playlists, shortlist, recherches sauvegardées, tags, historique, cue sheets et téléchargements.
+Merci encore pour ton accompagnement. Nous avons terminé une nouvelle passe de validation et corrigé de notre côté les sujets qui relevaient de notre implémentation. Les parcours principaux sont désormais opérationnels: catalogue, recherche, favoris de pistes, playlists et shortlist, recherches sauvegardées, tags, historique, cue sheets et téléchargements.
 
-Il nous reste quelques points ciblés pour lesquels nous aimerions surtout confirmer le contrat ou la configuration attendue :
+Nous avons aussi raccordé plusieurs fonctions déjà documentées: tags appliqués à une piste, renommage des recherches sauvegardées, dossiers de playlists, duplication, recherche serveur dans une playlist, historique des communications et données structurées des ayants droit.
 
-1. `suggestmemberplaylisttracks` nous indique que la fonctionnalité n’est pas activée pour le compte. Peux-tu nous confirmer la configuration actuelle ?
-2. `addtrackmembercomment` reçoit `TrackID` et `TagName` comme dans l’exemple officiel, mais répond que `trackid` est vide. Le contrat ou un prérequis a-t-il évolué ?
-3. `membersubscribe` renvoie un accusé positif, mais nous ne savons pas quel endpoint ou champ relire pour confirmer l’état réel.
-4. `sendpasswordresetemail` renvoie `Failed`. Y a-t-il une configuration de domaine, lien ou template à prévoir ?
-5. `getsharemusicurl` est appelé après obtention du recipient token, avec le body documenté, mais répond `Error.Code=2`. Peux-tu nous confirmer les prérequis de ce flux ?
-6. Pour les albums favoris, quel est le mécanisme canonique permettant de distinguer puis retirer un favori de type Album ?
+Il nous reste quelques points ciblés:
 
-Nous ne souhaitons rien activer à ce stade sans d’abord comprendre ce qui est inclus dans notre configuration. Si certains de ces sujets correspondent à des modules ou services optionnels, pourrais-tu nous indiquer les conditions et le coût ? Je pourrai alors mettre Caroline de Parigo dans la boucle avant toute décision.
+1. `suggestmemberplaylisttracks` indique que la fonctionnalité n'est pas activée pour le compte. Pourrais-tu nous expliquer comment elle fonctionne concrètement: moteur utilisé, choix des seeds, réglages et type de résultats? Sais-tu également si Parigo a déjà été briefé sur cette fonction? Avec ces éléments, je pourrai revenir vers l'équipe Parigo pour savoir si elle souhaite l'étudier.
+2. `addtrackmembercomment` reçoit `TrackID` et `TagName` comme dans l'exemple officiel, mais répond que `trackid` est vide. Peux-tu nous confirmer le body canonique et les éventuels prérequis?
+3. Concernant `membersubscribe`, est-ce bien un mécanisme de mailing list? L'appel est accepté, mais nous ne savons pas où relire l'état ni comment sont gérés la liste, le consentement, le désabonnement et les envois. Parigo pourrait être intéressé, mais la documentation actuelle ne nous permet pas encore d'en comprendre le fonctionnement complet.
+4. `sendpasswordresetemail` renvoie `Failed`. Y a-t-il une configuration de domaine, de lien ou de template à prévoir?
+5. `getsharemusicurl` est appelé après obtention du recipient token, avec le body documenté, mais répond `Error.Code=2`. Peux-tu nous confirmer les prérequis de ce flux?
+6. Est-il possible de gérer un album favori comme une ressource distincte, avec ajout, lecture et retrait directs? Aujourd'hui, Parigo ajoute les pistes une à une puis reconstruit l'album, ce qui fonctionne mais n'est pas optimal.
+7. `archiveplaylist` et `restorearchiveplaylist` fonctionnent avec un ID connu. Quel endpoint permet de lister les playlists archivées afin de proposer une restauration fiable après reload?
+8. Pour `getmusicdownloadinfo`, où récupère-t-on le `DownloadID` ou `DownloadGroupID` lors d'un téléchargement d'album, de playlist ou de dossier?
 
-Nous aimerions aussi savoir si Harvest propose :
+Nous aimerions également mieux comprendre:
 
-- une recherche multilingue ou des synonymes administrables — par exemple `mariage` vers `wedding` ;
-- des opérateurs serveur explicites « contient », « commence par » et « titre exact » ;
-- un moteur de similarité disponible pour notre service parmi AIMS, CYANITE ou HARMIX ;
-- un service générique d’e-mail pour le formulaire de contact. Nous utilisons aujourd’hui notre solution technique interne ;
-- la personnalisation complète des e-mails Harvest — vérification, reset, approbation, partage, newsletter, suppression — avec la charte Parigo.
+- la recherche multilingue et la possibilité de gérer nativement `mariage` vers `wedding`, autocomplete compris;
+- d'éventuels opérateurs serveur "contient", "commence par" et "titre exact";
+- le fonctionnement et la valeur respective des moteurs de similarité. Le sujet AIMS est en cours côté Parigo: une demande a été faite et l'équipe attend un retour sur ses conditions;
+- l'existence éventuelle d'un service Harvest pour le formulaire de contact. Nous utilisons aujourd'hui notre solution technique interne;
+- les possibilités de redesign des e-mails gérés par Harvest, notamment vérification, reset, approbation, partage, abonnement ou newsletter et suppression, avec la charte Parigo.
 
-Là encore, si certaines de ces capacités sont optionnelles, nous sommes preneurs des modalités et d’une estimation afin d’en discuter avec Caroline.
+Enfin, pourrais-tu nous confirmer les frontières entre membre Public API, management user, utilisateur CMS et utilisateur Import/workspace? L'objectif est simplement d'orienter les futurs besoins vers la bonne famille d'API et les bons credentials, notamment pour les contenus éditoriaux et les crédits structurés.
 
-Enfin, peux-tu nous préciser la différence entre membre Public API, management user, utilisateur CMS et utilisateur Import/workspace ? Pour la suite éditoriale, nous aimerions notamment comprendre si le CMS peut porter des profils compositeurs, des crédits structurés, des vidéos et leurs relations, ainsi qu’un mécanisme de notification des mises à jour.
-
-Nous pouvons bien sûr te transmettre les cURL expurgés et les réponses reproductibles des points ci-dessus.
+Nous pouvons te transmettre les cURL expurgés et les réponses reproductibles des trois appels ci-dessus si utile.
 
 Merci,
 

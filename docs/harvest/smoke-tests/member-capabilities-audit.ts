@@ -37,6 +37,15 @@ function findString(value: unknown, keys: string[]): string {
   return "";
 }
 
+function containsIdentifier(value: unknown, identifier: string): boolean {
+  if (Array.isArray(value)) return value.some((item) => containsIdentifier(item, identifier));
+  const source = object(value);
+  if (!source) return false;
+  return Object.entries(source).some(([key, nested]) =>
+    (key.toLowerCase() === "id" && String(nested) === identifier) ||
+    containsIdentifier(nested, identifier));
+}
+
 function required(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Missing ${name}`);
@@ -131,14 +140,14 @@ async function main() {
   for (const searchItem of array(staleSearches.payload, "SavedSearches")) {
     const name = String(searchItem.Name || "");
     const id = findString(searchItem, ["ID"]);
-    if (id && name.startsWith("Parigo audit 20260728-ui-") && name.endsWith(" rename")) {
+    if (id && /^Parigo audit 2026072[89]-ui-/.test(name) && name.endsWith(" rename")) {
       await direct(`/updatemembersavesearch/${memberToken}/${encodeURIComponent(id)}`, {
         ID: id,
         Name: "Birthday",
         Description: String(searchItem.Description || ""),
         SearchHistoryID: "",
       });
-    } else if (id && name.startsWith("Parigo audit 20260728-ui-") && name.endsWith(" saved search")) {
+    } else if (id && /^Parigo audit 2026072[89]-ui-/.test(name) && name.endsWith(" saved search")) {
       await direct(`/removemembersavedsearch/${memberToken}/${encodeURIComponent(id)}`);
     }
   }
@@ -419,7 +428,14 @@ async function main() {
           const moved = await direct(
             `/reordermemberplaylist/${memberToken}/${encodeURIComponent(duplicateId)}?movetoplaylistcategoryid=${encodeURIComponent(categoryId)}&orderid=0`,
           );
-          recordResult("member-playlist-folder-move", moved);
+          const hierarchy = await direct(
+            `/getmemberplaylistcategoriesandplaylists/${memberToken}?returnplaylistcount=true&returntrackcount=true&returnrootobjectsonly=false&returnautosaveonly=false&returnfirstautosave=false&returnhighlightonly=false&playlistcategoryid=${encodeURIComponent(categoryId)}&skip=0&limit=500&sort=Custom_Asc`,
+          );
+          recordResult("member-playlist-folder-move", moved, {
+            hierarchyStatus: hierarchy.status,
+            hierarchyTopKeys: envelope(hierarchy.payload).topKeys,
+            persistedInHierarchy: containsIdentifier(hierarchy.payload, duplicateId),
+          });
         }
         const archived = await direct(`/archiveplaylist/${memberToken}/${encodeURIComponent(duplicateId)}`);
         const afterArchive = await direct(`/getmemberplaylistsnotracks/${memberToken}?Skip=0&Limit=500`);

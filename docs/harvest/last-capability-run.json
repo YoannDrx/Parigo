@@ -1,13 +1,13 @@
 {
-  "runId": "20260729142054",
-  "generatedAt": "2026-07-29T14:21:57.120Z",
+  "runId": "20260729143149",
+  "generatedAt": "2026-07-29T14:32:24.957Z",
   "accountDeleted": false,
   "resourcesCleaned": true,
   "results": [
     {
       "capability": "structured-right-holders",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:31:59 GMT",
       "topKeys": [
         "RightHolders"
       ],
@@ -18,7 +18,7 @@
     {
       "capability": "communication-history",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:31:59 GMT",
       "topKeys": [
         "History"
       ],
@@ -29,7 +29,7 @@
     {
       "capability": "tag-create",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:00 GMT",
       "topKeys": [
         "Tags"
       ],
@@ -40,7 +40,7 @@
     {
       "capability": "tags-by-track",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:00 GMT",
       "topKeys": [
         "Tags"
       ],
@@ -52,7 +52,7 @@
     {
       "capability": "saved-search-create",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:00 GMT",
       "topKeys": [
         "Error"
       ],
@@ -63,7 +63,7 @@
     {
       "capability": "saved-search-rename-existing-and-restore",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:53 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:21 GMT",
       "topKeys": [
         "CreatedDate",
         "Description",
@@ -78,7 +78,7 @@
     {
       "capability": "playlist-category-create",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:53 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:21 GMT",
       "topKeys": [
         "PlaylistCategories"
       ],
@@ -89,7 +89,7 @@
     {
       "capability": "playlist-category-update",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:54 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:21 GMT",
       "topKeys": [
         "PlaylistCategories"
       ],
@@ -99,7 +99,7 @@
     {
       "capability": "member-playlist-duplicate",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:54 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:22 GMT",
       "topKeys": [
         "Playlists"
       ],
@@ -110,7 +110,7 @@
     {
       "capability": "member-playlist-track-search",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:55 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:22 GMT",
       "topKeys": [
         "Album",
         "Library",
@@ -124,17 +124,25 @@
     {
       "capability": "member-playlist-folder-move",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:55 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:22 GMT",
       "topKeys": [
         "Code"
       ],
       "errorCode": null,
-      "errorDescription": null
+      "errorDescription": null,
+      "hierarchyStatus": 200,
+      "hierarchyTopKeys": [
+        "PlaylistObjects",
+        "TotalCount",
+        "TotalPlaylistCategoriesCount",
+        "TotalPlaylistsCount"
+      ],
+      "persistedInHierarchy": true
     },
     {
       "capability": "member-playlist-archive-restore",
       "status": 200,
-      "httpDate": "Wed, 29 Jul 2026 14:21:56 GMT",
+      "httpDate": "Wed, 29 Jul 2026 14:32:23 GMT",
       "topKeys": [
         "Code"
       ],

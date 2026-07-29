@@ -154,6 +154,32 @@ test("les tags personnels ramènent vers la piste précise et vers son album", a
   await expect(page.getByTestId("tagged-track-list").getByText(track.albumTitle, { exact: true })).toHaveAttribute("href", "/albums/album-1");
 });
 
+test("le sélecteur d’une piste distingue les tags déjà attribués et permet leur retrait", async ({ page }, testInfo) => {
+  await mockSession(page);
+  await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] } } }) }));
+  await page.route("**/api/user/playlist-categories", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { categories: [] } }) }));
+  await page.route("**/api/user/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }, { id: "tag-2", name: "À écouter", trackCount: 0 }] } }) }));
+  await page.route("**/api/user/tracks/track-1/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }] } }) }));
+  let mutation: Record<string, unknown> | null = null;
+  await page.route("**/api/user/tags/tag-1/tracks", async (route) => {
+    mutation = route.request().postDataJSON() as Record<string, unknown>;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { updated: true, verified: true, trackCount: 0 } }) });
+  });
+  await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
+
+  await page.goto("/account/playlists/playlist-1");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: `Plus d’actions : ${track.title}` }).click();
+  }
+  await page.getByRole("button", { name: `Ajouter un tag : ${track.title}` }).filter({ visible: true }).first().click();
+  const popover = page.getByRole("dialog", { name: `Ajouter à un tag — ${track.title}` });
+  const assigned = popover.getByRole("button", { name: /Film/ });
+  await expect(assigned).toHaveAttribute("aria-pressed", "true");
+  await assigned.click();
+  await expect.poll(() => mutation).toEqual({ action: "remove", trackIds: ["track-1"] });
+  await expect(assigned).toHaveAttribute("aria-pressed", "false");
+});
+
 test("la shortlist rend ses pistes navigables et garde les longues listes de playlists scrollables", async ({ page }) => {
   await mockSession(page);
   const playlists = Array.from({ length: 28 }, (_, index) => ({

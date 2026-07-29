@@ -379,8 +379,8 @@ def cover_flowables():
         Table(
             [[
                 Paragraph("255<br/><font size='7'>endpoints classés</font>", metric_style),
-                Paragraph("75<br/><font size='7'>handlers BFF audités</font>", metric_style),
-                Paragraph("5<br/><font size='7'>écarts ciblés restants</font>", metric_style),
+                Paragraph("88<br/><font size='7'>handlers BFF audités</font>", metric_style),
+                Paragraph("7<br/><font size='7'>contrats ciblés à clarifier</font>", metric_style),
                 Paragraph("0<br/><font size='7'>ressource de test restante</font>", metric_style),
             ]],
             colWidths=[CONTENT_WIDTH / 4] * 4,
@@ -397,8 +397,8 @@ def cover_flowables():
             "<b>Conclusion principale</b><br/>Les credentials actuels ne sont pas globalement "
             "en lecture seule. Playlists, tags, favoris, recherches, cue sheets et téléchargements "
             "fonctionnent. Les défauts Parigo identifiés — dont la date erronée des téléchargements — "
-            "ont été corrigés et ne sont pas remontés à Harvest. Les questions restantes sont limitées "
-            "à cinq écarts reproductibles et à des capacités produit ciblées.",
+            "ont été corrigés et ne sont pas remontés à Harvest. Les questions restantes portent sur "
+            "sept contrats ou mécanismes ciblés et sur quelques capacités produit à qualifier.",
             ParagraphStyle(
                 "CoverConclusion",
                 parent=styles["AuditBody"],
