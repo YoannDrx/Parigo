@@ -172,14 +172,14 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("l’onde du héros reste statique sur mobile sans charger WebGL", async ({ page }) => {
+test("l’onde du héros reste légère et animée sur mobile sans charger WebGL", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero.locator("canvas")).toHaveCount(0);
   const fallback = hero.locator(".signal-field-fallback");
-  await expect(fallback).toHaveAttribute("data-static", "true");
-  await expect(fallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
+  await expect(fallback).toHaveAttribute("data-static", "false");
+  await expect(fallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "signal-field-shift");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
@@ -193,12 +193,8 @@ test("les ondes du héros gagnent du contraste uniquement en thème clair", asyn
   const signal = page.getByTestId("home-hero").locator(".hero-signal-field");
   await expect(signal).toBeVisible();
   await expect(signal).toHaveCSS("mix-blend-mode", "multiply");
-  const lightStyle = await signal.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { filter: style.filter, opacity: Number(style.opacity) };
-  });
-  expect(lightStyle.filter).not.toBe("none");
-  expect(lightStyle.opacity).toBeGreaterThanOrEqual(.9);
+  await expect.poll(() => signal.evaluate((node) => Number(getComputedStyle(node).opacity))).toBeGreaterThanOrEqual(.9);
+  expect(await signal.evaluate((node) => getComputedStyle(node).filter)).not.toBe("none");
 
   await page.evaluate(() => {
     document.documentElement.dataset.theme = "dark";

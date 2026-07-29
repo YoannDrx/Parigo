@@ -2677,6 +2677,9 @@ textarea {
   .search-results-ledger .parigo-track-row__actions-trigger {
     display: flex;
   }
+  .search-results-ledger .parigo-track-row__mobile-actions {
+    display: block;
+  }
   .search-results-ledger .parigo-track-row__info {
     min-width: 11rem;
   }

@@ -633,6 +633,7 @@ test("la recherche exacte reste accessible depuis le champ unifié", async ({ pa
 
 test("les suggestions et les tags enrichis restent lisibles", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Les tags de piste détaillés sont réservés à la densité desktop.");
+  await page.setViewportSize({ width: 1800, height: 900 });
   await page.goto("/search?q=piano&view=tracks&type=main");
   const moreTags = page.locator(".parigo-track-row__more-tags").first();
   await expect(moreTags).toBeVisible({ timeout: 30_000 });
@@ -711,7 +712,11 @@ test("une piste expose ses informations, versions et paroles", async ({ page }, 
   test.skip(testInfo.project.name === "mobile", "Le panneau détaillé est vérifié en desktop.");
   await page.goto("/search?q=Piano%20On%20My%20Mind&view=tracks&type=main");
   await expect(page.getByText("Piano On My Mind", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
-  await page.getByRole("button", { name: /Informations sur la piste : Piano On My Mind/ }).click();
+  const informationButton = page.getByRole("button", { name: /Informations sur la piste : Piano On My Mind/ });
+  if (!(await informationButton.isVisible())) {
+    await page.getByRole("button", { name: /Plus d’actions : Piano On My Mind/ }).click();
+  }
+  await informationButton.click();
   const detailTabs = page.getByRole("tablist").filter({ has: page.getByRole("tab", { name: "Informations" }) });
   await expect(detailTabs.getByRole("tab", { name: "Informations" })).toBeVisible();
   await expect(detailTabs.getByText(/^(01|02|03|04)$/)).toHaveCount(0);

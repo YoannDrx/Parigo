@@ -18,6 +18,15 @@ async function mockMemberSearch(page: Page) {
   await page.route("**/api/user/tracks/*/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [] } }) }));
 }
 
+async function revealTrackAction(page: Page, actionName: string | RegExp, triggerName: string | RegExp) {
+  const action = page.getByRole("button", { name: actionName });
+  if (!(await action.isVisible())) {
+    await page.getByRole("button", { name: triggerName }).click();
+  }
+  await expect(action).toBeVisible();
+  return action;
+}
+
 test("la recherche connectée se sauvegarde sans ajouter un troisième focus vert", async ({ page }) => {
   await mockMemberSearch(page);
   let savedPayload: Record<string, unknown> | null = null;
@@ -122,10 +131,12 @@ test("la piste détaillée sépare titre, album et référence sans les tronquer
 test("les actions et tooltips de recherche suivent la langue active", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le tooltip au survol est vérifié sur un pointeur desktop.");
   await mockMemberSearch(page);
+  await page.setViewportSize({ width: 1800, height: 900 });
   await page.goto("/search?q=piano&view=tracks&type=main");
   await page.getByRole("link", { name: /English version/ }).click();
   await expect(page.getByRole("heading", { name: "Set the tone for your images" })).toBeVisible();
   const favourite = page.getByRole("button", { name: "Add to favourites" }).first();
+  await expect(favourite).toBeVisible();
   await favourite.hover();
   await expect(page.getByRole("tooltip", { name: "Add to favourites" })).toBeVisible();
   await expect(page.getByRole("button", { name: `Track information : ${track.title}` })).toBeVisible();
@@ -140,8 +151,7 @@ test("les actions playlist et tag utilisent un popover visible sans dialogue nat
   page.on("dialog", async (dialog) => { nativeDialog = dialog.type(); await dialog.dismiss(); });
 
   await page.goto("/search?q=piano&view=tracks&type=main");
-  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: `Plus d’actions : ${track.title}` }).click();
-  await page.getByRole("button", { name: `Ajouter à une playlist : ${track.title}` }).click();
+  await (await revealTrackAction(page, `Ajouter à une playlist : ${track.title}`, `Plus d’actions : ${track.title}`)).click();
   const playlistDialog = page.getByRole("dialog", { name: new RegExp(`Ajouter à une playlist — ${track.title}`) });
   await expect(playlistDialog).toBeVisible();
   await expect(playlistDialog.getByText("Aucune playlist pour le moment.", { exact: false })).toBeVisible();
@@ -164,13 +174,12 @@ test("les actions playlist et tag utilisent un popover visible sans dialogue nat
   expect(nativeDialog).toBeNull();
 });
 
-test("l’icône de note privée ouvre directement le bon onglet", async ({ page }, testInfo) => {
+test("l’icône de note privée ouvre directement le bon onglet", async ({ page }) => {
   await mockMemberSearch(page);
   await page.route("**/api/tracks/track-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { track } }) }));
   await page.route("**/api/user/tracks/track-1/comments", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { comments: [] } }) }));
   await page.goto("/search?q=piano&view=tracks&type=main");
-  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: `Plus d’actions : ${track.title}` }).click();
-  await page.getByRole("button", { name: `Ouvrir les notes privées : ${track.title}` }).click();
+  await (await revealTrackAction(page, `Ouvrir les notes privées : ${track.title}`, `Plus d’actions : ${track.title}`)).click();
   await expect(page.getByRole("tab", { name: "Notes privées" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByPlaceholder("Intention, timecode, retour client…")).toBeVisible();
 });
