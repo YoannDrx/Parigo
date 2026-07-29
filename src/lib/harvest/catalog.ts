@@ -254,7 +254,7 @@ export async function cloudSearch(input: HarvestSearchInput, authenticatedMember
   };
 }
 
-async function getTracksByIds(
+export async function getTracksByIds(
   ids: string[],
   authenticatedMemberToken?: string,
   album?: Partial<Album>,

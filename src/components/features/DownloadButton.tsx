@@ -13,9 +13,10 @@ interface DownloadButtonProps {
   trackId: string;
   trackTitle: string;
   className?: string;
+  label?: string;
 }
 
-export function DownloadButton({ trackId, trackTitle, className }: DownloadButtonProps) {
+export function DownloadButton({ trackId, trackTitle, className, label }: DownloadButtonProps) {
   const { data: session } = useSession();
   const openLogin = useAuthModalStore((state) => state.openLogin);
   const { locale } = useI18n();
@@ -71,10 +72,15 @@ export function DownloadButton({ trackId, trackTitle, className }: DownloadButto
         type="button"
         onClick={() => void startDownload()}
         disabled={loading}
-        className={cn("flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-50", className)}
-        aria-label={`${locale === "fr" ? "Télécharger" : "Download"} : ${trackTitle}`}
+        className={cn(
+          "flex min-h-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-50",
+          label ? "gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" : "h-10 w-10",
+          className,
+        )}
+        aria-label={`${label || (locale === "fr" ? "Télécharger" : "Download")} : ${trackTitle}`}
       >
         {loading ? <ParigoLoader size="icon" label={locale === "fr" ? "Préparation du téléchargement" : "Preparing download"} /> : <Download size={17} className="text-[var(--color-gray-500)]" />}
+        {label && <span>{label}</span>}
       </button>
       </Tooltip>
       {message && <span role="alert" className="sr-only">{message}</span>}

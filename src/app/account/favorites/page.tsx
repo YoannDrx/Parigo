@@ -125,7 +125,7 @@ export default function FavoritesPage() {
       </div>
 
       {!isLoading && activeTotal > 0 && (
-        <section aria-label={locale === "fr" ? "Rechercher et filtrer les favoris" : "Search and filter favourites"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(16rem,1fr)_14rem_auto] md:items-center">
+        <section aria-label={locale === "fr" ? "Rechercher et filtrer les favoris" : "Search and filter favourites"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(16rem,1fr)_minmax(16rem,19rem)_auto] md:items-center">
           <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={activeTab === "tracks" ? (locale === "fr" ? "Titre, album, humeur, instrument…" : "Title, album, mood, instrument…") : (locale === "fr" ? "Titre, label, genre…" : "Title, label, genre…")} aria-label={locale === "fr" ? "Rechercher dans mes favoris" : "Search my favourites"} />
           <Select value={category} onValueChange={setCategory} ariaLabel={locale === "fr" ? "Filtrer les favoris" : "Filter favourites"} options={[{ value: "all", label: locale === "fr" ? "Tous les genres et humeurs" : "All genres and moods" }, ...categories.map((value) => ({ value, label: value }))]} className="[&_[role=combobox]]:min-h-11" />
           {filtersActive && <Button variant="ghost" className="justify-self-start px-3 md:justify-self-end" onClick={() => { setQuery(""); setCategory("all"); }}><X size={15} />{locale === "fr" ? "Effacer" : "Clear"}</Button>}
@@ -159,15 +159,22 @@ export default function FavoritesPage() {
                 ) : filteredTracks.length === 0 ? (
                   <EmptyState icon={Search} title={locale === "fr" ? "Aucun favori ne correspond." : "No favourite matches."} description={locale === "fr" ? "Essayez un autre terme ou retirez le filtre." : "Try another term or remove the filter."} />
                 ) : (
-                  filteredTracks.map((track, index) => (
-                    <TrackRow
-                      key={track.id}
-                      track={track}
-                      album={albumFromTrack(track)}
-                      index={index}
-                      showWaveform={false}
-                    />
-                  ))
+                  <div className="favorites-track-ledger search-results-ledger overflow-visible bg-[var(--surface)]">
+                    <div className="search-results-ledger__header hidden min-h-10 items-center justify-between gap-6 border-b border-[var(--line-strong)] px-4 font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--text-muted)] xl:flex">
+                      <span>{locale === "fr" ? "Titre · album" : "Title · album"}</span>
+                      <span>{locale === "fr" ? "Tags · ambiance · tempo · durée · actions" : "Tags · mood · tempo · duration · actions"}</span>
+                    </div>
+                    {filteredTracks.map((track, index) => (
+                      <TrackRow
+                        key={track.id}
+                        track={track}
+                        album={albumFromTrack(track)}
+                        index={index}
+                        showWaveform={false}
+                        density="full"
+                      />
+                    ))}
+                  </div>
                 )}
               </div>
             )}

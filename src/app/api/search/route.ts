@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
-import { cloudSearch } from "@/lib/harvest/catalog";
+import { cloudSearch, getTracksByIds } from "@/lib/harvest/catalog";
 import { getSearchFilterGroups } from "@/lib/harvest/search-filters";
 import { readHarvestSession } from "@/lib/harvest/session";
 import { resolveSearchBrief } from "@/lib/search-intent";
@@ -71,7 +71,9 @@ export async function GET(request: NextRequest) {
       skip,
       limit: input.limit,
       sort: sortMap[input.sort],
-      type: input.type,
+      // "Toutes les versions" keeps one main result per musical work. The
+      // alternate versions are enriched and nested below it after the search.
+      type: input.view === "tracks" && input.type === "all" ? "main" : input.type,
       labels: list(input.labels),
       categories: categories.length ? [...new Set(categories)] : undefined,
       minBpm: input.bpmMin ?? intentResolution?.bpmRange?.[0],
@@ -108,6 +110,22 @@ export async function GET(request: NextRequest) {
         }, session?.memberToken);
         if (appliedResult.total > 0) appliedQueryResolution = queryResolution;
       }
+    }
+    if (input.view === "tracks" && input.type === "all" && appliedResult.tracks.length) {
+      const enrichedTracks = await getTracksByIds(
+        appliedResult.tracks.map((track) => track.id),
+        session?.memberToken,
+        undefined,
+        "search-versions",
+      );
+      const enrichedById = new Map(enrichedTracks.map((track) => [track.id, track]));
+      appliedResult = {
+        ...appliedResult,
+        tracks: appliedResult.tracks.map((track) => ({
+          ...track,
+          ...(enrichedById.get(track.id) ?? {}),
+        })),
+      };
     }
     const items = input.view === "albums" ? appliedResult.albums : appliedResult.tracks;
     const publicFacets = {

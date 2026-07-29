@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type DragEvent, type FormEvent } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { FolderPlus, Grid3X3, List, ListMusic, Plus, Search, Trash2, X } from "lucide-react";
+import { Folder, FolderInput, FolderOpen, FolderPlus, Folders, Grid3X3, List, ListMusic, Plus, Search, Trash2, X } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Button, Input, Select } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -28,6 +28,14 @@ interface UserPlaylist {
 
 type Sort = "recent" | "title" | "tracks";
 type PlaylistView = "grid" | "list";
+
+function configurePlaylistDrag(event: DragEvent<HTMLElement>, playlist: UserPlaylist) {
+  event.dataTransfer.effectAllowed = "move";
+  event.dataTransfer.setData("application/x-parigo-playlist", playlist.id);
+  event.dataTransfer.setData("text/plain", playlist.title);
+  const preview = event.currentTarget.querySelector<HTMLElement>("[data-drag-preview]");
+  if (preview) event.dataTransfer.setDragImage(preview, 20, 20);
+}
 
 async function fetchUserPlaylists(): Promise<UserPlaylist[]> {
   const response = await fetch("/api/user/playlists", { cache: "no-store" });
@@ -57,6 +65,10 @@ export default function PlaylistsPage() {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("recent");
   const [view, setView] = useState<PlaylistView>(searchParams.get("view") === "list" ? "list" : "grid");
+  const [draggedPlaylistId, setDraggedPlaylistId] = useState<string | null>(null);
+  const [dropTarget, setDropTarget] = useState<string | null>(null);
+  const [movingPlaylistId, setMovingPlaylistId] = useState<string | null>(null);
+  const [folderMessage, setFolderMessage] = useState("");
 
   const loadPlaylists = async () => {
     setIsLoading(true);
@@ -120,7 +132,10 @@ export default function PlaylistsPage() {
   const filteredPlaylists = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase(locale);
     return playlists
-      .filter((playlist) => categoryFilter === "all" || playlist.categoryId === categoryFilter)
+      .filter((playlist) =>
+        categoryFilter === "all"
+        || (categoryFilter === "root" ? !playlist.categoryId : playlist.categoryId === categoryFilter)
+      )
       .filter((playlist) => !needle || `${playlist.title} ${playlist.description || ""}`.toLocaleLowerCase(locale).includes(needle))
       .sort((left, right) => {
         if (sort === "title") return left.title.localeCompare(right.title, locale);
@@ -129,6 +144,47 @@ export default function PlaylistsPage() {
           (left.createdAt ? new Date(left.createdAt).getTime() : 0);
       });
   }, [categoryFilter, locale, playlists, query, sort]);
+
+  const countInCategory = (categoryId: string) =>
+    playlists.filter((playlist) => categoryId === "root" ? !playlist.categoryId : playlist.categoryId === categoryId).length;
+
+  const movePlaylist = async (playlistId: string, categoryId: string) => {
+    const playlist = playlists.find((item) => item.id === playlistId);
+    const normalizedCategoryId = categoryId === "root" ? "" : categoryId;
+    if (!playlist || (playlist.categoryId || "") === normalizedCategoryId) {
+      setDraggedPlaylistId(null);
+      setDropTarget(null);
+      return;
+    }
+    setMovingPlaylistId(playlistId);
+    setFolderMessage("");
+    const response = await fetch(`/api/user/playlists/${encodeURIComponent(playlistId)}/placement`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ categoryId: normalizedCategoryId, orderId: 0 }),
+    });
+    if (response.ok) {
+      setPlaylists((current) => current.map((item) =>
+        item.id === playlistId
+          ? { ...item, categoryId: normalizedCategoryId || undefined }
+          : item
+      ));
+      const destination = normalizedCategoryId
+        ? categories.find((category) => category.id === normalizedCategoryId)?.name
+        : (locale === "fr" ? "Sans dossier" : "No folder");
+      setFolderMessage(locale === "fr"
+        ? `« ${playlist.title} » a été déplacée dans ${destination}.`
+        : `“${playlist.title}” was moved to ${destination}.`);
+    } else {
+      const payload = await response.json().catch(() => null);
+      setFolderMessage(payload?.error?.message || (locale === "fr"
+        ? "La playlist n’a pas pu être déplacée."
+        : "The playlist could not be moved."));
+    }
+    setMovingPlaylistId(null);
+    setDraggedPlaylistId(null);
+    setDropTarget(null);
+  };
 
   const createCategory = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -193,7 +249,12 @@ export default function PlaylistsPage() {
     }
   };
 
-  const filtersActive = Boolean(query.trim());
+  const filtersActive = Boolean(query.trim()) || categoryFilter !== "all";
+  const activeFolderName = categoryFilter === "all"
+    ? (locale === "fr" ? "Tous les dossiers" : "All folders")
+    : categoryFilter === "root"
+      ? (locale === "fr" ? "Sans dossier" : "No folder")
+      : categories.find((category) => category.id === categoryFilter)?.name || (locale === "fr" ? "Dossier" : "Folder");
 
   return (
     <div className="account-page space-y-8">
@@ -208,31 +269,71 @@ export default function PlaylistsPage() {
         </Button>}
       />
 
-      <section className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-4 md:p-5" aria-labelledby="playlist-folders-title">
+      <section className="playlist-folder-browser parigo-frame border border-[var(--line)] bg-[var(--surface)] p-4 md:p-5" aria-labelledby="playlist-folders-title">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Organisation" : "Organisation"}</p>
-            <h2 id="playlist-folders-title" className="mt-2 text-lg font-semibold">{locale === "fr" ? "Dossiers de playlists" : "Playlist folders"}</h2>
+            <h2 id="playlist-folders-title" className="text-lg font-semibold">{locale === "fr" ? "Dossiers de playlists" : "Playlist folders"}</h2>
+            <p className="mt-1 max-w-xl text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Glissez une playlist sur un dossier, ou utilisez son sélecteur « Déplacer dans »." : "Drag a playlist onto a folder, or use its “Move to” selector."}</p>
           </div>
           <form onSubmit={createCategory} className="flex w-full max-w-lg gap-2">
             <Input value={categoryName} onChange={(event) => setCategoryName(event.target.value)} maxLength={160} placeholder={locale === "fr" ? "Nouveau dossier…" : "New folder…"} aria-label={locale === "fr" ? "Nom du nouveau dossier" : "New folder name"} />
             <Button type="submit" disabled={categoryBusy || !categoryName.trim()} className="shrink-0"><FolderPlus size={16} />{locale === "fr" ? "Créer" : "Create"}</Button>
           </form>
         </div>
-        {categories.length ? <div className="mt-4 flex flex-wrap gap-2">{categories.map((category) => <div key={category.id} className="inline-flex min-h-9 items-center border border-[var(--line)] bg-[var(--background)]"><button type="button" onClick={() => setCategoryFilter(category.id)} className="px-3 text-xs font-semibold">{category.name} <span className="font-mono opacity-50">({category.playlistCount})</span></button><button type="button" disabled={categoryBusy} onClick={() => void removeCategory(category.id)} className="flex h-9 w-9 items-center justify-center border-l border-[var(--line)] text-[var(--text-muted)] hover:text-[var(--danger)]" aria-label={`${locale === "fr" ? "Supprimer le dossier" : "Delete folder"} ${category.name}`}><Trash2 size={13} /></button></div>)}</div> : <p className="mt-3 text-xs text-[var(--text-muted)]">{locale === "fr" ? "Aucun dossier pour le moment." : "No folders yet."}</p>}
+        <div className="mt-5 flex min-h-10 flex-wrap items-center justify-between gap-3 border-y border-[var(--line)] py-2">
+          <p className="text-xs text-[var(--text-muted)]">
+            {locale === "fr" ? "Affichage" : "Showing"} <strong className="font-semibold text-[var(--foreground)]">{activeFolderName}</strong>
+            <span aria-hidden="true"> · </span>{filteredPlaylists.length} {locale === "fr" ? "playlist(s)" : "playlist(s)"}
+          </p>
+          {categoryFilter !== "all" ? <button type="button" onClick={() => setCategoryFilter("all")} className="inline-flex min-h-9 items-center gap-2 border border-[var(--line)] px-3 text-xs font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]"><X size={13} />{locale === "fr" ? "Voir tous les dossiers" : "Show all folders"}</button> : null}
+          {draggedPlaylistId && <span className="font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--signal-strong)]">{locale === "fr" ? "Déposez sur un dossier" : "Drop onto a folder"}</span>}
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+          {[{ id: "all", name: locale === "fr" ? "Tous les dossiers" : "All folders" }, { id: "root", name: locale === "fr" ? "Sans dossier" : "No folder" }, ...categories].map((category) => {
+            const active = categoryFilter === category.id;
+            const targeted = dropTarget === category.id;
+            const acceptsDrop = category.id !== "all";
+            const FolderIcon = category.id === "all" ? Folders : active || targeted ? FolderOpen : Folder;
+            const categoryCount = category.id === "all" ? playlists.length : countInCategory(category.id);
+            return (
+              <article
+                key={category.id}
+                data-folder-id={category.id}
+                data-active={active ? "true" : undefined}
+                data-drop-target={targeted ? "true" : undefined}
+                className="playlist-folder-card group relative min-h-24 border border-[var(--line)] bg-[var(--background)] p-3 transition"
+                onDragEnter={(event) => { if (!acceptsDrop) return; event.preventDefault(); setDropTarget(category.id); }}
+                onDragOver={(event) => { if (!acceptsDrop) return; event.preventDefault(); event.dataTransfer.dropEffect = "move"; }}
+                onDragLeave={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDropTarget(null);
+                }}
+                onDrop={(event) => {
+                  if (!acceptsDrop) return;
+                  event.preventDefault();
+                  const playlistId = event.dataTransfer.getData("application/x-parigo-playlist") || draggedPlaylistId;
+                  if (playlistId) void movePlaylist(playlistId, category.id);
+                }}
+              >
+                <button type="button" onClick={() => setCategoryFilter(category.id)} className="flex h-full w-full flex-col items-start text-left" aria-pressed={active}>
+                  <FolderIcon size={24} strokeWidth={1.4} className="text-[var(--signal-strong)] transition-transform group-hover:-rotate-3 group-hover:scale-105" />
+                  <span className="mt-auto max-w-full truncate pt-3 text-xs font-semibold sm:text-sm">{category.name}</span>
+                  <span className="mt-1 font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{categoryCount} {categoryCount === 1 ? "playlist" : "playlists"}</span>
+                </button>
+                {category.id !== "root" && category.id !== "all" && <button type="button" disabled={categoryBusy} onClick={() => void removeCategory(category.id)} className="parigo-soft-action absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center text-[var(--text-muted)]" aria-label={`${locale === "fr" ? "Supprimer le dossier" : "Delete folder"} ${category.name}`}><Trash2 size={13} /></button>}
+              </article>
+            );
+          })}
+        </div>
+        {folderMessage && <p role="status" className="mt-4 border-l-2 border-[var(--signal-strong)] pl-3 text-xs text-[var(--text-muted)]">{folderMessage}</p>}
       </section>
 
       {!isLoading && playlists.length > 0 && (
-        <section aria-label={locale === "fr" ? "Rechercher et trier les playlists" : "Search and sort playlists"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(15rem,1fr)_12rem_12rem_auto] md:items-center">
+        <section aria-label={locale === "fr" ? "Rechercher et trier les playlists" : "Search and sort playlists"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(15rem,1fr)_12rem_auto] md:items-center">
           <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Rechercher une playlist…" : "Search playlists…"} aria-label={locale === "fr" ? "Rechercher dans mes playlists" : "Search my playlists"} />
           <Select value={sort} onValueChange={setSort} ariaLabel={locale === "fr" ? "Trier les playlists" : "Sort playlists"} options={[
             { value: "recent", label: locale === "fr" ? "Plus récentes" : "Most recent" },
             { value: "title", label: locale === "fr" ? "Titre A–Z" : "Title A–Z" },
             { value: "tracks", label: locale === "fr" ? "Nombre de pistes" : "Track count" },
-          ]} className="[&_[role=combobox]]:min-h-11" />
-          <Select value={categoryFilter} onValueChange={setCategoryFilter} ariaLabel={locale === "fr" ? "Filtrer par dossier" : "Filter by folder"} options={[
-            { value: "all", label: locale === "fr" ? "Tous les dossiers" : "All folders" },
-            ...categories.map((category) => ({ value: category.id, label: category.name })),
           ]} className="[&_[role=combobox]]:min-h-11" />
           <ViewModeControl
             value={view}
@@ -243,7 +344,7 @@ export default function PlaylistsPage() {
               { value: "list", label: locale === "fr" ? "Vue liste" : "List view", icon: List },
             ]}
           />
-          <p className="text-xs text-[var(--text-muted)] md:col-span-4">{filteredPlaylists.length} {locale === "fr" ? `sur ${playlists.length} playlist${playlists.length > 1 ? "s" : ""}` : `of ${playlists.length} playlist${playlists.length > 1 ? "s" : ""}`}</p>
+          <p className="text-xs text-[var(--text-muted)] md:col-span-3">{filteredPlaylists.length} {locale === "fr" ? `sur ${playlists.length} playlist${playlists.length > 1 ? "s" : ""}` : `of ${playlists.length} playlist${playlists.length > 1 ? "s" : ""}`}</p>
         </section>
       )}
 
@@ -261,36 +362,61 @@ export default function PlaylistsPage() {
           <Search className="mx-auto mb-4 text-[var(--text-muted)]" />
           <h2 className="font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Aucune playlist ne correspond." : "No playlist matches."}</h2>
           <p className="mt-2 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Essayez un autre terme ou retirez un filtre." : "Try another term or remove a filter."}</p>
-          {filtersActive && <Button variant="ghost" className="mt-4" onClick={() => setQuery("")}>{locale === "fr" ? "Effacer les filtres" : "Clear filters"}</Button>}
+          {filtersActive && <Button variant="ghost" className="mt-4" onClick={() => { setQuery(""); setCategoryFilter("all"); }}>{locale === "fr" ? "Effacer les filtres" : "Clear filters"}</Button>}
         </div>
       ) : view === "grid" ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {filteredPlaylists.map((playlist, index) => (
-            <motion.div key={playlist.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * 0.04, .25) }}>
-              <Link href={`/account/playlists/${playlist.id}`} className="parigo-frame group block overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[var(--theme-shadow)]">
-                <div className="relative aspect-square overflow-hidden">
+            <motion.article
+              key={playlist.id}
+              draggable
+              data-playlist-id={playlist.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: movingPlaylistId === playlist.id ? .55 : 1, y: 0 }}
+              transition={{ delay: Math.min(index * 0.04, .25) }}
+              onDragStartCapture={(event) => { setDraggedPlaylistId(playlist.id); configurePlaylistDrag(event, playlist); }}
+              onDragEndCapture={() => { setDraggedPlaylistId(null); setDropTarget(null); }}
+              className="parigo-frame overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:-translate-y-1 hover:border-[var(--line-strong)] hover:shadow-[var(--theme-shadow)]"
+            >
+              <div data-drag-preview className="playlist-drag-preview" aria-hidden="true"><FolderInput size={17} /><span className="max-w-44 truncate">{playlist.title}</span></div>
+              <Link href={`/account/playlists/${playlist.id}`} className="group block">
+                <div className="relative aspect-[16/10] overflow-hidden">
                   <Image src={playlist.cover || "/images/placeholder-playlist.svg"} alt={playlist.title} width={640} height={640} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]" />
+                  <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 border border-white/65 bg-black/45 px-2 py-1 font-mono text-[.56rem] uppercase tracking-[.08em] text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100"><FolderInput size={12} />{locale === "fr" ? "Glisser" : "Drag"}</span>
                 </div>
                 <div className="p-4"><h3 className="truncate font-semibold text-[var(--foreground)]">{playlist.title}</h3>{playlist.description && <p className="mt-1 line-clamp-2 text-xs text-[var(--text-muted)]">{playlist.description}</p>}<p className="mt-2 text-sm text-[var(--text-muted)]">{playlist.trackCount} {playlist.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}</p></div>
               </Link>
-            </motion.div>
+              <div className="border-t border-[var(--line)] p-2">
+                <Select value={playlist.categoryId || "root"} onValueChange={(value) => void movePlaylist(playlist.id, value)} ariaLabel={`${locale === "fr" ? "Déplacer dans" : "Move to"} : ${playlist.title}`} options={[{ value: "root", label: locale === "fr" ? "Sans dossier" : "No folder" }, ...categories.map((category) => ({ value: category.id, label: category.name }))]} className="w-full [&_[role=combobox]]:min-h-9" />
+              </div>
+            </motion.article>
           ))}
         </div>
       ) : (
         <div className="parigo-frame overflow-hidden border border-[var(--line)] bg-[var(--surface)]" data-testid="account-playlist-list">
           {filteredPlaylists.map((playlist, index) => (
-            <motion.div key={playlist.id} className="border-b border-[var(--line)] last:border-b-0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: Math.min(index * .025, .18) }}>
-              <Link href={`/account/playlists/${playlist.id}`} className="group grid min-h-24 grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-4 px-3 py-3 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:px-4">
-                <div className="relative aspect-square overflow-hidden rounded-[var(--parigo-corner-md)] rounded-tr-[var(--parigo-turn-md)] bg-[var(--surface-soft)]">
-                  <Image src={playlist.cover || "/images/placeholder-playlist.svg"} alt="" fill sizes="88px" className="object-cover transition duration-500 group-hover:scale-[1.025]" />
-                </div>
+            <motion.div key={playlist.id} draggable data-playlist-id={playlist.id} className="relative border-b border-[var(--line)] last:border-b-0" initial={{ opacity: 0, y: 10 }} animate={{ opacity: movingPlaylistId === playlist.id ? .55 : 1, y: 0 }} transition={{ delay: Math.min(index * .025, .18) }} onDragStartCapture={(event) => { setDraggedPlaylistId(playlist.id); configurePlaylistDrag(event, playlist); }} onDragEndCapture={() => { setDraggedPlaylistId(null); setDropTarget(null); }}>
+              <div data-drag-preview className="playlist-drag-preview" aria-hidden="true"><FolderInput size={17} /><span className="max-w-44 truncate">{playlist.title}</span></div>
+              <div className="account-playlist-list-row grid min-h-20 grid-cols-[3.25rem_minmax(0,1fr)_2rem] items-center gap-2 px-3 py-2 sm:grid-cols-[4rem_minmax(0,1fr)_2.25rem] sm:gap-3 sm:px-4">
+                <Link href={`/account/playlists/${playlist.id}`} className="group relative aspect-square overflow-hidden rounded-[var(--parigo-corner-md)] rounded-tr-[var(--parigo-turn-md)] bg-[var(--surface-soft)]" aria-label={playlist.title}>
+                  <Image src={playlist.cover || "/images/placeholder-playlist.svg"} alt="" fill sizes="64px" className="object-cover transition duration-500 group-hover:scale-[1.035]" />
+                </Link>
                 <div className="min-w-0">
-                  <h3 className="truncate font-semibold transition group-hover:text-[var(--signal-strong)]">{playlist.title}</h3>
-                  {playlist.description ? <p className="mt-1 line-clamp-1 text-xs text-[var(--text-muted)]">{playlist.description}</p> : null}
-                  <p className="mt-2 font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{playlist.trackCount} {playlist.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}{playlist.createdAt ? ` · ${formatParigoDate(playlist.createdAt, locale)}` : ""}</p>
+                  <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_7.5rem] items-center gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(8rem,12rem)] sm:gap-3">
+                    <Link href={`/account/playlists/${playlist.id}`} className="group min-w-0">
+                      <h3 className="account-playlist-list-row__title truncate font-semibold">{playlist.title}</h3>
+                    </Link>
+                    <Select value={playlist.categoryId || "root"} onValueChange={(value) => void movePlaylist(playlist.id, value)} ariaLabel={`${locale === "fr" ? "Déplacer dans" : "Move to"} : ${playlist.title}`} options={[{ value: "root", label: locale === "fr" ? "Sans dossier" : "No folder" }, ...categories.map((category) => ({ value: category.id, label: category.name }))]} className="w-full min-w-0 [&_[role=combobox]]:min-h-9 [&_[role=combobox]]:py-1.5" />
+                  </div>
+                  <div className="mt-1 flex min-w-0 items-center gap-2">
+                    {playlist.description ? <p className="hidden min-w-0 truncate text-xs text-[var(--text-muted)] md:block">{playlist.description}</p> : null}
+                    <p className="shrink-0 font-mono text-[.56rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{playlist.trackCount} {playlist.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}{playlist.createdAt ? ` · ${formatParigoDate(playlist.createdAt, locale)}` : ""}</p>
+                  </div>
                 </div>
-                <span aria-hidden="true" className="mr-2 text-lg text-[var(--text-muted)] transition group-hover:translate-x-1 group-hover:text-[var(--signal-strong)]">→</span>
-              </Link>
+                <Link href={`/account/playlists/${playlist.id}`} className="group flex h-8 w-8 items-center justify-center text-lg text-[var(--text-muted)] transition hover:text-[var(--signal-strong)] sm:h-9 sm:w-9" aria-label={`${locale === "fr" ? "Ouvrir" : "Open"} ${playlist.title}`}>
+                  <span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
+                </Link>
+              </div>
             </motion.div>
           ))}
         </div>

@@ -127,17 +127,56 @@ export async function removeFavouriteTrack(memberToken: string, trackId: string)
 }
 
 export async function getMemberPlaylists(memberToken: string, skip = 0, limit = 100): Promise<Playlist[]> {
-  const [payload, templates] = await Promise.all([
+  const [flatPayload, hierarchyPayload, templates] = await Promise.all([
     memberRequest<HarvestRecord>(
       memberToken,
       (token) => `/getmemberplaylistsnotracks/${token}?Skip=${skip}&Limit=${limit}`,
     ),
+    memberRequest<HarvestRecord>(
+      memberToken,
+      (token) => `/getmemberplaylistcategoriesandplaylists/${token}?returnplaylistcount=true&returntrackcount=true&returnrootobjectsonly=false&returnautosaveonly=false&returnfirstautosave=false&returnhighlightonly=false&playlistcategoryid=&skip=${skip}&limit=${limit}&sort=Custom_Asc`,
+    ),
     getAssetTemplates(memberToken),
   ]);
-  return recordArray(payload, "Playlists").map((item) => ({
-    ...mapPlaylist(item, templates),
-    isFeatured: false,
-  }));
+  const byId = new Map<string, Playlist>();
+  recordArray(flatPayload, "Playlists").forEach((item) => {
+    const playlist = mapPlaylist(item, templates);
+    byId.set(playlist.id, { ...playlist, isFeatured: false });
+  });
+  mapMemberPlaylistHierarchyResponse(hierarchyPayload, templates).forEach((playlist) => {
+    byId.set(playlist.id, {
+      ...byId.get(playlist.id),
+      ...playlist,
+      isFeatured: false,
+    });
+  });
+  return [...byId.values()];
+}
+
+export function mapMemberPlaylistHierarchyResponse(
+  payload: HarvestRecord,
+  templates: HarvestAssetTemplates,
+): Playlist[] {
+  const playlists: Playlist[] = [];
+  for (const object of recordArray(payload, "PlaylistObjects")) {
+    const objectType = asString(object.ObjectType).toLocaleLowerCase();
+    const nestedPlaylists = recordArray(object, "Playlists");
+    const isCategory = objectType.includes("category") || object.Playlists !== undefined;
+    if (isCategory) {
+      const categoryId = asString(object.PlaylistCategoryID || object.ID);
+      nestedPlaylists.forEach((item) => {
+        playlists.push({
+          ...mapPlaylist({ ...item, PlaylistCategoryID: asString(item.PlaylistCategoryID) || categoryId }, templates),
+          isFeatured: false,
+        });
+      });
+      continue;
+    }
+    if (asString(object.ID)) {
+      playlists.push({ ...mapPlaylist(object, templates), isFeatured: false });
+    }
+  }
+  return playlists;
 }
 
 export async function getMemberPlaylist(memberToken: string, playlistId: string): Promise<Playlist | null> {
@@ -156,7 +195,7 @@ function mapMemberPlaylistCategory(item: HarvestRecord): MemberPlaylistCategory 
     name: asString(item.PlaylistCategoryName || item.Name, "Sans titre"),
     description: asString(item.PlaylistCategoryDescription || item.Description) || undefined,
     color: asString(item.ColorHex || item.ColourHex) || undefined,
-    playlistCount: asNumber(item.PlaylistCount || item.TotalPlaylists),
+    playlistCount: asNumber(item.PlaylistCount || item.PlaylistsCount || item.TotalPlaylists || recordArray(item, "Playlists").length),
     createdAt: asIsoDate(item.CreateDate || item.CreatedDate),
     updatedAt: asIsoDate(item.LastUpdateDate || item.LastUpdated),
   };
@@ -800,6 +839,26 @@ function mapMemberTag(value: unknown): MemberTag {
 export async function getMemberTags(memberToken: string, skip = 0, limit = 100): Promise<MemberTag[]> {
   const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/getmembertags/${token}?Skip=${skip}&Limit=${limit}&Sort=Alphabetic_Asc&ReturnTagCount=1`);
   return recordArray(payload, "Tags").map(mapMemberTag);
+}
+
+export async function getMemberTagsWithTrackCounts(
+  memberToken: string,
+  skip = 0,
+  limit = 100,
+): Promise<MemberTag[]> {
+  const tags = await getMemberTags(memberToken, skip, limit);
+  const hydrated: MemberTag[] = [];
+  const concurrency = 6;
+  for (let offset = 0; offset < tags.length; offset += concurrency) {
+    const batch = tags.slice(offset, offset + concurrency);
+    hydrated.push(...await Promise.all(batch.map(async (tag) => ({
+      ...tag,
+      // ReturnTagCount is accepted by Harvest but has been observed returning
+      // a stale zero. The relation endpoint remains the reliable source.
+      trackCount: (await getMemberTagTracks(memberToken, tag.id, 0, 500)).length,
+    }))));
+  }
+  return hydrated;
 }
 
 export async function getMemberTagsByTrack(memberToken: string, trackId: string): Promise<MemberTag[]> {

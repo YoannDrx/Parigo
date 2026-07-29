@@ -2,14 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { motion } from "framer-motion";
-import { Download, FileAudio, Calendar, Tag } from "lucide-react";
+import { Calendar, Download, FileAudio, Tag } from "lucide-react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { formatParigoDate } from "@/lib/date-time";
+import { formatParigoDate, formatParigoTime } from "@/lib/date-time";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Track } from "@/types";
+import { DownloadButton } from "@/components/features/DownloadButton";
 
 interface DownloadEntry {
   id: string;
@@ -29,7 +31,7 @@ const licenseLabels: Record<string, { label: string; color: string }> = {
 };
 
 export default function DownloadsPage() {
-  const { locale, t } = useI18n();
+  const { locale, t, localizedPath } = useI18n();
   const { data: session } = useSession();
   const [downloads, setDownloads] = useState<DownloadEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -89,6 +91,10 @@ export default function DownloadsPage() {
         <div className="space-y-4">
           {downloads.map((download, index) => {
             const license = licenseLabels[download.licenseType];
+            const albumId = download.track.albumSlug || download.track.albumId;
+            const trackTarget = albumId
+              ? `${localizedPath(`/albums/${albumId}`)}?track=${encodeURIComponent(download.track.id)}`
+              : null;
             return (
               <motion.div
                 key={download.id}
@@ -97,7 +103,7 @@ export default function DownloadsPage() {
                 transition={{ delay: index * 0.05 }}
                 className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-4"
               >
-                <div className="flex items-center gap-4">
+                <div className="grid grid-cols-[4rem_minmax(0,1fr)] items-center gap-4 md:grid-cols-[4rem_minmax(0,1fr)_auto]">
                   {/* Cover */}
                   <div className="media-frame h-16 w-16 flex-shrink-0 overflow-hidden border border-[var(--color-gray-100)]">
                     {download.track.albumCover ? (
@@ -117,18 +123,26 @@ export default function DownloadsPage() {
 
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="truncate font-semibold text-[var(--foreground)]">
-                      {download.track.title}
-                    </h3>
+                    {trackTarget ? (
+                      <h3 className="min-w-0">
+                        <Link href={trackTarget} className="download-track-title block truncate font-semibold text-[var(--foreground)] transition-colors hover:text-[var(--signal-strong)] focus-visible:text-[var(--signal-strong)] focus-visible:outline-none focus-visible:underline focus-visible:decoration-[var(--signal-strong)] focus-visible:underline-offset-4">
+                          {download.track.title}
+                        </Link>
+                      </h3>
+                    ) : (
+                      <h3 className="truncate font-semibold text-[var(--foreground)]">{download.track.title}</h3>
+                    )}
                     {download.track.albumId && (
                       <p className="text-sm text-[var(--color-gray-600)] truncate">
                         {download.track.albumTitle}
                       </p>
                     )}
-                    <div className="flex items-center gap-3 mt-2 text-xs text-[var(--color-gray-500)]">
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--color-gray-500)]">
                       <span className="flex items-center gap-1">
                         <Calendar size={12} />
-                        {formatParigoDate(download.downloadedAt, locale === "fr" ? "fr-FR" : "en-GB")}
+                        {formatParigoDate(download.downloadedAt, locale === "fr" ? "fr-FR" : "en-GB", { dateStyle: "medium" })}
+                        <span aria-hidden="true">·</span>
+                        {formatParigoTime(download.downloadedAt, locale === "fr" ? "fr-FR" : "en-GB")}
                       </span>
                       {download.projectName && (
                         <span className="flex items-center gap-1">
@@ -139,20 +153,17 @@ export default function DownloadsPage() {
                     </div>
                   </div>
 
-                  {/* License Badge */}
-                  {license ? (
-                    <div
-                      className={`parigo-tag px-3 py-1.5 text-sm font-medium ${license.color}`}
-                    >
-                      {license.label}
-                    </div>
-                  ) : download.itemType ? (
-                    <div className="parigo-tag bg-[var(--surface-soft)] px-3 py-1.5 text-sm font-medium text-[var(--text-muted)]">
-                      {download.itemType === "Download"
-                        ? (locale === "fr" ? "Téléchargement" : "Download")
-                        : download.itemType}
-                    </div>
-                  ) : null}
+                  <div className="col-span-2 flex flex-wrap items-center gap-2 md:col-span-1 md:justify-end">
+                    <DownloadButton
+                      trackId={download.track.id}
+                      trackTitle={download.track.title}
+                      label={locale === "fr" ? "Re-télécharger" : "Download again"}
+                      className="bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))]"
+                    />
+                    {license ? (
+                      <span className={`parigo-tag px-3 py-1.5 text-xs font-medium ${license.color}`}>{license.label}</span>
+                    ) : null}
+                  </div>
 
                 </div>
               </motion.div>
