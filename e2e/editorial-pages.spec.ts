@@ -16,7 +16,7 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/synchronisations");
 
-  await expect(page.getByRole("heading", { level: 1, name: "Nos synchronisations." })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Nos synchronisations" })).toBeVisible();
   await expect(page.locator(".home-sync-card").first()).toBeVisible();
   await expect.poll(() => page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
@@ -27,6 +27,20 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   expect(firstCard).not.toBeNull();
   expect(firstCard!.x).toBeGreaterThanOrEqual(0);
   expect(firstCard!.x + firstCard!.width).toBeLessThanOrEqual(320);
+});
+
+test("les headers catalogue, synchronisations et légaux partagent la même composition", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "La comparaison typographique desktop suffit ; la version mobile est couverte séparément.");
+  const fontSizes: string[] = [];
+  for (const path of ["/labels", "/label-parigo", "/playlists", "/synchronisations", "/legal"]) {
+    await page.goto(path);
+    const hero = page.locator(".page-hero__frame");
+    const title = hero.getByRole("heading", { level: 1 });
+    await expect(hero).toBeVisible();
+    await expect(title.locator(".parigo-title-signature")).toHaveCount(1);
+    fontSizes.push(await title.evaluate((node) => getComputedStyle(node).fontSize));
+  }
+  expect(new Set(fontSizes).size).toBe(1);
 });
 
 test("la bordure et les corners des synchronisations restent visibles au survol", async ({ page }, testInfo) => {
@@ -75,7 +89,7 @@ test("le détail d’une synchronisation contient son titre et masque la descrip
   await expect(page.locator("main")).not.toContainText("Parigo screening room");
   await expect(page.locator("main")).not.toContainText("16:9");
   const actions = page.getByRole("complementary");
-  await expect(actions.getByRole("link", { name: "YouTube", exact: true })).toBeVisible();
+  await expect(actions.getByRole("link", { name: /YouTube/ })).toBeVisible();
   await expect(actions.getByRole("link", { name: "Parler à l’équipe" })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 
@@ -214,6 +228,25 @@ test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) 
   await page.getByRole("navigation", { name: "Sommaire du document" }).getByRole("link", { name: /Hébergement/ }).click();
   await expect(mobileContents).not.toHaveAttribute("open", "");
   await expect(page.locator(".legal-section")).toHaveCount(7);
+});
+
+test("About et Licensing retirent leurs surtitres secondaires et renforcent le manifeste", async ({ page }) => {
+  await page.goto("/licensing");
+  await expect(page.getByText("Grille indicative", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Un cadre lisible, projet par projet" })).toBeVisible();
+
+  await page.goto("/about");
+  await expect(page.getByText("Notre point de vue", { exact: true })).toHaveCount(0);
+  const manifesto = page.locator(".about-manifesto");
+  await expect(manifesto.getByRole("heading", { name: /Éditer moins.*Écouter mieux.*Défendre chaque morceau/i })).toBeVisible();
+  await expect(manifesto.locator(".about-manifesto__shape")).toBeVisible();
+  expect(await manifesto.evaluate((node) => getComputedStyle(node).borderRadius)).not.toBe("0px");
+});
+
+test("la page des labels adopte l’intitulé Labels représentés", async ({ page }) => {
+  await page.goto("/labels");
+  await expect(page.getByRole("heading", { level: 1, name: "Labels représentés" })).toBeVisible();
+  await expect(page.locator("footer").getByRole("link", { name: "Labels représentés" })).toBeVisible();
 });
 
 test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {

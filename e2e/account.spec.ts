@@ -33,6 +33,18 @@ const track = {
   waveform: null,
 };
 
+const album = {
+  id: "album-favorite-1",
+  slug: "album-favorite-1",
+  title: "Album favori visible",
+  code: "PGO 999",
+  cover: "/images/placeholder-album.svg",
+  label: "Parigo",
+  genres: ["Documentary"],
+  moods: ["Intimate"],
+  trackCount: 8,
+};
+
 async function mockSession(page: Page) {
   await page.route("**/api/auth/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
 }
@@ -74,6 +86,7 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
     expect(firstGeneralLinkBox!.y).toBeGreaterThanOrEqual(accountBox!.y + accountBox!.height);
   }
   await expect(menu.getByText("Espace personnel", { exact: true })).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Ouvrir mon profil" })).toHaveAttribute("href", "/account");
   await expect(menu.getByText("Vos titres repérés", { exact: true })).toBeVisible();
   await expect(menu.getByRole("link", { name: /Mes favoris/ })).toHaveAttribute("href", "/account/favorites");
   await expect(menu.getByRole("link", { name: /Recherches sauvegardées/ })).toHaveAttribute("href", "/account/searches");
@@ -83,7 +96,7 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(menu.getByRole("button", { name: "Se déconnecter" })).toHaveCSS("text-transform", "none");
 });
 
-test("les favoris chargés ne réamorcent pas leur propre requête", async ({ page }) => {
+test("les favoris chargés ne réamorcent pas leur propre requête", async ({ page }, testInfo) => {
   await mockSession(page);
   let trackReads = 0;
   await page.route("**/api/user/favorites/tracks", (route) => {
@@ -95,6 +108,40 @@ test("les favoris chargés ne réamorcent pas leur propre requête", async ({ pa
 
   await page.goto("/account/favorites");
   await expect(page.getByText(track.title, { exact: true })).toBeVisible();
+  const categorySelect = page.getByRole("combobox", { name: "Filtrer les favoris" });
+  const selectValue = categorySelect.locator(".parigo-select__value");
+  await expect(selectValue).toHaveText("Tous les genres et humeurs");
+  expect(await selectValue.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+  await categorySelect.click();
+  const categoryOption = page.getByRole("option", { name: "Documentary" });
+  await expect(categoryOption).toBeVisible();
+  if (testInfo.project.name !== "mobile") {
+    const optionBackground = await categoryOption.evaluate((node) => getComputedStyle(node).backgroundColor);
+    await categoryOption.hover();
+    await expect.poll(() => categoryOption.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(optionBackground);
+  }
+  await page.getByRole("option", { name: "Tous les genres et humeurs" }).click();
+  const favouritesLedger = page.locator(".favorites-track-ledger");
+  await expect(favouritesLedger).toBeVisible();
+  const ledgerFrame = await favouritesLedger.evaluate((node) => {
+    const style = getComputedStyle(node, "::before");
+    return {
+      radius: style.borderRadius,
+      top: style.top,
+      right: style.right,
+      bottom: style.bottom,
+      left: style.left,
+      border: style.borderTopWidth,
+    };
+  });
+  expect(ledgerFrame.radius).not.toBe("0px");
+  expect(ledgerFrame).toMatchObject({ top: "0px", right: "0px", bottom: "0px", left: "0px", border: "1px" });
+  const favouriteRow = page.locator('[data-track-id="track-1"]');
+  const favouriteTitleBox = await favouriteRow.locator(".parigo-track-row__title").boundingBox();
+  const favouriteAlbumBox = await favouriteRow.getByText(track.albumTitle, { exact: true }).boundingBox();
+  expect(favouriteTitleBox).not.toBeNull();
+  expect(favouriteAlbumBox).not.toBeNull();
+  expect(favouriteAlbumBox!.y).toBeGreaterThan(favouriteTitleBox!.y);
   const favouritesSearch = page.getByRole("textbox", { name: "Rechercher dans mes favoris" });
   await favouritesSearch.fill("introuvable");
   await expect(page.getByRole("heading", { name: "Aucun favori ne correspond." })).toBeVisible();
@@ -107,7 +154,35 @@ test("les favoris chargés ne réamorcent pas leur propre requête", async ({ pa
   expect(trackReads).toBe(settledTrackReads);
 });
 
-test("la création d’une première playlist utilise une modale Parigo et alimente la liste filtrable", async ({ page }) => {
+test("le favori album passe du centre à un état persistant dans le pied de carte", async ({ page }) => {
+  await mockSession(page);
+  await page.route("**/api/user/favorites/tracks", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tracks: [] } }) }));
+  await page.route("**/api/user/favorites/albums", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { albums: [album] } }) }));
+  await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
+
+  await page.goto("/account/favorites");
+  await page.getByRole("button", { name: "Albums" }).click();
+  const card = page.locator(`[data-album-card="${album.id}"]`);
+  await expect(card).toBeVisible();
+  await card.hover();
+  const centerFavorite = card.locator(".album-card__favorite-overlay").getByRole("button", { name: "Ajouter aux favoris" });
+  await expect(centerFavorite).toBeVisible();
+  await centerFavorite.focus();
+  await expect.poll(() => centerFavorite.evaluate((node) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--danger)";
+    node.append(probe);
+    const matchesDanger = getComputedStyle(node).color === getComputedStyle(probe).color;
+    probe.remove();
+    return matchesDanger;
+  })).toBe(true);
+  await centerFavorite.click();
+  await expect(card).toHaveAttribute("data-favorite", "true");
+  await expect(card.locator(".album-card__favorite-saved").getByRole("button", { name: "Retirer des favoris" })).toBeVisible();
+  await expect(card.locator(".album-card__favorite-overlay")).toHaveCount(0);
+});
+
+test("la création d’une première playlist utilise une modale Parigo et alimente la liste filtrable", async ({ page }, testInfo) => {
   await mockSession(page);
   let playlists: Array<Record<string, unknown>> = [];
   let createdPayload: Record<string, unknown> | null = null;
@@ -123,6 +198,11 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   let nativeDialog: string | null = null;
   page.on("dialog", async (dialog) => { nativeDialog = dialog.type(); await dialog.dismiss(); });
   await page.goto("/account/playlists");
+  const accountMark = page.locator(".account-page__mark");
+  await expect(accountMark).toBeVisible();
+  expect(await accountMark.evaluate((node) => getComputedStyle(node, "::after").borderTopWidth)).toBe("0px");
+  expect(Number.parseFloat(await accountMark.evaluate((node) => getComputedStyle(node, "::after").height))).toBeGreaterThanOrEqual(2);
+  await expect(accountMark).not.toHaveCSS("border-radius", "0px");
   await page.getByRole("button", { name: "Créer ma première playlist" }).click();
   const dialog = page.getByRole("dialog", { name: "Donnez-lui un point de vue." });
   await expect(dialog).toBeVisible();
@@ -130,12 +210,36 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   await dialog.getByLabel(/Note d’intention/).fill("Piano documentaire et texture intime");
   await dialog.getByRole("button", { name: "Créer la playlist" }).click();
   await expect(dialog).toHaveCount(0);
-  await expect(page.getByText("Premier film", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Premier film" })).toBeVisible();
   expect(createdPayload).toEqual({ title: "Premier film", description: "Piano documentaire et texture intime" });
   expect(nativeDialog).toBeNull();
 
   await page.getByRole("button", { name: "Vue liste" }).click();
-  await expect(page.getByTestId("account-playlist-list")).toBeVisible();
+  const playlistList = page.getByTestId("account-playlist-list");
+  await expect(playlistList).toBeVisible();
+  const playlistRow = playlistList.locator('[data-playlist-id="playlist-new"]');
+  const playlistTitleBox = await playlistRow.getByRole("heading", { name: "Premier film" }).boundingBox();
+  const folderSelectBox = await playlistRow.getByRole("combobox", { name: "Déplacer dans : Premier film" }).boundingBox();
+  expect(playlistTitleBox).not.toBeNull();
+  expect(folderSelectBox).not.toBeNull();
+  expect(Math.abs((playlistTitleBox!.y + playlistTitleBox!.height / 2) - (folderSelectBox!.y + folderSelectBox!.height / 2))).toBeLessThan(4);
+  const playlistRowBox = await playlistRow.boundingBox();
+  expect(playlistRowBox).not.toBeNull();
+  expect(playlistRowBox!.height).toBeLessThanOrEqual(84);
+  if (testInfo.project.name !== "mobile") {
+    const playlistTitle = playlistRow.locator(".account-playlist-list-row__title");
+    const titleColor = await playlistTitle.evaluate((node) => getComputedStyle(node).color);
+    await playlistRow.hover();
+    await expect.poll(() => playlistTitle.evaluate((node) => getComputedStyle(node).color)).not.toBe(titleColor);
+    await expect.poll(() => playlistTitle.evaluate((node) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--signal-strong)";
+      node.append(probe);
+      const matches = getComputedStyle(node).color === getComputedStyle(probe).color;
+      probe.remove();
+      return matches;
+    })).toBe(true);
+  }
   await expect(page).toHaveURL(/view=list/);
 
   const search = page.getByRole("textbox", { name: "Rechercher dans mes playlists" });
@@ -143,22 +247,97 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   await expect(page.getByRole("heading", { name: "Aucune playlist ne correspond." })).toBeVisible();
 });
 
-test("les tags personnels ramènent vers la piste précise et vers son album", async ({ page }) => {
+test("les dossiers de playlists acceptent un glisser-déposer Harvest et gardent une alternative au clic", async ({ page }, testInfo) => {
   await mockSession(page);
-  await page.route("**/api/user/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }] } }) }));
+  const playlist = {
+    id: "playlist-drag",
+    slug: "montage",
+    title: "Montage campagne",
+    description: "Sélection client",
+    cover: "/images/placeholder-playlist.svg",
+    trackCount: 4,
+    createdAt: "2026-07-29T12:00:00.000Z",
+  };
+  let persistedCategoryId = "";
+  await page.route("**/api/user/playlists", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { playlists: [{ ...playlist, ...(persistedCategoryId ? { categoryId: persistedCategoryId } : {}) }] } }),
+  }));
+  await page.route("**/api/user/playlist-categories", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { categories: [{ id: "folder-test", name: "Test", playlistCount: persistedCategoryId ? 1 : 0 }] } }),
+  }));
+  let placement: Record<string, unknown> | null = null;
+  await page.route("**/api/user/playlists/playlist-drag/placement", async (route) => {
+    placement = route.request().postDataJSON() as Record<string, unknown>;
+    persistedCategoryId = String(placement.categoryId || "");
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { updated: true } }) });
+  });
+
+  await page.goto("/account/playlists");
+  const card = page.locator('[data-playlist-id="playlist-drag"]');
+  const folder = page.locator('[data-folder-id="folder-test"]');
+  await expect(folder).toContainText("Test");
+  await expect(folder).toContainText("0 playlists");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("combobox", { name: "Déplacer dans : Montage campagne" }).click();
+    await page.getByRole("option", { name: "Test", exact: true }).click();
+  } else {
+    await card.dragTo(folder);
+  }
+  await expect.poll(() => placement).toEqual({ categoryId: "folder-test", orderId: 0 });
+  await expect(page.getByRole("status")).toContainText("a été déplacée dans Test");
+  await expect(folder).toContainText("1 playlist");
+  await page.reload();
+  await expect(page.locator('[data-folder-id="folder-test"]')).toContainText("1 playlist");
+  await expect(page.locator('[data-playlist-id="playlist-drag"]')).toBeVisible();
+  await page.locator('[data-folder-id="folder-test"] button').first().click();
+  await expect(page.getByRole("button", { name: "Voir tous les dossiers" })).toBeVisible();
+  await page.getByRole("button", { name: "Voir tous les dossiers" }).click();
+  await expect(page.locator('[data-folder-id="all"]')).toHaveAttribute("data-active", "true");
+  await expect(page.locator('[data-playlist-id="playlist-drag"] [data-drag-preview]')).toContainText("Montage campagne");
+
+  const moveSelector = page.getByRole("combobox", { name: "Déplacer dans : Montage campagne" });
+  await expect(moveSelector).toContainText("Test");
+});
+
+test("les tags personnels ramènent vers la piste précise et vers son album", async ({ page }, testInfo) => {
+  await mockSession(page);
+  await page.route(/\/api\/user\/tags(?:\?.*)?$/, (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }] } }) }));
   await page.route("**/api/user/tags/tag-1/tracks", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tracks: [track] } }) }));
 
   await page.goto("/account/tags");
+  const selectedTag = page.locator('.personal-tag-row[data-selected="true"]');
+  await expect(selectedTag).toHaveCSS("background-image", /linear-gradient/);
+  await expect(selectedTag.locator(".personal-tag-row__count")).toHaveText("1");
   const taggedTrack = page.getByTestId("tagged-track-list").getByText(track.title, { exact: true });
   await expect(taggedTrack).toHaveAttribute("href", "/albums/album-1?track=track-1");
   await expect(page.getByTestId("tagged-track-list").getByText(track.albumTitle, { exact: true })).toHaveAttribute("href", "/albums/album-1");
+  if (testInfo.project.name !== "mobile") {
+    const taggedTrackRow = taggedTrack.locator("xpath=ancestor::article");
+    const backgroundBeforeHover = await taggedTrackRow.evaluate((node) => getComputedStyle(node).backgroundImage);
+    const colorBeforeHover = await taggedTrack.evaluate((node) => getComputedStyle(node).color);
+    await taggedTrackRow.hover();
+    await expect.poll(() => taggedTrackRow.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toBe(backgroundBeforeHover);
+    await expect.poll(() => taggedTrack.evaluate((node) => getComputedStyle(node).color)).not.toBe(colorBeforeHover);
+    await expect.poll(() => taggedTrack.evaluate((node) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--signal-strong)";
+      node.append(probe);
+      const matches = getComputedStyle(node).color === getComputedStyle(probe).color;
+      probe.remove();
+      return matches;
+    })).toBe(true);
+  }
 });
 
 test("le sélecteur d’une piste distingue les tags déjà attribués et permet leur retrait", async ({ page }, testInfo) => {
   await mockSession(page);
   await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] } } }) }));
   await page.route("**/api/user/playlist-categories", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { categories: [] } }) }));
-  await page.route("**/api/user/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }, { id: "tag-2", name: "À écouter", trackCount: 0 }] } }) }));
+  await page.route(/\/api\/user\/tags(?:\?.*)?$/, (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }, { id: "tag-2", name: "À écouter", trackCount: 0 }] } }) }));
   await page.route("**/api/user/tracks/track-1/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }] } }) }));
   let mutation: Record<string, unknown> | null = null;
   await page.route("**/api/user/tags/tag-1/tracks", async (route) => {
@@ -180,7 +359,7 @@ test("le sélecteur d’une piste distingue les tags déjà attribués et permet
   await expect(assigned).toHaveAttribute("aria-pressed", "false");
 });
 
-test("la shortlist rend ses pistes navigables et garde les longues listes de playlists scrollables", async ({ page }) => {
+test("la shortlist rend ses pistes navigables et garde les longues listes de playlists scrollables", async ({ page }, testInfo) => {
   await mockSession(page);
   const playlists = Array.from({ length: 28 }, (_, index) => ({
     id: `playlist-${index + 1}`,
@@ -201,12 +380,80 @@ test("la shortlist rend ses pistes navigables et garde les longues listes de pla
   const drawer = page.getByRole("dialog", { name: "Shortlist" });
   await expect(drawer.getByText(track.title, { exact: true })).toHaveAttribute("href", "/albums/album-1?track=track-1");
   await expect(drawer.getByText(track.albumTitle, { exact: true })).toHaveAttribute("href", "/albums/album-1");
+  const shortlistRow = drawer.locator(".shortlist-track-row").filter({ hasText: track.title });
+  const rowBackground = await shortlistRow.evaluate((node) => getComputedStyle(node).backgroundImage);
+  await shortlistRow.hover();
+  await expect.poll(() => shortlistRow.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toBe(rowBackground);
+  await expect.poll(() => shortlistRow.locator(".shortlist-track-row__title").evaluate((node) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--signal-strong)";
+    node.append(probe);
+    const matchesSignal = getComputedStyle(node).color === getComputedStyle(probe).color;
+    probe.remove();
+    return matchesSignal;
+  })).toBe(true);
+  const saveCard = drawer.locator(".shortlist-save-card");
+  await expect(saveCard).toBeVisible();
+  await expect(drawer.getByText("Destination", { exact: true })).toHaveCount(0);
+  expect(await saveCard.evaluate((node) => getComputedStyle(node).borderRadius)).not.toBe("0px");
+  const saveCardCorner = await saveCard.evaluate((node) => {
+    const style = getComputedStyle(node, "::after");
+    return {
+      left: style.left,
+      right: style.right,
+      bottom: style.bottom,
+      borderLeft: style.borderLeftWidth,
+      borderRight: style.borderRightWidth,
+    };
+  });
+  expect(saveCardCorner).toMatchObject({ left: "-1px", bottom: "-1px", borderLeft: "1px", borderRight: "0px" });
+  expect(Number.parseFloat(saveCardCorner.right)).toBeGreaterThan(100);
+  if (testInfo.project.name !== "mobile") {
+    const closeButton = drawer.getByRole("button", { name: "Fermer", exact: true });
+    const closeIconTransform = await closeButton.locator("svg").evaluate((node) => getComputedStyle(node).transform);
+    await closeButton.hover();
+    await expect.poll(() => closeButton.locator("svg").evaluate((node) => getComputedStyle(node).transform)).not.toBe(closeIconTransform);
+    await expect.poll(() => closeButton.evaluate((node) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--danger)";
+      node.append(probe);
+      const matchesDanger = getComputedStyle(node).color === getComputedStyle(probe).color;
+      probe.remove();
+      return matchesDanger;
+    })).toBe(true);
+
+    const createButton = drawer.getByRole("button", { name: "Créer la playlist" });
+    const createBackground = await createButton.evaluate((node) => getComputedStyle(node).backgroundColor);
+    await createButton.hover();
+    await expect.poll(() => createButton.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(createBackground);
+
+    const playButton = drawer.getByRole("button", { name: /Écouter la sélection/i });
+    const playTransform = await playButton.evaluate((node) => getComputedStyle(node).transform);
+    await playButton.hover();
+    await expect.poll(() => playButton.evaluate((node) => getComputedStyle(node).transform)).not.toBe(playTransform);
+
+    const clearButton = drawer.getByRole("button", { name: /Vider la shortlist/i });
+    const clearColor = await clearButton.evaluate((node) => getComputedStyle(node).color);
+    await clearButton.hover();
+    await expect.poll(() => clearButton.evaluate((node) => getComputedStyle(node).color)).not.toBe(clearColor);
+
+    const removeButton = drawer.getByRole("button", { name: new RegExp(track.title) });
+    const removeColor = await removeButton.evaluate((node) => getComputedStyle(node).color);
+    await removeButton.hover();
+    await expect.poll(() => removeButton.evaluate((node) => getComputedStyle(node).color)).not.toBe(removeColor);
+  }
   await drawer.getByRole("button", { name: "Playlist existante" }).click();
   await drawer.getByRole("combobox", { name: "Playlist existante" }).click();
   const listbox = drawer.getByRole("listbox", { name: "Playlist existante" });
   await expect(listbox).toBeVisible();
   expect(await listbox.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true);
-  await listbox.getByRole("option", { name: "Playlist 01" }).click();
+  const firstPlaylistOption = listbox.getByRole("option", { name: "Playlist 01" });
+  await expect(firstPlaylistOption).toContainText("0 pistes");
+  const optionBackground = await firstPlaylistOption.evaluate((node) => getComputedStyle(node).backgroundColor);
+  await firstPlaylistOption.hover();
+  await expect.poll(() => firstPlaylistOption.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(optionBackground);
+  await expect.poll(() => firstPlaylistOption.evaluate((node) => getComputedStyle(node).transform)).not.toBe("none");
+  await firstPlaylistOption.click();
   await drawer.getByRole("button", { name: "Ajouter à la playlist" }).click();
   const status = drawer.getByRole("status");
   await expect(status).toContainText("Playlist enregistrée.");
@@ -216,7 +463,7 @@ test("la shortlist rend ses pistes navigables et garde les longues listes de pla
 
 test("les commandes de photo de profil sont intégrées à l’avatar", async ({ page }) => {
   await mockSession(page);
-  await page.route("**/api/user/profile", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { profile: { email: "yoann@parigo.test", firstName: "Yoann", lastName: "Andrieux", country: "FR", image: "/images/placeholder-album.svg", status: "active", subscribed: false, fileFormats: [] } } }) }));
+  await page.route("**/api/user/profile", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { profile: { email: "yoann@parigo.test", firstName: "Yoann", lastName: "Andrieux", country: "FR", image: "/images/placeholder-album.svg", status: "active", subscribed: false, fileFormats: [], downloadsUsed: 3, downloadsRemaining: 197, downloadLimit: 200 } } }) }));
   await page.goto("/account");
   const control = page.getByTestId("profile-image-control");
   await expect(control).toBeVisible();
@@ -225,6 +472,60 @@ test("les commandes de photo de profil sont intégrées à l’avatar", async ({
   await expect(control.getByRole("button", { name: "Supprimer la photo" })).toBeVisible();
   await expect(control.locator('input[type="file"]')).toHaveCount(1);
   await expect(page.getByRole("button", { name: "Enregistrer", exact: true })).toBeVisible();
+  const quota = page.getByText("Quota de téléchargement", { exact: true }).locator("xpath=ancestor::article");
+  await expect(quota).toContainText("197");
+  await expect(quota).toContainText("téléchargements restants");
+  await expect(quota).toContainText("Utilisés");
+  await expect(quota).toContainText("3");
+  await expect(quota).toContainText("Limite");
+  await expect(quota).toContainText("200");
+  await expect(quota.getByRole("progressbar")).toHaveAttribute("aria-valuemax", "200");
+});
+
+test("les téléchargements passés proposent une action claire de re-téléchargement", async ({ page }, testInfo) => {
+  await mockSession(page);
+  await page.route("**/api/user/downloads", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { downloads: [{
+      id: "download-1",
+      downloadedAt: "2026-07-29T12:42:00.000Z",
+      licenseType: "STANDARD",
+      projectName: "Film été",
+      track,
+    }] } }),
+  }));
+  await page.goto("/account/downloads");
+  await expect(page.getByRole("button", { name: `Re-télécharger : ${track.title}` })).toBeVisible();
+  const trackLink = page.getByRole("link", { name: track.title });
+  await expect(trackLink).toHaveAttribute("href", "/albums/album-1?track=track-1");
+  if (testInfo.project.name !== "mobile") {
+    const colorBeforeHover = await trackLink.evaluate((node) => getComputedStyle(node).color);
+    await trackLink.hover();
+    await expect.poll(() => trackLink.evaluate((node) => getComputedStyle(node).color)).not.toBe(colorBeforeHover);
+    await expect.poll(() => trackLink.evaluate((node) => {
+      const probe = document.createElement("span");
+      probe.style.color = "var(--signal-strong)";
+      node.append(probe);
+      const matches = getComputedStyle(node).color === getComputedStyle(probe).color;
+      probe.remove();
+      return matches;
+    })).toBe(true);
+  }
+  await expect(page.getByText(/Harvest répond|re-téléchargement peut compter/i)).toHaveCount(0);
+  await expect(page.getByText("Film été", { exact: true })).toBeVisible();
+});
+
+test("les communications vides restent formulées pour l’utilisateur", async ({ page }) => {
+  await mockSession(page);
+  await page.route("**/api/user/communications?**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { items: [] } }),
+  }));
+  await page.goto("/account/communications");
+  await expect(page.getByRole("heading", { name: "Aucune communication enregistrée" })).toBeVisible();
+  await expect(page.getByText(/endpoint|Harvest répond|boîte mail/i)).toHaveCount(0);
 });
 
 test("l’historique chargé reste stable et réserve la place des actions", async ({ page }, testInfo) => {
@@ -238,7 +539,8 @@ test("l’historique chargé reste stable et réserve la place des actions", asy
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { history: [
       { id: "listen-oldest", playedAt: "2026-07-20T08:00:00.000Z", track: oldestTrack },
       { id: "listen-newest", playedAt: "2026-07-23T20:15:00.000Z", track: newestTrack },
-      { id: "listen-middle", playedAt: "2026-07-22T12:30:00.000Z", track: middleTrack },
+      { id: "listen-newest-repeat", playedAt: "2026-07-23T19:43:00.000Z", track: newestTrack },
+      { id: "listen-middle", playedAt: "2026-07-23T17:43:00.000Z", track: middleTrack },
     ] } }) });
   });
   await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
@@ -248,6 +550,13 @@ test("l’historique chargé reste stable et réserve la place des actions", asy
   }
   await page.goto("/account/history");
   await expect(page.getByText(newestTrack.title, { exact: true })).toBeVisible();
+  const newestRow = page.locator('[data-track-id="track-newest"]');
+  await expect(newestRow).toHaveCount(1);
+  const newestTitleBox = await newestRow.locator(".parigo-track-row__title").boundingBox();
+  const newestAlbumBox = await newestRow.getByText(track.albumTitle, { exact: true }).boundingBox();
+  expect(newestTitleBox).not.toBeNull();
+  expect(newestAlbumBox).not.toBeNull();
+  expect(newestAlbumBox!.y).toBeGreaterThan(newestTitleBox!.y);
   const historyText = await page.locator("main").innerText();
   expect(historyText.indexOf(newestTrack.title)).toBeLessThan(historyText.indexOf(middleTrack.title));
   expect(historyText.indexOf(middleTrack.title)).toBeLessThan(historyText.indexOf(oldestTrack.title));
@@ -259,12 +568,39 @@ test("l’historique chargé reste stable et réserve la place des actions", asy
 
   if (testInfo.project.name !== "mobile") {
     const newestEntry = page.getByTestId("history-entry").filter({ hasText: newestTrack.title });
-    const playedAtBox = await newestEntry.getByTestId("history-played-at").boundingBox();
-    const licenceBox = await newestEntry.getByRole("link", { name: `Demander une licence : ${newestTrack.title}` }).boundingBox();
+    await expect(newestEntry).toHaveAttribute("data-listen-count", "2");
+    await expect(newestEntry.getByTestId("history-played-at")).toHaveCount(2);
+    await expect(newestEntry).toContainText("22:15");
+    await expect(newestEntry).toContainText("21:43");
+    const playedAtBox = await newestEntry.getByTestId("history-played-at").first().boundingBox();
+    const titleBox = await newestEntry.locator(".parigo-track-row__title").boundingBox();
     expect(playedAtBox).not.toBeNull();
-    expect(licenceBox).not.toBeNull();
-    expect(playedAtBox!.x + playedAtBox!.width).toBeLessThanOrEqual(licenceBox!.x);
+    expect(titleBox).not.toBeNull();
+    expect(playedAtBox!.x + playedAtBox!.width).toBeLessThanOrEqual(titleBox!.x);
+    const entryBoxes = await page.getByTestId("history-entry").evaluateAll((entries) => entries.map((entry) => entry.getBoundingClientRect().height));
+    expect(Math.max(...entryBoxes) - Math.min(...entryBoxes)).toBeLessThan(1);
+    const main = newestEntry.locator(".parigo-track-row__main");
+    const paddingBeforeHover = await main.evaluate((element) => getComputedStyle(element).paddingLeft);
+    await newestEntry.hover();
+    await page.waitForTimeout(420);
+    await expect.poll(() => main.evaluate((element) => getComputedStyle(element).paddingLeft)).toBe(paddingBeforeHover);
+    const middleEntry = page.getByTestId("history-entry").filter({ hasText: middleTrack.title });
+    await expect.poll(() => newestEntry.locator(".parigo-track-row").evaluate((element) => getComputedStyle(element, "::after").height)).not.toBe("0px");
+    await expect.poll(() => middleEntry.locator(".parigo-track-row").evaluate((element) => getComputedStyle(element, "::after").height)).toBe("0px");
+    await middleEntry.hover();
+    await expect.poll(() => newestEntry.locator(".parigo-track-row").evaluate((element) => getComputedStyle(element, "::after").height)).toBe("0px");
+    await expect.poll(() => middleEntry.locator(".parigo-track-row").evaluate((element) => getComputedStyle(element, "::after").height)).not.toBe("0px");
   }
+
+  const newestDay = page.getByTestId("history-day").first();
+  const newestDaySummary = newestDay.locator("summary");
+  await expect(newestDay).toHaveAttribute("open", "");
+  await newestDaySummary.click();
+  await expect(newestDay).not.toHaveAttribute("open", "");
+  await expect(newestDay.getByTestId("history-entry").first()).toBeHidden();
+  await newestDaySummary.click();
+  await expect(newestDay).toHaveAttribute("open", "");
+  await expect(newestDay.getByTestId("history-entry").first()).toBeVisible();
 });
 
 test("les notifications utilisent un switch Parigo et enregistrent la préférence", async ({ page }, testInfo) => {
@@ -311,7 +647,10 @@ test("la suppression du compte utilise une alerte éditoriale progressive", asyn
 test("les recherches sauvegardées restent relançables et supprimables", async ({ page }, testInfo) => {
   await mockSession(page);
   let renamedSearch = "";
-  await page.route("**/api/user/searches", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { searches: [{ id: "search-1", name: "Piano documentaire", searchUrl: "/search?q=piano&view=tracks", searchTermsCount: 2, createdAt: "2026-07-20T10:00:00.000Z" }] } }) }));
+  await page.route("**/api/user/searches", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { searches: [
+    { id: "search-1", name: "Piano documentaire", searchUrl: "/search?q=piano&view=tracks", searchTermsCount: 2, createdAt: "2026-07-20T10:00:00.000Z" },
+    { id: "search-2", name: "Cordes nocturnes", searchUrl: "/search?q=cordes&view=tracks", searchTermsCount: 1, createdAt: "2026-07-19T19:15:00.000Z" },
+  ] } }) }));
   await page.route("**/api/user/searches/search-1", async (route) => {
     renamedSearch = String((route.request().postDataJSON() as { name?: string }).name || "");
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { updated: true, search: { id: "search-1", name: renamedSearch, searchUrl: "/search?q=piano&view=tracks", searchTermsCount: 2, createdAt: "2026-07-20T10:00:00.000Z" } } }) });
@@ -355,7 +694,17 @@ test("les recherches sauvegardées restent relançables et supprimables", async 
   expect(savedSearchTitleBox).not.toBeNull();
   expect(savedSearchCardBox).not.toBeNull();
   expect(savedSearchTitleBox!.x - savedSearchCardBox!.x).toBeGreaterThanOrEqual(20);
-  await expect(page.getByRole("link", { name: "Relancer" })).toHaveAttribute("href", "/search?q=piano&view=tracks");
+  await expect(page.getByTestId("saved-search-day")).toHaveCount(2);
+  await expect(savedSearchCard.getByText("12:00", { exact: true })).toBeVisible();
+  const dateFilter = page.getByRole("combobox", { name: "Filtrer par date" });
+  await dateFilter.click();
+  await page.getByRole("option", { name: /20 juillet 2026/i }).click();
+  await expect(page.getByText("Piano documentaire", { exact: true })).toBeVisible();
+  await expect(page.getByText("Cordes nocturnes", { exact: true })).toHaveCount(0);
+  await dateFilter.click();
+  await page.getByRole("option", { name: /Toutes les dates/i }).click();
+  await expect(page.getByText("Cordes nocturnes", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Relancer" }).first()).toHaveAttribute("href", "/search?q=piano&view=tracks");
   await page.getByRole("button", { name: "Renommer Piano documentaire" }).click();
   await page.getByLabel("Nouveau nom de la recherche").fill("Piano sensible");
   await page.getByRole("button", { name: "Enregistrer le nom" }).click();
@@ -380,6 +729,17 @@ test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
   await page.goto("/account/playlists/playlist-1");
   await expect(page.getByRole("navigation", { name: "Navigation du compte" }).getByRole("link", { name: "Playlists" })).toHaveAttribute("aria-current", "page");
+  const playlistHeader = page.locator('.account-page__header[data-wide-title="true"]');
+  await expect(playlistHeader).toBeVisible();
+  const playlistHeading = playlistHeader.getByRole("heading", { name: "Film été" });
+  await expect(playlistHeading).toBeVisible();
+  const [headingBox, firstActionBox] = await Promise.all([
+    playlistHeading.boundingBox(),
+    playlistHeader.getByRole("button", { name: "Prolonger la sélection" }).boundingBox(),
+  ]);
+  expect(headingBox).not.toBeNull();
+  expect(firstActionBox).not.toBeNull();
+  expect(firstActionBox!.y).toBeGreaterThanOrEqual(headingBox!.y + headingBox!.height);
   await page.getByRole("button", { name: "Renommer", exact: true }).click();
   const renameDialog = page.getByRole("dialog", { name: "Renommer la playlist." });
   await expect(renameDialog).toBeVisible();
