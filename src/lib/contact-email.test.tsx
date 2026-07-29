@@ -23,6 +23,9 @@ describe("contact email templates", () => {
     });
 
     expect(rendered.html).toContain("Un nouveau projet arrive");
+    expect(rendered.html.match(/parigo-logo-email\.png/g)).toHaveLength(2);
+    expect(rendered.html).toContain("9 rue Rémy Dumoncel");
+    expect(rendered.html).toContain("+33 (0)1 49 23 94 76");
     expect(rendered.html).toContain("&lt;script&gt;");
     expect(rendered.html).not.toContain("<script>alert");
     expect(rendered.text).toContain("Camille Martin");

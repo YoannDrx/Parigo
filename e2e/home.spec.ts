@@ -20,7 +20,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("la homepage rend la recherche principale et navigue vers les résultats", async ({ page }) => {
+test("la homepage rend la recherche principale et navigue vers les résultats", async ({ page }, testInfo) => {
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero).toBeVisible();
@@ -32,6 +32,12 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await expect(
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
+  const heroSignature = page.getByRole("heading", { level: 1 }).locator(".parigo-title-signature");
+  await expect(heroSignature).toHaveCount(1);
+  if (testInfo.project.name === "desktop") {
+    await page.getByRole("heading", { level: 1 }).hover();
+    await expect(heroSignature).toHaveCSS("animation-name", "parigo-title-signature-spin");
+  }
   await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveCount(0);
   await expect(hero.getByText("Interprétation", { exact: true })).toHaveCount(0);
   const search = page.getByLabel("Décrivez la musique que vous imaginez");
@@ -40,7 +46,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await expect(hero.getByText("Piano", { exact: true })).toBeVisible();
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: /Trouver la bonne musique/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Donnez le ton à vos images/i })).toBeVisible();
   await expect(page.getByTestId("search-detected-criteria").getByText("Piano", { exact: true })).toBeVisible();
   const resolvedUrl = new URL(page.url());
   expect(resolvedUrl.searchParams.get("brief")).toBe("Un piano intime pour un documentaire");
@@ -70,6 +76,7 @@ test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ pa
   await page.goto("/");
   const cta = page.getByRole("link", { name: "Envoyer un brief" });
   await cta.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(800);
   await cta.hover();
   await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(cta).toHaveCSS("color", "rgb(16, 20, 16)");
@@ -158,7 +165,7 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await expect(page.getByRole("main").getByText(/A curated catalogue built for editors, music supervisors and producers/)).toBeVisible();
-  for (const heading of ["Who are we?", "From brief to selection."]) {
+  for (const heading of ["Who are we", "From brief to selection"]) {
     const element = page.getByRole("heading", { name: heading });
     const color = await element.evaluate((node) => getComputedStyle(node).color);
     const channels = color.match(/\d+/g)?.slice(0, 3).map(Number) ?? [];
@@ -202,7 +209,14 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await menuTrigger.click();
   const menu = page.getByRole("dialog", { name: "Menu principal" });
   await expect(menu).toBeVisible();
+  const menuBox = await menu.boundingBox();
+  expect(menuBox).not.toBeNull();
+  expect(menuBox!.x).toBeLessThanOrEqual(1);
+  expect(menuBox!.width).toBeGreaterThanOrEqual((await page.evaluate(() => innerWidth)) - 1);
+  expect(menuBox!.height).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) - 75);
   await expect(menu).not.toContainText("Paris · France");
+  await expect(menu.getByRole("link", { name: "Labels représentés" })).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Label Parigo" })).toBeVisible();
   expect(await menu.getByTestId("drawer-navigation").getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
     "/search",
     "/labels",
@@ -248,6 +262,7 @@ test("le footer reprend l’ordre du menu et sépare le compte des réseaux soci
   await page.goto("/");
   const footer = page.locator("footer");
   const explore = footer.getByRole("heading", { name: "Explorer", exact: true }).locator("xpath=..");
+  await expect(explore.getByRole("link", { name: "Labels représentés" })).toBeVisible();
   expect(await explore.getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
     "/search",
     "/labels",
@@ -350,7 +365,7 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     expect(inverseColors.control).not.toBe(inverseColors.section);
   }
   await expect(featured.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
-  const dedicatedSyncSection = page.getByRole("heading", { name: "Nos synchronisations." }).locator("xpath=ancestor::section");
+  const dedicatedSyncSection = page.getByRole("heading", { name: "Nos synchronisations" }).locator("xpath=ancestor::section");
   const firstSync = dedicatedSyncSection.locator('a[href^="/synchronisations/"]').first();
   await expect(firstSync).toBeVisible();
   await expect(firstSync.locator("img")).toHaveClass(/object-contain/);
@@ -384,7 +399,7 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toBeVisible();
 });
 
-test("les trois rails éditoriaux reprennent exactement le fond de leur section", async ({ page }) => {
+test("les trois rails éditoriaux laissent apparaître exactement le fond de leur section", async ({ page }) => {
   await page.goto("/");
   const sections = [
     page.locator("#featured"),
@@ -406,7 +421,7 @@ test("les trois rails éditoriaux reprennent exactement le fond de leur section"
         card: cardNode ? getComputedStyle(cardNode).backgroundColor : "",
       };
     });
-    expect(colors.rail).toBe(colors.section);
+    expect(colors.rail).toBe("rgba(0, 0, 0, 0)");
     expect(colors.card).toBe(colors.section);
   }
 });
@@ -455,11 +470,8 @@ test("le manifesto fait apparaître plusieurs pochettes au fil du pointeur puis 
   const firstSource = await covers.first().locator("img").getAttribute("src");
   expect(firstSource).toMatch(/^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/albumart\//);
   expect(firstSource).not.toContain("/_next/image");
-  await section.dispatchEvent("pointermove", {
-    clientX: box!.x + box!.width * .82,
-    clientY: box!.y + box!.height * .72,
-    pointerType: "mouse",
-  });
+  await page.waitForTimeout(50);
+  await page.mouse.move(box!.x + box!.width * .82, box!.y + box!.height * .72);
   await expect.poll(() => covers.count()).toBeGreaterThan(1);
   expect(await covers.count()).toBeLessThanOrEqual(24);
   await expect(covers.first()).not.toHaveCSS("border-radius", "999px");
@@ -479,7 +491,7 @@ test("le manifesto désactive les pochettes décoratives quand les animations so
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
 });
 
-test("la page albums propose une vue liste réellement compacte", async ({ page }) => {
+test("la page albums propose une vue liste réellement compacte", async ({ page }, testInfo) => {
   await page.goto("/albums");
   await expect(page.getByRole("heading", { level: 1, name: "Albums", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Vue liste" }).click();
@@ -491,6 +503,14 @@ test("la page albums propose une vue liste réellement compacte", async ({ page 
   expect(coverBox).not.toBeNull();
   expect(rowBox!.height).toBeLessThanOrEqual(150);
   expect(coverBox!.width).toBeLessThanOrEqual(100);
+  if (testInfo.project.name !== "mobile") {
+    const title = firstRow.locator(".catalog-list-row__title");
+    const initialBackground = await firstRow.evaluate((node) => getComputedStyle(node).backgroundImage);
+    const initialColor = await title.evaluate((node) => getComputedStyle(node).color);
+    await firstRow.hover();
+    await expect.poll(() => firstRow.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toBe(initialBackground);
+    await expect.poll(() => title.evaluate((node) => getComputedStyle(node).color)).not.toBe(initialColor);
+  }
 });
 
 test("une playlist Harvest avec une plage de BPM ouvre son détail", async ({ page }) => {
@@ -537,9 +557,10 @@ test("la shortlist expose son état sans contenu prédictif persistant à vide",
   await expect(page.getByRole("heading", { name: "Recherches suggérées" })).toHaveCount(0);
   await expect(page.getByRole("region", { name: "Suggestions de recherche" })).toHaveCount(0);
   const searchInput = page.locator("#catalog-search");
-  await searchInput.focus();
   const focusedForm = searchInput.locator("xpath=ancestor::form");
-  expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).toBe("none");
+  const restingShadow = await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow);
+  await searchInput.focus();
+  expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).toBe(restingShadow);
   await expect(searchInput).toHaveCSS("outline-style", "none");
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("[data-shortlist-trigger]")).toHaveCount(0);
@@ -632,7 +653,7 @@ test("les héros playlists et synchronisations conservent leurs contenus", async
   expect(titleBox!.y + titleBox!.height).toBeLessThanOrEqual(heroBox!.y + heroBox!.height);
 
   await page.goto("/synchronisations");
-  const youtube = page.getByRole("link", { name: "Voir la playlist YouTube" });
+  const youtube = page.getByRole("link", { name: "Playlist YouTube" });
   const firstCard = page.locator(".home-sync-card").first();
   await expect(youtube).toBeVisible();
   expect((await youtube.boundingBox())!.y).toBeLessThan((await firstCard.boundingBox())!.y);
@@ -642,7 +663,7 @@ test("la recherche expose des vues, tris et filtres partageables", async ({ page
   test.setTimeout(90_000);
   await page.goto("/search?q=techno&view=tracks&type=main");
 
-  await expect(page.getByRole("heading", { name: /Trouver la bonne musique/i })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Donnez le ton à vos images/i })).toBeVisible();
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 
   if (testInfo.project.name === "mobile") {

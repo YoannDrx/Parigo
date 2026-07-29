@@ -12,6 +12,34 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("la colonne de filtres suit la navbar et libère la hauteur quand elle se masque", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Les filtres mobiles utilisent un panneau dédié.");
+  await page.goto("/search");
+  const header = page.locator("header");
+  const filters = page.getByRole("complementary", { name: "Filtres de recherche" });
+  await expect(filters).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
+  await expect(header).toHaveAttribute("data-header-visible", "true");
+  const initialBox = await filters.boundingBox();
+  expect(initialBox).not.toBeNull();
+  expect(initialBox!.y).toBeGreaterThanOrEqual(80);
+
+  await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
+  await expect(header).toHaveAttribute("data-header-visible", "false");
+  await page.waitForTimeout(350);
+  const hiddenHeaderBox = await filters.boundingBox();
+  expect(hiddenHeaderBox).not.toBeNull();
+  expect(hiddenHeaderBox!.y).toBeLessThanOrEqual(14);
+  expect(hiddenHeaderBox!.y + hiddenHeaderBox!.height).toBeLessThanOrEqual(await page.evaluate(() => innerHeight));
+
+  await page.evaluate(() => window.scrollBy({ top: -120, behavior: "instant" }));
+  await expect(header).toHaveAttribute("data-header-visible", "true");
+  await page.waitForTimeout(350);
+  const visibleHeaderBox = await filters.boundingBox();
+  expect(visibleHeaderBox).not.toBeNull();
+  expect(visibleHeaderBox!.y).toBeGreaterThanOrEqual(80);
+});
+
 test("la recherche impose la liste pour les pistes et la grille pour les albums", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/search");

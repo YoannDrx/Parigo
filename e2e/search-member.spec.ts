@@ -39,12 +39,92 @@ test("la recherche connectée se sauvegarde sans ajouter un troisième focus ver
   expect(savedPayload).toMatchObject({ name: "Piano intime pour documentaire", searchHistoryId: "history-1", searchUrl: "/search?q=piano&view=tracks&type=main" });
 });
 
+test("toutes les versions restent groupées sous la piste principale avec leurs stems", async ({ page }) => {
+  await mockMemberSearch(page);
+  const alternateOne = { ...track, id: "track-1-alt-1", title: "Piano documentaire — 60 sec", version: "60 seconds", isAlternate: true };
+  const alternateTwo = { ...track, id: "track-1-alt-2", title: "Piano documentaire — no drums", version: "No drums", isAlternate: true };
+  const enrichedTrack = {
+    ...track,
+    albumCode: "PGO 001",
+    alternateTracks: [alternateOne, alternateTwo],
+    stems: [{ id: "stem-piano", title: "Piano" }, { id: "stem-strings", title: "Strings" }],
+  };
+  await page.route("**/api/search?**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      data: { items: [enrichedTrack], view: "tracks", facets },
+      meta: { page: 1, pageSize: 30, total: 1, requestId: "versions-request" },
+    }),
+  }));
+
+  await page.goto("/search?q=piano&view=tracks&type=all&density=light");
+  await expect(page.locator('[data-search-track-group="track-1"]')).toBeVisible();
+  await expect(page.locator('[data-track-kind="alternate"]')).toHaveCount(2);
+  await expect(page.getByText("2 versions", { exact: true })).toBeVisible();
+  await expect(page.getByText("Piano", { exact: true })).toBeVisible();
+  await expect(page.getByText("Strings", { exact: true })).toBeVisible();
+
+  const row = page.locator('[data-track-id="track-1"]');
+  await expect(row).toContainText("Piano documentaire");
+  await expect(row).toContainText("Parigo Test Pressing");
+  await expect(row).toContainText("Réf. PGO 001");
+  const titleBox = await row.locator(".parigo-track-row__title").boundingBox();
+  const albumBox = await row.getByText("Parigo Test Pressing", { exact: true }).boundingBox();
+  expect(titleBox).not.toBeNull();
+  expect(albumBox).not.toBeNull();
+  expect(Math.abs(titleBox!.y - albumBox!.y)).toBeLessThan(4);
+  const moreActions = page.getByRole("button", { name: `Plus d’actions : ${track.title}`, exact: true });
+  await expect(moreActions).toBeVisible();
+  await expect(moreActions.locator(".lucide-ellipsis")).toHaveCount(1);
+  await moreActions.click();
+  await expect(page.getByRole("dialog", { name: `Actions pour ${track.title}`, exact: true })).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: `Actions pour ${track.title}`, exact: true })).toHaveCount(0);
+  await expect(moreActions).toBeFocused();
+});
+
+test("la piste détaillée sépare titre, album et référence sans les tronquer", async ({ page }, testInfo) => {
+  await mockMemberSearch(page);
+  await page.route("**/api/search?**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({
+      data: { items: [{ ...track, albumCode: "PGO 001" }], view: "tracks", facets },
+      meta: { page: 1, pageSize: 30, total: 1, requestId: "layout-request" },
+    }),
+  }));
+  await page.goto("/search?q=piano&view=tracks&type=main&density=full");
+  const row = page.locator('[data-track-id="track-1"]');
+  const titleBox = await row.locator(".parigo-track-row__title").boundingBox();
+  const albumBox = await row.getByText(track.albumTitle, { exact: true }).boundingBox();
+  expect(titleBox).not.toBeNull();
+  expect(albumBox).not.toBeNull();
+  expect(albumBox!.y).toBeGreaterThan(titleBox!.y);
+  await expect(row).toContainText("Réf. PGO 001");
+  const leftLedgerLabel = page.getByText("Titre · album · waveform", { exact: true });
+  const rightLedgerLabel = page.getByText("Tags · ambiance · tempo · durée · actions", { exact: true });
+  await expect(page.getByRole("heading", { name: "Donnez le ton à vos images" }).locator(".parigo-title-signature")).toHaveCount(1);
+  if (testInfo.project.name === "desktop") {
+    await expect(leftLedgerLabel).toBeVisible();
+    await expect(rightLedgerLabel).toBeVisible();
+    const before = await row.evaluate((element) => getComputedStyle(element).backgroundImage);
+    await row.hover();
+    const after = await row.evaluate((element) => getComputedStyle(element).backgroundImage);
+    expect(after).not.toBe(before);
+    expect(after).toContain("0.15");
+  } else {
+    await expect(leftLedgerLabel).toBeHidden();
+    await expect(rightLedgerLabel).toBeHidden();
+  }
+});
+
 test("les actions et tooltips de recherche suivent la langue active", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le tooltip au survol est vérifié sur un pointeur desktop.");
   await mockMemberSearch(page);
   await page.goto("/search?q=piano&view=tracks&type=main");
   await page.getByRole("link", { name: /English version/ }).click();
-  await expect(page.getByRole("heading", { name: "Find the right music." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Set the tone for your images" })).toBeVisible();
   const favourite = page.getByRole("button", { name: "Add to favourites" }).first();
   await favourite.hover();
   await expect(page.getByRole("tooltip", { name: "Add to favourites" })).toBeVisible();
@@ -97,7 +177,7 @@ test("l’icône de note privée ouvre directement le bon onglet", async ({ page
 
 test("une demande de licence conserve la référence et préremplit le brief", async ({ page }) => {
   await page.goto("/contact?track=track-reference-test");
-  await expect(page.getByRole("heading", { name: "Demander une licence pour ce morceau." })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Demander une licence pour ce morceau" })).toBeVisible();
   const message = await page.getByRole("textbox", { name: /Projet & licence/ }).inputValue();
   expect(message).toContain("Référence : track-reference-test");
   expect(message).toContain("Médias et territoires :");

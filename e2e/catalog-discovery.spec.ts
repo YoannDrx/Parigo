@@ -60,7 +60,7 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
 });
 
-test("les playlists proposent recherche, ambiance, genre, instrument et usage", async ({ page }) => {
+test("les playlists proposent recherche, ambiance, genre, instrument et usage", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await page.goto("/playlists");
   await expect(page.getByPlaceholder("Rechercher une playlist ou un thème")).toBeVisible();
@@ -79,6 +79,16 @@ test("les playlists proposent recherche, ambiance, genre, instrument et usage", 
   await expect(page.getByText(/Sélection par Hugo/i)).toHaveCount(0);
   await page.getByRole("button", { name: "Vue liste" }).click();
   await expect(page).toHaveURL(/view=list/);
+  const firstRow = page.locator("main .catalog-list-row").first();
+  await expect(firstRow).toBeVisible();
+  if (testInfo.project.name !== "mobile") {
+    const title = firstRow.locator(".catalog-list-row__title");
+    const initialBackground = await firstRow.evaluate((node) => getComputedStyle(node).backgroundImage);
+    const initialColor = await title.evaluate((node) => getComputedStyle(node).color);
+    await firstRow.hover();
+    await expect.poll(() => firstRow.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toBe(initialBackground);
+    await expect.poll(() => title.evaluate((node) => getComputedStyle(node).color)).not.toBe(initialColor);
+  }
 });
 
 test("les anciennes collections redirigent vers les albums et ne sont plus navigables", async ({ page }) => {

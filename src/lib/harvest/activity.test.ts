@@ -17,7 +17,7 @@ vi.mock("./assets", async (importOriginal) => {
 });
 
 import { getAssetTemplates, type HarvestAssetTemplates } from "./assets";
-import { getDownloadHistory, mapDownloadHistoryResponse } from "./activity";
+import { getDownloadHistory, getMemberPlaylistCategories, getMemberPlaylists, getMemberTagsWithTrackCounts, mapDownloadHistoryResponse } from "./activity";
 import { memberRequest } from "./client";
 
 const templates: HarvestAssetTemplates = {
@@ -85,5 +85,94 @@ describe("Harvest member download history", () => {
     expect(path).toMatch(
       /^\/getdownloadhistorybymembertoken\/redacted-member-token\?startdate=\d{4}-\d{2}-\d{2}&enddate=\d{4}-\d{2}-\d{2}&skip=5&limit=10$/,
     );
+  });
+});
+
+describe("Harvest member tag counts", () => {
+  beforeEach(() => {
+    vi.mocked(memberRequest).mockReset();
+    vi.mocked(getAssetTemplates).mockReset();
+    vi.mocked(getAssetTemplates).mockResolvedValue(templates);
+  });
+
+  it("uses the persisted tag-track relation when Harvest returns a stale zero", async () => {
+    vi.mocked(memberRequest).mockImplementation(async (_memberToken, pathBuilder) => {
+      const path = pathBuilder("redacted-member-token");
+      if (path.startsWith("/getmembertags/")) {
+        return { Tags: [{ TagID: "tag-1", TagName: "Test", TrackCount: 0 }] };
+      }
+      if (path.startsWith("/getmembertagtracks/")) {
+        return {
+          Tags: [{
+            TagID: "tag-1",
+            TagName: "Test",
+            Tracks: [
+              { ID: "track-1", DisplayTitle: "One" },
+              { ID: "track-2", DisplayTitle: "Two" },
+              { ID: "track-3", DisplayTitle: "Three" },
+            ],
+          }],
+        };
+      }
+      throw new Error(`Unexpected Harvest path: ${path}`);
+    });
+
+    await expect(getMemberTagsWithTrackCounts("member-token")).resolves.toEqual([
+      expect.objectContaining({ id: "tag-1", name: "Test", trackCount: 3 }),
+    ]);
+  });
+});
+
+describe("Harvest member playlist hierarchy", () => {
+  beforeEach(() => {
+    vi.mocked(memberRequest).mockReset();
+    vi.mocked(getAssetTemplates).mockReset();
+    vi.mocked(getAssetTemplates).mockResolvedValue(templates);
+  });
+
+  it("keeps playlists inside their physical folder after a reload", async () => {
+    vi.mocked(memberRequest).mockImplementation(async (_memberToken, pathBuilder) => {
+      const path = pathBuilder("redacted-member-token");
+      if (path.startsWith("/getmemberplaylistsnotracks/")) {
+        return { Playlists: [{ ID: "playlist-root", Name: "Sans dossier", TrackCount: 1 }] };
+      }
+      if (path.startsWith("/getmemberplaylistcategoriesandplaylists/")) {
+        return {
+          PlaylistObjects: [{
+            ID: "folder-test",
+            Name: "Test",
+            ObjectType: "PlaylistCategory",
+            PlaylistsCount: 1,
+            Playlists: [{
+              ID: "playlist-drag",
+              Name: "Montage campagne",
+              TrackCount: 4,
+            }],
+          }],
+        };
+      }
+      throw new Error(`Unexpected Harvest path: ${path}`);
+    });
+
+    await expect(getMemberPlaylists("member-token", 0, 500)).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "playlist-root", categoryId: undefined }),
+        expect.objectContaining({ id: "playlist-drag", categoryId: "folder-test" }),
+      ]),
+    );
+  });
+
+  it("reads the documented PlaylistsCount field used by folder cards", async () => {
+    vi.mocked(memberRequest).mockResolvedValue({
+      PlaylistCategories: [{
+        ID: "folder-test",
+        Name: "Test",
+        PlaylistsCount: 3,
+      }],
+    });
+
+    await expect(getMemberPlaylistCategories("member-token")).resolves.toEqual([
+      expect.objectContaining({ id: "folder-test", name: "Test", playlistCount: 3 }),
+    ]);
   });
 });
