@@ -60,6 +60,9 @@ test("la pagination replace le début des résultats sous le poste de recherche"
   const firstAlbum = page.getByTestId("search-album-grid").locator("article").first();
   await expect(workspace).toBeVisible();
   await expect(firstAlbum).toContainText("Album crime 31");
+  await firstAlbum.evaluate(async (album) => {
+    await Promise.all(album.getAnimations().map((animation) => animation.finished));
+  });
   const [workspaceBox, firstAlbumBox] = await Promise.all([workspace.boundingBox(), firstAlbum.boundingBox()]);
   expect(workspaceBox).not.toBeNull();
   expect(firstAlbumBox).not.toBeNull();
