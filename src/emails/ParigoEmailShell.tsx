@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-head-element -- React Email renders a standalone HTML document, not a Next.js page. */
+/* eslint-disable @next/next/no-head-element, @next/next/no-img-element -- React Email renders a standalone HTML document and requires absolute image URLs. */
 import type { CSSProperties, ReactNode } from "react";
 
 interface ParigoEmailShellProps {
@@ -20,6 +20,8 @@ const colors = {
 };
 
 export const emailColors = colors;
+const emailSiteUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://parigo-ten.vercel.app").replace(/\/+$/, "");
+const emailLogoUrl = `${emailSiteUrl}/images/parigo-logo-email.png`;
 
 export function ParigoEmailShell({ locale, preview, eyebrow, title, children }: ParigoEmailShellProps) {
   return (
@@ -42,7 +44,7 @@ export function ParigoEmailShell({ locale, preview, eyebrow, title, children }: 
                         <table role="presentation" width="100%" cellPadding="0" cellSpacing="0">
                           <tbody>
                             <tr>
-                              <td style={brandName}>PARIGO</td>
+                              <td><img src={emailLogoUrl} width="214" alt="Parigo" style={brandLogo} /></td>
                               <td align="right" style={brandDescriptor}>PRODUCTION MUSIC · PARIS</td>
                             </tr>
                           </tbody>
@@ -61,11 +63,9 @@ export function ParigoEmailShell({ locale, preview, eyebrow, title, children }: 
                     </tr>
                     <tr>
                       <td style={footer}>
-                        <p style={footerStrong}>PARIGO MUSIC</p>
-                        <p style={footerText}>
-                          Musique à l’image · Licensing · Synchronisation<br />
-                          <a href="mailto:info@parigomusic.com" style={footerLink}>info@parigomusic.com</a>
-                        </p>
+                        <img src={emailLogoUrl} width="158" alt="Parigo" style={footerLogo} />
+                        <p style={footerStrong}>MUSIQUE À L’IMAGE · LICENSING · SYNCHRONISATION</p>
+                        <p style={footerText}>9 rue Rémy Dumoncel · 75014 Paris · France<br /><a href="tel:+33149239476" style={footerLink}>+33 (0)1 49 23 94 76</a> · <a href="mailto:info@parigomusic.com" style={footerLink}>info@parigomusic.com</a><br /><a href={emailSiteUrl} style={footerLink}>parigomusic.com</a></p>
                         <p style={legalText}>
                           {locale === "fr"
                             ? "Message transactionnel envoyé à la suite d’une demande sur le site Parigo Music."
@@ -90,7 +90,7 @@ const outerTable: CSSProperties = { width: "100%", backgroundColor: colors.paper
 const outerCell: CSSProperties = { padding: "32px 12px" };
 const container: CSSProperties = { width: "100%", maxWidth: "680px", margin: "0 auto", backgroundColor: colors.surface, border: `1px solid ${colors.line}` };
 const brandBar: CSSProperties = { padding: "22px 28px", backgroundColor: colors.ink, color: colors.paper };
-const brandName: CSSProperties = { fontSize: "28px", lineHeight: "32px", fontWeight: 800, letterSpacing: "4px" };
+const brandLogo: CSSProperties = { display: "block", width: "214px", maxWidth: "100%", height: "auto", border: 0 };
 const brandDescriptor: CSSProperties = { color: colors.signal, fontSize: "10px", lineHeight: "14px", fontWeight: 700, letterSpacing: "1.8px" };
 const hero: CSSProperties = { padding: "44px 36px 30px", backgroundColor: "#edf0e8" };
 const eyebrowStyle: CSSProperties = { margin: "0 0 12px", color: colors.forest, fontSize: "11px", lineHeight: "16px", fontWeight: 700, letterSpacing: "1.8px", textTransform: "uppercase" };
@@ -98,7 +98,8 @@ const heading: CSSProperties = { margin: 0, color: colors.ink, fontFamily: "Geor
 const wave: CSSProperties = { width: "92px", height: "5px", marginTop: "26px", backgroundColor: colors.signal, borderRadius: "999px" };
 const content: CSSProperties = { padding: "34px 36px 42px" };
 const footer: CSSProperties = { padding: "28px 36px", backgroundColor: colors.ink, color: colors.paper };
-const footerStrong: CSSProperties = { margin: "0 0 8px", fontSize: "12px", fontWeight: 800, letterSpacing: "2px" };
+const footerLogo: CSSProperties = { display: "block", width: "158px", maxWidth: "100%", height: "auto", margin: "0 0 22px", border: 0 };
+const footerStrong: CSSProperties = { margin: "0 0 10px", color: colors.signal, fontSize: "10px", lineHeight: "15px", fontWeight: 800, letterSpacing: "1.5px" };
 const footerText: CSSProperties = { margin: 0, color: "#d8ddd5", fontSize: "12px", lineHeight: "20px" };
 const footerLink: CSSProperties = { color: colors.signal, textDecoration: "none" };
 const legalText: CSSProperties = { margin: "22px 0 0", color: "#879089", fontSize: "10px", lineHeight: "16px" };

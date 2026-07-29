@@ -91,7 +91,7 @@ export function FavoriteButton({
           "flex items-center justify-center transition",
           appearance === "editorial"
             ? "border border-[var(--line)] bg-[var(--surface)] text-[var(--text-muted)] hover:border-[var(--signal-strong)] hover:bg-[var(--surface-soft)] hover:text-[var(--signal-strong)]"
-            : "rounded-full border-2 border-transparent hover:border-[var(--color-black)] hover:shadow-[2px_2px_0px_var(--color-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
+            : "rounded-full border-2 border-transparent hover:border-[var(--color-black)] hover:shadow-[2px_2px_0px_var(--color-black)] focus-visible:border-red-400 focus-visible:text-red-500 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-red-400/25 active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
           isFavorite
             ? appearance === "editorial" ? "border-[var(--signal-strong)] text-[var(--signal-strong)]" : "bg-red-100 text-red-500 hover:bg-red-200"
             : appearance === "editorial" ? "" : "bg-[var(--color-gray-100)] text-[var(--color-gray-400)] hover:bg-red-50 hover:text-red-500",

@@ -9,7 +9,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
       <body>
         <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, textAlign: "center" }}>
           <div>
-            <h1>Une erreur inattendue est survenue.</h1>
+            <h1 className="parigo-signed-title">Une erreur inattendue est survenue<span className="parigo-title-signature" aria-hidden="true" /></h1>
             <p>Unexpected error. Please try again.</p>
             <button type="button" onClick={reset}>Réessayer · Try again</button>
           </div>

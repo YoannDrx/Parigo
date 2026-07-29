@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 export interface LegalSection {
   title: string;
@@ -92,7 +93,7 @@ export function LegalDocument({ sections, updated = "13 juillet 2026" }: { secti
           </div>
         </aside>
         <div className="grid min-w-0 gap-4 lg:col-span-9">
-          {sectionEntries.map((section, index) => <article id={section.id} key={section.id} className="legal-section parigo-frame grid scroll-mt-[var(--sticky-offset)] gap-5 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[72px_1fr] md:p-8 lg:p-10"><span className="font-mono text-[.62rem] text-[var(--signal-strong)]">0{index + 1}</span><div className="min-w-0"><h2 className="font-[var(--font-editorial)] text-3xl font-normal tracking-[-.04em] sm:text-4xl md:text-5xl">{section.title}</h2><div className="legal-copy mt-5 space-y-4 break-words text-base leading-7 text-[var(--text-muted)] [&_a]:border-b [&_a]:border-current/30 [&_a]:text-[var(--foreground)] [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-[var(--foreground)]">{section.content}</div></div></article>)}
+          {sectionEntries.map((section, index) => <article id={section.id} key={section.id} className="legal-section parigo-frame grid scroll-mt-[var(--sticky-offset)] gap-5 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[72px_1fr] md:p-8 lg:p-10"><span className="font-mono text-[.62rem] text-[var(--signal-strong)]">0{index + 1}</span><div className="min-w-0"><SignedTitle as="h2" className="font-[var(--font-editorial)] text-3xl font-normal tracking-[-.04em] sm:text-4xl md:text-5xl">{section.title}</SignedTitle><div className="legal-copy mt-5 space-y-4 break-words text-base leading-7 text-[var(--text-muted)] [&_a]:border-b [&_a]:border-current/30 [&_a]:text-[var(--foreground)] [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-[var(--foreground)]">{section.content}</div></div></article>)}
         </div>
       </div>
     </section>

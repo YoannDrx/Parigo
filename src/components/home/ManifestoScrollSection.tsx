@@ -168,9 +168,9 @@ export function ManifestoScrollSection({
 
         <div className="relative z-10 w-full px-3 md:px-8">
           <div className="mx-auto max-w-[1580px] text-left lg:text-center">
-            <h2 className="relative text-[clamp(4rem,17vw,5.8rem)] font-semibold uppercase leading-[.8] tracking-[-.075em] lg:text-[clamp(2.25rem,6.3vw,7rem)] lg:leading-[.9] lg:tracking-[-.06em]">
+            <h2 className="parigo-signed-title relative text-[clamp(4rem,17vw,5.8rem)] font-semibold uppercase leading-[.8] tracking-[-.075em] lg:text-[clamp(2.25rem,6.3vw,7rem)] lg:leading-[.9] lg:tracking-[-.06em]">
               <span className="block text-[var(--foreground)]">
-                {titleLines.map((line) => <span key={line} className="block md:whitespace-nowrap">{line}</span>)}
+                {titleLines.map((line, index) => <span key={line} className="block md:whitespace-nowrap">{line.replace(/[.!?…]+$/u, "")}{index === titleLines.length - 1 && <span className="parigo-title-signature" aria-hidden="true" />}</span>)}
               </span>
               {!reduceMotion ? (
                 <motion.span

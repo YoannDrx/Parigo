@@ -12,6 +12,7 @@ import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 interface RegistrationForm {
   firstName: string;
@@ -124,7 +125,7 @@ export function RegisterForm({
     <motion.div initial={{ opacity: 0, y: embedded ? 8 : 20 }} animate={{ opacity: 1, y: 0 }} className={embedded ? "w-full" : "w-full max-w-3xl py-8"}>
       <Card hover={false} padding={embedded ? "none" : "lg"} className={embedded ? "border-0 bg-[var(--surface)] shadow-none" : "border-[var(--line)] bg-[var(--surface)] shadow-none"}>
         <div className="mb-8 flex items-start justify-between gap-6">
-          <div><p className="eyebrow mb-4 text-[var(--signal-strong)]">{locale === "fr" ? "Compte Parigo" : "Parigo account"}</p><h1 id={headingId} className="text-[clamp(2.65rem,5vw,3.8rem)] font-semibold leading-[.94] tracking-[-.055em]">{t("auth.register")}</h1><p className="mt-3 text-sm leading-relaxed text-[var(--text-muted)]">{step === 1 ? (locale === "fr" ? "Créez vos identifiants Parigo." : "Create your Parigo credentials.") : (locale === "fr" ? "Complétez votre profil Parigo." : "Complete your Parigo profile.")}</p></div>
+          <div><p className="eyebrow mb-4 text-[var(--signal-strong)]">{locale === "fr" ? "Compte Parigo" : "Parigo account"}</p><SignedTitle id={headingId} className="text-[clamp(2.65rem,5vw,3.8rem)] font-semibold leading-[.94] tracking-[-.055em]">{t("auth.register")}</SignedTitle><p className="mt-3 text-sm leading-relaxed text-[var(--text-muted)]">{step === 1 ? (locale === "fr" ? "Créez vos identifiants Parigo." : "Create your Parigo credentials.") : (locale === "fr" ? "Complétez votre profil Parigo." : "Complete your Parigo profile.")}</p></div>
           <span className="rounded-full border border-[var(--line)] px-2.5 py-1 font-mono text-[.6rem] text-[var(--text-muted)]">{step}/2</span>
         </div>
         <div className="mb-8 grid grid-cols-2 gap-2" aria-hidden="true"><div className="h-[2px] bg-[var(--signal-strong)]" /><div className={cnStep(step === 2)} /></div>

@@ -176,9 +176,9 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
           ) : (
             <div className="border-t border-[var(--line)]">
               {visible.map((playlist) => (
-                <Link key={playlist.id} href={localizedPath(`/playlists/${playlist.slug || playlist.id}`)} className="group grid min-h-24 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:px-4">
+                <Link key={playlist.id} href={localizedPath(`/playlists/${playlist.slug || playlist.id}`)} className="catalog-list-row group grid min-h-24 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:px-4">
                   <div className="relative aspect-square overflow-hidden border border-[var(--line)]"><Image src={playlist.cover || "/images/placeholder-album.svg"} alt="" fill sizes="96px" className="object-cover" /></div>
-                  <div className="min-w-0"><h2 className="truncate text-xl font-semibold">{playlist.title}</h2><p className="mt-1 line-clamp-1 text-sm text-[var(--text-muted)]">{playlist.moods?.slice(0, 3).join(" · ") || playlist.description}</p></div>
+                  <div className="min-w-0"><h2 className="catalog-list-row__title truncate text-xl font-semibold">{playlist.title}</h2><p className="mt-1 line-clamp-1 text-sm text-[var(--text-muted)]">{playlist.moods?.slice(0, 3).join(" · ") || playlist.description}</p></div>
                   <span className="pr-2 font-mono text-xs text-[var(--text-muted)]">{playlist.trackCount} {t("catalog.tracks")}</span>
                 </Link>
               ))}

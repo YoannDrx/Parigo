@@ -23,6 +23,7 @@ import { formatParigoDate } from "@/lib/date-time";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { resizeArtworkSource } from "@/lib/image-loader";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 interface AlbumDetailClientProps {
   data: {
@@ -104,7 +105,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
         </div>
 
         {/* Album Header */}
-        <section className="mx-auto max-w-[1700px] px-4 py-8 sm:px-6 lg:px-8 md:py-16">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1700px] overflow-hidden px-4 py-8 sm:px-6 lg:px-8 md:py-16">
           <div className="grid gap-10 md:grid-cols-12 md:items-start md:gap-12">
             {/* Cover */}
             <div className="w-full max-w-[520px] md:col-span-4">
@@ -123,9 +124,9 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
 
             {/* Info */}
             <div className="self-center md:col-span-7 md:col-start-6">
-              <h1 className="mb-6 font-[var(--font-editorial)] text-5xl font-normal leading-[.9] tracking-[-.055em] md:text-7xl lg:text-8xl">
+              <SignedTitle className="mb-6 font-[var(--font-editorial)] text-5xl font-normal leading-[.9] tracking-[-.055em] md:text-7xl lg:text-8xl">
                 {album.title}
-              </h1>
+              </SignedTitle>
               <div data-testid="album-label-meta" className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
                 {album.labelSlug ? (
                   <Link href={localizedPath(`/labels/${album.labelSlug}`)} className="font-medium text-[var(--color-primary)] hover:underline">
@@ -240,7 +241,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
           <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="eyebrow text-[var(--signal-strong)]">{album.label}</p>
-              <h2 className="mt-3 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.tracks")}</h2>
+              <SignedTitle as="h2" className="mt-3 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.tracks")}</SignedTitle>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Select
@@ -254,11 +255,11 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
                   { value: "title-desc", label: "Z–A" },
                 ]}
               />
-              <div className="inline-flex rounded-md border border-[var(--line)] p-1" role="group" aria-label={locale === "fr" ? "Versions des pistes" : "Track versions"}>
-                <button type="button" aria-pressed={!showAllVersions} onClick={() => setShowAllVersions(false)} className={`min-h-10 rounded px-4 text-xs font-semibold ${!showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>
+              <div className="search-view-toggle inline-flex" role="group" aria-label={locale === "fr" ? "Versions des pistes" : "Track versions"}>
+                <button type="button" aria-pressed={!showAllVersions} onClick={() => setShowAllVersions(false)} className="min-h-10 px-4 text-xs font-semibold">
                   {locale === "fr" ? "Pistes principales" : "Main tracks"}
                 </button>
-                <button type="button" aria-pressed={showAllVersions} onClick={() => setShowAllVersions(true)} className={`min-h-10 rounded px-4 text-xs font-semibold ${showAllVersions ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}>
+                <button type="button" aria-pressed={showAllVersions} onClick={() => setShowAllVersions(true)} className="min-h-10 px-4 text-xs font-semibold">
                   {locale === "fr" ? "Toutes les versions" : "All versions"}
                 </button>
               </div>
@@ -295,7 +296,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
 
         {data.relatedClips.length > 0 && (
           <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-            <h2 className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">Clips</h2>
+            <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">Clips</SignedTitle>
             <div className="grid gap-5 md:grid-cols-2">
               {data.relatedClips.map(({ clip, composers }) => (
                 <ClipCard key={clip.slug} clip={clip} composers={composers} locale={locale} />
@@ -307,9 +308,9 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
         {/* Similar Albums */}
         {similarAlbums.length > 0 && (
           <section className="mx-auto max-w-[1700px] px-4 py-16 sm:px-6 lg:px-8 md:py-28">
-            <h2 className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
+            <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
               {locale === "fr" ? "Dans le même univers" : "In the same universe"}
-            </h2>
+            </SignedTitle>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
               {similarAlbums.map((similarAlbum) => (
                 <div key={similarAlbum.id}>

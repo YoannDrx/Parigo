@@ -9,6 +9,7 @@ import { getCachedAlbums, getCachedStyles } from "@/lib/harvest/catalog-cache";
 import { getRequestLocale } from "@/lib/locale-server";
 import { localizedPath } from "@/lib/locale";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 interface SelectionPageProps { params: Promise<{ slug: string }> }
 
@@ -68,16 +69,16 @@ export default async function SelectionPage({ params }: SelectionPageProps) {
       <main className="pb-28 pt-[74px]">
         <header className="border-b border-[var(--line)] px-4 py-20 md:px-8 md:py-32">
           <div className="mx-auto max-w-[1500px]">
-            <h1 className="max-w-[13ch] font-[var(--font-editorial)] text-[clamp(4rem,9vw,9rem)] font-normal leading-[.83] tracking-[-.06em]">{content.title}</h1>
+            <SignedTitle className="max-w-[13ch] font-[var(--font-editorial)] text-[clamp(4rem,9vw,9rem)] font-normal leading-[.83] tracking-[-.06em]">{content.title}</SignedTitle>
             <p className="mt-8 max-w-3xl text-lg leading-8 text-[var(--text-muted)] md:text-xl">{content.introduction}</p>
           </div>
         </header>
         <section className="mx-auto max-w-[1500px] px-4 py-16 md:px-8 md:py-24" aria-labelledby="selection-results">
-          <div className="mb-10 flex items-end justify-between gap-6"><h2 id="selection-results" className="font-[var(--font-editorial)] text-5xl font-normal">{locale === "fr" ? "Albums sélectionnés" : "Selected albums"}</h2><span className="font-mono text-xs text-[var(--text-muted)]">{albums.length} albums</span></div>
+          <div className="mb-10 flex items-end justify-between gap-6"><SignedTitle as="h2" id="selection-results" className="font-[var(--font-editorial)] text-5xl font-normal">{locale === "fr" ? "Albums sélectionnés" : "Selected albums"}</SignedTitle><span className="font-mono text-xs text-[var(--text-muted)]">{albums.length} albums</span></div>
           <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3 lg:grid-cols-4">{albums.map((album) => <AlbumCard key={album.id} album={album} headingLevel={3} />)}</div>
         </section>
         <section className="border-y border-[var(--line)] bg-[var(--surface-soft)] px-4 py-16 md:px-8"><div className="mx-auto grid max-w-[1500px] gap-12 md:grid-cols-2"><article><h2 className="text-2xl font-semibold">{locale === "fr" ? "Usages à l’image" : "Uses on screen"}</h2><p className="mt-4 leading-7 text-[var(--text-muted)]">{content.uses}</p></article><article><h2 className="text-2xl font-semibold">{locale === "fr" ? "Conseil de sélection" : "Selection advice"}</h2><p className="mt-4 leading-7 text-[var(--text-muted)]">{content.advice}</p></article></div></section>
-        <section className="mx-auto max-w-[1500px] px-4 py-16 md:px-8"><h2 className="text-3xl font-semibold">{locale === "fr" ? "Sélections connexes" : "Related selections"}</h2><div className="mt-6 flex flex-wrap gap-3">{related.map((item) => item && <Link key={item.key} href={localizedPath(locale, `/selections/${item.content[locale].slug}`)} className="min-h-11 rounded-full border border-[var(--line)] px-5 py-3 text-sm font-semibold hover:border-[var(--signal-strong)]">{item.content[locale].title}</Link>)}</div><Link href={localizedPath(locale, "/contact")} className="mt-12 inline-flex min-h-12 items-center rounded-full bg-[var(--foreground)] px-6 font-semibold text-[var(--background)]">{locale === "fr" ? "Parler de votre licence" : "Discuss your licence"}</Link></section>
+        <section className="mx-auto max-w-[1500px] px-4 py-16 md:px-8"><SignedTitle as="h2" className="text-3xl font-semibold">{locale === "fr" ? "Sélections connexes" : "Related selections"}</SignedTitle><div className="mt-6 flex flex-wrap gap-3">{related.map((item) => item && <Link key={item.key} href={localizedPath(locale, `/selections/${item.content[locale].slug}`)} className="min-h-11 rounded-full border border-[var(--line)] px-5 py-3 text-sm font-semibold hover:border-[var(--signal-strong)]">{item.content[locale].title}</Link>)}</div><Link href={localizedPath(locale, "/contact")} className="mt-12 inline-flex min-h-12 items-center rounded-full bg-[var(--foreground)] px-6 font-semibold text-[var(--background)]">{locale === "fr" ? "Parler de votre licence" : "Discuss your licence"}</Link></section>
       </main>
       <Footer />
     </div>

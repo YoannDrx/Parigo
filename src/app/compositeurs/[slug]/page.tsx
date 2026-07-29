@@ -13,6 +13,7 @@ import { getComposerAlbums } from "@/lib/harvest/composers";
 import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 interface ComposerPageProps {
   params: Promise<{ slug: string }>;
@@ -62,7 +63,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
       <JsonLd data={structuredData} />
       <Header />
       <main className="pt-[70px]">
-        <section className="mx-auto max-w-[1500px] px-4 pb-16 pt-8 sm:px-6 lg:px-8 md:pb-24">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1500px] overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8 md:pb-24">
           <Link
             href={localizedPath(locale, "/compositeurs")}
             className="mb-10 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)]"
@@ -75,7 +76,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               <Image src={profile.image} alt={profile.name} fill priority sizes="(max-width: 768px) 100vw, 42vw" className="object-cover" />
             </div>
             <div className="self-center md:col-span-6 md:col-start-7">
-              <h1 className="font-[var(--font-editorial)] text-6xl leading-[.9] tracking-[-.055em] md:text-8xl">{profile.name}</h1>
+              <SignedTitle className="font-[var(--font-editorial)] text-6xl leading-[.9] tracking-[-.055em] md:text-8xl">{profile.name}</SignedTitle>
               <p className="mt-5 font-mono text-[.62rem] uppercase tracking-[.13em] text-[var(--signal-strong)]">
                 {profile.kind === "group"
                   ? (locale === "fr" ? "Collectif" : "Group")
@@ -98,9 +99,9 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
 
         <section className="border-t border-[var(--line)]">
           <div className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-            <h2 className="mb-10 font-[var(--font-editorial)] text-5xl tracking-[-.05em]">
+            <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl tracking-[-.05em]">
               {locale === "fr" ? "Albums Parigo" : "Parigo albums"}
-            </h2>
+            </SignedTitle>
             {discography.state === "ready" ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
                 {discography.albums.map((album) => <AlbumCard key={album.id} album={album} />)}
@@ -118,7 +119,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
         {profileClips.length > 0 && (
           <section className="border-t border-[var(--line)]">
             <div className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-              <h2 className="mb-10 font-[var(--font-editorial)] text-5xl tracking-[-.05em]">Clips</h2>
+              <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl tracking-[-.05em]">Clips</SignedTitle>
               <div className="grid gap-5 md:grid-cols-2">
                 {profileClips.map((clip) => (
                   <ClipCard
