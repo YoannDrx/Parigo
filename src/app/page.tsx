@@ -1,4 +1,7 @@
-import { HomeExperience } from "@/components/home/HomeExperience";
+import { Suspense } from "react";
+import { HomeExperience, HomeHero } from "@/components/home/HomeExperience";
+import { Footer } from "@/components/layout/Footer";
+import { Header } from "@/components/layout/Header";
 import { staticMetadata } from "@/lib/seo-server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, siteConfig } from "@/lib/seo";
@@ -12,13 +15,17 @@ export const generateMetadata = staticMetadata("/", {
   en: { title: "Production music for moving images", description: "Parigo Music supports film, television, advertising and branded content with expert music curation and clear licensing." },
 });
 
-export default async function HomePage() {
-  const [playlists, parigoAlbums, synchronisations, clips] = await Promise.all([
+function loadHomeData() {
+  return Promise.all([
     getCachedPlaylists({ limit: 12 }),
     getCachedAlbumDiscovery({ label: PARIGO_LABEL_ID, limit: 100, sort: "releaseDate" }),
     getSynchronisations(),
     getFeaturedEditorialVideos(8),
   ]);
+}
+
+async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeof loadHomeData> }) {
+  const [playlists, parigoAlbums, synchronisations, clips] = await dataPromise;
   const manifestoAlbumCovers = Array.from(
     new Map(
       parigoAlbums.items
@@ -36,11 +43,7 @@ export default async function HomePage() {
     },
   };
 
-  return <>
-    <JsonLd data={[
-      { "@context": "https://schema.org", "@type": "Organization", name: siteConfig.name, url: SITE_URL, email: siteConfig.email },
-      { "@context": "https://schema.org", "@type": "WebSite", name: siteConfig.name, url: SITE_URL, inLanguage: ["fr", "en"] },
-    ]} />
+  return (
     <HomeExperience
       initialPlaylists={initialPlaylists}
       initialParigoAlbums={parigoAlbums.items.slice(0, 12)}
@@ -48,5 +51,28 @@ export default async function HomePage() {
       initialSynchronisations={synchronisations.slice(0, 12)}
       initialClips={clips}
     />
-  </>;
+  );
+}
+
+export default function HomePage() {
+  const dataPromise = loadHomeData();
+
+  return (
+    <>
+      <JsonLd data={[
+        { "@context": "https://schema.org", "@type": "Organization", name: siteConfig.name, url: SITE_URL, email: siteConfig.email },
+        { "@context": "https://schema.org", "@type": "WebSite", name: siteConfig.name, url: SITE_URL, inLanguage: ["fr", "en"] },
+      ]} />
+      <div className="page-shell home-shell">
+        <Header variant="overlay" />
+        <main>
+          <HomeHero />
+          <Suspense fallback={<div className="min-h-[40vh]" aria-hidden="true" />}>
+            <HomeDataSections dataPromise={dataPromise} />
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </>
+  );
 }

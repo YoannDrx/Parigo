@@ -288,6 +288,12 @@ function SearchContent() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const searchHistoryId = view === "tracks" ? tracksQuery.data?.searchHistoryId : albumsQuery.data?.searchHistoryId;
   const queryResolution = view === "tracks" ? tracksQuery.data?.queryResolution : albumsQuery.data?.queryResolution;
+  const literalSearchHref = useMemo(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("translate", "0");
+    params.delete("page");
+    return `/search?${params.toString()}`;
+  }, [searchParams]);
 
   const draftIntent = useMemo(() => parseSearchIntent(searchMode === "intent" ? queryDraft : ""), [queryDraft, searchMode]);
   const draftIntentChips = useMemo(() => searchIntentChips(draftIntent, locale), [draftIntent, locale]);
@@ -498,16 +504,9 @@ function SearchContent() {
             {queryResolution && translateAliases ? (
               <div className="mb-4 flex flex-col gap-3 border border-[var(--signal-strong)] bg-[var(--surface)] p-3 text-sm sm:flex-row sm:items-center sm:justify-between" role="status">
                 <span>{locale === "fr" ? "Aucun titre littéral trouvé. Recherche interprétée comme" : "No literal title found. Search interpreted as"} <strong>« {queryResolution.effective} »</strong>.</span>
-                <button type="button" onClick={() => {
-                  const params = new URLSearchParams(searchParams.toString());
-                  params.set("translate", "0");
-                  params.delete("page");
-                  setTranslateAliases(false);
-                  setPage(1);
-                  router.replace(`/search?${params.toString()}`, { scroll: false });
-                }} className="min-h-9 self-start border-b border-[var(--line-strong)] text-xs font-semibold hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
+                <a href={literalSearchHref} className="min-h-9 self-start border-b border-[var(--line-strong)] text-xs font-semibold hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
                   {locale === "fr" ? `Chercher « ${queryResolution.original} » littéralement` : `Search literally for “${queryResolution.original}”`}
-                </button>
+                </a>
               </div>
             ) : null}
 

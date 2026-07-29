@@ -5,8 +5,6 @@ import Link from "next/link";
 import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, Play, RotateCcw, Youtube } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/content/synchronisations";
 import { fetchAlbums } from "@/lib/api-client";
@@ -58,6 +56,25 @@ function SectionReveal({ children, className = "" }: { children: ReactNode; clas
   return <div className={className}>{children}</div>;
 }
 
+export function HomeHero() {
+  const { locale } = useI18n();
+
+  return (
+    <section data-testid="home-hero" className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-hidden bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
+      <DeferredOrganicHeroBackdrop />
+      <div className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center">
+        <h1 className="mx-auto max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
+          {locale === "fr" ? "Trouvez la bonne musique" : "Find the right music"}<span className="text-[var(--signal-strong)]">.</span>
+        </h1>
+        <p className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
+          {locale === "fr" ? <>Un catalogue édité pour les monteurs, superviseurs musicaux et producteurs.<br className="hidden sm:block" />Cherchez, écoutez, comparez et licenciez — sans bruit inutile.</> : <>A curated catalogue built for editors, music supervisors and producers.<br className="hidden sm:block" />Search, listen, compare and license — without the noise.</>}
+        </p>
+        <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch mode="assisted" /></div>
+      </div>
+    </section>
+  );
+}
+
 interface HomeExperienceProps {
   initialPlaylists: {
     playlists: Playlist[];
@@ -103,22 +120,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
     return () => controller.abort();
   }, [featuredTab, parigoAlbums.length, releases.length, retryVersion]);
   return (
-    <div className="page-shell home-shell">
-      <Header variant="overlay" />
-      <main>
-        <section data-testid="home-hero" className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-hidden bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
-          <DeferredOrganicHeroBackdrop />
-          <div className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center">
-            <h1 className="mx-auto max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
-              {locale === "fr" ? "Trouvez la bonne musique" : "Find the right music"}<span className="text-[var(--signal-strong)]">.</span>
-            </h1>
-            <p className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
-              {locale === "fr" ? <>Un catalogue édité pour les monteurs, superviseurs musicaux et producteurs.<br className="hidden sm:block" />Cherchez, écoutez, comparez et licenciez — sans bruit inutile.</> : <>A curated catalogue built for editors, music supervisors and producers.<br className="hidden sm:block" />Search, listen, compare and license — without the noise.</>}
-            </p>
-            <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch mode="assisted" /></div>
-          </div>
-        </section>
-
+    <>
         <section id="about" className="px-4 py-16 md:px-8 md:py-24">
           <SectionReveal className="mx-auto max-w-[1580px]">
             <div className="relative min-h-[610px] overflow-hidden rounded-xl md:min-h-[760px]">
@@ -239,9 +241,6 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
             <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href="https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-3 rounded-full border border-white/78 px-5 text-sm font-semibold !text-white transition hover:border-white hover:bg-white hover:!text-[#123f24] focus-visible:outline-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
           </SectionReveal>
         </section>
-
-      </main>
-      <Footer />
-    </div>
+    </>
   );
 }

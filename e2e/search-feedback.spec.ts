@@ -171,7 +171,7 @@ test("le fallback bilingue est expliqué et peut être désactivé", async ({ pa
 
   await page.goto("/search?q=for%C3%AAt%20sombre&view=tracks");
   await expect(page.getByText(/Recherche interprétée comme/)).toBeVisible();
-  await page.getByRole("button", { name: /Chercher « forêt sombre » littéralement/ }).click();
+  await page.getByRole("link", { name: /Chercher « forêt sombre » littéralement/ }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get("translate")).toBe("0");
   await expect(page.getByText(/Recherche interprétée comme/)).toHaveCount(0);
 });
