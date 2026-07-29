@@ -25,7 +25,9 @@ Pour activer les comptes Parigo, ajouter `HARVEST_SESSION_SECRET`, un secret ind
 
 Le formulaire de contact utilise `RESEND_API_KEY`, envoie depuis
 `Parigo Music <contact@do-not-reply.app>` et transmet les demandes à
-`info@parigomusic.com`. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
+`info@parigomusic.com`. Les accusés envoyés aux visiteurs utilisent
+`CONTACT_REPLY_EMAIL` (`info@parigomusic.com` par défaut), tandis que les notifications
+internes répondent directement à l’adresse du visiteur. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
 public réellement accessible. Tant que le domaine Parigo n’est pas raccordé,
 la valeur de référence est `https://parigo-ten.vercel.app`.
 
@@ -41,6 +43,7 @@ pnpm lint
 pnpm test
 pnpm build
 pnpm test:e2e
+pnpm email:dev
 HARVEST_LIVE_TESTS=1 pnpm test:harvest
 HARVEST_MEMBER_MUTATION_TESTS=1 pnpm test:harvest:member
 pnpm audit:youtube:clips

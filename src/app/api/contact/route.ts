@@ -9,11 +9,14 @@ import {
   renderContactAcknowledgementEmail,
   renderContactNotificationEmail,
 } from "@/lib/contact-email";
+import { getEmailSiteUrl } from "@/emails/_components/ParigoEmailShell";
 
 export const runtime = "nodejs";
 
 const CONTACT_EMAIL = "info@parigomusic.com";
+const CONTACT_REPLY_EMAIL = "info@parigomusic.com";
 const DEFAULT_FROM_EMAIL = "Parigo Music <contact@do-not-reply.app>";
+const EMAIL_LOGO_CONTENT_ID = "parigo-logo";
 
 function responseError(status: number, code: string, message: string, requestId: string) {
   return NextResponse.json(
@@ -58,6 +61,13 @@ export async function POST(request: Request) {
     const track = input.trackId ? await getTrack(input.trackId).catch(() => null) : null;
     const from = process.env.CONTACT_FROM_EMAIL || DEFAULT_FROM_EMAIL;
     const to = process.env.CONTACT_TO_EMAIL || CONTACT_EMAIL;
+    const replyEmail = process.env.CONTACT_REPLY_EMAIL?.trim() || CONTACT_REPLY_EMAIL;
+    const logoAttachment = {
+      filename: "parigo-logo.png",
+      path: `${getEmailSiteUrl()}/images/parigo-logo-email.png`,
+      contentType: "image/png",
+      contentId: EMAIL_LOGO_CONTENT_ID,
+    };
     const normalized = [input.name.toLowerCase(), input.company.toLowerCase(), input.email.toLowerCase(), input.message.replace(/\s+/g, " ").trim(), input.trackId || "", input.locale].join("\n");
     const digest = createHash("sha256").update(normalized).digest("hex");
     const resend = new Resend(apiKey);
@@ -91,9 +101,10 @@ export async function POST(request: Request) {
       message: input.message,
       locale: input.locale,
       track: trackSummary,
+      logoSrc: `cid:${EMAIL_LOGO_CONTENT_ID}`,
     });
     const internal = await resend.emails.send(
-      { from, to, replyTo: input.email, subject, ...internalEmail },
+      { from, to, replyTo: input.email, subject, attachments: [logoAttachment], ...internalEmail },
       { idempotencyKey: `contact-internal-${digest}` },
     );
     if (internal.error) {
@@ -110,10 +121,11 @@ export async function POST(request: Request) {
         name: input.name,
         receivedAt,
         requestId,
+        logoSrc: `cid:${EMAIL_LOGO_CONTENT_ID}`,
       }),
     };
     const acknowledgementResult = await resend.emails.send(
-      { from, to: input.email, ...acknowledgement },
+      { from, to: input.email, replyTo: replyEmail, attachments: [logoAttachment], ...acknowledgement },
       { idempotencyKey: `contact-ack-${digest}` },
     );
     if (acknowledgementResult.error) {

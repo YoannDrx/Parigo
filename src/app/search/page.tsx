@@ -512,11 +512,17 @@ function SearchContent() {
             )}
 
             {queryResolution && translateAliases ? (
-              <div className="mb-4 flex flex-col gap-3 border border-[var(--signal-strong)] bg-[var(--surface)] p-3 text-sm sm:flex-row sm:items-center sm:justify-between" role="status">
-                <span>{locale === "fr" ? "Aucun titre littéral trouvé. Recherche interprétée comme" : "No literal title found. Search interpreted as"} <strong>« {queryResolution.effective} »</strong>.</span>
-                <a href={literalSearchHref} className="min-h-9 self-start border-b border-[var(--line-strong)] text-xs font-semibold hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
-                  {locale === "fr" ? `Chercher « ${queryResolution.original} » littéralement` : `Search literally for “${queryResolution.original}”`}
-                </a>
+              <div className="search-query-resolution mb-4 flex flex-col gap-4 border border-[var(--signal-strong)] bg-[var(--color-primary-light)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5" role="status">
+                <div className="flex min-w-0 items-start gap-3 sm:items-center">
+                  <span className="search-query-resolution__icon flex h-9 w-9 shrink-0 items-center justify-center bg-[var(--surface)] text-[var(--signal-strong)]" aria-hidden="true"><Sparkles size={16} /></span>
+                  <p className="min-w-0 text-sm leading-6">
+                    <span>{locale === "fr" ? "Aucun titre littéral trouvé. Recherche interprétée comme" : "No literal title found. Search interpreted as"}</span>{" "}
+                    <strong className="search-query-resolution__tag inline-flex max-w-full align-middle">{queryResolution.effective}</strong>
+                  </p>
+                </div>
+                <Link href={literalSearchHref} className="search-query-resolution__literal group/literal inline-flex min-h-10 shrink-0 items-center self-start px-1 text-xs font-semibold transition-colors hover:text-[var(--signal-strong)] focus-visible:text-[var(--signal-strong)] sm:self-center">
+                  <span>{locale === "fr" ? `Chercher « ${queryResolution.original} » littéralement` : `Search literally for “${queryResolution.original}”`}</span>
+                </Link>
               </div>
             ) : null}
 

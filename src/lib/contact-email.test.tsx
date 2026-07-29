@@ -43,5 +43,25 @@ describe("contact email templates", () => {
     expect(rendered.html).toContain("Thank you, Alex");
     expect(rendered.text).toContain("DELIVERY CONFIRMED");
     expect(rendered.text).toContain("request-456");
+    expect(rendered.html).toContain("/account");
+    expect(rendered.html).toContain("Sign in to my account");
+  });
+
+  it("nettoie les retours ligne parasites de l’URL publique", async () => {
+    const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    process.env.NEXT_PUBLIC_SITE_URL = "https://parigo-ten.vercel.app\\n";
+    try {
+      const rendered = await renderContactAcknowledgementEmail({
+        locale: "fr",
+        name: "Camille",
+        receivedAt: "29 juillet 2026 à 23:21",
+        requestId: "request-clean-url",
+      });
+      expect(rendered.html).toContain("https://parigo-ten.vercel.app/images/parigo-logo-email.png");
+      expect(rendered.html).not.toContain("vercel.app\\n");
+    } finally {
+      if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL;
+      else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl;
+    }
   });
 });

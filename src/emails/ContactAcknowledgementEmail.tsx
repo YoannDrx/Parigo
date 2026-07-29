@@ -1,15 +1,17 @@
 import type { CSSProperties } from "react";
-import { emailColors, ParigoEmailShell } from "./ParigoEmailShell";
+import { emailColors, getEmailSiteUrl, ParigoEmailShell } from "./_components/ParigoEmailShell";
 
 export interface ContactAcknowledgementEmailProps {
   locale: "fr" | "en";
   name: string;
   receivedAt: string;
   requestId: string;
+  logoSrc?: string;
 }
 
-export function ContactAcknowledgementEmail({ locale, name, receivedAt, requestId }: ContactAcknowledgementEmailProps) {
+export function ContactAcknowledgementEmail({ locale, name, receivedAt, requestId, logoSrc }: ContactAcknowledgementEmailProps) {
   const fr = locale === "fr";
+  const accountUrl = `${getEmailSiteUrl()}/account`;
 
   return (
     <ParigoEmailShell
@@ -17,6 +19,7 @@ export function ContactAcknowledgementEmail({ locale, name, receivedAt, requestI
       preview={fr ? "Votre message a bien été transmis à l’équipe Parigo Music." : "Your message has been sent to the Parigo Music team."}
       eyebrow={fr ? "Message bien reçu" : "Message received"}
       title={fr ? `Merci ${name}.` : `Thank you, ${name}.`}
+      logoSrc={logoSrc}
     >
       <p style={lead}>
         {fr
@@ -38,9 +41,13 @@ export function ContactAcknowledgementEmail({ locale, name, receivedAt, requestI
           : "If your request is urgent or you would like to add more information, reply directly to this email or write to us at info@parigomusic.com."}
       </p>
 
-      <a href="mailto:info@parigomusic.com" style={button}>
-        {fr ? "Contacter Parigo Music" : "Contact Parigo Music"}
+      <a href={accountUrl} style={button}>
+        {fr ? "Me connecter à mon compte" : "Sign in to my account"}
       </a>
+
+      <p style={secondaryAction}>
+        <a href="mailto:info@parigomusic.com" style={secondaryLink}>{fr ? "Contacter Parigo Music" : "Contact Parigo Music"}</a>
+      </p>
     </ParigoEmailShell>
   );
 }
@@ -52,4 +59,15 @@ const confirmationValue: CSSProperties = { margin: 0, color: emailColors.ink, fo
 const confirmationMeta: CSSProperties = { margin: "8px 0 0", color: emailColors.muted, fontSize: "11px", lineHeight: "17px" };
 const copy: CSSProperties = { margin: "26px 0 0", color: emailColors.muted, fontSize: "14px", lineHeight: "23px" };
 const button: CSSProperties = { display: "inline-block", marginTop: "26px", padding: "14px 20px", backgroundColor: emailColors.ink, color: emailColors.paper, borderRadius: "999px", fontSize: "13px", lineHeight: "18px", fontWeight: 700, textDecoration: "none" };
+const secondaryAction: CSSProperties = { display: "inline-block", margin: "26px 0 0 14px", fontSize: "12px", lineHeight: "18px" };
+const secondaryLink: CSSProperties = { color: emailColors.forest, textDecoration: "underline" };
 const mono: CSSProperties = { fontFamily: "monospace" };
+
+ContactAcknowledgementEmail.PreviewProps = {
+  locale: "fr",
+  name: "Camille",
+  receivedAt: "29 juillet 2026 à 23:21",
+  requestId: "contact-preview-2026",
+} satisfies ContactAcknowledgementEmailProps;
+
+export default ContactAcknowledgementEmail;
