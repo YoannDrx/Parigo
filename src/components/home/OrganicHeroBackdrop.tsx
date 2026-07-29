@@ -42,11 +42,18 @@ export function OrganicHeroBackdrop() {
   };
 
   return (
-    <div aria-hidden="true" onPointerMove={move} onPointerLeave={reset} className="pointer-events-auto absolute inset-0 overflow-hidden">
+    <div
+      aria-hidden="true"
+      data-testid="organic-hero-backdrop"
+      onPointerMove={move}
+      onPointerLeave={reset}
+      className="pointer-events-auto absolute inset-0 overflow-hidden"
+    >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_48%,rgba(89,190,118,.11),transparent_39%),linear-gradient(180deg,var(--surface)_0%,color-mix(in_srgb,var(--signal-soft)_34%,var(--surface))_55%,var(--surface)_100%)]" />
       <motion.div style={{ x: farX, y: farY }} className="absolute left-[4%] top-[12%] h-[60%] w-[78%] rounded-[42%_58%_62%_38%/54%_38%_62%_46%] bg-[color-mix(in_srgb,var(--signal)_20%,transparent)] blur-[88px]" />
       <motion.div style={{ x: nearX, y: nearY }} className="absolute bottom-[-12%] right-[1%] h-[58%] w-[60%] rotate-[-9deg] rounded-[58%_42%_33%_67%/42%_55%_45%_58%] bg-[color-mix(in_srgb,var(--signal-strong)_15%,transparent)] blur-[74px]" />
       <motion.div
+        data-testid="organic-hero-blob"
         animate={reducedMotion ? undefined : {
           borderRadius: ["32% 68% 42% 58% / 64% 38% 62% 36%", "39% 61% 28% 72% / 71% 34% 66% 29%", "27% 73% 41% 59% / 62% 43% 57% 38%", "42% 58% 34% 66% / 68% 30% 70% 32%", "32% 68% 42% 58% / 64% 38% 62% 36%"],
           scaleX: [1, .86, 1.08, .92, 1],

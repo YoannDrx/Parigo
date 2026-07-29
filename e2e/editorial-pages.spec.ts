@@ -188,6 +188,18 @@ test("l’onde du héros reste légère et animée sur mobile sans charger WebGL
   await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
 });
 
+test("le héros desktop conserve sa forme organique et ses ondes animées", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le décor organique WebGL est réservé au desktop.");
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const backdrop = hero.getByTestId("organic-hero-backdrop");
+
+  await expect(backdrop).toBeVisible({ timeout: 10_000 });
+  await expect(backdrop.getByTestId("organic-hero-blob")).toBeVisible();
+  await expect(backdrop.locator("canvas")).toHaveCount(1);
+  await expect(hero.locator(".organic-hero-fallback")).toHaveCount(0);
+});
+
 test("les ondes du héros gagnent du contraste uniquement en thème clair", async ({ page }) => {
   await page.goto("/");
   const signal = page.getByTestId("home-hero").locator(".hero-signal-field");

@@ -48,7 +48,7 @@ test("la recherche connectée se sauvegarde sans ajouter un troisième focus ver
   expect(savedPayload).toMatchObject({ name: "Piano intime pour documentaire", searchHistoryId: "history-1", searchUrl: "/search?q=piano&view=tracks&type=main" });
 });
 
-test("toutes les versions restent groupées sous la piste principale avec leurs stems", async ({ page }) => {
+test("toutes les versions restent groupées sous la piste principale avec leurs stems", async ({ page }, testInfo) => {
   await mockMemberSearch(page);
   const alternateOne = { ...track, id: "track-1-alt-1", title: "Piano documentaire — 60 sec", version: "60 seconds", isAlternate: true };
   const alternateTwo = { ...track, id: "track-1-alt-2", title: "Piano documentaire — no drums", version: "No drums", isAlternate: true };
@@ -82,15 +82,25 @@ test("toutes les versions restent groupées sous la piste principale avec leurs 
   const albumBox = await row.getByText("Parigo Test Pressing", { exact: true }).boundingBox();
   expect(titleBox).not.toBeNull();
   expect(albumBox).not.toBeNull();
-  expect(Math.abs(titleBox!.y - albumBox!.y)).toBeLessThan(4);
+  if (testInfo.project.name === "desktop") {
+    expect(Math.abs(titleBox!.y - albumBox!.y)).toBeLessThan(4);
+  } else {
+    expect(albumBox!.y).toBeGreaterThan(titleBox!.y);
+  }
   const moreActions = page.getByRole("button", { name: `Plus d’actions : ${track.title}`, exact: true });
-  await expect(moreActions).toBeVisible();
-  await expect(moreActions.locator(".lucide-ellipsis")).toHaveCount(1);
-  await moreActions.click();
-  await expect(page.getByRole("dialog", { name: `Actions pour ${track.title}`, exact: true })).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("dialog", { name: `Actions pour ${track.title}`, exact: true })).toHaveCount(0);
-  await expect(moreActions).toBeFocused();
+  if (testInfo.project.name === "desktop") {
+    await expect(moreActions).toBeHidden();
+    await expect(page.getByRole("button", { name: `Ajouter à une playlist : ${track.title}`, exact: true })).toBeVisible();
+  } else {
+    await expect(moreActions).toBeVisible();
+    await expect(moreActions.locator(".lucide-ellipsis")).toHaveCount(1);
+    await moreActions.click();
+    const actions = page.getByRole("region", { name: `Actions pour ${track.title}`, exact: true });
+    await expect(actions).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(actions).toHaveCount(0);
+    await expect(moreActions).toBeFocused();
+  }
 });
 
 test("la piste détaillée sépare titre, album et référence sans les tronquer", async ({ page }, testInfo) => {
@@ -113,7 +123,7 @@ test("la piste détaillée sépare titre, album et référence sans les tronquer
   await expect(row).toContainText("Réf. PGO 001");
   const leftLedgerLabel = page.getByText("Titre · album · waveform", { exact: true });
   const rightLedgerLabel = page.getByText("Tags · ambiance · tempo · durée · actions", { exact: true });
-  await expect(page.getByRole("heading", { name: "Donnez le ton à vos images" }).locator(".parigo-title-signature")).toHaveCount(1);
+  await expect(page.getByTestId("search-workspace")).toBeVisible();
   if (testInfo.project.name === "desktop") {
     await expect(leftLedgerLabel).toBeVisible();
     await expect(rightLedgerLabel).toBeVisible();
@@ -134,7 +144,7 @@ test("les actions et tooltips de recherche suivent la langue active", async ({ p
   await page.setViewportSize({ width: 1800, height: 900 });
   await page.goto("/search?q=piano&view=tracks&type=main");
   await page.getByRole("link", { name: /English version/ }).click();
-  await expect(page.getByRole("heading", { name: "Set the tone for your images" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Search track titles" })).toBeVisible();
   const favourite = page.getByRole("button", { name: "Add to favourites" }).first();
   await expect(favourite).toBeVisible();
   await favourite.hover();

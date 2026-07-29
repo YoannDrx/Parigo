@@ -174,12 +174,16 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await page.keyboard.press("Escape");
 
   if (testInfo.project.name === "desktop") {
+    await page.setViewportSize({ width: 1920, height: 1000 });
     const firstTrack = page.locator(".parigo-track-row").first();
+    await expect(firstTrack).toHaveAttribute("data-density", "full");
+    await expect.poll(() => firstTrack.locator(".parigo-track-row__actions :is(button,a):visible").count()).toBeGreaterThanOrEqual(8);
+    const fullActionCount = await firstTrack.locator(".parigo-track-row__actions :is(button,a):visible").count();
     for (const [label, value] of [["Piste compacte", "mid"], ["Piste essentielle", "light"]] as const) {
       await density.click();
       await page.getByRole("option", { name: label, exact: true }).click();
       await expect(firstTrack).toHaveAttribute("data-density", value);
-      expect(await firstTrack.locator(".parigo-track-row__actions button:visible").count()).toBeGreaterThanOrEqual(5);
+      expect(await firstTrack.locator(".parigo-track-row__actions :is(button,a):visible").count()).toBe(fullActionCount);
       await expect(firstTrack.getByRole("button", { name: /Plus d.actions/ })).toBeHidden();
     }
     await density.click();
@@ -194,13 +198,17 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
     await version.click();
     const listbox = page.getByRole("listbox", { name: "Versions des pistes" });
     await expect(listbox).toBeVisible();
-    const [listboxBox, viewportWidth] = await Promise.all([
+    const [listboxBox, versionBox, viewportWidth] = await Promise.all([
       listbox.boundingBox(),
+      version.boundingBox(),
       page.evaluate(() => window.innerWidth),
     ]);
     expect(listboxBox).not.toBeNull();
+    expect(versionBox).not.toBeNull();
     expect(listboxBox!.x).toBeGreaterThanOrEqual(0);
     expect(listboxBox!.x + listboxBox!.width).toBeLessThanOrEqual(viewportWidth);
+    expect(listboxBox!.y).toBeGreaterThanOrEqual(versionBox!.y + versionBox!.height);
+    expect(await listbox.getByRole("option").evaluateAll((options) => options.every((option) => option.scrollWidth <= option.clientWidth))).toBe(true);
     await page.keyboard.press("Escape");
   }
 
@@ -222,6 +230,24 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
     const albumTitleBox = await albumTitle.boundingBox();
     expect(albumTitleBox).not.toBeNull();
     expect(albumTitleBox!.width).toBeGreaterThan(60);
+
+    for (const [label, value] of [["Piste compacte", "mid"], ["Piste essentielle", "light"]] as const) {
+      await density.click();
+      await page.getByRole("option", { name: label, exact: true }).click();
+      const firstTrack = page.locator(".parigo-track-row").first();
+      await expect(firstTrack).toHaveAttribute("data-density", value);
+      const compactTitle = firstTrack.locator(".parigo-track-row__title");
+      const compactAlbum = firstTrack.locator(".parigo-track-row__album");
+      await expect(compactTitle).toBeVisible();
+      await expect(compactAlbum).toBeVisible();
+      const [compactTitleBox, compactAlbumBox] = await Promise.all([compactTitle.boundingBox(), compactAlbum.boundingBox()]);
+      expect(compactTitleBox).not.toBeNull();
+      expect(compactAlbumBox).not.toBeNull();
+      expect(compactTitleBox!.width).toBeGreaterThan(60);
+      expect(compactAlbumBox!.width).toBeGreaterThan(60);
+    }
+    await density.click();
+    await page.getByRole("option", { name: "Piste détaillée", exact: true }).click();
   }
   await trackTitle.click();
   await expect(page.locator(".track-detail-panel")).toHaveCount(0);

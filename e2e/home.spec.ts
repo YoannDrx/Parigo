@@ -46,7 +46,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await expect(hero.getByText("Piano", { exact: true })).toBeVisible();
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
-  await expect(page.getByRole("heading", { name: /Donnez le ton à vos images/i })).toBeVisible();
+  await expect(page.getByTestId("search-workspace")).toBeVisible();
   await expect(page.getByTestId("search-detected-criteria").getByText("Piano", { exact: true })).toBeVisible();
   const resolvedUrl = new URL(page.url());
   expect(resolvedUrl.searchParams.get("brief")).toBe("Un piano intime pour un documentaire");
@@ -664,7 +664,7 @@ test("la recherche expose des vues, tris et filtres partageables", async ({ page
   test.setTimeout(90_000);
   await page.goto("/search?q=techno&view=tracks&type=main");
 
-  await expect(page.getByRole("heading", { name: /Donnez le ton à vos images/i })).toBeVisible();
+  await expect(page.getByTestId("search-workspace")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 
   if (testInfo.project.name === "mobile") {
