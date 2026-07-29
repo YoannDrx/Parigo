@@ -109,9 +109,9 @@ styles.add(ParagraphStyle(
     parent=styles["BodyText"],
     fontName=FONT,
     fontSize=8.5,
-    leading=11.5,
+    leading=11,
     textColor=INK,
-    spaceAfter=4.5,
+    spaceAfter=3.8,
 ))
 styles.add(ParagraphStyle(
     name="AuditH1",
@@ -152,7 +152,7 @@ styles.add(ParagraphStyle(
     leftIndent=10,
     firstLineIndent=-6,
     bulletIndent=2,
-    spaceAfter=2.5,
+    spaceAfter=1.8,
 ))
 styles.add(ParagraphStyle(
     name="AuditQuote",
@@ -170,6 +170,21 @@ styles.add(ParagraphStyle(
     parent=styles["AuditBody"],
     fontSize=7.2,
     leading=9.2,
+))
+styles.add(ParagraphStyle(
+    name="EmailBody",
+    parent=styles["AuditBody"],
+    fontSize=7.4,
+    leading=9.2,
+    spaceAfter=2.5,
+))
+styles.add(ParagraphStyle(
+    name="EmailBullet",
+    parent=styles["EmailBody"],
+    leftIndent=9,
+    firstLineIndent=-5,
+    bulletIndent=2,
+    spaceAfter=1.2,
 ))
 styles.add(ParagraphStyle(
     name="MatrixTitle",
@@ -253,6 +268,7 @@ def markdown_to_flowables(markdown: str):
     in_code = False
     code_lines: list[str] = []
     quote_lines: list[str] = []
+    email_mode = False
 
     while index < len(lines):
         raw = lines[index]
@@ -314,20 +330,22 @@ def markdown_to_flowables(markdown: str):
             index += 1
             continue
         if stripped.startswith("## "):
+            if stripped.startswith("## 7."):
+                email_mode = True
             story.append(Paragraph(inline_markup(stripped[3:]), styles["AuditH1"]))
         elif stripped.startswith("### "):
             story.append(Paragraph(inline_markup(stripped[4:]), styles["AuditH2"]))
         elif stripped.startswith("#### "):
             story.append(Paragraph(inline_markup(stripped[5:]), styles["AuditH3"]))
         elif re.match(r"^[-*] ", stripped):
-            story.append(Paragraph(inline_markup(stripped[2:]), styles["AuditBullet"], bulletText="•"))
+            story.append(Paragraph(inline_markup(stripped[2:]), styles["EmailBullet" if email_mode else "AuditBullet"], bulletText="•"))
         elif re.match(r"^\d+\. ", stripped):
             number, text = stripped.split(". ", 1)
-            story.append(Paragraph(inline_markup(text), styles["AuditBullet"], bulletText=f"{number}."))
+            story.append(Paragraph(inline_markup(text), styles["EmailBullet" if email_mode else "AuditBullet"], bulletText=f"{number}."))
         elif stripped == "---":
             story.append(HRFlowable(width="100%", thickness=0.5, color=LINE, spaceBefore=4, spaceAfter=7))
         elif stripped:
-            story.append(paragraph(stripped))
+            story.append(paragraph(stripped, "EmailBody" if email_mode else "AuditBody"))
         index += 1
     return story
 

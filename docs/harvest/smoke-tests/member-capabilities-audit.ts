@@ -1,5 +1,5 @@
 import { writeFile } from "node:fs/promises";
-import { buildCloudSearch } from "../../../src/lib/harvest/search";
+import { buildCloudSearch, searchHistoryIdFromResponse } from "../../../src/lib/harvest/search";
 
 type RecordValue = Record<string, unknown>;
 
@@ -181,7 +181,7 @@ async function main() {
     saveSearchHistory: true,
   }));
   const trackId = findString(array(search.payload, "Tracks")[0], ["ID"]);
-  const searchHistoryId = findString(search.payload, ["SearchHistoryID", "searchHistoryId"]);
+  const searchHistoryId = searchHistoryIdFromResponse(object(search.payload) || {});
   if (!trackId) throw new Error("No track fixture returned by cloudsearch");
 
   const results: Array<RecordValue> = [];

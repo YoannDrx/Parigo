@@ -79,7 +79,7 @@ export function Footer() {
         </div>
 
         <div className="flex justify-start border-b border-current/18 py-5 md:justify-end">
-          <button type="button" onClick={openRegister} className="group inline-flex min-h-10 items-center gap-2.5 rounded-full border border-current/28 px-3.5 text-left text-xs font-semibold transition duration-300 hover:border-[var(--inverse-accent)] hover:bg-[var(--inverse-accent)] hover:text-[var(--surface-inverse)] focus-visible:border-[var(--inverse-accent)] focus-visible:outline-none">
+          <button type="button" onClick={openRegister} className="group inline-flex min-h-10 max-w-full items-center gap-2 rounded-full border border-current/28 px-3 text-left text-xs font-semibold transition duration-300 hover:border-[var(--inverse-accent)] hover:bg-[var(--inverse-accent)] hover:text-[var(--surface-inverse)] focus-visible:border-[var(--inverse-accent)] focus-visible:outline-none">
             <span>
               {locale === "fr" ? "Créer un compte Parigo" : "Create a Parigo account"}
             </span>

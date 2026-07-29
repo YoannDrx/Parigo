@@ -28,7 +28,7 @@ test("le détail album groupe réellement les versions et simplifie ses métadon
   await expect(page.getByText("Crédits compositeurs", { exact: true })).toHaveCount(0);
   const favorite = page.locator(".album-actions__favorite");
   await favorite.hover();
-  expect(await favorite.evaluate((node) => {
+  await expect.poll(() => favorite.evaluate((node) => {
     const probe = document.createElement("span");
     probe.style.color = "var(--danger)";
     node.append(probe);
