@@ -100,6 +100,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
   const { locale, localizedPath } = useI18n();
   const { data: session } = useSession();
   const [detailsById, setDetailsById] = useState<Record<string, Track>>({});
+  const [detailsLoading, setDetailsLoading] = useState(true);
   const [focusedTrack, setFocusedTrack] = useState<Track | null>(null);
   const [notes, setNotes] = useState<MemberTrackComment[]>([]);
   const [noteDraft, setNoteDraft] = useState("");
@@ -114,6 +115,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
   const activeTrackId = selectedTrack.id;
   const rightHolders = rightHoldersById[activeTrackId] ?? displayed.rightHolders ?? [];
   const rightHoldersLoading = activeTab === "information" && !rightHoldersById[activeTrackId];
+  const rootTrackLoading = selectedTrack.id === track.id && detailsLoading && !detailsById[track.id];
 
   useEffect(() => {
     const controller = new AbortController();
@@ -125,7 +127,10 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
           setDetailsById((current) => ({ ...current, [fetchedTrack.id]: fetchedTrack }));
         }
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => {
+        if (!controller.signal.aborted) setDetailsLoading(false);
+      });
     return () => controller.abort();
   }, [selectedTrack.id]);
 
@@ -190,6 +195,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
 
   const focusTrack = (nextTrack: Track | null, tab?: TrackDetailsTab) => {
     setFocusedTrack(nextTrack);
+    setDetailsLoading(true);
     setNotes([]);
     setNoteDraft("");
     setEditingNoteId(null);
@@ -314,7 +320,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
             </section>
           </div>
         )}
-        {activeTab === "versions" && <div role="tabpanel">{rootTrack.alternateTracks?.length ? <div>{rootTrack.alternateTracks.map((version) => <VersionRow key={version.id} track={version} onInspect={focusTrack} />)}</div> : <p className="py-8 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune version alternative disponible." : "No alternate version available."}</p>}</div>}
+        {activeTab === "versions" && <div role="tabpanel">{rootTrackLoading ? <div className="flex min-h-28 items-center justify-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des versions" : "Loading versions"} /></div> : rootTrack.alternateTracks?.length ? <div>{rootTrack.alternateTracks.map((version) => <VersionRow key={version.id} track={version} onInspect={focusTrack} />)}</div> : <p className="py-8 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune version alternative disponible." : "No alternate version available."}</p>}</div>}
         {activeTab === "lyrics" && <div role="tabpanel" className="max-w-3xl whitespace-pre-wrap py-5 text-sm leading-7 text-[var(--text-muted)]">{displayed.lyrics || (locale === "fr" ? "Paroles non disponibles." : "Lyrics unavailable.")}</div>}
         {activeTab === "notes" && session?.user && <div role="tabpanel" className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_.9fr]"><div><p className="mb-3 text-sm font-semibold">{locale === "fr" ? "Une note visible uniquement dans votre compte." : "A note visible only in your account."}</p><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} rows={4} maxLength={1200} placeholder={locale === "fr" ? "Intention, timecode, retour client…" : "Intent, timecode, client feedback…"} className="w-full resize-y border border-[var(--line-strong)] bg-[var(--surface)] p-3 text-sm leading-6 outline-none focus:border-[var(--foreground)]" /><div className="mt-2 flex items-center justify-between gap-3"><span className="text-[.65rem] text-[var(--text-muted)]">{noteDraft.length}/1200</span><div className="flex gap-2">{editingNoteId && <button type="button" onClick={() => { setEditingNoteId(null); setNoteDraft(""); }} className="inline-flex min-h-10 items-center gap-2 px-3 text-xs"><X size={14} />{locale === "fr" ? "Annuler" : "Cancel"}</button>}<button type="button" disabled={noteSaving || !noteDraft.trim()} onClick={() => void saveNote()} className="inline-flex min-h-10 items-center gap-2 bg-[var(--foreground)] px-4 text-xs font-semibold text-[var(--background)] disabled:opacity-40">{noteSaving ? <ParigoLoader size="icon" label={locale === "fr" ? "Enregistrement de la note" : "Saving note"} /> : <Save size={14} />}{editingNoteId ? (locale === "fr" ? "Mettre à jour" : "Update") : (locale === "fr" ? "Ajouter la note" : "Add note")}</button></div></div>{noteError && <p className="mt-3 text-xs text-[var(--danger)]">{noteError}</p>}</div><div className="border-t border-[var(--line)] lg:border-l lg:border-t-0 lg:pl-6">{notesLoading ? <div className="flex min-h-28 items-center justify-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des notes" : "Loading notes"} /></div> : notes.length ? notes.map((note) => <article key={note.id} className="border-b border-[var(--line)] py-4 first:pt-0"><p className="whitespace-pre-wrap text-sm leading-6">{note.text}</p><div className="mt-3 flex items-center justify-between gap-3"><span className="text-[.62rem] text-[var(--text-muted)]">{note.updatedAt || note.createdAt ? formatParigoDate(note.updatedAt || note.createdAt!, locale) : (locale === "fr" ? "Note privée" : "Private note")}</span><div className="flex"><button type="button" onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.text); }} className="flex h-9 w-9 items-center justify-center text-[var(--text-muted)] hover:text-[var(--foreground)]" aria-label={locale === "fr" ? "Modifier la note" : "Edit note"}><Pencil size={14} /></button><button type="button" onClick={() => void removeNote(note.id)} className="flex h-9 w-9 items-center justify-center text-[var(--text-muted)] hover:text-[var(--danger)]" aria-label={locale === "fr" ? "Supprimer la note" : "Delete note"}><Trash2 size={14} /></button></div></div></article>) : <p className="py-6 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune note pour ce morceau." : "No note for this track."}</p>}</div></div>}
       </div>

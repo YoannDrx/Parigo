@@ -11,7 +11,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Disc3,
+  GitBranch,
   LayoutGrid,
+  Layers3,
   Minus,
   RotateCcw,
   Search,
@@ -25,6 +27,7 @@ import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { Button } from "@/components/ui/Button";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { Select } from "@/components/ui/Select";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, searchIntentChips } from "@/lib/search-intent";
@@ -281,7 +284,14 @@ function SearchContent() {
   const activeQuery = view === "tracks" ? tracksQuery : albumsQuery;
   const intentResolution = view === "tracks" ? tracksQuery.data?.intentResolution : albumsQuery.data?.intentResolution;
   const resolvedIntentUnsupported = intentUnsupported || Boolean(brief && intentResolution && !intentResolution.supported);
-  const tracks = resolvedIntentUnsupported ? [] : tracksQuery.data?.tracks ?? [];
+  const tracks = useMemo(
+    () => resolvedIntentUnsupported ? [] : tracksQuery.data?.tracks ?? [],
+    [resolvedIntentUnsupported, tracksQuery.data?.tracks],
+  );
+  const trackQueue = useMemo(
+    () => tracks.flatMap((track) => [track, ...(type === "all" ? track.alternateTracks ?? [] : [])]),
+    [tracks, type],
+  );
   const albums = resolvedIntentUnsupported ? [] : albumsQuery.data?.albums ?? [];
   const total = resolvedIntentUnsupported ? 0 : view === "tracks" ? tracksQuery.data?.pagination.total ?? 0 : albumsQuery.data?.pagination.total ?? 0;
   const facets: SearchFacets | undefined = view === "tracks" ? tracksQuery.data?.facets : albumsQuery.data?.facets;
@@ -425,14 +435,14 @@ function SearchContent() {
   return (
     <div className="page-shell flex min-h-screen min-w-0 flex-col overflow-x-clip">
       <Header />
-      <main className="min-w-0 flex-1 overflow-x-clip pb-28 pt-28 md:pt-32">
-        <section className="border-b border-[var(--line)] px-4 pb-7 sm:px-6 lg:px-8">
+      <main className="min-w-0 flex-1 overflow-x-clip pb-28">
+        <section className="search-page-hero page-hero border-b border-[var(--line)] px-4 pb-12 pt-28 sm:px-6 md:pb-16 md:pt-36 lg:px-8">
           <div className="mx-auto max-w-[1800px]">
-            <div className="grid items-end gap-6 lg:grid-cols-[minmax(240px,.45fr)_minmax(0,1fr)]">
-              <div>
-                <h1 className="text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92] tracking-[-.06em]">{locale === "fr" ? "Trouver la bonne musique." : "Find the right music."}</h1>
+            <div className="search-page-hero__frame page-hero__frame parigo-frame relative grid overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] lg:grid-cols-12">
+              <div className="page-hero__title-panel relative flex min-w-0 items-center px-6 py-9 sm:px-8 lg:col-span-5 lg:px-10 lg:py-12">
+                <SignedTitle className="search-page-hero__title max-w-[10ch] font-[var(--font-editorial)] font-semibold leading-[.9] tracking-[-.06em]">{locale === "fr" ? "Donnez le ton à vos images" : "Set the tone for your images"}</SignedTitle>
               </div>
-              <div>
+              <div className="search-page-hero__tools relative flex min-w-0 flex-col justify-center border-t border-[var(--line)] px-4 py-6 sm:px-6 lg:col-span-7 lg:border-l lg:border-t-0 lg:px-8">
                 <div>
                   <form onSubmit={(event) => { event.preventDefault(); applyUnifiedSearch(); }} className="ai-search-shell search-query-frame flex min-h-16 items-center border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 transition">
                     {searchMode === "intent" ? <Sparkles size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" /> : <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />}
@@ -463,7 +473,7 @@ function SearchContent() {
         </section>
 
         <div className="mx-auto grid max-w-[1800px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:px-8">
-          <aside className="sticky top-24 hidden h-[calc(100vh-7rem)] overflow-y-auto overscroll-contain pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
+          <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
             {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
           </aside>
 
@@ -524,12 +534,44 @@ function SearchContent() {
             ) : activeQuery.isError ? (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-3xl">{locale === "fr" ? "La recherche est temporairement indisponible." : "Search is temporarily unavailable."}</h2><p className="mt-3 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Réessayez dans quelques instants." : "Please try again in a moment."}</p><Button variant="outline" onClick={() => activeQuery.refetch()} className="mt-7">{t("common.retry")}</Button></div>
             ) : view === "tracks" ? tracks.length ? (
-                <div className="search-results-ledger overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]">
+                <div className="search-results-ledger overflow-visible border border-[var(--line-strong)] bg-[var(--surface)]">
                   <div className="search-results-ledger__header hidden min-h-10 items-center justify-between gap-6 border-b border-[var(--line-strong)] px-4 font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--text-muted)] xl:flex">
-                    <span>{locale === "fr" ? "Piste · album · waveform" : "Track · album · waveform"}</span>
-                    <span>{locale === "fr" ? "Couleurs · tempo · durée · actions" : "Colours · tempo · duration · actions"}</span>
+                    <span>{locale === "fr" ? "Titre · album · waveform" : "Title · album · waveform"}</span>
+                    <span>{locale === "fr" ? "Tags · ambiance · tempo · durée · actions" : "Tags · mood · tempo · duration · actions"}</span>
                   </div>
-                  {tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFromTrack(track)} queue={tracks} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} />)}
+                  {tracks.map((track, index) => {
+                    const alternates = type === "all" ? track.alternateTracks ?? [] : [];
+                    const stems = type === "all"
+                      ? [...new Map(
+                        [track, ...alternates]
+                          .flatMap((version) => version.stems ?? [])
+                          .map((stem) => [stem.id, stem]),
+                      ).values()]
+                      : [];
+                    return (
+                      <section key={track.id} data-search-track-group={track.id}>
+                        <TrackRow track={track} album={albumFromTrack(track)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} condensedActions={density !== "full"} />
+                        {type === "all" && (alternates.length > 0 || stems.length > 0) && (
+                          <div className="search-version-branch relative ml-5 border-l border-[color-mix(in_srgb,var(--signal)_58%,transparent)] pl-3 sm:ml-10 sm:pl-5">
+                            <div className="flex min-h-9 flex-wrap items-center gap-3 border-b border-[var(--line)] px-2 font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
+                              <span className="inline-flex items-center gap-1.5 text-[var(--signal-strong)]"><GitBranch size={12} />{alternates.length} {locale === "fr" ? "versions" : "versions"}</span>
+                              {stems.length > 0 && <span className="inline-flex items-center gap-1.5"><Layers3 size={12} />{stems.length} stems</span>}
+                            </div>
+                            {alternates.map((alternate, alternateIndex) => (
+                              <div key={alternate.id} data-track-kind="alternate">
+                                <TrackRow track={alternate} album={albumFromTrack(alternate)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index + alternateIndex + 1} showAlbumCover={false} density="mid" condensedActions />
+                              </div>
+                            ))}
+                            {stems.length > 0 && (
+                              <div className="flex flex-wrap gap-2 border-b border-[var(--line)] bg-[var(--surface-soft)] px-3 py-3" aria-label={`${locale === "fr" ? "Stems disponibles pour" : "Available stems for"} ${track.title}`}>
+                                {stems.map((stem) => <span key={stem.id} className="inline-flex min-h-7 items-center gap-1.5 border border-[var(--line)] bg-[var(--surface)] px-2 text-[.65rem] font-semibold"><Layers3 size={11} className="text-[var(--signal-strong)]" />{stem.title || (locale === "fr" ? "Stem sans titre" : "Untitled stem")}</span>)}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </section>
+                    );
+                  })}
                 </div>
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>

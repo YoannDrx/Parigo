@@ -3,16 +3,18 @@
 import { motion, useReducedMotion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 interface AccountPageHeaderProps {
   icon: LucideIcon;
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   description?: string;
   actions?: ReactNode;
+  wideTitle?: boolean;
 }
 
-export function AccountPageHeader({ icon: Icon, eyebrow, title, description, actions }: AccountPageHeaderProps) {
+export function AccountPageHeader({ icon: Icon, title, description, actions, wideTitle = false }: AccountPageHeaderProps) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -20,15 +22,19 @@ export function AccountPageHeader({ icon: Icon, eyebrow, title, description, act
       initial={reduceMotion ? undefined : { opacity: .72, y: 16 }}
       animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
       transition={{ duration: .56, ease: [0.22, 1, 0.36, 1] }}
-      className="account-page__header grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"
+      data-wide-title={wideTitle ? "true" : undefined}
+      className={wideTitle
+        ? "account-page__header grid gap-5"
+        : "account-page__header grid gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"}
     >
       <div className="flex min-w-0 items-start gap-4">
-        <div className="account-page__mark mt-1" aria-hidden="true">
+        <div className="account-page__mark" aria-hidden="true">
           <Icon size={23} />
         </div>
         <div className="min-w-0">
-          <p className="eyebrow text-[var(--signal-strong)]">{eyebrow}</p>
-          <h2 className="mt-3 break-words font-[var(--font-editorial)] text-4xl font-semibold tracking-[-.05em] sm:text-5xl md:text-6xl">{title}</h2>
+          <SignedTitle as="h2" className={wideTitle
+            ? "account-page__wide-title break-words font-[var(--font-editorial)] text-4xl font-semibold leading-[.95] tracking-[-.05em] sm:text-5xl md:text-6xl"
+            : "break-words font-[var(--font-editorial)] text-4xl font-semibold leading-[.95] tracking-[-.05em] sm:text-5xl md:text-6xl"}>{title}</SignedTitle>
           {description && <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">{description}</p>}
         </div>
       </div>

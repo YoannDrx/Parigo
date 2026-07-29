@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createMemberTag, getMemberTags } from "@/lib/harvest/activity";
+import { createMemberTag, getMemberTags, getMemberTagsWithTrackCounts } from "@/lib/harvest/activity";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { assertSameOrigin, requireHarvestSession } from "@/lib/harvest/session";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const id = requestId();
   try {
     const session = await requireHarvestSession();
-    const tags = await getMemberTags(session.memberToken);
+    const tags = request.nextUrl.searchParams.get("withCounts") === "1"
+      ? await getMemberTagsWithTrackCounts(session.memberToken)
+      : await getMemberTags(session.memberToken);
     return NextResponse.json({ data: { tags }, meta: { total: tags.length, requestId: id } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

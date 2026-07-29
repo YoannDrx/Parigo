@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Clock } from "lucide-react";
+import { ChevronDown, Clock } from "lucide-react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow } from "@/components/features";
@@ -15,6 +15,10 @@ interface HistoryEntry {
   id: string;
   playedAt: string;
   track: Track;
+}
+
+interface GroupedHistoryEntry extends HistoryEntry {
+  playedAts: string[];
 }
 
 function albumFromTrack(track: Track): Album | undefined {
@@ -47,22 +51,28 @@ export default function HistoryPage() {
     return () => controller.abort();
   }, [userId]);
 
-  const groupedHistory = useMemo(() => [...history]
-    .sort((a, b) => {
+  const groupedHistory = useMemo(() => {
+    const sortedHistory = [...history].sort((a, b) => {
       const aTime = Date.parse(a.playedAt);
       const bTime = Date.parse(b.playedAt);
       return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
-    })
-    .reduce((acc, entry) => {
+    });
+    return sortedHistory.reduce((acc, entry) => {
       const date = formatParigoDate(entry.playedAt, locale === "fr" ? "fr-FR" : "en-GB", {
         weekday: "long",
         day: "numeric",
         month: "long",
       });
       if (!acc[date]) acc[date] = [];
-      acc[date].push(entry);
+      const previousEntry = acc[date].at(-1);
+      if (previousEntry?.track.id === entry.track.id) {
+        previousEntry.playedAts.push(entry.playedAt);
+      } else {
+        acc[date].push({ ...entry, playedAts: [entry.playedAt] });
+      }
       return acc;
-    }, {} as Record<string, HistoryEntry[]>), [history, locale]);
+    }, {} as Record<string, GroupedHistoryEntry[]>);
+  }, [history, locale]);
 
   return (
     <div className="account-page space-y-8">
@@ -96,47 +106,76 @@ export default function HistoryPage() {
         </motion.div>
       ) : (
         <div className="space-y-8">
-          {Object.entries(groupedHistory).map(([date, entries]) => (
-            <motion.div
+          {Object.entries(groupedHistory).map(([date, entries], groupIndex) => (
+            <motion.details
               key={date}
+              open
+              data-testid="history-day"
+              className="history-day-group group/day"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <h3 className="text-sm font-semibold text-[var(--color-gray-600)] uppercase tracking-wide mb-3">
-                {date}
-              </h3>
-              <div className="parigo-frame overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
-                {entries.map((entry, index) => (
-                  <div
-                    key={entry.id}
-                    data-testid="history-entry"
-                    className="grid border-b border-[var(--line)] last:border-b-0 sm:grid-cols-[5.75rem_minmax(0,1fr)]"
-                  >
-                    <div className="flex items-center gap-2 border-b border-[var(--line)] px-4 py-2 font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--text-muted)] sm:flex-col sm:items-start sm:justify-center sm:gap-1 sm:border-b-0 sm:border-r sm:px-4 sm:py-3">
-                      <span>{locale === "fr" ? "Écouté à" : "Played at"}</span>
-                      <time
-                        dateTime={entry.playedAt}
-                        data-testid="history-played-at"
-                        className="text-[.68rem] font-semibold tracking-[.04em] text-[var(--foreground)]"
-                      >
-                        {formatParigoTime(entry.playedAt, locale === "fr" ? "fr-FR" : "en-GB", {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </time>
-                    </div>
-                    <div className="min-w-0 [&>div]:border-b-0">
+              <summary className="history-day-group__summary flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 border-y border-[var(--line)] py-3 [&::-webkit-details-marker]:hidden">
+                <span className="flex min-w-0 items-center gap-3">
+                  <span aria-hidden="true" className="history-day-group__index font-mono text-[.58rem] text-[var(--signal-strong)]">{String(groupIndex + 1).padStart(2, "0")}</span>
+                  <span className="truncate text-sm font-semibold uppercase tracking-[.08em] text-[var(--foreground)]">{date}</span>
+                  {(() => {
+                    const listenCount = entries.reduce((total, entry) => total + entry.playedAts.length, 0);
+                    return <span className="shrink-0 font-mono text-[.56rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{listenCount} {locale === "fr" ? (listenCount === 1 ? "écoute" : "écoutes") : (listenCount === 1 ? "listen" : "listens")}</span>;
+                  })()}
+                </span>
+                <span className="history-day-group__toggle flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--line)] text-[var(--text-muted)]">
+                  <ChevronDown size={15} className="transition-transform duration-200 group-open/day:rotate-180" />
+                </span>
+              </summary>
+              <div className="history-day-group__content">
+                <div className="history-results-ledger search-results-ledger overflow-visible border border-[var(--line-strong)] bg-[var(--surface)]">
+                  <div className="search-results-ledger__header hidden min-h-10 items-center justify-between gap-6 border-b border-[var(--line-strong)] px-4 font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--text-muted)] xl:flex">
+                    <span>{locale === "fr" ? "Heure · titre · album · waveform" : "Time · title · album · waveform"}</span>
+                    <span>{locale === "fr" ? "Tempo · durée · actions" : "Tempo · duration · actions"}</span>
+                  </div>
+                  {entries.map((entry, index) => (
+                    <div
+                      key={entry.id}
+                      data-testid="history-entry"
+                      data-listen-count={entry.playedAts.length}
+                      className="history-track-row"
+                    >
                       <TrackRow
                         track={entry.track}
                         album={albumFromTrack(entry.track)}
                         index={index}
-                        showWaveform={false}
+                        density="full"
+                        condensedActions
+                        showTags={false}
+                        leadingMeta={<>
+                          <span className="font-mono text-[.5rem] uppercase tracking-[.08em] text-[var(--text-muted)]">
+                            {entry.playedAts.length > 1
+                              ? `${entry.playedAts.length} ${locale === "fr" ? "écoutes" : "listens"}`
+                              : (locale === "fr" ? "Écouté" : "Played")}
+                          </span>
+                          <span className="flex flex-col gap-0.5">
+                            {entry.playedAts.map((playedAt) => (
+                              <time
+                                key={playedAt}
+                                dateTime={playedAt}
+                                data-testid="history-played-at"
+                                className="font-mono text-[.7rem] font-semibold tracking-[.03em] text-[var(--foreground)]"
+                              >
+                                {formatParigoTime(playedAt, locale === "fr" ? "fr-FR" : "en-GB", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </time>
+                            ))}
+                          </span>
+                        </>}
                       />
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
-            </motion.div>
+            </motion.details>
           ))}
         </div>
       )}

@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Check, ImagePlus, Save, Trash2, User } from "lucide-react";
-import { Button, Input, Select, Tooltip } from "@/components/ui";
+import { Button, Input, Select, SignedTitle, Tooltip } from "@/components/ui";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
@@ -106,6 +106,18 @@ export default function AccountPage() {
 
   const statusLabel = profile.status === "active" ? (locale === "fr" ? "Actif" : "Active") : profile.status || (locale === "fr" ? "Non renseigné" : "Not provided");
   const initials = `${profile.firstName?.[0] || ""}${profile.lastName?.[0] || ""}`.toUpperCase() || profile.email[0]?.toUpperCase();
+  const downloadsUsed = profile.downloadsUsed ?? 0;
+  const downloadLimit = profile.downloadLimit ?? (
+    profile.downloadsRemaining !== undefined
+      ? downloadsUsed + profile.downloadsRemaining
+      : undefined
+  );
+  const downloadsRemaining = profile.downloadsRemaining ?? (
+    downloadLimit !== undefined ? Math.max(0, downloadLimit - downloadsUsed) : undefined
+  );
+  const downloadProgress = downloadLimit && downloadLimit > 0
+    ? Math.min(100, Math.max(0, downloadsUsed / downloadLimit * 100))
+    : 0;
   const fields: Array<{ key: keyof EditableProfile; fr: string; en: string; type?: string }> = [
     { key: "firstName", fr: "Prénom", en: "First name" }, { key: "lastName", fr: "Nom", en: "Last name" },
     { key: "company", fr: "Société", en: "Company" }, { key: "production", fr: "Production", en: "Production" },
@@ -142,8 +154,29 @@ export default function AccountPage() {
       </div>
     </section>
 
-    <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      {[{ label: locale === "fr" ? "Téléchargements utilisés" : "Downloads used", value: profile.downloadsUsed ?? "—" }, { label: locale === "fr" ? "Restants" : "Remaining", value: profile.downloadsRemaining ?? "—" }, { label: locale === "fr" ? "Limite" : "Limit", value: profile.downloadLimit ?? "—" }, { label: "Stems", value: profile.downloadStem ? (locale === "fr" ? "Autorisés" : "Allowed") : (locale === "fr" ? "Non autorisés" : "Not allowed") }].map((item) => <div key={item.label} className="parigo-frame min-h-28 border border-[var(--line)] bg-[var(--surface)] p-5"><p className="eyebrow">{item.label}</p><p className="mt-4 font-[var(--font-editorial)] text-3xl">{item.value}</p></div>)}
+    <section className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(15rem,1fr)]">
+      <article className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-6">
+        <div className="flex flex-wrap items-end justify-between gap-5">
+          <div>
+            <p className="eyebrow">{locale === "fr" ? "Quota de téléchargement" : "Download allowance"}</p>
+            <p className="mt-3 flex items-baseline gap-2">
+              <span className="font-[var(--font-editorial)] text-5xl leading-none">{downloadsRemaining ?? "—"}</span>
+              <span className="text-sm text-[var(--text-muted)]">{locale === "fr" ? "téléchargements restants" : "downloads remaining"}</span>
+            </p>
+          </div>
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-1 text-right text-xs">
+            <div><dt className="text-[var(--text-muted)]">{locale === "fr" ? "Utilisés" : "Used"}</dt><dd className="mt-1 font-mono font-semibold">{downloadsUsed}</dd></div>
+            <div><dt className="text-[var(--text-muted)]">{locale === "fr" ? "Limite" : "Limit"}</dt><dd className="mt-1 font-mono font-semibold">{downloadLimit ?? "—"}</dd></div>
+          </dl>
+        </div>
+        <div className="mt-6 h-2 overflow-hidden bg-[var(--surface-soft)]" role="progressbar" aria-label={locale === "fr" ? "Quota de téléchargement utilisé" : "Download allowance used"} aria-valuemin={0} aria-valuemax={downloadLimit ?? Math.max(downloadsUsed, 1)} aria-valuenow={downloadsUsed}>
+          <span className="block h-full bg-[var(--signal-strong)] transition-[width]" style={{ width: `${downloadProgress}%` }} />
+        </div>
+      </article>
+      <article className="parigo-frame flex min-h-36 flex-col justify-between border border-[var(--line)] bg-[var(--surface)] p-5 sm:p-6">
+        <p className="eyebrow">Stems</p>
+        <p className="mt-4 font-[var(--font-editorial)] text-3xl">{profile.downloadStem ? (locale === "fr" ? "Autorisés" : "Allowed") : (locale === "fr" ? "Non autorisés" : "Not allowed")}</p>
+      </article>
     </section>
 
     <section className="parigo-frame grid gap-4 border border-[var(--line)] bg-[var(--surface)] p-6 text-sm sm:grid-cols-2 lg:grid-cols-4 md:p-8">
@@ -154,7 +187,7 @@ export default function AccountPage() {
     </section>
 
     <form onSubmit={save} className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-6 md:p-8">
-      <div className="mb-6"><h2 className="font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Identité et activité" : "Identity and business"}</h2><p className="mt-2 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Les champs professionnels et postaux sont facultatifs." : "Business and postal fields are optional."}</p></div>
+      <div className="mb-6"><SignedTitle as="h2" className="font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Identité et activité" : "Identity and business"}</SignedTitle><p className="mt-2 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Les champs professionnels et postaux sont facultatifs." : "Business and postal fields are optional."}</p></div>
       <div className="grid gap-5 sm:grid-cols-2">{fields.map((field) => <label key={field.key} className="text-sm"><span className="mb-2 block">{locale === "fr" ? field.fr : field.en}{field.key === "firstName" || field.key === "lastName" || field.key === "country" ? " *" : ""}</span><Input type={field.type || "text"} value={String(form[field.key] ?? "")} required={field.key === "firstName" || field.key === "lastName" || field.key === "country"} onChange={(event) => setForm((current) => current ? { ...current, [field.key]: event.target.value } : current)} /></label>)}</div>
       {profile.fileFormats?.length ? <label className="mt-5 block max-w-md text-sm"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><Select value={form.fileFormatId || ""} onValueChange={(value) => setForm((current) => current ? { ...current, fileFormatId: value } : current)} ariaLabel={locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"} className="w-full [&_[role=combobox]]:min-h-12" options={profile.fileFormats.map((format) => ({ value: format.id, label: format.label }))} /></label> : null}
       <div className="mt-7 flex flex-wrap items-center gap-4"><Button type="submit" disabled={saving}>{saving ? <ParigoLoader size="icon" label={locale === "fr" ? "Enregistrement" : "Saving"} /> : <Save size={17} />}{locale === "fr" ? "Enregistrer" : "Save"}</Button>{message && <p role="status" className="inline-flex items-center gap-2 text-sm"><Check size={15} />{message}</p>}</div>
