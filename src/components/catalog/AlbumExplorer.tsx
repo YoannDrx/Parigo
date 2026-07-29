@@ -3,11 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, SlidersHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { Button } from "@/components/ui/Button";
+import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
 import { useAlbums, useSearchFilters } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
@@ -285,16 +286,16 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
       </div>
 
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-[120] bg-black/55 lg:hidden" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setMobileFiltersOpen(false); }}>
-          <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Filtres du catalogue" : "Catalogue filters"} className="absolute inset-x-0 bottom-0 max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain bg-[var(--background)] p-3">
-            <div className="sticky top-0 z-10 mb-2 flex items-center justify-between border border-[var(--line)] bg-[var(--background)] p-2">
-              <strong className="px-2">{locale === "fr" ? "Filtres" : "Filters"}</strong>
-              <button type="button" onClick={() => setMobileFiltersOpen(false)} className="grid h-11 w-11 place-items-center" aria-label={locale === "fr" ? "Fermer les filtres" : "Close filters"}><X size={19} /></button>
-            </div>
-            {filterPanel}
-            <Button className="sticky bottom-2 mt-3 w-full" onClick={() => setMobileFiltersOpen(false)}>{locale === "fr" ? `Afficher ${total} résultats` : `Show ${total} results`}</Button>
-          </div>
-        </div>
+        <MobileFilterSheet
+          ref={dialogRef}
+          title={locale === "fr" ? "Filtres" : "Filters"}
+          ariaLabel={locale === "fr" ? "Filtres du catalogue" : "Catalogue filters"}
+          closeLabel={locale === "fr" ? "Fermer les filtres" : "Close filters"}
+          actionLabel={locale === "fr" ? `Afficher ${total} résultats` : `Show ${total} results`}
+          onClose={() => setMobileFiltersOpen(false)}
+        >
+          {filterPanel}
+        </MobileFilterSheet>
       )}
     </section>
   );

@@ -214,7 +214,7 @@ export function TrackRow({
         <Link
           href={`/albums/${album.slug || album.id}`}
           aria-label={`${locale === "fr" ? "Voir l’album" : "View album"} ${album.title}`}
-          className={cn("parigo-track-row__cover relative flex-shrink-0 overflow-hidden border border-[var(--line)] transition hover:border-[var(--signal-strong)] focus-visible:border-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]/25", density === "full" ? "h-16 w-16" : "h-10 w-10")}
+          className={cn("parigo-track-row__cover relative flex-shrink-0 overflow-hidden border border-[var(--line)] transition hover:border-[var(--signal-strong)] focus-visible:border-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]/25", density === "full" ? "h-14 w-14 sm:h-16 sm:w-16" : "h-10 w-10")}
         >
           <Image
             src={album.cover}
@@ -242,10 +242,10 @@ export function TrackRow({
             </p>
             {album && (
               <div className="mt-1 flex min-w-0 items-center gap-x-3">
-                <Link href={`/albums/${album.slug || album.id}`} className="min-w-0 truncate text-xs leading-5 text-[var(--text-muted)] transition hover:text-[var(--foreground)] sm:text-sm">
+                <Link href={`/albums/${album.slug || album.id}`} className="parigo-track-row__album min-w-0 truncate text-xs leading-5 text-[var(--text-muted)] transition hover:text-[var(--foreground)] sm:text-sm">
                   {album.title}
                 </Link>
-                {album.code && <span className="album-reference-tag shrink-0">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
+                {album.code && <span className="album-reference-tag hidden shrink-0 sm:inline-flex">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
               </div>
             )}
           </div>
@@ -265,10 +265,10 @@ export function TrackRow({
             {album && (
               <>
                 <span aria-hidden="true" className="shrink-0 text-xs text-[var(--text-muted)]">—</span>
-                <Link href={`/albums/${album.slug || album.id}`} className="min-w-0 max-w-[36%] shrink truncate text-xs leading-5 text-[var(--text-muted)] transition hover:text-[var(--foreground)] sm:text-sm">
+                <Link href={`/albums/${album.slug || album.id}`} className="parigo-track-row__album min-w-0 max-w-[36%] shrink truncate text-xs leading-5 text-[var(--text-muted)] transition hover:text-[var(--foreground)] sm:text-sm">
                   {album.title}
                 </Link>
-                {album.code && <span className="album-reference-tag ml-1 shrink-0">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
+                {album.code && <span className="album-reference-tag ml-1 hidden shrink-0 sm:inline-flex">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
               </>
             )}
           </div>

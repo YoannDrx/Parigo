@@ -26,6 +26,7 @@ import { Header } from "@/components/layout/Header";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { Button } from "@/components/ui/Button";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
 import { Select } from "@/components/ui/Select";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -452,7 +453,7 @@ function SearchContent() {
       <Header />
       <main className="min-w-0 flex-1 overflow-x-clip pb-28 pt-[74px]">
         <h1 className="sr-only">{t("common.search")}</h1>
-        <div className="mx-auto grid max-w-[1920px] items-start gap-4 px-3 py-3 sm:px-4 sm:py-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
+        <div className="mx-auto grid max-w-[1920px] items-start gap-4 px-3 pb-3 pt-1 sm:px-4 sm:py-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
             {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
           </aside>
@@ -484,18 +485,18 @@ function SearchContent() {
                 )}
               </div>
 
-              <div className="search-toolbar mt-2 flex flex-wrap items-stretch justify-between gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2">
-                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 items-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
-                  <div className="search-view-toggle inline-flex min-h-11 border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
-                    <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={14} />{locale === "fr" ? "Pistes" : "Tracks"}</button>
-                    <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} />Albums</button>
+              <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
+                <div className="contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-wrap lg:items-center lg:gap-2">
+                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
+                  <div className="search-view-toggle inline-flex min-h-11 w-full border border-[var(--line-strong)] bg-[var(--background)] p-1 lg:w-auto" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
+                    <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("inline-flex min-h-10 min-w-0 flex-1 items-center justify-center gap-1.5 px-2 text-xs font-semibold transition lg:flex-none lg:gap-2 lg:px-3", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={14} />{locale === "fr" ? "Pistes" : "Tracks"}</button>
+                    <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("inline-flex min-h-10 min-w-0 flex-1 items-center justify-center gap-1.5 px-2 text-xs font-semibold transition lg:flex-none lg:gap-2 lg:px-3", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} />Albums</button>
                   </div>
-                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Versions principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
+                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="w-full min-w-0 lg:w-auto lg:min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
                 </div>
-                <div className="flex min-w-0 flex-wrap items-stretch justify-end gap-2">
-                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="min-w-[10.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
-                  <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="min-w-0 sm:min-w-[9rem]" options={[
+                <div className="contents lg:flex lg:min-w-0 lg:flex-wrap lg:items-stretch lg:justify-end lg:gap-2">
+                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="w-full min-w-0 lg:w-auto lg:min-w-[10.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
+                  <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="w-full min-w-0 lg:w-auto lg:min-w-[9rem]" options={[
                     { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
                     { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
                     { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
@@ -606,14 +607,16 @@ function SearchContent() {
       </main>
 
       {mobileFiltersOpen && (
-        <div className="fixed inset-0 z-[100] lg:hidden" role="dialog" aria-modal="true" aria-labelledby="mobile-filter-title">
-          <button type="button" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={() => setMobileFiltersOpen(false)} aria-label={t("common.close")} />
-          <div ref={dialogRef} className="parigo-drawer parigo-drawer--bottom absolute inset-0 flex animate-[fade-in_.3s_ease-out_both] flex-col bg-[var(--background)] sm:inset-x-4 sm:bottom-4 sm:top-10">
-            <div className="flex min-h-16 items-center justify-between border-b border-[var(--line)] px-4"><h2 id="mobile-filter-title" className="font-semibold">{locale === "fr" ? "Filtres" : "Filters"}</h2><button type="button" onClick={() => setMobileFiltersOpen(false)} className="flex h-11 w-11 items-center justify-center border border-[var(--line)]" aria-label={t("common.close")}><X size={17} /></button></div>
-            <div className="relative z-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto p-3">{filterPanel}</div>
-            <div className="relative z-20 shrink-0 border-t border-[var(--line)] bg-[var(--background)] p-3"><Button className="w-full" onClick={() => setMobileFiltersOpen(false)}>{locale === "fr" ? `Voir ${total.toLocaleString(locale)} résultats` : `View ${total.toLocaleString(locale)} results`}</Button></div>
-          </div>
-        </div>
+        <MobileFilterSheet
+          ref={dialogRef}
+          title={locale === "fr" ? "Filtres" : "Filters"}
+          ariaLabel={locale === "fr" ? "Filtres" : "Filters"}
+          closeLabel={t("common.close")}
+          actionLabel={locale === "fr" ? `Voir ${total.toLocaleString(locale)} résultats` : `View ${total.toLocaleString(locale)} results`}
+          onClose={() => setMobileFiltersOpen(false)}
+        >
+          {filterPanel}
+        </MobileFilterSheet>
       )}
       <Footer />
     </div>

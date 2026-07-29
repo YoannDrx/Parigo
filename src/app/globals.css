@@ -320,6 +320,10 @@ textarea {
     inset 0 3px 0 var(--signal-strong),
     0 -30px 80px rgba(0,0,0,.28);
 }
+.mobile-filter-sheet {
+  max-height: none;
+  overflow-y: hidden;
+}
 .parigo-choice {
   border-radius: var(--parigo-corner-md) var(--parigo-turn-md);
   transition:
@@ -1313,12 +1317,16 @@ textarea {
   border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
 }
 .search-workspace {
-  top: 74px;
   isolation: isolate;
-  transition: top 300ms var(--ease-out);
 }
-:root:has(header[data-header-visible="false"]) .search-workspace {
-  top: 0;
+@media (min-width: 1024px) {
+  .search-workspace {
+    top: 74px;
+    transition: top 300ms var(--ease-out);
+  }
+  :root:has(header[data-header-visible="false"]) .search-workspace {
+    top: 0;
+  }
 }
 .search-workspace::after {
   content: "";
@@ -2891,6 +2899,11 @@ textarea {
   line-height: 1;
   text-transform: uppercase;
 }
+@media (max-width: 639px) {
+  .search-results-ledger .parigo-track-row[data-density="full"] .album-reference-tag {
+    display: none;
+  }
+}
 .parigo-player::before,
 .parigo-player::after {
   content: "";
@@ -2978,8 +2991,26 @@ textarea {
 .parigo-player input[type="range"]::-webkit-slider-thumb {
   border-radius: var(--parigo-corner-sm) var(--parigo-turn-sm) !important;
 }
-@media (max-width: 479px) {
+@media (max-width: 1023px) {
   .search-toolbar .parigo-select__caption { display: none; }
+  .search-toolbar .parigo-select__trigger {
+    gap: .375rem;
+    padding-right: .625rem;
+    padding-left: .625rem;
+  }
+  .search-toolbar .parigo-select__trigger > span:last-child {
+    width: 1rem;
+  }
+  .search-toolbar .parigo-select__listbox {
+    position: fixed;
+    right: .75rem;
+    bottom: max(.75rem, env(safe-area-inset-bottom));
+    left: .75rem;
+    top: auto;
+    width: auto;
+    min-width: 0;
+    max-height: min(70dvh, 24rem);
+  }
 }
 .suggestion-rail { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--signal-strong) 55%, transparent) transparent; }
 .suggestion-rail::-webkit-scrollbar { height: 5px; }

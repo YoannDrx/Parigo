@@ -78,6 +78,7 @@ test("le poste mobile défile et la colonne desktop suit la navbar", async ({ pa
 
   if (testInfo.project.name === "mobile") {
     await expect(workspace).toHaveCSS("position", "relative");
+    await expect(workspace).toHaveCSS("top", "0px");
     await workspace.evaluate((element) => {
       element.scrollIntoView({ block: "start", behavior: "instant" });
       window.scrollBy({ top: 600, behavior: "instant" });
@@ -131,7 +132,29 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(filterScope).toBeVisible();
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
+    const sheet = filterScope.locator(".parigo-drawer");
+    await page.waitForTimeout(350);
+    const [sheetBox, viewportHeight] = await Promise.all([
+      sheet.boundingBox(),
+      page.evaluate(() => window.innerHeight),
+    ]);
+    expect(sheetBox).not.toBeNull();
+    expect(sheetBox!.height).toBeGreaterThanOrEqual(viewportHeight - 10);
+    expect(sheetBox!.height).toBeLessThan(viewportHeight);
     await filterScope.getByRole("button", { name: "Fermer" }).last().click();
+
+    const [filterBox, resultTypeBox, versionBox, densityBox] = await Promise.all([
+      page.getByRole("button", { name: /^Filtres$/ }).boundingBox(),
+      page.getByRole("group", { name: "Type de résultats" }).boundingBox(),
+      page.getByRole("combobox", { name: "Versions des pistes" }).boundingBox(),
+      page.getByRole("combobox", { name: "Niveau de détail des pistes" }).boundingBox(),
+    ]);
+    expect(filterBox).not.toBeNull();
+    expect(resultTypeBox).not.toBeNull();
+    expect(versionBox).not.toBeNull();
+    expect(densityBox).not.toBeNull();
+    expect(Math.abs(filterBox!.y - resultTypeBox!.y)).toBeLessThan(2);
+    expect(Math.abs(versionBox!.y - densityBox!.y)).toBeLessThan(2);
   }
 
   const density = page.getByRole("combobox", { name: "Niveau de détail des pistes" });
@@ -150,6 +173,23 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(page.getByRole("option", { name: "Piste essentielle" })).toBeVisible();
   await page.keyboard.press("Escape");
 
+  const version = page.getByRole("combobox", { name: "Versions des pistes" });
+  if (testInfo.project.name === "mobile") {
+    const versionValueFits = await version.locator(".parigo-select__value").evaluate((node) => node.scrollWidth <= node.clientWidth);
+    expect(versionValueFits).toBe(true);
+    await version.click();
+    const listbox = page.getByRole("listbox", { name: "Versions des pistes" });
+    await expect(listbox).toBeVisible();
+    const [listboxBox, viewportWidth] = await Promise.all([
+      listbox.boundingBox(),
+      page.evaluate(() => window.innerWidth),
+    ]);
+    expect(listboxBox).not.toBeNull();
+    expect(listboxBox!.x).toBeGreaterThanOrEqual(0);
+    expect(listboxBox!.x + listboxBox!.width).toBeLessThanOrEqual(viewportWidth);
+    await page.keyboard.press("Escape");
+  }
+
   const sort = page.getByRole("combobox", { name: "Trier les résultats" });
   await sort.click();
   for (const label of ["Pertinence", "Plus récents", "Plus anciens", "A–Z", "Z–A"]) {
@@ -161,6 +201,14 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   const trackTitle = page.locator(".parigo-track-row__title").first();
   await expect(trackTitle).toBeVisible({ timeout: 30_000 });
   await expect(trackTitle).toHaveJSProperty("tagName", "P");
+  const albumTitle = page.locator(".parigo-track-row__album").first();
+  await expect(albumTitle).toBeVisible();
+  await expect(albumTitle).not.toHaveText("");
+  if (testInfo.project.name === "mobile") {
+    const albumTitleBox = await albumTitle.boundingBox();
+    expect(albumTitleBox).not.toBeNull();
+    expect(albumTitleBox!.width).toBeGreaterThan(60);
+  }
   await trackTitle.click();
   await expect(page.locator(".track-detail-panel")).toHaveCount(0);
 

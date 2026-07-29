@@ -18,6 +18,7 @@ test("les postes de filtrage défilent sur mobile et restent visibles sur deskto
     const workspace = page.getByTestId("catalog-workspace");
     await expect(workspace).toBeVisible();
     await expect(workspace).toHaveCSS("position", testInfo.project.name === "mobile" ? "relative" : "sticky");
+    if (testInfo.project.name === "mobile") await expect(workspace).toHaveCSS("top", "0px");
     await workspace.evaluate((element) => {
       element.scrollIntoView({ block: "start", behavior: "instant" });
       window.scrollBy({ top: 600, behavior: "instant" });
@@ -86,6 +87,16 @@ test("la discographie d’un label se recherche et expose les filtres complets",
     ? page.getByRole("dialog", { name: "Filtres du catalogue" })
     : page.locator("aside");
   await expect(filterScope.getByRole("heading", { level: 2, name: "Affiner la recherche" })).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    await page.waitForTimeout(350);
+    const [sheetBox, viewportHeight] = await Promise.all([
+      filterScope.locator(".mobile-filter-sheet").boundingBox(),
+      page.evaluate(() => window.innerHeight),
+    ]);
+    expect(sheetBox).not.toBeNull();
+    expect(sheetBox!.height).toBeGreaterThanOrEqual(viewportHeight - 10);
+    expect(sheetBox!.height).toBeLessThan(viewportHeight);
+  }
   await expect(filterScope.getByLabel("BPM minimum")).toBeVisible();
   await expect(filterScope.getByLabel("Durée minimum")).toBeVisible();
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
