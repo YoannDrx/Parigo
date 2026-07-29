@@ -520,9 +520,9 @@ function SearchContent() {
                     <strong className="search-query-resolution__tag inline-flex max-w-full align-middle">{queryResolution.effective}</strong>
                   </p>
                 </div>
-                <Link href={literalSearchHref} onClick={() => setTranslateAliases(false)} className="search-query-resolution__literal group/literal inline-flex min-h-10 shrink-0 items-center self-start px-1 text-xs font-semibold transition-colors hover:text-[var(--signal-strong)] focus-visible:text-[var(--signal-strong)] sm:self-center">
+                <a href={literalSearchHref} className="search-query-resolution__literal group/literal inline-flex min-h-10 shrink-0 items-center self-start px-1 text-xs font-semibold transition-colors hover:text-[var(--signal-strong)] focus-visible:text-[var(--signal-strong)] sm:self-center">
                   <span>{locale === "fr" ? `Chercher « ${queryResolution.original} » littéralement` : `Search literally for “${queryResolution.original}”`}</span>
-                </Link>
+                </a>
               </div>
             ) : null}
 
