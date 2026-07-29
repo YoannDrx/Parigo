@@ -21,6 +21,8 @@ interface SelectProps<T extends string = string> {
   id?: string;
   name?: string;
   variant?: "default" | "editorial";
+  placement?: "top" | "bottom";
+  listboxClassName?: string;
 }
 
 export function Select<T extends string>({
@@ -34,6 +36,8 @@ export function Select<T extends string>({
   id,
   name,
   variant = "default",
+  placement = "bottom",
+  listboxClassName,
 }: SelectProps<T>) {
   const generatedId = useId();
   const listboxId = `${id || generatedId}-listbox`;
@@ -126,7 +130,12 @@ export function Select<T extends string>({
       </button>
 
       {open && (
-        <div id={listboxId} role="listbox" aria-label={ariaLabel} className={cn("parigo-select__listbox absolute right-0 top-[calc(100%+.45rem)] z-[70] max-h-72 min-w-full overflow-y-auto border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[0_22px_60px_rgba(15,22,16,.18)]", variant === "default" && "rounded-[var(--radius-md)]")}>
+        <div id={listboxId} role="listbox" aria-label={ariaLabel} className={cn(
+          "parigo-select__listbox absolute right-0 z-[70] max-h-72 min-w-full overscroll-contain overflow-y-auto border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 shadow-[0_22px_60px_rgba(15,22,16,.18)]",
+          placement === "top" ? "bottom-[calc(100%+.45rem)]" : "top-[calc(100%+.45rem)]",
+          variant === "default" && "rounded-[var(--radius-md)]",
+          listboxClassName,
+        )}>
           {options.map((option, index) => {
             const isSelected = option.value === value;
             return (

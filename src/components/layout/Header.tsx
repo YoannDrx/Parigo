@@ -151,7 +151,6 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <Link href={hrefFor("/legal")} className="min-h-9 hover:text-[var(--foreground)]">{t("footer.legalNotice")}</Link>
                   <Link href={hrefFor("/privacy")} className="min-h-9 hover:text-[var(--foreground)]">{t("footer.privacy")}</Link>
                 </div>
-                <p className="eyebrow mt-auto text-[var(--text-muted)]">Paris · France</p>
               </aside>
             </div>
           </div>

@@ -134,9 +134,58 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   expect(createdPayload).toEqual({ title: "Premier film", description: "Piano documentaire et texture intime" });
   expect(nativeDialog).toBeNull();
 
+  await page.getByRole("button", { name: "Vue liste" }).click();
+  await expect(page.getByTestId("account-playlist-list")).toBeVisible();
+  await expect(page).toHaveURL(/view=list/);
+
   const search = page.getByRole("textbox", { name: "Rechercher dans mes playlists" });
   await search.fill("absente");
   await expect(page.getByRole("heading", { name: "Aucune playlist ne correspond." })).toBeVisible();
+});
+
+test("les tags personnels ramènent vers la piste précise et vers son album", async ({ page }) => {
+  await mockSession(page);
+  await page.route("**/api/user/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }] } }) }));
+  await page.route("**/api/user/tags/tag-1/tracks", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tracks: [track] } }) }));
+
+  await page.goto("/account/tags");
+  const taggedTrack = page.getByTestId("tagged-track-list").getByText(track.title, { exact: true });
+  await expect(taggedTrack).toHaveAttribute("href", "/albums/album-1?track=track-1");
+  await expect(page.getByTestId("tagged-track-list").getByText(track.albumTitle, { exact: true })).toHaveAttribute("href", "/albums/album-1");
+});
+
+test("la shortlist rend ses pistes navigables et garde les longues listes de playlists scrollables", async ({ page }) => {
+  await mockSession(page);
+  const playlists = Array.from({ length: 28 }, (_, index) => ({
+    id: `playlist-${index + 1}`,
+    title: `Playlist ${String(index + 1).padStart(2, "0")}`,
+    trackCount: index,
+  }));
+  await page.addInitScript((shortlistTrack) => {
+    window.localStorage.setItem("parigo-shortlist", JSON.stringify({
+      state: { items: [{ track: shortlistTrack, addedAt: "2026-07-29T10:00:00.000Z" }] },
+      version: 2,
+    }));
+  }, track);
+  await page.route("**/api/user/playlists/playlist-1/tracks", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { updated: true, verified: true } }) }));
+  await page.route("**/api/user/playlists", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlists } }) }));
+
+  await page.goto("/");
+  await page.locator("[data-shortlist-trigger]").click();
+  const drawer = page.getByRole("dialog", { name: "Shortlist" });
+  await expect(drawer.getByText(track.title, { exact: true })).toHaveAttribute("href", "/albums/album-1?track=track-1");
+  await expect(drawer.getByText(track.albumTitle, { exact: true })).toHaveAttribute("href", "/albums/album-1");
+  await drawer.getByRole("button", { name: "Playlist existante" }).click();
+  await drawer.getByRole("combobox", { name: "Playlist existante" }).click();
+  const listbox = drawer.getByRole("listbox", { name: "Playlist existante" });
+  await expect(listbox).toBeVisible();
+  expect(await listbox.evaluate((node) => node.scrollHeight > node.clientHeight)).toBe(true);
+  await listbox.getByRole("option", { name: "Playlist 01" }).click();
+  await drawer.getByRole("button", { name: "Ajouter à la playlist" }).click();
+  const status = drawer.getByRole("status");
+  await expect(status).toContainText("Playlist enregistrée.");
+  await expect(status).toHaveCSS("text-align", "center");
+  await expect(status).toHaveCount(0, { timeout: 5_500 });
 });
 
 test("les commandes de photo de profil sont intégrées à l’avatar", async ({ page }) => {
@@ -235,7 +284,12 @@ test("la suppression du compte utilise une alerte éditoriale progressive", asyn
 
 test("les recherches sauvegardées restent relançables et supprimables", async ({ page }, testInfo) => {
   await mockSession(page);
+  let renamedSearch = "";
   await page.route("**/api/user/searches", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { searches: [{ id: "search-1", name: "Piano documentaire", searchUrl: "/search?q=piano&view=tracks", searchTermsCount: 2, createdAt: "2026-07-20T10:00:00.000Z" }] } }) }));
+  await page.route("**/api/user/searches/search-1", async (route) => {
+    renamedSearch = String((route.request().postDataJSON() as { name?: string }).name || "");
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { updated: true, search: { id: "search-1", name: renamedSearch, searchUrl: "/search?q=piano&view=tracks", searchTermsCount: 2, createdAt: "2026-07-20T10:00:00.000Z" } } }) });
+  });
   await page.route("**/api/user/searches?id=search-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { removed: true } }) }));
   await page.goto("/account/searches");
   await expect(page.getByRole("heading", { level: 1, name: "Votre espace" })).toBeVisible();
@@ -276,8 +330,13 @@ test("les recherches sauvegardées restent relançables et supprimables", async 
   expect(savedSearchCardBox).not.toBeNull();
   expect(savedSearchTitleBox!.x - savedSearchCardBox!.x).toBeGreaterThanOrEqual(20);
   await expect(page.getByRole("link", { name: "Relancer" })).toHaveAttribute("href", "/search?q=piano&view=tracks");
-  await page.getByRole("button", { name: "Supprimer Piano documentaire" }).click();
-  await expect(page.getByText("Piano documentaire", { exact: true })).toHaveCount(0);
+  await page.getByRole("button", { name: "Renommer Piano documentaire" }).click();
+  await page.getByLabel("Nouveau nom de la recherche").fill("Piano sensible");
+  await page.getByRole("button", { name: "Enregistrer le nom" }).click();
+  await expect(page.getByText("Piano sensible", { exact: true })).toBeVisible();
+  expect(renamedSearch).toBe("Piano sensible");
+  await page.getByRole("button", { name: "Supprimer Piano sensible" }).click();
+  await expect(page.getByText("Piano sensible", { exact: true })).toHaveCount(0);
 });
 
 test("une playlist expose suggestions et partage avancé", async ({ page }) => {

@@ -792,6 +792,11 @@ async function main() {
           trackIds: [trackId],
         }));
         const tagTracks = await direct(`/getmembertagtracks/${memberToken}/${encodeURIComponent(tagId)}?Skip=0&Limit=100&Sort=Alphabetic_Asc`);
+        const tagTrackRoot = record(tagTracks.payload);
+        const directTagRecords = records(tagTracks.payload, "Tags");
+        const directTrackRecords = directTagRecords.flatMap((tag) => records(tag, "Tracks"));
+        const bffTagTracks = await bff(`/api/user/tags/${encodeURIComponent(tagId)}/tracks`);
+        const bffTrackRecords = records(record(bffTagTracks.payload)?.data, "tracks");
         const tagTrackAdded = containsValue(tagTracks.payload, trackId);
         addResult({
           family: "Tags personnels",
@@ -800,7 +805,13 @@ async function main() {
           endpoint: "POST /api/user/tags/[id]/tracks → addtomembertags",
           status: addTagTrack.status,
           outcome: addTagTrack.status === 200 && tagTrackAdded ? "PASS" : "FAIL",
-          detail: tagTrackAdded ? "Association visible directement." : safeError(addTagTrack.payload, addTagTrack.status),
+          detail: [
+            tagTrackAdded ? "Association visible directement." : safeError(addTagTrack.payload, addTagTrack.status),
+            `Forme expurgée: racine=${Object.keys(tagTrackRoot || {}).sort().join("|") || "vide"},`,
+            `Tags=${directTagRecords.length}, clés Tags[0]=${Object.keys(directTagRecords[0] || {}).sort().join("|") || "vide"},`,
+            `Tracks imbriquées=${directTrackRecords.length},`,
+            `lecture BFF=${bffTagTracks.status}/${bffTrackRecords.length}.`,
+          ].join(" "),
           cleanup: "non testé",
         });
 

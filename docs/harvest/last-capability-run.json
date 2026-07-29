@@ -1,0 +1,153 @@
+{
+  "runId": "20260729142054",
+  "generatedAt": "2026-07-29T14:21:57.120Z",
+  "accountDeleted": false,
+  "resourcesCleaned": true,
+  "results": [
+    {
+      "capability": "structured-right-holders",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "topKeys": [
+        "RightHolders"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "count": 2
+    },
+    {
+      "capability": "communication-history",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "topKeys": [
+        "History"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "count": 0
+    },
+    {
+      "capability": "tag-create",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "topKeys": [
+        "Tags"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "resourceReturned": true
+    },
+    {
+      "capability": "tags-by-track",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "topKeys": [
+        "Tags"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "addAcknowledged": true,
+      "linked": true
+    },
+    {
+      "capability": "saved-search-create",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:18 GMT",
+      "topKeys": [
+        "Error"
+      ],
+      "errorCode": "4",
+      "errorDescription": "Input string was not in a correct format.",
+      "resourcePersisted": false
+    },
+    {
+      "capability": "saved-search-rename-existing-and-restore",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:53 GMT",
+      "topKeys": [
+        "CreatedDate",
+        "Description",
+        "ID",
+        "LastUpdateDate",
+        "Name"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "restored": true
+    },
+    {
+      "capability": "playlist-category-create",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:53 GMT",
+      "topKeys": [
+        "PlaylistCategories"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "resourcePersisted": true
+    },
+    {
+      "capability": "playlist-category-update",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:54 GMT",
+      "topKeys": [
+        "PlaylistCategories"
+      ],
+      "errorCode": null,
+      "errorDescription": null
+    },
+    {
+      "capability": "member-playlist-duplicate",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:54 GMT",
+      "topKeys": [
+        "Playlists"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "resourcePersisted": true
+    },
+    {
+      "capability": "member-playlist-track-search",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:55 GMT",
+      "topKeys": [
+        "Album",
+        "Library",
+        "TotalTracks",
+        "Tracks"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "trackCount": 8
+    },
+    {
+      "capability": "member-playlist-folder-move",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:55 GMT",
+      "topKeys": [
+        "Code"
+      ],
+      "errorCode": null,
+      "errorDescription": null
+    },
+    {
+      "capability": "member-playlist-archive-restore",
+      "status": 200,
+      "httpDate": "Wed, 29 Jul 2026 14:21:56 GMT",
+      "topKeys": [
+        "Code"
+      ],
+      "errorCode": null,
+      "errorDescription": null,
+      "archiveAcknowledged": true,
+      "absentFromActive": true,
+      "restoredToActive": true
+    },
+    {
+      "capability": "grouped-download-info",
+      "tested": false,
+      "reason": "download history exposes neither DownloadID nor DownloadGroupID"
+    }
+  ]
+}

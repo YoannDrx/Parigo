@@ -68,7 +68,10 @@ export function harvestErrorFromPayload(payload: unknown): HarvestError | null {
   if (code === "17") {
     return new HarvestError(description, "VALIDATION_FAILED", 409, false, code);
   }
-  const transientFailure = code === "4" || /temporar|timeout/i.test(description);
+  // Harvest documents code 4 as an internal operation error. It is not proof
+  // that repeating a member mutation is safe, so keep it non-retryable unless
+  // the upstream description explicitly says the failure is transient.
+  const transientFailure = /temporar|timeout/i.test(description);
   return new HarvestError(
     description,
     "HARVEST_UNAVAILABLE",

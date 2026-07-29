@@ -41,10 +41,11 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: /Trouver la bonne musique/i })).toBeVisible();
-  await expect.poll(() => new URL(page.url()).searchParams.get("categories"), { timeout: 30_000 }).not.toBeNull();
+  await expect(page.getByTestId("search-detected-criteria").getByText("Piano", { exact: true })).toBeVisible();
   const resolvedUrl = new URL(page.url());
   expect(resolvedUrl.searchParams.get("brief")).toBe("Un piano intime pour un documentaire");
   expect(resolvedUrl.searchParams.has("q")).toBe(false);
+  expect(resolvedUrl.searchParams.has("categories")).toBe(false);
 });
 
 test("le CTA Qui sommes-nous conserve un contraste lisible dans les deux thèmes", async ({ page }, testInfo) => {
@@ -201,6 +202,7 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await menuTrigger.click();
   const menu = page.getByRole("dialog", { name: "Menu principal" });
   await expect(menu).toBeVisible();
+  await expect(menu).not.toContainText("Paris · France");
   expect(await menu.getByTestId("drawer-navigation").getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
     "/search",
     "/labels",
@@ -239,6 +241,32 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
 
   await expect(page.getByRole("heading", { name: "Une sélection, plusieurs récits." })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
+});
+
+test("le footer reprend l’ordre du menu et sépare le compte des réseaux sociaux", async ({ page }) => {
+  await page.setViewportSize({ width: 768, height: 900 });
+  await page.goto("/");
+  const footer = page.locator("footer");
+  const explore = footer.getByRole("heading", { name: "Explorer", exact: true }).locator("xpath=..");
+  expect(await explore.getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
+    "/search",
+    "/labels",
+    "/label-parigo",
+    "/albums",
+    "/synchronisations",
+    "/playlists",
+    "/licensing",
+    "/clips",
+    "/compositeurs",
+  ]);
+
+  const account = footer.getByRole("button", { name: /Créer un compte Parigo/ });
+  const instagram = footer.getByRole("link", { name: "Instagram" });
+  const accountBox = await account.boundingBox();
+  const instagramBox = await instagram.boundingBox();
+  expect(accountBox).not.toBeNull();
+  expect(instagramBox).not.toBeNull();
+  expect(accountBox!.y + accountBox!.height).toBeLessThanOrEqual(instagramBox!.y);
 });
 
 test("la home et les pistes proposent des interactions tactiles dédiées", async ({ page }, testInfo) => {
@@ -309,11 +337,10 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   else {
     await expect(nextButton).toBeEnabled();
     await expect(nextButton).toHaveClass(/home-rail-nav--next/);
-    await expect(nextButton).toHaveCSS("border-radius", "8px 16px");
-    expect((await nextButton.boundingBox())!.width).toBeGreaterThanOrEqual(76);
-    expect((await nextButton.boundingBox())!.height).toBeGreaterThanOrEqual(56);
+    expect((await nextButton.boundingBox())!.width).toBeLessThanOrEqual(44);
+    expect((await nextButton.boundingBox())!.height).toBeLessThanOrEqual(44);
     await nextButton.hover();
-    await expect.poll(() => nextButton.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe("none");
+    await expect.poll(() => nextButton.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
     await expect(page.getByRole("tooltip")).toHaveText("Suivant");
     const inverseButton = page.locator(".home-rail-nav--inverse").last();
     const inverseColors = await inverseButton.evaluate((node) => ({
@@ -357,6 +384,33 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toBeVisible();
 });
 
+test("les trois rails éditoriaux reprennent exactement le fond de leur section", async ({ page }) => {
+  await page.goto("/");
+  const sections = [
+    page.locator("#featured"),
+    page.getByTestId("home-clips-section"),
+    page.getByTestId("home-sync-section"),
+  ];
+  for (const section of sections) {
+    await section.scrollIntoViewIfNeeded();
+    const rail = section.locator(".home-rail").first();
+    const card = rail.locator(".home-rail-card, .home-sync-card").first();
+    await expect(rail).toBeVisible();
+    await expect(card).toBeVisible();
+    const colors = await section.evaluate((node) => {
+      const railNode = node.querySelector<HTMLElement>(".home-rail");
+      const cardNode = node.querySelector<HTMLElement>(".home-rail-card, .home-sync-card");
+      return {
+        section: getComputedStyle(node).backgroundColor,
+        rail: railNode ? getComputedStyle(railNode).backgroundColor : "",
+        card: cardNode ? getComputedStyle(cardNode).backgroundColor : "",
+      };
+    });
+    expect(colors.rail).toBe(colors.section);
+    expect(colors.card).toBe(colors.section);
+  }
+});
+
 test("le manifesto se révèle automatiquement sans sticky ni hauteur artificielle", async ({ page }) => {
   await page.goto("/");
   const section = page.locator("#manifesto");
@@ -371,17 +425,23 @@ test("le manifesto se révèle automatiquement sans sticky ni hauteur artificiel
     return {
       background: style.backgroundColor,
       border: style.borderLeftWidth,
+      bottom: Number.parseFloat(style.bottom),
+      shadow: style.boxShadow,
+      top: Number.parseFloat(style.top),
       opacity: style.opacity,
     };
   });
   expect(revealStyle.background).not.toBe("rgba(0, 0, 0, 0)");
   expect(revealStyle.border).toBe("3px");
+  expect(revealStyle.top).toBeLessThan(-10);
+  expect(revealStyle.bottom).toBeLessThan(-10);
+  expect(revealStyle.shadow).toBe("none");
   expect(revealStyle.opacity).toBe("1");
   await expect(section.locator(":scope > div")).not.toHaveCSS("position", "sticky");
   expect(await section.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual((await page.evaluate(() => innerHeight)) * 1.2);
 });
 
-test("le manifesto révèle des pochettes Parigo dans différentes zones après l’animation", async ({ page }, testInfo) => {
+test("le manifesto fait apparaître plusieurs pochettes au fil du pointeur puis les retire à la sortie", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "L’exploration des pochettes est une interaction au pointeur.");
   await page.goto("/");
   const section = page.locator("#manifesto");
@@ -390,35 +450,33 @@ test("le manifesto révèle des pochettes Parigo dans différentes zones après 
   const box = await section.boundingBox();
   expect(box).not.toBeNull();
   await page.mouse.move(box!.x + box!.width * .14, box!.y + box!.height * .22);
-  const firstCover = page.getByTestId("manifesto-album-cover");
-  await expect(firstCover).toBeVisible();
-  const firstSource = await firstCover.locator("img").getAttribute("src");
+  const covers = page.getByTestId("manifesto-album-cover");
+  await expect(covers).toHaveCount(1);
+  const firstSource = await covers.first().locator("img").getAttribute("src");
   expect(firstSource).toMatch(/^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/albumart\//);
   expect(firstSource).not.toContain("/_next/image");
-  const zones = [
-    [.31, .66],
-    [.52, .28],
-    [.69, .58],
-    [.84, .72],
-  ] as const;
-  for (const [x, y] of zones) {
-    await section.dispatchEvent("pointermove", {
-      clientX: box!.x + box!.width * x,
-      clientY: box!.y + box!.height * y,
-      pointerType: "mouse",
-    });
-    await page.waitForTimeout(80);
-  }
-  await expect.poll(() => page.getByTestId("manifesto-album-cover").count()).toBeGreaterThanOrEqual(12);
-  await expect.poll(async () => page.getByTestId("manifesto-album-cover").evaluateAll((covers) => (
-    covers.length > 0 && covers.every((cover) => Number(getComputedStyle(cover).opacity) === 1)
-  ))).toBe(true);
-  await expect.poll(async () => page.getByTestId("manifesto-album-cover").last().locator("img").getAttribute("src")).not.toBe(firstSource);
-  const coverAngles = await page.getByTestId("manifesto-album-cover").evaluateAll((covers) => (
-    covers.map((cover) => getComputedStyle(cover).transform)
-  ));
-  expect(new Set(coverAngles).size).toBeGreaterThan(2);
-  await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0, { timeout: 7_000 });
+  await section.dispatchEvent("pointermove", {
+    clientX: box!.x + box!.width * .82,
+    clientY: box!.y + box!.height * .72,
+    pointerType: "mouse",
+  });
+  await expect.poll(() => covers.count()).toBeGreaterThan(1);
+  expect(await covers.count()).toBeLessThanOrEqual(24);
+  await expect(covers.first()).not.toHaveCSS("border-radius", "999px");
+  await section.dispatchEvent("pointerleave", { pointerType: "mouse" });
+  await expect(covers).toHaveCount(0, { timeout: 7_000 });
+});
+
+test("le manifesto désactive les pochettes décoratives quand les animations sont réduites", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const section = page.locator("#manifesto");
+  await section.scrollIntoViewIfNeeded();
+  const box = await section.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
+  await page.waitForTimeout(300);
+  await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
 });
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }) => {
@@ -449,8 +507,8 @@ test("la recherche depuis l’accueil interprète l’intention et alimente le l
   await page.getByLabel("Décrivez la musique que vous imaginez").fill("piano");
   await page.getByRole("button", { name: "Recherche", exact: true }).click();
   await expect(page).toHaveURL(/brief=piano/);
-  await expect(page).toHaveURL(/categories=ATT_51bcfc1bd83261cd/);
-  expect(new URL(page.url()).searchParams.get("categories")).toBe("ATT_51bcfc1bd83261cd");
+  await expect(page.getByTestId("search-detected-criteria").getByText("Piano", { exact: true })).toBeVisible();
+  expect(new URL(page.url()).searchParams.has("categories")).toBe(false);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
   const firstTrack = page.getByRole("button", { name: /^Écouter / }).first();
   const trackTitle = (await firstTrack.getAttribute("aria-label"))?.replace(/^Écouter /, "") || "";
@@ -519,22 +577,23 @@ test("la recherche assistée résout Techno dans le bon groupe sans double contr
   await input.fill("Une techno qui tabasse.");
   await expect(interpretation).toContainText("Techno");
   await expect(interpretation).toContainText("Énergique");
-  await expect.poll(() => {
-    const params = new URL(page.url()).searchParams;
-    return {
-      brief: params.get("brief"),
-      categories: params.get("categories")?.split(","),
-    };
-  }, { timeout: 30_000 }).toEqual({
-    brief: "Une techno qui tabasse.",
-    categories: ["ATT_8c1be9ece2483e34", "ATT_b242dfd7a2cf175e"],
-  });
+  await expect.poll(() => new URL(page.url()).searchParams.get("brief"), {
+    timeout: 30_000,
+  }).toBe("Une techno qui tabasse.");
+  const contractResponse = await page.request.get(
+    "/api/search?brief=Une%20techno%20qui%20tabasse.&resolve=1&view=tracks&limit=1",
+  );
+  expect(contractResponse.ok()).toBe(true);
+  const contract = await contractResponse.json();
+  expect(contract.meta.intentResolution.categoryIds).toEqual([
+    "ATT_8c1be9ece2483e34",
+    "ATT_b242dfd7a2cf175e",
+  ]);
 
   const url = new URL(page.url());
   expect(url.searchParams.has("q")).toBe(false);
   expect(url.searchParams.get("brief")).toBe("Une techno qui tabasse.");
-  expect(url.searchParams.get("categories")?.split(",")).toEqual(["ATT_8c1be9ece2483e34", "ATT_b242dfd7a2cf175e"]);
-  await expect(page.getByText("2 critères actifs", { exact: true })).toBeVisible();
+  expect(url.searchParams.has("categories")).toBe(false);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 });
 
@@ -554,12 +613,12 @@ test("la recherche exacte reste accessible depuis le champ unifié", async ({ pa
 test("les suggestions et les tags enrichis restent lisibles", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Les tags de piste détaillés sont réservés à la densité desktop.");
   await page.goto("/search?q=piano&view=tracks&type=main");
-  const moreTags = page.getByRole("button", { name: /^Voir tous les tags :/ }).first();
+  const moreTags = page.locator(".parigo-track-row__more-tags").first();
   await expect(moreTags).toBeVisible({ timeout: 30_000 });
   await moreTags.hover();
   await expect(page.getByRole("tooltip")).toContainText("Autres tags");
   await moreTags.click();
-  await expect(moreTags.locator("xpath=ancestor::article")).toContainText("Mots clés");
+  await expect(moreTags.locator("xpath=ancestor::article").locator(".track-detail-panel")).toHaveCount(0);
 });
 
 test("les héros playlists et synchronisations conservent leurs contenus", async ({ page }) => {

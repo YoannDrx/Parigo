@@ -2,7 +2,19 @@
  * API Client for fetching data from our backend
  */
 
-import type { Album, AutocompleteGroup, CatalogCategory, Label, Playlist, QueryResolution, SearchFacets, SearchFilterGroup, SortMode, Track } from "@/types";
+import type {
+  Album,
+  AutocompleteGroup,
+  CatalogCategory,
+  Label,
+  Playlist,
+  QueryResolution,
+  SearchFacets,
+  SearchFilterGroup,
+  SearchIntentResolution,
+  SortMode,
+  Track,
+} from "@/types";
 
 const API_BASE = "/api";
 
@@ -44,7 +56,15 @@ export interface PaginatedResponse {
 
 interface SearchApiResponse<T extends Track | Album> {
   data: { items: T[]; view: "tracks" | "albums"; facets: SearchFacets };
-  meta: { page: number; pageSize: number; total: number; requestId: string; searchHistoryId?: string; queryResolution?: QueryResolution };
+  meta: {
+    page: number;
+    pageSize: number;
+    total: number;
+    requestId: string;
+    searchHistoryId?: string;
+    queryResolution?: QueryResolution;
+    intentResolution?: SearchIntentResolution;
+  };
 }
 
 // API Functions
@@ -58,6 +78,8 @@ export async function fetchAlbums(params?: {
   moods?: string[];
   instruments?: string[];
   query?: string;
+  brief?: string;
+  resolveBrief?: boolean;
   featured?: boolean;
   sort?: "order" | "releaseDate" | SortMode;
   forceSearch?: boolean;
@@ -70,8 +92,8 @@ export async function fetchAlbums(params?: {
   maxBpm?: number;
   minDuration?: number;
   maxDuration?: number;
-}, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution } & PaginatedResponse> {
-  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.categories?.length || params?.labels?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
+}, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution; intentResolution?: SearchIntentResolution } & PaginatedResponse> {
+  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.brief || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.categories?.length || params?.labels?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
   if (usesSearch) {
     const searchParams = new URLSearchParams({
       view: "albums",
@@ -80,6 +102,8 @@ export async function fetchAlbums(params?: {
       sort: params?.sort && !["order", "releaseDate"].includes(params.sort) ? params.sort : "recent",
     });
     if (params?.query) searchParams.set("q", params.query);
+    if (params?.brief) searchParams.set("brief", params.brief);
+    if (params?.brief && params.resolveBrief !== false) searchParams.set("resolve", "1");
     const labels = [...(params?.labels || []), ...(params?.label ? [params.label] : [])];
     if (labels.length) searchParams.set("labels", [...new Set(labels)].join(","));
     const categories = [...(params?.genres || []), ...(params?.moods || []), ...(params?.instruments || []), ...(params?.categories || [])];
@@ -99,6 +123,7 @@ export async function fetchAlbums(params?: {
       facets: payload.data.facets,
       searchHistoryId: payload.meta.searchHistoryId,
       queryResolution: payload.meta.queryResolution,
+      intentResolution: payload.meta.intentResolution,
       pagination: { total: payload.meta.total, limit: payload.meta.pageSize, offset: (payload.meta.page - 1) * payload.meta.pageSize, hasMore: payload.meta.page * payload.meta.pageSize < payload.meta.total },
     };
   }
@@ -135,6 +160,8 @@ export async function fetchTracks(params?: {
   offset?: number;
   albumId?: string;
   query?: string;
+  brief?: string;
+  resolveBrief?: boolean;
   genre?: string;
   genres?: string[];
   mood?: string;
@@ -153,7 +180,7 @@ export async function fetchTracks(params?: {
   language?: "fr" | "en";
   sort?: SortMode;
   translate?: boolean;
-}, signal?: AbortSignal): Promise<{ tracks: ApiTrack[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution } & PaginatedResponse> {
+}, signal?: AbortSignal): Promise<{ tracks: ApiTrack[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution; intentResolution?: SearchIntentResolution } & PaginatedResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
@@ -166,6 +193,8 @@ export async function fetchTracks(params?: {
   searchParams.set("view", "tracks");
   searchParams.set("page", String(Math.floor((params?.offset || 0) / (params?.limit || 30)) + 1));
   if (params?.query) searchParams.set("q", params.query);
+  if (params?.brief) searchParams.set("brief", params.brief);
+  if (params?.brief && params.resolveBrief !== false) searchParams.set("resolve", "1");
   const categories = [params?.genre, params?.mood, params?.instrument, ...(params?.genres || []), ...(params?.moods || []), ...(params?.instruments || []), ...(params?.categories || [])].filter(Boolean) as string[];
   if (categories.length) searchParams.set("categories", [...new Set(categories)].join(","));
   if (params?.minBpm) searchParams.set("bpmMin", params.minBpm.toString());
@@ -187,6 +216,7 @@ export async function fetchTracks(params?: {
     facets: payload.data.facets,
     searchHistoryId: payload.meta.searchHistoryId,
     queryResolution: payload.meta.queryResolution,
+    intentResolution: payload.meta.intentResolution,
     pagination: { total: payload.meta.total, limit: payload.meta.pageSize, offset: (payload.meta.page - 1) * payload.meta.pageSize, hasMore: payload.meta.page * payload.meta.pageSize < payload.meta.total },
   };
 }

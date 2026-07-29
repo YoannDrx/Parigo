@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import {
   buildAddTracksToTags,
   buildAddTracksToPlaylists,
+  buildCreateMemberPlaylist,
+  buildCueSheetTracks,
   buildCopyFeaturedPlaylist,
   buildDownloadRequest,
   buildDownloadValidation,
-  buildMemberPlaylist,
+  buildRemovePlaylistTracks,
+  buildUpdateMemberPlaylist,
   buildPlaylistShare,
   buildPlaylistSuggestions,
   buildReorderPlaylistTracks,
@@ -17,6 +20,13 @@ import {
   buildPasswordResetEmail,
   buildPasswordUpdate,
   buildPersistentLogin,
+  buildCommunicationHistory,
+  buildDownloadInfoQuery,
+  buildDuplicateMemberPlaylist,
+  buildPlaylistCategory,
+  buildSearchMemberPlaylistTracks,
+  buildUpdatePlaylistCategory,
+  buildUpdateSavedSearch,
 } from "./member-contracts";
 
 describe("Harvest member request contracts", () => {
@@ -46,9 +56,31 @@ describe("Harvest member request contracts", () => {
   });
 
   it("uses the documented Harvest member playlist contracts without aliases", () => {
-    expect(buildMemberPlaylist("Piano intime", "Montage final")).toEqual({
-      PlaylistName: "Piano intime",
-      PlaylistDescription: "Montage final",
+    expect(buildCreateMemberPlaylist("Piano intime", "Montage final")).toEqual({
+      requestaddupdateplaylist: {
+        playlistname: "Piano intime",
+        playlistdescription: "Montage final",
+        playlisttags: "",
+        highlighttracks: false,
+        autosave: false,
+        autosavelimit: 0,
+        autosaveapplytohighlighttracks: false,
+        playlistcategoryid: "",
+        externalplaylistimageurl: "",
+        orderby: "",
+      },
+    });
+    expect(buildUpdateMemberPlaylist("Piano intime", "Montage final")).toEqual({
+      playlistname: "Piano intime",
+      playlistdescription: "Montage final",
+      playlisttags: "",
+      highlighttracks: false,
+      autosave: false,
+      autosavelimit: 0,
+      autosaveapplytohighlighttracks: false,
+      playlistcategoryid: "",
+      externalplaylistimageurl: "",
+      orderby: "",
     });
     expect(buildCopyFeaturedPlaylist("featured-1")).toEqual({
       PlaylistID: "featured-1",
@@ -58,37 +90,52 @@ describe("Harvest member request contracts", () => {
       ObjectType: "Track",
       ObjectIDs: ["track-1", "track-2"],
       AddToPlaylistIDs: ["playlist-1"],
+      ObjectTrimStart: null,
+      ObjectTrimEnd: null,
+      AddToAutoSavePlaylists: false,
+    });
+    expect(buildRemovePlaylistTracks(["track-1", "track-2"])).toEqual({
+      track: [{ id: "track-1" }, { id: "track-2" }],
+    });
+    expect(buildCueSheetTracks(["track-1", "track-2"])).toEqual({
+      track: ["track-1", "track-2"],
     });
     expect(buildReorderPlaylistTracks("playlist-1", ["track-2"], { succeedingTrackId: "track-1" })).toEqual({
       FromPlaylistID: "playlist-1",
       ToPlaylistID: "playlist-1",
-      TrackIDs: ["track-2"],
+      TrackIDs: "track-2",
       SucceedingTrackID: "track-1",
+      Copy: false,
     });
     expect(() => buildReorderPlaylistTracks("playlist-1", ["track-1"], {})).toThrow(TypeError);
   });
 
   it("uses the documented Harvest download field names", () => {
     expect(buildDownloadValidation(["track-1", "track-2"], "format-1", true)).toEqual({
-      downloadtype: "track",
-      identifier: "track-1,track-2",
-      format: "format-1",
-      trimstartsecs: 0,
-      trimendsecs: 0,
-      includeversioncheck: true,
+      Identifier: "track-1,track-2",
+      ContentIDs: "",
+      DownloadType: "track",
+      Format: ["format-1"],
+      TrimEndSecs: 0,
+      TrimStartSecs: 0,
+      IncludeVersionCheck: true,
     });
     expect(buildDownloadRequest(["track-1"], "format-1", "member@example.invalid")).toEqual({
-      downloadtype: "track",
-      identifier: "track-1",
-      format: "format-1",
-      trimstartsecs: 0,
-      trimendsecs: 0,
-      email: "member@example.invalid",
-      isshare: false,
-      forceemail: false,
-      message: "",
-      senderemail: "member@example.invalid",
-      includeversions: false,
+      Identifier: "track-1",
+      DownloadType: "track",
+      Format: "format-1",
+      TrimStartSecs: 0,
+      TrimEndSecs: 0,
+      Email: "member@example.invalid",
+      IsShare: false,
+      Message: "",
+      SenderEmail: "member@example.invalid",
+      ForceEmail: false,
+      IncludeVersions: false,
+      VersionFolderName: "",
+      DownloadFileName: "",
+      CuesheetFileName: "",
+      IncludeCuesheetFile: true,
     });
   });
 
@@ -97,8 +144,60 @@ describe("Harvest member request contracts", () => {
       Name: "Piano intime", Description: "PARIGO_URL:/search?q=piano", SearchHistoryID: "history-1",
     });
     expect(buildSavedSearchQuery()).toEqual({ Keywords: "", Skip: 0, Limit: 100, Sort: "Created_Desc" });
+    expect(buildUpdateSavedSearch("saved-1", "Piano renommé", "PARIGO_URL:/search?q=piano")).toEqual({
+      ID: "saved-1",
+      Name: "Piano renommé",
+      Description: "PARIGO_URL:/search?q=piano",
+      SearchHistoryID: "",
+    });
     expect(buildTrackComment("track-1", "À tester sur le montage")).toEqual({ TrackID: "track-1", TagName: "À tester sur le montage" });
     expect(buildPlaylistSuggestions(12)).toEqual({ Skip: 0, Limit: 12, MainOnly: true, SeedDetermination: "Created_Desc", SeedLimit: 5, SeedMin: "" });
+  });
+
+  it("serializes playlist organisation, duplication and server search contracts", () => {
+    expect(buildPlaylistCategory("Client A", "Campagne", "#AABBCC", true)).toEqual({
+      PlaylistCategoryName: "Client A",
+      PlaylistCategoryDescription: "Campagne",
+      ColorHex: "#AABBCC",
+      AddToTop: true,
+    });
+    expect(buildUpdatePlaylistCategory("Client B", "Archives", "#112233")).toEqual({
+      PlaylistCategoryName: "Client B",
+      PlaylistCategoryDescription: "Archives",
+      ColorHex: "#112233",
+    });
+    expect(buildDuplicateMemberPlaylist("playlist-1", "Copie")).toEqual({
+      SourcePlaylistID: "playlist-1",
+      DuplicatePlaylistName: "Copie",
+    });
+    expect(buildSearchMemberPlaylistTracks("piano", { skip: 10, limit: 20, orderBy: "Title_Asc" })).toEqual({
+      Keyword: "piano",
+      Fields: "TrackDisplayTitle,TrackDescription",
+      ReturnTrackCount: true,
+      Skip: 10,
+      Limit: 20,
+      OrderBy: "Title_Asc",
+    });
+  });
+
+  it("serializes grouped download tracking and communication history", () => {
+    expect(buildDownloadInfoQuery({ downloadId: "download-1" }, 5, 10)).toEqual({
+      Skip: 5,
+      Limit: 10,
+      DownloadID: "download-1",
+    });
+    expect(buildDownloadInfoQuery({ downloadGroupId: "group-1" })).toEqual({
+      Skip: 0,
+      Limit: 100,
+      DownloadGroupID: "group-1",
+    });
+    expect(buildCommunicationHistory({ limit: 25, startDate: "2026-07-01", endDate: "2026-07-29" })).toEqual({
+      Skip: 0,
+      Limit: 25,
+      Sort: "Created_Desc",
+      StartDate: "2026-07-01",
+      EndDate: "2026-07-29",
+    });
   });
 
   it("keeps advanced playlist sharing permissions explicit", () => {

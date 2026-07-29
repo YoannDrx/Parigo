@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { serviceRequest } from "@/lib/harvest/client";
+import { assertSameOrigin } from "@/lib/harvest/session";
 
 export async function GET(request: NextRequest) {
   const id = requestId();
@@ -15,6 +16,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const id = requestId();
   try {
+    assertSameOrigin(request);
     const { token: verifyToken } = z.object({ token: z.string().min(1) }).parse(await request.json());
     await serviceRequest((token) => `/validateverifymembertoken/${token}/${encodeURIComponent(verifyToken)}`);
     await serviceRequest((token) => `/verifymember/${token}`, {

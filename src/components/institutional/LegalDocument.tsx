@@ -84,10 +84,12 @@ export function LegalDocument({ sections, updated = "13 juillet 2026" }: { secti
           </summary>
           <div className="border-t border-[var(--line)] px-4 py-3">{contents(true)}</div>
         </details>
-        <aside className="legal-toc parigo-frame hidden max-h-[calc(100svh-var(--sticky-offset)-1.5rem)] overflow-y-auto border border-[var(--line)] bg-[var(--surface)] p-6 lg:sticky lg:top-[var(--sticky-offset)] lg:col-span-3 lg:block lg:self-start">
-          <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Dernière mise à jour" : "Last updated"}</p>
-          <p className="mt-3 text-sm text-[var(--text-muted)]">{updated}</p>
-          {contents()}
+        <aside className="legal-toc parigo-frame hidden border border-[var(--line)] bg-[var(--surface)] lg:sticky lg:top-[var(--sticky-offset)] lg:col-span-3 lg:block lg:self-start">
+          <div className="max-h-[calc(100svh-var(--sticky-offset)-1.5rem)] overflow-y-auto p-6">
+            <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Dernière mise à jour" : "Last updated"}</p>
+            <p className="mt-3 text-sm text-[var(--text-muted)]">{updated}</p>
+            {contents()}
+          </div>
         </aside>
         <div className="grid min-w-0 gap-4 lg:col-span-9">
           {sectionEntries.map((section, index) => <article id={section.id} key={section.id} className="legal-section parigo-frame grid scroll-mt-[var(--sticky-offset)] gap-5 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[72px_1fr] md:p-8 lg:p-10"><span className="font-mono text-[.62rem] text-[var(--signal-strong)]">0{index + 1}</span><div className="min-w-0"><h2 className="font-[var(--font-editorial)] text-3xl font-normal tracking-[-.04em] sm:text-4xl md:text-5xl">{section.title}</h2><div className="legal-copy mt-5 space-y-4 break-words text-base leading-7 text-[var(--text-muted)] [&_a]:border-b [&_a]:border-current/30 [&_a]:text-[var(--foreground)] [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-[var(--foreground)]">{section.content}</div></div></article>)}

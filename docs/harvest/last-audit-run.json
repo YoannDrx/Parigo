@@ -1,0 +1,174 @@
+{
+  "auditDate": "2026-07-29",
+  "timeZone": "Europe/Paris",
+  "accountAlias": "Anthlogan",
+  "redacted": true,
+  "scope": {
+    "documentedEndpointsClassified": 255,
+    "publicApiEndpoints": 186,
+    "importApiEndpoints": 36,
+    "exportApiEndpoints": 17,
+    "agentApiEndpoints": 16,
+    "bffRouteFiles": 51,
+    "bffHandlers": 75,
+    "runtimeMatrixActions": 82,
+    "endpointClassification": {
+      "implemented": 76,
+      "adjacentCapability": 35,
+      "notRequiredByCurrentUi": 75,
+      "separateApiFamily": 69
+    }
+  },
+  "publicApi": {
+    "oauthClientCredentials": 200,
+    "serviceToken": 200,
+    "serviceInfo": 200,
+    "regions": 200,
+    "guestMemberToken": 200,
+    "cloudSearch": 200
+  },
+  "multilingualSearch": {
+    "directFrenchTitleCount": 0,
+    "directFrenchAggregateCount": 0,
+    "directEnglishTitleCount": 160,
+    "directEnglishAggregateCount": 1212,
+    "bffResolvedFrenchIntentCount": 488,
+    "nativeTranslationObserved": false
+  },
+  "memberCapabilities": {
+    "working": [
+      "login-session-refresh-logout",
+      "profile-read-update-restore",
+      "profile-image-upload-remove-restore",
+      "track-favourite-add-remove",
+      "saved-search-create-read-relaunch-remove",
+      "member-playlist-create-update-add-reorder-remove",
+      "shortlist-to-playlist-desktop-mobile",
+      "member-tag-crud",
+      "tag-track-add-read-remove",
+      "history-stream-tracking-read-account",
+      "download-validate-request-file-history-quota",
+      "cue-sheet-track-and-shortlist",
+      "featured-playlist-copy-with-tracks"
+    ],
+    "remainingIssues": [
+      {
+        "endpoint": "suggestmemberplaylisttracks",
+        "httpStatus": 200,
+        "functionalCode": "3",
+        "persisted": false
+      },
+      {
+        "endpoint": "addtrackmembercomment",
+        "httpStatus": 200,
+        "functionalCode": "2",
+        "persisted": false
+      },
+      {
+        "endpoint": "membersubscribe",
+        "httpStatus": 200,
+        "functionalCode": null,
+        "persisted": false
+      },
+      {
+        "endpoint": "sendpasswordresetemail",
+        "httpStatus": 200,
+        "functionalCode": "Failed",
+        "persisted": false
+      },
+      {
+        "endpoint": "getsharemusicurl",
+        "httpStatus": 200,
+        "functionalCode": "2",
+        "persisted": false
+      }
+    ]
+  },
+  "browser": {
+    "desktopViewport": "1440x900",
+    "mobileViewport": "390x844",
+    "accountPagesVisited": 8,
+    "shortlistAnonymousTrackCount": 3,
+    "shortlistPlaylistCreated": true,
+    "shortlistOrderVerified": true,
+    "shortlistVisibleAfterReconnect": true,
+    "shortlistPreservedUntilExplicitClear": true,
+    "trackFavouriteVisibleAfterReload": true,
+    "tagTrackVisibleInAccount": true,
+    "tagTrackVisibleAfterReconnect": true,
+    "savedSearchVisibleAfterReconnect": true,
+    "streamedTrackVisibleInHistory": true,
+    "cueSheetGenerated": true,
+    "downloadFileReceived": true,
+    "downloadFileBytes": 6340981,
+    "downloadHistoryDatesCorrect": true,
+    "downloadHistoryDateSource": "History.HistoryItems[].DeliveryDate + UTCOffset",
+    "downloadEntriesVerifiedInBffAndUi": 3,
+    "profileImageOriginalRestored": true,
+    "accountDeletionRequests": 0,
+    "dateDisplay": {
+      "rawBirthdayCreatedDate": "2026-07-29T00:24:11.477",
+      "displayedDate": "28/07/2026",
+      "testedBrowserTimeZones": [
+        "UTC",
+        "Europe/Paris",
+        "Australia/Sydney"
+      ]
+    }
+  },
+  "externalEffects": {
+    "resetEmailAttempts": 1,
+    "resetEmailReceived": false,
+    "shareEmailAttempts": 1,
+    "shareEmailReceived": false,
+    "contactEmailAttempts": 1,
+    "contactAcknowledgementReceived": true,
+    "musicDownloadsConsumed": 1,
+    "downloadQuotaBefore": 200,
+    "downloadQuotaAfter": 199,
+    "accountDeletionRequests": 0
+  },
+  "cleanup": {
+    "profileRestored": true,
+    "subscriptionRestored": true,
+    "profileImageRestored": true,
+    "temporaryFavouritesRemoved": true,
+    "temporarySavedSearchesRemoved": true,
+    "temporaryTagsRemoved": true,
+    "temporaryPlaylistsRemovedOrNotCreated": true,
+    "staleAuditPlaylistsRemovedDuringFinalSweep": 3,
+    "remainingPrefixedAuditResources": 0,
+    "accountIntact": true
+  },
+  "verification": {
+    "node": "22.22.0",
+    "lint": "passed",
+    "typecheck": "passed",
+    "unitTests": {
+      "status": "passed",
+      "files": 32,
+      "tests": 128
+    },
+    "productionBuild": "passed",
+    "searchContract": "passed",
+    "publicHarvestLive": "passed",
+    "memberBffLive": {
+      "total": 33,
+      "passed": 25,
+      "expectedRemainingFailures": 3,
+      "safetySkips": 1
+    },
+    "targetedSearchE2EAfterServerContractUpdate": {
+      "passed": 6,
+      "skipped": 2
+    },
+    "fullE2E": {
+      "status": "passed-after-targeted-rerun",
+      "passed": 145,
+      "skipped": 18,
+      "transientFailures": 1,
+      "targetedRerunPassed": 1,
+      "remainingFailures": 0
+    }
+  }
+}

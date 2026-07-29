@@ -16,13 +16,13 @@ import {
 } from "./catalog";
 
 export const getCachedAlbum = cache(
-  unstable_cache(getAlbum, ["catalog-album"], { revalidate: 300, tags: ["catalog", "albums"] }),
+  unstable_cache(getAlbum, ["catalog-album-v3"], { revalidate: 300, tags: ["catalog", "albums"] }),
 );
 export const getCachedAlbums = cache(
-  unstable_cache(getAlbums, ["catalog-albums"], { revalidate: 300, tags: ["catalog", "albums"] }),
+  unstable_cache(getAlbums, ["catalog-albums-v2"], { revalidate: 300, tags: ["catalog", "albums"] }),
 );
 export const getCachedAlbumDiscovery = cache(
-  unstable_cache(getAlbumDiscovery, ["catalog-album-discovery"], { revalidate: 300, tags: ["catalog", "albums", "filters"] }),
+  unstable_cache(getAlbumDiscovery, ["catalog-album-discovery-v2"], { revalidate: 300, tags: ["catalog", "albums", "filters"] }),
 );
 export const getCachedAlbumCount = cache(
   unstable_cache(async () => (await getAlbums({ limit: 1 })).total, ["catalog-album-count"], { revalidate: 86400, tags: ["catalog", "sitemaps"] }),

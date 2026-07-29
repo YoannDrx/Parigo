@@ -80,12 +80,12 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
           {visibleLabels.length === 0 ? (
             <div className="py-24 text-center"><Building2 size={42} className="mx-auto mb-6 opacity-25" /><h2 className="font-[var(--font-editorial)] text-5xl font-normal">{t("catalog.noLabels")}</h2></div>
           ) : view === "grid" ? (
-            <div className="grid border-l border-t border-[var(--line)] lg:grid-cols-2">
-              {visibleLabels.map((label, index) => (
-                <article key={label.id} className="min-w-0 border-b border-r border-[var(--line)]">
-                  <Link href={localizedPath(`/labels/${label.slug}`)} className="group grid min-h-72 min-w-0 p-7 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] lg:p-10">
-                    <div className="flex min-w-0 items-start"><div className="relative flex h-20 w-36 max-w-full items-start"><LabelLogo src={label.logo} alt={label.name} fill sizes="144px" className="object-contain object-left grayscale transition group-hover:grayscale-0" /></div></div>
-                    <div className="flex min-w-0 flex-col justify-between"><div className="min-w-0"><span className="font-mono text-[.62rem] opacity-50">LBL.{String(index + 1).padStart(3, "0")}</span><h2 className="mt-4 break-words font-[var(--font-editorial)] text-4xl font-normal tracking-[-.045em] transition group-hover:italic group-hover:text-[var(--color-primary-dark)] md:text-6xl">{label.name}</h2>{label.description && <p className="mt-5 line-clamp-3 text-sm leading-relaxed text-[var(--text-muted)]">{label.description}</p>}</div><div className="mt-10 flex items-center justify-between text-xs text-[var(--text-muted)]"><span className="flex items-center gap-2"><Disc3 size={14} /> {label.albumCount} {label.albumCount === 1 ? t("catalog.album") : t("catalog.albums")}</span><ArrowUpRight size={18} className="transition group-hover:-translate-y-1 group-hover:translate-x-1" /></div></div>
+            <div className="grid grid-cols-2 border-l border-t border-[var(--line)] md:grid-cols-3 xl:grid-cols-4">
+              {visibleLabels.map((label) => (
+                <article key={label.id} className="label-editorial-card group relative min-w-0 overflow-hidden border-b border-r border-[var(--line)]">
+                  <Link href={localizedPath(`/labels/${label.slug}`)} className="flex min-h-56 min-w-0 flex-col justify-between p-4 focus-visible:outline-none sm:min-h-64 sm:p-6">
+                    <h2 className="max-w-[12ch] break-words font-[var(--font-editorial)] text-[clamp(1.65rem,3vw,3rem)] font-normal leading-[.92] tracking-[-.045em] transition-colors group-hover:text-[var(--color-primary-dark)]">{label.name}</h2>
+                    <div className="mt-8 flex items-center justify-between gap-2 font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]"><span className="flex items-center gap-2"><Disc3 size={13} /> {label.albumCount} {label.albumCount === 1 ? t("catalog.album") : t("catalog.albums")}</span><ArrowUpRight size={16} className="shrink-0 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--signal-strong)]" /></div>
                   </Link>
                 </article>
               ))}
@@ -95,7 +95,7 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
               {visibleLabels.map((label) => (
                 <Link key={label.id} href={localizedPath(`/labels/${label.slug}`)} className="group grid min-h-24 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:px-4">
                   <div className="relative h-14 w-full"><LabelLogo src={label.logo} alt={label.name} fill sizes="128px" className="object-contain object-left grayscale transition group-hover:grayscale-0" /></div>
-                  <div className="min-w-0"><h2 className="truncate text-xl font-semibold sm:text-2xl">{label.name}</h2>{label.description && <p className="mt-1 line-clamp-1 text-sm text-[var(--text-muted)]">{label.description}</p>}</div>
+                  <div className="min-w-0"><h2 className="truncate text-xl font-semibold sm:text-2xl">{label.name}</h2></div>
                   <span className="flex items-center gap-2 whitespace-nowrap pr-2 text-xs text-[var(--text-muted)]"><Disc3 size={14} />{label.albumCount}</span>
                 </Link>
               ))}

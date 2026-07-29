@@ -13,7 +13,10 @@ export function requestId(): string {
 export function apiError(
   error: unknown,
   id = requestId(),
-  options: { surface?: "catalog" | "account" } = {},
+  options: {
+    surface?: "catalog" | "account";
+    operation?: "saved-search-list" | "saved-search-create" | "playlist-create" | "cue-sheet";
+  } = {},
 ): NextResponse {
   if (error instanceof ZodError) {
     return NextResponse.json(
@@ -41,15 +44,25 @@ export function apiError(
     : normalized.code === "HARVEST_UNAVAILABLE"
       ? options.surface === "account" ? "ACCOUNT_UNAVAILABLE" : "CATALOG_UNAVAILABLE"
       : normalized.code;
-  const publicMessage = normalized.code === "HARVEST_INVALID_RESPONSE"
+  const operationMessage =
+    options.operation === "saved-search-list" && normalized.code === "HARVEST_UNAVAILABLE"
+      ? "Vos recherches sauvegardées mettent trop de temps à répondre. Vous pouvez réessayer sans recréer la recherche."
+      : options.operation === "saved-search-create" && ["HARVEST_INVALID_RESPONSE", "HARVEST_UNAVAILABLE"].includes(normalized.code)
+        ? "La demande a été envoyée, mais Parigo n’a pas pu confirmer la recherche sauvegardée. Vérifiez votre compte avant de la recréer."
+        : options.operation === "playlist-create" && normalized.code === "HARVEST_INVALID_RESPONSE"
+          ? "La création de playlists n’est pas disponible pour ce compte pour le moment."
+          : options.operation === "cue-sheet" && normalized.code === "VALIDATION_FAILED"
+            ? "Impossible de générer la cue sheet avec les informations acceptées par le service."
+            : undefined;
+  const publicMessage = operationMessage || (normalized.code === "HARVEST_INVALID_RESPONSE"
     ? "Le service Parigo a renvoyé une réponse inattendue."
     : normalized.code === "HARVEST_UNAVAILABLE"
       ? "Le service Parigo est temporairement indisponible."
-      : normalized.message.replace(/Harvest/gi, "Parigo");
+      : normalized.message.replace(/Harvest/gi, "Parigo"));
   logEvent({
     level: normalized.status >= 500 ? "error" : "warn",
     message: "api_request_failed",
-    route: options.surface || "catalog",
+    route: options.operation || options.surface || "catalog",
     requestId: id,
     status: normalized.status,
     code: normalized.code,
@@ -60,6 +73,8 @@ export function apiError(
         code: publicCode,
         message: publicMessage,
         retryable: normalized.retryable,
+        ...(normalized.upstreamCode ? { upstreamCode: normalized.upstreamCode } : {}),
+        ...(options.operation ? { operation: options.operation } : {}),
         requestId: id,
       },
     },

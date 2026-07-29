@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
     const session = await requireHarvestSession();
     const limit = Math.min(Number(request.nextUrl.searchParams.get("limit") || 50), 100);
     const offset = Math.max(Number(request.nextUrl.searchParams.get("offset") || 0), 0);
-    const downloads = await getDownloadHistory(session.memberToken, offset, limit);
+    const history = await getDownloadHistory(session.memberToken, offset, limit);
     return NextResponse.json({
-      data: { downloads },
-      meta: { total: downloads.length, page: Math.floor(offset / limit) + 1, pageSize: limit, requestId: id },
+      data: { downloads: history.items },
+      meta: { total: history.total, page: Math.floor(offset / limit) + 1, pageSize: limit, requestId: id },
     }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

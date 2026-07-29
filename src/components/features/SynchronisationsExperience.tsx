@@ -6,7 +6,8 @@ import { ArrowUpRight, LayoutGrid, List, Youtube } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Footer, Header } from "@/components/layout";
-import { ParigoVideoCard } from "@/components/editorial/ParigoVideoCard";
+import { SynchronisationCard } from "@/components/editorial/SynchronisationCard";
+import { ViewModeControl } from "@/components/ui/ViewModeControl";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SYNCHRONISATIONS_PLAYLIST_URL, type Synchronisation } from "@/content/synchronisations";
 import type { ViewMode } from "@/types";
@@ -39,21 +40,26 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
         </div>
 
         <div className="my-14 flex justify-end">
-          <div className="inline-flex border border-[var(--line-strong)] p-1" role="group" aria-label={locale === "fr" ? "Mode d’affichage" : "Display mode"}>
-            <button type="button" aria-pressed={view === "grid"} onClick={() => setView("grid")} className={`inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold ${view === "grid" ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}><LayoutGrid size={15} />{locale === "fr" ? "Cartes" : "Cards"}</button>
-            <button type="button" aria-pressed={view === "list"} onClick={() => setView("list")} className={`inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold ${view === "list" ? "bg-[var(--foreground)] text-[var(--background)]" : ""}`}><List size={15} />{locale === "fr" ? "Liste" : "List"}</button>
-          </div>
+          <ViewModeControl
+            value={view}
+            onValueChange={setView}
+            ariaLabel={locale === "fr" ? "Mode d’affichage" : "Display mode"}
+            options={[
+              { value: "grid", label: locale === "fr" ? "Vue cartes" : "Card view", icon: LayoutGrid },
+              { value: "list", label: locale === "fr" ? "Vue liste" : "List view", icon: List },
+            ]}
+          />
         </div>
 
         {view === "grid" ? (
           <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-7">
             {synchronisations.map((sync) => (
-              <ParigoVideoCard
+              <SynchronisationCard
                 key={sync.youtubeId}
                 href={localizedPath(`/synchronisations/${sync.slug}`)}
                 image={sync.image}
                 title={sync.title}
-                eyebrow={sync.client}
+                client={sync.client}
                 detail={sync.year ? String(sync.year) : undefined}
                 className="sync-gallery-card"
                 sizes="(max-width:1024px) 100vw, 50vw"

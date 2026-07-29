@@ -16,6 +16,7 @@ import { DeferredHomeStorySections } from "./DeferredHomeStorySections";
 import type { Album, Playlist } from "@/types";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { ParigoVideoCard } from "@/components/editorial/ParigoVideoCard";
+import { SynchronisationCard } from "@/components/editorial/SynchronisationCard";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { resizeArtworkSource } from "@/lib/image-loader";
@@ -31,6 +32,17 @@ const LINKTREE_PLATFORMS: Array<{ name: PlatformName; position: string }> = [
   { name: "TikTok", position: "left-[11.2rem] top-[4.6rem] rotate-[9deg] group-hover:translate-x-2 group-hover:translate-y-1" },
   { name: "Bandcamp", position: "left-[12.1rem] top-0 -rotate-[5deg] group-hover:translate-x-2 group-hover:-translate-y-2" },
 ];
+
+function HomeSeeAllLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link href={href} className="home-see-all group">
+      <span>{children}</span>
+      <span className="home-see-all__icon" aria-hidden="true">
+        <ArrowUpRight size={13} />
+      </span>
+    </Link>
+  );
+}
 
 function PlatformIcon({ name }: { name: PlatformName }) {
   if (name === "Instagram") return <Instagram size={20} />;
@@ -143,9 +155,9 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
             ) : tabError === featuredTab ? (
               <div className="rounded-xl border border-[var(--line)] px-6 py-20 text-center"><AlertCircle className="mx-auto text-[var(--signal-strong)]" /><h3 className="mt-4 text-2xl">{locale === "fr" ? "Cette sélection est momentanément indisponible." : "This selection is temporarily unavailable."}</h3><button type="button" onClick={() => { setTabError(null); setRetryVersion((version) => version + 1); }} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--line)] px-4 text-sm font-semibold"><RotateCcw size={15} />{t("common.retry")}</button></div>
             ) : featuredTab === "playlists" ? (
-              <HorizontalRail label={locale === "fr" ? "Playlists à écouter maintenant" : "Playlists to listen to now"}>{editorialPlaylists.map((playlist) => <Link key={playlist.id} href={`/playlists/${playlist.id}`} className="home-rail-card group block snap-start"><div className="home-rail-card__media relative aspect-square overflow-hidden rounded-[.8rem] bg-[var(--surface-soft)]"><Image src={resizeArtworkSource(playlist.cover, 320)} alt={playlist.title} fill sizes="(max-width:640px) 78vw, 25vw" className="object-cover transition duration-700 group-hover:scale-[1.035]" /></div><div className="flex min-h-24 items-end justify-between gap-4 px-1 pb-1 pt-5"><div className="min-w-0"><p className="font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--signal-strong)]">{locale === "fr" ? "Sélection Parigo" : "Parigo selection"}</p><h3 className="mt-2 line-clamp-2 text-lg leading-[1.05]">{playlist.title}</h3></div><p className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{playlist.trackCount ?? 0} {t("catalog.tracks")}</p></div></Link>)}</HorizontalRail>
+              <HorizontalRail tone="surface" label={locale === "fr" ? "Playlists à écouter maintenant" : "Playlists to listen to now"}>{editorialPlaylists.map((playlist) => <Link key={playlist.id} href={`/playlists/${playlist.id}`} className="home-rail-card group block snap-start"><div className="home-rail-card__media relative aspect-square overflow-hidden rounded-[.8rem] bg-[var(--surface-soft)]"><Image src={resizeArtworkSource(playlist.cover, 320)} alt={playlist.title} fill sizes="(max-width:640px) 78vw, 25vw" className="object-cover transition duration-700 group-hover:scale-[1.035]" /></div><div className="flex min-h-24 items-end justify-between gap-4 px-1 pb-1 pt-5"><div className="min-w-0"><p className="font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--signal-strong)]">{locale === "fr" ? "Sélection Parigo" : "Parigo selection"}</p><h3 className="mt-2 line-clamp-2 text-lg leading-[1.05]">{playlist.title}</h3></div><p className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{playlist.trackCount ?? 0} {t("catalog.tracks")}</p></div></Link>)}</HorizontalRail>
             ) : (
-            <HorizontalRail label={featuredTab === "parigo" ? (locale === "fr" ? "Albums Parigo" : "Parigo albums") : locale === "fr" ? "Dernières sorties" : "New releases"}>
+            <HorizontalRail tone="surface" label={featuredTab === "parigo" ? (locale === "fr" ? "Albums Parigo" : "Parigo albums") : locale === "fr" ? "Dernières sorties" : "New releases"}>
               {(featuredTab === "parigo" ? parigoAlbums : releases).map((release) => (
                   <Link key={release.id} href={`/albums/${release.id}`} className="home-rail-card group block snap-start">
                     <div className="home-rail-card__media relative aspect-square overflow-hidden rounded-[.8rem] bg-[var(--surface-soft)]"><Image src={release.cover} alt={release.title} fill sizes="(max-width:640px) 78vw, 25vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.035]" /><span className="absolute bottom-3 right-3 flex h-11 w-11 items-center justify-center rounded-full bg-white text-[#151815] opacity-0 shadow-md transition duration-300 group-hover:-translate-y-1 group-hover:opacity-100"><Play size={16} fill="currentColor" /></span></div>
@@ -154,11 +166,11 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
               ))}
             </HorizontalRail>
             )}
-            <div className="mt-8 text-right"><Link href={localizedPath(featuredTab === "playlists" ? "/playlists" : featuredTab === "parigo" ? "/label-parigo" : "/albums")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">{t("common.seeAll")}<ArrowRight size={16} /></Link></div>
+            <div className="mt-8 text-right"><HomeSeeAllLink href={localizedPath(featuredTab === "playlists" ? "/playlists" : featuredTab === "parigo" ? "/label-parigo" : "/albums")}>{t("common.seeAll")}</HomeSeeAllLink></div>
           </div>
         </section>
 
-        <section data-testid="home-clips-section" className="border-b border-[var(--line)] px-4 py-20 md:px-8 md:py-28">
+        <section data-testid="home-clips-section" className="border-b border-[var(--line)] bg-[var(--background)] px-4 py-20 md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
             <SectionReveal className="mb-12 grid gap-6 md:grid-cols-12 md:items-end">
               <div className="md:col-span-7">
@@ -172,7 +184,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
                   : "The label’s audiovisual work, linked to composers and albums."}
               </p>
             </SectionReveal>
-            <HorizontalRail cinema label={locale === "fr" ? "Clips Parigo" : "Parigo videos"}>
+            <HorizontalRail cinema tone="page" label={locale === "fr" ? "Clips Parigo" : "Parigo videos"}>
               {clips.map((clip) => (
                 <ParigoVideoCard
                   key={clip.slug}
@@ -188,9 +200,9 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
               ))}
             </HorizontalRail>
             <div className="mt-3 text-right">
-              <Link href={localizedPath("/clips")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal-strong)]">
-                {locale === "fr" ? "Voir tous les clips" : "View all videos"}<ArrowRight size={16} />
-              </Link>
+              <HomeSeeAllLink href={localizedPath("/clips")}>
+                {locale === "fr" ? "Voir tous les clips" : "View all videos"}
+              </HomeSeeAllLink>
             </div>
           </div>
         </section>
@@ -200,11 +212,23 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
           albumCovers={manifestoAlbumCovers}
         />
 
-        <section className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
+        <section data-testid="home-sync-section" className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
             <SectionReveal className="mb-12 grid w-full min-w-0 gap-8 md:grid-cols-12"><div className="min-w-0 md:col-span-7"><h2 className="break-words text-[clamp(2.8rem,5vw,5.5rem)] leading-[.92]">{t("home.syncTitle")}</h2></div><p className="min-w-0 max-w-md break-words self-end text-[var(--inverse-muted)] md:col-span-4 md:col-start-9">{t("home.syncCopy")}</p></SectionReveal>
-            <HorizontalRail wide inverse label={locale === "fr" ? "Nos synchronisations" : "Our synchronisations"}>{syncs.map((sync) => <Link key={sync.slug} href={`/synchronisations/${sync.slug}`} className="home-sync-card group snap-start"><div className="home-sync-card__frame relative aspect-video overflow-hidden bg-[#0b0e0b]"><Image src={sync.image} alt={`${sync.title} — ${sync.client}`} fill sizes="(max-width:768px) 86vw, 55vw" className="home-sync-card__image object-contain transition duration-700" /><div className="home-sync-card__veil absolute inset-0 bg-black/10 transition duration-500" /><span className="absolute left-5 top-5 flex h-12 w-12 items-center justify-center rounded-full border border-white/45 bg-black/22 text-white backdrop-blur-md transition group-hover:scale-110 group-hover:bg-[var(--signal)] group-focus-visible:scale-110 group-focus-visible:bg-[var(--signal)]"><Play size={17} fill="currentColor" /></span><div className="home-sync-card__caption absolute inset-x-0 bottom-0 p-5 text-white transition duration-500 md:p-8"><p className="font-mono text-[.6rem] uppercase tracking-[.13em] opacity-70">{sync.client}</p><h3 className="mt-2 text-2xl md:text-4xl">{sync.title}</h3></div></div></Link>)}</HorizontalRail>
-            <div className="mt-3 text-right"><Link href="/synchronisations" className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold hover:text-[var(--signal)]">{t("common.seeAll")}<ArrowRight size={16} /></Link></div>
+            <HorizontalRail wide inverse tone="inverse" label={locale === "fr" ? "Nos synchronisations" : "Our synchronisations"}>
+              {syncs.map((sync) => (
+                <SynchronisationCard
+                  key={sync.slug}
+                  href={localizedPath(`/synchronisations/${sync.slug}`)}
+                  image={sync.image}
+                  title={sync.title}
+                  client={sync.client}
+                  className="snap-start"
+                  headingLevel="h3"
+                />
+              ))}
+            </HorizontalRail>
+            <div className="mt-3 text-right"><HomeSeeAllLink href="/synchronisations">{t("common.seeAll")}</HomeSeeAllLink></div>
           </div>
         </section>
 

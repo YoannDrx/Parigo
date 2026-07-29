@@ -1,36 +1,58 @@
 import "server-only";
 
-import type { MemberSavedSearch, MemberTag, MemberTrackComment, Playlist, Track } from "@/types";
-import { assetUrl, getAssetTemplates } from "./assets";
+import type {
+  MemberCommunication,
+  MemberPlaylistCategory,
+  MemberSavedSearch,
+  MemberTag,
+  MemberTrackComment,
+  Playlist,
+  RightHolder,
+  Track,
+} from "@/types";
+import { assetUrl, getAssetTemplates, type HarvestAssetTemplates } from "./assets";
 import { findHarvestToken, getRegionId, guestRequest, memberRequest, serviceRequest } from "./client";
-import { mapPlaylist, mapTrack } from "./catalog";
+import { mapPlaylist, mapRightHolder, mapTrack } from "./catalog";
 import { HarvestError, isRecord } from "./errors";
-import { asBoolean, asIsoDate, asNumber, asString, recordArray } from "./values";
+import { asBoolean, asIsoDate, asNumber, asString, recordArray, recordItem } from "./values";
 import { HarvestMemberTagSchema } from "./contracts";
 import {
   buildAddTracksToPlaylists,
+  buildCreateMemberPlaylist,
+  buildCueSheetTracks,
   buildAddTracksToTags,
   buildCopyFeaturedPlaylist,
   buildDownloadRequest,
   buildDownloadValidation,
-  buildMemberPlaylist,
+  buildRemovePlaylistTracks,
+  buildUpdateMemberPlaylist,
   buildPlaylistShare,
   buildPlaylistSuggestions,
   buildReorderPlaylistTracks,
   buildSavedSearch,
   buildSavedSearchQuery,
+  buildUpdateSavedSearch,
+  buildPlaylistCategory,
+  buildUpdatePlaylistCategory,
+  buildDuplicateMemberPlaylist,
+  buildSearchMemberPlaylistTracks,
+  buildDownloadInfoQuery,
+  buildCommunicationHistory,
   buildTrackComment,
 } from "./member-contracts";
+import {
+  WRITE_VERIFICATION_OFFSETS_MS,
+  waitForVerificationOffset,
+} from "./write-verification";
 
 type HarvestRecord = Record<string, unknown>;
-const WRITE_VERIFICATION_DELAYS_MS = [0, 250, 1_000, 3_000] as const;
 
 async function pollForMemberPlaylist(
   memberToken: string,
   predicate: (playlist: Playlist) => boolean,
 ): Promise<Playlist | null> {
-  for (const delay of WRITE_VERIFICATION_DELAYS_MS) {
-    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
     const playlists = await getMemberPlaylists(memberToken, 0, 500);
     const playlist = playlists.find(predicate);
     if (playlist) return await getMemberPlaylist(memberToken, playlist.id) || playlist;
@@ -44,8 +66,8 @@ async function pollMemberPlaylistState(
   predicate: (playlist: Playlist | null) => boolean,
 ): Promise<Playlist | null> {
   let playlist: Playlist | null = null;
-  for (const delay of WRITE_VERIFICATION_DELAYS_MS) {
-    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
     try {
       playlist = await getMemberPlaylist(memberToken, playlistId);
     } catch (error) {
@@ -63,8 +85,8 @@ async function pollMemberPlaylistState(
 }
 
 async function pollMemberPlaylistAbsent(memberToken: string, playlistId: string): Promise<void> {
-  for (const delay of WRITE_VERIFICATION_DELAYS_MS) {
-    if (delay) await new Promise((resolve) => setTimeout(resolve, delay));
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
     const playlists = await getMemberPlaylists(memberToken, 0, 500);
     if (!playlists.some((playlist) => playlist.id === playlistId)) return;
   }
@@ -82,7 +104,7 @@ export async function getFavouriteTracks(memberToken: string, skip = 0, limit = 
       memberToken,
       (token) => `/getfavourites/${token}?Skip=${skip}&Limit=${limit}&Sort=Created_Desc`,
     ),
-    getAssetTemplates(),
+    getAssetTemplates(memberToken),
   ]);
   const favourites = isRecord(payload.Favourites) ? payload.Favourites : payload;
   return recordArray(favourites, "Tracks").map((item) => mapTrack(item, templates, undefined, "favourites"));
@@ -102,7 +124,7 @@ export async function getMemberPlaylists(memberToken: string, skip = 0, limit = 
       memberToken,
       (token) => `/getmemberplaylistsnotracks/${token}?Skip=${skip}&Limit=${limit}`,
     ),
-    getAssetTemplates(),
+    getAssetTemplates(memberToken),
   ]);
   return recordArray(payload, "Playlists").map((item) => ({
     ...mapPlaylist(item, templates),
@@ -113,11 +135,262 @@ export async function getMemberPlaylists(memberToken: string, skip = 0, limit = 
 export async function getMemberPlaylist(memberToken: string, playlistId: string): Promise<Playlist | null> {
   const [payload, templates] = await Promise.all([
     memberRequest<HarvestRecord>(memberToken, (token) => `/getmemberplaylist/${token}/${encodeURIComponent(playlistId)}?returntracks=true&returnpublishlocations=false`),
-    getAssetTemplates(),
+    getAssetTemplates(memberToken),
   ]);
   const item = recordArray(payload, "Playlists")[0];
   if (!item) return null;
   return { ...mapPlaylist(item, templates), isFeatured: false, tracks: recordArray(item, "Tracks").map((track) => mapTrack(track, templates, undefined, "member-playlist")) };
+}
+
+function mapMemberPlaylistCategory(item: HarvestRecord): MemberPlaylistCategory {
+  return {
+    id: asString(item.PlaylistCategoryID || item.ID),
+    name: asString(item.PlaylistCategoryName || item.Name, "Sans titre"),
+    description: asString(item.PlaylistCategoryDescription || item.Description) || undefined,
+    color: asString(item.ColorHex || item.ColourHex) || undefined,
+    playlistCount: asNumber(item.PlaylistCount || item.TotalPlaylists),
+    createdAt: asIsoDate(item.CreateDate || item.CreatedDate),
+    updatedAt: asIsoDate(item.LastUpdateDate || item.LastUpdated),
+  };
+}
+
+export async function getMemberPlaylistCategories(
+  memberToken: string,
+  skip = 0,
+  limit = 100,
+): Promise<MemberPlaylistCategory[]> {
+  const payload = await memberRequest<HarvestRecord>(
+    memberToken,
+    (token) =>
+      `/getmemberplaylistcategories/${token}?Skip=${skip}&Limit=${limit}&Sort=Alphabetic_Asc&returnplaylistcount=true`,
+  );
+  return recordArray(payload, "PlaylistCategories")
+    .map(mapMemberPlaylistCategory)
+    .filter((category) => category.id);
+}
+
+export async function createMemberPlaylistCategory(
+  memberToken: string,
+  input: { name: string; description?: string; color?: string; addToTop?: boolean },
+): Promise<MemberPlaylistCategory> {
+  const before = await getMemberPlaylistCategories(memberToken, 0, 500);
+  const beforeIds = new Set(before.map((category) => category.id));
+  const payload = await memberRequest<HarvestRecord>(
+    memberToken,
+    (token) => `/addmemberplaylistcategory/${token}`,
+    {
+      method: "POST",
+      body: JSON.stringify(buildPlaylistCategory(
+        input.name,
+        input.description,
+        input.color,
+        input.addToTop,
+      )),
+    },
+  );
+  const responseItem = recordArray(payload, "PlaylistCategories")[0];
+  const responseId = responseItem ? mapMemberPlaylistCategory(responseItem).id : "";
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const created = (await getMemberPlaylistCategories(memberToken, 0, 500)).find((category) =>
+      (responseId ? category.id === responseId : !beforeIds.has(category.id)) &&
+      category.name === input.name,
+    );
+    if (created) return created;
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the playlist category but it could not be verified",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
+}
+
+export async function updateMemberPlaylistCategory(
+  memberToken: string,
+  categoryId: string,
+  input: { name: string; description?: string; color?: string },
+): Promise<MemberPlaylistCategory> {
+  await memberRequest(
+    memberToken,
+    (token) => `/updatememberplaylistcategory/${token}/${encodeURIComponent(categoryId)}`,
+    {
+      method: "POST",
+      body: JSON.stringify(buildUpdatePlaylistCategory(input.name, input.description, input.color)),
+    },
+  );
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const updated = (await getMemberPlaylistCategories(memberToken, 0, 500))
+      .find((category) => category.id === categoryId && category.name === input.name);
+    if (updated) return updated;
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the playlist category update but it could not be verified",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
+}
+
+export async function removeMemberPlaylistCategory(
+  memberToken: string,
+  categoryId: string,
+): Promise<void> {
+  await memberRequest(
+    memberToken,
+    (token) =>
+      `/removememberplaylistcategory/${token}/${encodeURIComponent(categoryId)}?keepChildren=true&giveShareCopy=false`,
+  );
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const categories = await getMemberPlaylistCategories(memberToken, 0, 500);
+    if (!categories.some((category) => category.id === categoryId)) return;
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the playlist category deletion but it is still present",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
+}
+
+export async function moveMemberPlaylistToCategory(
+  memberToken: string,
+  playlistId: string,
+  categoryId: string,
+  orderId = 0,
+): Promise<void> {
+  await memberRequest(
+    memberToken,
+    (token) =>
+      `/reordermemberplaylist/${token}/${encodeURIComponent(playlistId)}?movetoplaylistcategoryid=${encodeURIComponent(categoryId)}&orderid=${orderId}`,
+  );
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const payload = await memberRequest<HarvestRecord>(
+      memberToken,
+      (token) =>
+        `/getmemberplaylistcategoriesandplaylists/${token}?returnplaylistcount=true&returntrackcount=true&returnrootobjectsonly=${categoryId ? "false" : "true"}&returnautosaveonly=false&returnfirstautosave=false&returnhighlightonly=false&playlistcategoryid=${encodeURIComponent(categoryId)}&skip=0&limit=500&sort=Custom_Asc`,
+    );
+    const directIds = recordArray(payload, "Playlists")
+      .map((playlist) => asString(playlist.ID))
+      .filter(Boolean);
+    const categoryIds = recordArray(payload, "PlaylistCategories")
+      .filter((category) =>
+        !categoryId ||
+        asString(category.PlaylistCategoryID || category.ID) === categoryId)
+      .flatMap((category) => recordArray(category, "Playlists"))
+      .map((playlist) => asString(playlist.ID))
+      .filter(Boolean);
+    if ([...directIds, ...categoryIds].includes(playlistId)) return;
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the playlist move but its destination could not be verified",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
+}
+
+export async function duplicateMemberPlaylist(
+  memberToken: string,
+  sourcePlaylistId: string,
+  name?: string,
+): Promise<Playlist> {
+  const before = await getMemberPlaylists(memberToken, 0, 500);
+  const beforeIds = new Set(before.map((playlist) => playlist.id));
+  const source = await getMemberPlaylist(memberToken, sourcePlaylistId);
+  if (!source) throw new HarvestError("Member playlist not found", "NOT_FOUND", 404);
+  const expectedName = name || `${source.title} Copy`;
+  const payload = await memberRequest<HarvestRecord>(
+    memberToken,
+    (token) => `/duplicatememberplaylist/${token}`,
+    {
+      method: "POST",
+      body: JSON.stringify(buildDuplicateMemberPlaylist(sourcePlaylistId, name)),
+    },
+  );
+  const responseId = asString(recordArray(payload, "Playlists")[0]?.ID);
+  const duplicate = await pollForMemberPlaylist(
+    memberToken,
+    (playlist) =>
+      (responseId ? playlist.id === responseId : !beforeIds.has(playlist.id)) &&
+      (!name || playlist.title === expectedName),
+  );
+  if (!duplicate) {
+    throw new HarvestError(
+      "Harvest acknowledged the playlist duplicate but it could not be verified",
+      "HARVEST_INVALID_RESPONSE",
+      502,
+      false,
+      "ACK_UNVERIFIED",
+    );
+  }
+  const sourceTrackIds = source.tracks?.map((track) => track.id) || [];
+  const duplicateTrackIds = duplicate.tracks?.map((track) => track.id) || [];
+  if (
+    sourceTrackIds.length !== duplicateTrackIds.length ||
+    sourceTrackIds.some((trackId, index) => duplicateTrackIds[index] !== trackId)
+  ) {
+    await removeMemberPlaylist(memberToken, duplicate.id).catch(() => undefined);
+    throw new HarvestError(
+      "Harvest duplicated the playlist but its tracks or order differ from the source",
+      "HARVEST_INVALID_RESPONSE",
+      502,
+      false,
+      "ACK_UNVERIFIED",
+    );
+  }
+  return duplicate;
+}
+
+export async function searchMemberPlaylistTracks(
+  memberToken: string,
+  playlistId: string,
+  input: { keyword: string; skip?: number; limit?: number; orderBy?: string },
+) {
+  const [payload, templates] = await Promise.all([
+    memberRequest<HarvestRecord>(
+      memberToken,
+      (token) => `/searchmemberplaylisttracks/${token}/${encodeURIComponent(playlistId)}`,
+      {
+        method: "POST",
+        body: JSON.stringify(buildSearchMemberPlaylistTracks(input.keyword, input)),
+      },
+    ),
+    getAssetTemplates(memberToken),
+  ]);
+  const container = isRecord(payload.Playlists)
+    ? payload.Playlists
+    : isRecord(payload.Playlist)
+      ? payload.Playlist
+      : payload;
+  const tracks = recordArray(container, "Tracks")
+    .map((track) => mapTrack(track, templates, undefined, "member-playlist-search"));
+  return {
+    tracks,
+    total: asNumber(
+      container.TotalTracks || payload.TotalTracks || payload.TotalTrackCount,
+      tracks.length,
+    ),
+  };
+}
+
+export async function setMemberPlaylistArchived(
+  memberToken: string,
+  playlistId: string,
+  archived: boolean,
+): Promise<void> {
+  await memberRequest(
+    memberToken,
+    (token) =>
+      `/${archived ? "archiveplaylist" : "restorearchiveplaylist"}/${token}/${encodeURIComponent(playlistId)}`,
+  );
 }
 
 export async function createMemberPlaylist(
@@ -129,7 +402,7 @@ export async function createMemberPlaylist(
   );
   const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/addmemberplaylist/${token}`, {
     method: "POST",
-    body: JSON.stringify(buildMemberPlaylist(input.title, input.description || "")),
+    body: JSON.stringify(buildCreateMemberPlaylist(input.title, input.description || "")),
   });
   const responseId = asString(recordArray(payload, "Playlists")[0]?.ID);
   const created = await pollForMemberPlaylist(
@@ -149,6 +422,51 @@ export async function createMemberPlaylist(
   return created;
 }
 
+export async function createMemberPlaylistWithTracks(
+  memberToken: string,
+  input: { title: string; description?: string; trackIds: string[] },
+): Promise<Playlist> {
+  const playlist = await createMemberPlaylist(memberToken, input);
+  try {
+    await addTracksToPlaylist(memberToken, playlist.id, input.trackIds);
+    let verified = await pollMemberPlaylistState(
+      memberToken,
+      playlist.id,
+      (candidate) => {
+        const remoteIds = candidate?.tracks?.map((track) => track.id) || [];
+        const available = new Set(remoteIds);
+        return input.trackIds.every((trackId) => available.has(trackId));
+      },
+    );
+    if (!verified) {
+      throw new HarvestError("Harvest removed the playlist while adding tracks", "HARVEST_INVALID_RESPONSE");
+    }
+    const remoteOrder = verified.tracks?.map((track) => track.id) || [];
+    if (
+      remoteOrder.length === input.trackIds.length &&
+      remoteOrder.some((trackId, index) => trackId !== input.trackIds[index])
+    ) {
+      await reorderPlaylistTracks(memberToken, playlist.id, input.trackIds);
+      verified = await pollMemberPlaylistState(
+        memberToken,
+        playlist.id,
+        (candidate) => {
+          const candidateIds = candidate?.tracks?.map((track) => track.id) || [];
+          return candidateIds.length === input.trackIds.length &&
+            candidateIds.every((trackId, index) => trackId === input.trackIds[index]);
+        },
+      );
+      if (!verified) {
+        throw new HarvestError("Harvest removed the playlist while ordering tracks", "HARVEST_INVALID_RESPONSE");
+      }
+    }
+    return verified;
+  } catch (error) {
+    await removeMemberPlaylist(memberToken, playlist.id).catch(() => undefined);
+    throw error;
+  }
+}
+
 export async function removeMemberPlaylist(memberToken: string, id: string): Promise<void> {
   let operationError: unknown;
   try {
@@ -166,7 +484,7 @@ export async function removeMemberPlaylist(memberToken: string, id: string): Pro
 export async function updateMemberPlaylist(memberToken: string, id: string, input: { title: string; description?: string }): Promise<Playlist> {
   await memberRequest(memberToken, (token) => `/updateplaylist/${token}/${encodeURIComponent(id)}`, {
     method: "POST",
-    body: JSON.stringify(buildMemberPlaylist(input.title, input.description || "")),
+    body: JSON.stringify(buildUpdateMemberPlaylist(input.title, input.description || "")),
   });
   const expectedDescription = input.description || "";
   const playlist = await pollMemberPlaylistState(
@@ -216,7 +534,7 @@ export async function addTracksToPlaylist(memberToken: string, playlistId: strin
 export async function removeTracksFromPlaylist(memberToken: string, playlistId: string, trackIds: string[]): Promise<void> {
   await memberRequest(memberToken, (token) => `/removeplaylisttracks/${token}/${encodeURIComponent(playlistId)}`, {
     method: "POST",
-    body: JSON.stringify({ TrackIDs: trackIds, Tracks: trackIds.map((ID) => ({ ID })) }),
+    body: JSON.stringify(buildRemovePlaylistTracks(trackIds)),
   });
 }
 
@@ -261,7 +579,7 @@ export async function suggestPlaylistTracks(memberToken: string, playlistId: str
       method: "POST",
       body: JSON.stringify(buildPlaylistSuggestions(limit)),
     }, 15_000),
-    getAssetTemplates(),
+    getAssetTemplates(memberToken),
   ]);
   return recordArray(payload, "Tracks").map((track) => mapTrack(track, templates, undefined, "member-playlist-suggestion"));
 }
@@ -340,7 +658,7 @@ export async function getMemberSavedSearches(
   const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/searchmembersavesearches/${token}`, {
     method: "POST",
     body: JSON.stringify(buildSavedSearchQuery()),
-  });
+  }, 20_000);
   return recordArray(payload, "SavedSearches")
     .map((item) => mapSavedSearch(item, utcOffsetHours))
     .filter((item) => item.id);
@@ -351,17 +669,84 @@ export async function createMemberSavedSearch(
   input: { name: string; searchHistoryId: string; searchUrl: string },
   utcOffsetHours?: number,
 ): Promise<MemberSavedSearch> {
+  const before = await getMemberSavedSearches(memberToken, utcOffsetHours);
+  const beforeIds = new Set(before.map((search) => search.id));
   const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/addmembersavesearch/${token}`, {
     method: "POST",
     body: JSON.stringify(buildSavedSearch(input.name, `${SEARCH_URL_PREFIX}${input.searchUrl}`, input.searchHistoryId)),
   });
-  const item = isRecord(payload) ? payload : recordArray(payload, "SavedSearches")[0];
-  if (!item || !asString(item.ID)) throw new HarvestError("Parigo did not return the saved search", "HARVEST_INVALID_RESPONSE");
-  return mapSavedSearch(item, utcOffsetHours);
+  const responseId = asString(recordItem(payload, "SavedSearches")?.ID);
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const searches = await getMemberSavedSearches(memberToken, utcOffsetHours);
+    const created = searches.find((search) =>
+      (responseId ? search.id === responseId : !beforeIds.has(search.id)) &&
+      search.name === input.name &&
+      search.searchUrl === input.searchUrl,
+    );
+    if (created) return created;
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the saved search but the resulting resource could not be verified",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
 }
 
 export async function removeMemberSavedSearch(memberToken: string, searchId: string): Promise<void> {
   await memberRequest(memberToken, (token) => `/removemembersavedsearch/${token}/${encodeURIComponent(searchId)}`);
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const searches = await getMemberSavedSearches(memberToken);
+    if (!searches.some((search) => search.id === searchId)) return;
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the saved search deletion but the resource is still present",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
+}
+
+export async function updateMemberSavedSearch(
+  memberToken: string,
+  searchId: string,
+  name: string,
+  utcOffsetHours?: number,
+): Promise<MemberSavedSearch> {
+  const before = (await getMemberSavedSearches(memberToken, utcOffsetHours))
+    .find((search) => search.id === searchId);
+  if (!before) throw new HarvestError("Saved search not found", "NOT_FOUND", 404);
+  const description = before.searchUrl
+    ? `${SEARCH_URL_PREFIX}${before.searchUrl}`
+    : before.description || "";
+  const payload = await memberRequest<HarvestRecord>(memberToken, (token) =>
+    `/updatemembersavesearch/${token}/${encodeURIComponent(searchId)}`, {
+    method: "POST",
+    body: JSON.stringify(buildUpdateSavedSearch(searchId, name, description)),
+  });
+  const responseItem = recordArray(payload, "SavedSearches")[0] ||
+    (asString(payload.ID) ? payload : undefined);
+  if (responseItem) {
+    const responseSearch = mapSavedSearch(responseItem, utcOffsetHours);
+    if (responseSearch.id === searchId && responseSearch.name === name) return responseSearch;
+  }
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const updated = (await getMemberSavedSearches(memberToken, utcOffsetHours))
+      .find((search) => search.id === searchId && search.name === name);
+    if (updated) return updated;
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the saved search update but the new name could not be verified",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
 }
 
 function mapTrackComment(item: HarvestRecord, trackId: string): MemberTrackComment {
@@ -419,6 +804,28 @@ export async function getMemberTags(memberToken: string, skip = 0, limit = 100):
   return recordArray(payload, "Tags").map(mapMemberTag);
 }
 
+export async function getMemberTagsByTrack(memberToken: string, trackId: string): Promise<MemberTag[]> {
+  const payload = await memberRequest<HarvestRecord>(
+    memberToken,
+    (token) => `/getmembertagsbytrack/${token}/${encodeURIComponent(trackId)}`,
+  );
+  return recordArray(payload, "Tags").map(mapMemberTag);
+}
+
+export async function getTrackRightHolders(memberToken: string | undefined, trackId: string): Promise<RightHolder[]> {
+  const payload = memberToken
+    ? await memberRequest<HarvestRecord>(
+        memberToken,
+        (token) => `/getrightholders/${token}/${encodeURIComponent(trackId)}`,
+      )
+    : await guestRequest<HarvestRecord>(
+        (token) => `/getrightholders/${token}/${encodeURIComponent(trackId)}`,
+      );
+  return recordArray(payload, "RightHolders")
+    .map(mapRightHolder)
+    .filter((holder) => holder.id && holder.name);
+}
+
 export async function createMemberTag(memberToken: string, name: string): Promise<MemberTag> {
   const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/addmembertag/${token}`, {
     method: "POST",
@@ -443,12 +850,31 @@ export async function addTracksToMemberTags(memberToken: string, tagIds: string[
     method: "POST",
     body: JSON.stringify(buildAddTracksToTags(tagIds, trackIds)),
   });
+  for (const tagId of tagIds) {
+    let persisted = false;
+    for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+      await waitForVerificationOffset(index);
+      const available = new Set((await getMemberTagTracks(memberToken, tagId)).map((track) => track.id));
+      if (trackIds.every((trackId) => available.has(trackId))) {
+        persisted = true;
+        break;
+      }
+    }
+    if (!persisted) {
+      throw new HarvestError(
+        "Harvest did not persist the requested track-tag association",
+        "HARVEST_INVALID_RESPONSE",
+        502,
+        false,
+      );
+    }
+  }
 }
 
 export async function getMemberTagTracks(memberToken: string, tagId: string, skip = 0, limit = 100): Promise<Track[]> {
   const [payload, templates] = await Promise.all([
     memberRequest<HarvestRecord>(memberToken, (token) => `/getmembertagtracks/${token}/${encodeURIComponent(tagId)}?Skip=${skip}&Limit=${limit}&Sort=Alphabetic_Asc`),
-    getAssetTemplates(),
+    getAssetTemplates(memberToken),
   ]);
   const tag = recordArray(payload, "Tags")[0];
   return tag ? recordArray(tag, "Tracks").map((track) => mapTrack(track, templates, undefined, "member-tag")) : [];
@@ -456,6 +882,17 @@ export async function getMemberTagTracks(memberToken: string, tagId: string, ski
 
 export async function removeTrackFromMemberTag(memberToken: string, tagId: string, trackId: string): Promise<void> {
   await memberRequest(memberToken, (token) => `/removetrackmembertag/${token}/${encodeURIComponent(tagId)}/${encodeURIComponent(trackId)}`);
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const remaining = await getMemberTagTracks(memberToken, tagId);
+    if (!remaining.some((track) => track.id === trackId)) return;
+  }
+  throw new HarvestError(
+    "Harvest did not remove the requested track-tag association",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+  );
 }
 
 export async function removeMemberTag(memberToken: string, tagId: string): Promise<void> {
@@ -477,7 +914,7 @@ export async function getAuditionHistory(
       (token) =>
         `/gethistorybymembertoken/${token}?startdate=${start.toISOString().slice(0, 10)}&enddate=${end.toISOString().slice(0, 10)}&skip=${skip}&limit=${limit}`,
     ),
-    getAssetTemplates(),
+    getAssetTemplates(memberToken),
   ]);
   const history = isRecord(payload.History) ? payload.History : payload;
   const tracks = recordArray(history, "Tracks");
@@ -511,6 +948,42 @@ export async function getAuditionHistory(
   };
 }
 
+export function mapDownloadHistoryResponse(
+  payload: HarvestRecord,
+  templates: HarvestAssetTemplates,
+) {
+  const history = isRecord(payload.History) ? payload.History : payload;
+  const tracks = recordArray(history, "Tracks");
+  const tracksById = new Map(
+    tracks
+      .map((track) => [asString(track.ID), track] as const)
+      .filter(([trackId]) => trackId),
+  );
+  const items = recordArray(history, "HistoryItems").flatMap((item, index) => {
+    const trackId = asString(item.TrackID);
+    const track = tracksById.get(trackId);
+    const utcOffsetHours = asNumber(item.UTCOffset, Number.NaN);
+    const downloadedAt = asIsoDate(
+      item.DeliveryDate,
+      Number.isFinite(utcOffsetHours) ? utcOffsetHours : undefined,
+    );
+    if (!track || !downloadedAt) return [];
+    return [{
+      id: `${trackId}-${asString(item.DeliveryDate, String(index))}-${index}`,
+      downloadedAt,
+      itemType: asString(item.ItemType) || "Download",
+      utcOffsetHours: Number.isFinite(utcOffsetHours) ? utcOffsetHours : undefined,
+      licenseType: "HARVEST",
+      projectName: "",
+      track: mapTrack(track, templates, undefined, "download-history"),
+    }];
+  });
+  return {
+    items,
+    total: asNumber(history.TotalHistoryItems, items.length),
+  };
+}
+
 export async function getDownloadHistory(memberToken: string, skip = 0, limit = 50) {
   const end = new Date();
   const start = new Date(end);
@@ -519,18 +992,11 @@ export async function getDownloadHistory(memberToken: string, skip = 0, limit = 
     memberRequest<HarvestRecord>(
       memberToken,
       (token) =>
-        `/getdownloadhistorybymembertoken/${token}?startdate=${encodeURIComponent(start.toISOString())}&enddate=${encodeURIComponent(end.toISOString())}&skip=${skip}&limit=${limit}`,
+        `/getdownloadhistorybymembertoken/${token}?startdate=${start.toISOString().slice(0, 10)}&enddate=${end.toISOString().slice(0, 10)}&skip=${skip}&limit=${limit}`,
     ),
-    getAssetTemplates(),
+    getAssetTemplates(memberToken),
   ]);
-  const history = isRecord(payload.History) ? payload.History : payload;
-  return recordArray(history, "Tracks").map((item, index) => ({
-    id: `${asString(item.ID)}-${asString(item.DownloadedDate, String(index))}`,
-    downloadedAt: asIsoDate(item.DownloadedDate || item.CreatedDate || item.LastUpdated) || new Date().toISOString(),
-    licenseType: "HARVEST",
-    projectName: "",
-    track: mapTrack(item, templates, undefined, "download-history"),
-  }));
+  return mapDownloadHistoryResponse(payload, templates);
 }
 
 export async function requestDownload(
@@ -580,7 +1046,7 @@ export async function requestDownload(
   const downloadTokens = recordArray(request, "DownloadTokens")
     .map((item) => asString(item.TokenValue))
     .filter(Boolean);
-  const templates = downloadTokens.length ? await getAssetTemplates() : null;
+  const templates = downloadTokens.length ? await getAssetTemplates(memberToken) : null;
   if (downloadTokens.length && !templates?.directDownload) {
     throw new HarvestError(
       "Harvest did not return the documented direct download URL template",
@@ -624,6 +1090,50 @@ export async function getDownloadInfo(downloadToken: string) {
   };
 }
 
+export async function getDownloadPreparationInfo(
+  identifier: { downloadId: string } | { downloadGroupId: string },
+  skip = 0,
+  limit = 100,
+) {
+  const payload = await serviceRequest<HarvestRecord>(
+    (token) => `/getmusicdownloadinfo/${token}`,
+    {
+      method: "POST",
+      body: JSON.stringify(buildDownloadInfoQuery(identifier, skip, limit)),
+    },
+  );
+  return mapDownloadInfo(payload);
+}
+
+export async function getMemberCommunications(
+  memberToken: string,
+  input: { skip?: number; limit?: number; startDate?: string; endDate?: string } = {},
+): Promise<{ items: MemberCommunication[]; total: number }> {
+  const payload = await memberRequest<HarvestRecord>(
+    memberToken,
+    (token) => `/gethistorybycommunications/${token}`,
+    {
+      method: "POST",
+      body: JSON.stringify(buildCommunicationHistory(input)),
+    },
+  );
+  const history = isRecord(payload.History) ? payload.History : payload;
+  const rawItems = recordArray(history, "HistoryItems");
+  const items = rawItems.map((item, index) => ({
+    id: asString(item.ID, `${asString(item.Date)}-${index}`),
+    type: asString(item.Type) || undefined,
+    from: asString(item.From) || undefined,
+    to: asString(item.To) || undefined,
+    subject: asString(item.Subject) || undefined,
+    status: asString(item.Status) || undefined,
+    sentAt: asIsoDate(item.Date || item.CreatedDate),
+  }));
+  return {
+    items,
+    total: asNumber(history.TotalHistoryItems, items.length),
+  };
+}
+
 export async function getSharedMusic(accessToken: string) {
   const [payload, templates] = await Promise.all([
     guestRequest<HarvestRecord>((token) => `/getsharemusic/${token}/${encodeURIComponent(accessToken)}`),
@@ -640,7 +1150,7 @@ export async function createCueSheet(memberToken: string, filename: string, trac
   const payload = await memberRequest<HarvestRecord>(
     memberToken,
     (token) => `/getcuesheet/${token}?filename=${encodeURIComponent(filename)}`,
-    { method: "POST", body: JSON.stringify({ TrackIDs: trackIds, Tracks: trackIds.map((ID) => ({ ID })) }) },
+    { method: "POST", body: JSON.stringify(buildCueSheetTracks(trackIds)) },
   );
   const url = asString(payload.FullUrl);
   if (!url) throw new HarvestError("Harvest did not return a cue sheet URL", "HARVEST_INVALID_RESPONSE");

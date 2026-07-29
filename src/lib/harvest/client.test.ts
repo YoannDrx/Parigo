@@ -52,6 +52,8 @@ describe("Harvest retry safety", () => {
     expect(isHarvestRequestRetrySafe("/cloudsearch/secret", "POST")).toBe(true);
     expect(isHarvestRequestRetrySafe("/autocomplete/secret", "POST")).toBe(true);
     expect(isHarvestRequestRetrySafe("/addmemberplaylist/secret", "POST")).toBe(false);
+    expect(isHarvestRequestRetrySafe("/addmembersavesearch/secret", "POST")).toBe(false);
+    expect(isHarvestRequestRetrySafe("/searchmembersavesearches/secret", "POST")).toBe(false);
   });
 });
 

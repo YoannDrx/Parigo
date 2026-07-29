@@ -12,6 +12,7 @@ import { HarvestError, isRecord } from "./errors";
 import { asIsoDate, asNumber, asString, pick, recordArray } from "./values";
 import { assetUrl, getDownloadFormats } from "./assets";
 import { buildMemberRegistration, buildMemberSubscription, buildPersistentLogin } from "./member-contracts";
+import { WRITE_VERIFICATION_OFFSETS_MS, waitForVerificationOffset } from "./write-verification";
 
 type HarvestRecord = Record<string, unknown>;
 
@@ -325,6 +326,32 @@ export async function getMemberImageUpload(memberToken: string, fileName: string
   return { uploadUrl, resourceUrl, fileName };
 }
 
+export async function uploadMemberImage(
+  memberToken: string,
+  fileName: string,
+  contentType: "image/jpeg" | "image/png" | "image/webp",
+  bytes: Uint8Array,
+) {
+  const upload = await getMemberImageUpload(memberToken, fileName, contentType);
+  const response = await fetch(upload.uploadUrl, {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: Uint8Array.from(bytes).buffer,
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    throw new HarvestError(
+      "Harvest rejected the profile image upload",
+      "HARVEST_UNAVAILABLE",
+      502,
+      false,
+      `HTTP_${response.status}`,
+    );
+  }
+  await confirmMemberImageUpload(memberToken, upload.fileName);
+  return { resourceUrl: upload.resourceUrl, fileName: upload.fileName };
+}
+
 export async function confirmMemberImageUpload(memberToken: string, fileName: string): Promise<void> {
   await memberRequest(memberToken, (token) => `/confirmpresignedupload/${token}`, {
     method: "POST",
@@ -333,10 +360,27 @@ export async function confirmMemberImageUpload(memberToken: string, fileName: st
 }
 
 export async function removeMemberImage(memberToken: string): Promise<void> {
-  await memberRequest(memberToken, (token) => `/removeassignedupload/${token}`, {
-    method: "POST",
-    body: JSON.stringify({ AssetType: "MemberProfileImage" }),
-  });
+  let operationError: unknown;
+  try {
+    await memberRequest(memberToken, (token) => `/removeassignedupload/${token}`, {
+      method: "POST",
+      body: JSON.stringify({ AssetType: "MemberProfileImage" }),
+    });
+  } catch (error) {
+    operationError = error;
+  }
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const profile = await getMemberProfile(memberToken);
+    if (!profile.hasProfileImage) return;
+  }
+  if (operationError) throw operationError;
+  throw new HarvestError(
+    "Harvest did not remove the member profile image",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+  );
 }
 
 export async function expireMember(memberToken: string, persistentToken?: string): Promise<void> {

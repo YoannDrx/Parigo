@@ -15,6 +15,6 @@ export async function POST(request: NextRequest) {
     const url = await createCueSheet(session.memberToken, input.filename, input.trackIds);
     return NextResponse.json({ data: { url }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
   } catch (error) {
-    return apiError(error, id);
+    return apiError(error, id, { operation: "cue-sheet" });
   }
 }

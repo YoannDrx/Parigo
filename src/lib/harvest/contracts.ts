@@ -46,6 +46,11 @@ export const HarvestRightHolderSchema = z.looseObject({
   MiddleName: z.string().optional().nullable(),
   LastName: z.string().optional().nullable(),
   Capacity: z.string().optional().nullable(),
+  CollectingSociety: z.string().optional().nullable(),
+  Share: harvestNullableNumber.optional(),
+  ShareType: z.string().optional().nullable(),
+  IPI: z.string().optional().nullable(),
+  CapacityGroup: z.string().optional().nullable(),
 });
 
 export const HarvestTrackSchema = z.looseObject({
@@ -121,6 +126,8 @@ export const HarvestPlaylistSchema = z.looseObject({
   TrackCount: harvestNumber.optional().nullable(),
   Type: z.string().optional().nullable(),
   Category: z.string().optional().nullable(),
+  PlaylistCategoryID: harvestId.optional().nullable(),
+  Archived: harvestBoolean.optional(),
   CreatedDate: z.string().optional().nullable(),
   LastUpdated: z.string().optional().nullable(),
   Tracks: z.array(HarvestTrackSchema).optional().default([]),

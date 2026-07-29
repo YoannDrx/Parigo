@@ -58,7 +58,7 @@ export function ManifestoScrollSection({
   };
 
   const showCover = (event: PointerEvent<HTMLElement>) => {
-    if (!interactionReady || event.pointerType !== "mouse" || albumCovers.length === 0) return;
+    if (reduceMotion || !interactionReady || event.pointerType !== "mouse" || albumCovers.length === 0) return;
     const bounds = event.currentTarget.getBoundingClientRect();
     const currentPoint = { x: event.clientX, y: event.clientY };
     const previousPoint = lastPointRef.current;
@@ -177,10 +177,10 @@ export function ManifestoScrollSection({
                   data-testid="manifesto-reveal-edge"
                   data-reveal-overlay="true"
                   aria-hidden="true"
-                  className="pointer-events-none absolute -bottom-[.08em] -top-[.08em] right-0 z-10 border-l-[3px] border-[var(--signal)] bg-[var(--background)] shadow-[-10px_0_28px_-14px_color-mix(in_srgb,var(--signal)_72%,transparent)]"
+                  className="pointer-events-none absolute -bottom-[.3em] -top-[.3em] right-0 z-10 border-l-[3px] border-[var(--signal)] bg-[var(--background)]"
                   initial={{ width: "100%" }}
                   animate={inView ? { width: "0%" } : undefined}
-                  transition={{ duration: 4.5, ease: [0.45, 0, 0.2, 1] }}
+                  transition={{ duration: 4.2, ease: [0.45, 0, 0.2, 1] }}
                   onAnimationComplete={() => setRevealComplete(true)}
                 />
               ) : null}

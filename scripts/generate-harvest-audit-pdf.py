@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Generate the complete Harvest integration audit PDF from versioned sources."""
+"""Generate the issue-focused Harvest integration audit PDF from versioned sources."""
 
 from __future__ import annotations
 
-import csv
 import re
 from pathlib import Path
 from xml.sax.saxutils import escape
@@ -29,9 +28,8 @@ from reportlab.platypus import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT_PATH = ROOT / "docs/harvest/audit-integration-2026-07-28.md"
-MATRIX_PATH = ROOT / "docs/harvest/runtime-route-matrix.csv"
-OUTPUT_PATH = ROOT / "output/pdf/audit-integration-harvest-2026-07-28.pdf"
+REPORT_PATH = ROOT / "docs/harvest/audit-integration-2026-07-29.md"
+OUTPUT_PATH = ROOT / "output/pdf/audit-integration-harvest-2026-07-29.pdf"
 
 PAGE_SIZE = landscape(A4)
 PAGE_WIDTH, PAGE_HEIGHT = PAGE_SIZE
@@ -96,7 +94,7 @@ class AuditCanvas(canvas.Canvas):
         self.line(MARGIN_X, 12 * mm, PAGE_WIDTH - MARGIN_X, 12 * mm)
         self.setFont(FONT, 7.2)
         self.setFillColor(MUTED)
-        self.drawString(MARGIN_X, 7.2 * mm, "PARIGO MUSIC · AUDIT HARVEST · 28 JUILLET 2026")
+        self.drawString(MARGIN_X, 7.2 * mm, "PARIGO MUSIC · AUDIT HARVEST · 29 JUILLET 2026")
         self.drawRightString(
             PAGE_WIDTH - MARGIN_X,
             7.2 * mm,
@@ -186,6 +184,11 @@ styles.add(ParagraphStyle(
 
 def inline_markup(text: str) -> str:
     text = escape(text.strip())
+    text = re.sub(
+        r"\[([^\]]+)\]\((https?://[^)]+)\)",
+        r"<link href='\2' color='#236B4E'><u>\1</u></link>",
+        text,
+    )
     text = re.sub(r"`([^`]+)`", r"<font name='ParigoSans-Bold'>\1</font>", text)
     text = re.sub(r"\*\*([^*]+)\*\*", r"<b>\1</b>", text)
     text = re.sub(r"\*([^*]+)\*", r"<i>\1</i>", text)
@@ -278,6 +281,10 @@ def markdown_to_flowables(markdown: str):
                 in_code = True
             index += 1
             continue
+        if stripped == "<!-- PAGEBREAK -->":
+            story.append(PageBreak())
+            index += 1
+            continue
         if in_code:
             code_lines.append(raw)
             index += 1
@@ -362,18 +369,18 @@ def cover_flowables():
     return [
         Spacer(1, 18 * mm),
         Paragraph("PARIGO MUSIC · RAPPORT TECHNIQUE", kicker_style),
-        Paragraph("Audit complet de<br/>l’intégration Harvest", title_style),
+        Paragraph("Audit ciblé de<br/>l’intégration Harvest", title_style),
         Paragraph(
-            "Architecture BFF, authentification, permissions, contrats d’écriture, "
-            "preuves live, sécurité et demande à Harvest.",
+            "Incohérences reproductibles, contrats à clarifier, corrections Parigo "
+            "et capacités produit à confirmer.",
             subtitle_style,
         ),
         Spacer(1, 16 * mm),
         Table(
             [[
-                Paragraph("79<br/><font size='7'>actions cartographiées</font>", metric_style),
-                Paragraph("115<br/><font size='7'>tests unitaires réussis</font>", metric_style),
-                Paragraph("42<br/><font size='7'>contrôles membre live</font>", metric_style),
+                Paragraph("255<br/><font size='7'>endpoints classés</font>", metric_style),
+                Paragraph("75<br/><font size='7'>handlers BFF audités</font>", metric_style),
+                Paragraph("5<br/><font size='7'>écarts ciblés restants</font>", metric_style),
                 Paragraph("0<br/><font size='7'>ressource de test restante</font>", metric_style),
             ]],
             colWidths=[CONTENT_WIDTH / 4] * 4,
@@ -388,9 +395,10 @@ def cover_flowables():
         Spacer(1, 14 * mm),
         Paragraph(
             "<b>Conclusion principale</b><br/>Les credentials actuels ne sont pas globalement "
-            "en lecture seule. Plusieurs écritures membre sont fonctionnelles. Les lacunes "
-            "restantes subsistent après correction des défauts BFF : une capacité "
-            "explicitement désactivée et des contrats/prérequis qui doivent être confirmés par Harvest.",
+            "en lecture seule. Playlists, tags, favoris, recherches, cue sheets et téléchargements "
+            "fonctionnent. Les défauts Parigo identifiés — dont la date erronée des téléchargements — "
+            "ont été corrigés et ne sont pas remontés à Harvest. Les questions restantes sont limitées "
+            "à cinq écarts reproductibles et à des capacités produit ciblées.",
             ParagraphStyle(
                 "CoverConclusion",
                 parent=styles["AuditBody"],
@@ -404,73 +412,9 @@ def cover_flowables():
             ),
         ),
         Spacer(1, 9 * mm),
-        Paragraph("28 juillet 2026 · Compte Anthlogan · Données sensibles expurgées", subtitle_style),
+        Paragraph("29 juillet 2026 · Compte Anthlogan · Données sensibles expurgées", subtitle_style),
         PageBreak(),
     ]
-
-
-def matrix_appendix():
-    story = [
-        PageBreak(),
-        Paragraph("Annexe — matrice exhaustive des routes", styles["AuditH1"]),
-        paragraph(
-            "Les 79 entrées ci-dessous reprennent le CSV versionné. Chaque fiche relie la "
-            "surface utilisateur, la route BFF, l’endpoint Harvest, le token, la nature de "
-            "l’opération, le résultat et la capacité à demander."
-        ),
-    ]
-    with MATRIX_PATH.open(encoding="utf-8", newline="") as handle:
-        rows = list(csv.DictReader(handle))
-    for number, row in enumerate(rows, 1):
-        result = row["Résultat"]
-        result_color = PALE_GREEN
-        if any(word in result.lower() for word in ("échec", "bloqué", "insuffisant", "impossible", "faux succès")):
-            result_color = PALE_RED
-        elif any(word in result.lower() for word in ("non testé", "à confirmer", "inconnu", "non conclusif")):
-            result_color = PALE_YELLOW
-        card = Table(
-            [
-                [
-                    Paragraph(f"{number:02d}. {inline_markup(row['Fonctionnalité'])}", styles["MatrixTitle"]),
-                    Paragraph(inline_markup(result), styles["AuditSmall"]),
-                ],
-                [
-                    Paragraph("<b>UI / BFF</b>", styles["AuditSmall"]),
-                    Paragraph(inline_markup(f"{row['Surface UI']} — {row['Route BFF']}"), styles["AuditSmall"]),
-                ],
-                [
-                    Paragraph("<b>Harvest</b>", styles["AuditSmall"]),
-                    Paragraph(inline_markup(f"{row['Endpoint Harvest']} · {row['Token']} · {row['Nature']}"), styles["AuditSmall"]),
-                ],
-                [
-                    Paragraph("<b>Payload / preuve</b>", styles["AuditSmall"]),
-                    Paragraph(inline_markup(f"{row['Payload']} — {row['Réponse brute']} — {row['Réponse BFF']}"), styles["AuditSmall"]),
-                ],
-                [
-                    Paragraph("<b>Vérification / cleanup</b>", styles["AuditSmall"]),
-                    Paragraph(inline_markup(f"{row['Vérification']} — {row['Nettoyage']}"), styles["AuditSmall"]),
-                ],
-                [
-                    Paragraph("<b>Capacité à demander</b>", styles["AuditSmall"]),
-                    Paragraph(inline_markup(row["Permission à demander"]), styles["AuditSmall"]),
-                ],
-            ],
-            colWidths=[35 * mm, CONTENT_WIDTH - 35 * mm],
-            style=TableStyle([
-                ("SPAN", (0, 0), (0, 0)),
-                ("BACKGROUND", (0, 0), (0, 0), INK),
-                ("TEXTCOLOR", (0, 0), (0, 0), WHITE),
-                ("BACKGROUND", (1, 0), (1, 0), result_color),
-                ("GRID", (0, 0), (-1, -1), 0.35, LINE),
-                ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                ("LEFTPADDING", (0, 0), (-1, -1), 5),
-                ("RIGHTPADDING", (0, 0), (-1, -1), 5),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ]),
-        )
-        story.append(KeepTogether([card, Spacer(1, 4)]))
-    return story
 
 
 def first_page(canvas_obj: canvas.Canvas, _doc):
@@ -493,7 +437,6 @@ def main():
     markdown = REPORT_PATH.read_text(encoding="utf-8")
     story = cover_flowables()
     story.extend(markdown_to_flowables(markdown))
-    story.extend(matrix_appendix())
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(
         str(OUTPUT_PATH),
@@ -502,9 +445,9 @@ def main():
         rightMargin=MARGIN_X,
         topMargin=MARGIN_TOP,
         bottomMargin=MARGIN_BOTTOM,
-        title="Audit complet de l’intégration Harvest",
+        title="Audit ciblé de l’intégration Harvest",
         author="Parigo Music",
-        subject="API Harvest, BFF, permissions et tests live",
+        subject="Incohérences reproductibles, contrats à clarifier et capacités produit",
         creator="Codex pour Parigo Music",
     )
     doc.build(

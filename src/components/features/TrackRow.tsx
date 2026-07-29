@@ -31,6 +31,7 @@ interface TrackRowProps {
   compact?: boolean;
   density?: "full" | "mid" | "light";
   composerCredits?: ComposerCreditLink[];
+  initialDetailsOpen?: boolean;
 }
 
 const openMobileActionMenus = new Set<symbol>();
@@ -49,6 +50,7 @@ export function TrackRow({
   compact = false,
   density = compact ? "mid" : "full",
   composerCredits,
+  initialDetailsOpen = false,
 }: TrackRowProps) {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
@@ -58,10 +60,11 @@ export function TrackRow({
   const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === track.id));
   const isCurrentTrack = currentTrack?.id === track.id;
   const isPlayingThis = isCurrentTrack && isPlaying;
-  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(initialDetailsOpen);
   const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>("information");
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const mobileActionsToken = useRef(Symbol(track.id));
+  const articleRef = useRef<HTMLElement>(null);
   const displayedTerms = [track.genres[0], track.moods[0]].filter(Boolean) as string[];
   const additionalTerms = [...new Set([
     ...track.genres.slice(1),
@@ -82,6 +85,17 @@ export function TrackRow({
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [mobileActionsOpen]);
+
+  useEffect(() => {
+    if (!initialDetailsOpen) return;
+    const frame = window.requestAnimationFrame(() => {
+      articleRef.current?.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        block: "center",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [initialDetailsOpen]);
 
   useEffect(() => {
     if (!mobileActionsOpen) return;
@@ -130,8 +144,11 @@ export function TrackRow({
 
   return (
     <article
+      ref={articleRef}
+      data-track-id={track.id}
       data-mobile-track-actions={mobileActionsOpen ? "open" : undefined}
       data-state={isCurrentTrack ? "playing" : "idle"}
+      data-deep-linked={initialDetailsOpen ? "true" : undefined}
       style={{ animationDelay: `${Math.min(index * 50, 350)}ms` }}
       className={cn("parigo-track-row group relative animate-[fade-in_.24s_ease-out_both] border-b border-[var(--line)] transition-all duration-150 last:border-b-0", isCurrentTrack ? "bg-[var(--color-primary-light)]" : "")}
     >
@@ -169,7 +186,11 @@ export function TrackRow({
 
       {/* Album cover */}
       {showAlbumCover && album && density !== "light" && (
-        <div className={cn("parigo-track-row__cover relative flex-shrink-0 overflow-hidden border border-[var(--line)]", density === "full" ? "h-16 w-16" : "h-10 w-10")}>
+        <Link
+          href={`/albums/${album.slug || album.id}`}
+          aria-label={`${locale === "fr" ? "Voir l’album" : "View album"} ${album.title}`}
+          className={cn("parigo-track-row__cover relative flex-shrink-0 overflow-hidden border border-[var(--line)] transition hover:border-[var(--signal-strong)] focus-visible:border-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal)]/25", density === "full" ? "h-16 w-16" : "h-10 w-10")}
+        >
           <Image
             src={album.cover}
             alt={album.title}
@@ -177,29 +198,29 @@ export function TrackRow({
             sizes={density === "full" ? "64px" : "40px"}
             className="object-cover"
           />
-        </div>
+        </Link>
       )}
 
       {/* Track info + Waveform */}
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen} className="parigo-track-row__title min-w-0 text-left">
-          <p
-            className={cn(
-              "font-medium truncate",
-              isCurrentTrack
-                ? "text-[var(--color-primary-dark)]"
-                : "text-[var(--foreground)]"
-            )}
-          >
-            {track.title}
-          </p></button>
-          {album && (
-            <Link href={`/albums/${album.slug || album.id}`} className="hidden truncate text-sm text-[var(--color-gray-400)] transition hover:text-[var(--foreground)] sm:inline">
-              — {album.title}
-            </Link>
+        <p
+          className={cn(
+            "parigo-track-row__title min-w-0 truncate font-medium",
+            isCurrentTrack
+              ? "text-[var(--color-primary-dark)]"
+              : "text-[var(--foreground)]"
           )}
-        </div>
+        >
+          {track.title}
+        </p>
+        {album && (
+          <div className="flex min-w-0 items-center gap-2">
+            <Link href={`/albums/${album.slug || album.id}`} className="min-w-0 truncate text-xs text-[var(--text-muted)] transition hover:text-[var(--foreground)] sm:text-sm">
+              {album.title}
+            </Link>
+            {album.code && <span className="album-reference-tag shrink-0">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
+          </div>
+        )}
 
         {/* Waveform */}
         {showWaveform && density !== "light" && (
@@ -229,7 +250,7 @@ export function TrackRow({
             <Tag variant="mood" size="sm">{localizeCatalogTerm(mood, locale)}</Tag>
           </Tooltip>
         ))}
-        {additionalTerms.length > 0 && <Tooltip label={`${locale === "fr" ? "Autres tags" : "Other tags"} · ${additionalTermsLabel}${additionalTerms.length > 12 ? "…" : ""}`}><button type="button" onClick={() => { setDetailsTab("information"); setDetailsOpen(true); }} className="parigo-track-row__more-tags inline-flex min-h-7 items-center border border-dashed border-[var(--line-strong)] px-2 text-[.65rem] font-semibold text-[var(--text-muted)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Voir tous les tags" : "View all tags"} : ${track.title}`}>+{additionalTerms.length}</button></Tooltip>}
+        {additionalTerms.length > 0 && <Tooltip label={`${locale === "fr" ? "Autres tags" : "Other tags"} · ${additionalTermsLabel}${additionalTerms.length > 12 ? "…" : ""}`}><span tabIndex={0} className="parigo-track-row__more-tags inline-flex min-h-7 items-center border border-dashed border-[var(--line-strong)] px-2 text-[.65rem] font-semibold text-[var(--text-muted)]" aria-label={`${locale === "fr" ? "Autres tags" : "Other tags"} : ${track.title}`}>+{additionalTerms.length}</span></Tooltip>}
       </div>}
 
       {/* BPM */}
@@ -249,7 +270,7 @@ export function TrackRow({
       {/* Actions */}
       <div className="parigo-track-row__actions flex flex-shrink-0 items-center gap-0.5">
         <div className="hidden lg:contents"><FavoriteButton type="track" itemId={track.id} size="sm" />
-        <Tooltip label={locale === "fr" ? "Informations sur la piste" : "Track information"}><button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen && detailsTab === "information"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "information" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></Tooltip>{session?.user && <Tooltip label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => toggleDetails("notes")} aria-expanded={detailsOpen && detailsTab === "notes"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "notes" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></Tooltip>}</div>
+        <Tooltip label={locale === "fr" ? "Informations sur la piste" : "Track information"}><button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></Tooltip>{session?.user && <Tooltip label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => toggleDetails("notes")} aria-expanded={detailsOpen && detailsTab === "notes"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "notes" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></Tooltip>}</div>
         <div className="hidden lg:contents"><DownloadButton trackId={track.id} trackTitle={track.title} /><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /><AddTagButton trackId={track.id} trackTitle={track.title} /><CueSheetButton compact title={track.title} trackIds={[track.id]} /></div>
         <Tooltip label={locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} className="hidden xl:inline-flex"><button onClick={() => addToQueue(track)} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}>
           <ListEnd size={17} className="text-[var(--color-gray-500)]" />
@@ -281,7 +302,7 @@ export function TrackRow({
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
       </div>}
-      {detailsOpen && <TrackDetailsPanel track={track} composerCredits={composerCredits} activeTab={detailsTab} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} />}
+      {detailsOpen && <div className="mb-4 ml-3 mr-1 mt-2 sm:ml-8 lg:ml-12"><TrackDetailsPanel track={track} composerCredits={composerCredits} activeTab={detailsTab} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} /></div>}
     </article>
   );
 }

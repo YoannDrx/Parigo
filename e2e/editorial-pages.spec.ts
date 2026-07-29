@@ -33,14 +33,12 @@ test("la bordure et les corners des synchronisations restent visibles au survol"
   test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop.");
   await page.goto("/synchronisations");
   const card = page.locator(".sync-gallery-card").first();
-  const ring = card.locator(".parigo-video-card__ring");
+  const caption = card.locator(".home-sync-card__caption");
+  const image = card.locator(".home-sync-card__image");
+  await expect(caption).toHaveCSS("opacity", "0");
   await card.hover();
-  const ringStyle = await ring.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return { colour: style.borderTopColor, width: style.borderTopWidth };
-  });
-  expect(ringStyle.width).not.toBe("0px");
-  expect(ringStyle.colour).not.toBe("rgba(0, 0, 0, 0)");
+  await expect(caption).toHaveCSS("opacity", "1");
+  await expect(image).toHaveCSS("filter", "blur(5px)");
   const topCorner = await card.evaluate((node) => getComputedStyle(node, "::before").width);
   expect(Number.parseFloat(topCorner)).toBeGreaterThan(100);
 });
@@ -74,9 +72,11 @@ test("le détail d’une synchronisation contient son titre et masque la descrip
   expect(await title.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
   await expect(page.locator("main")).not.toContainText("spotify.com");
   await expect(page.locator("main")).not.toContainText("@parigoproductionmusic");
+  await expect(page.locator("main")).not.toContainText("Parigo screening room");
+  await expect(page.locator("main")).not.toContainText("16:9");
   const actions = page.getByRole("complementary");
   await expect(actions.getByRole("link", { name: "YouTube", exact: true })).toBeVisible();
-  await expect(actions.getByRole("link", { name: "Parler à l’équipe" })).toBeVisible();
+  await expect(actions.getByRole("link", { name: "Parler à l’équipe" })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 
   await page.setViewportSize({ width: 1280, height: 900 });
@@ -87,6 +87,23 @@ test("le détail d’une synchronisation contient son titre et masque la descrip
   expect(desktopTitleBox).not.toBeNull();
   expect(desktopVideoBox!.x).toBeLessThan(desktopTitleBox!.x);
   expect(await page.locator("main h1").evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+});
+
+test("les pages d’information alignent leurs corners et retirent la signature géographique", async ({ page }) => {
+  await page.goto("/privacy");
+  await expect(page.locator("main")).not.toContainText("Parigo Music · Paris · France");
+
+  const toc = page.locator(".legal-toc");
+  const radii = await toc.evaluate((node) => ({
+    container: getComputedStyle(node).borderTopRightRadius,
+    corner: getComputedStyle(node, "::before").borderTopRightRadius,
+    top: getComputedStyle(node, "::before").top,
+    right: getComputedStyle(node, "::before").right,
+  }));
+  expect(radii.corner).toBe(radii.container);
+  expect(radii.top).toBe("-1px");
+  expect(radii.right).toBe("-1px");
+  await expect(toc).toHaveCSS("scrollbar-gutter", "auto");
 });
 
 test("la home conserve le process et le brief sans les deux sections supprimées", async ({ page }) => {

@@ -84,7 +84,7 @@ test("les anciennes routes Sorties Parigo redirigent définitivement", async ({ 
   await expect(page).toHaveURL(/\/en\/label-parigo$/);
 });
 
-test("Ugly Mac Beer relie albums, clips et crédits de pistes", async ({ page }) => {
+test("Ugly Mac Beer relie albums, clips et crédits de pistes", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await page.goto("/compositeurs/ugly-mac-beer");
   await expect(page.getByRole("heading", { level: 1, name: "Ugly Mac Beer" })).toBeVisible();
@@ -94,8 +94,10 @@ test("Ugly Mac Beer relie albums, clips et crédits de pistes", async ({ page })
   await expect(album).toBeVisible();
   await album.click();
   await expect(page.getByRole("link", { name: "Ugly Mac Beer", exact: true }).first()).toBeVisible();
-  const firstTrack = page.locator(".parigo-track-row__title").first();
-  await firstTrack.click();
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: /^Plus d’actions :/ }).first().click();
+  }
+  await page.getByRole("button", { name: /^Informations sur la piste/ }).first().click();
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 

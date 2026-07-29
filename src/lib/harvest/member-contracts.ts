@@ -78,10 +78,35 @@ export function buildAddTracksToTags(tagIds: string[], trackIds: string[]) {
   return { ObjectType: "Track", ObjectIDs: trackIds, AddToTagIDs: tagIds };
 }
 
-export function buildMemberPlaylist(title: string, description = "") {
+export function buildCreateMemberPlaylist(title: string, description = "") {
   return {
-    PlaylistName: title,
-    PlaylistDescription: description,
+    requestaddupdateplaylist: {
+      playlistname: title,
+      playlistdescription: description,
+      playlisttags: "",
+      highlighttracks: false,
+      autosave: false,
+      autosavelimit: 0,
+      autosaveapplytohighlighttracks: false,
+      playlistcategoryid: "",
+      externalplaylistimageurl: "",
+      orderby: "",
+    },
+  };
+}
+
+export function buildUpdateMemberPlaylist(title: string, description = "") {
+  return {
+    playlistname: title,
+    playlistdescription: description,
+    playlisttags: "",
+    highlighttracks: false,
+    autosave: false,
+    autosavelimit: 0,
+    autosaveapplytohighlighttracks: false,
+    playlistcategoryid: "",
+    externalplaylistimageurl: "",
+    orderby: "",
   };
 }
 
@@ -98,6 +123,21 @@ export function buildAddTracksToPlaylists(playlistIds: string[], trackIds: strin
     ObjectType: "Track",
     ObjectIDs: trackIds,
     AddToPlaylistIDs: playlistIds,
+    ObjectTrimStart: null,
+    ObjectTrimEnd: null,
+    AddToAutoSavePlaylists: false,
+  };
+}
+
+export function buildRemovePlaylistTracks(trackIds: string[]) {
+  return {
+    track: trackIds.map((id) => ({ id })),
+  };
+}
+
+export function buildCueSheetTracks(trackIds: string[]) {
+  return {
+    track: trackIds,
   };
 }
 
@@ -117,10 +157,13 @@ export function buildReorderPlaylistTracks(
   return {
     FromPlaylistID: playlistId,
     ToPlaylistID: playlistId,
-    TrackIDs: trackIds,
+    // Harvest's executable JSON example serializes this field as a string,
+    // even though the endpoint can move multiple tracks.
+    TrackIDs: trackIds.join(","),
     ...(position.precedingTrackId !== undefined ? { PrecedingTrackID: position.precedingTrackId } : {}),
     ...(position.succeedingTrackId !== undefined ? { SucceedingTrackID: position.succeedingTrackId } : {}),
     ...(position.orderId !== undefined ? { OrderID: position.orderId } : {}),
+    Copy: false,
   };
 }
 
@@ -130,12 +173,13 @@ export function buildDownloadValidation(
   includeVersions = false,
 ) {
   return {
-    downloadtype: "track",
-    identifier: trackIds.join(","),
-    format: formatId,
-    trimstartsecs: 0,
-    trimendsecs: 0,
-    includeversioncheck: includeVersions,
+    Identifier: trackIds.join(","),
+    ContentIDs: "",
+    DownloadType: "track",
+    Format: [formatId],
+    TrimEndSecs: 0,
+    TrimStartSecs: 0,
+    IncludeVersionCheck: includeVersions,
   };
 }
 
@@ -146,17 +190,21 @@ export function buildDownloadRequest(
   includeVersions = false,
 ) {
   return {
-    downloadtype: "track",
-    identifier: trackIds.join(","),
-    format: formatId,
-    trimstartsecs: 0,
-    trimendsecs: 0,
-    email,
-    isshare: false,
-    forceemail: false,
-    message: "",
-    senderemail: email,
-    includeversions: includeVersions,
+    Identifier: trackIds.join(","),
+    DownloadType: "track",
+    Format: formatId,
+    TrimStartSecs: 0,
+    TrimEndSecs: 0,
+    Email: email,
+    IsShare: false,
+    Message: "",
+    SenderEmail: email,
+    ForceEmail: false,
+    IncludeVersions: includeVersions,
+    VersionFolderName: "",
+    DownloadFileName: "",
+    CuesheetFileName: "",
+    IncludeCuesheetFile: true,
   };
 }
 
@@ -164,8 +212,96 @@ export function buildSavedSearch(name: string, description: string, searchHistor
   return { Name: name, Description: description, SearchHistoryID: searchHistoryId };
 }
 
+export function buildUpdateSavedSearch(
+  id: string,
+  name: string,
+  description = "",
+  searchHistoryId = "",
+) {
+  return { ID: id, Name: name, Description: description, SearchHistoryID: searchHistoryId };
+}
+
 export function buildSavedSearchQuery(keywords = "", skip = 0, limit = 100) {
   return { Keywords: keywords, Skip: skip, Limit: limit, Sort: "Created_Desc" };
+}
+
+export function buildPlaylistCategory(
+  name: string,
+  description = "",
+  colorHex = "",
+  addToTop = false,
+) {
+  return {
+    PlaylistCategoryName: name,
+    PlaylistCategoryDescription: description,
+    ColorHex: colorHex,
+    AddToTop: addToTop,
+  };
+}
+
+export function buildUpdatePlaylistCategory(
+  name: string,
+  description = "",
+  colorHex = "",
+) {
+  return {
+    PlaylistCategoryName: name,
+    PlaylistCategoryDescription: description,
+    ColorHex: colorHex,
+  };
+}
+
+export function buildDuplicateMemberPlaylist(sourcePlaylistId: string, name?: string) {
+  return {
+    SourcePlaylistID: sourcePlaylistId,
+    ...(name ? { DuplicatePlaylistName: name } : {}),
+  };
+}
+
+export function buildSearchMemberPlaylistTracks(
+  keyword: string,
+  input: {
+    fields?: string[];
+    skip?: number;
+    limit?: number;
+    orderBy?: string;
+    returnTrackCount?: boolean;
+  } = {},
+) {
+  return {
+    Keyword: keyword,
+    Fields: (input.fields ?? ["TrackDisplayTitle", "TrackDescription"]).join(","),
+    ReturnTrackCount: input.returnTrackCount ?? true,
+    Skip: input.skip ?? 0,
+    Limit: input.limit ?? 50,
+    OrderBy: input.orderBy ?? "Custom_ASC",
+  };
+}
+
+export function buildDownloadInfoQuery(
+  identifier: { downloadId: string } | { downloadGroupId: string },
+  skip = 0,
+  limit = 100,
+) {
+  return {
+    Skip: skip,
+    Limit: limit,
+    ...("downloadId" in identifier
+      ? { DownloadID: identifier.downloadId }
+      : { DownloadGroupID: identifier.downloadGroupId }),
+  };
+}
+
+export function buildCommunicationHistory(
+  input: { skip?: number; limit?: number; startDate?: string; endDate?: string } = {},
+) {
+  return {
+    Skip: input.skip ?? 0,
+    Limit: input.limit ?? 50,
+    Sort: "Created_Desc",
+    StartDate: input.startDate ?? "",
+    EndDate: input.endDate ?? "",
+  };
 }
 
 export function buildTrackComment(trackId: string, text: string) {

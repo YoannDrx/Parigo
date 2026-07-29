@@ -25,6 +25,20 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     const input = mutationSchema.parse(await request.json());
     if (input.action === "add") await addTracksToMemberTags(session.memberToken, [id], input.trackIds);
     else await Promise.all(input.trackIds.map((trackId) => removeTrackFromMemberTag(session.memberToken, id, trackId)));
-    return NextResponse.json({ data: { updated: true }, meta: { requestId: requestID } }, { headers: { "Cache-Control": "no-store" } });
+    const tracks = await getMemberTagTracks(session.memberToken, id);
+    const remoteIds = new Set(tracks.map((track) => track.id));
+    const verified = input.action === "add"
+      ? input.trackIds.every((trackId) => remoteIds.has(trackId))
+      : input.trackIds.every((trackId) => !remoteIds.has(trackId));
+    return NextResponse.json({
+      data: {
+        updated: true,
+        verified,
+        tagId: id,
+        trackIds: input.trackIds,
+        trackCount: tracks.length,
+      },
+      meta: { requestId: requestID },
+    }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, requestID, { surface: "account" }); }
 }
