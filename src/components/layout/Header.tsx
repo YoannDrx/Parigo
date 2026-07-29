@@ -58,7 +58,7 @@ export function Header({ variant = "default" }: HeaderProps) {
     parigoLabel: { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo", note: locale === "fr" ? "Les productions du label" : "Releases from the label" },
     composers: { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs", note: locale === "fr" ? "Les talents du label" : "The label’s talent" },
     clips: { name: "Clips", href: "/clips", note: locale === "fr" ? "Créations audiovisuelles" : "Audiovisual work" },
-    labels: { name: t("common.labels"), href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
+    labels: { name: locale === "fr" ? "Labels représentés" : "Represented labels", href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
   };
   const primaryNav = [
     navigationItems.search,
@@ -85,6 +85,7 @@ export function Header({ variant = "default" }: HeaderProps) {
   return (
     <header
       data-variant={variant}
+      data-header-visible={headerVisible || open ? "true" : "false"}
       style={{ top: headerVisible || open ? 0 : -82 }}
       className={cn("fixed inset-x-0 z-[80] w-full text-[var(--foreground)] transition-[top] duration-300 ease-out", open && "h-[100dvh] overflow-hidden")}
     >

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Mail } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 export function ProjectInvitationSection() {
   const { locale, localizedPath } = useI18n();
@@ -19,9 +20,9 @@ export function ProjectInvitationSection() {
         className="project-invitation parigo-frame mx-auto grid max-w-[1580px] gap-10 border border-white/14 bg-[#0b0f0c] p-6 text-white md:grid-cols-12 md:items-end md:p-10 lg:p-12"
       >
         <div className="relative md:col-span-8">
-          <h2 className="max-w-[15ch] text-[clamp(2.6rem,5vw,5.4rem)] leading-[.92] tracking-[-.055em] text-white">
-            {locale === "fr" ? <>Envoyez-nous un brief.<br />Nous sélectionnons pour vous.</> : <>Send us a brief.<br />We’ll curate for you.</>}
-          </h2>
+          <SignedTitle as="h2" className="max-w-[15ch] text-[clamp(2.6rem,5vw,5.4rem)] leading-[.92] tracking-[-.055em] text-white">
+            {locale === "fr" ? <>Envoyez-nous un brief.<br />Nous sélectionnons pour vous</> : <>Send us a brief.<br />We’ll curate for you</>}
+          </SignedTitle>
         </div>
         <div className="relative md:col-span-3 md:col-start-10">
           <p className="leading-7 text-white/66">

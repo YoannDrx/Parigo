@@ -11,6 +11,7 @@ import { ViewModeControl } from "@/components/ui/ViewModeControl";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SYNCHRONISATIONS_PLAYLIST_URL, type Synchronisation } from "@/content/synchronisations";
 import type { ViewMode } from "@/types";
+import { PageHero } from "@/components/layout/PageHero";
 
 export function SynchronisationsExperience({ synchronisations }: { synchronisations: Synchronisation[] }) {
   const { locale, localizedPath } = useI18n();
@@ -28,17 +29,14 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
 
   return <div className="page-shell">
     <Header />
-    <main className="overflow-x-clip px-4 pb-24 pt-28 md:px-8 md:pb-36 md:pt-36">
-      <div className="mx-auto min-w-0 max-w-[1580px]">
-        <div className="grid min-w-0 gap-10 md:grid-cols-12 md:items-end">
-          <div className="min-w-0 md:col-span-8">
-            <h1 className="min-w-0 text-[clamp(2.3rem,10vw,6rem)] font-semibold leading-[.88] tracking-[-.07em] md:text-[clamp(4rem,8.5vw,9rem)] md:leading-[.84]"><span className="block">{locale === "fr" ? "Nos" : "Our"}</span><span className="block">synchronisations<span className="text-[var(--signal)]">.</span></span></h1>
-          </div>
-          <div className="min-w-0 max-w-md md:col-span-3 md:col-start-10">
-            <a href={SYNCHRONISATIONS_PLAYLIST_URL} target="_blank" rel="noreferrer" className="parigo-button group inline-flex min-h-12 max-w-full items-center gap-3 border border-[var(--signal-strong)] bg-[var(--signal-strong)] px-5 text-sm font-semibold text-white transition hover:!border-[var(--foreground)] hover:!bg-[var(--foreground)] hover:!text-[var(--background)]"><Youtube size={17} className="shrink-0" /><span className="min-w-0">{locale === "fr" ? "Voir la playlist YouTube" : "View the YouTube playlist"}</span><ArrowUpRight size={16} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></a>
-          </div>
-        </div>
-
+    <main className="overflow-x-clip pb-24 md:pb-36">
+      <PageHero
+        title={locale === "fr" ? "Nos synchronisations" : "Our synchronisations"}
+        intro={locale === "fr" ? "Des placements Parigo à l’image, du cinéma aux campagnes et aux séries." : "Parigo placements across film, campaigns and series."}
+        meta={`${synchronisations.length} ${locale === "fr" ? "placements" : "placements"}`}
+        action={<a href={SYNCHRONISATIONS_PLAYLIST_URL} target="_blank" rel="noreferrer" className="parigo-button group inline-flex min-h-11 max-w-full items-center gap-3 border border-[var(--line-strong)] bg-[var(--surface)] px-4 text-xs font-semibold text-[var(--foreground)] transition hover:!border-[var(--signal-strong)] hover:!bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))] hover:!text-[var(--signal-strong)]"><Youtube size={16} className="shrink-0 text-[var(--signal-strong)]" /><span className="min-w-0">{locale === "fr" ? "Playlist YouTube" : "YouTube playlist"}</span><ArrowUpRight size={15} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></a>}
+      />
+      <div className="mx-auto min-w-0 max-w-[1580px] px-4 md:px-8">
         <div className="my-14 flex justify-end">
           <ViewModeControl
             value={view}

@@ -6,6 +6,7 @@ import { Footer, Header } from "@/components/layout";
 import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/content/synchronisations";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   const { locale, localizedPath } = useI18n();
@@ -37,9 +38,9 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
             </section>
 
             <aside className="flex min-h-full min-w-0 flex-col overflow-hidden rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 [container-type:inline-size] lg:col-span-4 lg:p-8">
-              <h1 lang={locale} className={`max-w-full min-w-0 break-words font-semibold hyphens-auto text-wrap-balance [overflow-wrap:anywhere] ${titleSize}`}>
-                {sync.title}<span className="text-[var(--signal)]">.</span>
-              </h1>
+              <SignedTitle lang={locale} className={`max-w-full min-w-0 break-words font-semibold hyphens-auto text-wrap-balance [overflow-wrap:anywhere] ${titleSize}`}>
+                {sync.title}
+              </SignedTitle>
 
               <dl className="mt-7 grid min-w-0 grid-cols-2 gap-5 border-t border-[var(--line)] pt-6">
                 <div className="min-w-0">
@@ -53,8 +54,8 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
               </dl>
 
               <div className="mt-auto grid gap-3 pt-8">
-                <a href={`https://www.youtube.com/watch?v=${sync.youtubeId}`} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-between border border-[var(--line-strong)] px-4 text-sm font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]">
-                  <span>YouTube</span>
+                <a href={`https://www.youtube.com/watch?v=${sync.youtubeId}`} target="_blank" rel="noreferrer" className="group flex min-h-12 items-center justify-between border border-[var(--line)] bg-[var(--surface-soft)] px-4 text-sm font-semibold transition hover:border-[var(--signal-strong)] hover:bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))] hover:text-[var(--signal-strong)]">
+                  <span>{locale === "fr" ? "Voir sur YouTube" : "Watch on YouTube"}</span>
                   <ArrowUpRight size={15} />
                 </a>
               </div>

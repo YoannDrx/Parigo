@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 export interface SelectOption<T extends string = string> {
   value: T;
   label: string;
+  description?: string;
   disabled?: boolean;
 }
 
@@ -122,7 +123,7 @@ export function Select<T extends string>({
       >
         <span className="flex min-w-0 items-center gap-2">
           {caption && <span className="parigo-select__caption shrink-0">{caption}</span>}
-          <span className="truncate">{selected?.label ?? value}</span>
+          <span className="parigo-select__value truncate">{selected?.label ?? value}</span>
         </span>
         <span className="flex h-6 w-5 shrink-0 items-center justify-end text-[var(--text-muted)]">
           <ChevronDown size={14} strokeWidth={1.6} className={cn("transition duration-300", open ? "rotate-180 text-[var(--signal-strong)]" : "opacity-70")} />
@@ -145,18 +146,21 @@ export function Select<T extends string>({
                 type="button"
                 role="option"
                 aria-selected={isSelected}
+                data-active={activeIndex === index ? "true" : undefined}
                 disabled={option.disabled}
                 onFocus={() => setActiveIndex(index)}
                 onClick={() => choose(option)}
                 className={cn(
                   "parigo-select__option flex min-h-10 w-full items-center justify-between gap-5 whitespace-nowrap px-3 text-left text-xs transition focus-visible:outline-none",
                   variant === "default" && "rounded-md",
-                  activeIndex === index && "bg-[var(--surface-soft)]",
                   isSelected && "font-semibold text-[var(--signal-strong)]",
                   option.disabled && "opacity-35",
                 )}
               >
-                <span>{option.label}</span>
+                <span className="min-w-0">
+                  <span className="block truncate">{option.label}</span>
+                  {option.description ? <span className="parigo-select__option-description mt-0.5 block truncate font-mono text-[.52rem] font-normal uppercase tracking-[.07em] text-[var(--text-muted)]">{option.description}</span> : null}
+                </span>
                 {isSelected && <Check size={14} />}
               </button>
             );

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, Input, ParigoLoader } from "@/components/ui";
+import { Button, Card, Input, ParigoLoader, SignedTitle } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function ForgotPasswordPage() {
@@ -29,9 +29,9 @@ export default function ForgotPasswordPage() {
   return (
     <Card padding="lg" className="w-full max-w-lg border-[var(--line)] bg-[var(--surface)] shadow-none">
       <p className="eyebrow text-[var(--color-primary-dark)]">{locale === "fr" ? "Membre Parigo" : "Parigo member"}</p>
-      <h1 className="mt-5 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
+      <SignedTitle className="mt-5 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
         {locale === "fr" ? "Mot de passe oublié" : "Forgot password"}
-      </h1>
+      </SignedTitle>
       {sent ? (
         <div className="mt-8 space-y-5">
           <p>{locale === "fr" ? "Si ce compte existe, Parigo vient d’envoyer un lien de réinitialisation." : "If this account exists, Parigo has sent a reset link."}</p>

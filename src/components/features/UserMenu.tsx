@@ -138,7 +138,11 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
       <section data-testid="account-menu" aria-label={locale === "fr" ? "Navigation du compte" : "Account navigation"} className="border-y border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border-b border-[var(--line)] px-3 py-5 sm:px-5">
           <AccountMark initials={initials} image={user.image} large />
-          <div className="min-w-0"><p className="eyebrow mb-2 text-[var(--signal-strong)]">{locale === "fr" ? "Espace personnel" : "Personal space"}</p><p className="truncate font-[var(--font-editorial)] text-2xl font-semibold leading-none tracking-[-.045em]">{user.name || (locale === "fr" ? "Utilisateur" : "User")}</p><p className="mt-2 truncate text-xs text-[var(--text-muted)]">{user.email}</p></div>
+          <Link href="/account" aria-label={locale === "fr" ? "Ouvrir mon profil" : "Open my profile"} className="group/profile min-w-0 outline-none">
+            <p className="eyebrow mb-2 text-[var(--signal-strong)]">{locale === "fr" ? "Espace personnel" : "Personal space"}</p>
+            <p className="truncate font-[var(--font-editorial)] text-2xl font-semibold leading-none tracking-[-.045em] transition-colors group-hover/profile:text-[var(--signal-strong)] group-focus-visible/profile:text-[var(--signal-strong)]">{user.name || (locale === "fr" ? "Utilisateur" : "User")}</p>
+            <p className="mt-2 truncate text-xs text-[var(--text-muted)]">{user.email}</p>
+          </Link>
         </div>
         <div className="grid sm:grid-cols-2">
           {menuItems.map((item) => {
@@ -178,11 +182,11 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
             <span aria-hidden="true" className="absolute right-6 top-0 h-[3px] w-20 bg-[var(--signal)]" />
             <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 px-5 pb-5 pt-6">
               <AccountMark initials={initials} image={user.image} large />
-              <div className="min-w-0">
+              <Link href="/account" onClick={() => setIsOpen(false)} aria-label={locale === "fr" ? "Ouvrir mon profil" : "Open my profile"} className="group/profile min-w-0 outline-none">
                 <p className="eyebrow mb-2 text-[var(--signal-strong)]">{locale === "fr" ? "Espace personnel" : "Personal space"}</p>
-                <p className="truncate font-[var(--font-editorial)] text-2xl font-semibold leading-none tracking-[-.045em]">{user.name || (locale === "fr" ? "Utilisateur" : "User")}</p>
+                <p className="truncate font-[var(--font-editorial)] text-2xl font-semibold leading-none tracking-[-.045em] transition-colors group-hover/profile:text-[var(--signal-strong)] group-focus-visible/profile:text-[var(--signal-strong)]">{user.name || (locale === "fr" ? "Utilisateur" : "User")}</p>
                 <p className="mt-2 truncate text-xs text-[var(--text-muted)]">{user.email}</p>
-              </div>
+              </Link>
             </div>
 
             <div className="border-t border-[var(--line)]">

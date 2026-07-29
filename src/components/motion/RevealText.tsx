@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import { stripTerminalTitleMark } from "@/components/ui/SignedTitle";
 
 interface RevealTextProps {
   children: string;
@@ -9,15 +10,17 @@ interface RevealTextProps {
   as?: "h1" | "h2" | "h3" | "p" | "span";
   delay?: number;
   mode?: "words" | "lines";
+  signature?: boolean;
 }
 
-export function RevealText({ children, className, as = "p", delay = 0, mode = "words" }: RevealTextProps) {
+export function RevealText({ children, className, as = "p", delay = 0, mode = "words", signature = false }: RevealTextProps) {
   const MotionTag = motion[as];
-  const segments = mode === "lines" ? children.split("\n") : children.split(" ");
+  const text = signature ? stripTerminalTitleMark(children) : children;
+  const segments = mode === "lines" ? text.split("\n") : text.split(" ");
 
   return (
-    <MotionTag className={cn("reveal-text", className)}>
-      <span className="sr-only">{children.replaceAll("\n", " ")}</span>
+    <MotionTag className={cn("reveal-text", signature && "parigo-signed-title", className)}>
+      <span className="sr-only">{text.replaceAll("\n", " ")}</span>
       {segments.map((segment, index) => (
         <span key={`${segment}-${index}`} className={cn("reveal-segment", mode === "lines" && "block")} aria-hidden="true">
           <motion.span
@@ -32,6 +35,7 @@ export function RevealText({ children, className, as = "p", delay = 0, mode = "w
           </motion.span>
         </span>
       ))}
+      {signature && <span className="parigo-title-signature" aria-hidden="true" />}
     </MotionTag>
   );
 }
