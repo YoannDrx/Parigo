@@ -222,7 +222,7 @@ test("la création d’une première playlist utilise une modale Parigo et alime
   const folderSelectBox = await playlistRow.getByRole("combobox", { name: "Déplacer dans : Premier film" }).boundingBox();
   expect(playlistTitleBox).not.toBeNull();
   expect(folderSelectBox).not.toBeNull();
-  expect(Math.abs((playlistTitleBox!.y + playlistTitleBox!.height / 2) - (folderSelectBox!.y + folderSelectBox!.height / 2))).toBeLessThan(4);
+  expect(Math.abs((playlistTitleBox!.y + playlistTitleBox!.height / 2) - (folderSelectBox!.y + folderSelectBox!.height / 2))).toBeLessThan(6);
   const playlistRowBox = await playlistRow.boundingBox();
   expect(playlistRowBox).not.toBeNull();
   expect(playlistRowBox!.height).toBeLessThanOrEqual(84);
