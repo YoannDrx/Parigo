@@ -458,7 +458,7 @@ function SearchContent() {
           </aside>
 
           <section ref={searchWorkspaceRef} className="min-w-0" aria-live="polite">
-            <div data-testid="search-workspace" className="search-workspace sticky z-40 mb-3 bg-[var(--background)] pb-2 pt-1">
+            <div data-testid="search-workspace" className="search-workspace relative z-40 mb-3 bg-[var(--background)] pb-2 pt-1 lg:sticky">
               <div className="search-command-center border border-[var(--line-strong)] bg-[var(--surface)] p-2.5">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <form onSubmit={(event) => { event.preventDefault(); applyUnifiedSearch(); }} className="ai-search-shell search-query-frame flex min-h-12 min-w-[16rem] flex-1 items-center border border-[var(--line-strong)] bg-[var(--background)] p-1 transition">

@@ -39,7 +39,7 @@ export function CatalogToolbar<TSort extends string>({
       data-testid="catalog-workspace"
       className={cn(
         sticky
-          ? "catalog-workspace search-workspace sticky z-40 mb-6 bg-[var(--background)] pb-2 pt-1"
+          ? "catalog-workspace search-workspace relative z-40 mb-6 bg-[var(--background)] pb-2 pt-1 lg:sticky"
           : "mb-10",
       )}
     >

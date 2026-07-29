@@ -71,9 +71,21 @@ test("la pagination replace le début des résultats sous le poste de recherche"
   await expect(page.getByTestId("search-album-grid").locator("article").first()).toContainText("Album crime 31");
 });
 
-test("la colonne de filtres suit la navbar et libère la hauteur quand elle se masque", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "Les filtres mobiles utilisent un panneau dédié.");
+test("le poste mobile défile et la colonne desktop suit la navbar", async ({ page }, testInfo) => {
   await page.goto("/search");
+  const workspace = page.getByTestId("search-workspace");
+  await expect(workspace).toBeVisible();
+
+  if (testInfo.project.name === "mobile") {
+    await expect(workspace).toHaveCSS("position", "relative");
+    await workspace.evaluate((element) => {
+      element.scrollIntoView({ block: "start", behavior: "instant" });
+      window.scrollBy({ top: 600, behavior: "instant" });
+    });
+    await expect.poll(async () => (await workspace.boundingBox())?.y ?? 0).toBeLessThan(0);
+    return;
+  }
+
   const header = page.locator("header");
   const filters = page.getByRole("complementary", { name: "Filtres de recherche" });
   await expect(filters).toBeVisible();

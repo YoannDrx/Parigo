@@ -12,12 +12,12 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("les postes de filtrage publics restent visibles pendant le défilement", async ({ page }, testInfo) => {
+test("les postes de filtrage défilent sur mobile et restent visibles sur desktop", async ({ page }, testInfo) => {
   for (const path of ["/albums", "/playlists", "/labels"]) {
     await page.goto(path);
     const workspace = page.getByTestId("catalog-workspace");
     await expect(workspace).toBeVisible();
-    await expect(workspace).toHaveCSS("position", "sticky");
+    await expect(workspace).toHaveCSS("position", testInfo.project.name === "mobile" ? "relative" : "sticky");
     await workspace.evaluate((element) => {
       element.scrollIntoView({ block: "start", behavior: "instant" });
       window.scrollBy({ top: 600, behavior: "instant" });
@@ -25,8 +25,12 @@ test("les postes de filtrage publics restent visibles pendant le défilement", a
     await page.waitForTimeout(350);
     const workspaceBox = await workspace.boundingBox();
     expect(workspaceBox, `poste catalogue absent sur ${path}`).not.toBeNull();
-    expect(workspaceBox!.y, `poste catalogue non sticky sur ${path}`).toBeGreaterThanOrEqual(0);
-    expect(workspaceBox!.y, `poste catalogue trop bas sur ${path}`).toBeLessThanOrEqual(80);
+    if (testInfo.project.name === "mobile") {
+      expect(workspaceBox!.y, `poste catalogue encore sticky sur mobile sur ${path}`).toBeLessThan(0);
+    } else {
+      expect(workspaceBox!.y, `poste catalogue non sticky sur ${path}`).toBeGreaterThanOrEqual(0);
+      expect(workspaceBox!.y, `poste catalogue trop bas sur ${path}`).toBeLessThanOrEqual(80);
+    }
 
     if (path === "/albums" && testInfo.project.name !== "mobile") {
       const filters = page.locator(".search-filter-sticky");
