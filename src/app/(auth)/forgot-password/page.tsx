@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Button, Card, Input, ParigoLoader, SignedTitle } from "@/components/ui";
+import { Button, Card, Input, ParigoLoader } from "@/components/ui";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 export default function ForgotPasswordPage() {

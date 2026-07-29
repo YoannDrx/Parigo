@@ -2,8 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LayoutGroup, motion } from "framer-motion";
-import { useId } from "react";
 import type { Album } from "@/types";
 import { Tag } from "@/components/ui/Tag";
 import { FavoriteButton } from "./FavoriteButton";
@@ -22,11 +20,9 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
   const { locale, t, localizedPath } = useI18n();
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4";
   const albumCover = resizeArtworkSource(album.cover, 384);
-  const favoriteLayoutId = useId();
   const isFavorite = useFavoritesStore((state) => state.albumIds.has(album.id));
   return (
-    <LayoutGroup id={favoriteLayoutId}>
-      <article data-album-card={album.id} data-favorite={isFavorite ? "true" : "false"} className="album-card parigo-frame group/card relative border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
+    <article data-album-card={album.id} data-favorite={isFavorite ? "true" : "false"} className="album-card parigo-frame group/card relative border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
         <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false} className="block focus-visible:outline-none">
           <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
             <Image
@@ -62,18 +58,17 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
 
         {!isFavorite && (
           <div className="album-card__favorite-overlay pointer-events-none absolute inset-x-0 top-0 flex aspect-square items-center justify-center bg-black/0 opacity-0 transition-all duration-300 group-hover/card:bg-black/48 group-hover/card:opacity-100 group-focus-within/card:bg-black/48 group-focus-within/card:opacity-100">
-            <motion.div layoutId="album-favorite" transition={{ type: "spring", stiffness: 420, damping: 34 }} className="pointer-events-auto">
+            <div className="pointer-events-auto">
               <FavoriteButton type="album" itemId={album.id} size="lg" className="album-card__favorite-button !h-12 !w-12 shadow-[0_9px_30px_rgba(0,0,0,.24)] focus-visible:!outline-none focus-visible:!ring-4 focus-visible:!ring-red-400/25" />
-            </motion.div>
+            </div>
           </div>
         )}
 
         {isFavorite && (
-          <motion.div layoutId="album-favorite" transition={{ type: "spring", stiffness: 420, damping: 34 }} className="album-card__favorite-saved absolute bottom-2.5 right-3 z-[4]">
+          <div className="album-card__favorite-saved absolute bottom-2.5 right-3 z-[4]">
             <FavoriteButton type="album" itemId={album.id} size="sm" className="!border-red-300 !bg-red-50 !text-red-500 shadow-[0_4px_14px_rgba(186,44,59,.16)] hover:!border-red-500 hover:!bg-red-100 focus-visible:!border-red-500 focus-visible:!outline-none focus-visible:!ring-3 focus-visible:!ring-red-400/25" />
-          </motion.div>
+          </div>
         )}
-      </article>
-    </LayoutGroup>
+    </article>
   );
 }

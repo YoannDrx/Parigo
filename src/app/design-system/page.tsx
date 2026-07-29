@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Pause, Play, Search, Sparkles } from "lucide-react";
-import { Button, Card, Input, ParigoLoader, SignedTitle, Skeleton, Tag } from "@/components/ui";
+import { Button, Card, Input, ParigoLoader, Skeleton, Tag } from "@/components/ui";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 const colors = [
   ["Encre", "#151613"], ["Papier", "#EEECE4"], ["Signal spectral", "#A8FF1F"],
