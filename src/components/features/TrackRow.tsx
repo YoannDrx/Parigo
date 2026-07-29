@@ -176,7 +176,7 @@ export function TrackRow({
       data-state={isCurrentTrack ? "playing" : "idle"}
       data-deep-linked={initialDetailsOpen ? "true" : undefined}
       style={{ animationDelay: `${Math.min(index * 50, 350)}ms` }}
-      className={cn("parigo-track-row group relative animate-[fade-in_.24s_ease-out_both] border-b border-[var(--line)] transition-all duration-150 last:border-b-0", isCurrentTrack ? "bg-[var(--color-primary-light)]" : "")}
+      className={cn("parigo-track-row group relative animate-[fade-in_.24s_ease-out_both] border-b border-[var(--line)] transition-all duration-150 last:border-b-0", density !== "full" && "parigo-track-row--compact", isCurrentTrack ? "bg-[var(--color-primary-light)]" : "")}
     >
       <div className={cn("parigo-track-row__main flex items-center gap-2 px-2 md:gap-3 md:px-3", density === "full" ? "py-3.5" : density === "mid" ? "py-2.5" : "py-2")}>
       {leadingMeta && <div className="parigo-track-row__leading-meta flex w-16 flex-shrink-0 flex-col items-start justify-center gap-0.5">{leadingMeta}</div>}
