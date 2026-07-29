@@ -19,9 +19,8 @@ export function InstitutionalShell({ title, intro, children }: InstitutionalShel
               <div className="relative min-w-0 md:col-span-8">
                 <h1 className="section-title-serif max-w-5xl break-words">{title}</h1>
               </div>
-              <div className="relative flex flex-col justify-between border-t border-[var(--line)] pt-6 md:col-span-3 md:col-start-10 md:border-l md:border-t-0 md:pl-8 md:pt-0">
+              <div className="relative flex flex-col justify-center border-t border-[var(--line)] pt-6 md:col-span-3 md:col-start-10 md:border-l md:border-t-0 md:pl-8 md:pt-0">
                 <p className="max-w-xl text-base leading-7 text-[var(--text-muted)] md:text-lg">{intro}</p>
-                <p className="mt-10 font-mono text-[.56rem] uppercase tracking-[.14em] text-[var(--text-muted)]">Parigo Music · Paris · France</p>
               </div>
             </div>
           </div>

@@ -15,6 +15,7 @@ async function mockMemberSearch(page: Page) {
   await page.route("**/api/search/filters?**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { groups: [] } }) }));
   await page.route("**/api/search?**", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { items: [track], view: "tracks", facets }, meta: { page: 1, pageSize: 30, total: 1, requestId: "request-1", searchHistoryId: "history-1" } }) }));
   await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
+  await page.route("**/api/user/tracks/*/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [] } }) }));
 }
 
 test("la recherche connectée se sauvegarde sans ajouter un troisième focus vert", async ({ page }) => {

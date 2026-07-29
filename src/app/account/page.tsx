@@ -78,13 +78,11 @@ export default function AccountPage() {
     setMessage("");
     setImageBusy(true);
     try {
-      const prepare = await fetch("/api/user/profile/image", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: file.name, contentType: file.type }) });
-      const prepared = await prepare.json();
-      if (!prepare.ok) return setMessage(prepared?.error?.message || (locale === "fr" ? "L’envoi de l’image est indisponible." : "Image upload is unavailable."));
-      const uploaded = await fetch(prepared.data.uploadUrl, { method: "PUT", headers: { "Content-Type": file.type }, body: file });
-      if (!uploaded.ok) return setMessage(locale === "fr" ? "L’envoi de l’image a échoué." : "Image upload failed.");
-      const confirmed = await fetch("/api/user/profile/image", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ fileName: prepared.data.fileName }) });
-      if (!confirmed.ok) return setMessage(locale === "fr" ? "Parigo n’a pas confirmé l’image." : "Parigo did not confirm the image.");
+      const body = new FormData();
+      body.set("file", file);
+      const uploaded = await fetch("/api/user/profile/image", { method: "POST", body });
+      const payload = await uploaded.json().catch(() => null);
+      if (!uploaded.ok) return setMessage(payload?.error?.message || (locale === "fr" ? "L’envoi de l’image est indisponible." : "Image upload is unavailable."));
       await loadProfile();
     } finally {
       setImageBusy(false);

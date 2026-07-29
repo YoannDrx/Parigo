@@ -8,13 +8,16 @@ import type {
   Label,
   PaginatedResult,
   Playlist,
+  RightHolder,
   Track,
 } from "@/types";
 import { assetUrl, getAssetTemplates, type HarvestAssetTemplates } from "./assets";
+import { albumIdentity } from "./album-identity";
 import { getRegionId, guestRequest, memberRequest } from "./client";
 import {
   HarvestAlbumSchema,
   HarvestPlaylistSchema,
+  HarvestRightHolderSchema,
   HarvestSearchResponseSchema,
   HarvestTrackSchema,
   type HarvestAlbumPayload,
@@ -65,7 +68,9 @@ export function mapTrack(
   const parsed = HarvestTrackSchema.parse(item);
   const id = parsed.ID;
   const albumId = parsed.AlbumID || album?.id || "";
-  const albumTitle = parsed.AlbumName || parsed.AlbumTitle || album?.title || "";
+  const rawAlbumTitle = parsed.AlbumName || parsed.AlbumTitle || album?.title || "";
+  const albumCode = parsed.CDCode || album?.code || undefined;
+  const albumTitle = albumIdentity(rawAlbumTitle, albumCode).title;
   const libraryId = parsed.LibraryID || album?.labelSlug || "";
   const libraryName = parsed.LibraryName || album?.label || "Parigo";
   const composers = asList(parsed.Composer);
@@ -90,6 +95,7 @@ export function mapTrack(
       (templates.albumArt ? assetUrl(templates.albumArt, { id: albumId, width: 640, height: 640 }) : undefined),
     albumLabel: libraryName,
     albumLabelSlug: libraryId,
+    albumCode,
     genres: asList(parsed.Genre),
     moods: asList(parsed.Mood),
     instruments: asList(parsed.Instrumentation),
@@ -109,11 +115,23 @@ export function mapTrack(
     mainTrackId: parsed.MainTrackID || undefined,
     description: parsed.Comment || undefined,
     lyrics: parsed.Lyrics || undefined,
-    cdCode: parsed.CDCode || undefined,
+    cdCode: albumCode,
     tags: asList(parsed.Tags),
     keywords: asList(parsed.Keywords),
     musicFor: asList(parsed.MusicFor),
-    rightHolders: parsed.RightHolders.map((holder) => ({ id: holder.ID, name: holder.Name || [holder.FirstName, holder.MiddleName, holder.LastName].filter(Boolean).join(" "), capacity: holder.Capacity || undefined })).filter((holder) => holder.name),
+    rightHolders: parsed.RightHolders.map((holder) => ({
+      id: holder.ID,
+      name: holder.Name || [holder.FirstName, holder.MiddleName, holder.LastName].filter(Boolean).join(" "),
+      firstName: holder.FirstName || undefined,
+      middleName: holder.MiddleName || undefined,
+      lastName: holder.LastName || undefined,
+      collectingSociety: holder.CollectingSociety || undefined,
+      share: holder.Share ?? undefined,
+      shareType: holder.ShareType || undefined,
+      ipi: holder.IPI || undefined,
+      capacity: holder.Capacity || undefined,
+      capacityGroup: holder.CapacityGroup || undefined,
+    })).filter((holder) => holder.name),
     stems: parsed.Stems.filter(isRecord).map((stem) => ({ id: asString(stem.ID), title: asString(stem.DisplayTitle || stem.Name) || undefined })).filter((stem) => stem.id),
     rate: parsed.TrackRate || null,
     isExplicit: parsed.IsExplicit || false,
@@ -126,6 +144,23 @@ export function mapTrack(
   return track;
 }
 
+export function mapRightHolder(item: HarvestRecord): RightHolder {
+  const holder = HarvestRightHolderSchema.parse(item);
+  return {
+    id: holder.ID,
+    name: holder.Name || [holder.FirstName, holder.MiddleName, holder.LastName].filter(Boolean).join(" "),
+    firstName: holder.FirstName || undefined,
+    middleName: holder.MiddleName || undefined,
+    lastName: holder.LastName || undefined,
+    collectingSociety: holder.CollectingSociety || undefined,
+    share: holder.Share ?? undefined,
+    shareType: holder.ShareType || undefined,
+    ipi: holder.IPI || undefined,
+    capacity: holder.Capacity || undefined,
+    capacityGroup: holder.CapacityGroup || undefined,
+  };
+}
+
 export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates): Album {
   const parsed: HarvestAlbumPayload = HarvestAlbumSchema.parse(item);
   const id = parsed.ID;
@@ -135,10 +170,11 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
     ? styles.map((style) => style.name)
     : asList(parsed.Genre || parsed.Keywords);
   const releaseDate = asIsoDate(parsed.ReleaseDate);
+  const identity = albumIdentity(titleOf(parsed), parsed.Code || parsed.CdCode);
   return {
     id,
     slug: id,
-    title: titleOf(parsed),
+    title: identity.title,
     label: parsed.LibraryName || "Parigo",
     labelSlug: labelId,
     cover: templates.albumArt
@@ -152,7 +188,7 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
     trackCount: parsed.TrackCount || 0,
     isFeatured: parsed.Featured || parsed.LibraryFeatured || false,
     artists: [],
-    code: parsed.Code || parsed.CdCode || undefined,
+    code: identity.code,
     keywords: asList(parsed.Keywords),
     styles,
     updatedAt: asIsoDate(parsed.LastUpdated),
@@ -172,6 +208,8 @@ export function mapPlaylist(item: HarvestRecord, templates: HarvestAssetTemplate
       : "/images/placeholder-playlist.svg",
     trackCount: parsed.TrackCount || parsed.Tracks.length,
     category: parsed.Type || parsed.Category || undefined,
+    categoryId: parsed.PlaylistCategoryID || undefined,
+    archived: parsed.Archived || false,
     isFeatured: true,
     createdAt: asIsoDate(parsed.CreatedDate),
     updatedAt: asIsoDate(parsed.LastUpdated),
@@ -197,7 +235,7 @@ export async function cloudSearch(input: HarvestSearchInput, authenticatedMember
     : guestRequest<unknown>((token) => `/cloudsearch/${token}`, { method: "POST", body: requestBody }, { timeoutMs: 15_000, regionId });
   const [unparsedPayload, templates] = await Promise.all([
     searchRequest,
-    getAssetTemplates(),
+    getAssetTemplates(authenticatedMemberToken),
   ]);
   const payload = HarvestSearchResponseSchema.parse(unparsedPayload);
   const trackItems = payload.Tracks;
@@ -216,7 +254,14 @@ export async function cloudSearch(input: HarvestSearchInput, authenticatedMember
   };
 }
 
-export async function getTrack(id: string, authenticatedMemberToken?: string): Promise<Track> {
+async function getTracksByIds(
+  ids: string[],
+  authenticatedMemberToken?: string,
+  album?: Partial<Album>,
+  source = "track-detail",
+): Promise<Track[]> {
+  if (ids.length === 0) return [];
+
   const body = JSON.stringify({
     ReturnAlternateVersions: "true",
     ReturnAttributes: "true",
@@ -231,18 +276,22 @@ export async function getTrack(id: string, authenticatedMemberToken?: string): P
     ReturnInactiveTracks: "false",
     ReturnRegionOnlyTracks: "false",
     Offset: "0",
-    Limit: "1",
-    track: [id],
+    Limit: String(ids.length),
+    track: ids,
   });
   const [payload, templates] = await Promise.all([
     authenticatedMemberToken
       ? memberRequest<HarvestRecord>(authenticatedMemberToken, (token) => `/gettracks/${token}`, { method: "POST", body })
       : guestRequest<HarvestRecord>((token) => `/gettracks/${token}`, { method: "POST", body }),
-    getAssetTemplates(),
+    getAssetTemplates(authenticatedMemberToken),
   ]);
-  const item = recordArray(payload, "Tracks")[0];
+  return recordArray(payload, "Tracks").map((item) => mapTrack(item, templates, album, source));
+}
+
+export async function getTrack(id: string, authenticatedMemberToken?: string): Promise<Track> {
+  const item = (await getTracksByIds([id], authenticatedMemberToken))[0];
   if (!item) throw new HarvestError("Track not found", "NOT_FOUND", 404);
-  return mapTrack(item, templates, undefined, "track-detail");
+  return item;
 }
 
 export async function getAlbums(options: {
@@ -324,7 +373,7 @@ export async function getAlbumDiscovery(options: {
   };
 }
 
-export async function getAlbum(id: string): Promise<{ album: Album & { tracks: Track[] }; similar: Album[] }> {
+export async function getAlbum(id: string, authenticatedMemberToken?: string): Promise<{ album: Album & { tracks: Track[] }; similar: Album[] }> {
   const detailPromise = guestRequest<HarvestRecord>(
     (token) => `/getalbum/${token}/${encodeURIComponent(id)}?returnLibraryCodes=false`,
   );
@@ -332,7 +381,7 @@ export async function getAlbum(id: string): Promise<{ album: Album & { tracks: T
     guestRequest<HarvestRecord>((token) =>
       `/getalbumtracks/${token}/${encodeURIComponent(id)}/mainonly?skip=0&limit=200`,
     ),
-    getAssetTemplates(),
+    getAssetTemplates(authenticatedMemberToken),
   ]).then(
     (value) => ({ ok: true as const, value }),
     (error: unknown) => ({ ok: false as const, error }),
@@ -345,12 +394,38 @@ export async function getAlbum(id: string): Promise<{ album: Album & { tracks: T
   if (!secondary.ok) throw secondary.error;
   const [tracksPayload, templates] = secondary.value;
   const base = mapAlbum(rawAlbum, templates);
-  const tracks = recordArray(tracksPayload, "Tracks").map((item) => mapTrack(item, templates, base, "album"));
+  const mainTracks = recordArray(tracksPayload, "Tracks").map((item) => mapTrack(item, templates, base, "album"));
+  const tracksNeedingVersions = mainTracks.filter(
+    (track) => (track.alternateCount ?? 0) > 0 && (track.alternateTracks?.length ?? 0) === 0,
+  );
+  const enrichedTracks = await getTracksByIds(
+    tracksNeedingVersions.map((track) => track.id),
+    authenticatedMemberToken,
+    base,
+    "album-detail",
+  ).catch(() => []);
+  const enrichedById = new Map(enrichedTracks.map((track) => [track.id, track]));
+  const tracks = mainTracks.map((track) => {
+    const enrichedTrack = enrichedById.get(track.id);
+    if (!enrichedTrack) return track;
+    return {
+      ...track,
+      ...enrichedTrack,
+      trackNumber: track.trackNumber ?? enrichedTrack.trackNumber,
+      albumId: base.id,
+      albumTitle: base.title,
+      albumCover: base.cover,
+      albumLabel: base.label,
+      albumLabelSlug: base.labelSlug,
+      albumCode: base.code,
+      cdCode: base.code,
+    };
+  });
   const related = await cloudSearch({
     view: "Album",
     limit: 7,
     labels: base.labelSlug ? [base.labelSlug] : undefined,
-  }).catch(() => ({ albums: [] as Album[], tracks: [] as Track[], total: 0, facets: {
+  }, authenticatedMemberToken).catch(() => ({ albums: [] as Album[], tracks: [] as Track[], total: 0, facets: {
     bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [],
   } }));
   return {
@@ -445,14 +520,14 @@ export async function getPlaylists(options: { limit?: number; offset?: number; s
   };
 }
 
-export async function getPlaylist(id: string): Promise<Playlist & { tracks: Track[] }> {
+export async function getPlaylist(id: string, authenticatedMemberToken?: string): Promise<Playlist & { tracks: Track[] }> {
   const [payload, templates] = await Promise.all([
     guestRequest<HarvestRecord>(
       (token) => `/getfeaturedplaylistandtracks/${token}/${encodeURIComponent(id)}`,
       { method: "POST", body: "{}" },
       { timeoutMs: 15_000 },
     ),
-    getAssetTemplates(),
+    getAssetTemplates(authenticatedMemberToken),
   ]);
   const item = recordArray(payload, "Playlists")[0];
   if (!item) throw new HarvestError("Playlist not found", "NOT_FOUND", 404);

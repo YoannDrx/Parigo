@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { canonicalizeCategoryValues, intentToSearchParams, parseSearchIntent, resolveIntentCategoryIds, searchIntentChips } from "./search-intent";
+import {
+  canonicalizeCategoryValues,
+  intentToSearchParams,
+  parseSearchIntent,
+  resolveIntentCategoryIds,
+  resolveSearchBrief,
+  searchIntentChips,
+} from "./search-intent";
 import type { SearchFilterGroup } from "@/types";
 
 describe("parseSearchIntent", () => {
@@ -50,7 +57,22 @@ describe("parseSearchIntent", () => {
       const intent = parseSearchIntent(brief);
       expect(intent.musicFor).toEqual(["wedding"]);
       expect(resolveIntentCategoryIds(intent, groups)).toEqual(["ATT_wedding"]);
+      expect(resolveSearchBrief(brief, groups)).toEqual({
+        original: brief,
+        categoryIds: ["ATT_wedding"],
+        supported: true,
+        source: "parigo-taxonomy",
+      });
     }
+  });
+
+  it("déclare explicitement un brief inconnu non pris en charge", () => {
+    expect(resolveSearchBrief("Armand Dupont", [])).toEqual({
+      original: "Armand Dupont",
+      categoryIds: [],
+      supported: false,
+      source: "parigo-taxonomy",
+    });
   });
 
   it("ne cumule pas des critères structurés de groupes différents", () => {

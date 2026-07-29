@@ -53,12 +53,15 @@ export function AddToPlaylistButton({ trackId, trackTitle, className }: { trackI
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "add", trackIds: [trackId] }),
     }).catch(() => null);
+    const payload = await response?.json().catch(() => null);
     setLoading(false);
-    if (response?.ok) {
+    if (response?.ok && payload?.data?.verified) {
       setMessage(locale === "fr" ? `Ajouté à « ${playlist.title} »` : `Added to “${playlist.title}”`);
       window.setTimeout(() => setOpen(false), 900);
     } else {
-      setError(locale === "fr" ? "Cette piste n’a pas pu être ajoutée. Les droits d’écriture du compte sont peut-être limités." : "This track could not be added. The account may have limited write access.");
+      setError(payload?.error?.message || (locale === "fr"
+        ? "Cette piste n’a pas pu être ajoutée à la playlist."
+        : "This track could not be added to the playlist."));
     }
   };
 

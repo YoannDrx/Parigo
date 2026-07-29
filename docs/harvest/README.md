@@ -24,6 +24,9 @@ La cle API Postman personnelle n'est pas stockee dans le repo et n'a pas ete nec
 
 | Fichier | Role |
 |---|---|
+| [audit-integration-2026-07-29.md](./audit-integration-2026-07-29.md) | Audit live corrigé, centré sur les écarts à transmettre à Harvest |
+| [runtime-route-matrix.csv](./runtime-route-matrix.csv) | Matrice UI → BFF → Harvest et preuves de persistance |
+| [last-audit-run.json](./last-audit-run.json) | Synthèse expurgée du dernier run |
 | [rapport-harvest-api.md](./rapport-harvest-api.md) | Rapport Markdown lisible directement dans le repo |
 | [rapport-harvest-api.pdf](./rapport-harvest-api.pdf) | Rapport PDF principal a partager |
 | [rapport-harvest-api.html](./rapport-harvest-api.html) | Source HTML du PDF |

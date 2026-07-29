@@ -42,6 +42,7 @@ export default function EngagePlaylistPage({ params }: { params: Promise<{ token
     id: track.albumId,
     slug: track.albumSlug,
     title: track.albumTitle || "",
+    code: track.albumCode || track.cdCode,
     cover: track.albumCover || "/images/placeholder-album.svg",
     label: track.albumLabel || "Parigo",
     genres: track.genres,

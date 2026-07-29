@@ -104,7 +104,25 @@ export function recordArray(payload: unknown, ...keys: string[]): Record<string,
     const value = payload[key];
     if (Array.isArray(value)) return value.filter(isRecord);
   }
+  const normalizedKeys = new Set(keys.map((key) => key.toLowerCase()));
+  for (const [key, value] of Object.entries(payload)) {
+    if (normalizedKeys.has(key.toLowerCase()) && Array.isArray(value)) {
+      return value.filter(isRecord);
+    }
+  }
   return [];
+}
+
+export function recordItem(
+  payload: unknown,
+  collectionKey: string,
+  idKey = "ID",
+): Record<string, unknown> | undefined {
+  const nested = recordArray(payload, collectionKey)[0];
+  if (nested) return nested;
+  if (!isRecord(payload)) return undefined;
+  const id = Object.entries(payload).find(([key]) => key.toLowerCase() === idKey.toLowerCase())?.[1];
+  return asString(id) ? payload : undefined;
 }
 
 export function slugify(value: string): string {

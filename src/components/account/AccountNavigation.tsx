@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Clock, Download, Heart, ListMusic, Search, Settings, Tags, User } from "lucide-react";
+import { Clock, Download, Heart, ListMusic, Mail, Search, Settings, Tags, User } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useI18n } from "@/components/providers/I18nProvider";
 
@@ -18,6 +18,7 @@ export function AccountNavigation() {
     { icon: Search, label: t("account.searches"), href: "/account/searches" },
     { icon: Clock, label: t("account.history"), href: "/account/history" },
     { icon: Download, label: t("account.downloads"), href: "/account/downloads" },
+    { icon: Mail, label: locale === "fr" ? "Communications" : "Communications", href: "/account/communications" },
     { icon: Tags, label: t("account.tags"), href: "/account/tags" },
     { icon: Settings, label: t("account.settings"), href: "/account/settings" },
   ];

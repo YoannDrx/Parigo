@@ -12,6 +12,7 @@ export interface Track {
   albumCover?: string;
   albumLabel?: string;
   albumLabelSlug?: string;
+  albumCode?: string;
   genres: string[];
   moods: string[];
   instruments?: string[];
@@ -34,7 +35,7 @@ export interface Track {
   tags?: string[];
   keywords?: string[];
   musicFor?: string[];
-  rightHolders?: Array<{ id: string; name: string; capacity?: string }>;
+  rightHolders?: RightHolder[];
   stems?: Array<{ id: string; title?: string }>;
   alternateTracks?: Track[];
   rate?: Record<string, unknown> | null;
@@ -82,6 +83,8 @@ export interface Playlist {
   trackIds?: string[];
   trackCount?: number;
   category?: string;
+  categoryId?: string;
+  archived?: boolean;
   isFeatured?: boolean;
   tracks?: Track[];
   createdAt?: string;
@@ -100,6 +103,40 @@ export interface MemberSavedSearch {
   searchTermsCount?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface RightHolder {
+  id: string;
+  name: string;
+  firstName?: string;
+  middleName?: string;
+  lastName?: string;
+  collectingSociety?: string;
+  share?: number;
+  shareType?: string;
+  ipi?: string;
+  capacity?: string;
+  capacityGroup?: string;
+}
+
+export interface MemberPlaylistCategory {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  playlistCount: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface MemberCommunication {
+  id: string;
+  type?: string;
+  from?: string;
+  to?: string;
+  subject?: string;
+  status?: string;
+  sentAt?: string;
 }
 
 export interface MemberTrackComment {
@@ -158,6 +195,14 @@ export interface QueryResolution {
   original: string;
   effective: string;
   source: "machine-translation";
+}
+
+export interface SearchIntentResolution {
+  original: string;
+  categoryIds: string[];
+  bpmRange?: [number, number];
+  supported: boolean;
+  source: "parigo-taxonomy";
 }
 
 export type SearchFilterGroupKey =

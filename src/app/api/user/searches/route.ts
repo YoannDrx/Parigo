@@ -16,7 +16,7 @@ export async function GET() {
     const session = await requireHarvestSession();
     const searches = await getMemberSavedSearches(session.memberToken, session.memberUtcOffsetHours);
     return NextResponse.json({ data: { searches }, meta: { total: searches.length, requestId: id } }, { headers: { "Cache-Control": "no-store" } });
-  } catch (error) { return apiError(error, id, { surface: "account" }); }
+  } catch (error) { return apiError(error, id, { surface: "account", operation: "saved-search-list" }); }
 }
 
 export async function POST(request: NextRequest) {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       session.memberUtcOffsetHours,
     );
     return NextResponse.json({ data: { search }, meta: { requestId: id } }, { status: 201, headers: { "Cache-Control": "no-store" } });
-  } catch (error) { return apiError(error, id, { surface: "account" }); }
+  } catch (error) { return apiError(error, id, { surface: "account", operation: "saved-search-create" }); }
 }
 
 export async function DELETE(request: NextRequest) {

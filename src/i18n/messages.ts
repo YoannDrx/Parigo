@@ -91,7 +91,7 @@ export const messages = {
       noLabels: "Aucun label disponible",
     },
     footer: {
-      statement: "Une bibliothèque musicale indépendante pour les images qui restent.",
+      statement: "Chercher, écouter, comparer sans bruit inutile.",
       explore: "Explorer",
       studio: "Parigo",
       legal: "Informations",
@@ -242,7 +242,7 @@ export const messages = {
       noLabels: "No labels available",
     },
     footer: {
-      statement: "An independent music library for images that stay with you.",
+      statement: "Search, listen and compare — without unnecessary noise.",
       explore: "Explore",
       studio: "Parigo",
       legal: "Information",

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getServiceInfo } from "./client";
+import { getServiceInfo, memberRequest } from "./client";
 import { isRecord } from "./errors";
 import { asBoolean, asNumber, asString, recordArray } from "./values";
 
@@ -24,6 +24,12 @@ export interface HarvestDownloadFormat {
   label: string;
 }
 
+const memberTemplateCache = new Map<string, {
+  expiresAt: number;
+  value: HarvestAssetTemplates;
+}>();
+const MEMBER_TEMPLATE_CACHE_MS = 5 * 60_000;
+
 export async function getDownloadFormats(): Promise<HarvestDownloadFormat[]> {
   const info = await getServiceInfo();
   return recordArray(info, "FileFormats").map((format) => {
@@ -46,9 +52,7 @@ export async function getDownloadFormats(): Promise<HarvestDownloadFormat[]> {
   }).filter((format) => format.id);
 }
 
-export async function getAssetTemplates(): Promise<HarvestAssetTemplates> {
-  const info = await getServiceInfo();
-  const urls = isRecord(info.ServiceInfoURLs) ? info.ServiceInfoURLs : {};
+function mapAssetTemplates(urls: Record<string, unknown>): HarvestAssetTemplates {
   return {
     trackStream: asString(urls.TrackStreamURL),
     albumArt: asString(urls.AlbumArtURL),
@@ -57,6 +61,39 @@ export async function getAssetTemplates(): Promise<HarvestAssetTemplates> {
     waveformData: asString(urls.WaveformDataPointUrl),
     directDownload: asString(urls.DirectDownloadURL),
   };
+}
+
+export async function getAssetTemplates(memberToken?: string): Promise<HarvestAssetTemplates> {
+  const info = await getServiceInfo();
+  const urls = isRecord(info.ServiceInfoURLs) ? info.ServiceInfoURLs : {};
+  const serviceTemplates = mapAssetTemplates(urls);
+  if (!memberToken) return serviceTemplates;
+  const cached = memberTemplateCache.get(memberToken);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const payload = await memberRequest<Record<string, unknown>>(
+    memberToken,
+    (token) => `/getmember/${token}`,
+  );
+  const member = isRecord(payload.MemberAccount)
+    ? payload.MemberAccount
+    : isRecord(payload.Member)
+      ? payload.Member
+      : payload;
+  const memberUrls = isRecord(member.ServiceInfoURLs) ? member.ServiceInfoURLs : {};
+  const memberTemplates = mapAssetTemplates(memberUrls);
+  const value = {
+    trackStream: memberTemplates.trackStream || serviceTemplates.trackStream,
+    albumArt: memberTemplates.albumArt || serviceTemplates.albumArt,
+    libraryLogo: memberTemplates.libraryLogo || serviceTemplates.libraryLogo,
+    playlistArt: memberTemplates.playlistArt || serviceTemplates.playlistArt,
+    waveformData: memberTemplates.waveformData || serviceTemplates.waveformData,
+    directDownload: memberTemplates.directDownload || serviceTemplates.directDownload,
+  };
+  memberTemplateCache.set(memberToken, {
+    expiresAt: Date.now() + MEMBER_TEMPLATE_CACHE_MS,
+    value,
+  });
+  return value;
 }
 
 export function assetUrl(

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
+import { HarvestError } from "@/lib/harvest/errors";
 import { getMemberProfile, subscribeMember, updateMemberProfile } from "@/lib/harvest/member";
 import { assertSameOrigin, requireHarvestSession, setHarvestSession } from "@/lib/harvest/session";
 
@@ -44,6 +45,14 @@ export async function PUT(request: NextRequest) {
     }
     if (subscribed !== undefined) await subscribeMember(session.memberToken, subscribed);
     const profile = await getMemberProfile(session.memberToken, session.memberUtcOffsetHours);
+    if (subscribed !== undefined && profile.subscribed !== subscribed) {
+      throw new HarvestError(
+        "Harvest acknowledged the subscription request but did not persist it",
+        "HARVEST_INVALID_RESPONSE",
+        502,
+        false,
+      );
+    }
     await setHarvestSession({
       ...session,
       user: {

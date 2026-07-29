@@ -1,4 +1,10 @@
-import type { SearchFilterGroup, SearchFilterGroupKey, SearchFilterItem, SearchIntent } from "@/types";
+import type {
+  SearchFilterGroup,
+  SearchFilterGroupKey,
+  SearchFilterItem,
+  SearchIntent,
+  SearchIntentResolution,
+} from "@/types";
 
 const dictionaries = {
   genres: {
@@ -114,6 +120,21 @@ export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFil
     const id = candidates.map(([candidateGroup, candidateValue]) => findSearchFilterId(groups, candidateGroup, candidateValue)).find(Boolean);
     return id ? [id] : [];
   }))];
+}
+
+export function resolveSearchBrief(
+  raw: string,
+  groups: SearchFilterGroup[],
+): SearchIntentResolution {
+  const intent = parseSearchIntent(raw);
+  const categoryIds = resolveIntentCategoryIds(intent, groups);
+  return {
+    original: raw.trim(),
+    categoryIds,
+    ...(intent.bpmRange ? { bpmRange: intent.bpmRange } : {}),
+    supported: Boolean(categoryIds.length || intent.bpmRange),
+    source: "parigo-taxonomy",
+  };
 }
 
 export function canonicalizeCategoryValues(values: string[], groups: SearchFilterGroup[]): string[] {

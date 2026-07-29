@@ -36,6 +36,15 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   }
 
   const density = page.getByRole("combobox", { name: "Niveau de détail des pistes" });
+  const densityCorners = await density.evaluate((node) => ({
+    trigger: getComputedStyle(node).borderTopRightRadius,
+    corner: getComputedStyle(node.parentElement!, "::before").borderTopRightRadius,
+    top: getComputedStyle(node.parentElement!, "::before").top,
+    right: getComputedStyle(node.parentElement!, "::before").right,
+  }));
+  expect(densityCorners.corner).toBe(densityCorners.trigger);
+  expect(densityCorners.top).toBe("-1px");
+  expect(densityCorners.right).toBe("-1px");
   await density.click();
   await expect(page.getByRole("option", { name: "Piste détaillée" })).toBeVisible();
   await expect(page.getByRole("option", { name: "Piste compacte" })).toBeVisible();
@@ -48,6 +57,13 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
     await expect(page.getByRole("option", { name: label, exact: true })).toBeVisible();
   }
   await expect(page.getByRole("option", { name: /BPM|Durée/ })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+
+  const trackTitle = page.locator(".parigo-track-row__title").first();
+  await expect(trackTitle).toBeVisible({ timeout: 30_000 });
+  await expect(trackTitle).toHaveJSProperty("tagName", "P");
+  await trackTitle.click();
+  await expect(page.locator(".track-detail-panel")).toHaveCount(0);
 
   await page.getByRole("button", { name: "Albums" }).click();
   await expect(page.getByTestId("search-album-grid")).toBeVisible({ timeout: 30_000 });
@@ -69,8 +85,20 @@ test("la saisie ne déclenche plus de fenêtre d’autocomplétion", async ({ pa
   expect(autocompleteRequests).toBe(0);
 
   await page.getByRole("button", { name: "Albums" }).click();
-  await expect(page.getByRole("searchbox", { name: "Rechercher dans les titres d’albums" })).toBeVisible();
+  await expect(page.getByRole("searchbox", { name: "Rechercher dans les titres ou références d’albums" })).toBeVisible();
   expect(autocompleteRequests).toBe(0);
+});
+
+test("la référence Harvest reste recherchable mais séparée du titre éditorial", async ({ page }) => {
+  await page.goto("/search?q=PRTM%200212&view=albums");
+  const album = page.getByTestId("search-album-grid").getByRole("link").first();
+  await expect(album).toBeVisible({ timeout: 30_000 });
+  await expect(album.getByRole("heading")).toHaveText("Between Light and Void");
+  await expect(album).toContainText("Réf. PRTM 0212");
+  await expect(album.getByRole("heading")).not.toContainText("PRTM 0212");
+
+  await page.goto("/search?q=Between%20Light%20and%20Void&view=albums");
+  await expect(page.getByTestId("search-album-grid").getByRole("heading", { name: "Between Light and Void" })).toBeVisible({ timeout: 30_000 });
 });
 
 test("le listing se met à jour automatiquement pendant la saisie", async ({ page }) => {
@@ -153,7 +181,8 @@ test("le mode intention applique Music For et refuse les briefs non compris", as
   await page.goto("/search?brief=mariage&resolve=1&view=tracks");
   await expect(page.getByRole("button", { name: "Par intention" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByTestId("search-detected-criteria").getByText("Mariage", { exact: true })).toBeVisible();
-  await expect.poll(() => new URL(page.url()).searchParams.get("categories"), { timeout: 30_000 }).toBeTruthy();
+  await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
+  expect(new URL(page.url()).searchParams.has("categories")).toBe(false);
   expect(new URL(page.url()).searchParams.has("q")).toBe(false);
 
   const input = page.getByRole("searchbox", { name: "Décrivez votre intention musicale" });

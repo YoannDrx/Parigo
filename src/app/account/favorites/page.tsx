@@ -16,7 +16,7 @@ type TabType = "tracks" | "albums";
 
 function albumFromTrack(track: Track): Album | undefined {
   if (!track.albumId) return undefined;
-  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", cover: track.albumCover || "/images/placeholder-album.svg", label: track.albumLabel || "Parigo", labelSlug: track.albumLabelSlug, genres: track.genres, moods: track.moods, trackCount: 0 };
+  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", code: track.albumCode || track.cdCode, cover: track.albumCover || "/images/placeholder-album.svg", label: track.albumLabel || "Parigo", labelSlug: track.albumLabelSlug, genres: track.genres, moods: track.moods, trackCount: 0 };
 }
 
 export default function FavoritesPage() {

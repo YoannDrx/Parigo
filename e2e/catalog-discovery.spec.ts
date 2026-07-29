@@ -18,6 +18,18 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText(/^0 albums$/)).toHaveCount(0);
   await expect(page.locator("article").first()).toContainText(/[1-9]\d* albums/);
+  const firstCards = page.locator(".label-editorial-card");
+  expect(await firstCards.count()).toBeGreaterThan(2);
+  await expect(firstCards.first().locator("p")).toHaveCount(0);
+  const firstHeights = await firstCards.evaluateAll((cards) => cards.slice(0, 3).map((card) => card.getBoundingClientRect().height));
+  expect(new Set(firstHeights.map((height) => Math.round(height))).size).toBe(1);
+  const corners = await firstCards.first().evaluate((card) => ({
+    top: getComputedStyle(card, "::before").top,
+    right: getComputedStyle(card, "::before").right,
+    bottom: getComputedStyle(card, "::after").bottom,
+    left: getComputedStyle(card, "::after").left,
+  }));
+  expect(corners).toEqual({ top: "-1px", right: "-1px", bottom: "-1px", left: "-1px" });
 
   const query = page.getByPlaceholder("Rechercher un label");
   await query.fill("101 Music Compilations");

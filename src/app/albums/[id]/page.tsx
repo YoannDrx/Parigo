@@ -15,6 +15,7 @@ import type { ComposerCreditLink } from "@/types";
 
 interface AlbumPageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ track?: string | string[] }>;
 }
 
 async function loadAlbum(id: string) {
@@ -42,8 +43,8 @@ export async function generateMetadata({ params }: AlbumPageProps): Promise<Meta
   });
 }
 
-export default async function AlbumPage({ params }: AlbumPageProps) {
-  const [{ id }, locale] = await Promise.all([params, getRequestLocale()]);
+export default async function AlbumPage({ params, searchParams }: AlbumPageProps) {
+  const [{ id }, locale, resolvedSearchParams] = await Promise.all([params, getRequestLocale(), searchParams]);
   const result = await loadAlbum(id);
   const album = result.album;
   const composerCredits: ComposerCreditLink[] = [...new Set(
@@ -85,7 +86,10 @@ export default async function AlbumPage({ params }: AlbumPageProps) {
   return (
     <>
       <JsonLd data={structuredData} />
-      <AlbumDetailClient data={{ album, similarAlbums: result.similar, composerCredits, relatedClips }} />
+      <AlbumDetailClient
+        data={{ album, similarAlbums: result.similar, composerCredits, relatedClips }}
+        initialTrackId={typeof resolvedSearchParams.track === "string" ? resolvedSearchParams.track : undefined}
+      />
     </>
   );
 }

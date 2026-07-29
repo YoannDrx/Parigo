@@ -1,11 +1,45 @@
+import { Suspense } from "react";
 import { AlbumExplorer } from "@/components/catalog/AlbumExplorer";
 import { CatalogHero } from "@/components/catalog/CatalogHero";
 import { Footer, Header } from "@/components/layout";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
+import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { messages } from "@/i18n/messages";
 import { getCachedAlbumDiscovery } from "@/lib/harvest/catalog-cache";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
+
+type AlbumDiscoveryPromise = ReturnType<typeof getCachedAlbumDiscovery>;
+
+async function AlbumMeta({
+  albumsPromise,
+  label,
+}: {
+  albumsPromise: AlbumDiscoveryPromise;
+  label: string;
+}) {
+  const albums = await albumsPromise;
+  return <>{albums.total} {label}</>;
+}
+
+async function AlbumExplorerContent({
+  albumsPromise,
+}: {
+  albumsPromise: AlbumDiscoveryPromise;
+}) {
+  const albums = await albumsPromise;
+  const initialAlbums = {
+    albums: albums.items,
+    facets: albums.facets,
+    pagination: { total: albums.total, limit: albums.pageSize, offset: 0, hasMore: albums.items.length < albums.total },
+  };
+
+  return (
+    <ReactQueryProvider>
+      <AlbumExplorer initialData={initialAlbums} />
+    </ReactQueryProvider>
+  );
+}
 
 export async function generateMetadata({ searchParams }: { searchParams: PageSearchParams }) {
   const [locale, filtered] = await Promise.all([
@@ -23,16 +57,9 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
 }
 
 export default async function AlbumsPage() {
-  const [albums, locale] = await Promise.all([
-    getCachedAlbumDiscovery({ limit: 20, sort: "recent" }),
-    getRequestLocale(),
-  ]);
+  const albumsPromise = getCachedAlbumDiscovery({ limit: 20, sort: "recent" });
+  const locale = await getRequestLocale();
   const copy = messages[locale];
-  const initialAlbums = {
-    albums: albums.items,
-    facets: albums.facets,
-    pagination: { total: albums.total, limit: albums.pageSize, offset: 0, hasMore: albums.items.length < albums.total },
-  };
 
   return (
     <div className="page-shell flex min-h-screen flex-col">
@@ -41,12 +68,16 @@ export default async function AlbumsPage() {
         <CatalogHero
           title={copy.catalog.albumsTitle}
           intro={copy.catalog.albumsIntro}
-          meta={`${albums.total} ${copy.common.albums.toLowerCase()}`}
+          meta={(
+            <Suspense fallback={copy.common.albums.toLowerCase()}>
+              <AlbumMeta albumsPromise={albumsPromise} label={copy.common.albums.toLowerCase()} />
+            </Suspense>
+          )}
         />
         <div className="mx-auto max-w-[1700px] px-4 py-10 sm:px-6 md:py-16 lg:px-8">
-          <ReactQueryProvider>
-            <AlbumExplorer initialData={initialAlbums} />
-          </ReactQueryProvider>
+          <Suspense fallback={<div className="grid min-h-72 place-items-center"><ParigoLoader size="page" label={copy.common.loading} /></div>}>
+            <AlbumExplorerContent albumsPromise={albumsPromise} />
+          </Suspense>
         </div>
       </main>
       <Footer />

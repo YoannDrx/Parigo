@@ -1,4 +1,4 @@
-export {};
+import { buildCloudSearch } from "../../../src/lib/harvest/search";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -108,6 +108,37 @@ function playlistTrackIds(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function searchFacts(value: unknown) {
+  const source = record(value) || {};
+  const tracks = list(source, "Tracks");
+  return {
+    totalTracks: Number(source.TotalTracks ?? source.TracksFound ?? tracks.length),
+    totalAlbums: Number(source.TotalAlbums ?? source.AlbumsFound ?? 0),
+    examples: tracks
+      .map((item) => findString(item, ["DisplayTitle", "Name", "Title"]) || "")
+      .filter(Boolean)
+      .slice(0, 5),
+  };
+}
+
+function assetTemplateFacts(value: unknown) {
+  const source = String(value || "");
+  const safeUrl = source.replace(/\{[^}]+\}/g, "placeholder");
+  let url: URL | undefined;
+  try {
+    url = new URL(safeUrl);
+  } catch {
+    url = undefined;
+  }
+  return {
+    present: Boolean(source),
+    host: url?.host || null,
+    path: url?.pathname || null,
+    placeholders: [...source.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]).sort(),
+    queryKeys: url ? [...url.searchParams.keys()].sort() : [],
+  };
+}
+
 function required(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) throw new Error(`Missing ${name}`);
@@ -164,6 +195,25 @@ async function main() {
   }));
   const memberToken = findString(findObject(login.payload, "MemberToken"), ["Value"]);
   if (!memberToken) throw new Error("Member token missing");
+  const serviceInfo = await direct(`/getserviceinfo/${serviceToken}`);
+  const serviceTrackStream = findString(findObject(serviceInfo.payload, "ServiceInfoURLs"), ["TrackStreamURL"]) || "";
+  const memberTrackStream = findString(findObject(findObject(login.payload, "MemberAccount"), "ServiceInfoURLs"), ["TrackStreamURL"]) || "";
+  const serviceTemplateUrl = serviceTrackStream ? new URL(serviceTrackStream.replace(/\{[^}]+\}/g, "placeholder")) : null;
+  const memberTemplateUrl = memberTrackStream ? new URL(memberTrackStream.replace(/\{[^}]+\}/g, "placeholder")) : null;
+  const templateQueryKeys = [...new Set([
+    ...(serviceTemplateUrl ? [...serviceTemplateUrl.searchParams.keys()] : []),
+    ...(memberTemplateUrl ? [...memberTemplateUrl.searchParams.keys()] : []),
+  ])];
+  console.log(JSON.stringify({
+    endpoint: "TrackStreamURL service/member contract",
+    service: assetTemplateFacts(serviceTrackStream),
+    member: assetTemplateFacts(memberTrackStream),
+    identical: serviceTrackStream === memberTrackStream,
+    pathSame: serviceTemplateUrl?.pathname === memberTemplateUrl?.pathname,
+    differingQueryKeys: templateQueryKeys
+      .filter((key) => serviceTemplateUrl?.searchParams.get(key) !== memberTemplateUrl?.searchParams.get(key))
+      .sort(),
+  }));
 
   const search = await (await fetch(`${baseUrl}/api/search?q=piano&limit=5`)).json();
   const searchItems = record(record(search)?.data)?.items;
@@ -185,6 +235,123 @@ async function main() {
     httpDate: login.date,
     temporalFacts: temporalFacts(login.payload).slice(0, 20),
   }));
+  const documentedDownloadValidation = await direct(
+    `/validatemusicdownloadrequest/${memberToken}`,
+    post({
+      Identifier: trackId,
+      ContentIDs: "",
+      DownloadType: "track",
+      Format: [formatId],
+      TrimEndSecs: 0,
+      TrimStartSecs: 0,
+      IncludeVersionCheck: false,
+    }),
+  );
+  console.log(JSON.stringify({
+    endpoint: "validatemusicdownloadrequest executable JSON example",
+    response: summary(documentedDownloadValidation.status, documentedDownloadValidation.payload),
+  }));
+
+  const regionId = findString(login.payload, ["RegionID"]);
+  for (const keyword of ["mariage", "wedding"]) {
+    for (const textScope of ["title", "aggregate"] as const) {
+      const body = buildCloudSearch({
+        query: keyword,
+        view: "Track",
+        textScope,
+        limit: 10,
+        type: "main",
+        language: "fr",
+        regionId,
+        saveSearchHistory: false,
+      });
+      const response = await direct(`/cloudsearch/${memberToken}`, post(body));
+      console.log(JSON.stringify({
+        endpoint: "cloudsearch multilingual diagnostic",
+        keyword,
+        textScope,
+        requestContract: "Parigo builder using documented cloudsearch field names",
+        translateKeyword: record(record(body.SearchFilters)?.TranslateKeyword) || record(body.SearchFilters)?.TranslateKeyword,
+        response: summary(response.status, response.payload),
+        httpDate: response.date,
+        ...searchFacts(response.payload),
+      }));
+    }
+  }
+
+  const titleSeedBody = buildCloudSearch({
+    query: "piano",
+    view: "Track",
+    textScope: "title",
+    limit: 20,
+    type: "main",
+    language: "fr",
+    regionId,
+    saveSearchHistory: false,
+  });
+  const titleSeed = await direct(`/cloudsearch/${memberToken}`, post(titleSeedBody));
+  const seedTitle = searchFacts(titleSeed.payload).examples[0] || "Piano";
+  const titleQueries = [
+    { label: "single-word", value: "Piano" },
+    { label: "full-title", value: seedTitle },
+  ];
+  for (const query of titleQueries) {
+    for (const exactPhrase of [false, true]) {
+      for (const wildcard of [false, true]) {
+        const body = buildCloudSearch({
+          query: query.value,
+          view: "Track",
+          textScope: "title",
+          limit: 20,
+          type: "main",
+          language: "fr",
+          regionId,
+          saveSearchHistory: false,
+        });
+        const filters = record(body.SearchFilters);
+        const bundle = record(filters?.SearchTermBundle);
+        const term = record(bundle?.St_Keyword);
+        if (term) {
+          term.ExactPhrase = exactPhrase;
+          term.Wildcard = wildcard;
+        }
+        const response = await direct(`/cloudsearch/${memberToken}`, post(body));
+        const facts = searchFacts(response.payload);
+        console.log(JSON.stringify({
+          endpoint: "cloudsearch title match diagnostic",
+          queryLabel: query.label,
+          query: query.value,
+          exactPhrase,
+          wildcard,
+          response: summary(response.status, response.payload),
+          total: facts.totalTracks,
+          examples: facts.examples,
+          allExamplesStartWithQuery: facts.examples.every((title) =>
+            title.toLocaleLowerCase().startsWith(query.value.toLocaleLowerCase())),
+          allExamplesEqualQuery: facts.examples.every((title) =>
+            title.localeCompare(query.value, undefined, { sensitivity: "base" }) === 0),
+        }));
+      }
+    }
+  }
+
+  for (const path of [
+    "/api/search?q=mariage&view=tracks&page=1&limit=10&type=main&sort=relevance&language=fr&translate=0",
+    "/api/search?q=wedding&view=tracks&page=1&limit=10&type=main&sort=relevance&language=fr&translate=0",
+    "/api/search?q=mariage&brief=mariage&resolve=1&view=tracks&page=1&limit=10&type=main&sort=relevance&language=fr&translate=0",
+  ]) {
+    const response = await fetch(`${baseUrl}${path}`);
+    const payload = await response.json().catch(() => ({}));
+    console.log(JSON.stringify({
+      endpoint: "Parigo search multilingual diagnostic",
+      path,
+      response: summary(response.status, payload),
+      httpDate: response.headers.get("date"),
+      total: Number(record(payload)?.meta && record(record(payload)?.meta)?.total || 0),
+      intentResolution: record(record(payload)?.meta)?.intentResolution || null,
+      queryResolution: record(record(payload)?.meta)?.queryResolution || null,
+    }));
+  }
 
   const before = await direct(`/getmemberplaylistsnotracks/${memberToken}?Skip=0&Limit=500`);
   const beforeIds = new Set(list(before.payload, "Playlists").map((item) => findString(item, ["ID"]) || ""));
@@ -207,24 +374,39 @@ async function main() {
   }
 
   const documentedCreate = await direct(`/addmemberplaylist/${memberToken}`, post({
-    PlaylistName: `${prefix} documented`,
-    PlaylistDescription: "Documented Harvest contract",
-    PlaylistTags: "parigo-audit",
-    HighlightTracks: false,
-    AutoSave: false,
-    PlaylistCategoryID: "",
-    OrderBy: "Custom_ASC",
-    EnableSchedule: false,
+    requestaddupdateplaylist: {
+      playlistname: `${prefix} documented`,
+      playlistdescription: "Documented Harvest contract",
+      playlisttags: "parigo-audit",
+      highlighttracks: false,
+      autosave: false,
+      autosavelimit: 0,
+      autosaveapplytohighlighttracks: false,
+      playlistcategoryid: "",
+      externalplaylistimageurl: "",
+      orderby: "Custom_ASC",
+    },
   }));
-  const afterDocumentedCreate = await direct(`/getmemberplaylistsnotracks/${memberToken}?Skip=0&Limit=500`);
-  const documentedResource = list(afterDocumentedCreate.payload, "Playlists").find((item) =>
-    String(item.Name || "") === `${prefix} documented` && !beforeIds.has(String(item.ID || "")));
+  const playlistOffsets = [0, 250, 1_000, 3_000, 10_000, 30_000, 60_000];
+  const playlistObservations: Array<{ delayMs: number; present: boolean }> = [];
+  let documentedResource: JsonRecord | undefined;
+  for (let index = 0; index < playlistOffsets.length; index += 1) {
+    const delayMs = playlistOffsets[index];
+    const previous = index === 0 ? 0 : playlistOffsets[index - 1];
+    if (delayMs > previous) await new Promise((resolve) => setTimeout(resolve, delayMs - previous));
+    const afterDocumentedCreate = await direct(`/getmemberplaylistsnotracks/${memberToken}?Skip=0&Limit=500`);
+    documentedResource = list(afterDocumentedCreate.payload, "Playlists").find((item) =>
+      String(item.Name || "") === `${prefix} documented` && !beforeIds.has(String(item.ID || "")));
+    playlistObservations.push({ delayMs, present: Boolean(documentedResource) });
+    if (documentedResource) break;
+  }
   const documentedPlaylistId = documentedResource ? String(documentedResource.ID || "") : "";
   console.log(JSON.stringify({
     endpoint: "addmemberplaylist documented payload",
     response: summary(documentedCreate.status, documentedCreate.payload),
     httpDate: documentedCreate.date,
     resourcePersisted: Boolean(documentedPlaylistId),
+    observations: playlistObservations,
     temporalFacts: temporalFacts(documentedCreate.payload).slice(0, 10),
   }));
 
@@ -251,6 +433,9 @@ async function main() {
         ObjectType: "Track",
         ObjectIDs: trackIds,
         AddToPlaylistIDs: [documentedPlaylistId],
+        ObjectTrimStart: null,
+        ObjectTrimEnd: null,
+        AddToAutoSavePlaylists: false,
       }));
       const afterDocumentedAdd = await direct(
         `/getmemberplaylist/${memberToken}/${encodeURIComponent(documentedPlaylistId)}?returntracks=true&returnpublishlocations=false`,
@@ -268,6 +453,9 @@ async function main() {
         ObjectType: "Track",
         ObjectIDs: [trackId],
         AddToPlaylistIDs: [documentedPlaylistId],
+        ObjectTrimStart: null,
+        ObjectTrimEnd: null,
+        AddToAutoSavePlaylists: false,
       }));
       const afterDuplicate = await direct(
         `/getmemberplaylist/${memberToken}/${encodeURIComponent(documentedPlaylistId)}?returntracks=true&returnpublishlocations=false`,
@@ -282,7 +470,7 @@ async function main() {
       const documentedReorder = await direct(`/reordermemberplaylisttracks/${memberToken}`, post({
         FromPlaylistID: documentedPlaylistId,
         ToPlaylistID: documentedPlaylistId,
-        TrackIDs: [trackIds[2]],
+        TrackIDs: trackIds[2],
         SucceedingTrackID: trackIds[0],
         Copy: false,
       }));
@@ -295,15 +483,15 @@ async function main() {
         actualTrackIds: playlistTrackIds(afterReorder.payload),
       }));
 
-      const remove = await direct(`/removeplaylisttracks/${memberToken}/${encodeURIComponent(documentedPlaylistId)}`, post({
-        TrackIDs: [trackId],
-        Tracks: [{ ID: trackId }],
-      }));
+      const remove = await direct(
+        `/removeplaylisttracks/${memberToken}/${encodeURIComponent(documentedPlaylistId)}`,
+        post({ track: [{ id: trackId }] }),
+      );
       const afterRemove = await direct(
         `/getmemberplaylist/${memberToken}/${encodeURIComponent(documentedPlaylistId)}?returntracks=true&returnpublishlocations=false`,
       );
       console.log(JSON.stringify({
-        endpoint: "removeplaylisttracks current undocumented payload",
+        endpoint: "removeplaylisttracks documented example payload",
         response: summary(remove.status, remove.payload),
         absentAfter: !containsId(afterRemove.payload, trackId),
       }));
@@ -422,7 +610,7 @@ async function main() {
           const reorder = await direct(`/reordermemberplaylisttracks/${memberToken}`, post({
             FromPlaylistID: copyId,
             ToPlaylistID: copyId,
-            TrackIDs: [copiedTrackIds[2]],
+            TrackIDs: copiedTrackIds[2],
             SucceedingTrackID: copiedTrackIds[0],
             Copy: false,
           }));
@@ -526,27 +714,35 @@ async function main() {
   }));
 
   const documentedValidation = await direct(`/validatemusicdownloadrequest/${memberToken}`, post({
-    downloadtype: "track",
-    identifier: trackId,
-    format: formatId,
-    trimstartsecs: 0,
-    trimendsecs: 0,
-    includeversioncheck: false,
+    Identifier: trackId,
+    ContentIDs: "",
+    DownloadType: "track",
+    Format: [formatId],
+    TrimEndSecs: 0,
+    TrimStartSecs: 0,
+    IncludeVersionCheck: false,
   }));
   console.log(JSON.stringify({
     endpoint: "validatemusicdownloadrequest documented payload",
     response: summary(documentedValidation.status, documentedValidation.payload),
   }));
 
-  const cueSheet = await direct(`/getcuesheet/${memberToken}?filename=${encodeURIComponent(`parigo-direct-${runId}`)}`, post({
-    TrackIDs: [trackId],
-    Tracks: [{ ID: trackId }],
-  }));
-  console.log(JSON.stringify({
-    endpoint: "getcuesheet",
-    response: summary(cueSheet.status, cueSheet.payload),
-    urlReturned: Boolean(findString(cueSheet.payload, ["FullUrl"])),
-  }));
+  for (const [variant, cueTrackIds] of [
+    ["single-main", [trackId]],
+    ["multiple-main", trackIds],
+  ] as const) {
+    const cueSheet = await direct(
+      `/getcuesheet/${memberToken}?filename=${encodeURIComponent(`parigo-direct-${runId}-${variant}`)}`,
+      post({ track: cueTrackIds }),
+    );
+    console.log(JSON.stringify({
+      endpoint: "getcuesheet",
+      variant,
+      trackCount: cueTrackIds.length,
+      response: summary(cueSheet.status, cueSheet.payload),
+      urlReturned: Boolean(findString(cueSheet.payload, ["FullUrl"])),
+    }));
+  }
 
   const savedSearches = await direct(`/searchmembersavesearches/${memberToken}`, post({
     Keywords: "",

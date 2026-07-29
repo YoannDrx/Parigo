@@ -16,6 +16,7 @@ interface FavoriteButtonProps {
   size?: "sm" | "md" | "lg";
   className?: string;
   showTooltip?: boolean;
+  appearance?: "default" | "editorial";
 }
 
 export function FavoriteButton({
@@ -24,6 +25,7 @@ export function FavoriteButton({
   size = "md",
   className,
   showTooltip = true,
+  appearance = "default",
 }: FavoriteButtonProps) {
   const { locale } = useI18n();
   const { data: session } = useSession();
@@ -86,13 +88,13 @@ export function FavoriteButton({
         onClick={handleToggle}
         disabled={isLoading}
         className={cn(
-          "rounded-full flex items-center justify-center transition-all",
-          "border-2 border-transparent",
-          "hover:border-[var(--color-black)] hover:shadow-[2px_2px_0px_var(--color-black)]",
-          "active:shadow-none active:translate-x-[2px] active:translate-y-[2px]",
+          "flex items-center justify-center transition",
+          appearance === "editorial"
+            ? "border border-[var(--line)] bg-[var(--surface)] text-[var(--text-muted)] hover:border-[var(--signal-strong)] hover:bg-[var(--surface-soft)] hover:text-[var(--signal-strong)]"
+            : "rounded-full border-2 border-transparent hover:border-[var(--color-black)] hover:shadow-[2px_2px_0px_var(--color-black)] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none",
           isFavorite
-            ? "bg-red-100 text-red-500 hover:bg-red-200"
-            : "bg-[var(--color-gray-100)] text-[var(--color-gray-400)] hover:text-red-500 hover:bg-red-50",
+            ? appearance === "editorial" ? "border-[var(--signal-strong)] text-[var(--signal-strong)]" : "bg-red-100 text-red-500 hover:bg-red-200"
+            : appearance === "editorial" ? "" : "bg-[var(--color-gray-100)] text-[var(--color-gray-400)] hover:bg-red-50 hover:text-red-500",
           sizeClasses[size],
           className
         )}

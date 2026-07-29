@@ -5,16 +5,7 @@ import { cn } from "@/lib/utils";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { Tooltip } from "@/components/ui/Tooltip";
 
-function RailArrow({ direction }: { direction: -1 | 1 }) {
-  return (
-    <svg viewBox="0 0 42 16" className="home-rail-nav__arrow h-4 w-10" aria-hidden="true">
-      <path d="M2 8h38" className="home-rail-nav__shaft" />
-      <path d={direction === -1 ? "M8 2 2 8l6 6" : "m34 2 6 6-6 6"} />
-    </svg>
-  );
-}
-
-export function HorizontalRail({ children, label, wide = false, cinema = false, inverse = false }: { children: ReactNode; label: string; wide?: boolean; cinema?: boolean; inverse?: boolean }) {
+export function HorizontalRail({ children, label, wide = false, cinema = false, inverse = false, tone = "page" }: { children: ReactNode; label: string; wide?: boolean; cinema?: boolean; inverse?: boolean; tone?: "page" | "surface" | "inverse" }) {
   const { locale } = useI18n();
   const railRef = useRef<HTMLDivElement>(null);
   const [bounds, setBounds] = useState({ start: true, end: false, overflow: false });
@@ -54,19 +45,19 @@ export function HorizontalRail({ children, label, wide = false, cinema = false, 
   };
 
   return (
-    <div className="relative">
-      <div ref={railRef} role="region" onScroll={updateBounds} className={cn("no-scrollbar grid snap-x snap-mandatory grid-flow-col gap-5 overflow-x-auto px-1 pb-5 pt-2", cinema ? "auto-cols-[91%] sm:auto-cols-[72%] lg:auto-cols-[53%] xl:auto-cols-[43%]" : wide ? "auto-cols-[86%] md:auto-cols-[58%] xl:auto-cols-[42%]" : "auto-cols-[78%] sm:auto-cols-[44%] lg:auto-cols-[31%] xl:auto-cols-[23%]")} aria-label={label}>
+    <div className={cn("home-rail relative", `home-rail--${tone}`)}>
+      <div ref={railRef} role="region" onScroll={updateBounds} className={cn("no-scrollbar grid snap-x snap-mandatory grid-flow-col gap-5 overflow-x-auto bg-inherit px-1 pb-5 pt-2", cinema ? "auto-cols-[91%] sm:auto-cols-[72%] lg:auto-cols-[53%] xl:auto-cols-[43%]" : wide ? "auto-cols-[86%] md:auto-cols-[58%] xl:auto-cols-[42%]" : "auto-cols-[78%] sm:auto-cols-[44%] lg:auto-cols-[31%] xl:auto-cols-[23%]")} aria-label={label}>
         {children}
       </div>
       <div className="mt-2 grid grid-cols-1 items-center gap-5 border-t border-[var(--line)] pt-4 lg:mt-3 lg:grid-cols-[auto_1fr_auto] lg:pt-5">
         <span className="hidden font-mono text-[.56rem] uppercase tracking-[.14em] text-[var(--text-muted)] lg:block">{label}</span>
         <div aria-hidden="true" className="relative h-[2px] overflow-hidden"><div style={{ transform: `scaleX(${bounds.overflow ? Math.max(.06, progress) : 1})` }} className="absolute inset-0 origin-left bg-[var(--signal)] transition-transform duration-300" /></div>
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="home-rail-nav-group hidden items-center lg:flex">
           <Tooltip label={locale === "fr" ? "Précédent" : "Previous"}>
-            <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--previous", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Précédent" : "Previous"}><RailArrow direction={-1} /></button>
+            <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--previous", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Précédent" : "Previous"}><span className="home-rail-nav__triangle" aria-hidden="true" /></button>
           </Tooltip>
           <Tooltip label={locale === "fr" ? "Suivant" : "Next"}>
-            <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--next", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Suivant" : "Next"}><RailArrow direction={1} /></button>
+            <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--next", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Suivant" : "Next"}><span className="home-rail-nav__triangle" aria-hidden="true" /></button>
           </Tooltip>
         </div>
       </div>

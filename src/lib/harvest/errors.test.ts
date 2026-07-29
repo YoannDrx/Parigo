@@ -29,8 +29,8 @@ describe("Harvest logical errors", () => {
     } catch (error) {
       expect(error).toMatchObject({
         code: "HARVEST_UNAVAILABLE",
-        status: 503,
-        retryable: true,
+        status: 502,
+        retryable: false,
         upstreamCode: "4",
       });
     }

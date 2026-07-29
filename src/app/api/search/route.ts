@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { cloudSearch } from "@/lib/harvest/catalog";
+import { getSearchFilterGroups } from "@/lib/harvest/search-filters";
 import { readHarvestSession } from "@/lib/harvest/session";
+import { resolveSearchBrief } from "@/lib/search-intent";
 import { translateFrenchSearchQuery } from "@/lib/search-translation";
 import type { QueryResolution } from "@/types";
 
@@ -16,6 +18,8 @@ const sortMap = {
 
 const querySchema = z.object({
   q: z.string().max(500).default("%"),
+  brief: z.string().max(500).default(""),
+  resolve: z.enum(["0", "1"]).default("0"),
   view: z.enum(["tracks", "albums"]).default("tracks"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(30),
@@ -51,10 +55,17 @@ export async function GET(request: NextRequest) {
       q: request.nextUrl.searchParams.get("q") ?? request.nextUrl.searchParams.get("keyword") ?? "%",
     });
     const session = await readHarvestSession();
-    const categories = [...(list(input.categories) || []), ...legacyCategoryValues(request)];
+    const explicitCategories = [...(list(input.categories) || []), ...legacyCategoryValues(request)];
+    const intentResolution = input.brief && input.resolve === "1"
+      ? resolveSearchBrief(input.brief, await getSearchFilterGroups(input.language))
+      : undefined;
+    const categories = [
+      ...explicitCategories,
+      ...(intentResolution?.categoryIds || []),
+    ];
     const skip = (input.page - 1) * input.limit;
     const searchInput = {
-      query: input.q.trim() || "%",
+      query: intentResolution ? "%" : input.q.trim() || "%",
       view: input.view === "albums" ? "Album" : "Track",
       textScope: "title",
       skip,
@@ -63,32 +74,47 @@ export async function GET(request: NextRequest) {
       type: input.type,
       labels: list(input.labels),
       categories: categories.length ? [...new Set(categories)] : undefined,
-      minBpm: input.bpmMin,
-      maxBpm: input.bpmMax,
+      minBpm: input.bpmMin ?? intentResolution?.bpmRange?.[0],
+      maxBpm: input.bpmMax ?? intentResolution?.bpmRange?.[1],
       minDuration: input.durationMin,
       maxDuration: input.durationMax,
       language: input.language,
       saveSearchHistory: Boolean(session),
     } as const;
-    let result = await cloudSearch(searchInput, session?.memberToken);
+    const result = intentResolution && !intentResolution.supported
+      ? {
+          tracks: [],
+          albums: [],
+          total: 0,
+          facets: {
+            bpm: { min: 1, max: 300 },
+            duration: { min: 1, max: 2029 },
+            labels: [],
+            categories: [],
+            styles: [],
+          },
+          searchHistoryId: undefined,
+        }
+      : await cloudSearch(searchInput, session?.memberToken);
     let appliedQueryResolution: QueryResolution | undefined;
-    if (result.total === 0 && input.q !== "%" && input.translate !== "0") {
+    let appliedResult = result;
+    if (!intentResolution && result.total === 0 && input.q !== "%" && input.translate !== "0") {
       const queryResolution = await translateFrenchSearchQuery(input.q);
       if (queryResolution) {
-        result = await cloudSearch({
+        appliedResult = await cloudSearch({
           ...searchInput,
           query: queryResolution.effective,
           saveSearchHistory: Boolean(session),
         }, session?.memberToken);
-        if (result.total > 0) appliedQueryResolution = queryResolution;
+        if (appliedResult.total > 0) appliedQueryResolution = queryResolution;
       }
     }
-    const items = input.view === "albums" ? result.albums : result.tracks;
+    const items = input.view === "albums" ? appliedResult.albums : appliedResult.tracks;
     const publicFacets = {
-      bpm: result.facets.bpm,
-      duration: result.facets.duration,
-      labels: result.facets.labels,
-      categories: result.facets.categories,
+      bpm: appliedResult.facets.bpm,
+      duration: appliedResult.facets.duration,
+      labels: appliedResult.facets.labels,
+      categories: appliedResult.facets.categories,
     };
     return NextResponse.json({
       data: {
@@ -100,8 +126,9 @@ export async function GET(request: NextRequest) {
       meta: {
         page: input.page,
         pageSize: input.limit,
-        total: result.total,
-        searchHistoryId: result.searchHistoryId,
+        total: appliedResult.total,
+        searchHistoryId: appliedResult.searchHistoryId,
+        ...(intentResolution ? { intentResolution } : {}),
         ...(appliedQueryResolution ? { queryResolution: appliedQueryResolution } : {}),
         requestId: id,
       },

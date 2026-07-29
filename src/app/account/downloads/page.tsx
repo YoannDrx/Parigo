@@ -14,6 +14,8 @@ import type { Track } from "@/types";
 interface DownloadEntry {
   id: string;
   downloadedAt: string;
+  itemType?: string;
+  utcOffsetHours?: number;
   licenseType: string;
   projectName: string;
   track: Track;
@@ -86,7 +88,7 @@ export default function DownloadsPage() {
       ) : (
         <div className="space-y-4">
           {downloads.map((download, index) => {
-            const license = licenseLabels[download.licenseType] || licenseLabels.PREVIEW;
+            const license = licenseLabels[download.licenseType];
             return (
               <motion.div
                 key={download.id}
@@ -138,11 +140,19 @@ export default function DownloadsPage() {
                   </div>
 
                   {/* License Badge */}
-                  <div
-                    className={`parigo-tag px-3 py-1.5 text-sm font-medium ${license.color}`}
-                  >
-                    {license.label}
-                  </div>
+                  {license ? (
+                    <div
+                      className={`parigo-tag px-3 py-1.5 text-sm font-medium ${license.color}`}
+                    >
+                      {license.label}
+                    </div>
+                  ) : download.itemType ? (
+                    <div className="parigo-tag bg-[var(--surface-soft)] px-3 py-1.5 text-sm font-medium text-[var(--text-muted)]">
+                      {download.itemType === "Download"
+                        ? (locale === "fr" ? "Téléchargement" : "Download")
+                        : download.itemType}
+                    </div>
+                  ) : null}
 
                 </div>
               </motion.div>

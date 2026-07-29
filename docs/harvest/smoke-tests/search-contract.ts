@@ -77,6 +77,40 @@ async function checkBilingualFallback() {
   if (record(literal.meta).queryResolution) throw new Error("Literal search unexpectedly exposed translation metadata");
 }
 
+async function checkServerIntentResolution() {
+  const payload = await fetchPreview(
+    "/api/search?q=mariage&brief=mariage&resolve=1&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translate=0",
+  );
+  const meta = record(payload.meta);
+  const resolution = record(meta.intentResolution);
+  const categoryIds = Array.isArray(resolution.categoryIds) ? resolution.categoryIds : [];
+  if (
+    resolution.original !== "mariage" ||
+    resolution.source !== "parigo-taxonomy" ||
+    resolution.supported !== true ||
+    categoryIds.length === 0
+  ) {
+    throw new Error("The BFF did not return a verifiable server-side intent resolution for mariage");
+  }
+  if (Number(meta.total ?? 0) < 1 || titles(payload).length < 1) {
+    throw new Error("The server-side wedding category resolution returned no tracks");
+  }
+
+  const literal = await fetchPreview(
+    "/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translate=0",
+  );
+  if (record(literal.meta).intentResolution) {
+    throw new Error("Literal search unexpectedly exposed intent resolution metadata");
+  }
+  console.log(JSON.stringify({
+    check: "server-intent-resolution",
+    original: resolution.original,
+    categoryIds,
+    total: Number(meta.total ?? 0),
+    examples: titles(payload).slice(0, 5),
+  }, null, 2));
+}
+
 async function main() {
   if (process.env.HARVEST_LIVE_TESTS !== "1") {
     console.log("Search contract skipped. Set HARVEST_LIVE_TESTS=1 to exercise the live Harvest catalogue.");
@@ -85,6 +119,7 @@ async function main() {
   await checkTitleSearch("crime", "albums");
   await checkPrefixExpansion();
   await checkTitleSearch("wedding", "tracks");
+  await checkServerIntentResolution();
   await checkBilingualFallback();
 }
 

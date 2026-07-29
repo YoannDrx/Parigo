@@ -1,7 +1,9 @@
+import type { ReactNode } from "react";
+
 interface CatalogHeroProps {
   title: string;
   intro: string;
-  meta?: string;
+  meta?: ReactNode;
 }
 
 export function CatalogHero({ title, intro, meta }: CatalogHeroProps) {

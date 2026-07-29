@@ -24,8 +24,6 @@ describe("player store", () => {
       progress: 0,
       repeatMode: "off",
       shuffleEnabled: false,
-      historyLogged: false,
-      listenStartTime: null,
     });
   });
 
