@@ -1471,7 +1471,14 @@ async function main() {
   });
   try {
     const viewportMode = process.env.HARVEST_UI_VIEWPORT || "all";
-    const desktop = ["mobile", "timezone"].includes(viewportMode) ? null : await runViewport(browser, "desktop", { width: 1440, height: 900 }, true);
+    const desktop = ["mobile", "timezone"].includes(viewportMode)
+      ? null
+      : await runViewport(
+          browser,
+          "desktop",
+          { width: 1440, height: 900 },
+          process.env.HARVEST_UI_CORE_ONLY !== "1",
+        );
     const mobile = ["desktop", "timezone"].includes(viewportMode) ? null : await runViewport(browser, "mobile", { width: 390, height: 844 }, false);
     const timezones = await timezoneAudit(browser);
     console.log(JSON.stringify({
