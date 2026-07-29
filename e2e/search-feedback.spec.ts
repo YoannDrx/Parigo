@@ -12,6 +12,65 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("la pagination replace le début des résultats sous le poste de recherche", async ({ page }) => {
+  await page.route("**/api/search/filters?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { groups: [] } }),
+  }));
+  await page.route("**/api/search?**", (route) => {
+    const url = new URL(route.request().url());
+    const resultPage = Number(url.searchParams.get("page") ?? 1);
+    const offset = (resultPage - 1) * 30;
+    const itemCount = resultPage >= 2 ? 1 : 30;
+    const items = Array.from({ length: itemCount }, (_, index) => {
+      const position = offset + index + 1;
+      return {
+        id: `album-${position}`,
+        slug: `album-${position}`,
+        title: `Album crime ${position}`,
+        cover: "/images/placeholder-album.svg",
+        label: "Parigo",
+        code: `PGO ${String(position).padStart(3, "0")}`,
+        genres: [],
+        moods: [],
+        trackCount: 10,
+      };
+    });
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { items, view: "albums", facets: { categories: [], labels: [] } },
+        meta: { page: resultPage, pageSize: 30, total: 31, requestId: `pagination-${resultPage}` },
+      }),
+    });
+  });
+
+  await page.goto("/search?q=crime&view=albums&type=main");
+  const pagination = page.getByRole("navigation", { name: "Pagination des résultats" });
+  await expect(pagination).toBeVisible();
+  await page.waitForTimeout(500);
+  await pagination.scrollIntoViewIfNeeded();
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+
+  await page.getByRole("button", { name: "Suivant" }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(100);
+
+  const workspace = page.getByTestId("search-workspace");
+  const firstAlbum = page.getByTestId("search-album-grid").locator("article").first();
+  await expect(workspace).toBeVisible();
+  await expect(firstAlbum).toContainText("Album crime 31");
+  const [workspaceBox, firstAlbumBox] = await Promise.all([workspace.boundingBox(), firstAlbum.boundingBox()]);
+  expect(workspaceBox).not.toBeNull();
+  expect(firstAlbumBox).not.toBeNull();
+  expect(firstAlbumBox!.y).toBeGreaterThan(workspaceBox!.y + workspaceBox!.height);
+
+  await page.reload();
+  await page.waitForTimeout(500);
+  expect(new URL(page.url()).searchParams.get("page")).toBe("2");
+  await expect(page.getByTestId("search-album-grid").locator("article").first()).toContainText("Album crime 31");
+});
+
 test("la colonne de filtres suit la navbar et libère la hauteur quand elle se masque", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Les filtres mobiles utilisent un panneau dédié.");
   await page.goto("/search");

@@ -12,6 +12,33 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("les postes de filtrage publics restent visibles pendant le défilement", async ({ page }, testInfo) => {
+  for (const path of ["/albums", "/playlists", "/labels"]) {
+    await page.goto(path);
+    const workspace = page.getByTestId("catalog-workspace");
+    await expect(workspace).toBeVisible();
+    await expect(workspace).toHaveCSS("position", "sticky");
+    await workspace.evaluate((element) => {
+      element.scrollIntoView({ block: "start", behavior: "instant" });
+      window.scrollBy({ top: 600, behavior: "instant" });
+    });
+    await page.waitForTimeout(350);
+    const workspaceBox = await workspace.boundingBox();
+    expect(workspaceBox, `poste catalogue absent sur ${path}`).not.toBeNull();
+    expect(workspaceBox!.y, `poste catalogue non sticky sur ${path}`).toBeGreaterThanOrEqual(0);
+    expect(workspaceBox!.y, `poste catalogue trop bas sur ${path}`).toBeLessThanOrEqual(80);
+
+    if (path === "/albums" && testInfo.project.name !== "mobile") {
+      const filters = page.locator(".search-filter-sticky");
+      await expect(filters).toHaveCSS("position", "sticky");
+      const filterBox = await filters.boundingBox();
+      expect(filterBox).not.toBeNull();
+      expect(filterBox!.y).toBeGreaterThanOrEqual(0);
+      expect(filterBox!.y).toBeLessThanOrEqual(90);
+    }
+  }
+});
+
 test("les labels exposent les vrais volumes, la recherche et les deux vues", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/labels");

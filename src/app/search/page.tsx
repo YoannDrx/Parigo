@@ -27,7 +27,6 @@ import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { Button } from "@/components/ui/Button";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { Select } from "@/components/ui/Select";
-import { SignedTitle } from "@/components/ui/SignedTitle";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId, parseSearchIntent, searchIntentChips } from "@/lib/search-intent";
@@ -153,6 +152,7 @@ function SearchContent() {
   const [saveSearchRequestId, setSaveSearchRequestId] = useState("");
   const dialogRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
+  const searchWorkspaceRef = useRef<HTMLDivElement>(null);
 
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
@@ -296,6 +296,17 @@ function SearchContent() {
   const total = resolvedIntentUnsupported ? 0 : view === "tracks" ? tracksQuery.data?.pagination.total ?? 0 : albumsQuery.data?.pagination.total ?? 0;
   const facets: SearchFacets | undefined = view === "tracks" ? tracksQuery.data?.facets : albumsQuery.data?.facets;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const goToPage = useCallback((nextPage: number) => {
+    setPage(Math.max(1, Math.min(totalPages, nextPage)));
+    window.requestAnimationFrame(() => {
+      const workspaceTop = searchWorkspaceRef.current?.getBoundingClientRect().top;
+      if (workspaceTop === undefined) return;
+      window.scrollTo({
+        top: Math.max(0, window.scrollY + workspaceTop - 74),
+        behavior: "smooth",
+      });
+    });
+  }, [totalPages]);
   const searchHistoryId = view === "tracks" ? tracksQuery.data?.searchHistoryId : albumsQuery.data?.searchHistoryId;
   const queryResolution = view === "tracks" ? tracksQuery.data?.queryResolution : albumsQuery.data?.queryResolution;
   const literalSearchHref = useMemo(() => {
@@ -310,31 +321,35 @@ function SearchContent() {
   const commitSearchDraft = useCallback((rawValue: string) => {
     const value = rawValue.trim();
     if (!value) {
+      const searchChanged = Boolean(query || brief);
       setQuery("");
       setBrief("");
       setTranslateAliases(true);
       setIntentUnsupported(false);
       setIntentResolutionPending(false);
-      setPage(1);
+      if (searchChanged) setPage(1);
       return;
     }
     if (value.length < 2) return;
-    setPage(1);
 
     if (searchMode === "title") {
+      const searchChanged = Boolean(brief) || query !== value;
       setBrief("");
       setQuery(value);
       setTranslateAliases(true);
       setIntentUnsupported(false);
       setIntentResolutionPending(false);
+      if (searchChanged) setPage(1);
       return;
     }
 
+    const searchChanged = Boolean(query) || brief !== value;
     setBrief(value);
     setQuery("");
     setIntentUnsupported(false);
     setIntentResolutionPending(false);
-  }, [searchMode]);
+    if (searchChanged) setPage(1);
+  }, [brief, query, searchMode]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => commitSearchDraft(queryDraft), 400);
@@ -435,67 +450,59 @@ function SearchContent() {
   return (
     <div className="page-shell flex min-h-screen min-w-0 flex-col overflow-x-clip">
       <Header />
-      <main className="min-w-0 flex-1 overflow-x-clip pb-28">
-        <section className="search-page-hero page-hero border-b border-[var(--line)] px-4 pb-12 pt-28 sm:px-6 md:pb-16 md:pt-36 lg:px-8">
-          <div className="mx-auto max-w-[1800px]">
-            <div className="search-page-hero__frame page-hero__frame parigo-frame relative grid overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] lg:grid-cols-12">
-              <div className="page-hero__title-panel relative flex min-w-0 items-center px-6 py-9 sm:px-8 lg:col-span-5 lg:px-10 lg:py-12">
-                <SignedTitle className="search-page-hero__title max-w-[10ch] font-[var(--font-editorial)] font-semibold leading-[.9] tracking-[-.06em]">{locale === "fr" ? "Donnez le ton à vos images" : "Set the tone for your images"}</SignedTitle>
-              </div>
-              <div className="search-page-hero__tools relative flex min-w-0 flex-col justify-center border-t border-[var(--line)] px-4 py-6 sm:px-6 lg:col-span-7 lg:border-l lg:border-t-0 lg:px-8">
-                <div>
-                  <form onSubmit={(event) => { event.preventDefault(); applyUnifiedSearch(); }} className="ai-search-shell search-query-frame flex min-h-16 items-center border border-[var(--line-strong)] bg-[var(--surface)] p-1.5 transition">
-                    {searchMode === "intent" ? <Sparkles size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" /> : <Search size={20} className="ml-3 shrink-0 text-[var(--signal-strong)]" />}
+      <main className="min-w-0 flex-1 overflow-x-clip pb-28 pt-[74px]">
+        <h1 className="sr-only">{t("common.search")}</h1>
+        <div className="mx-auto grid max-w-[1920px] items-start gap-4 px-3 py-3 sm:px-4 sm:py-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
+          <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
+            {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
+          </aside>
+
+          <section ref={searchWorkspaceRef} className="min-w-0" aria-live="polite">
+            <div data-testid="search-workspace" className="search-workspace sticky z-40 mb-3 bg-[var(--background)] pb-2 pt-1">
+              <div className="search-command-center border border-[var(--line-strong)] bg-[var(--surface)] p-2.5">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <form onSubmit={(event) => { event.preventDefault(); applyUnifiedSearch(); }} className="ai-search-shell search-query-frame flex min-h-12 min-w-[16rem] flex-1 items-center border border-[var(--line-strong)] bg-[var(--background)] p-1 transition">
+                    {searchMode === "intent" ? <Sparkles size={18} className="ml-2.5 shrink-0 text-[var(--signal-strong)]" /> : <Search size={18} className="ml-2.5 shrink-0 text-[var(--signal-strong)]" />}
                     <label htmlFor="catalog-search" className="sr-only">{searchMode === "intent" ? (locale === "fr" ? "Décrivez votre intention musicale" : "Describe your music brief") : view === "tracks" ? (locale === "fr" ? "Rechercher dans les titres de pistes" : "Search track titles") : (locale === "fr" ? "Rechercher dans les titres ou références d’albums" : "Search album titles or references")}</label>
                     <input id="catalog-search" role="searchbox" value={queryDraft} onChange={(event) => {
                       setTranslateAliases(true);
                       setQueryDraft(event.target.value);
-                    }} maxLength={500} autoComplete="off" placeholder={searchMode === "intent" ? (locale === "fr" ? "Une techno énergique pour un mariage entre 120 et 140 BPM…" : "Energetic techno for a wedding between 120 and 140 BPM…") : view === "tracks" ? (locale === "fr" ? "Un mot présent dans le titre d’une piste…" : "A word contained in a track title…") : (locale === "fr" ? "Titre ou référence d’un album…" : "Album title or reference…")} className="ai-search-input min-w-0 flex-1 bg-transparent px-3 py-3 text-base outline-none" />
-                    {queryDraft && <button type="button" onClick={clearUnifiedSearch} className="flex h-10 w-10 items-center justify-center hover:bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}><X size={16} /></button>}
+                    }} maxLength={500} autoComplete="off" placeholder={searchMode === "intent" ? (locale === "fr" ? "Une techno énergique pour un mariage entre 120 et 140 BPM…" : "Energetic techno for a wedding between 120 and 140 BPM…") : view === "tracks" ? (locale === "fr" ? "Un mot présent dans le titre d’une piste…" : "A word contained in a track title…") : (locale === "fr" ? "Titre ou référence d’un album…" : "Album title or reference…")} className="ai-search-input min-w-0 flex-1 bg-transparent px-2.5 py-2 text-sm outline-none sm:text-base" />
+                    {queryDraft && <button type="button" onClick={clearUnifiedSearch} className="flex h-10 w-10 shrink-0 items-center justify-center hover:bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}><X size={16} /></button>}
                     <Button type="submit" size="sm" disabled={!queryDraft.trim() || intentResolutionPending} aria-label={searchMode === "intent" ? (locale === "fr" ? "Analyser et rechercher" : "Analyse and search") : t("common.search")}><span className="hidden sm:inline">{intentResolutionPending ? (locale === "fr" ? "Analyse…" : "Analysing…") : t("common.search")}</span>{intentResolutionPending ? <ParigoLoader size="icon" label={locale === "fr" ? "Analyse en cours" : "Analysing"} className="sm:hidden" /> : <ChevronRight className="sm:hidden" size={17} />}</Button>
                   </form>
-                </div>
-                <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  {searchMode === "intent" && draftIntentChips.length > 0 ? (
-                    <div data-testid="search-detected-criteria" className="flex flex-1 flex-wrap items-center gap-2 text-[var(--text-muted)]" aria-live="polite">
-                      <span className="eyebrow">{locale === "fr" ? "Critères détectés" : "Detected criteria"}</span>
-                      {draftIntentChips.map((chip) => <span key={chip.key} className="search-chip search-chip--included px-2.5 py-1 text-xs text-[var(--foreground)]">{chip.label}</span>)}
-                    </div>
-                  ) : <span className="flex-1" aria-live="polite" />}
                   <div className="search-view-toggle inline-flex min-h-11 shrink-0 border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Mode de recherche" : "Search mode"}>
                     <button type="button" aria-pressed={searchMode === "title"} onClick={() => { setSearchMode("title"); setPage(1); }} className={cn("inline-flex min-h-9 items-center gap-2 px-3 text-xs font-semibold transition", searchMode === "title" && "bg-[var(--foreground)] text-[var(--background)]")}><Search size={13} />{locale === "fr" ? "Par titre" : "By title"}</button>
                     <button type="button" aria-pressed={searchMode === "intent"} onClick={() => { setSearchMode("intent"); setPage(1); }} className={cn("inline-flex min-h-9 items-center gap-2 px-3 text-xs font-semibold transition", searchMode === "intent" && "bg-[var(--foreground)] text-[var(--background)]")}><Sparkles size={13} />{locale === "fr" ? "Par intention" : "By brief"}</button>
                   </div>
                 </div>
+                {searchMode === "intent" && draftIntentChips.length > 0 && (
+                  <div data-testid="search-detected-criteria" className="mt-2 flex flex-wrap items-center gap-2 border-t border-[var(--line)] px-1 pt-2 text-[var(--text-muted)]" aria-live="polite">
+                    <span className="eyebrow">{locale === "fr" ? "Critères détectés" : "Detected criteria"}</span>
+                    {draftIntentChips.map((chip) => <span key={chip.key} className="search-chip search-chip--included px-2.5 py-1 text-xs text-[var(--foreground)]">{chip.label}</span>)}
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-        </section>
 
-        <div className="mx-auto grid max-w-[1800px] gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[340px_minmax(0,1fr)] lg:px-8">
-          <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
-            {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
-          </aside>
-
-          <section className="min-w-0" aria-live="polite">
-            <div className="search-toolbar mb-4 flex flex-wrap items-stretch justify-between gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-2.5">
-              <div className="flex flex-wrap items-center gap-2">
-                <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 items-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
-                <div className="search-view-toggle inline-flex min-h-11 border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
-                  <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={14} />{locale === "fr" ? "Pistes" : "Tracks"}</button>
-                  <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} />Albums</button>
+              <div className="search-toolbar mt-2 flex flex-wrap items-stretch justify-between gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 items-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
+                  <div className="search-view-toggle inline-flex min-h-11 border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Type de résultats" : "Result type"}>
+                    <button type="button" aria-pressed={view === "tracks"} onClick={() => { setView("tracks"); setPage(1); }} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", view === "tracks" && "bg-[var(--foreground)] text-[var(--background)]")}><Disc3 size={14} />{locale === "fr" ? "Pistes" : "Tracks"}</button>
+                    <button type="button" aria-pressed={view === "albums"} onClick={() => { setView("albums"); setPage(1); }} className={cn("inline-flex min-h-10 items-center gap-2 px-3 text-xs font-semibold transition", view === "albums" && "bg-[var(--foreground)] text-[var(--background)]")}><LayoutGrid size={14} />Albums</button>
+                  </div>
+                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Versions principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
                 </div>
-                {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="min-w-[11.5rem]" options={[{ value: "main", label: locale === "fr" ? "Versions principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
-              </div>
-              <div className="flex w-full flex-wrap items-stretch justify-end gap-2 sm:w-auto">
-                {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="min-w-[10.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
-                <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="min-w-0 sm:min-w-[9rem]" options={[
-                  { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
-                  { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
-                  { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
-                  { value: "title", label: "A–Z" },
-                  { value: "title-desc", label: "Z–A" },
-                ]} />
+                <div className="flex min-w-0 flex-wrap items-stretch justify-end gap-2">
+                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="min-w-[10.5rem]" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
+                  <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="min-w-0 sm:min-w-[9rem]" options={[
+                    { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
+                    { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
+                    { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
+                    { value: "title", label: "A–Z" },
+                    { value: "title-desc", label: "Z–A" },
+                  ]} />
+                </div>
               </div>
             </div>
 
@@ -589,9 +596,9 @@ function SearchContent() {
 
             {!activeQuery.isLoading && !activeQuery.isError && totalPages > 1 && (
               <nav className="mt-7 flex items-center justify-between border-t border-[var(--line)] pt-5" aria-label={locale === "fr" ? "Pagination des résultats" : "Results pagination"}>
-                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => { setPage((value) => Math.max(1, value - 1)); window.scrollTo({ top: 330, behavior: "smooth" }); }}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => goToPage(page - 1)}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
                 <span className="font-mono text-[.65rem] uppercase tracking-[.12em] text-[var(--text-muted)]">Page {page} / {totalPages}</span>
-                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => { setPage((value) => Math.min(totalPages, value + 1)); window.scrollTo({ top: 330, behavior: "smooth" }); }}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>
               </nav>
             )}
           </section>

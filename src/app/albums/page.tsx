@@ -74,7 +74,7 @@ export default async function AlbumsPage() {
             </Suspense>
           )}
         />
-        <div className="mx-auto max-w-[1700px] px-4 py-10 sm:px-6 md:py-16 lg:px-8">
+        <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
           <Suspense fallback={<div className="grid min-h-72 place-items-center"><ParigoLoader size="page" label={copy.common.loading} /></div>}>
             <AlbumExplorerContent albumsPromise={albumsPromise} />
           </Suspense>

@@ -46,10 +46,7 @@ export function Footer() {
             <div className="w-fit">
               <Link href={localizedPath("/")} aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group flex focus-visible:outline-offset-8"><ParigoLogo className="text-[clamp(2.8rem,5vw,5.2rem)]" /></Link>
             </div>
-            <p className="mt-6 max-w-sm text-[clamp(1.2rem,2vw,1.8rem)] font-medium leading-[1.15] tracking-[-.035em] text-[var(--inverse-muted)]">
-              {t("footer.statement")}
-            </p>
-            <a href="mailto:info@parigomusic.com" className="group mt-8 inline-flex min-h-11 items-center gap-2 border-b border-current/30 text-sm font-semibold transition hover:border-[var(--inverse-accent)] hover:text-[var(--inverse-accent)]">
+            <a href="mailto:info@parigomusic.com" className="group mt-3 inline-flex min-h-11 items-center gap-2 border-b border-current/30 text-sm font-semibold transition hover:border-[var(--inverse-accent)] hover:text-[var(--inverse-accent)]">
               <span>info@parigomusic.com</span>
               <ArrowUpRight size={14} className="transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </a>
@@ -57,8 +54,7 @@ export function Footer() {
           <div className="grid grid-cols-2 gap-x-5 gap-y-9 lg:col-span-7 lg:col-start-6 lg:grid-cols-7 lg:gap-x-6 lg:gap-y-10">
             {groups.map((group) => (
               <div key={group.title} className={group.wide ? "col-span-2 lg:col-span-3" : "col-span-1 min-w-0 lg:col-span-2"}>
-                <h3 className="eyebrow mb-5 flex items-center gap-2 text-[var(--inverse-muted)]">
-                  <span className="h-px w-5 bg-[var(--inverse-accent)]" />
+                <h3 className="mb-5 font-mono text-[.66rem] !font-bold uppercase tracking-[.14em] text-[var(--inverse-foreground)]">
                   {group.title}
                 </h3>
                 <ul className={group.wide ? "grid grid-cols-2 gap-x-5 gap-y-1 text-sm" : "grid min-w-0 gap-1 text-[.82rem] sm:text-sm"}>

@@ -48,7 +48,7 @@ export default async function ParigoLabelPage() {
             : "Original Parigo label productions, from the first catalogue release to the latest arrivals."}
           meta={`${albums.total} albums`}
         />
-        <div className="mx-auto max-w-[1700px] px-4 py-10 sm:px-6 md:py-16 lg:px-8">
+        <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
           <ReactQueryProvider>
             <AlbumExplorer
               initialData={initialData}

@@ -247,7 +247,6 @@ test("la page des labels adopte l’intitulé Labels représentés", async ({ pa
 
 test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {
   const cases = [
-    ["/search", "Catalogue Parigo"],
     ["/albums", "Catalogue / Albums"],
     ["/synchronisations", "Music for images"],
     ["/playlists", "Catalogue / Sélections"],
@@ -268,6 +267,10 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
     await expect(page.locator("main h1")).toBeVisible();
     await expect(page.locator("main").getByText(label, { exact: true })).toHaveCount(0);
   }
+
+  await page.goto("/search");
+  await expect(page.locator("main h1")).toHaveText("Recherche");
+  await expect(page.locator("main")).not.toContainText("Donnez le ton à vos images");
 });
 
 test("le formulaire Contact conserve sa composition d’origine et laisse respirer le champ Entreprise", async ({ page }) => {

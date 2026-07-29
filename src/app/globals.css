@@ -1307,9 +1307,34 @@ textarea {
 .filter-row-excluded { background: color-mix(in srgb, var(--danger) 8%, transparent); }
 .search-query-frame,
 .search-toolbar,
-.search-active-filters {
+.search-active-filters,
+.search-command-center {
   position: relative;
   border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
+}
+.search-workspace {
+  top: 74px;
+  isolation: isolate;
+  transition: top 300ms var(--ease-out);
+}
+:root:has(header[data-header-visible="false"]) .search-workspace {
+  top: 0;
+}
+.search-workspace::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: -1;
+  height: 1px;
+  background: var(--line);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--background) 82%, transparent);
+}
+.search-command-center {
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--signal) 4%, transparent) 1px, transparent 1px);
+  background-size: 3.5rem 100%;
+  box-shadow: 5px 5px 0 color-mix(in srgb, var(--signal) 8%, transparent);
 }
 .catalog-toolbar {
   overflow: visible;

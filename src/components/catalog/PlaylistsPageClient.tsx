@@ -132,7 +132,7 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
       <Header />
       <main className="flex-1 pb-32">
         <CatalogHero title={t("catalog.playlistsTitle")} intro={t("catalog.playlistsIntro")} meta={`${playlists.length} ${t("common.playlists").toLowerCase()}`} />
-        <div className="mx-auto max-w-[1700px] px-4 py-12 md:py-16 lg:px-8">
+        <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
           <CatalogToolbar
             locale={locale}
             query={query}
@@ -149,7 +149,7 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
             onViewChange={setView}
             resultCount={visible.length}
           >
-            <div className="mt-4 grid gap-3 border-t border-[var(--line)] pt-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-[var(--line)] pt-2 xl:grid-cols-4">
               {filterGroups.map((group) => (
                 <CatalogFacetDropdown
                   key={group.key}
