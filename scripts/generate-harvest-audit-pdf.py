@@ -28,8 +28,8 @@ from reportlab.platypus import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-REPORT_PATH = ROOT / "docs/harvest/audit-integration-2026-07-29.md"
-OUTPUT_PATH = ROOT / "output/pdf/audit-integration-harvest-2026-07-29.pdf"
+REPORT_PATH = ROOT / "docs/harvest/audit-integration-2026-07-30.md"
+OUTPUT_PATH = ROOT / "output/pdf/audit-integration-harvest-2026-07-30.pdf"
 
 PAGE_SIZE = landscape(A4)
 PAGE_WIDTH, PAGE_HEIGHT = PAGE_SIZE
@@ -94,7 +94,7 @@ class AuditCanvas(canvas.Canvas):
         self.line(MARGIN_X, 12 * mm, PAGE_WIDTH - MARGIN_X, 12 * mm)
         self.setFont(FONT, 7.2)
         self.setFillColor(MUTED)
-        self.drawString(MARGIN_X, 7.2 * mm, "PARIGO MUSIC · AUDIT HARVEST · 29 JUILLET 2026")
+        self.drawString(MARGIN_X, 7.2 * mm, "PARIGO MUSIC · AUDIT HARVEST · 30 JUILLET 2026")
         self.drawRightString(
             PAGE_WIDTH - MARGIN_X,
             7.2 * mm,
@@ -330,8 +330,7 @@ def markdown_to_flowables(markdown: str):
             index += 1
             continue
         if stripped.startswith("## "):
-            if stripped.startswith("## 7."):
-                email_mode = True
+            email_mode = "Message prêt à envoyer" in stripped
             story.append(Paragraph(inline_markup(stripped[3:]), styles["AuditH1"]))
         elif stripped.startswith("### "):
             story.append(Paragraph(inline_markup(stripped[4:]), styles["AuditH2"]))
@@ -396,9 +395,9 @@ def cover_flowables():
         Spacer(1, 16 * mm),
         Table(
             [[
-                Paragraph("255<br/><font size='7'>endpoints classés</font>", metric_style),
+                Paragraph("257<br/><font size='7'>endpoints classés</font>", metric_style),
                 Paragraph("88<br/><font size='7'>handlers BFF audités</font>", metric_style),
-                Paragraph("7<br/><font size='7'>contrats ciblés à clarifier</font>", metric_style),
+                Paragraph("11<br/><font size='7'>points ciblés à clarifier</font>", metric_style),
                 Paragraph("0<br/><font size='7'>ressource de test restante</font>", metric_style),
             ]],
             colWidths=[CONTENT_WIDTH / 4] * 4,
@@ -416,7 +415,7 @@ def cover_flowables():
             "en lecture seule. Playlists, tags, favoris, recherches, cue sheets et téléchargements "
             "fonctionnent. Les défauts Parigo identifiés — dont la date erronée des téléchargements — "
             "ont été corrigés et ne sont pas remontés à Harvest. Les questions restantes portent sur "
-            "sept contrats ou mécanismes ciblés et sur quelques capacités produit à qualifier.",
+            "contrats ciblés, des simplifications d’API proposées et de quelques capacités produit à qualifier.",
             ParagraphStyle(
                 "CoverConclusion",
                 parent=styles["AuditBody"],
@@ -430,7 +429,7 @@ def cover_flowables():
             ),
         ),
         Spacer(1, 9 * mm),
-        Paragraph("29 juillet 2026 · Compte Anthlogan · Données sensibles expurgées", subtitle_style),
+        Paragraph("30 juillet 2026 · Compte Anthlogan · Données sensibles expurgées", subtitle_style),
         PageBreak(),
     ]
 

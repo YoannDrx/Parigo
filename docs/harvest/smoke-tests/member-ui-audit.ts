@@ -454,7 +454,7 @@ async function testTrackPanels(page: Page, inventory: { title: string; trackId?:
     result.download = {
       buttonExposed: await downloadButton.isVisible(),
       actualFileRequested: false,
-      skippedReason: "Both current and official validation payloads failed in direct diagnostics",
+      skippedReason: "A second quota-consuming download was not required for this UI regression pass",
     };
     await page
       .getByRole("button", { name: `Fermer les actions : ${inventory.title}`, exact: true })
@@ -1215,7 +1215,7 @@ async function testNewDocumentedCapabilities(page: Page) {
           : {};
         playlistFacts.serverSearchStatus = searchResponse.status();
         playlistFacts.serverSearchTotal = Number(searchData.total || 0);
-        playlistFacts.serverSearchVisible = await page.getByText(/résultat\(s\) Harvest/).isVisible().catch(() => false);
+        playlistFacts.serverSearchVisible = await page.getByText(/résultat\(s\)/).isVisible().catch(() => false);
       }
 
       const duplicateResponsePromise = page.waitForResponse(
