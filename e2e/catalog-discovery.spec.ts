@@ -44,6 +44,16 @@ test("les postes de filtrage défilent sur mobile et restent visibles sur deskto
   }
 });
 
+test("la première pochette du catalogue est prioritaire pour le LCP", async ({ page }) => {
+  await page.goto("/albums");
+  const albumImages = page.locator(".album-card img");
+
+  await expect(albumImages.first()).toBeVisible({ timeout: 30_000 });
+  await expect(albumImages.first()).toHaveAttribute("fetchpriority", "high");
+  await expect(albumImages.first()).not.toHaveAttribute("loading", "lazy");
+  await expect(albumImages.nth(1)).not.toHaveAttribute("fetchpriority", "high");
+});
+
 test("les labels exposent les vrais volumes, la recherche et les deux vues", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/labels");

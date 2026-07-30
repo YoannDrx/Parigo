@@ -32,6 +32,7 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition duration-[900ms] ease-out group-hover/card:scale-[1.035]"
               preload={priority}
+              fetchPriority={priority ? "high" : undefined}
             />
           </div>
 
