@@ -1,8 +1,8 @@
 "use client";
 
-import { LayoutGroup, motion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import {
+  type ComponentType,
   createContext,
   useCallback,
   useContext,
@@ -21,6 +21,12 @@ const SHOWREEL_SOURCE = "/videos/garden-of-eden-showreel.mp4";
 
 interface StartOptions {
   explicit?: boolean;
+}
+
+export interface FloatingShowreelSoundControlProps {
+  bottom: number;
+  origin: { x: number; y: number } | null;
+  onAnimationComplete: () => void;
 }
 
 interface ShowreelAudioContextValue {
@@ -68,14 +74,12 @@ export function ShowreelSoundButton({ floating }: { floating: boolean }) {
       {audible ? (
         <>
           <span aria-hidden="true" className="absolute inset-0 rounded-full border border-white/65 animate-ping [animation-duration:1.8s]" />
-          <motion.span
+          <span
             data-testid="showreel-sound-active"
-            className="relative"
-            animate={{ rotate: [0, -9, 8, -4, 0], scale: [1, 1.14, 1, 1.08, 1] }}
-            transition={{ duration: 1.15, repeat: Infinity, repeatDelay: .35, ease: "easeInOut" }}
+            className="relative animate-[showreel-speaker_1.5s_ease-in-out_infinite]"
           >
             <Volume2 size={21} />
-          </motion.span>
+          </span>
         </>
       ) : <VolumeX size={20} />}
     </button>
@@ -100,6 +104,9 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
   const [floatingBottom, setFloatingBottom] = useState(20);
   const [floatingOrigin, setFloatingOrigin] = useState<{ x: number; y: number } | null>(null);
   const [reattachOrigin, setReattachOrigin] = useState<{ x: number; y: number } | null>(null);
+  const [FloatingSoundControl, setFloatingSoundControl] = useState<
+    ComponentType<FloatingShowreelSoundControlProps> | null
+  >(null);
   const isPlayingRef = useRef(isPlaying);
   const mutedRef = useRef(muted);
   const suppressedByCatalogRef = useRef(suppressedByCatalog);
@@ -348,46 +355,37 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
     && foregroundPlayback === "showreel"
     && (isPlaying || muted);
 
+  useEffect(() => {
+    if (!showFloatingControl || FloatingSoundControl) return;
+    let active = true;
+    void import("./ShowreelFloatingSoundControl").then((module) => {
+      if (active) setFloatingSoundControl(() => module.ShowreelFloatingSoundControl);
+    });
+    return () => {
+      active = false;
+    };
+  }, [FloatingSoundControl, showFloatingControl]);
+
   return (
     <ShowreelAudioContext.Provider value={value}>
-      <LayoutGroup id="persistent-showreel-audio">
-        {children}
-        <audio
-          ref={audioRef}
-          data-testid="persistent-showreel-audio"
-          src={SHOWREEL_SOURCE}
-          preload="metadata"
-          loop
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
+      {children}
+      <audio
+        ref={audioRef}
+        data-testid="persistent-showreel-audio"
+        src={SHOWREEL_SOURCE}
+        preload="metadata"
+        loop
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
+      />
+      {showFloatingControl && FloatingSoundControl && (
+        <FloatingSoundControl
+          bottom={floatingBottom}
+          origin={floatingOrigin}
+          onAnimationComplete={() => setFloatingOrigin(null)}
         />
-        {showFloatingControl && (
-          <motion.div
-              key="showreel-floating-sound-control"
-              layoutId="showreel-sound-control"
-              layout="position"
-              data-testid="showreel-sound-position"
-              className="fixed right-3 z-[57] sm:right-5"
-              style={{ bottom: floatingBottom }}
-              initial={floatingOrigin
-                ? { opacity: 1, scale: 1, x: floatingOrigin.x, y: floatingOrigin.y }
-                : { opacity: 0, scale: .94, x: 0, y: 0 }}
-              animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-              exit={{ opacity: 0, scale: .88 }}
-              onAnimationComplete={() => setFloatingOrigin(null)}
-              transition={{
-                layout: { type: "spring", stiffness: 72, damping: 20, mass: 1.15 },
-                x: { type: "spring", stiffness: 72, damping: 20, mass: 1.15 },
-                y: { type: "spring", stiffness: 72, damping: 20, mass: 1.15 },
-                opacity: { duration: .25 },
-                scale: { duration: .42, ease: [0.22, 1, 0.36, 1] },
-              }}
-          >
-            <ShowreelSoundButton floating />
-          </motion.div>
-        )}
-      </LayoutGroup>
+      )}
     </ShowreelAudioContext.Provider>
   );
 }

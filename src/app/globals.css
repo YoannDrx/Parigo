@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+@keyframes showreel-speaker {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  22% { transform: rotate(-9deg) scale(1.14); }
+  48% { transform: rotate(8deg) scale(1); }
+  72% { transform: rotate(-4deg) scale(1.08); }
+}
+
 :root,
 [data-theme="light"] {
   --background: #f2f1ed;
