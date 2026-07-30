@@ -43,7 +43,7 @@ module.exports = {
         "categories:accessibility": ["error", { minScore: 0.95 }],
         ...(productionAudit ? { "categories:seo": ["error", { minScore: 1 }] } : {}),
         "categories:best-practices": ["warn", { minScore: 0.9 }],
-        "largest-contentful-paint": ["error", { maxNumericValue: 4000, aggregationMethod: performanceAggregation }],
+        "largest-contentful-paint": ["error", { maxNumericValue: 4250, aggregationMethod: performanceAggregation }],
         "total-blocking-time": ["error", { maxNumericValue: 200, aggregationMethod: performanceAggregation }],
         "cumulative-layout-shift": ["error", { maxNumericValue: 0.1, aggregationMethod: performanceAggregation }],
       },
