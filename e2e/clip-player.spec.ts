@@ -60,8 +60,11 @@ test.beforeEach(async ({ page }) => {
 test("un clip se lit dans sa carte, se détache et se réattache au détail sans recréer l’iframe", async ({ page }) => {
   await page.goto("/clips");
   const play = page.getByRole("button", { name: "Lire Garden of Eden" });
-  await play.scrollIntoViewIfNeeded();
-  await play.locator("..").locator("..").hover();
+  const card = page.locator(".parigo-video-card").filter({ has: play });
+  const anchor = card.locator('[data-clip-anchor="garden-of-eden"]');
+  await card.hover();
+  await anchor.evaluate((element) => element.scrollIntoView({ block: "center" }));
+  await expect(anchor).toBeInViewport({ ratio: .6 });
   await play.click();
 
   const player = page.getByTestId("persistent-clip-player");
