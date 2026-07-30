@@ -140,6 +140,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                       <div key={item.href} style={{ animationDelay: `${index * 28}ms` }} className="animate-[fade-in_.25s_ease-out_both]">
                         <Link
                           href={hrefFor(item.href)}
+                          aria-label={item.name}
                           aria-current={active ? "page" : undefined}
                           data-active={active ? "true" : "false"}
                           className="parigo-menu-card group"

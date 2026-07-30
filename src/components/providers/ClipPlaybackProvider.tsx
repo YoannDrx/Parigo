@@ -89,7 +89,7 @@ interface PlayerRect {
 }
 
 const YOUTUBE_API_SCRIPT_ID = "parigo-youtube-iframe-api";
-const ATTACHMENT_RATIO = 0.6;
+const ATTACHMENT_RATIO = 0.5;
 let youtubeApiPromise: Promise<YouTubeNamespace> | null = null;
 
 const ClipPlaybackContext = createContext<ClipPlaybackContextValue | null>(null);
