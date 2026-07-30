@@ -12,6 +12,7 @@ export interface HarvestSearchInput {
   labels?: string[];
   styles?: string[];
   categories?: string[];
+  composerQuery?: string;
   minBpm?: number;
   maxBpm?: number;
   minDuration?: number;
@@ -128,6 +129,21 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
   if (styles.exclude.length) {
     previousBundle.St_Style = { Styles: styles.exclude.join(","), OrOperation: false, Negative: true };
   }
+  const previousBundles: Array<Record<string, unknown>> = [];
+  if (Object.keys(previousBundle).length) previousBundles.push(previousBundle);
+  if (input.composerQuery?.trim()) {
+    previousBundles.push({
+      St_Keyword: {
+        Fields: "TrackComposer",
+        ExactPhrase: true,
+        Wildcard: false,
+        DisableKeywordGroup: true,
+        OrOperation: false,
+        Keywords: input.composerQuery.trim(),
+        Negative: false,
+      },
+    });
+  }
 
   return {
     SaveSearchHistory: Boolean(input.saveSearchHistory),
@@ -143,7 +159,7 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
       NearestAlternate: false,
       TranslateKeyword: input.language || "fr",
       ParentSearchHistoryID: "",
-      ...(Object.keys(previousBundle).length ? { PreviousSearchTermBundles: [previousBundle] } : {}),
+      ...(previousBundles.length ? { PreviousSearchTermBundles: previousBundles } : {}),
       SearchTermBundle: bundle,
       ResultView: {
         View: input.view ?? "Track",

@@ -89,6 +89,7 @@ Ce rapport est généré par `pnpm migrate:editorial` depuis les données suivie
 - Variantes de crédits rencontrées lors du dernier audit Harvest : 173.
 - Profils rapprochés automatiquement lors de l’audit initial : 48 variantes textuelles.
 - Collisions entre alias publiés : aucune.
+- Relation client vérifiée hors crédit Harvest : `minimatic` → `PGO0050` — *Riviera Bizarre*.
 - Nouveaux crédits non rattachés : à recalculer avec `pnpm test:harvest:composers` contre l’environnement live.
 - Les valeurs ci-dessus documentent la migration initiale ; le smoke test live est la source de contrôle pour toute nouvelle publication.
 

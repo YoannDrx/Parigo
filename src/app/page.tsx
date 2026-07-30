@@ -9,6 +9,7 @@ import { getCachedAlbumDiscovery, getCachedPlaylists } from "@/lib/harvest/catal
 import { getSynchronisations } from "@/lib/youtube/synchronisations";
 import { getFeaturedEditorialVideos } from "@/lib/editorial/videos";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
+import { publishedComposerProfiles } from "@/lib/editorial/contracts";
 
 export const generateMetadata = staticMetadata("/", {
   fr: { title: "Musique de production pour l’image", description: "Parigo Music accompagne films, séries, publicités et contenus de marque avec une sélection musicale exigeante et un licensing clair." },
@@ -18,21 +19,27 @@ export const generateMetadata = staticMetadata("/", {
 function loadHomeData() {
   return Promise.all([
     getCachedPlaylists({ limit: 12 }),
-    getCachedAlbumDiscovery({ label: PARIGO_LABEL_ID, limit: 100, sort: "releaseDate" }),
+    getCachedAlbumDiscovery({ limit: 12, sort: "releaseDate" }),
+    getCachedAlbumDiscovery({ label: PARIGO_LABEL_ID, limit: 12, sort: "releaseDate" }),
     getSynchronisations(),
     getFeaturedEditorialVideos(8),
   ]);
 }
 
 async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeof loadHomeData> }) {
-  const [playlists, parigoAlbums, synchronisations, clips] = await dataPromise;
-  const manifestoAlbumCovers = Array.from(
-    new Map(
-      parigoAlbums.items
-        .filter((album) => album.cover && !album.cover.includes("placeholder"))
-        .map((album) => [album.cover, { src: album.cover, title: album.title }]),
-    ).values(),
-  );
+  const [playlists, releases, parigoAlbums, synchronisations, clips] = await dataPromise;
+  const homeComposerSlugs = ["ugly-mac-beer", "laurent-dury", "minimatic", "fabien-girard"];
+  const homeComposers = homeComposerSlugs.flatMap((slug) => {
+    const profile = publishedComposerProfiles.find((item) => item.slug === slug);
+    return profile ? [{
+      slug: profile.slug,
+      name: profile.name,
+      image: profile.image,
+      bio: profile.bio,
+      kind: profile.kind,
+      grammaticalGender: profile.grammaticalGender,
+    }] : [];
+  });
   const initialPlaylists = {
     playlists: playlists.items,
     pagination: {
@@ -46,8 +53,9 @@ async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeo
   return (
     <HomeExperience
       initialPlaylists={initialPlaylists}
-      initialParigoAlbums={parigoAlbums.items.slice(0, 12)}
-      manifestoAlbumCovers={manifestoAlbumCovers}
+      initialReleases={releases.items}
+      initialParigoAlbums={parigoAlbums.items}
+      homeComposers={homeComposers}
       initialSynchronisations={synchronisations.slice(0, 12)}
       initialClips={clips}
     />

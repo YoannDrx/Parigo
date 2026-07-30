@@ -1,205 +1,211 @@
 "use client";
 
-import Image from "next/image";
-import { AnimatePresence, motion, useInView, useReducedMotion } from "framer-motion";
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import {
+  ShowreelSoundButton,
+  useShowreelAudio,
+} from "@/components/providers/ShowreelAudioProvider";
 
-const MAX_VISIBLE_COVERS = 24;
-const COVER_LIFETIME_MS = 4_200;
+const SHOWREEL_SOURCE = "/videos/garden-of-eden-showreel.mp4";
+const SHOWREEL_POSTER = "/images/home/garden-of-eden-poster.jpg";
 
-interface ManifestoCover {
-  src: string;
-  title: string;
-}
-
-interface ActiveCover extends ManifestoCover {
-  key: number;
-  x: number;
-  y: number;
-  rotation: number;
-  scale: number;
-  size: number;
-  entryX: number;
-  entryY: number;
-}
-
-export function ManifestoScrollSection({
-  locale,
-  albumCovers,
+function TypewriterLine({
+  line,
+  offset,
+  reveal,
+  reduceMotion,
 }: {
-  locale: "fr" | "en";
-  albumCovers: ManifestoCover[];
+  line: string;
+  offset: number;
+  reveal: boolean;
+  reduceMotion: boolean;
 }) {
+  return (
+    <span aria-hidden="true" className="block whitespace-nowrap pb-[.08em]">
+      {Array.from(line).map((character, index) => {
+        const isSquare = character === ".";
+        return (
+          <motion.span
+            key={`${character}-${index}`}
+            data-testid={isSquare ? "showreel-title-square" : "showreel-title-letter"}
+            data-character-index={offset + index}
+            className={isSquare
+              ? "ml-[.06em] inline-block h-[.17em] w-[.17em] bg-[var(--signal)] align-[.08em] shadow-[0_0_18px_color-mix(in_srgb,var(--signal)_48%,transparent)]"
+              : "inline-block"}
+            initial={reduceMotion ? false : { opacity: 0, y: isSquare ? 0 : ".1em", scale: isSquare ? .35 : 1 }}
+            animate={reveal
+              ? { opacity: 1, y: 0, scale: 1 }
+              : { opacity: 0, y: isSquare ? 0 : ".1em", scale: isSquare ? .35 : 1 }}
+            transition={{
+              duration: reduceMotion ? 0 : isSquare ? .24 : .08,
+              delay: reduceMotion || !reveal ? 0 : .2 + (offset + index) * .047,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            {isSquare ? null : character === " " ? "\u00a0" : character}
+          </motion.span>
+        );
+      })}
+    </span>
+  );
+}
+
+export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
-  const lastEmissionRef = useRef(0);
-  const coverKeyRef = useRef(0);
-  const expiryTimersRef = useRef(new Map<number, ReturnType<typeof setTimeout>>());
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const soundWasCenteredRef = useRef(false);
   const reduceMotion = useReducedMotion();
-  const inView = useInView(sectionRef, { once: true, amount: .12 });
-  const [revealComplete, setRevealComplete] = useState(false);
-  const [activeCovers, setActiveCovers] = useState<ActiveCover[]>([]);
-  const interactionReady = revealComplete || Boolean(reduceMotion);
+  const inView = useInView(sectionRef, { amount: .08 });
+  const [playbackStarted, setPlaybackStarted] = useState(false);
+  const [revealFallbackElapsed, setRevealFallbackElapsed] = useState(false);
+  const {
+    detach,
+    clearReattachOrigin,
+    docked,
+    getCurrentTime,
+    hasStarted,
+    isPlaying,
+    muted,
+    reattachOrigin,
+    registerSection,
+    start,
+    suppressedByCatalog,
+  } = useShowreelAudio();
   const titleLines = locale === "fr"
-    ? ["Une musique juste.", "Au bon moment.", "Pour la bonne image."]
+    ? ["Une musique", "juste.", "Au bon moment.", "Pour la bonne", "image."]
     : ["The right music.", "At the right moment.", "For the right image."];
+  const reveal = Boolean(reduceMotion) || (inView && (playbackStarted || revealFallbackElapsed));
 
-  useEffect(() => () => {
-    expiryTimersRef.current.forEach((timer) => globalThis.clearTimeout(timer));
-    expiryTimersRef.current.clear();
-  }, []);
+  useEffect(() => {
+    if (!inView || playbackStarted || revealFallbackElapsed) return;
+    const timeout = window.setTimeout(() => setRevealFallbackElapsed(true), 1_200);
+    return () => window.clearTimeout(timeout);
+  }, [inView, playbackStarted, revealFallbackElapsed]);
 
-  const scheduleExpiry = (key: number) => {
-    const timer = globalThis.setTimeout(() => {
-      expiryTimersRef.current.delete(key);
-      setActiveCovers((current) => current.filter((cover) => cover.key !== key));
-    }, COVER_LIFETIME_MS + (key % 5) * 180);
-    expiryTimersRef.current.set(key, timer);
-  };
+  useEffect(() => {
+    registerSection(sectionRef.current);
+    return () => registerSection(null);
+  }, [registerSection]);
 
-  const showCover = (event: PointerEvent<HTMLElement>) => {
-    if (reduceMotion || !interactionReady || event.pointerType !== "mouse" || albumCovers.length === 0) return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const currentPoint = { x: event.clientX, y: event.clientY };
-    const previousPoint = lastPointRef.current;
-    const distance = previousPoint
-      ? Math.hypot(currentPoint.x - previousPoint.x, currentPoint.y - previousPoint.y)
-      : Number.POSITIVE_INFINITY;
-    if (distance < 48 || event.timeStamp - lastEmissionRef.current < 34) return;
-
-    const steps = previousPoint ? Math.min(3, Math.max(1, Math.floor(distance / 72))) : 1;
-    const directionX = previousPoint ? Math.max(-1, Math.min(1, (currentPoint.x - previousPoint.x) / 90)) : 0;
-    const directionY = previousPoint ? Math.max(-1, Math.min(1, (currentPoint.y - previousPoint.y) / 90)) : 0;
-    const emitted: ActiveCover[] = [];
-
-    for (let step = 1; step <= steps; step += 1) {
-      const progress = step / steps;
-      const pointX = previousPoint ? previousPoint.x + (currentPoint.x - previousPoint.x) * progress : currentPoint.x;
-      const pointY = previousPoint ? previousPoint.y + (currentPoint.y - previousPoint.y) * progress : currentPoint.y;
-      const relativeX = Math.min(.999, Math.max(0, (pointX - bounds.left) / bounds.width));
-      const relativeY = Math.min(.999, Math.max(0, (pointY - bounds.top) / bounds.height));
-      coverKeyRef.current += 1;
-      const key = coverKeyRef.current;
-      const cover = albumCovers[(key - 1) % albumCovers.length];
-      const xJitter = ((key * 17) % 11) - 5;
-      const yJitter = ((key * 23) % 9) - 4;
-      emitted.push({
-        ...cover,
-        key,
-        x: Math.min(93, Math.max(7, relativeX * 100 + xJitter)),
-        y: Math.min(88, Math.max(12, relativeY * 100 + yJitter)),
-        rotation: ((key * 29) % 61) - 30,
-        scale: .82 + (key % 9) * .045,
-        size: 7.2 + (key % 10) * .92,
-        entryX: -directionX * (48 + (key % 4) * 14) + (((key * 7) % 25) - 12),
-        entryY: -directionY * (38 + (key % 5) * 11) + (((key * 11) % 21) - 10),
-      });
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || reduceMotion) return;
+    if (!inView) {
+      video.pause();
+      return;
     }
 
-    lastPointRef.current = currentPoint;
-    lastEmissionRef.current = event.timeStamp;
-    emitted.forEach((cover) => scheduleExpiry(cover.key));
-    setActiveCovers((current) => {
-      const next = [...current, ...emitted].slice(-MAX_VISIBLE_COVERS);
-      const visibleKeys = new Set(next.map((cover) => cover.key));
-      expiryTimersRef.current.forEach((timer, key) => {
-        if (visibleKeys.has(key)) return;
-        globalThis.clearTimeout(timer);
-        expiryTimersRef.current.delete(key);
-      });
-      return next;
-    });
-  };
+    const syncAndPlay = async () => {
+      const persistentTime = getCurrentTime();
+      if (Number.isFinite(persistentTime) && persistentTime > 0) {
+        try { video.currentTime = persistentTime; } catch {}
+      }
+      try {
+        await video.play();
+        setPlaybackStarted(true);
+      } catch {
+        setPlaybackStarted(false);
+      }
+      await start();
+    };
+    void syncAndPlay();
+  }, [getCurrentTime, inView, reduceMotion, start]);
 
-  const hideCover = () => {
-    lastPointRef.current = null;
-    lastEmissionRef.current = 0;
-    expiryTimersRef.current.forEach((timer) => globalThis.clearTimeout(timer));
-    expiryTimersRef.current.clear();
-    setActiveCovers([]);
-  };
+  useEffect(() => {
+    const updateSoundDock = () => {
+      const section = sectionRef.current;
+      if (!section) return;
+      const bounds = section.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const isCentered = bounds.top <= viewportHeight * .1 && bounds.bottom >= viewportHeight * .9;
+      if (isCentered) {
+        soundWasCenteredRef.current = true;
+      } else if (
+        soundWasCenteredRef.current
+        && docked
+        && isPlaying
+        && !muted
+        && (bounds.top >= viewportHeight * .035 || bounds.bottom <= viewportHeight * .72)
+      ) {
+        detach();
+      }
+    };
+    updateSoundDock();
+    window.addEventListener("scroll", updateSoundDock, { passive: true });
+    window.addEventListener("resize", updateSoundDock);
+    return () => {
+      window.removeEventListener("scroll", updateSoundDock);
+      window.removeEventListener("resize", updateSoundDock);
+    };
+  }, [detach, docked, isPlaying, muted]);
 
   return (
-    <section
-      id="manifesto"
-      ref={sectionRef}
-      data-reveal-complete={interactionReady}
-      data-cover-pool-size={albumCovers.length}
-      onPointerMove={showCover}
-      onPointerLeave={hideCover}
-      className="relative min-h-[100svh] overflow-clip bg-[var(--background)] md:min-h-screen"
-    >
-      <div className="relative flex min-h-[100svh] w-full items-center overflow-hidden py-10 md:min-h-screen md:py-16">
-        <AnimatePresence>
-          {activeCovers.map((cover, coverIndex) => (
-            <motion.figure
-              key={cover.key}
-              data-testid="manifesto-album-cover"
-              aria-hidden="true"
-              initial={reduceMotion ? false : {
-                opacity: 1,
-                scale: .24,
-                rotate: cover.rotation - 24,
-                x: `calc(-50% + ${cover.entryX}px)`,
-                y: `calc(-50% + ${cover.entryY}px)`,
-              }}
-              animate={{
-                opacity: 1,
-                scale: cover.scale,
-                rotate: cover.rotation,
-                x: "-50%",
-                y: "-50%",
-              }}
-              exit={reduceMotion ? { opacity: 0 } : {
-                opacity: 0,
-                scale: .32,
-                rotate: cover.rotation + (coverIndex % 2 ? 24 : -24),
-                x: `calc(-50% + ${coverIndex % 2 ? 46 : -46}px)`,
-                y: "calc(-50% + 46px)",
-              }}
-              transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 205, damping: 15, mass: .9 }}
-              className="pointer-events-none absolute z-20 aspect-square max-w-[42vw] overflow-hidden border border-white/24 bg-black shadow-[0_28px_80px_rgba(0,0,0,.48)]"
-              style={{ left: `${cover.x}%`, top: `${cover.y}%`, width: `${cover.size}rem`, zIndex: 20 + coverIndex }}
-            >
-              <Image src={cover.src} alt="" fill sizes="240px" className="object-cover" />
-            </motion.figure>
-          ))}
-        </AnimatePresence>
-
-        <div className="relative z-10 w-full px-3 md:px-8">
-          <div className="mx-auto max-w-[1580px] text-left lg:text-center">
-            <h2 className="parigo-signed-title relative text-[clamp(4rem,17vw,5.8rem)] font-semibold uppercase leading-[.8] tracking-[-.075em] lg:text-[clamp(2.25rem,6.3vw,7rem)] lg:leading-[.9] lg:tracking-[-.06em]">
-              <span className="block text-[var(--foreground)]">
-                {titleLines.map((line, index) => <span key={line} className="block md:whitespace-nowrap">{line.replace(/[.!?…]+$/u, "")}{index === titleLines.length - 1 && <span className="parigo-title-signature" aria-hidden="true" />}</span>)}
-              </span>
-              {!reduceMotion ? (
-                <motion.span
-                  data-testid="manifesto-reveal-edge"
-                  data-reveal-overlay="true"
-                  aria-hidden="true"
-                  className="pointer-events-none absolute -bottom-[.3em] -top-[.3em] right-0 z-10 border-l-[3px] border-[var(--signal)] bg-[var(--background)]"
-                  initial={{ width: "100%" }}
-                  animate={inView ? { width: "0%" } : undefined}
-                  transition={{ duration: 4.2, ease: [0.45, 0, 0.2, 1] }}
-                  onAnimationComplete={() => setRevealComplete(true)}
-                />
-              ) : null}
-            </h2>
-            <motion.div
-              initial={reduceMotion ? false : { y: 24, opacity: 0 }}
-              animate={reduceMotion || inView ? { y: 0, opacity: 1 } : undefined}
-              transition={{ duration: reduceMotion ? 0 : .72, delay: reduceMotion ? 0 : 3.45, ease: [0.22, 1, 0.36, 1] }}
-              className="mt-8 max-w-2xl border-t border-[var(--signal)] pt-5 lg:mx-auto lg:mt-10 lg:pt-6"
-            >
-              <p className="text-sm leading-7 text-[var(--text-muted)] md:text-base">
-                {locale === "fr"
-                  ? "Parigo accompagne chaque année plusieurs centaines d’heures de programmes audiovisuels, du cinéma à la publicité, avec une même exigence éditoriale."
-                  : "Every year, Parigo supports hundreds of hours of audiovisual programmes, from cinema to advertising, with the same editorial standards."}
-              </p>
-            </motion.div>
-          </div>
+    <div className="relative">
+      <section
+          ref={sectionRef}
+          data-testid="home-showreel"
+          className="home-showreel relative isolate h-[100svh] w-full overflow-hidden bg-black text-white md:h-[100dvh]"
+        >
+        <video
+          ref={videoRef}
+          data-testid="home-showreel-video"
+          src={SHOWREEL_SOURCE}
+          poster={SHOWREEL_POSTER}
+          preload="metadata"
+          loop
+          playsInline
+          muted
+          onLoadedMetadata={(event) => {
+            const persistentTime = getCurrentTime();
+            if (persistentTime > 0) event.currentTarget.currentTime = persistentTime;
+          }}
+          onPlay={() => setPlaybackStarted(true)}
+          className="absolute inset-0 h-full w-full object-cover"
+          aria-label={locale === "fr" ? "Showreel Garden of Eden" : "Garden of Eden showreel"}
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.18),transparent_36%,rgba(0,0,0,.34))]" />
+        <div className="relative z-10 mx-auto flex h-full max-w-[1800px] items-center px-4 py-20 sm:px-6 lg:px-10">
+          <h2
+            aria-label={titleLines.join(" ")}
+            className="text-[clamp(2.4rem,12.5vw,4rem)] font-semibold leading-[.82] tracking-[-.07em] text-white mix-blend-difference [text-shadow:0_1px_18px_rgba(0,0,0,.14)] sm:text-[clamp(4rem,7.8vw,10rem)]"
+          >
+            {titleLines.map((line, index) => (
+              <TypewriterLine
+                key={line}
+                line={line}
+                offset={titleLines.slice(0, index).reduce((total, item) => total + item.length, 0)}
+                reveal={reveal}
+                reduceMotion={Boolean(reduceMotion)}
+              />
+            ))}
+          </h2>
         </div>
-      </div>
-    </section>
+      </section>
+      {hasStarted && docked && !suppressedByCatalog && (
+        <motion.div
+            key="showreel-sound-control"
+            layoutId="showreel-sound-control"
+            layout="position"
+            data-testid="showreel-sound-position"
+            className="absolute bottom-5 right-4 z-20 sm:bottom-7 sm:right-7"
+            initial={reattachOrigin
+              ? { opacity: 1, scale: 1, x: reattachOrigin.x, y: reattachOrigin.y }
+              : { opacity: 0, scale: .94, x: 0, y: 0 }}
+            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+            exit={{ opacity: 0, scale: .88 }}
+            onAnimationComplete={clearReattachOrigin}
+            transition={{
+              layout: { type: "spring", stiffness: 72, damping: 20, mass: 1.15 },
+              x: { type: "spring", stiffness: 72, damping: 20, mass: 1.15 },
+              y: { type: "spring", stiffness: 72, damping: 20, mass: 1.15 },
+              opacity: { duration: .25 },
+              scale: { duration: .42, ease: [0.22, 1, 0.36, 1] },
+            }}
+        >
+          <ShowreelSoundButton floating={false} />
+        </motion.div>
+      )}
+    </div>
   );
 }

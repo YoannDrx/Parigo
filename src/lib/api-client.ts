@@ -85,6 +85,7 @@ export async function fetchAlbums(params?: {
   forceSearch?: boolean;
   categories?: string[];
   labels?: string[];
+  composers?: string[];
   type?: "main" | "alternate" | "all";
   language?: "fr" | "en";
   translate?: boolean;
@@ -93,7 +94,7 @@ export async function fetchAlbums(params?: {
   minDuration?: number;
   maxDuration?: number;
 }, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution; intentResolution?: SearchIntentResolution } & PaginatedResponse> {
-  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.brief || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.categories?.length || params?.labels?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
+  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.brief || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.categories?.length || params?.labels?.length || params?.composers?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
   if (usesSearch) {
     const searchParams = new URLSearchParams({
       view: "albums",
@@ -106,6 +107,7 @@ export async function fetchAlbums(params?: {
     if (params?.brief && params.resolveBrief !== false) searchParams.set("resolve", "1");
     const labels = [...(params?.labels || []), ...(params?.label ? [params.label] : [])];
     if (labels.length) searchParams.set("labels", [...new Set(labels)].join(","));
+    if (params?.composers?.[0]) searchParams.set("composer", params.composers[0]);
     const categories = [...(params?.genres || []), ...(params?.moods || []), ...(params?.instruments || []), ...(params?.categories || [])];
     if (categories.length) searchParams.set("categories", categories.join(","));
     if (params?.type) searchParams.set("type", params.type);
@@ -175,6 +177,7 @@ export async function fetchTracks(params?: {
   isVocal?: boolean;
   label?: string;
   labels?: string[];
+  composers?: string[];
   categories?: string[];
   type?: "main" | "alternate" | "all";
   language?: "fr" | "en";
@@ -203,6 +206,7 @@ export async function fetchTracks(params?: {
   if (params?.maxDuration) searchParams.set("durationMax", params.maxDuration.toString());
   const labels = [...(params?.labels || []), ...(params?.label ? [params.label] : [])];
   if (labels.length) searchParams.set("labels", [...new Set(labels)].join(","));
+  if (params?.composers?.[0]) searchParams.set("composer", params.composers[0]);
   if (params?.sort) searchParams.set("sort", params.sort);
   if (params?.translate === false) searchParams.set("translate", "0");
   if (params?.type) searchParams.set("type", params.type);

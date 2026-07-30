@@ -8,6 +8,7 @@ import { ClipCard } from "@/components/editorial/ClipCard";
 import { Footer, Header } from "@/components/layout";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { getComposerProfile } from "@/lib/editorial/contracts";
+import { composerRoleLabel } from "@/lib/editorial/composer-role";
 import { getEditorialVideos } from "@/lib/editorial/videos";
 import { getComposerAlbums } from "@/lib/harvest/composers";
 import { localizedPath } from "@/lib/locale";
@@ -63,7 +64,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
       <JsonLd data={structuredData} />
       <Header />
       <main className="pt-[70px]">
-        <section className="editorial-detail-hero relative mx-auto max-w-[1500px] overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8 md:pb-24">
+        <section className="editorial-detail-hero editorial-detail-hero--composer relative mx-auto max-w-[1500px] overflow-hidden px-4 pb-16 pt-8 after:hidden sm:px-6 lg:px-8 md:pb-24">
           <Link
             href={localizedPath(locale, "/compositeurs")}
             className="mb-10 inline-flex items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)]"
@@ -78,9 +79,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
             <div className="self-center md:col-span-6 md:col-start-7">
               <SignedTitle className="font-[var(--font-editorial)] text-6xl leading-[.9] tracking-[-.055em] md:text-8xl">{profile.name}</SignedTitle>
               <p className="mt-5 font-mono text-[.62rem] uppercase tracking-[.13em] text-[var(--signal-strong)]">
-                {profile.kind === "group"
-                  ? (locale === "fr" ? "Collectif" : "Group")
-                  : (locale === "fr" ? "Compositeur·rice" : "Composer")}
+                {composerRoleLabel(profile, locale)}
               </p>
               {bio && <div className="mt-8 space-y-4 whitespace-pre-line text-base leading-7 text-[var(--text-muted)]">{bio}</div>}
               {profile.links.length > 0 && (

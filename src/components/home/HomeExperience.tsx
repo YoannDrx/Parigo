@@ -19,6 +19,7 @@ import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { resizeArtworkSource } from "@/lib/image-loader";
+import type { HomeComposerProfile } from "./ComposerPortraitsSection";
 
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
 
@@ -82,15 +83,16 @@ interface HomeExperienceProps {
     pagination: { total: number; limit: number; offset: number; hasMore: boolean };
   };
   initialParigoAlbums: Album[];
-  manifestoAlbumCovers: Array<{ src: string; title: string }>;
+  initialReleases: Album[];
+  homeComposers: HomeComposerProfile[];
   initialSynchronisations: Synchronisation[];
   initialClips: EditorialVideo[];
 }
 
-export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifestoAlbumCovers, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
+export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, homeComposers, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
   const { locale, t, localizedPath } = useI18n();
-  const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "parigo">("playlists");
-  const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>([]);
+  const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "parigo">("releases");
+  const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>(initialReleases);
   const [parigoAlbums, setParigoAlbums] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>(initialParigoAlbums);
   const [tabError, setTabError] = useState<"releases" | "parigo" | null>(null);
   const [retryVersion, setRetryVersion] = useState(0);
@@ -142,9 +144,9 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
               <div><SignedTitle as="h2" className="max-w-[12ch] text-[clamp(2.8rem,5vw,5.6rem)] font-semibold leading-[.92] tracking-[-.055em]">{locale === "fr" ? "À écouter maintenant." : "Listen now."}</SignedTitle></div>
               <div className="flex max-w-full gap-1 overflow-x-auto rounded-lg border border-[var(--line)] p-1" role="tablist" aria-label={locale === "fr" ? "Sélections mises en avant" : "Featured selections"}>
                 {([
-                  ["playlists", locale === "fr" ? "Playlists" : "Playlists"],
                   ["releases", locale === "fr" ? "Nouveautés" : "New releases"],
-                  ["parigo", "Label PARIGO"],
+                  ["playlists", "Playlists"],
+                  ["parigo", "Label Parigo"],
                 ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => { setTabError(null); setFeaturedTab(id); }} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
               </div>
             </SectionReveal>
@@ -212,7 +214,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, manifest
 
         <DeferredHomeStorySections
           locale={locale}
-          albumCovers={manifestoAlbumCovers}
+          homeComposers={homeComposers}
         />
 
         <section data-testid="home-sync-section" className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">

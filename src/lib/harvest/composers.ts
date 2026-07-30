@@ -32,7 +32,8 @@ export async function resolveComposerAlbums(
   profile: ComposerProfile,
   dependencies: ComposerAlbumDependencies,
 ): Promise<ComposerAlbumResult> {
-  if (profile.harvestAliases.length === 0) return { state: "empty", albums: [] };
+  const verifiedCodes = new Set(profile.verifiedAlbums?.map((relation) => relation.code) ?? []);
+  if (profile.harvestAliases.length === 0 && verifiedCodes.size === 0) return { state: "empty", albums: [] };
 
   try {
     const searches = await Promise.all(profile.harvestAliases.map((query) => (
@@ -43,13 +44,27 @@ export async function resolveComposerAlbums(
         sort: "recent",
       })
     )));
+    const verifiedInventory = verifiedCodes.size > 0
+      ? await dependencies.searchAlbums({
+          label: PARIGO_LABEL_ID,
+          limit: 100,
+          sort: "recent",
+        })
+      : null;
+    const verifiedCandidates = verifiedInventory?.items.filter((album) => album.code && verifiedCodes.has(album.code)) ?? [];
+    if (verifiedCodes.size > 0 && new Set(verifiedCandidates.map((album) => album.code)).size !== verifiedCodes.size) {
+      throw new Error(`Verified album relation could not be resolved for ${profile.slug}`);
+    }
     const candidates = [...new Map(
-      searches.flatMap((result) => result.items).map((album) => [album.id, album]),
+      [...searches.flatMap((result) => result.items), ...verifiedCandidates].map((album) => [album.id, album]),
     ).values()];
     const details = await Promise.all(candidates.map((album) => dependencies.loadAlbum(album.id)));
     const albums = details
       .map((result) => result.album)
-      .filter((album) => albumCreditsMatch(album, profile.harvestAliases))
+      .filter((album) => (
+        (album.code ? verifiedCodes.has(album.code) : false)
+        || albumCreditsMatch(album, profile.harvestAliases)
+      ))
       .sort((left, right) => (
         (right.releaseDate ? Date.parse(right.releaseDate) : 0)
         - (left.releaseDate ? Date.parse(left.releaseDate) : 0)

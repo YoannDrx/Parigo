@@ -5,7 +5,7 @@ import { buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo
 
 export async function generateMetadata({ searchParams }: { searchParams: PageSearchParams }) {
   const [locale, filtered] = await Promise.all([getRequestLocale(), hasSearchParams(searchParams)]);
-  return buildMetadata({ locale, path: "/labels", title: locale === "fr" ? "Labels partenaires" : "Partner labels", description: locale === "fr" ? "Découvrez les labels et maisons de production musicale réunis dans le catalogue Parigo Music." : "Discover the labels and production music companies represented in the Parigo Music catalogue.", index: !filtered, follow: true });
+  return buildMetadata({ locale, path: "/labels", title: "Labels", description: locale === "fr" ? "Découvrez les labels et maisons de production musicale réunis dans le catalogue Parigo Music." : "Discover the labels and production music companies available in the Parigo Music catalogue.", index: !filtered, follow: true });
 }
 
 export default async function LabelsPage() {

@@ -58,4 +58,11 @@ describe("editorial content", () => {
     expect(getComposerByCredit("Ugly Mac Beer (SACEM)")?.slug).toBe("ugly-mac-beer");
     expect(getComposerByCredit("Unknown Composer")).toBeUndefined();
   });
+
+  it("keeps gendered roles and client-confirmed album relations in editorial data", () => {
+    expect(composerProfiles.find((profile) => profile.slug === "rebecca-meyer")?.grammaticalGender).toBe("feminine");
+    expect(composerProfiles.find((profile) => profile.slug === "minimatic")?.verifiedAlbums).toEqual([
+      { code: "PGO0050", reviewState: "verified", source: "client-confirmed" },
+    ]);
+  });
 });

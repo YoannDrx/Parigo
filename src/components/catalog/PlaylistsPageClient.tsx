@@ -14,7 +14,7 @@ import { CatalogToolbar } from "@/components/catalog/CatalogToolbar";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Playlist as CatalogPlaylist, ViewMode } from "@/types";
 
-type PlaylistSort = "title-asc" | "title-desc" | "tracks-desc";
+type PlaylistSort = "title-asc" | "title-desc";
 type DiscoveryFilter = "moods" | "genres" | "instruments" | "musicFor";
 
 interface ApiPlaylist {
@@ -62,11 +62,8 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") ?? "");
   const [sort, setSort] = useState<PlaylistSort>(
-    searchParams.get("sort") === "title-desc" || searchParams.get("sort") === "tracks-desc"
-      ? searchParams.get("sort") as PlaylistSort
-      : "title-asc",
+    searchParams.get("sort") === "title-desc" ? "title-desc" : "title-asc",
   );
   const [view, setView] = useState<ViewMode>(searchParams.get("view") === "list" ? "list" : "grid");
   const [moods, setMoods] = useState(csv(searchParams.get("moods") ?? searchParams.get("mood")));
@@ -80,23 +77,19 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
     musicFor: topTerms(playlists, "musicFor"),
   }), [playlists]);
   const visible = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase(locale);
     return playlists
-      .filter((playlist) => !normalized || `${playlist.title} ${playlist.description ?? ""}`.toLocaleLowerCase(locale).includes(normalized))
       .filter((playlist) => matchesFacet(playlist.moods, moods))
       .filter((playlist) => matchesFacet(playlist.genres, genres))
       .filter((playlist) => matchesFacet(playlist.instruments, instruments))
       .filter((playlist) => matchesFacet(playlist.musicFor, musicFor))
       .sort((left, right) => {
-        if (sort === "tracks-desc") return right.trackCount - left.trackCount || left.title.localeCompare(right.title, locale);
         const comparison = left.title.localeCompare(right.title, locale, { sensitivity: "base" });
         return sort === "title-desc" ? -comparison : comparison;
       });
-  }, [genres, instruments, locale, moods, musicFor, playlists, query, sort]);
+  }, [genres, instruments, locale, moods, musicFor, playlists, sort]);
 
   useEffect(() => {
     const params = new URLSearchParams();
-    if (query) params.set("q", query);
     if (sort !== "title-asc") params.set("sort", sort);
     if (view !== "grid") params.set("view", view);
     if (moods.length) params.set("moods", moods.join(","));
@@ -105,7 +98,7 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
     if (musicFor.length) params.set("musicFor", musicFor.join(","));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
-  }, [genres, instruments, moods, musicFor, pathname, query, router, searchParams, sort, view]);
+  }, [genres, instruments, moods, musicFor, pathname, router, searchParams, sort, view]);
 
   const filterGroups: Array<{ key: string; label: string; values: string[]; setter: (value: string[]) => void; terms: CatalogFacetOption[] }> = [
     { key: "moods", label: locale === "fr" ? "Ambiance" : "Mood", values: moods, setter: setMoods, terms: filterSets.moods },
@@ -135,32 +128,30 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
         <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
           <CatalogToolbar
             locale={locale}
-            query={query}
-            onQueryChange={setQuery}
-            queryPlaceholder={locale === "fr" ? "Rechercher une playlist ou un thème" : "Search playlists and themes"}
             sort={sort}
             onSortChange={setSort}
             sortOptions={[
               { value: "title-asc", label: "A–Z" },
               { value: "title-desc", label: "Z–A" },
-              { value: "tracks-desc", label: locale === "fr" ? "Plus de pistes" : "Most tracks" },
             ]}
             view={view}
             onViewChange={setView}
             resultCount={visible.length}
+            primaryControls={(
+              <div data-testid="playlist-filters" className="grid min-w-0 flex-[1_1_40rem] grid-cols-2 gap-2 xl:grid-cols-4">
+                {filterGroups.map((group) => (
+                  <CatalogFacetDropdown
+                    key={group.key}
+                    label={group.label}
+                    options={group.terms}
+                    values={group.values}
+                    locale={locale}
+                    onValuesChange={group.setter}
+                  />
+                ))}
+              </div>
+            )}
           >
-            <div className="mt-2 grid grid-cols-2 gap-2 border-t border-[var(--line)] pt-2 xl:grid-cols-4">
-              {filterGroups.map((group) => (
-                <CatalogFacetDropdown
-                  key={group.key}
-                  label={group.label}
-                  options={group.terms}
-                  values={group.values}
-                  locale={locale}
-                  onValuesChange={group.setter}
-                />
-              ))}
-            </div>
             <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={resetFilters} />
           </CatalogToolbar>
 

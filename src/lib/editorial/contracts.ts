@@ -1,5 +1,6 @@
 import { z } from "zod";
 import editorial from "@/content/editorial.generated.json";
+export { composerRoleLabel } from "./composer-role";
 
 const localizedCopySchema = z.object({
   fr: z.string().min(1).optional(),
@@ -17,7 +18,13 @@ export const ComposerProfileSchema = z.object({
     url: z.string().url().startsWith("https://"),
   })),
   kind: z.enum(["person", "group"]),
+  grammaticalGender: z.enum(["masculine", "feminine"]).optional(),
   harvestAliases: z.array(z.string().min(1)).max(5),
+  verifiedAlbums: z.array(z.object({
+    code: z.string().regex(/^PGO\d{4}$/),
+    reviewState: z.literal("verified"),
+    source: z.literal("client-confirmed"),
+  })).optional(),
   published: z.boolean(),
   source: z.literal("portfolio-caro"),
 });

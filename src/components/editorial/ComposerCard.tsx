@@ -1,13 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ComposerProfile } from "@/lib/editorial/contracts";
+import { composerRoleLabel } from "@/lib/editorial/composer-role";
 import type { Locale } from "@/i18n/messages";
 import { localizedPath } from "@/lib/locale";
 
 export function ComposerCard({ profile, locale }: { profile: ComposerProfile; locale: Locale }) {
-  const type = profile.kind === "group"
-    ? (locale === "fr" ? "Collectif" : "Group")
-    : (locale === "fr" ? "Compositeur·rice" : "Composer");
+  const type = composerRoleLabel(profile, locale);
   return (
     <Link
       href={localizedPath(locale, `/compositeurs/${profile.slug}`)}

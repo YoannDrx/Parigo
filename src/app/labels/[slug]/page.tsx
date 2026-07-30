@@ -12,7 +12,7 @@ interface LabelPageProps {
   searchParams: PageSearchParams;
 }
 
-async function loadLabel(slug: string) {
+async function loadLabel(slug: string, locale: "fr" | "en") {
   const [label, albums] = await Promise.all([
     getCachedLabel(slug),
     getCachedAlbumDiscovery({ label: slug, limit: 30, sort: "recent" }),
@@ -21,7 +21,7 @@ async function loadLabel(slug: string) {
   return {
     ...label,
     slug: label.slug || label.id,
-    description: label.description || null,
+    description: label.descriptions?.[locale] || label.description || null,
     website: label.website || null,
     albumCount: albums.total,
     trackCount: label.trackCount ?? 0,
@@ -40,7 +40,7 @@ async function loadLabel(slug: string) {
 
 export async function generateMetadata({ params, searchParams }: LabelPageProps): Promise<Metadata> {
   const [{ slug }, locale, filtered] = await Promise.all([params, getRequestLocale(), hasSearchParams(searchParams)]);
-  const label = await loadLabel(slug);
+  const label = await loadLabel(slug, locale);
   return buildMetadata({
     locale,
     path: `/labels/${slug}`,
@@ -55,7 +55,7 @@ export async function generateMetadata({ params, searchParams }: LabelPageProps)
 
 export default async function LabelPage({ params }: LabelPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
-  const label = await loadLabel(slug);
+  const label = await loadLabel(slug, locale);
   return (
     <>
       <JsonLd data={{

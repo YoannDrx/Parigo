@@ -69,6 +69,25 @@ describe("Harvest Cloud Search", () => {
     expect(aggregateBundle.St_Keyword_Aggregated.Keywords).toBe("crime");
   });
 
+  it("combines a title search with an exact composer term", () => {
+    const payload = buildCloudSearch({
+      query: "crime",
+      view: "Track",
+      textScope: "title",
+      composerQuery: "Minimatic",
+    });
+    const filters = payload.SearchFilters as Record<string, unknown>;
+    const previous = filters.PreviousSearchTermBundles as Array<Record<string, Record<string, unknown>>>;
+
+    expect(previous).toHaveLength(1);
+    expect(previous[0].St_Keyword).toMatchObject({
+      Fields: "TrackComposer",
+      ExactPhrase: true,
+      Wildcard: false,
+      Keywords: "Minimatic",
+    });
+  });
+
   it("serializes included and excluded filters exactly once", () => {
     const payload = buildCloudSearch({
       categories: ["-ATT_df36fdca961e0855_Ambient", "51bcfc1bd83261cd", "51bcfc1bd83261cd"],

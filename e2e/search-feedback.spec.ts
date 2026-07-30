@@ -312,6 +312,40 @@ test("le listing se met à jour automatiquement pendant la saisie", async ({ pag
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("wedding");
 });
 
+test("la sidebar recherche filtre immédiatement par compositeur", async ({ page }, testInfo) => {
+  await page.route("**/api/search?**", async (route) => {
+    const url = new URL(route.request().url());
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          items: [],
+          view: url.searchParams.get("view") === "albums" ? "albums" : "tracks",
+          facets: { categories: [], labels: [] },
+        },
+        meta: { page: 1, pageSize: 30, total: 0, requestId: "composer-filter-e2e" },
+      }),
+    });
+  });
+
+  await page.goto("/search");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: /^Filtres$/ }).click();
+  }
+  const filterScope = testInfo.project.name === "mobile"
+    ? page.getByRole("dialog", { name: "Filtres" })
+    : page.getByRole("complementary", { name: "Filtres de recherche" });
+  const composerGroup = filterScope.locator("details").filter({ hasText: "Compositeurs" });
+  await composerGroup.locator("summary").click();
+  await composerGroup.getByPlaceholder("Filtrer compositeurs").fill("Minimatic");
+  await composerGroup.getByRole("button", { name: "Inclure Minimatic" }).click();
+  if (testInfo.project.name === "mobile") {
+    await filterScope.getByRole("button", { name: /Voir \d+ résultats/ }).click();
+  }
+  await expect.poll(() => new URL(page.url()).searchParams.get("composer")).toBe("minimatic");
+  await expect(page.getByRole("button", { name: /Minimatic/ }).last()).toBeVisible();
+});
+
 test("les anciennes URL sont canonicalisées sans disposition, match, Style ni anciens tris", async ({ page }) => {
   await page.goto('/search?keyword=%22crime%22&view=tracks&page=1&layout=grid&match=exact&styles=obsolete&sort=bpm-asc');
   await expect.poll(() => {

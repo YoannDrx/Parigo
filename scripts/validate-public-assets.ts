@@ -4,9 +4,11 @@ import path from "node:path";
 
 const root = process.cwd();
 const publicRoot = path.join(root, "public");
-const MAX_PUBLIC_BYTES = 12 * 1024 * 1024;
+const MAX_STATIC_PUBLIC_BYTES = 12 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 72 * 1024 * 1024;
 const LARGE_ASSET_BYTES = 500 * 1024;
 const MEDIA_EXTENSIONS = /\.(mp3|wav|ogg|mp4|webm|jpg|jpeg|png|avif|webp)$/i;
+const VIDEO_EXTENSIONS = /\.(mp4|webm)$/i;
 const SOURCE_EXTENSIONS = /\.(ts|tsx|js|jsx|json|md|css)$/i;
 
 async function walk(directory: string): Promise<string[]> {
@@ -22,12 +24,15 @@ const publicFiles = await walk(publicRoot);
 const sourceRoots = ["src", "e2e", "docs", "scripts"].map((item) => path.join(root, item));
 const sourceFiles = (await Promise.all(sourceRoots.map((directory) => walk(directory).catch(() => [])))).flat().filter((file) => SOURCE_EXTENSIONS.test(file));
 const sourceCorpus = (await Promise.all(sourceFiles.map((file) => readFile(file, "utf8").catch(() => "")))).join("\n");
-let totalBytes = 0;
+let staticBytes = 0;
+let videoBytes = 0;
 const failures: string[] = [];
 
 for (const file of publicFiles) {
   const details = await stat(file);
-  totalBytes += details.size;
+  const isVideo = VIDEO_EXTENSIONS.test(file);
+  if (isVideo) videoBytes += details.size;
+  else staticBytes += details.size;
   const relative = `/${path.relative(publicRoot, file).split(path.sep).join("/")}`;
   if (/\/(\.DS_Store|Thumbs\.db)$/i.test(relative)) failures.push(`Fichier système interdit : ${relative}`);
   if (MEDIA_EXTENSIONS.test(file)) {
@@ -37,14 +42,18 @@ for (const file of publicFiles) {
   if (details.size > LARGE_ASSET_BYTES && !sourceCorpus.includes(relative)) {
     failures.push(`Asset public > 500 Kio sans référence explicite : ${relative}`);
   }
+  if (isVideo && details.size > MAX_VIDEO_BYTES) {
+    failures.push(`Vidéo publique trop lourde : ${relative} (${(details.size / 1024 / 1024).toFixed(2)} Mio > 72 Mio)`);
+  }
 }
 
-if (totalBytes > MAX_PUBLIC_BYTES) failures.push(`Budget public dépassé : ${(totalBytes / 1024 / 1024).toFixed(2)} Mio > 12 Mio`);
+if (staticBytes > MAX_STATIC_PUBLIC_BYTES) failures.push(`Budget public statique dépassé : ${(staticBytes / 1024 / 1024).toFixed(2)} Mio > 12 Mio`);
+if (videoBytes > MAX_VIDEO_BYTES) failures.push(`Budget vidéo public dépassé : ${(videoBytes / 1024 / 1024).toFixed(2)} Mio > 72 Mio`);
 if (failures.length) {
   console.error(failures.join("\n"));
   process.exit(1);
 }
-console.log(`Assets valides : ${publicFiles.length} fichiers, ${(totalBytes / 1024 / 1024).toFixed(2)} Mio, ${(brotliCompressSync(Buffer.from(sourceCorpus)).byteLength / 1024).toFixed(1)} Kio de corpus analysé.`);
+console.log(`Assets valides : ${publicFiles.length} fichiers, ${(staticBytes / 1024 / 1024).toFixed(2)} Mio statiques, ${(videoBytes / 1024 / 1024).toFixed(2)} Mio vidéo, ${(brotliCompressSync(Buffer.from(sourceCorpus)).byteLength / 1024).toFixed(1)} Kio de corpus analysé.`);
 }
 
 main().catch((error) => {

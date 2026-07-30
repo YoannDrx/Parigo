@@ -10,6 +10,7 @@ import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { usePlayerStore } from "@/stores/player-store";
 import { useShortlistStore } from "@/stores/shortlist-store";
 import { ClientErrorMonitor } from "./ClientErrorMonitor";
+import { ShowreelAudioProvider } from "./ShowreelAudioProvider";
 
 function GlobalOverlays() {
   const authOpen = useAuthModalStore((state) => state.isOpen);
@@ -59,8 +60,10 @@ export function QueryProvider({ children, initialLocale, initialConsentSnapshot 
   return (
     <ThemeProvider>
       <I18nProvider initialLocale={initialLocale}>
+        <ShowreelAudioProvider>
           {children}
           <GlobalOverlays />
+        </ShowreelAudioProvider>
           <CookieConsent initialSnapshot={initialConsentSnapshot} />
           <AnalyticsGate />
           <ClientErrorMonitor />

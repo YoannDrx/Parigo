@@ -137,6 +137,7 @@ function SearchContent() {
     ...legacyRaw,
   ].map(categoryId).filter((value): value is string => Boolean(value))));
   const [labels, setLabels] = useState<string[]>(sorted(csv(searchParams.get("labels") ?? searchParams.get("label")).filter((value) => !value.startsWith("-"))));
+  const [composers, setComposers] = useState<string[]>(csv(searchParams.get("composer")).slice(0, 1));
   const [bpmRange, setBpmRange] = useState<[number, number]>([
     Number(searchParams.get("bpmMin") ?? searchParams.get("minBpm")) || DEFAULT_BPM[0],
     Number(searchParams.get("bpmMax") ?? searchParams.get("maxBpm")) || DEFAULT_BPM[1],
@@ -196,6 +197,11 @@ function SearchContent() {
     setPage(1);
   }, []);
   const updateLabels = useCallback((values: string[]) => { setLabels(sorted(values)); setIntentUnsupported(false); setPage(1); }, []);
+  const updateComposers = useCallback((values: string[]) => {
+    setComposers(values.slice(-1));
+    setIntentUnsupported(false);
+    setPage(1);
+  }, []);
   const updateBpm = useCallback((value: [number, number]) => {
     setBpmRange(value);
     setIntentUnsupported(false);
@@ -218,6 +224,7 @@ function SearchContent() {
     if (sort !== "relevance") params.set("sort", sort);
     if (density !== "full") params.set("density", density);
     if (labels.length) params.set("labels", sorted(labels).join(","));
+    if (composers[0]) params.set("composer", composers[0]);
     if (categories.length) params.set("categories", sorted(categories).join(","));
     if (bpmRange[0] !== DEFAULT_BPM[0]) params.set("bpmMin", String(bpmRange[0]));
     if (bpmRange[1] !== DEFAULT_BPM[1]) params.set("bpmMax", String(bpmRange[1]));
@@ -225,7 +232,7 @@ function SearchContent() {
     if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`/search${next ? `?${next}` : ""}`, { scroll: false });
-  }, [bpmRange, brief, categories, density, durationRange, labels, mobileFiltersOpen, page, query, router, searchParams, sort, translateAliases, type, view]);
+  }, [bpmRange, brief, categories, composers, density, durationRange, labels, mobileFiltersOpen, page, query, router, searchParams, sort, translateAliases, type, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -255,6 +262,7 @@ function SearchContent() {
   const resetFilters = useCallback(() => {
     setCategories([]);
     setLabels([]);
+    setComposers([]);
     setBpmRange(DEFAULT_BPM);
     setDurationRange(DEFAULT_DURATION);
     setType("main");
@@ -268,6 +276,7 @@ function SearchContent() {
     brief: brief || undefined,
     resolveBrief: Boolean(brief),
     labels,
+    composers,
     categories,
     minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
     maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
@@ -277,7 +286,7 @@ function SearchContent() {
     language: locale,
     sort,
     translate: translateAliases,
-  }), [bpmRange, brief, categories, durationRange, labels, locale, page, query, sort, translateAliases, type]);
+  }), [bpmRange, brief, categories, composers, durationRange, labels, locale, page, query, sort, translateAliases, type]);
   const debouncedParams = useDebounced(requestParams, 300);
   const searchEnabled = !intentResolutionPending;
   const tracksQuery = useTracks(debouncedParams, view === "tracks" && searchEnabled);
@@ -370,13 +379,14 @@ function SearchContent() {
   };
 
   const activeValues = categories;
-  const includedCount = activeValues.filter((value) => !value.startsWith("-")).length + labels.length;
+  const includedCount = activeValues.filter((value) => !value.startsWith("-")).length + labels.length + composers.length;
   const excludedCount = activeValues.filter((value) => value.startsWith("-")).length;
   const resultStart = total ? (page - 1) * PAGE_SIZE + 1 : 0;
   const resultEnd = Math.min(page * PAGE_SIZE, total);
-  const removeValue = (value: string, source: "categories" | "labels") => {
-    const setter = source === "categories" ? updateCategories : updateLabels;
-    setter((source === "categories" ? categories : labels).filter((item) => item !== value));
+  const removeValue = (value: string, source: "categories" | "labels" | "composers") => {
+    const setter = source === "categories" ? updateCategories : source === "labels" ? updateLabels : updateComposers;
+    const values = source === "categories" ? categories : source === "labels" ? labels : composers;
+    setter(values.filter((item) => item !== value));
   };
   const openSaveSearch = () => {
     const fallback = (brief || query).replaceAll('"', "").trim() || (locale === "fr" ? "Ma recherche Parigo" : "My Parigo search");
@@ -435,6 +445,7 @@ function SearchContent() {
       groups={filterGroups}
       categories={categories}
       labels={labels}
+      composers={composers}
       bpmRange={bpmRange}
       durationRange={durationRange}
       categoryFacets={facets?.categories ?? []}
@@ -442,6 +453,7 @@ function SearchContent() {
       locale={locale}
       onCategoriesChange={updateCategories}
       onLabelsChange={updateLabels}
+      onComposersChange={updateComposers}
       onBpmChange={updateBpm}
       onDurationChange={updateDuration}
       onReset={resetFilters}
@@ -507,12 +519,13 @@ function SearchContent() {
               </div>
             </div>
 
-            {(categories.length > 0 || labels.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
+            {(categories.length > 0 || labels.length > 0 || composers.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
               <div className="search-active-filters mb-4 border border-[var(--line-strong)] bg-[var(--background)] p-3">
                 <div className="mb-3 flex items-center justify-between gap-4"><p className="font-mono text-[.62rem] font-semibold uppercase tracking-[.1em]">{locale === "fr" ? `${includedCount} inclus · ${excludedCount} exclus` : `${includedCount} included · ${excludedCount} excluded`}</p><button type="button" onClick={resetFilters} className="inline-flex min-h-9 items-center gap-2 border border-[var(--line)] bg-[var(--surface)] px-3 text-[.68rem] font-semibold transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button></div>
                 <div className="flex flex-wrap gap-2">
                   {categories.map((value) => { const id = value.replace(/^-/, ""); const negative = value.startsWith("-"); return <button key={value} type="button" onClick={() => removeValue(value, "categories")} className={cn("search-chip inline-flex min-h-9 items-center gap-1.5 px-3 text-xs", negative ? "search-chip--excluded filter-chip-excluded" : "search-chip--included")}><span className={cn("search-chip__mark flex h-4 w-4 items-center justify-center", negative ? "bg-[var(--danger)] text-white" : "bg-[var(--signal-strong)] text-white")}>{negative ? <Minus size={10} /> : <Check size={10} />}</span>{itemNames.get(id) ?? id}<X size={12} /></button>; })}
                   {labels.map((value) => <button key={value} type="button" onClick={() => removeValue(value, "labels")} className="search-chip search-chip--included inline-flex min-h-9 items-center gap-1.5 px-3 text-xs"><span className="search-chip__mark flex h-4 w-4 items-center justify-center bg-[var(--signal-strong)] text-white"><Check size={10} /></span>{itemNames.get(value) ?? value}<X size={12} /></button>)}
+                  {composers.map((value) => <button key={value} type="button" onClick={() => removeValue(value, "composers")} className="search-chip search-chip--included inline-flex min-h-9 items-center gap-1.5 px-3 text-xs"><span className="search-chip__mark flex h-4 w-4 items-center justify-center bg-[var(--signal-strong)] text-white"><Check size={10} /></span>{itemNames.get(value) ?? value}<X size={12} /></button>)}
                   {(bpmRange[0] !== 50 || bpmRange[1] !== 200) && <button type="button" onClick={() => updateBpm(DEFAULT_BPM)} className="search-chip inline-flex min-h-9 items-center gap-1.5 px-3 font-mono text-xs">BPM {bpmRange[0]}–{bpmRange[1]}<X size={12} /></button>}
                   {(durationRange[0] !== 0 || durationRange[1] !== 300) && <button type="button" onClick={() => updateDuration(DEFAULT_DURATION)} className="search-chip inline-flex min-h-9 items-center gap-1.5 px-3 font-mono text-xs">{formatDuration(durationRange[0])}–{formatDuration(durationRange[1])}<X size={12} /></button>}
                 </div>

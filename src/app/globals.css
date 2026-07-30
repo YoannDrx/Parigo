@@ -166,6 +166,10 @@ body {
   transition: background-color var(--motion-medium) ease, color var(--motion-medium) ease;
 }
 
+body:has(.matching-admin-shell) #parigo-consent-banner {
+  display: none;
+}
+
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 620;
@@ -367,8 +371,8 @@ textarea {
 }
 .project-invitation {
   background:
-    radial-gradient(circle at 87% 14%, color-mix(in srgb, var(--signal) 24%, transparent), transparent 24%),
-    repeating-linear-gradient(115deg, transparent 0, transparent 92px, rgba(255,255,255,.028) 93px, transparent 94px),
+    linear-gradient(90deg, rgba(8,12,9,.89), rgba(8,12,9,.66) 54%, rgba(8,12,9,.78)),
+    url("/images/home/project-invitation-vinyl.png") center 34% / cover no-repeat,
     #0b0f0c;
 }
 .project-invitation::before {
@@ -1231,6 +1235,230 @@ textarea {
 .nav-link:hover::after { transform: scaleX(.45); }
 .nav-link:focus-visible::after,
 .nav-link[aria-current="page"]::after { transform: scaleX(1); }
+
+.parigo-global-menu {
+  isolation: isolate;
+  background:
+    linear-gradient(135deg, transparent 0 78%, color-mix(in srgb, var(--signal) 7%, transparent) 78% 100%),
+    repeating-linear-gradient(90deg, transparent 0 calc(8.333% - 1px), color-mix(in srgb, var(--line) 38%, transparent) calc(8.333% - 1px) 8.333%),
+    color-mix(in srgb, var(--surface) 96%, transparent);
+  animation: parigo-menu-enter 520ms var(--ease-out) both;
+}
+.parigo-global-menu__arc {
+  position: absolute;
+  z-index: -1;
+  right: clamp(-8rem, -5vw, -3rem);
+  top: clamp(1rem, 7vh, 5rem);
+  width: clamp(15rem, 28vw, 31rem);
+  aspect-ratio: 1;
+  border: clamp(2.5rem, 5vw, 5.5rem) solid color-mix(in srgb, var(--signal) 6%, transparent);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.parigo-global-menu__line {
+  position: absolute;
+  z-index: -1;
+  bottom: 2rem;
+  left: 0;
+  width: min(42vw, 36rem);
+  height: 1px;
+  background: linear-gradient(90deg, var(--signal-strong), transparent);
+  opacity: .38;
+  pointer-events: none;
+}
+.parigo-menu-card {
+  position: relative;
+  display: flex;
+  min-height: 9.25rem;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--parigo-corner-lg) var(--parigo-turn-lg);
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--signal) 3%, transparent), transparent 62%),
+    color-mix(in srgb, var(--surface) 93%, var(--background));
+  padding: 1rem 1.05rem;
+  box-shadow: 4px 5px 0 color-mix(in srgb, var(--signal) 5%, transparent);
+  transition:
+    border-color 260ms ease,
+    border-radius 520ms var(--ease-out),
+    background-color 260ms ease,
+    box-shadow 460ms var(--ease-out),
+    transform 460ms var(--ease-out);
+}
+.parigo-menu-card::before,
+.parigo-menu-card::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 1.6rem;
+  height: 1.6rem;
+  pointer-events: none;
+  transition: width 520ms var(--ease-out), height 520ms var(--ease-out);
+}
+.parigo-menu-card::before {
+  top: .42rem;
+  right: .42rem;
+  border-top: 1.5px solid color-mix(in srgb, var(--foreground) 70%, transparent);
+  border-right: 1.5px solid color-mix(in srgb, var(--foreground) 70%, transparent);
+  border-top-right-radius: var(--parigo-turn-md);
+}
+.parigo-menu-card::after {
+  bottom: .42rem;
+  left: .42rem;
+  border-bottom: 1.5px solid var(--signal-strong);
+  border-left: 1.5px solid var(--signal-strong);
+  border-bottom-left-radius: var(--parigo-turn-md);
+}
+.parigo-menu-card:hover,
+.parigo-menu-card:focus-visible {
+  z-index: 3;
+  border-color: color-mix(in srgb, var(--signal-strong) 52%, var(--line));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--signal) 10%, transparent), transparent 66%),
+    var(--surface);
+  box-shadow: 9px 10px 0 color-mix(in srgb, var(--signal) 12%, transparent);
+  color: var(--foreground);
+  border-radius: 0 var(--parigo-turn-lg) 0 var(--parigo-turn-lg);
+  transform: translateY(-4px) rotate(-.18deg);
+}
+.parigo-menu-card:is(:hover, :focus-visible)::before,
+.parigo-menu-card:is(:hover, :focus-visible)::after {
+  width: calc(100% - .84rem);
+  height: calc(100% - .84rem);
+}
+.parigo-menu-card[data-active="true"] {
+  border-color: color-mix(in srgb, var(--signal-strong) 50%, var(--line));
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--signal) 13%, transparent), transparent 68%),
+    var(--surface);
+  box-shadow:
+    inset 3px 0 0 var(--signal-strong),
+    5px 6px 0 color-mix(in srgb, var(--signal) 9%, transparent);
+}
+.parigo-menu-card__title {
+  margin-top: auto;
+  padding-top: 1.25rem;
+  font-family: var(--font-heading);
+  font-size: clamp(1.4rem, 2.1vw, 2.35rem);
+  font-weight: 620;
+  letter-spacing: -.055em;
+  line-height: .92;
+  transition: color 260ms ease, transform 460ms var(--ease-out);
+}
+.parigo-menu-card:hover .parigo-menu-card__title,
+.parigo-menu-card:focus-visible .parigo-menu-card__title {
+  color: var(--signal-strong);
+  transform: translateX(.25rem);
+}
+.parigo-menu-card__note {
+  margin-top: .55rem;
+  max-width: calc(100% - 2.2rem);
+  color: var(--text-muted);
+  font-size: .68rem;
+  line-height: 1.45;
+}
+.parigo-menu-card__arrow {
+  position: absolute;
+  right: .85rem;
+  bottom: .8rem;
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
+  border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
+  transition:
+    border-color 260ms ease,
+    background-color 260ms ease,
+    color 260ms ease,
+    transform 460ms var(--ease-out);
+}
+.parigo-menu-card:hover .parigo-menu-card__arrow,
+.parigo-menu-card:focus-visible .parigo-menu-card__arrow {
+  border-color: var(--signal-strong);
+  background: var(--signal);
+  color: #0d1c11;
+  transform: rotate(8deg) translate(-.12rem, -.12rem);
+}
+.parigo-menu-aside {
+  position: relative;
+  align-self: stretch;
+  overflow: hidden;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
+  background:
+    linear-gradient(150deg, color-mix(in srgb, var(--signal) 10%, transparent), transparent 54%),
+    color-mix(in srgb, var(--surface) 94%, var(--background));
+  box-shadow: 7px 8px 0 color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+.parigo-menu-aside::before {
+  content: "";
+  position: absolute;
+  top: .7rem;
+  right: .7rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-top: 2px solid var(--foreground);
+  border-right: 2px solid var(--foreground);
+  border-top-right-radius: var(--parigo-turn-lg);
+  opacity: .72;
+  pointer-events: none;
+}
+.parigo-menu-aside::after {
+  content: "";
+  position: absolute;
+  bottom: .7rem;
+  left: .7rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-bottom: 2px solid var(--signal-strong);
+  border-left: 2px solid var(--signal-strong);
+  border-bottom-left-radius: var(--parigo-turn-lg);
+  pointer-events: none;
+}
+.parigo-menu-aside__intro {
+  position: relative;
+  z-index: 1;
+  padding-right: 1.8rem;
+}
+.parigo-menu-contact {
+  display: flex;
+  min-height: 2.75rem;
+  width: fit-content;
+  align-items: center;
+  gap: .7rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--signal-strong) 45%, var(--line));
+  color: var(--foreground);
+  font-size: .78rem;
+  font-weight: 650;
+  transition: border-color 260ms ease, color 260ms ease;
+}
+.parigo-menu-contact:hover,
+.parigo-menu-contact:focus-visible {
+  border-color: var(--signal-strong);
+  color: var(--signal-strong);
+}
+@keyframes parigo-menu-enter {
+  from { opacity: 0; transform: translateY(-1rem) scale(.995); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 767px) {
+  .parigo-global-menu {
+    background:
+      linear-gradient(145deg, transparent 0 88%, color-mix(in srgb, var(--signal) 7%, transparent) 88% 100%),
+      color-mix(in srgb, var(--surface) 97%, transparent);
+  }
+  .parigo-menu-card {
+    min-height: 7.4rem;
+  }
+  .parigo-menu-card__title {
+    font-size: clamp(1.55rem, 8vw, 2.2rem);
+  }
+  .parigo-menu-aside {
+    margin-bottom: 1rem;
+  }
+}
 
 .account-mark {
   position: relative;
@@ -3341,8 +3569,8 @@ textarea {
 }
 .home-sync-card::before { top: .7rem; right: .7rem; border-top: 1px solid var(--signal); border-right: 1px solid var(--signal); border-top-right-radius: .5rem; }
 .home-sync-card::after { bottom: .7rem; left: .7rem; border-bottom: 1px solid var(--signal); border-left: 1px solid var(--signal); border-bottom-left-radius: .5rem; }
-.home-sync-card:is(:hover, :focus-visible) { border-color: color-mix(in srgb, var(--signal) 65%, transparent); box-shadow: 0 34px 90px rgba(0,0,0,.3); transform: translateY(-6px); outline: none; }
-.home-sync-card:is(:hover, :focus-visible)::before, .home-sync-card:is(:hover, :focus-visible)::after { width: calc(100% - 1.4rem); height: calc(100% - 1.4rem); }
+.home-sync-card:is(:hover, :focus-visible, :focus-within) { border-color: color-mix(in srgb, var(--signal) 65%, transparent); box-shadow: 0 34px 90px rgba(0,0,0,.3); transform: translateY(-6px); outline: none; }
+.home-sync-card:is(:hover, :focus-visible, :focus-within)::before, .home-sync-card:is(:hover, :focus-visible, :focus-within)::after { width: calc(100% - 1.4rem); height: calc(100% - 1.4rem); }
 .home-sync-card__frame { overflow: hidden; border-radius: inherit; }
 .home-sync-card:not(.parigo-video-card) .home-sync-card__frame::after {
   content: "";
@@ -3395,9 +3623,24 @@ textarea {
   pointer-events: none;
   transition: border-color 300ms ease, box-shadow 300ms ease;
 }
-.parigo-video-card:is(:hover, :focus-visible) .parigo-video-card__ring {
+.parigo-video-card:is(:hover, :focus-visible, :focus-within) .parigo-video-card__ring {
   border-color: color-mix(in srgb, var(--signal) 78%, white 10%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 22%, transparent);
+}
+.parigo-video-card__actions {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 240ms ease, transform 360ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .parigo-video-card__actions {
+    opacity: 0;
+    transform: translateY(-.45rem);
+  }
+  .parigo-video-card:is(:hover, :focus-within) .parigo-video-card__actions {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .footer-reveal-link__track {
   line-height: 1.35;
@@ -3565,7 +3808,7 @@ textarea {
     clip-path: none;
     opacity: 1;
   }
-  .home-sync-card:is(:hover, :focus-visible),
+  .home-sync-card:is(:hover, :focus-visible, :focus-within),
   .composer-card:is(:hover, :focus-visible),
   .search-track-card:is(:hover, :focus-within) { transform: none; }
   .footer-reveal-link__copy {
@@ -3822,6 +4065,60 @@ textarea {
   transition: background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 .contact-submit:hover { border-color: var(--signal-strong); background: var(--signal-strong); color: #fff; }
+.contact-consent-label[data-invalid="true"] {
+  color: var(--foreground);
+}
+.contact-consent-label[data-invalid="true"] .contact-consent-box {
+  border-color: color-mix(in srgb, var(--danger) 68%, var(--line-strong));
+  background: color-mix(in srgb, var(--danger) 7%, var(--surface));
+  box-shadow: 4px 4px 0 color-mix(in srgb, var(--signal) 11%, transparent);
+}
+.contact-consent-error {
+  position: relative;
+  display: flex;
+  min-height: 3.6rem;
+  align-items: center;
+  gap: .75rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--danger) 38%, var(--line));
+  border-radius: var(--parigo-corner-md) var(--parigo-turn-lg);
+  background:
+    linear-gradient(105deg, color-mix(in srgb, var(--danger) 8%, transparent), transparent 62%),
+    var(--surface);
+  padding: .85rem 2.7rem .85rem 2.7rem;
+  color: var(--foreground);
+  font-size: .78rem;
+  line-height: 1.55;
+  box-shadow: 5px 6px 0 color-mix(in srgb, var(--signal) 9%, transparent);
+  animation: contact-consent-error-in 420ms var(--ease-out) both;
+}
+.contact-consent-error::before {
+  content: "";
+  position: absolute;
+  top: .45rem;
+  right: .45rem;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-top: 1.5px solid var(--foreground);
+  border-right: 1.5px solid var(--foreground);
+  border-top-right-radius: var(--parigo-turn-md);
+}
+.contact-consent-error::after {
+  content: "";
+  position: absolute;
+  bottom: .45rem;
+  left: .45rem;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-bottom: 1.5px solid var(--signal-strong);
+  border-left: 1.5px solid var(--signal-strong);
+  border-bottom-left-radius: var(--parigo-turn-md);
+  pointer-events: none;
+}
+@keyframes contact-consent-error-in {
+  from { opacity: 0; transform: translateY(-.45rem) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
 .footer-brief-cta,
 .footer-brief-cta:visited { color: #101410 !important; }

@@ -6,10 +6,11 @@ export interface ContactAcknowledgementEmailProps {
   name: string;
   receivedAt: string;
   requestId: string;
+  attachmentName?: string;
   logoSrc?: string;
 }
 
-export function ContactAcknowledgementEmail({ locale, name, receivedAt, requestId, logoSrc }: ContactAcknowledgementEmailProps) {
+export function ContactAcknowledgementEmail({ locale, name, receivedAt, requestId, attachmentName, logoSrc }: ContactAcknowledgementEmailProps) {
   const fr = locale === "fr";
   const accountUrl = `${getEmailSiteUrl()}/account`;
 
@@ -33,6 +34,7 @@ export function ContactAcknowledgementEmail({ locale, name, receivedAt, requestI
         <p style={confirmationMeta}>
           {fr ? "Référence" : "Reference"} · <span style={mono}>{requestId}</span>
         </p>
+        {attachmentName && <p style={confirmationMeta}>{fr ? "Document reçu" : "Document received"} · {attachmentName}</p>}
       </div>
 
       <p style={copy}>

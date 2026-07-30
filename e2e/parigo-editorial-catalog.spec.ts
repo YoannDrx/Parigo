@@ -62,8 +62,8 @@ test("le catalogue général s’intitule Albums et la home relie le Label Parig
   await expect(page.getByRole("heading", { level: 1, name: "Nos albums", exact: true })).toHaveCount(0);
 
   await page.goto("/");
-  await page.getByRole("tab", { name: "Label PARIGO" }).click();
-  const section = page.locator("section").filter({ has: page.getByRole("tab", { name: "Label PARIGO" }) });
+  await page.getByRole("tab", { name: "Label Parigo" }).click();
+  const section = page.locator("section").filter({ has: page.getByRole("tab", { name: "Label Parigo" }) });
   await expect(section.getByRole("link", { name: "Tout voir" })).toHaveAttribute("href", "/label-parigo");
 });
 
@@ -101,6 +101,13 @@ test("Ugly Mac Beer relie albums, clips et crédits de pistes", async ({ page },
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
+test("Minimatic conserve la relation client vérifiée avec Riviera Bizarre", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/compositeurs/minimatic");
+  await expect(page.getByRole("heading", { level: 1, name: "Minimatic" })).toBeVisible();
+  await expect(page.getByRole("link").filter({ hasText: "Riviera Bizarre" }).first()).toBeVisible({ timeout: 60_000 });
+});
+
 test("les clips respectent les crédits stricts et le consentement vidéo", async ({ page }) => {
   await page.goto("/clips/ny-parigo-2");
   await expect(page.locator("iframe")).toHaveCount(0);
@@ -109,11 +116,13 @@ test("les clips respectent les crédits stricts et le consentement vidéo", asyn
     window.localStorage.setItem("parigo-cookie-consent", value);
     window.dispatchEvent(new Event("parigo:cookie-consent-change"));
   }, consent(true));
-  await expect(page.locator('iframe[src*="youtube-nocookie.com"]')).toBeVisible();
+  await expect(page.locator('iframe[src*="youtube-nocookie.com"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Lire NY Parigo" }).click();
+  await expect(page.getByTestId("persistent-clip-iframe")).toBeVisible();
   await expect(page.getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
+  await page.getByRole("button", { name: "Fermer le lecteur vidéo" }).click();
 
   await page.goto("/clips/acid-body-music-2");
-  await expect(page.getByText(/nécessite votre autorisation/)).toBeVisible();
   await expect(page.locator("iframe")).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Modulhater" })).toBeVisible();
 });

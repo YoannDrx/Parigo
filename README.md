@@ -27,7 +27,10 @@ Le formulaire de contact utilise `RESEND_API_KEY`, envoie depuis
 `Parigo Music <contact@do-not-reply.app>` et transmet les demandes à
 `info@parigomusic.com`. Les accusés envoyés aux visiteurs utilisent
 `CONTACT_REPLY_EMAIL` (`info@parigomusic.com` par défaut), tandis que les notifications
-internes répondent directement à l’adresse du visiteur. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
+internes répondent directement à l’adresse du visiteur. Le formulaire accepte une pièce jointe
+de 3 Mo maximum (PDF, image, Word, Excel, PowerPoint, texte ou RTF), contrôlée côté navigateur
+et côté serveur puis transmise directement par e-mail ; elle n’est pas enregistrée dans une
+base de données applicative. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
 public réellement accessible. Tant que le domaine Parigo n’est pas raccordé,
 la valeur de référence est `https://parigo-ten.vercel.app`.
 

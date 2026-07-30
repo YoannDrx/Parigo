@@ -154,6 +154,7 @@ export interface Label {
   name: string;
   logo: string | null;
   description?: string;
+  descriptions?: Partial<Record<"fr" | "en", string>>;
   website?: string;
   albumCount: number;
   trackCount?: number;
@@ -207,6 +208,7 @@ export interface SearchIntentResolution {
 
 export type SearchFilterGroupKey =
   | "labels"
+  | "composers"
   | "genre"
   | "moods"
   | "musicFor"
