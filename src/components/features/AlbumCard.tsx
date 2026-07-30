@@ -34,7 +34,6 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
               preload={priority}
               fetchPriority={priority ? "high" : undefined}
               decoding={priority ? "sync" : "async"}
-              unoptimized={priority}
             />
           </div>
 
