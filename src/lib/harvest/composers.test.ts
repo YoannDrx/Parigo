@@ -87,4 +87,37 @@ describe("albumCreditsMatch", () => {
     });
     expect(result).toEqual({ state: "unavailable", albums: [] });
   });
+
+  it("includes a client-confirmed album even when Harvest track credits are missing", async () => {
+    const confirmed = albumWith(["Someone Else"]);
+    confirmed.id = "riviera-bizarre";
+    confirmed.code = "PGO0050";
+    confirmed.title = "Riviera Bizarre";
+    const profile: ComposerProfile = {
+      slug: "minimatic",
+      name: "Minimatic",
+      image: "/images/composers/minimatic.webp",
+      bio: {},
+      links: [],
+      kind: "person",
+      harvestAliases: ["Minimatic"],
+      verifiedAlbums: [{ code: "PGO0050", reviewState: "verified", source: "client-confirmed" }],
+      published: true,
+      source: "portfolio-caro",
+    };
+
+    const result = await resolveComposerAlbums(profile, {
+      searchAlbums: async (input) => ({
+        items: input?.query ? [] : [{ ...confirmed, tracks: undefined }],
+        total: 1,
+        page: 1,
+        pageSize: 100,
+        facets: { bpm: { min: 0, max: 0 }, duration: { min: 0, max: 0 }, labels: [], categories: [], styles: [] },
+      }),
+      loadAlbum: async () => ({ album: confirmed, similar: [] }),
+    });
+
+    expect(result.state).toBe("ready");
+    expect(result.albums.map((album) => album.code)).toEqual(["PGO0050"]);
+  });
 });

@@ -52,6 +52,18 @@ function titleOf(item: { DisplayTitle?: string; Name?: string; Title?: string })
   return item.DisplayTitle || item.Name || item.Title || "Untitled";
 }
 
+export function mapLibraryDescriptions(item: HarvestRecord): Partial<Record<"fr" | "en", string>> {
+  const descriptions: Partial<Record<"fr" | "en", string>> = {};
+  for (const languageItem of recordArray(item, "LanguageItems")) {
+    if (asString(languageItem.Type).toLocaleLowerCase("en") !== "librarydescription") continue;
+    const language = asString(pick(languageItem, "LanguageCode_ISO639_1", "LanguageCode", "Language"))
+      .toLocaleLowerCase("en");
+    const value = asString(pick(languageItem, "Value", "Detail", "Description")).trim();
+    if ((language === "fr" || language === "en") && value) descriptions[language] = value;
+  }
+  return descriptions;
+}
+
 function mapCredits(item: HarvestTrackPayload): Array<{ name: string; slug: string }> {
   return asList(item.Artist || item.Composer).map((name) => ({
     name,
@@ -477,12 +489,14 @@ export async function getLabel(id: string): Promise<Label | null> {
   const item = isRecord(payload.Library) ? payload.Library : undefined;
   if (!item) return null;
   const logoUrl = asString(item.LibraryLogoUrl);
+  const descriptions = mapLibraryDescriptions(item);
   return {
     id,
     slug: id,
     name: asString(item.Name),
     logo: verifiedLabelLogo(id, logoUrl),
     description: asString(pick(item, "Detail", "Profile")) || undefined,
+    ...(Object.keys(descriptions).length ? { descriptions } : {}),
     website: asString(item.Website) || undefined,
     albumCount,
     trackCount,

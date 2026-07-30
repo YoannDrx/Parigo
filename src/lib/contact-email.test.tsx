@@ -20,6 +20,7 @@ describe("contact email templates", () => {
         reference: "PGO-001",
         verified: true,
       },
+      attachment: { name: "brief.pdf", size: 524_288 },
     });
 
     expect(rendered.html).toContain("Un nouveau projet arrive");
@@ -30,6 +31,7 @@ describe("contact email templates", () => {
     expect(rendered.html).not.toContain("<script>alert");
     expect(rendered.text).toContain("Camille Martin");
     expect(rendered.text).toContain("request-123");
+    expect(rendered.text).toContain("brief.pdf");
   });
 
   it("localise l’accusé en anglais", async () => {
@@ -38,6 +40,7 @@ describe("contact email templates", () => {
       name: "Alex",
       receivedAt: "July 23, 2026 at 9:45 PM",
       requestId: "request-456",
+      attachmentName: "treatment.docx",
     });
 
     expect(rendered.html).toContain("Thank you, Alex");
@@ -45,6 +48,7 @@ describe("contact email templates", () => {
     expect(rendered.text).toContain("request-456");
     expect(rendered.html).toContain("/account");
     expect(rendered.html).toContain("Sign in to my account");
+    expect(rendered.text).toContain("treatment.docx");
   });
 
   it("nettoie les retours ligne parasites de l’URL publique", async () => {

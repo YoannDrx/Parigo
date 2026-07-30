@@ -15,7 +15,7 @@ export function Footer() {
       wide: true,
       links: [
         { name: t("common.search"), href: "/search" },
-        { name: locale === "fr" ? "Labels représentés" : "Represented labels", href: "/labels" },
+        { name: "Labels", href: "/labels" },
         { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo" },
         { name: t("common.albums"), href: "/albums" },
         { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations" },

@@ -6,6 +6,7 @@ import type {
   SearchFilterGroupKey,
   SearchFilterItem,
 } from "@/types";
+import { publishedComposerProfiles } from "@/lib/editorial/contracts";
 import { getCategories, getLabels } from "./catalog";
 
 const groupKeys: Record<string, SearchFilterGroupKey> = {
@@ -47,6 +48,14 @@ export async function getSearchFilterGroups(
       total: labels.length,
       available: labels.length,
       items: labels.map((label) => ({ id: label.id, name: label.name })),
+    },
+    {
+      key: "composers",
+      label: language === "fr" ? "Compositeurs" : "Composers",
+      selection: "include-only",
+      total: publishedComposerProfiles.length,
+      available: publishedComposerProfiles.length,
+      items: publishedComposerProfiles.map((profile) => ({ id: profile.slug, name: profile.name })),
     },
     ...categoryGroups.flatMap((group): SearchFilterGroup[] => {
       const key = groupKeys[group.name.toLocaleLowerCase("en")];

@@ -92,7 +92,15 @@ export default async function ClipPage({ params }: ClipPageProps) {
                 <span className="font-mono text-[.54rem]">16:9</span>
               </div>
               <div className="overflow-hidden rounded-b-[.7rem]">
-                <ConsentAwareYouTubeEmbed title={title} cover={clip.cover} youtubeId={clip.youtubeId} />
+                <ConsentAwareYouTubeEmbed
+                  clip={{
+                    slug: clip.slug,
+                    youtubeId: clip.youtubeId,
+                    title: clip.title,
+                    cover: clip.cover,
+                    href: localizedPath(locale, `/clips/${clip.slug}`),
+                  }}
+                />
               </div>
             </div>
             <aside className="flex min-h-full flex-col rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 lg:col-span-4 lg:p-8">

@@ -613,6 +613,13 @@
       "harvestAliases": [
         "Minimatic"
       ],
+      "verifiedAlbums": [
+        {
+          "code": "PGO0050",
+          "reviewState": "verified",
+          "source": "client-confirmed"
+        }
+      ],
       "published": true,
       "source": "portfolio-caro"
     },
@@ -803,6 +810,7 @@
         }
       ],
       "kind": "person",
+      "grammaticalGender": "feminine",
       "harvestAliases": [
         "Rebecca Meyer"
       ],

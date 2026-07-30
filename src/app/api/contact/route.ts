@@ -4,7 +4,13 @@ import { Resend } from "resend";
 import { getTrack } from "@/lib/harvest/catalog";
 import { assertSameOrigin } from "@/lib/harvest/session";
 import { logEvent } from "@/lib/logger";
-import { CONTACT_MAX_BODY_BYTES, contactInputSchema } from "@/lib/contact-input";
+import {
+  CONTACT_MAX_BODY_BYTES,
+  contactInputSchema,
+  sanitizeContactAttachmentName,
+  validateContactAttachmentBytes,
+  validateContactAttachmentMetadata,
+} from "@/lib/contact-input";
 import {
   renderContactAcknowledgementEmail,
   renderContactNotificationEmail,
@@ -32,21 +38,48 @@ export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
     if (Number(request.headers.get("content-length") || 0) > CONTACT_MAX_BODY_BYTES) {
-      return responseError(413, "PAYLOAD_TOO_LARGE", "Le message dépasse 16 Kio.", requestId);
+      return responseError(413, "PAYLOAD_TOO_LARGE", "La demande dépasse la taille autorisée.", requestId);
     }
-    const rawBody = await request.text();
-    if (new TextEncoder().encode(rawBody).byteLength > CONTACT_MAX_BODY_BYTES) {
-      return responseError(413, "PAYLOAD_TOO_LARGE", "Le message dépasse 16 Kio.", requestId);
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return responseError(400, "VALIDATION_FAILED", "Formulaire multipart invalide.", requestId);
     }
-    let json: unknown;
-    try { json = JSON.parse(rawBody); } catch {
-      return responseError(400, "VALIDATION_FAILED", "Corps JSON invalide.", requestId);
-    }
-    const parsed = contactInputSchema.safeParse(json);
+    const parsed = contactInputSchema.safeParse({
+      name: String(formData.get("name") || ""),
+      company: String(formData.get("company") || ""),
+      email: String(formData.get("email") || ""),
+      message: String(formData.get("message") || ""),
+      trackId: String(formData.get("trackId") || "") || undefined,
+      locale: String(formData.get("locale") || ""),
+      consent: String(formData.get("consent") || "") === "true",
+      website: String(formData.get("website") || ""),
+      startedAt: Number(formData.get("startedAt")),
+    });
     if (!parsed.success) {
       return responseError(400, "VALIDATION_FAILED", parsed.error.issues[0]?.message || "Données invalides.", requestId);
     }
     const input = parsed.data;
+    const attachmentEntry = formData.get("attachment");
+    let attachment: { filename: string; contentType: string; content: Buffer; size: number } | null = null;
+    if (attachmentEntry && typeof attachmentEntry !== "string" && attachmentEntry.size > 0) {
+      const metadata = validateContactAttachmentMetadata(attachmentEntry);
+      if (!metadata.valid) {
+        const status = metadata.code === "FILE_TOO_LARGE" ? 413 : 400;
+        return responseError(status, metadata.code, status === 413 ? "La pièce jointe dépasse 3 Mo." : "La pièce jointe n’est pas acceptée.", requestId);
+      }
+      const bytes = new Uint8Array(await attachmentEntry.arrayBuffer());
+      if (!validateContactAttachmentBytes(metadata.extension, bytes)) {
+        return responseError(400, "FILE_SIGNATURE_MISMATCH", "Le contenu du fichier ne correspond pas à son format.", requestId);
+      }
+      attachment = {
+        filename: sanitizeContactAttachmentName(attachmentEntry.name),
+        contentType: metadata.contentType,
+        content: Buffer.from(bytes),
+        size: bytes.byteLength,
+      };
+    }
     if (input.website) {
       return NextResponse.json({ data: { requestId, status: "sent" } }, { status: 201, headers: { "Cache-Control": "no-store", "X-Request-ID": requestId } });
     }
@@ -69,7 +102,9 @@ export async function POST(request: Request) {
       contentId: EMAIL_LOGO_CONTENT_ID,
     };
     const normalized = [input.name.toLowerCase(), input.company.toLowerCase(), input.email.toLowerCase(), input.message.replace(/\s+/g, " ").trim(), input.trackId || "", input.locale].join("\n");
-    const digest = createHash("sha256").update(normalized).digest("hex");
+    const digestHash = createHash("sha256").update(normalized);
+    if (attachment) digestHash.update(attachment.content).update(String(attachment.size));
+    const digest = digestHash.digest("hex");
     const resend = new Resend(apiKey);
     const subject = track ? `Demande de licence — ${track.title}` : `Demande Parigo Music — ${input.name}`;
     const receivedAt = new Intl.DateTimeFormat(input.locale === "fr" ? "fr-FR" : "en-GB", {
@@ -101,10 +136,14 @@ export async function POST(request: Request) {
       message: input.message,
       locale: input.locale,
       track: trackSummary,
+      attachment: attachment ? { name: attachment.filename, size: attachment.size } : null,
       logoSrc: `cid:${EMAIL_LOGO_CONTENT_ID}`,
     });
+    const attachmentForEmail = attachment
+      ? { filename: attachment.filename, contentType: attachment.contentType, content: attachment.content }
+      : null;
     const internal = await resend.emails.send(
-      { from, to, replyTo: input.email, subject, attachments: [logoAttachment], ...internalEmail },
+      { from, to, replyTo: input.email, subject, attachments: [logoAttachment, ...(attachmentForEmail ? [attachmentForEmail] : [])], ...internalEmail },
       { idempotencyKey: `contact-internal-${digest}` },
     );
     if (internal.error) {
@@ -121,6 +160,7 @@ export async function POST(request: Request) {
         name: input.name,
         receivedAt,
         requestId,
+        attachmentName: attachment?.filename,
         logoSrc: `cid:${EMAIL_LOGO_CONTENT_ID}`,
       }),
     };

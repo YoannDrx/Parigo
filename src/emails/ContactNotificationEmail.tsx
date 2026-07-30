@@ -17,6 +17,7 @@ export interface ContactNotificationEmailProps {
   message: string;
   locale: "fr" | "en";
   track: ContactTrackSummary | null;
+  attachment?: { name: string; size: number } | null;
   logoSrc?: string;
 }
 
@@ -42,6 +43,7 @@ export function ContactNotificationEmail(props: ContactNotificationEmailProps) {
           <InfoRow label="Société" value={props.company || "Non renseignée"} />
           <InfoRow label="E-mail" value={props.email} href={`mailto:${props.email}`} />
           <InfoRow label="Langue du formulaire" value={props.locale === "fr" ? "Français" : "Anglais"} />
+          {props.attachment && <InfoRow label="Pièce jointe" value={`${props.attachment.name} · ${(props.attachment.size / 1024 / 1024).toFixed(2)} Mo`} />}
         </tbody>
       </table>
 
@@ -107,6 +109,7 @@ ContactNotificationEmail.PreviewProps = {
     reference: "PRTM 0212",
     verified: true,
   },
+  attachment: { name: "brief-campagne.pdf", size: 840_000 },
 } satisfies ContactNotificationEmailProps;
 
 export default ContactNotificationEmail;

@@ -67,12 +67,23 @@ test("la home expose une section Clips reliée à la vidéothèque", async ({ pa
 
 test("la recherche et les cards compositeurs utilisent la DA Parigo", async ({ page }) => {
   await page.goto("/compositeurs");
-  await expect(page.getByPlaceholder("Rechercher par nom…")).toBeVisible();
+  const search = page.getByPlaceholder("Rechercher par nom…");
+  await expect(search).toBeVisible();
   await expect(page.locator(".catalog-search-frame.search-query-frame")).toBeVisible();
   const card = page.locator(".composer-card").first();
   await expect(card).toBeVisible();
   await expect(card.locator(".composer-card__corner")).toHaveCount(2);
   await expect(page.locator(".composer-card").getByText(/^C\s*\/\s*\d+$/)).toHaveCount(0);
+
+  await search.fill("Rebecca");
+  const results = page.getByTestId("composer-directory-results");
+  await expect(results.locator(".composer-card")).toHaveCount(1);
+  await expect(results.getByRole("heading", { name: "Rebecca Meyer" })).toBeVisible();
+  await expect(results.getByText("Compositrice", { exact: true })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("Rebecca");
+  await search.fill("Minimatic");
+  await expect(results.getByRole("heading", { name: "Minimatic" })).toBeVisible();
+  await expect(results.getByText("Compositeur", { exact: true })).toBeVisible();
 });
 
 test("le détail d’une synchronisation contient son titre et masque la description YouTube", async ({ page }) => {
@@ -242,6 +253,9 @@ test("About et Licensing retirent leurs surtitres secondaires et renforcent le m
   await page.goto("/licensing");
   await expect(page.getByText("Grille indicative", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Un cadre lisible, projet par projet" })).toBeVisible();
+  for (const removedStep of ["Repérage", "Vérification", "Autorisation", "Diffusion"]) {
+    await expect(page.getByText(removedStep, { exact: true })).toHaveCount(0);
+  }
 
   await page.goto("/about");
   await expect(page.getByText("Notre point de vue", { exact: true })).toHaveCount(0);
@@ -251,10 +265,29 @@ test("About et Licensing retirent leurs surtitres secondaires et renforcent le m
   expect(await manifesto.evaluate((node) => getComputedStyle(node).borderRadius)).not.toBe("0px");
 });
 
-test("la page des labels adopte l’intitulé Labels représentés", async ({ page }) => {
+test("la page des labels adopte l’intitulé Labels", async ({ page }) => {
   await page.goto("/labels");
-  await expect(page.getByRole("heading", { level: 1, name: "Labels représentés" })).toBeVisible();
-  await expect(page.locator("footer").getByRole("link", { name: "Labels représentés" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Labels" })).toBeVisible();
+  await expect(page.locator("footer").getByRole("link", { name: "Labels", exact: true })).toBeVisible();
+});
+
+test("le détail label privilégie le logo et ne renvoie plus vers son site", async ({ page }) => {
+  test.setTimeout(90_000);
+  await page.goto("/labels/0f9769346759ee5a");
+  const hero = page.locator(".editorial-detail-hero").first();
+  await expect(hero).toBeVisible();
+  await expect(hero.getByRole("link", { name: /Site web|Website/i })).toHaveCount(0);
+  const logoPanel = hero.locator("> div").first();
+  const logoPanelBox = await logoPanel.boundingBox();
+  expect(logoPanelBox).not.toBeNull();
+  expect(logoPanelBox!.height).toBeGreaterThanOrEqual(350);
+});
+
+test("le détail compositeur ne dessine plus l’arc décoratif", async ({ page }) => {
+  await page.goto("/compositeurs/minimatic");
+  const hero = page.locator(".editorial-detail-hero--composer");
+  await expect(hero).toBeVisible();
+  expect(await hero.evaluate((node) => getComputedStyle(node, "::after").display)).toBe("none");
 });
 
 test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {
@@ -293,4 +326,29 @@ test("le formulaire Contact conserve sa composition d’origine et laisse respir
   const companyField = page.locator('input[name="company"]').locator("..");
   const paddingLeft = await companyField.evaluate((node) => Number.parseFloat(getComputedStyle(node).paddingLeft));
   expect(paddingLeft).toBeGreaterThanOrEqual(20);
+  await expect(page.getByText("Pièce jointe", { exact: false })).toBeVisible();
+  await page.locator('input[name="attachment"]').setInputFiles({
+    name: "brief.pdf",
+    mimeType: "application/pdf",
+    buffer: Buffer.from("%PDF-1.7 test"),
+  });
+  await expect(page.getByText("brief.pdf", { exact: true })).toBeVisible();
+});
+
+test("le consentement du formulaire Contact affiche une validation Parigo accessible", async ({ page }) => {
+  await page.goto("/contact");
+  await page.locator('input[name="name"]').fill("Camille Martin");
+  await page.locator('input[name="email"]').fill("camille@example.com");
+  await page.locator('textarea[name="message"]').fill("Nous préparons un documentaire et cherchons une musique originale pour le film.");
+  await page.locator('button[type="submit"]').click();
+
+  const consent = page.locator('input[name="consent"]');
+  const error = page.getByRole("alert").filter({ hasText: "Veuillez accepter l’utilisation de vos informations" });
+  await expect(error).toBeVisible();
+  await expect(error).toHaveClass(/contact-consent-error/);
+  await expect(consent).toHaveAttribute("aria-invalid", "true");
+  await expect(consent).toBeFocused();
+  await page.locator("label.contact-consent-label").click();
+  await expect(error).toHaveCount(0);
+  await expect(consent).not.toHaveAttribute("aria-invalid", "true");
 });

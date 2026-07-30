@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { alternateLocalePath, localizedPath, stripLocalePrefix } from "@/lib/locale";
 import { ParigoLogo } from "./ParigoLogo";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 
 interface HeaderProps { variant?: "default" | "overlay"; }
 
@@ -58,7 +59,7 @@ export function Header({ variant = "default" }: HeaderProps) {
     parigoLabel: { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo", note: locale === "fr" ? "Les productions du label" : "Releases from the label" },
     composers: { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs", note: locale === "fr" ? "Les talents du label" : "The label’s talent" },
     clips: { name: "Clips", href: "/clips", note: locale === "fr" ? "Créations audiovisuelles" : "Audiovisual work" },
-    labels: { name: locale === "fr" ? "Labels représentés" : "Represented labels", href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
+    labels: { name: "Labels", href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
   };
   const primaryNav = [
     navigationItems.search,
@@ -116,20 +117,37 @@ export function Header({ variant = "default" }: HeaderProps) {
       </nav>
 
         {open && (
-          <div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain bg-[color-mix(in_srgb,var(--surface)_96%,transparent)] text-[var(--foreground)] backdrop-blur-2xl">
-            <div className="mx-auto grid min-h-max max-w-[1760px] px-4 py-8 md:grid-cols-12 md:px-8 md:py-12">
+          <div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom parigo-global-menu absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain text-[var(--foreground)] backdrop-blur-2xl">
+            <span aria-hidden="true" className="parigo-global-menu__arc" />
+            <span aria-hidden="true" className="parigo-global-menu__line" />
+            <div className="relative mx-auto grid min-h-max max-w-[1760px] gap-x-8 px-4 py-7 md:grid-cols-12 md:px-8 md:py-10 xl:gap-x-12">
               <div className="mb-9 xl:hidden md:col-span-12"><UserMenu embedded /></div>
-              <div className="md:col-span-8 lg:col-span-9 lg:pr-12">
-                <p className="eyebrow mb-5 text-[var(--signal-strong)]">{locale === "fr" ? "Explorer Parigo" : "Explore Parigo"}</p>
-                <div data-testid="drawer-navigation" className="border-t border-[var(--line)]">
+              <div className="md:col-span-8 lg:col-span-9">
+                <div className="mb-6 grid gap-3 border-b border-[var(--line)] pb-5 md:grid-cols-12 md:items-end md:gap-6 md:pb-6">
+                  <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.5rem,4.6vw,5rem)] leading-[.88] text-[var(--foreground)] md:col-span-7">
+                    {locale === "fr" ? "Explorer Parigo." : "Explore Parigo."}
+                  </SignedTitle>
+                  <p className="max-w-sm text-sm leading-6 text-[var(--text-muted)] md:col-span-5 md:justify-self-end">
+                    {locale === "fr"
+                      ? "Catalogue, images et compositeurs : entrez par le chemin qui ressemble à votre projet."
+                      : "Catalogue, images and composers: choose the path that best matches your project."}
+                  </p>
+                </div>
+                <div data-testid="drawer-navigation" className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                   {drawerNav.map((item, index) => {
                     const active = currentPath === item.href || currentPath.startsWith(`${item.href}/`);
                     return (
                       <div key={item.href} style={{ animationDelay: `${index * 28}ms` }} className="animate-[fade-in_.25s_ease-out_both]">
-                        <Link href={hrefFor(item.href)} aria-current={active ? "page" : undefined} className={cn("group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] py-3 transition-colors duration-300 hover:text-[var(--signal-strong)] md:grid-cols-[minmax(0,1fr)_minmax(140px,.42fr)_auto] md:gap-5 md:py-4", active && "text-[var(--signal-strong)]")}>
-                          <span className="text-[clamp(1.55rem,3.25vw,3.4rem)] font-semibold leading-none tracking-[-.05em]">{item.name}</span>
-                          <span className="hidden text-xs leading-relaxed text-[var(--text-muted)] md:block">{item.note}</span>
-                          <span className="flex h-9 w-9 items-center justify-center rounded-full border border-current/25 transition duration-300 group-hover:-rotate-12 group-hover:border-current group-hover:bg-[var(--signal)] group-hover:text-white"><ArrowUpRight size={15} /></span>
+                        <Link
+                          href={hrefFor(item.href)}
+                          aria-label={item.name}
+                          aria-current={active ? "page" : undefined}
+                          data-active={active ? "true" : "false"}
+                          className="parigo-menu-card group"
+                        >
+                          <span className="parigo-menu-card__title">{item.name}</span>
+                          <span className="parigo-menu-card__note">{item.note}</span>
+                          <span className="parigo-menu-card__arrow" aria-hidden="true"><ArrowUpRight size={15} /></span>
                         </Link>
                       </div>
                     );
@@ -137,7 +155,17 @@ export function Header({ variant = "default" }: HeaderProps) {
                 </div>
               </div>
 
-              <aside className="mt-10 flex flex-col gap-8 border-t border-[var(--line)] pt-7 md:col-span-4 md:mt-0 md:border-l md:border-t-0 md:pl-8 md:pt-0 lg:col-span-3">
+              <aside className="parigo-menu-aside mt-8 flex flex-col gap-7 p-5 md:col-span-4 md:mt-0 md:p-6 lg:col-span-3">
+                <div className="parigo-menu-aside__intro">
+                  <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Un projet en tête ?" : "A project in mind?"}</p>
+                  <p className="mt-3 text-xl font-semibold leading-tight tracking-[-.035em]">
+                    {locale === "fr" ? "Parlons musique, images et intentions." : "Let’s talk music, images and intent."}
+                  </p>
+                  <Link href={hrefFor("/contact")} className="parigo-menu-contact group mt-5">
+                    <span>{locale === "fr" ? "Nous envoyer un brief" : "Send us a brief"}</span>
+                    <ArrowUpRight size={14} className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                  </Link>
+                </div>
                 <div className="lg:hidden">
                   <p className="eyebrow mb-4 text-[var(--text-muted)]">{locale === "fr" ? "Préférences" : "Preferences"}</p>
                   <div className="grid grid-cols-2 gap-2">
@@ -146,7 +174,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   </div>
                 </div>
 
-                <div className="grid gap-2 text-sm text-[var(--text-muted)]">
+                <div className="mt-auto grid gap-2 border-t border-[var(--line)] pt-5 text-sm text-[var(--text-muted)]">
                   <Link href={hrefFor("/about")} className="min-h-9 hover:text-[var(--foreground)]">{t("common.about")}</Link>
                   <Link href={hrefFor("/contact")} className="min-h-9 hover:text-[var(--foreground)]">{t("common.contact")}</Link>
                   <Link href={hrefFor("/legal")} className="min-h-9 hover:text-[var(--foreground)]">{t("footer.legalNotice")}</Link>

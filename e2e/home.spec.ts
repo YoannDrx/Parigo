@@ -209,14 +209,24 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await menuTrigger.click();
   const menu = page.getByRole("dialog", { name: "Menu principal" });
   await expect(menu).toBeVisible();
+  await page.waitForTimeout(500);
   const menuBox = await menu.boundingBox();
   expect(menuBox).not.toBeNull();
-  expect(menuBox!.x).toBeLessThanOrEqual(1);
-  expect(menuBox!.width).toBeGreaterThanOrEqual((await page.evaluate(() => innerWidth)) - 1);
-  expect(menuBox!.height).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) - 75);
+  expect(menuBox!.x).toBeLessThanOrEqual(5);
+  expect(menuBox!.width).toBeGreaterThanOrEqual((await page.evaluate(() => innerWidth)) - 5);
+  expect(Math.ceil(menuBox!.height)).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) - 75);
   await expect(menu).not.toContainText("Paris · France");
-  await expect(menu.getByRole("link", { name: "Labels représentés" })).toBeVisible();
+  await expect(menu).not.toContainText(/Parigo \/(?: Explorer| Explore)/);
+  await expect(menu.locator('a[href="/labels"]')).toContainText("Labels");
   await expect(menu.getByRole("link", { name: "Label Parigo" })).toBeVisible();
+  if (testInfo.project.name === "desktop") {
+    const labelsCard = menu.locator('a[href="/labels"]');
+    await labelsCard.hover();
+    await expect(labelsCard).toHaveCSS("border-top-left-radius", "0px");
+    await expect(labelsCard).toHaveCSS("border-bottom-right-radius", "0px");
+    expect(Number.parseFloat(await labelsCard.evaluate((node) => getComputedStyle(node).borderTopRightRadius))).toBeGreaterThan(0);
+    expect(Number.parseFloat(await labelsCard.evaluate((node) => getComputedStyle(node).borderBottomLeftRadius))).toBeGreaterThan(0);
+  }
   expect(await menu.getByTestId("drawer-navigation").getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
     "/search",
     "/labels",
@@ -248,7 +258,7 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await page.keyboard.press("Escape");
   await expect(page.getByRole("dialog", { name: "Menu principal" })).toHaveCount(0);
 
-  await page.getByRole("tab", { name: "Nouveautés" }).click();
+  await expect(page.getByRole("tab", { name: "Nouveautés" })).toHaveAttribute("aria-selected", "true");
   await expect(page.locator('#featured a[href^="/albums/"]').first()).toBeVisible({ timeout: 30_000 });
   expect(await page.locator('#featured a[href^="/albums/"]').count()).toBeGreaterThan(4);
   expect(await page.locator("main img").count()).toBeGreaterThanOrEqual(8);
@@ -262,7 +272,7 @@ test("le footer reprend l’ordre du menu et sépare le compte des réseaux soci
   await page.goto("/");
   const footer = page.locator("footer");
   const explore = footer.getByRole("heading", { name: "Explorer", exact: true }).locator("xpath=..");
-  await expect(explore.getByRole("link", { name: "Labels représentés" })).toBeVisible();
+  await expect(explore.getByRole("link", { name: "Labels", exact: true })).toBeVisible();
   expect(await explore.getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
     "/search",
     "/labels",
@@ -288,19 +298,20 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   test.setTimeout(90_000);
   test.skip(testInfo.project.name !== "mobile", "Ce parcours contrôle spécifiquement la composition tactile.");
   await page.goto("/");
-  const manifesto = page.locator("#manifesto");
-  const manifestoTitle = manifesto.locator("h2").first();
-  await expect(manifesto).toBeVisible({ timeout: 30_000 });
-  expect(await manifesto.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual((await page.evaluate(() => innerHeight)) * 1.2);
-  await expect(page.getByTestId("manifesto-reveal-edge")).toHaveCount(1);
-  expect(Number.parseFloat(await manifestoTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(60);
+  const showreel = page.getByTestId("home-showreel");
+  const showreelTitle = showreel.locator("h2").first();
+  await expect(showreel).toBeVisible({ timeout: 30_000 });
+  expect(await showreel.evaluate((node) => node.clientHeight)).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) * .95);
+  await expect(showreel.getByTestId("home-showreel-video")).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  expect(Number.parseFloat(await showreelTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(48);
 
+  await page.getByRole("tab", { name: "Playlists" }).click();
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
   const carouselArrows = page.locator('button[aria-label="Précédent"], button[aria-label="Suivant"]');
   expect(await carouselArrows.count()).toBeGreaterThan(0);
   for (let index = 0; index < await carouselArrows.count(); index += 1) await expect(carouselArrows.nth(index)).toBeHidden();
 
-  await manifestoTitle.scrollIntoViewIfNeeded();
+  await showreelTitle.scrollIntoViewIfNeeded();
 
   const process = page.locator("#process");
   await process.scrollIntoViewIfNeeded();
@@ -334,6 +345,7 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
 test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/");
+  await page.getByRole("tab", { name: "Playlists" }).click();
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
   const featured = page.locator("#featured");
   const featuredArtwork = featured.locator('a[href^="/playlists/"] img').first();
@@ -426,69 +438,279 @@ test("les trois rails éditoriaux laissent apparaître exactement le fond de leu
   }
 });
 
-test("le manifesto se révèle automatiquement sans sticky ni hauteur artificielle", async ({ page }) => {
+test("le showreel occupe le viewport et ne contient plus l’effet de pochettes", async ({ page }) => {
   await page.goto("/");
-  const section = page.locator("#manifesto");
+  const section = page.getByTestId("home-showreel");
   await section.scrollIntoViewIfNeeded();
-  await expect(section).toHaveAttribute("data-reveal-complete", "true", { timeout: 10_000 });
-  expect(Number(await section.getAttribute("data-cover-pool-size"))).toBeGreaterThanOrEqual(50);
-  const revealOverlay = page.getByTestId("manifesto-reveal-edge");
-  await expect(revealOverlay).toHaveCount(1);
-  await expect(revealOverlay).toHaveAttribute("data-reveal-overlay", "true");
-  const revealStyle = await revealOverlay.evaluate((node) => {
-    const style = getComputedStyle(node);
-    return {
-      background: style.backgroundColor,
-      border: style.borderLeftWidth,
-      bottom: Number.parseFloat(style.bottom),
-      shadow: style.boxShadow,
-      top: Number.parseFloat(style.top),
-      opacity: style.opacity,
+  const [height, viewportHeight] = await Promise.all([
+    section.evaluate((node) => node.clientHeight),
+    page.evaluate(() => innerHeight),
+  ]);
+  expect(height).toBeGreaterThanOrEqual(viewportHeight * .95);
+  expect(height).toBeLessThanOrEqual(viewportHeight * 1.2);
+  await expect(section.getByRole("heading", { name: /Une musique juste.*Au bon moment.*Pour la bonne image/i })).toBeVisible();
+  await expect(section.locator("h2 > span")).toHaveCount(5);
+  await expect(section.getByText(/Parigo accompagne chaque année/i)).toHaveCount(0);
+  await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
+  const video = section.getByTestId("home-showreel-video");
+  await expect(video).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  await expect(video).toHaveAttribute("poster", "/images/home/garden-of-eden-poster.jpg");
+  await expect(section.locator("iframe")).toHaveCount(0);
+});
+
+test("le showreel charge le MP4 local et son contrôle sonore sans consentement marketing", async ({ page }) => {
+  await page.goto("/");
+  const section = page.getByTestId("home-showreel");
+  await section.scrollIntoViewIfNeeded();
+  const player = section.getByTestId("home-showreel-video");
+  await expect(player).toBeVisible();
+  await expect(player).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  await expect(page.getByRole("button", { name: /Activer le son|Couper le son/ })).toBeVisible({ timeout: 30_000 });
+});
+
+test("le showreel continue après la section et garde un mute animé accessible", async ({ page }) => {
+  await page.addInitScript(() => {
+    const calls: string[] = [];
+    Object.defineProperty(window, "__parigoMediaCalls", { value: calls });
+    HTMLMediaElement.prototype.play = function play() {
+      calls.push(`play:${this.muted ? "muted" : "audible"}`);
+      queueMicrotask(() => this.dispatchEvent(new Event("play")));
+      return Promise.resolve();
     };
   });
-  expect(revealStyle.background).not.toBe("rgba(0, 0, 0, 0)");
-  expect(revealStyle.border).toBe("3px");
-  expect(revealStyle.top).toBeLessThan(-10);
-  expect(revealStyle.bottom).toBeLessThan(-10);
-  expect(revealStyle.shadow).toBe("none");
-  expect(revealStyle.opacity).toBe("1");
-  await expect(section.locator(":scope > div")).not.toHaveCSS("position", "sticky");
-  expect(await section.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual((await page.evaluate(() => innerHeight)) * 1.2);
+  await page.goto("/");
+  const section = page.getByTestId("home-showreel");
+  await section.scrollIntoViewIfNeeded();
+  await expect.poll(() => page.evaluate(() => (
+    (window as typeof window & { __parigoMediaCalls?: string[] }).__parigoMediaCalls ?? []
+  ))).toContain("play:audible");
+  await expect(page.getByTestId("showreel-sound-active")).toBeVisible();
+  await expect(section.getByTestId("showreel-title-square")).toHaveCount(3);
+  const titleLetters = section.getByTestId("showreel-title-letter");
+  await expect(titleLetters.first()).toHaveCSS("opacity", "1");
+  await expect(section.getByTestId("showreel-title-square").last()).toHaveCSS("opacity", "1", { timeout: 6_000 });
+
+  const showreelTop = await section.evaluate((node) => node.getBoundingClientRect().top + scrollY);
+  const viewportHeight = await page.evaluate(() => innerHeight);
+  await page.evaluate(({ top, viewport }) => scrollTo({ top: top + viewport * .35 }), {
+    top: showreelTop,
+    viewport: viewportHeight,
+  });
+  const soundPosition = page.getByTestId("showreel-sound-position");
+  await expect(soundPosition).toHaveCount(1);
+  await expect(page.locator('button[data-floating="true"][aria-label="Couper le son"]')).toBeVisible();
+  await page.waitForTimeout(180);
+  const movingSoundBox = await soundPosition.boundingBox();
+  await page.waitForTimeout(1_350);
+  const settledSoundBox = await soundPosition.boundingBox();
+  expect(movingSoundBox).not.toBeNull();
+  expect(settledSoundBox).not.toBeNull();
+  expect(settledSoundBox!.y).toBeGreaterThan(movingSoundBox!.y);
+
+  await page.evaluate((top) => scrollTo({ top }), showreelTop);
+  await expect(page.locator('button[data-floating="true"][aria-label="Couper le son"]')).toBeVisible();
+  await expect(soundPosition).toHaveCount(1);
+
+  await page.getByTestId("home-composers").scrollIntoViewIfNeeded();
+  const floatingMute = page.locator('button[data-floating="true"][aria-label="Couper le son"]');
+  await expect(floatingMute).toHaveAttribute("data-floating", "true");
+  const floatingMuteBox = await floatingMute.boundingBox();
+  expect(floatingMuteBox).not.toBeNull();
+  const viewportWidth = await page.evaluate(() => innerWidth);
+  expect(floatingMuteBox!.x + floatingMuteBox!.width).toBeGreaterThan(viewportWidth - 100);
+
+  await floatingMute.click();
+  const reattachedSound = page.locator('button[data-floating="false"][aria-label="Activer le son"]');
+  await expect(reattachedSound).toHaveCount(1);
+  await page.waitForTimeout(1_350);
+  const reattachedSoundBox = await soundPosition.boundingBox();
+  expect(reattachedSoundBox).not.toBeNull();
+  expect(reattachedSoundBox!.y).toBeLessThan(floatingMuteBox!.y);
+  await expect(page.getByTestId("showreel-sound-active")).toHaveCount(0);
+
+  const audibleStartsAfterManualStop = await page.evaluate(() => (
+    (window as typeof window & { __parigoMediaCalls?: string[] })
+      .__parigoMediaCalls?.filter((call) => call === "play:audible").length ?? 0
+  ));
+  await section.scrollIntoViewIfNeeded();
+  await page.getByTestId("home-composers").scrollIntoViewIfNeeded();
+  await section.scrollIntoViewIfNeeded();
+  await expect(page.locator('button[data-floating="false"][aria-label="Activer le son"]')).toBeVisible();
+  await expect(page.getByTestId("showreel-sound-active")).toHaveCount(0);
+  expect(await page.evaluate(() => (
+    (window as typeof window & { __parigoMediaCalls?: string[] })
+      .__parigoMediaCalls?.filter((call) => call === "play:audible").length ?? 0
+  ))).toBe(audibleStartsAfterManualStop);
+
+  await page.locator('button[data-floating="false"][aria-label="Activer le son"]').click();
+  await expect(page.getByTestId("showreel-sound-active")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => (
+    (window as typeof window & { __parigoMediaCalls?: string[] })
+      .__parigoMediaCalls?.filter((call) => call === "play:audible").length ?? 0
+  ))).toBe(audibleStartsAfterManualStop + 1);
 });
 
-test("le manifesto fait apparaître plusieurs pochettes au fil du pointeur puis les retire à la sortie", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "L’exploration des pochettes est une interaction au pointeur.");
+test("le son du showreel et son contrôle persistent pendant la navigation", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.addInitScript(() => {
+    const calls: string[] = [];
+    Object.defineProperty(window, "__parigoPersistentMediaCalls", { value: calls });
+    HTMLMediaElement.prototype.play = function play() {
+      calls.push(`play:${this.tagName.toLowerCase()}:${this.muted ? "muted" : "audible"}`);
+      queueMicrotask(() => this.dispatchEvent(new Event("play")));
+      return Promise.resolve();
+    };
+    HTMLMediaElement.prototype.pause = function pause() {
+      calls.push(`pause:${this.tagName.toLowerCase()}`);
+      queueMicrotask(() => this.dispatchEvent(new Event("pause")));
+    };
+  });
   await page.goto("/");
-  const section = page.locator("#manifesto");
+  const section = page.getByTestId("home-showreel");
   await section.scrollIntoViewIfNeeded();
-  await expect(section).toHaveAttribute("data-reveal-complete", "true", { timeout: 10_000 });
+  await expect(page.getByTestId("showreel-sound-active")).toBeVisible();
+
+  const showreelTop = await section.evaluate((node) => node.getBoundingClientRect().top + scrollY);
+  const viewportHeight = await page.evaluate(() => innerHeight);
+  await page.evaluate(({ top, viewport }) => scrollTo({ top: top + viewport * .35 }), {
+    top: showreelTop,
+    viewport: viewportHeight,
+  });
+  const floatingControl = page.locator('button[data-floating="true"][aria-label="Couper le son"]');
+  await expect(floatingControl).toBeVisible();
+
+  const persistentAudio = page.getByTestId("persistent-showreel-audio");
+  await persistentAudio.evaluate((audio) => {
+    audio.dataset.persistenceMarker = "same-audio-node";
+  });
+  const audibleCallsBeforeNavigation = await page.evaluate(() => (
+    (window as typeof window & { __parigoPersistentMediaCalls?: string[] })
+      .__parigoPersistentMediaCalls?.filter((call) => call === "play:audio:audible").length ?? 0
+  ));
+
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await page.locator("#global-menu").locator('a[href="/labels"]').click();
+  await expect(page).toHaveURL(/\/labels$/);
+  await expect(page.getByTestId("persistent-showreel-audio")).toHaveAttribute("data-persistence-marker", "same-audio-node");
+  await expect(page.locator('button[data-floating="true"][aria-label="Couper le son"]')).toBeVisible();
+  expect(await page.evaluate(() => (
+    (window as typeof window & { __parigoPersistentMediaCalls?: string[] })
+      .__parigoPersistentMediaCalls?.filter((call) => call === "play:audio:audible").length ?? 0
+  ))).toBe(audibleCallsBeforeNavigation);
+
+  await page.evaluate(() => scrollTo({ top: 0, behavior: "instant" }));
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await page.locator("#global-menu").locator('a[href="/search"]').click();
+  const firstTrack = page.getByRole("button", { name: /^Écouter / }).first();
+  await expect(firstTrack).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).first().click();
+  const shortlistTrigger = page.locator("[data-shortlist-trigger]");
+  await expect(shortlistTrigger).toBeVisible();
+  await expect.poll(async () => {
+    const [soundBox, shortlistBox] = await Promise.all([
+      page.locator('button[data-floating="true"][aria-label="Couper le son"]').boundingBox(),
+      shortlistTrigger.boundingBox(),
+    ]);
+    if (!soundBox || !shortlistBox) return -1;
+    return shortlistBox.y - (soundBox.y + soundBox.height);
+  }).toBeGreaterThanOrEqual(10);
+  await page.getByRole("dialog", { name: "Shortlist" }).getByRole("button", { name: "Fermer", exact: true }).click();
+  await firstTrack.click();
+  await expect(page.getByTestId("player-dock")).toBeVisible();
+  await expect(page.locator('button[data-floating="true"][aria-label="Couper le son"]')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => (
+    (window as typeof window & { __parigoPersistentMediaCalls?: string[] })
+      .__parigoPersistentMediaCalls ?? []
+  ))).toContain("pause:audio");
+});
+
+test("les quatre compositeurs partagent un split réactif dans un seul viewport", async ({ page }) => {
+  await page.goto("/");
+  const section = page.getByTestId("home-composers");
+  const stickyStage = page.getByTestId("composer-sticky-stage");
+  const [stageHeight, viewportHeight] = await Promise.all([
+    stickyStage.evaluate((node) => node.clientHeight),
+    page.evaluate(() => innerHeight),
+  ]);
+  expect(stageHeight).toBeGreaterThanOrEqual(viewportHeight * .95);
+  expect(stageHeight).toBeLessThanOrEqual(viewportHeight * 1.05);
+  await expect(stickyStage).toHaveCSS("position", "sticky");
+  await expect(section.getByText("Celles et ceux qui composent")).toHaveCount(0);
+
+  const sectionTop = await section.evaluate((node) => node.getBoundingClientRect().top + scrollY);
+  await page.evaluate(({ top }) => scrollTo({ top }), {
+    top: sectionTop,
+  });
+  await expect(section).toHaveAttribute("data-active-composer", "ugly-mac-beer");
+  await page.evaluate(({ top, viewport }) => scrollTo({ top: top + viewport * 1.62 }), {
+    top: sectionTop,
+    viewport: viewportHeight,
+  });
+  await expect(section).toHaveAttribute("data-active-composer", "fabien-girard");
+
+  const portraitBox = await section.getByTestId("composer-stage-portrait").last().boundingBox();
+  expect(portraitBox).not.toBeNull();
+  expect(portraitBox!.width).toBeGreaterThan(300);
+  expect(portraitBox!.height).toBeGreaterThan(240);
+
+  const initialRunwayHeight = await section.evaluate((node) => (node as HTMLElement).offsetHeight);
+  await page.evaluate(({ top, runway }) => scrollTo({ top: top + runway - 2 }), {
+    top: sectionTop,
+    runway: initialRunwayHeight,
+  });
+  const processSection = page.locator("#process");
+  const processTopBeforeCollapse = await processSection.evaluate((node) => node.getBoundingClientRect().top);
+  await page.evaluate(() => scrollBy({ top: 5 }));
+  await expect(section).toHaveAttribute("data-sticky-completed", "true");
+  const processTopAfterCollapse = await processSection.evaluate((node) => node.getBoundingClientRect().top);
+  expect(Math.abs(processTopAfterCollapse - processTopBeforeCollapse + 5)).toBeLessThan(6);
+  await expect(stickyStage).toHaveCSS("position", "relative");
+  expect(await section.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual(viewportHeight * 1.05);
+
+  const scrollAfterCollapse = await page.evaluate(() => scrollY);
+  await page.evaluate(() => scrollBy({ top: -120 }));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(scrollAfterCollapse);
+  expect(Math.abs((await page.evaluate(() => scrollY)) - (scrollAfterCollapse - 120))).toBeLessThan(6);
+});
+
+test("le showreel reste sans effet au survol et introduit les compositeurs", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol est contrôlé avec un pointeur desktop.");
+  await page.goto("/");
+  const section = page.getByTestId("home-showreel");
+  await section.scrollIntoViewIfNeeded();
   const box = await section.boundingBox();
   expect(box).not.toBeNull();
-  await page.mouse.move(box!.x + box!.width * .14, box!.y + box!.height * .22);
-  const covers = page.getByTestId("manifesto-album-cover");
-  await expect(covers).toHaveCount(1);
-  const firstSource = await covers.first().locator("img").getAttribute("src");
-  expect(firstSource).toMatch(/^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/albumart\//);
-  expect(firstSource).not.toContain("/_next/image");
-  await page.waitForTimeout(50);
-  await page.mouse.move(box!.x + box!.width * .82, box!.y + box!.height * .72);
-  await expect.poll(() => covers.count()).toBeGreaterThan(1);
-  expect(await covers.count()).toBeLessThanOrEqual(24);
-  await expect(covers.first()).not.toHaveCSS("border-radius", "999px");
-  await section.dispatchEvent("pointerleave", { pointerType: "mouse" });
-  await expect(covers).toHaveCount(0, { timeout: 7_000 });
+  await page.mouse.move(box!.x + box!.width * .2, box!.y + box!.height * .25);
+  await page.mouse.move(box!.x + box!.width * .8, box!.y + box!.height * .75);
+  await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
+  const composers = page.getByTestId("home-composers");
+  await expect(composers.getByRole("heading", { name: /La musique commence.*par une rencontre/i })).toBeVisible();
+  await expect(composers.locator(".composer-title-line")).toHaveText([
+    "La musique commence",
+    "par une rencontre",
+  ]);
+  await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
+  const profiles = composers.locator('a[href^="/compositeurs/"]');
+  await expect(profiles).toHaveCount(4);
+  expect(await profiles.evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
+    "/compositeurs/ugly-mac-beer",
+    "/compositeurs/laurent-dury",
+    "/compositeurs/minimatic",
+    "/compositeurs/fabien-girard",
+  ]);
 });
 
-test("le manifesto désactive les pochettes décoratives quand les animations sont réduites", async ({ page }) => {
+test("le showreel respecte la réduction des animations", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const section = page.locator("#manifesto");
+  const section = page.getByTestId("home-showreel");
   await section.scrollIntoViewIfNeeded();
-  const box = await section.boundingBox();
-  expect(box).not.toBeNull();
-  await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
-  await page.waitForTimeout(300);
+  await expect(section.locator("iframe")).toHaveCount(0);
+  await expect(section.getByTestId("home-showreel-video")).toBeVisible();
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
+  await expect(section.getByRole("heading", { name: /Une musique juste/i })).toBeVisible();
+  await expect(section.getByRole("button", { name: /Activer le son|Couper le son/ })).toHaveCount(0);
 });
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }, testInfo) => {

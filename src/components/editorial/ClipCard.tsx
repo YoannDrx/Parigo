@@ -14,9 +14,17 @@ export function ClipCard({
   locale: Locale;
 }) {
   const title = clip.title[locale];
+  const href = localizedPath(locale, `/clips/${clip.slug}`);
   return (
     <ParigoVideoCard
-      href={localizedPath(locale, `/clips/${clip.slug}`)}
+      clip={{
+        slug: clip.slug,
+        youtubeId: clip.youtubeId,
+        title: clip.title,
+        cover: clip.cover,
+        href,
+      }}
+      href={href}
       image={clip.cover}
       title={title}
       eyebrow={videoTypeLabels[clip.videoType][locale]}

@@ -114,14 +114,24 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
 });
 
-test("les playlists proposent recherche, ambiance, genre, instrument et usage", async ({ page }, testInfo) => {
+test("les playlists proposent une ligne compacte de facettes et uniquement le tri alphabétique", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await page.goto("/playlists");
-  await expect(page.getByPlaceholder("Rechercher une playlist ou un thème")).toBeVisible();
+  await expect(page.getByPlaceholder("Rechercher une playlist ou un thème")).toHaveCount(0);
   for (const label of ["Ambiance", "Genre", "Instrument", "Musique pour"]) {
     await expect(page.getByText(label, { exact: true })).toBeVisible();
   }
   await expect(page.locator("main select")).toHaveCount(0);
+  await expect(page.getByText("Plus de pistes", { exact: true })).toHaveCount(0);
+  if (testInfo.project.name !== "mobile") {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const filters = page.getByTestId("playlist-filters");
+    const filterBox = await filters.boundingBox();
+    const orderBox = await page.getByRole("combobox", { name: "Trier les résultats" }).boundingBox();
+    expect(filterBox).not.toBeNull();
+    expect(orderBox).not.toBeNull();
+    expect(Math.abs(filterBox!.y - orderBox!.y)).toBeLessThanOrEqual(4);
+  }
   const moodFilter = page.locator(".catalog-facet").filter({ hasText: "Ambiance" });
   await moodFilter.getByRole("button").first().click();
   const firstInclude = moodFilter.getByRole("button", { name: /^Inclure / }).first();

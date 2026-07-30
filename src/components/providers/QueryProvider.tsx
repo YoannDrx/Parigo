@@ -10,11 +10,15 @@ import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { usePlayerStore } from "@/stores/player-store";
 import { useShortlistStore } from "@/stores/shortlist-store";
 import { ClientErrorMonitor } from "./ClientErrorMonitor";
+import { ShowreelAudioProvider } from "./ShowreelAudioProvider";
+import { PlaybackCoordinatorProvider, usePlaybackCoordinator } from "./PlaybackCoordinatorProvider";
+import { ClipPlaybackProvider } from "./ClipPlaybackProvider";
 
 function GlobalOverlays() {
   const authOpen = useAuthModalStore((state) => state.isOpen);
   const shortlistItems = useShortlistStore((state) => state.items.length);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const { foregroundPlayback } = usePlaybackCoordinator();
   const [AuthModal, setAuthModal] = useState<ComponentType | null>(null);
   const [ShortlistDrawer, setShortlistDrawer] = useState<ComponentType | null>(null);
   const [MiniPlayer, setMiniPlayer] = useState<ComponentType | null>(null);
@@ -48,7 +52,7 @@ function GlobalOverlays() {
 
   return (
     <>
-      {currentTrack && MiniPlayer && <MiniPlayer />}
+      {currentTrack && MiniPlayer && foregroundPlayback !== "clip" && foregroundPlayback !== "showreel" && <MiniPlayer />}
       {authOpen && AuthModal && <AuthModal />}
       {shortlistItems > 0 && ShortlistDrawer && <ShortlistDrawer />}
     </>
@@ -59,11 +63,17 @@ export function QueryProvider({ children, initialLocale, initialConsentSnapshot 
   return (
     <ThemeProvider>
       <I18nProvider initialLocale={initialLocale}>
-          {children}
-          <GlobalOverlays />
+        <PlaybackCoordinatorProvider>
+          <ClipPlaybackProvider initialConsentSnapshot={initialConsentSnapshot}>
+            <ShowreelAudioProvider>
+              {children}
+              <GlobalOverlays />
+            </ShowreelAudioProvider>
+          </ClipPlaybackProvider>
           <CookieConsent initialSnapshot={initialConsentSnapshot} />
-          <AnalyticsGate />
-          <ClientErrorMonitor />
+        </PlaybackCoordinatorProvider>
+        <AnalyticsGate />
+        <ClientErrorMonitor />
       </I18nProvider>
     </ThemeProvider>
   );

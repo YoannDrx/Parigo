@@ -215,7 +215,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
 
   const filterPanel = (
     <SearchFilterPanel
-      groups={filterGroups}
+      groups={filterGroups.filter((group) => group.key !== "composers")}
       categories={categories}
       labels={labels}
       bpmRange={bpmRange}
