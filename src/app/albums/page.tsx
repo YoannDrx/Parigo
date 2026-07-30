@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { AlbumExplorer } from "@/components/catalog/AlbumExplorer";
 import { CatalogHero } from "@/components/catalog/CatalogHero";
 import { Footer, Header } from "@/components/layout";
@@ -9,25 +8,13 @@ import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
 import type { Album } from "@/types";
 
-type AlbumDiscoveryPromise = ReturnType<typeof getCachedAlbumDiscovery>;
+type AlbumDiscovery = Awaited<ReturnType<typeof getCachedAlbumDiscovery>>;
 
-async function AlbumMeta({
-  albumsPromise,
-  label,
+function AlbumExplorerContent({
+  albums,
 }: {
-  albumsPromise: AlbumDiscoveryPromise;
-  label: string;
+  albums: AlbumDiscovery;
 }) {
-  const albums = await albumsPromise;
-  return <>{albums.total} {label}</>;
-}
-
-async function AlbumExplorerContent({
-  albumsPromise,
-}: {
-  albumsPromise: AlbumDiscoveryPromise;
-}) {
-  const albums = await albumsPromise;
   const initialAlbums = {
     // Keep the streamed payload focused on what the cards render. The client
     // refreshes this query after hydration and restores the full records/facets.
@@ -51,29 +38,6 @@ async function AlbumExplorerContent({
   );
 }
 
-function AlbumExplorerFallback({ loadingLabel }: { loadingLabel: string }) {
-  return (
-    <div aria-label={loadingLabel} aria-busy="true" className="grid min-w-0 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-      <div aria-hidden="true" className="hidden min-h-[34rem] border border-[var(--line)] bg-[var(--surface-soft)] lg:block" />
-      <div className="min-w-0">
-        <div aria-hidden="true" className="mb-4 h-44 border border-[var(--line)] bg-[var(--surface-soft)] sm:h-32" />
-        <div aria-hidden="true" className="grid grid-cols-1 gap-x-4 gap-y-12 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {Array.from({ length: 20 }, (_, index) => (
-            <div key={index} className="border border-[var(--line)] bg-[var(--surface)]">
-              <div className="aspect-square border-b border-[var(--line)] bg-[var(--surface-soft)]" />
-              <div className="h-28 p-4">
-                <div className="h-5 w-4/5 bg-[var(--surface-soft)]" />
-                <div className="mt-3 h-3 w-2/3 bg-[var(--surface-soft)]" />
-                <div className="mt-5 h-3 w-1/2 bg-[var(--surface-soft)]" />
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export async function generateMetadata({ searchParams }: { searchParams: PageSearchParams }) {
   const [locale, filtered] = await Promise.all([
     getRequestLocale(),
@@ -90,8 +54,12 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
 }
 
 export default async function AlbumsPage() {
-  const albumsPromise = getCachedAlbumDiscovery({ limit: 20, sort: "recent" });
-  const locale = await getRequestLocale();
+  // Resolve the first page before rendering so its LCP artwork is emitted in
+  // the initial document instead of a late streamed Suspense boundary.
+  const [albums, locale] = await Promise.all([
+    getCachedAlbumDiscovery({ limit: 20, sort: "recent" }),
+    getRequestLocale(),
+  ]);
   const copy = messages[locale];
 
   return (
@@ -101,16 +69,10 @@ export default async function AlbumsPage() {
         <CatalogHero
           title={copy.catalog.albumsTitle}
           intro={copy.catalog.albumsIntro}
-          meta={(
-            <Suspense fallback={copy.common.albums.toLowerCase()}>
-              <AlbumMeta albumsPromise={albumsPromise} label={copy.common.albums.toLowerCase()} />
-            </Suspense>
-          )}
+          meta={`${albums.total} ${copy.common.albums.toLowerCase()}`}
         />
         <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
-          <Suspense fallback={<AlbumExplorerFallback loadingLabel={copy.common.loading} />}>
-            <AlbumExplorerContent albumsPromise={albumsPromise} />
-          </Suspense>
+          <AlbumExplorerContent albums={albums} />
         </div>
       </main>
       <Footer />
