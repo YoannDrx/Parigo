@@ -55,10 +55,10 @@ test("les routes principales ne débordent sur aucun viewport cible", async ({ p
   ];
 
   for (const viewport of viewports) {
-    await page.setViewportSize(viewport);
+      await page.setViewportSize(viewport);
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
-      await expect(page.locator("main")).toBeVisible();
+      await expect(page.locator("main").first()).toBeVisible();
       await expect.poll(
         () => page.evaluate(() => ({
           clientWidth: document.documentElement.clientWidth,
