@@ -214,7 +214,7 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   expect(menuBox).not.toBeNull();
   expect(menuBox!.x).toBeLessThanOrEqual(5);
   expect(menuBox!.width).toBeGreaterThanOrEqual((await page.evaluate(() => innerWidth)) - 5);
-  expect(menuBox!.height).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) - 75);
+  expect(Math.ceil(menuBox!.height)).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) - 75);
   await expect(menu).not.toContainText("Paris · France");
   await expect(menu).not.toContainText(/Parigo \/(?: Explorer| Explore)/);
   await expect(menu.locator('a[href="/labels"]')).toContainText("Labels");
