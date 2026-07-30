@@ -55,10 +55,13 @@ test("les routes principales ne débordent sur aucun viewport cible", async ({ p
   ];
 
   for (const viewport of viewports) {
-      await page.setViewportSize(viewport);
+    await page.setViewportSize(viewport);
     for (const route of routes) {
       await page.goto(route, { waitUntil: "domcontentloaded" });
-      await expect(page.locator("main").first()).toBeVisible();
+      // App Router can briefly retain the previous route's main tree while the
+      // next route hydrates. The responsive assertion only needs the active,
+      // visible page surface before measuring the document.
+      await expect(page.locator("main:visible").last()).toBeVisible();
       await expect.poll(
         () => page.evaluate(() => ({
           clientWidth: document.documentElement.clientWidth,
