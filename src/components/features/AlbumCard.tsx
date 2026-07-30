@@ -19,7 +19,7 @@ interface AlbumCardProps {
 export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCardProps) {
   const { locale, t, localizedPath } = useI18n();
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4";
-  const albumCover = resizeArtworkSource(album.cover, 384);
+  const albumCover = resizeArtworkSource(album.cover, priority ? 320 : 384);
   const isFavorite = useFavoritesStore((state) => state.albumIds.has(album.id));
   return (
     <article data-album-card={album.id} data-favorite={isFavorite ? "true" : "false"} className="album-card parigo-frame group/card relative border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
@@ -30,7 +30,9 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
               alt={album.title}
               fill
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover transition duration-[900ms] ease-out group-hover/card:scale-[1.035]"
+              className={priority
+                ? "object-cover"
+                : "object-cover transition duration-[900ms] ease-out group-hover/card:scale-[1.035]"}
               preload={priority}
               fetchPriority={priority ? "high" : undefined}
               decoding={priority ? "sync" : "async"}

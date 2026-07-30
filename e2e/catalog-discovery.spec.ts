@@ -51,7 +51,9 @@ test("la première pochette du catalogue est prioritaire pour le LCP", async ({ 
   await expect(albumImages.first()).toBeVisible({ timeout: 30_000 });
   await expect(albumImages.first()).toHaveAttribute("fetchpriority", "high");
   await expect(albumImages.first()).not.toHaveAttribute("loading", "lazy");
-  await expect(albumImages.nth(1)).not.toHaveAttribute("fetchpriority", "high");
+  await expect(albumImages.nth(1)).toHaveAttribute("fetchpriority", "high");
+  await expect(albumImages.nth(1)).not.toHaveAttribute("loading", "lazy");
+  await expect(albumImages.nth(2)).not.toHaveAttribute("fetchpriority", "high");
 });
 
 test("les labels exposent les vrais volumes, la recherche et les deux vues", async ({ page }) => {
