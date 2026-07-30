@@ -15,6 +15,7 @@ import {
 import { usePlayerStore } from "@/stores/player-store";
 import { useShortlistStore } from "@/stores/shortlist-store";
 import { useI18n } from "./I18nProvider";
+import { usePlaybackCoordinator } from "./PlaybackCoordinatorProvider";
 
 const SHOWREEL_SOURCE = "/videos/garden-of-eden-showreel.mp4";
 
@@ -82,6 +83,13 @@ export function ShowreelSoundButton({ floating }: { floating: boolean }) {
 }
 
 export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
+  const {
+    claim,
+    foregroundPlayback,
+    isCurrentClaim,
+    registerAdapter,
+    release,
+  } = usePlaybackCoordinator();
   const audioRef = useRef<HTMLAudioElement>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const [hasStarted, setHasStarted] = useState(false);
@@ -115,11 +123,11 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
     }
 
     if (manuallyStoppedRef.current) setDocked(true);
-    if (!usePlayerStore.getState().isPlaying && suppressedByCatalogRef.current) {
+    if (!foregroundPlayback && suppressedByCatalogRef.current) {
       setSuppressedByCatalog(false);
       setDocked(true);
     }
-  }, []);
+  }, [foregroundPlayback]);
 
   const start = useCallback(async ({ explicit = false }: StartOptions = {}) => {
     const audio = audioRef.current;
@@ -136,26 +144,35 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
     }
 
     setHasStarted(true);
-    const player = usePlayerStore.getState();
-    if (player.isPlaying && !explicit) {
+    if (!explicit && foregroundPlayback && foregroundPlayback !== "showreel") {
       setSuppressedByCatalog(true);
       return false;
     }
-    if (player.isPlaying) player.pause();
 
     setSuppressedByCatalog(false);
     audio.volume = 1;
     audio.muted = false;
+    setMuted(false);
+
+    let claimId = explicit ? claim("showreel") : 0;
 
     try {
       await audio.play();
-      setMuted(false);
+      if (!explicit) claimId = claim("showreel");
+      if (!isCurrentClaim("showreel", claimId)) {
+        audio.pause();
+        audio.muted = true;
+        setMuted(true);
+        setIsPlaying(false);
+        return false;
+      }
       setIsPlaying(true);
       return true;
     } catch {
       if (explicit) {
         setMuted(true);
         setIsPlaying(false);
+        release("showreel");
         return false;
       }
 
@@ -169,7 +186,7 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
       }
       return false;
     }
-  }, []);
+  }, [claim, foregroundPlayback, isCurrentClaim, release]);
 
   const toggleSound = useCallback(async () => {
     const audio = audioRef.current;
@@ -182,6 +199,7 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
       audio.muted = true;
       setMuted(true);
       setIsPlaying(false);
+      release("showreel");
       if (sectionRef.current) {
         const control = document.querySelector<HTMLElement>("[data-testid='showreel-sound-position']");
         const sectionBounds = sectionRef.current.getBoundingClientRect();
@@ -198,7 +216,7 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
     }
 
     await start({ explicit: true });
-  }, [isPlaying, muted, start]);
+  }, [isPlaying, muted, release, start]);
 
   const detach = useCallback(() => {
     if (!isPlaying || muted || manuallyStoppedRef.current) return;
@@ -216,17 +234,7 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
   const getCurrentTime = useCallback(() => audioRef.current?.currentTime ?? 0, []);
   const clearReattachOrigin = useCallback(() => setReattachOrigin(null), []);
 
-  useEffect(() => usePlayerStore.subscribe((state, previousState) => {
-    if (state.isPlaying === previousState.isPlaying) return;
-
-    if (!state.isPlaying) {
-      if (suppressedByCatalogRef.current && sectionRef.current) {
-        setSuppressedByCatalog(false);
-        setDocked(true);
-      }
-      return;
-    }
-
+  const pauseForCoordinator = useCallback(() => {
     const audio = audioRef.current;
     if (!audio || !isPlayingRef.current) return;
     audio.pause();
@@ -234,7 +242,12 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
     setMuted(true);
     setIsPlaying(false);
     setSuppressedByCatalog(true);
-  }), []);
+  }, []);
+
+  useEffect(
+    () => registerAdapter("showreel", { pause: pauseForCoordinator }),
+    [pauseForCoordinator, registerAdapter],
+  );
 
   useEffect(() => {
     let resizeObserver: ResizeObserver | null = null;
@@ -332,6 +345,7 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
   const showFloatingControl = hasStarted
     && !docked
     && !suppressedByCatalog
+    && foregroundPlayback === "showreel"
     && (isPlaying || muted);
 
   return (

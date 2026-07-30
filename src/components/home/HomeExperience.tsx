@@ -193,6 +193,13 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
               {clips.map((clip) => (
                 <ParigoVideoCard
                   key={clip.slug}
+                  clip={{
+                    slug: clip.slug,
+                    youtubeId: clip.youtubeId,
+                    title: clip.title,
+                    cover: clip.cover,
+                    href: localizedPath(`/clips/${clip.slug}`),
+                  }}
                   href={localizedPath(`/clips/${clip.slug}`)}
                   image={clip.cover}
                   title={clip.title[locale]}

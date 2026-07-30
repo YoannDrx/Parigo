@@ -20,6 +20,14 @@ export interface EditorialVideo {
   published: boolean;
 }
 
+export interface ClipPlaybackDescriptor {
+  slug: string;
+  youtubeId?: string;
+  title: { fr: string; en: string };
+  cover: string;
+  href: string;
+}
+
 export const videoTypeLabels: Record<VideoType, { fr: string; en: string }> = {
   "official-video": { fr: "Clip officiel", en: "Official video" },
   teaser: { fr: "Teaser", en: "Teaser" },
