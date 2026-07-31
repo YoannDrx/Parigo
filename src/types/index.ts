@@ -201,7 +201,13 @@ export interface QueryResolution {
 export interface SearchIntentResolution {
   original: string;
   categoryIds: string[];
+  criteria: Array<{
+    id: string;
+    group: SearchFilterGroupKey;
+    name: string;
+  }>;
   bpmRange?: [number, number];
+  translation?: QueryResolution;
   supported: boolean;
   source: "parigo-taxonomy";
 }

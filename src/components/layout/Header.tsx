@@ -118,20 +118,13 @@ export function Header({ variant = "default" }: HeaderProps) {
 
         {open && (
           <div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom parigo-global-menu absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain text-[var(--foreground)] backdrop-blur-2xl">
-            <span aria-hidden="true" className="parigo-global-menu__arc" />
-            <span aria-hidden="true" className="parigo-global-menu__line" />
             <div className="relative mx-auto grid min-h-max max-w-[1760px] gap-x-8 px-4 py-7 md:grid-cols-12 md:px-8 md:py-10 xl:gap-x-12">
               <div className="mb-9 xl:hidden md:col-span-12"><UserMenu embedded /></div>
               <div className="md:col-span-8 lg:col-span-9">
-                <div className="mb-6 grid gap-3 border-b border-[var(--line)] pb-5 md:grid-cols-12 md:items-end md:gap-6 md:pb-6">
-                  <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.5rem,4.6vw,5rem)] leading-[.88] text-[var(--foreground)] md:col-span-7">
+                <div className="mb-6 border-b border-[var(--line)] pb-5 md:pb-6">
+                  <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.5rem,4.6vw,5rem)] leading-[.88] text-[var(--foreground)]">
                     {locale === "fr" ? "Explorer Parigo." : "Explore Parigo."}
                   </SignedTitle>
-                  <p className="max-w-sm text-sm leading-6 text-[var(--text-muted)] md:col-span-5 md:justify-self-end">
-                    {locale === "fr"
-                      ? "Catalogue, images et compositeurs : entrez par le chemin qui ressemble à votre projet."
-                      : "Catalogue, images and composers: choose the path that best matches your project."}
-                  </p>
                 </div>
                 <div data-testid="drawer-navigation" className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
                   {drawerNav.map((item, index) => {

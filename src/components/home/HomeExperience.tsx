@@ -19,7 +19,7 @@ import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { resizeArtworkSource } from "@/lib/image-loader";
-import type { HomeComposerProfile } from "./ComposerPortraitsSection";
+import { PartnerMarquee, type HomePartner } from "./PartnerMarquee";
 
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
 
@@ -84,12 +84,12 @@ interface HomeExperienceProps {
   };
   initialParigoAlbums: Album[];
   initialReleases: Album[];
-  homeComposers: HomeComposerProfile[];
+  partners: HomePartner[];
   initialSynchronisations: Synchronisation[];
   initialClips: EditorialVideo[];
 }
 
-export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, homeComposers, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
+export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, partners, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
   const { locale, t, localizedPath } = useI18n();
   const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "parigo">("releases");
   const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>(initialReleases);
@@ -219,10 +219,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
-        <DeferredHomeStorySections
-          locale={locale}
-          homeComposers={homeComposers}
-        />
+        <DeferredHomeStorySections locale={locale} />
 
         <section data-testid="home-sync-section" className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
@@ -244,9 +241,10 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
+        <PartnerMarquee partners={partners} />
+
         <section data-testid="social-follow-section" className="px-4 py-20 md:px-8 md:py-28">
           <SectionReveal className="group relative mx-auto grid max-w-[1580px] overflow-hidden rounded-[1.2rem] bg-[var(--signal-strong)] p-6 text-white md:grid-cols-12 md:items-center md:p-10 lg:p-14">
-            <div aria-hidden="true" className="absolute -right-16 -top-24 h-72 w-72 rounded-full border-[44px] border-white/10 transition duration-700 group-hover:scale-110" />
             <div className="relative md:col-span-9 md:flex md:items-center md:gap-4"><div className="relative h-28 w-full max-w-[15rem] shrink-0" role="list" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform) => <span key={platform.name} role="listitem" aria-label={platform.name} className={`absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><PlatformIcon name={platform.name} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-4 text-white md:mt-0"><SignedTitle as="h2" className="text-[clamp(2rem,4vw,4.5rem)] leading-[.94] text-white">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</SignedTitle><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/82">{locale === "fr" ? "Sorties, playlists, images et actualités du label — tous nos liens réunis au même endroit." : "Releases, playlists, images and label news — all our links in one place."}</p></div></div>
             <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href="https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-3 rounded-full border border-white/78 px-5 text-sm font-semibold !text-white transition hover:border-white hover:bg-white hover:!text-[#123f24] focus-visible:outline-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
           </SectionReveal>

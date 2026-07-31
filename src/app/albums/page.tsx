@@ -39,6 +39,7 @@ async function AlbumExplorerContent({
       labelSlug: album.labelSlug,
       cover: album.cover,
       genres: album.genres,
+      code: album.code,
       trackCount: album.trackCount,
     })),
     pagination: { total: albums.total, limit: albums.pageSize, offset: 0, hasMore: albums.items.length < albums.total },

@@ -11,7 +11,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Disc3,
-  GitBranch,
   LayoutGrid,
   Layers3,
   Minus,
@@ -328,6 +327,13 @@ function SearchContent() {
 
   const draftIntent = useMemo(() => parseSearchIntent(searchMode === "intent" ? queryDraft : ""), [queryDraft, searchMode]);
   const draftIntentChips = useMemo(() => searchIntentChips(draftIntent, locale), [draftIntent, locale]);
+  const displayedIntentChips = useMemo(() => {
+    if (intentResolution?.original !== queryDraft.trim()) return draftIntentChips;
+    return [
+      ...(intentResolution.criteria ?? []).map((criterion) => ({ key: criterion.id, label: criterion.name })),
+      ...(intentResolution.bpmRange ? [{ key: "bpm", label: `${intentResolution.bpmRange[0]}–${intentResolution.bpmRange[1]} BPM` }] : []),
+    ];
+  }, [draftIntentChips, intentResolution, queryDraft]);
   const commitSearchDraft = useCallback((rawValue: string) => {
     const value = rawValue.trim();
     if (!value) {
@@ -489,10 +495,10 @@ function SearchContent() {
                     <button type="button" aria-pressed={searchMode === "intent"} onClick={() => { setSearchMode("intent"); setPage(1); }} className={cn("inline-flex min-h-9 items-center gap-2 px-3 text-xs font-semibold transition", searchMode === "intent" && "bg-[var(--foreground)] text-[var(--background)]")}><Sparkles size={13} />{locale === "fr" ? "Par intention" : "By brief"}</button>
                   </div>
                 </div>
-                {searchMode === "intent" && draftIntentChips.length > 0 && (
+                {searchMode === "intent" && displayedIntentChips.length > 0 && (
                   <div data-testid="search-detected-criteria" className="mt-2 flex flex-wrap items-center gap-2 border-t border-[var(--line)] px-1 pt-2 text-[var(--text-muted)]" aria-live="polite">
                     <span className="eyebrow">{locale === "fr" ? "Critères détectés" : "Detected criteria"}</span>
-                    {draftIntentChips.map((chip) => <span key={chip.key} className="search-chip search-chip--included px-2.5 py-1 text-xs text-[var(--foreground)]">{chip.label}</span>)}
+                    {displayedIntentChips.map((chip) => <span key={chip.key} className="search-chip search-chip--included px-2.5 py-1 text-xs text-[var(--foreground)]">{chip.label}</span>)}
                   </div>
                 )}
               </div>
@@ -567,6 +573,7 @@ function SearchContent() {
                     <span>{locale === "fr" ? "Tags · ambiance · tempo · durée · actions" : "Tags · mood · tempo · duration · actions"}</span>
                   </div>
                   {tracks.map((track, index) => {
+                    const mainNumber = (page - 1) * PAGE_SIZE + index + 1;
                     const alternates = type === "all" ? track.alternateTracks ?? [] : [];
                     const stems = type === "all"
                       ? [...new Map(
@@ -577,16 +584,16 @@ function SearchContent() {
                       : [];
                     return (
                       <section key={track.id} data-search-track-group={track.id}>
-                        <TrackRow track={track} album={albumFromTrack(track)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index} showAlbumCover compact={density !== "full"} density={density} showCompleteActions />
+                        <TrackRow track={track} album={albumFromTrack(track)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index} displayNumber={String(mainNumber)} showAlbumCover compact={density !== "full"} density={density} showCompleteActions />
                         {type === "all" && (alternates.length > 0 || stems.length > 0) && (
                           <div className="search-version-branch relative ml-5 border-l border-[color-mix(in_srgb,var(--signal)_58%,transparent)] pl-3 sm:ml-10 sm:pl-5">
                             <div className="flex min-h-9 flex-wrap items-center gap-3 border-b border-[var(--line)] px-2 font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
-                              <span className="inline-flex items-center gap-1.5 text-[var(--signal-strong)]"><GitBranch size={12} />{alternates.length} {locale === "fr" ? "versions" : "versions"}</span>
+                              <span className="inline-flex items-center text-[var(--signal-strong)]">{alternates.length} {locale === "fr" ? "versions" : "versions"}</span>
                               {stems.length > 0 && <span className="inline-flex items-center gap-1.5"><Layers3 size={12} />{stems.length} stems</span>}
                             </div>
                             {alternates.map((alternate, alternateIndex) => (
                               <div key={alternate.id} data-track-kind="alternate">
-                                <TrackRow track={alternate} album={albumFromTrack(alternate)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index + alternateIndex + 1} showAlbumCover={false} density="mid" showCompleteActions />
+                                <TrackRow track={alternate} album={albumFromTrack(alternate)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index + alternateIndex + 1} displayNumber={`${mainNumber}.${alternateIndex + 1}`} groupedVersion showAlbumCover={false} density="mid" showCompleteActions />
                               </div>
                             ))}
                             {stems.length > 0 && (

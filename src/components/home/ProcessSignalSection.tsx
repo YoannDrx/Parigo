@@ -39,7 +39,7 @@ export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
       <div className="mx-auto max-w-[1580px]">
         <div className="mb-8 md:mb-10"><SignedTitle as="h2" className="max-w-5xl text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle></div>
         <div className="process-shell relative isolate overflow-hidden border border-white/14 bg-[#090c09] shadow-[0_34px_100px_rgba(5,10,6,.22)]">
-          <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_74%_22%,rgba(72,191,103,.18),transparent_30%),repeating-linear-gradient(115deg,transparent_0,transparent_88px,rgba(255,255,255,.035)_89px,transparent_90px)]" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(145deg,rgba(72,191,103,.13),transparent_42%),linear-gradient(180deg,rgba(255,255,255,.025),transparent_70%)]" />
           <div className="relative border-b border-white/12 px-5 py-4 md:px-8 md:py-5">
             <div className="relative h-1 overflow-hidden rounded-full bg-white/8" data-testid="process-progress"><motion.div aria-hidden="true" style={reduceMotion ? { scaleX: 1 } : { scaleX: scrollYProgress, transformOrigin: "left" }} className="absolute inset-0 origin-left rounded-full bg-[var(--signal)] shadow-[0_0_18px_color-mix(in_srgb,var(--signal)_55%,transparent)]" /></div>
           </div>

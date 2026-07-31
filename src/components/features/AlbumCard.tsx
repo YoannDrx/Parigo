@@ -3,10 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Album } from "@/types";
-import { Tag } from "@/components/ui/Tag";
 import { FavoriteButton } from "./FavoriteButton";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { resizeArtworkSource } from "@/lib/image-loader";
 import { useFavoritesStore } from "@/stores/favorites-store";
 
@@ -22,8 +20,8 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
   const albumCover = resizeArtworkSource(album.cover, priority ? 320 : 384);
   const isFavorite = useFavoritesStore((state) => state.albumIds.has(album.id));
   return (
-    <article data-album-card={album.id} data-favorite={isFavorite ? "true" : "false"} className="album-card parigo-frame group/card relative border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
-        <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false} className="block focus-visible:outline-none">
+    <article data-album-card={album.id} data-favorite={isFavorite ? "true" : "false"} className="album-card parigo-frame group/card relative min-w-0 border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
+        <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false} className="block min-w-0 focus-visible:outline-none">
           <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
             <Image
               src={albumCover}
@@ -50,11 +48,7 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
               <span className="flex-shrink-0 text-xs text-[var(--text-muted)]">
                 {album.trackCount} {album.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}
               </span>
-              {album.genres.length > 0 && (
-                <Tag variant="genre" size="sm" className={isFavorite ? "mr-8 max-w-[52px] truncate sm:mr-9 sm:max-w-[80px]" : "max-w-[100px] truncate"}>
-                  {localizeCatalogTerm(album.genres[0], locale)}
-                </Tag>
-              )}
+              {album.code && <span className={`album-reference-tag min-w-0 ${isFavorite ? "mr-8 sm:mr-9" : ""}`}>{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
             </div>
           </div>
         </Link>

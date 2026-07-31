@@ -71,6 +71,13 @@ test("toutes les versions restent groupées sous la piste principale avec leurs 
   await expect(page.locator('[data-search-track-group="track-1"]')).toBeVisible();
   await expect(page.locator('[data-track-kind="alternate"]')).toHaveCount(2);
   await expect(page.getByText("2 versions", { exact: true })).toBeVisible();
+  await expect(page.locator(".lucide-git-branch")).toHaveCount(0);
+  await expect(page.locator('[data-search-track-group="track-1"] [data-testid="track-display-number"]')).toHaveText(["1", "1.1", "1.2"]);
+  const alternateRows = page.locator('[data-track-kind="alternate"]');
+  await expect(alternateRows.nth(0)).toContainText("Piano documentaire — 60 sec");
+  await expect(alternateRows.nth(0)).toContainText("60 seconds");
+  await expect(alternateRows.nth(1)).toContainText("Piano documentaire — no drums");
+  await expect(alternateRows.nth(1)).toContainText("No drums");
   await expect(page.getByText("Piano", { exact: true })).toBeVisible();
   await expect(page.getByText("Strings", { exact: true })).toBeVisible();
 

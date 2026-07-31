@@ -410,6 +410,11 @@ test("le mode intention applique Music For et refuse les briefs non compris", as
   expect(new URL(page.url()).searchParams.has("q")).toBe(false);
 
   const input = page.getByRole("searchbox", { name: "Décrivez votre intention musicale" });
+  await input.fill("Une musique rapide pour un film d'horreur");
+  await expect(page.getByTestId("search-detected-criteria").getByText("Horror Film", { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("search-detected-criteria").getByText("Hip-hop", { exact: true })).toHaveCount(0);
+  await expect(page.getByTestId("search-detected-criteria")).toContainText("120–180 BPM");
+
   await input.fill("Armand Dupont");
   await expect(page.getByRole("heading", { name: "Cette intention n’est pas encore comprise." })).toBeVisible();
   expect(new URL(page.url()).searchParams.has("q")).toBe(false);

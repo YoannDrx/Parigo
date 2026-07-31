@@ -217,11 +217,17 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   expect(Math.ceil(menuBox!.height)).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) - 75);
   await expect(menu).not.toContainText("Paris · France");
   await expect(menu).not.toContainText(/Parigo \/(?: Explorer| Explore)/);
+  await expect(menu).not.toContainText("Catalogue, images et compositeurs");
+  expect(await menu.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toContain("repeating-linear-gradient");
   await expect(menu.locator('a[href="/labels"]')).toContainText("Labels");
   await expect(menu.getByRole("link", { name: "Label Parigo" })).toBeVisible();
   if (testInfo.project.name === "desktop") {
     const labelsCard = menu.locator('a[href="/labels"]');
-    await labelsCard.hover();
+    await labelsCard.hover({ force: true });
+    const arrow = labelsCard.locator(".parigo-menu-card__arrow");
+    await expect(arrow).toHaveCSS("transform", "none");
+    await expect.poll(() => labelsCard.evaluate((node) => node.matches(":hover"))).toBe(true);
+    await expect.poll(() => arrow.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
     await expect(labelsCard).toHaveCSS("border-top-left-radius", "0px");
     await expect(labelsCard).toHaveCSS("border-bottom-right-radius", "0px");
     expect(Number.parseFloat(await labelsCard.evaluate((node) => getComputedStyle(node).borderTopRightRadius))).toBeGreaterThan(0);
@@ -625,56 +631,22 @@ test("le son du showreel et son contrôle persistent pendant la navigation", asy
   ))).toContain("pause:audio");
 });
 
-test("les quatre compositeurs partagent un split réactif dans un seul viewport", async ({ page }) => {
+test("la section compositeurs raconte une relation humaine sans profils nominatifs", async ({ page }) => {
   await page.goto("/");
   const section = page.getByTestId("home-composers");
-  const stickyStage = page.getByTestId("composer-sticky-stage");
-  const [stageHeight, viewportHeight] = await Promise.all([
-    stickyStage.evaluate((node) => node.clientHeight),
-    page.evaluate(() => innerHeight),
-  ]);
-  expect(stageHeight).toBeGreaterThanOrEqual(viewportHeight * .95);
-  expect(stageHeight).toBeLessThanOrEqual(viewportHeight * 1.05);
-  await expect(stickyStage).toHaveCSS("position", "sticky");
-  await expect(section.getByText("Celles et ceux qui composent")).toHaveCount(0);
-
-  const sectionTop = await section.evaluate((node) => node.getBoundingClientRect().top + scrollY);
-  await page.evaluate(({ top }) => scrollTo({ top }), {
-    top: sectionTop,
-  });
-  await expect(section).toHaveAttribute("data-active-composer", "ugly-mac-beer");
-  await page.evaluate(({ top, viewport }) => scrollTo({ top: top + viewport * 1.62 }), {
-    top: sectionTop,
-    viewport: viewportHeight,
-  });
-  await expect(section).toHaveAttribute("data-active-composer", "fabien-girard");
-
-  const portraitBox = await section.getByTestId("composer-stage-portrait").last().boundingBox();
-  expect(portraitBox).not.toBeNull();
-  expect(portraitBox!.width).toBeGreaterThan(300);
-  expect(portraitBox!.height).toBeGreaterThan(240);
-
-  const initialRunwayHeight = await section.evaluate((node) => (node as HTMLElement).offsetHeight);
-  await page.evaluate(({ top, runway }) => scrollTo({ top: top + runway - 2 }), {
-    top: sectionTop,
-    runway: initialRunwayHeight,
-  });
-  const processSection = page.locator("#process");
-  const processTopBeforeCollapse = await processSection.evaluate((node) => node.getBoundingClientRect().top);
-  await page.evaluate(() => scrollBy({ top: 5 }));
-  await expect(section).toHaveAttribute("data-sticky-completed", "true");
-  const processTopAfterCollapse = await processSection.evaluate((node) => node.getBoundingClientRect().top);
-  expect(Math.abs(processTopAfterCollapse - processTopBeforeCollapse + 5)).toBeLessThan(6);
-  await expect(stickyStage).toHaveCSS("position", "relative");
-  expect(await section.evaluate((node) => node.clientHeight)).toBeLessThanOrEqual(viewportHeight * 1.05);
-
-  const scrollAfterCollapse = await page.evaluate(() => scrollY);
-  await page.evaluate(() => scrollBy({ top: -120 }));
-  await expect.poll(() => page.evaluate(() => scrollY)).toBeLessThan(scrollAfterCollapse);
-  expect(Math.abs((await page.evaluate(() => scrollY)) - (scrollAfterCollapse - 120))).toBeLessThan(6);
+  await expect(section.getByRole("heading", { name: "La musique commence par une rencontre" })).toBeVisible();
+  await expect(section.getByText("Une maison de compositeurs", { exact: true })).toHaveCount(0);
+  await expect(section).toContainText("Depuis des années, Parigo construit son catalogue avec des compositeurs");
+  await expect(section).toContainText("Parce qu’une musique juste commence toujours par une rencontre humaine.");
+  await expect(section.getByRole("heading", { level: 3 })).toHaveText(["Écouter", "Accompagner", "Construire"]);
+  await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
+  await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveAttribute("href", "/compositeurs");
+  await expect(section.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
+  await expect(section.locator("img")).toHaveCount(0);
+  await expect(page.getByTestId("composer-sticky-stage")).toHaveCount(0);
 });
 
-test("le showreel reste sans effet au survol et introduit les compositeurs", async ({ page }, testInfo) => {
+test("le showreel reste sans effet au survol et introduit la relation avec les compositeurs", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est contrôlé avec un pointeur desktop.");
   await page.goto("/");
   const section = page.getByTestId("home-showreel");
@@ -685,20 +657,34 @@ test("le showreel reste sans effet au survol et introduit les compositeurs", asy
   await page.mouse.move(box!.x + box!.width * .8, box!.y + box!.height * .75);
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
   const composers = page.getByTestId("home-composers");
-  await expect(composers.getByRole("heading", { name: /La musique commence.*par une rencontre/i })).toBeVisible();
-  await expect(composers.locator(".composer-title-line")).toHaveText([
-    "La musique commence",
-    "par une rencontre",
-  ]);
+  await expect(composers.getByRole("heading", { name: "La musique commence par une rencontre" })).toBeVisible();
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
-  const profiles = composers.locator('a[href^="/compositeurs/"]');
-  await expect(profiles).toHaveCount(4);
-  expect(await profiles.evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
-    "/compositeurs/ugly-mac-beer",
-    "/compositeurs/laurent-dury",
-    "/compositeurs/minimatic",
-    "/compositeurs/fabien-girard",
-  ]);
+  await expect(composers.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
+});
+
+test("les logos partenaires défilent bord à bord entre les synchronisations et le fil Parigo", async ({ page }) => {
+  await page.goto("/");
+  const sync = page.getByTestId("home-sync-section");
+  const partners = page.getByTestId("home-partners-section");
+  const social = page.getByTestId("social-follow-section");
+  await expect(sync).toBeVisible();
+  await expect(social).toBeVisible();
+  await expect(partners.getByRole("heading", { name: "Ils nous ont fait confiance" })).toBeVisible();
+  await expect(partners).toHaveCSS("background-color", "rgb(11, 17, 13)");
+  expect(await partners.locator(".partner-marquee__group:not(.partner-marquee__duplicate) a").count()).toBeGreaterThan(3);
+  const firstPartner = partners.locator(".partner-marquee__group:not(.partner-marquee__duplicate) .partner-logo-card").first();
+  const initialTransform = await firstPartner.evaluate((node) => getComputedStyle(node).transform);
+  await partners.locator(".partner-marquee").hover();
+  await firstPartner.hover();
+  await expect.poll(() => firstPartner.evaluate((node) => getComputedStyle(node).transform)).not.toBe(initialTransform);
+  expect(await page.evaluate(([syncId, partnersId, socialId]) => {
+    const syncNode = document.querySelector(syncId)!;
+    const partnersNode = document.querySelector(partnersId)!;
+    const socialNode = document.querySelector(socialId)!;
+    return Boolean(syncNode.compareDocumentPosition(partnersNode) & Node.DOCUMENT_POSITION_FOLLOWING)
+      && Boolean(partnersNode.compareDocumentPosition(socialNode) & Node.DOCUMENT_POSITION_FOLLOWING);
+  }, ['[data-testid="home-sync-section"]', '[data-testid="home-partners-section"]', '[data-testid="social-follow-section"]'])).toBe(true);
+  expect(await partners.evaluate((node) => getComputedStyle(node).marginLeft)).toBe("0px");
 });
 
 test("le showreel respecte la réduction des animations", async ({ page }) => {
@@ -716,6 +702,10 @@ test("le showreel respecte la réduction des animations", async ({ page }) => {
 test("la page albums propose une vue liste réellement compacte", async ({ page }, testInfo) => {
   await page.goto("/albums");
   await expect(page.getByRole("heading", { level: 1, name: "Albums", exact: true })).toBeVisible();
+  const albumCards = page.locator("[data-album-card]");
+  await expect(albumCards.first()).toBeVisible({ timeout: 30_000 });
+  await expect(albumCards.first().locator(".album-reference-tag")).toContainText(/^Réf\.\s+\S+/);
+  expect(await page.locator(".album-reference-tag").count()).toBe(await albumCards.count());
   await page.getByRole("button", { name: "Vue liste" }).click();
   const firstRow = page.locator('main a[href^="/albums/"]').filter({ has: page.locator("h2") }).first();
   await expect(firstRow).toBeVisible({ timeout: 30_000 });
