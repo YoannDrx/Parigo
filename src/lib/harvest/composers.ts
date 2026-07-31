@@ -33,6 +33,7 @@ export async function resolveComposerAlbums(
   dependencies: ComposerAlbumDependencies,
 ): Promise<ComposerAlbumResult> {
   const verifiedCodes = new Set(profile.verifiedAlbums?.map((relation) => relation.code) ?? []);
+  const excludedCodes = new Set(profile.excludedAlbums?.map((relation) => relation.code) ?? []);
   if (profile.harvestAliases.length === 0 && verifiedCodes.size === 0) return { state: "empty", albums: [] };
 
   try {
@@ -61,6 +62,10 @@ export async function resolveComposerAlbums(
     const details = await Promise.all(candidates.map((album) => dependencies.loadAlbum(album.id)));
     const albums = details
       .map((result) => result.album)
+      .filter((album) => (
+        !album.code
+        || !excludedCodes.has(album.code)
+      ))
       .filter((album) => (
         (album.code ? verifiedCodes.has(album.code) : false)
         || albumCreditsMatch(album, profile.harvestAliases)

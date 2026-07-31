@@ -7,6 +7,10 @@ const allowedPages = new Set([
   join(root, "src/app/legal/page.tsx"),
   join(root, "src/app/privacy/page.tsx"),
 ]);
+const allowedInternalDirectories = [
+  join(root, "src/app/admin"),
+  join(root, "src/components/admin"),
+];
 
 function filesIn(directory: string): string[] {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -23,7 +27,10 @@ describe("public Parigo copy", () => {
       ...filesIn(join(root, "src/content")),
       ...filesIn(join(root, "src/i18n")),
       ...filesIn(join(root, "src/app")).filter((file) => file.endsWith("page.tsx")),
-    ].filter((file) => !allowedPages.has(file));
+    ].filter((file) => (
+      !allowedPages.has(file)
+      && !allowedInternalDirectories.some((directory) => file.startsWith(`${directory}/`))
+    ));
     const violations = files.flatMap((file) => {
       const lines = readFileSync(file, "utf8").split("\n");
       return lines.flatMap((line, index) => {

@@ -43,6 +43,13 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        source: "/admin/matching",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive" },
+          { key: "Cache-Control", value: "private, no-store" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },

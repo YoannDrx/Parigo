@@ -25,6 +25,11 @@ export const ComposerProfileSchema = z.object({
     reviewState: z.literal("verified"),
     source: z.literal("client-confirmed"),
   })).optional(),
+  excludedAlbums: z.array(z.object({
+    code: z.string().regex(/^PGO\d{4}$/),
+    reviewState: z.literal("verified"),
+    source: z.literal("client-confirmed"),
+  })).optional(),
   published: z.boolean(),
   source: z.literal("portfolio-caro"),
 });
