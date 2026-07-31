@@ -120,4 +120,35 @@ describe("albumCreditsMatch", () => {
     expect(result.state).toBe("ready");
     expect(result.albums.map((album) => album.code)).toEqual(["PGO0050"]);
   });
+
+  it("excludes a manager-rejected album even when Harvest credits match", async () => {
+    const rejected = albumWith(["Eric Debris"]);
+    rejected.id = "wrong-match";
+    rejected.code = "PGO0042";
+    const profile: ComposerProfile = {
+      slug: "eric-debris",
+      name: "Eric Debris",
+      image: "/images/composers/eric-debris.webp",
+      bio: {},
+      links: [],
+      kind: "person",
+      harvestAliases: ["Eric Debris"],
+      excludedAlbums: [{ code: "PGO0042", reviewState: "verified", source: "client-confirmed" }],
+      published: true,
+      source: "portfolio-caro",
+    };
+
+    const result = await resolveComposerAlbums(profile, {
+      searchAlbums: async () => ({
+        items: [{ ...rejected, tracks: undefined }],
+        total: 1,
+        page: 1,
+        pageSize: 100,
+        facets: { bpm: { min: 0, max: 0 }, duration: { min: 0, max: 0 }, labels: [], categories: [], styles: [] },
+      }),
+      loadAlbum: async () => ({ album: rejected, similar: [] }),
+    });
+
+    expect(result).toEqual({ state: "empty", albums: [] });
+  });
 });

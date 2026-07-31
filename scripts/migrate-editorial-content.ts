@@ -27,11 +27,47 @@ type SourceWork = {
   order: number;
 };
 
+type MatchingRegistry = {
+  identities: Array<{
+    slug: string;
+    kind: "person" | "group";
+    published: boolean;
+    aliases: string[];
+  }>;
+};
+
+type ExistingEditorial = {
+  composers: Array<{
+    slug: string;
+    grammaticalGender?: "masculine" | "feminine";
+    verifiedAlbums?: Array<{
+      code: string;
+      reviewState: "verified";
+      source: "client-confirmed";
+    }>;
+    excludedAlbums?: Array<{
+      code: string;
+      reviewState: "verified";
+      source: "client-confirmed";
+    }>;
+  }>;
+  clips: Array<{
+    slug: string;
+    composerSlugs: string[];
+    relatedAlbumCode?: string;
+    reviewState: "verified" | "needs-review" | "rejected";
+    composerRelationSource?: "portfolio-caro" | "harvest" | "manual";
+    albumRelationSource?: "portfolio-caro" | "harvest" | "manual";
+    published: boolean;
+  }>;
+};
+
 const root = process.cwd();
 const portfolioRoot = process.env.PORTFOLIO_CARO_ROOT
   ? path.resolve(process.env.PORTFOLIO_CARO_ROOT)
   : path.resolve(root, "../portfolio-caro");
 const outputData = path.join(root, "src/content/editorial.generated.json");
+const matchingRegistryPath = path.join(root, "src/content/matching/registry.json");
 const outputAudit = path.join(root, "docs/editorial/composer-credit-audit.md");
 const composerAssetRoot = path.join(root, "public/images/composers");
 const clipAssetRoot = path.join(root, "public/images/clips");
@@ -110,12 +146,6 @@ const manualClipAlbumCodes: Record<string, string> = {
   "acid-body-music-2": "PGO0025",
 };
 
-const groupProfiles = new Set([
-  "mutant-ninja-records",
-  "of-ivory-horn",
-  "sebastien-blanchon-n-zeng",
-]);
-
 function youtubeId(value?: string | null): string | undefined {
   if (!value) return undefined;
   try {
@@ -172,20 +202,31 @@ async function main() {
   const worksSource = path.join(portfolioRoot, "seed-data/works.json");
   assertTracked(artistsSource);
   assertTracked(worksSource);
-  const [artists, works] = await Promise.all([
+  const [artists, works, matchingRegistry, existingEditorial] = await Promise.all([
     readFile(artistsSource, "utf8").then((value) => JSON.parse(value) as SourceArtist[]),
     readFile(worksSource, "utf8").then((value) => JSON.parse(value) as SourceWork[]),
+    readFile(matchingRegistryPath, "utf8").then((value) => JSON.parse(value) as MatchingRegistry),
+    readFile(outputData, "utf8")
+      .then((value) => JSON.parse(value) as ExistingEditorial)
+      .catch(() => ({ composers: [], clips: [] })),
   ]);
+  const identityBySlug = new Map(matchingRegistry.identities.map((identity) => [identity.slug, identity]));
+  const existingComposerBySlug = new Map(existingEditorial.composers.map((profile) => [profile.slug, profile]));
+  const existingClipBySlug = new Map(existingEditorial.clips.map((clip) => [clip.slug, clip]));
+  const missingRegistryIdentities = artists.filter((artist) => !identityBySlug.has(artist.slug));
+  if (missingRegistryIdentities.length) {
+    throw new Error(`Identités absentes du registre de matching : ${missingRegistryIdentities.map((artist) => artist.slug).join(", ")}`);
+  }
   const worksBySlug = new Map(works.map((work) => [work.slug, work]));
   const clipProfileSlugs = new Set(Object.values(clipCredits).flat());
   const knownSlugs = new Set(artists.map((artist) => artist.slug));
   const unknownClipCredits = [...clipProfileSlugs].filter((slug) => !knownSlugs.has(slug));
   if (unknownClipCredits.length) throw new Error(`Profils de clips inconnus : ${unknownClipCredits.join(", ")}`);
 
-  const publishedArtists = artists.filter((artist) => exactHarvestProfiles.has(artist.slug) || clipProfileSlugs.has(artist.slug));
+  const registeredArtists = artists.filter((artist) => identityBySlug.has(artist.slug));
   const clipWorks = works.filter((work) => work.category === "clip");
   for (const source of [
-    ...publishedArtists.map((artist) => path.join(portfolioRoot, artist.image)),
+    ...registeredArtists.map((artist) => path.join(portfolioRoot, artist.image)),
     ...clipWorks.map((work) => path.join(portfolioRoot, work.coverImage)),
   ]) {
     assertTracked(source);
@@ -195,7 +236,9 @@ async function main() {
     rm(composerAssetRoot, { recursive: true, force: true }),
     rm(clipAssetRoot, { recursive: true, force: true }),
   ]);
-  const composers = await Promise.all(publishedArtists.map(async (artist) => {
+  const composers = await Promise.all(registeredArtists.map(async (artist) => {
+    const identity = identityBySlug.get(artist.slug)!;
+    const existing = existingComposerBySlug.get(artist.slug);
     const target = path.join(composerAssetRoot, `${artist.slug}.webp`);
     await optimize(path.join(portfolioRoot, artist.image), target, 72, 1000);
     const links = [...(artist.links ?? [])]
@@ -214,9 +257,12 @@ async function main() {
         en: await bio("en", artist.slug),
       },
       links,
-      kind: groupProfiles.has(artist.slug) ? "group" : "person",
-      harvestAliases: exactHarvestProfiles.has(artist.slug) ? [artist.name] : [],
-      published: true,
+      kind: identity.kind,
+      harvestAliases: identity.aliases,
+      ...(existing?.grammaticalGender ? { grammaticalGender: existing.grammaticalGender } : {}),
+      ...(existing?.verifiedAlbums?.length ? { verifiedAlbums: existing.verifiedAlbums } : {}),
+      ...(existing?.excludedAlbums?.length ? { excludedAlbums: existing.excludedAlbums } : {}),
+      published: identity.published,
       source: "portfolio-caro",
     };
   }));
@@ -226,6 +272,7 @@ async function main() {
       const target = path.join(clipAssetRoot, `${work.slug}.webp`);
       await optimize(path.join(portfolioRoot, work.coverImage), target, 78);
       const albumCode = relatedAlbumCode(work, worksBySlug);
+      const existing = existingClipBySlug.get(work.slug);
       return {
         slug: work.slug,
         title: { fr: work.titleFr, en: work.titleEn },
@@ -233,19 +280,23 @@ async function main() {
         description: { fr: work.descriptionFr || undefined, en: work.descriptionEn || undefined },
         cover: `/images/clips/${work.slug}.webp`,
         youtubeId: youtubeId(work.youtubeUrl),
-        composerSlugs: clipCredits[work.slug] ?? [],
-        relatedAlbumCode: albumCode,
+        composerSlugs: existing?.composerSlugs ?? clipCredits[work.slug] ?? [],
+        relatedAlbumCode: existing?.relatedAlbumCode ?? albumCode,
         videoType: /making.of/i.test(work.slug) ? "making-of" : "official-video",
         source: "portfolio-caro",
-        reviewState: "verified",
-        composerRelationSource: (clipCredits[work.slug]?.length ?? 0) > 0
-          ? (manualClipCreditSlugs.has(work.slug) ? "manual" : "portfolio-caro")
-          : undefined,
-        albumRelationSource: albumCode
-          ? (manualClipAlbumCodes[work.slug] ? "manual" : "portfolio-caro")
-          : undefined,
+        reviewState: existing?.reviewState ?? "verified",
+        composerRelationSource: existing?.composerRelationSource ?? (
+          (clipCredits[work.slug]?.length ?? 0) > 0
+            ? (manualClipCreditSlugs.has(work.slug) ? "manual" : "portfolio-caro")
+            : undefined
+        ),
+        albumRelationSource: existing?.albumRelationSource ?? (
+          albumCode
+            ? (manualClipAlbumCodes[work.slug] ? "manual" : "portfolio-caro")
+            : undefined
+        ),
         order: work.order,
-        published: true,
+        published: existing?.published ?? true,
       };
     }),
   );
@@ -254,13 +305,13 @@ async function main() {
   await writeFile(outputData, `${JSON.stringify({ composers, clips }, null, 2)}\n`);
 
   const unresolvedClips = clips.filter((clip) => !clip.composerSlugs.length).map((clip) => clip.slug);
-  const publishedSlugs = new Set(composers.map((profile) => profile.slug));
+  const publishedSlugs = new Set(composers.filter((profile) => profile.published).map((profile) => profile.slug));
   const unpublished = artists.filter((artist) => !publishedSlugs.has(artist.slug)).map((artist) => artist.slug);
   const withoutBio = composers.filter((profile) => profile.published && !profile.bio.fr && !profile.bio.en).map((profile) => profile.slug);
   const composerBySlug = new Map(composers.map((profile) => [profile.slug, profile]));
   const profileAuditRows = artists.map((artist) => {
     const profile = composerBySlug.get(artist.slug);
-    return `| ${artist.slug} | ${profile ? "publié" : "non publié"} | ${profile?.harvestAliases.join(", ") || "—"} |`;
+    return `| ${artist.slug} | ${profile?.published ? "publié" : "non publié"} | ${profile?.harvestAliases.join(", ") || "—"} |`;
   }).join("\n");
   const clipAuditRows = clips.map((clip) => (
     `| ${clip.slug} | ${clip.composerSlugs.join(", ") || "non vérifié"} | ${clip.relatedAlbumCode || "—"} |`
@@ -272,7 +323,7 @@ Ce rapport est généré par \`pnpm migrate:editorial\` depuis les données suiv
 ## Résumé
 
 - Profils candidats : ${artists.length}
-- Profils publiés : ${composers.length}
+- Profils publiés : ${composers.filter((profile) => profile.published).length}
 - Profils avec correspondance Harvest exacte : ${exactHarvestProfiles.size}
 - Clips publiés : ${clips.length}
 - Clips avec URL YouTube : ${clips.filter((clip) => clip.youtubeId).length}
@@ -322,7 +373,7 @@ ${clipAuditRows}
   if (publicBytes > MAX_PUBLIC_BYTES) {
     throw new Error(`Budget public dépassé après migration : ${(publicBytes / 1024 / 1024).toFixed(2)} Mio > 12 Mio`);
   }
-  console.log(`Migration éditoriale terminée : ${composers.length} profils, ${clips.length} clips, ${(publicBytes / 1024 / 1024).toFixed(2)} Mio publics.`);
+  console.log(`Migration éditoriale terminée : ${composers.length} profils (${composers.filter((profile) => profile.published).length} publiés), ${clips.length} clips, ${(publicBytes / 1024 / 1024).toFixed(2)} Mio publics.`);
 }
 
 main().catch((error) => {
