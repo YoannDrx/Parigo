@@ -1,19 +1,17 @@
 import { ManifestoScrollSection } from "./ManifestoScrollSection";
 import { ProcessSignalSection } from "./ProcessSignalSection";
 import { ProjectInvitationSection } from "./ProjectInvitationSection";
-import { ComposerPortraitsSection, type HomeComposerProfile } from "./ComposerPortraitsSection";
+import { ComposerRelationshipSection } from "./ComposerRelationshipSection";
 
 export function HomeStorySections({
   locale,
-  homeComposers,
 }: {
   locale: "fr" | "en";
-  homeComposers: HomeComposerProfile[];
 }) {
   return (
     <>
       <ManifestoScrollSection locale={locale} />
-      <ComposerPortraitsSection locale={locale} profiles={homeComposers} />
+      <ComposerRelationshipSection locale={locale} />
       <ProcessSignalSection locale={locale} />
       <ProjectInvitationSection />
     </>

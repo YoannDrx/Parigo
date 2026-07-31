@@ -183,7 +183,7 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("l’onde du héros reste légère et animée sur mobile sans charger WebGL", async ({ page }) => {
+test("les ondes du héros restent légères et animées sur mobile sans forme circulaire", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
@@ -199,16 +199,18 @@ test("l’onde du héros reste légère et animée sur mobile sans charger WebGL
   await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
 });
 
-test("le héros desktop conserve sa forme organique et ses ondes animées", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "Le décor organique WebGL est réservé au desktop.");
+test("le héros desktop retrouve ses ondes sans forme organique", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Les ondes desktop sont contrôlées dans le viewport desktop.");
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   const backdrop = hero.getByTestId("organic-hero-backdrop");
 
   await expect(backdrop).toBeVisible({ timeout: 10_000 });
-  await expect(backdrop.getByTestId("organic-hero-blob")).toBeVisible();
-  await expect(backdrop.locator("canvas")).toHaveCount(1);
-  await expect(hero.locator(".organic-hero-fallback")).toHaveCount(0);
+  await expect(backdrop.getByTestId("organic-hero-blob")).toHaveCount(0);
+  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
+  const gradientLayer = backdrop.locator(":scope > div").first();
+  expect(await gradientLayer.evaluate((node) => getComputedStyle(node).backgroundImage)).toContain("linear-gradient");
+  expect(await gradientLayer.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toContain("radial-gradient");
 });
 
 test("les ondes du héros gagnent du contraste uniquement en thème clair", async ({ page }) => {
@@ -225,6 +227,22 @@ test("les ondes du héros gagnent du contraste uniquement en thème clair", asyn
   });
   await expect(signal).toHaveCSS("mix-blend-mode", "screen");
   await expect(signal).toHaveCSS("filter", "none");
+});
+
+test("les héros des pages internes restent sobres sans formes géométriques en arrière-plan", async ({ page }) => {
+  await page.goto("/albums");
+  const hero = page.locator(".page-hero");
+  await expect(hero).toBeVisible();
+  await expect(hero).toHaveCSS("background-image", "none");
+  expect(await hero.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  await expect(hero.locator(".page-hero__title-panel")).toHaveCSS("background-image", "none");
+  const aside = hero.locator(".page-hero__aside");
+  expect(await aside.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+
+  await page.goto("/albums/4b21f575ee992534");
+  const detailHero = page.locator(".editorial-detail-hero").first();
+  await expect(detailHero).toBeVisible();
+  expect(await detailHero.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
 });
 
 test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) => {

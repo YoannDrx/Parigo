@@ -111,6 +111,7 @@ export const HarvestAlbumSchema = z.looseObject({
   LibraryFeatured: harvestBoolean.optional(),
   Code: z.string().optional().nullable(),
   CdCode: z.string().optional().nullable(),
+  CDCode: z.string().optional().nullable(),
   Genre: stringList,
   Mood: stringList,
   Keywords: stringList,

@@ -3,11 +3,9 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
-import type { HomeComposerProfile } from "./ComposerPortraitsSection";
 
 type StoryProps = {
   locale: "fr" | "en";
-  homeComposers: HomeComposerProfile[];
 };
 
 export function DeferredHomeStorySections(props: StoryProps) {

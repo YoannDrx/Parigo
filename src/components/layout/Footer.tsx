@@ -39,7 +39,6 @@ export function Footer() {
 
   return (
     <footer className="parigo-footer relative overflow-hidden bg-[var(--surface-inverse)] px-4 pb-7 pt-12 text-[var(--inverse-foreground)] md:px-8 md:pt-16">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-24 top-12 h-72 w-72 rounded-full border-[48px] border-current/[.025] md:h-[30rem] md:w-[30rem] md:border-[72px]" />
       <div className="relative mx-auto max-w-[1680px]">
         <div className="grid gap-12 border-b border-current/18 pb-12 lg:grid-cols-12 lg:gap-8 lg:pb-16">
           <div className="lg:col-span-4">

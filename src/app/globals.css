@@ -485,20 +485,10 @@ textarea {
 .page-hero {
   position: relative;
   overflow: hidden;
-  background:
-    linear-gradient(132deg, transparent 0 66%, color-mix(in srgb, var(--signal) 7%, transparent) 66% 100%),
-    var(--background);
+  background: var(--background);
 }
 .page-hero::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: clamp(1rem, 7vw, 8rem);
-  width: clamp(8rem, 22vw, 24rem);
-  height: 100%;
-  background: color-mix(in srgb, var(--signal) 5%, transparent);
-  clip-path: polygon(58% 0, 100% 0, 42% 100%, 0 100%);
-  pointer-events: none;
+  content: none;
 }
 .page-hero__frame {
   min-height: clamp(15rem, 28vw, 25rem);
@@ -509,28 +499,16 @@ textarea {
 .page-hero__title-panel {
   display: flex;
   align-items: center;
-  background:
-    linear-gradient(105deg, transparent 0 88%, color-mix(in srgb, var(--signal) 6%, transparent) 88% 100%),
-    var(--surface);
+  background: var(--surface);
 }
 .page-hero__title {
   font-size: clamp(3.15rem, 6.4vw, 7.2rem);
 }
 .page-hero__aside {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--signal) 7%, transparent), transparent 62%),
-    color-mix(in srgb, var(--surface) 94%, var(--background));
+  background: color-mix(in srgb, var(--surface) 96%, var(--background));
 }
 .page-hero__aside::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 5.25rem;
-  height: 2.5rem;
-  background: color-mix(in srgb, var(--signal) 13%, transparent);
-  clip-path: polygon(42% 0, 100% 0, 100% 100%, 0 100%);
-  pointer-events: none;
+  content: none;
 }
 .search-page-hero__frame {
   min-height: clamp(18rem, 24vw, 22rem);
@@ -539,20 +517,10 @@ textarea {
   font-size: clamp(2.85rem, 5.2vw, 5.9rem);
 }
 .search-page-hero__tools {
-  background:
-    linear-gradient(145deg, color-mix(in srgb, var(--signal) 7%, transparent), transparent 62%),
-    color-mix(in srgb, var(--surface) 94%, var(--background));
+  background: color-mix(in srgb, var(--surface) 96%, var(--background));
 }
 .search-page-hero__tools::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 5.25rem;
-  height: 2.5rem;
-  background: color-mix(in srgb, var(--signal) 13%, transparent);
-  clip-path: polygon(42% 0, 100% 0, 100% 100%, 0 100%);
-  pointer-events: none;
+  content: none;
 }
 .search-page-hero .search-query-frame {
   box-shadow: 5px 6px 0 color-mix(in srgb, var(--signal) 10%, transparent);
@@ -568,15 +536,152 @@ textarea {
     height: 1.75rem;
   }
 }
-.institutional-hero {
+
+.composer-relationship {
+  background: color-mix(in srgb, var(--signal) 3%, var(--background));
+}
+.composer-relationship__panel {
   background:
-    linear-gradient(130deg, transparent 0 68%, color-mix(in srgb, var(--signal) 7%, transparent) 68% 100%),
-    var(--background);
+    linear-gradient(140deg, color-mix(in srgb, var(--signal) 6%, var(--surface)) 0%, var(--surface) 50%, color-mix(in srgb, var(--signal-soft) 24%, var(--surface)) 100%);
+  box-shadow:
+    12px 14px 0 color-mix(in srgb, var(--signal) 12%, transparent),
+    0 24px 70px color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+.composer-relationship__band {
+  background: color-mix(in srgb, var(--signal-soft) 18%, var(--surface));
+}
+.composer-relationship__commitment::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2rem;
+  height: 2rem;
+  border-top: 2px solid var(--foreground);
+  border-right: 2px solid var(--foreground);
+  border-top-right-radius: var(--parigo-corner-lg);
+  pointer-events: none;
+  transition: width 420ms var(--ease-out), height 420ms var(--ease-out);
+}
+.composer-relationship__commitment::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 2rem;
+  height: 2rem;
+  border-bottom: 2px solid var(--signal-strong);
+  border-left: 2px solid var(--signal-strong);
+  border-bottom-left-radius: var(--parigo-turn-lg);
+  pointer-events: none;
+  transition: width 420ms var(--ease-out), height 420ms var(--ease-out);
+}
+.composer-relationship__commitment {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
+  background: color-mix(in srgb, var(--surface) 96%, var(--signal-soft));
+  box-shadow: 4px 5px 0 color-mix(in srgb, var(--signal) 8%, transparent);
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    box-shadow 420ms var(--ease-out),
+    transform 420ms var(--ease-out);
+}
+.composer-relationship__commitment:hover {
+  background: color-mix(in srgb, var(--signal) 8%, var(--surface));
+  border-color: color-mix(in srgb, var(--signal-strong) 44%, var(--line));
+  box-shadow: 8px 9px 0 color-mix(in srgb, var(--signal) 14%, transparent);
+  transform: translateY(-4px);
+}
+.composer-relationship__commitment:hover::before,
+.composer-relationship__commitment:hover::after {
+  width: 100%;
+  height: 100%;
+}
+
+.partner-marquee__track {
+  animation: partner-marquee 42s linear infinite;
+  will-change: transform;
+}
+.partner-marquee:is(:hover, :focus-within) .partner-marquee__track {
+  animation-play-state: paused;
+}
+.partner-logo-card {
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.18);
+  border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
+  background: rgba(255,255,255,.94);
+  box-shadow: 5px 6px 0 rgba(91,214,126,.1);
+  transition:
+    border-color 320ms ease,
+    background-color 320ms ease,
+    box-shadow 420ms var(--ease-out),
+    transform 420ms var(--ease-out);
+}
+.partner-logo-card::before,
+.partner-logo-card::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  width: 2rem;
+  height: 2rem;
+  pointer-events: none;
+  transition: width 420ms var(--ease-out), height 420ms var(--ease-out);
+}
+.partner-logo-card::before {
+  top: 0;
+  right: 0;
+  border-top: 2px solid #0b110d;
+  border-right: 2px solid #0b110d;
+  border-top-right-radius: var(--parigo-corner-lg);
+}
+.partner-logo-card::after {
+  bottom: 0;
+  left: 0;
+  border-bottom: 2px solid var(--signal-strong);
+  border-left: 2px solid var(--signal-strong);
+  border-bottom-left-radius: var(--parigo-turn-lg);
+}
+.partner-logo-card:is(:hover, :focus-visible) {
+  border-color: color-mix(in srgb, var(--signal) 75%, white);
+  background: color-mix(in srgb, var(--signal) 13%, white);
+  box-shadow: 9px 10px 0 rgba(91,214,126,.22);
+  transform: translateY(-5px);
+}
+.partner-logo-card:is(:hover, :focus-visible)::before,
+.partner-logo-card:is(:hover, :focus-visible)::after {
+  width: 100%;
+  height: 100%;
+}
+@keyframes partner-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .partner-marquee {
+    overflow-x: auto;
+  }
+  .partner-marquee__track {
+    width: 100%;
+    animation: none;
+    will-change: auto;
+  }
+  .partner-marquee__group:not(.partner-marquee__duplicate) {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .partner-marquee__duplicate {
+    display: none;
+  }
+}
+.institutional-hero {
+  background: var(--background);
 }
 .institutional-hero__frame {
-  background:
-    linear-gradient(90deg, transparent calc(100% - 5rem), color-mix(in srgb, var(--signal) 5%, transparent) calc(100% - 5rem)),
-    var(--surface);
+  background: var(--surface);
 }
 .institutional-hero__frame::before,
 .institutional-statement::before {
@@ -742,28 +847,13 @@ textarea {
 .account-hero {
   position: relative;
   overflow: hidden;
-  background:
-    linear-gradient(130deg, transparent 0 68%, color-mix(in srgb, var(--signal) 7%, transparent) 68% 100%),
-    var(--background);
+  background: var(--background);
 }
 .account-hero::after {
-  content: "";
-  position: absolute;
-  right: clamp(1rem, 5vw, 5rem);
-  bottom: 2rem;
-  width: clamp(8rem, 16vw, 15rem);
-  height: clamp(4rem, 9vw, 8rem);
-  border-right: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
-  border-bottom: 2px solid color-mix(in srgb, var(--signal) 45%, transparent);
-  border-bottom-right-radius: var(--parigo-turn-lg);
-  opacity: .48;
-  pointer-events: none;
-  transform: translate3d(0, 0, 0);
+  content: none;
 }
 .account-hero__frame {
-  background:
-    linear-gradient(90deg, transparent calc(100% - 5rem), color-mix(in srgb, var(--signal) 5%, transparent) calc(100% - 5rem)),
-    var(--surface);
+  background: var(--surface);
 }
 .account-nav {
   background: var(--surface);
@@ -813,39 +903,13 @@ textarea {
 }
 .catalog-hero::after,
 .editorial-page-hero::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: -1px;
-  width: clamp(4rem, 10vw, 9rem);
-  height: clamp(2rem, 5vw, 4.5rem);
-  border-right: 1px solid var(--foreground);
-  border-bottom: 2px solid var(--signal-strong);
-  border-bottom-right-radius: 100%;
-  pointer-events: none;
+  content: none;
 }
 .editorial-page-hero::before {
-  content: "";
-  position: absolute;
-  top: -5rem;
-  right: 9%;
-  width: clamp(8rem, 15vw, 15rem);
-  aspect-ratio: 1;
-  border: 1.4rem solid color-mix(in srgb, var(--signal) 12%, transparent);
-  border-radius: 50%;
-  pointer-events: none;
+  content: none;
 }
 .editorial-detail-hero::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  right: -5rem;
-  bottom: -7rem;
-  width: clamp(12rem, 20vw, 21rem);
-  aspect-ratio: 1;
-  border: clamp(.9rem, 1.5vw, 1.7rem) solid color-mix(in srgb, var(--signal) 10%, transparent);
-  border-radius: 50%;
-  pointer-events: none;
+  content: none;
 }
 .editorial-detail-hero > * {
   position: relative;
@@ -1251,32 +1315,8 @@ textarea {
 .parigo-global-menu {
   isolation: isolate;
   background:
-    linear-gradient(135deg, transparent 0 78%, color-mix(in srgb, var(--signal) 7%, transparent) 78% 100%),
-    repeating-linear-gradient(90deg, transparent 0 calc(8.333% - 1px), color-mix(in srgb, var(--line) 38%, transparent) calc(8.333% - 1px) 8.333%),
-    color-mix(in srgb, var(--surface) 96%, transparent);
+    linear-gradient(145deg, color-mix(in srgb, var(--signal) 9%, var(--surface)) 0%, var(--surface) 46%, color-mix(in srgb, var(--signal-strong) 5%, var(--surface)) 100%);
   animation: parigo-menu-enter 520ms var(--ease-out) both;
-}
-.parigo-global-menu__arc {
-  position: absolute;
-  z-index: -1;
-  right: clamp(-8rem, -5vw, -3rem);
-  top: clamp(1rem, 7vh, 5rem);
-  width: clamp(15rem, 28vw, 31rem);
-  aspect-ratio: 1;
-  border: clamp(2.5rem, 5vw, 5.5rem) solid color-mix(in srgb, var(--signal) 6%, transparent);
-  border-radius: 50%;
-  pointer-events: none;
-}
-.parigo-global-menu__line {
-  position: absolute;
-  z-index: -1;
-  bottom: 2rem;
-  left: 0;
-  width: min(42vw, 36rem);
-  height: 1px;
-  background: linear-gradient(90deg, var(--signal-strong), transparent);
-  opacity: .38;
-  pointer-events: none;
 }
 .parigo-menu-card {
   position: relative;
@@ -1309,18 +1349,18 @@ textarea {
   transition: width 520ms var(--ease-out), height 520ms var(--ease-out);
 }
 .parigo-menu-card::before {
-  top: .42rem;
-  right: .42rem;
+  top: 0;
+  right: 0;
   border-top: 1.5px solid color-mix(in srgb, var(--foreground) 70%, transparent);
   border-right: 1.5px solid color-mix(in srgb, var(--foreground) 70%, transparent);
-  border-top-right-radius: var(--parigo-turn-md);
+  border-top-right-radius: var(--parigo-turn-lg);
 }
 .parigo-menu-card::after {
-  bottom: .42rem;
-  left: .42rem;
+  bottom: 0;
+  left: 0;
   border-bottom: 1.5px solid var(--signal-strong);
   border-left: 1.5px solid var(--signal-strong);
-  border-bottom-left-radius: var(--parigo-turn-md);
+  border-bottom-left-radius: var(--parigo-turn-lg);
 }
 .parigo-menu-card:hover,
 .parigo-menu-card:focus-visible {
@@ -1332,12 +1372,12 @@ textarea {
   box-shadow: 9px 10px 0 color-mix(in srgb, var(--signal) 12%, transparent);
   color: var(--foreground);
   border-radius: 0 var(--parigo-turn-lg) 0 var(--parigo-turn-lg);
-  transform: translateY(-4px) rotate(-.18deg);
+  transform: translateY(-4px);
 }
 .parigo-menu-card:is(:hover, :focus-visible)::before,
 .parigo-menu-card:is(:hover, :focus-visible)::after {
-  width: calc(100% - .84rem);
-  height: calc(100% - .84rem);
+  width: 100%;
+  height: 100%;
 }
 .parigo-menu-card[data-active="true"] {
   border-color: color-mix(in srgb, var(--signal-strong) 50%, var(--line));
@@ -1383,15 +1423,13 @@ textarea {
   transition:
     border-color 260ms ease,
     background-color 260ms ease,
-    color 260ms ease,
-    transform 460ms var(--ease-out);
+    color 260ms ease;
 }
 .parigo-menu-card:hover .parigo-menu-card__arrow,
 .parigo-menu-card:focus-visible .parigo-menu-card__arrow {
   border-color: var(--signal-strong);
   background: var(--signal);
   color: #0d1c11;
-  transform: rotate(8deg) translate(-.12rem, -.12rem);
 }
 .parigo-menu-aside {
   position: relative;
@@ -1407,26 +1445,26 @@ textarea {
 .parigo-menu-aside::before {
   content: "";
   position: absolute;
-  top: .7rem;
-  right: .7rem;
+  top: 0;
+  right: 0;
   width: 2.5rem;
   height: 2.5rem;
   border-top: 2px solid var(--foreground);
   border-right: 2px solid var(--foreground);
-  border-top-right-radius: var(--parigo-turn-lg);
+  border-top-right-radius: var(--parigo-corner-lg);
   opacity: .72;
   pointer-events: none;
 }
 .parigo-menu-aside::after {
   content: "";
   position: absolute;
-  bottom: .7rem;
-  left: .7rem;
+  bottom: 0;
+  left: 0;
   width: 2.5rem;
   height: 2.5rem;
   border-bottom: 2px solid var(--signal-strong);
   border-left: 2px solid var(--signal-strong);
-  border-bottom-left-radius: var(--parigo-turn-lg);
+  border-bottom-left-radius: var(--parigo-corner-lg);
   pointer-events: none;
 }
 .parigo-menu-aside__intro {
@@ -1458,8 +1496,7 @@ textarea {
 @media (max-width: 767px) {
   .parigo-global-menu {
     background:
-      linear-gradient(145deg, transparent 0 88%, color-mix(in srgb, var(--signal) 7%, transparent) 88% 100%),
-      color-mix(in srgb, var(--surface) 97%, transparent);
+      linear-gradient(155deg, color-mix(in srgb, var(--signal) 8%, var(--surface)) 0%, var(--surface) 58%, color-mix(in srgb, var(--signal-strong) 4%, var(--surface)) 100%);
   }
   .parigo-menu-card {
     min-height: 7.4rem;

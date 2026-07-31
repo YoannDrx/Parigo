@@ -6,7 +6,7 @@ import { getSearchFilterGroups } from "@/lib/harvest/search-filters";
 import { readHarvestSession } from "@/lib/harvest/session";
 import { resolveSearchBrief } from "@/lib/search-intent";
 import { translateFrenchSearchQuery } from "@/lib/search-translation";
-import type { QueryResolution } from "@/types";
+import type { QueryResolution, SearchIntentResolution } from "@/types";
 import { getComposerProfile } from "@/lib/editorial/contracts";
 
 const sortMap = {
@@ -58,9 +58,16 @@ export async function GET(request: NextRequest) {
     });
     const session = await readHarvestSession();
     const explicitCategories = [...(list(input.categories) || []), ...legacyCategoryValues(request)];
-    const intentResolution = input.brief && input.resolve === "1"
-      ? resolveSearchBrief(input.brief, await getSearchFilterGroups(input.language))
-      : undefined;
+    let intentResolution: SearchIntentResolution | undefined;
+    if (input.brief && input.resolve === "1") {
+      const [filterGroups, translatedBrief] = await Promise.all([
+        getSearchFilterGroups(input.language),
+        input.language === "fr" && input.translate !== "0"
+          ? translateFrenchSearchQuery(input.brief)
+          : Promise.resolve(undefined),
+      ]);
+      intentResolution = resolveSearchBrief(input.brief, filterGroups, translatedBrief);
+    }
     const categories = [
       ...explicitCategories,
       ...(intentResolution?.categoryIds || []),

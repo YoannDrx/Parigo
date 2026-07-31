@@ -36,7 +36,7 @@ const dictionaries = {
     peaceful: ["calme", "calm", "doux", "soft", "paisible", "peaceful", "relaxant", "apaisant", "intimate"],
     melancholic: ["mélancolique", "melancholic", "triste", "sad", "nostalgique", "nostalgic", "émotion", "emotional"],
     tense: ["tension", "tense", "tendu", "suspense", "thriller", "urgence", "urgent"],
-    epic: ["épique", "epic", "grandiose", "héroïque", "heroic", "puissant"],
+    epic: ["épique", "épiques", "epic", "grandiose", "grandioses", "héroïque", "héroïques", "heroic", "puissant", "puissante"],
     playful: ["ludique", "playful", "fun", "drôle", "funny", "enfantin"],
   },
   instruments: {
@@ -49,6 +49,7 @@ const dictionaries = {
   },
   musicFor: {
     wedding: ["mariage", "noces", "wedding", "marriage"],
+    "horror-film": ["film d'horreur", "film d horreur", "horreur", "horror film", "horror movie", "horror", "scary movie"],
   },
 } as const;
 
@@ -61,7 +62,7 @@ const displayLabels: Record<"fr" | "en", Record<string, string>> = {
     energetic: "Énergique", peaceful: "Calme", melancholic: "Mélancolique", tense: "Tension",
     epic: "Épique", playful: "Ludique", piano: "Piano", guitar: "Guitare", strings: "Cordes",
     drums: "Batterie", synth: "Synthé", percussion: "Percussions",
-    wedding: "Mariage",
+    wedding: "Mariage", "horror-film": "Film d’horreur",
   },
   en: {
     cinematic: "Cinematic", electronic: "Electronic", ambient: "Ambient", jazz: "Jazz", techno: "Techno",
@@ -71,7 +72,7 @@ const displayLabels: Record<"fr" | "en", Record<string, string>> = {
     energetic: "Energetic", peaceful: "Peaceful", melancholic: "Melancholic", tense: "Tense",
     epic: "Epic", playful: "Playful", piano: "Piano", guitar: "Guitar", strings: "Strings",
     drums: "Drums", synth: "Synth", percussion: "Percussion",
-    wedding: "Wedding",
+    wedding: "Wedding", "horror-film": "Horror film",
   },
 };
 
@@ -81,6 +82,10 @@ function normalize(value: string) {
 
 function normalizeFilterLabel(value: string) {
   return normalize(value).replace(/[^a-z0-9]+/g, " ").trim();
+}
+
+function escaped(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function flattenFilterItems(items: SearchFilterItem[]): SearchFilterItem[] {
@@ -104,20 +109,52 @@ export function findSearchFilterId(
   })?.id;
 }
 
-export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFilterGroup[]): string[] {
-  const requested: Array<[SearchFilterGroupKey, string]> = [
+function findSearchFilterItem(
+  groups: SearchFilterGroup[],
+  groupKey: SearchFilterGroupKey,
+  value: string,
+): SearchFilterItem | undefined {
+  const id = findSearchFilterId(groups, groupKey, value);
+  if (!id) return undefined;
+  const group = groups.find((candidate) => candidate.key === groupKey);
+  return group ? flattenFilterItems(group.items).find((item) => item.id === id) : undefined;
+}
+
+function intentRequests(intent: SearchIntent): Array<[SearchFilterGroupKey, string]> {
+  return [
     ...intent.genres.map((value): [SearchFilterGroupKey, string] => ["genre", value]),
     ...intent.moods.map((value): [SearchFilterGroupKey, string] => ["moods", value]),
     ...intent.instruments.map((value): [SearchFilterGroupKey, string] => ["instruments", value]),
     ...intent.musicFor.map((value): [SearchFilterGroupKey, string] => ["musicFor", value]),
   ];
-  return [...new Set(requested.flatMap(([group, value]) => {
-    const candidates: Array<[SearchFilterGroupKey, string]> = group === "genre" && value === "cinematic"
-      ? [["moods", "cinematic"], ["genre", "film"]]
-      : group === "moods" && value === "tense"
-        ? [["moods", "tension"], ["moods", "suspense"]]
-        : [[group, value]];
-    const id = candidates.map(([candidateGroup, candidateValue]) => findSearchFilterId(groups, candidateGroup, candidateValue)).find(Boolean);
+}
+
+function candidatesFor(group: SearchFilterGroupKey, value: string): Array<[SearchFilterGroupKey, string]> {
+  if (group === "genre" && value === "cinematic") return [["moods", "cinematic"], ["genre", "film"]];
+  if (group === "moods" && value === "tense") return [["moods", "tension"], ["moods", "suspense"]];
+  if (group === "musicFor" && value === "horror-film") return [["musicFor", "horror film"], ["musicFor", "horror"]];
+  return [[group, value]];
+}
+
+function mergeIntent(left: SearchIntent, right?: SearchIntent): SearchIntent {
+  if (!right) return left;
+  const unique = (values: string[]) => [...new Set(values)];
+  return {
+    ...left,
+    genres: unique([...left.genres, ...right.genres]),
+    moods: unique([...left.moods, ...right.moods]),
+    instruments: unique([...left.instruments, ...right.instruments]),
+    musicFor: unique([...left.musicFor, ...right.musicFor]),
+    bpmRange: left.bpmRange ?? right.bpmRange,
+    isVocal: left.isVocal ?? right.isVocal,
+  };
+}
+
+export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFilterGroup[]): string[] {
+  return [...new Set(intentRequests(intent).flatMap(([group, value]) => {
+    const id = candidatesFor(group, value)
+      .map(([candidateGroup, candidateValue]) => findSearchFilterId(groups, candidateGroup, candidateValue))
+      .find(Boolean);
     return id ? [id] : [];
   }))];
 }
@@ -125,13 +162,23 @@ export function resolveIntentCategoryIds(intent: SearchIntent, groups: SearchFil
 export function resolveSearchBrief(
   raw: string,
   groups: SearchFilterGroup[],
+  translated?: { effective: string; original: string; source: "machine-translation" },
 ): SearchIntentResolution {
-  const intent = parseSearchIntent(raw);
-  const categoryIds = resolveIntentCategoryIds(intent, groups);
+  const intent = mergeIntent(parseSearchIntent(raw), translated ? parseSearchIntent(translated.effective) : undefined);
+  const criteria = intentRequests(intent).flatMap(([group, value]) => {
+    for (const [candidateGroup, candidateValue] of candidatesFor(group, value)) {
+      const item = findSearchFilterItem(groups, candidateGroup, candidateValue);
+      if (item) return [{ id: item.id, group: candidateGroup, name: item.name }];
+    }
+    return [];
+  }).filter((criterion, index, values) => values.findIndex((candidate) => candidate.id === criterion.id) === index);
+  const categoryIds = criteria.map((criterion) => criterion.id);
   return {
     original: raw.trim(),
     categoryIds,
+    criteria,
     ...(intent.bpmRange ? { bpmRange: intent.bpmRange } : {}),
+    ...(translated ? { translation: translated } : {}),
     supported: Boolean(categoryIds.length || intent.bpmRange),
     source: "parigo-taxonomy",
   };
@@ -173,7 +220,11 @@ export function searchIntentChips(intent: SearchIntent, locale: "fr" | "en"): Ar
 }
 
 function matches(input: string, terms: readonly string[]) {
-  return terms.some((term) => input.includes(normalize(term)));
+  const normalizedInput = normalizeFilterLabel(input);
+  return terms.some((term) => {
+    const normalizedTerm = normalizeFilterLabel(term);
+    return normalizedTerm ? new RegExp(`(?:^| )${escaped(normalizedTerm)}(?:$| )`).test(normalizedInput) : false;
+  });
 }
 
 export function parseSearchIntent(raw: string): SearchIntent {

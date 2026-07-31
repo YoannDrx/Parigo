@@ -36,6 +36,8 @@ interface TrackRowProps {
   initialDetailsOpen?: boolean;
   leadingMeta?: ReactNode;
   showTags?: boolean;
+  displayNumber?: string;
+  groupedVersion?: boolean;
 }
 
 const openMobileActionMenus = new Set<symbol>();
@@ -59,6 +61,8 @@ export function TrackRow({
   initialDetailsOpen = false,
   leadingMeta,
   showTags = true,
+  displayNumber,
+  groupedVersion = false,
 }: TrackRowProps) {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
@@ -196,8 +200,8 @@ export function TrackRow({
           {isPlayingThis ? (
             <Pause size={14} className="fill-current" />
           ) : (
-            <span className="hidden text-sm font-mono lg:inline lg:group-hover:hidden">
-              {String(index + 1).padStart(2, "0")}
+            <span data-testid="track-display-number" className="hidden text-sm font-mono lg:inline lg:group-hover:hidden">
+              {displayNumber ?? String(index + 1).padStart(2, "0")}
             </span>
           )}
           {!isPlayingThis && (
@@ -230,7 +234,24 @@ export function TrackRow({
 
       {/* Track info + Waveform */}
       <div className="parigo-track-row__info flex min-w-0 flex-1 flex-col gap-1">
-        {density === "full" ? (
+        {groupedVersion ? (
+          <div className="min-w-0 py-0.5">
+            <p
+              className={cn(
+                "parigo-track-row__title break-words font-medium leading-5",
+                isCurrentTrack ? "text-[var(--color-primary-dark)]" : "text-[var(--foreground)]",
+              )}
+            >
+              {track.title}
+            </p>
+            <div className="mt-1 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="track-version-label inline-flex min-h-5 items-center border border-[var(--line-strong)] bg-[var(--surface-soft)] px-1.5 font-mono text-[.56rem] font-semibold uppercase tracking-[.08em] text-[var(--signal-strong)]">
+                {track.version?.trim() || (locale === "fr" ? "Version alternative" : "Alternate version")}
+              </span>
+              {track.description && <span className="line-clamp-1 min-w-0 text-[.68rem] leading-5 text-[var(--text-muted)]">{track.description}</span>}
+            </div>
+          </div>
+        ) : density === "full" ? (
           <div className="min-w-0">
             <p
               className={cn(

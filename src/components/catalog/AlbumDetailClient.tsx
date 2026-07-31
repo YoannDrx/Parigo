@@ -51,16 +51,22 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
   const sortedMainTracks = trackSort === "album"
     ? mainTracks
     : [...mainTracks].sort((left, right) => left.title.localeCompare(right.title, locale, { sensitivity: "base" }) * (trackSort === "title-asc" ? 1 : -1));
-  const trackItems: Array<{ track: Track; isAlternate: boolean; parentId?: string }> = sortedMainTracks.flatMap((track) => [
-    { track, isAlternate: false },
-    ...(showAllVersions
-      ? (track.alternateTracks ?? []).map((alternateTrack) => ({
-        track: alternateTrack,
-        isAlternate: true,
-        parentId: track.id,
-      }))
-      : []),
-  ]);
+  const trackItems: Array<{ track: Track; isAlternate: boolean; displayNumber: string; parentId?: string }> = sortedMainTracks.flatMap((track, mainIndex) => {
+    const mainNumber = String(track.trackNumber ?? mainIndex + 1);
+    return [
+      { track, isAlternate: false, displayNumber: mainNumber },
+      ...(showAllVersions
+        ? (track.alternateTracks ?? []).map((alternateTrack, alternateIndex) => ({
+          track: alternateTrack,
+          isAlternate: true,
+          displayNumber: alternateTrack.trackNumber !== undefined && Number.isFinite(alternateTrack.trackNumber) && String(alternateTrack.trackNumber).startsWith(`${mainNumber}.`)
+            ? String(alternateTrack.trackNumber)
+            : `${mainNumber}.${alternateIndex + 1}`,
+          parentId: track.id,
+        }))
+        : []),
+    ];
+  });
   const tracks = trackItems.map((item) => item.track);
   const similarAlbums = data.similarAlbums ?? [];
 
@@ -266,7 +272,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
           </div>
           {tracks.length > 0 ? (
             <div className="border-y border-[var(--line)] py-2">
-              {trackItems.map(({ track, isAlternate, parentId }, index) => (
+              {trackItems.map(({ track, isAlternate, displayNumber, parentId }, index) => (
                 <div
                   key={`${parentId ?? "main"}-${track.id}`}
                   data-track-kind={isAlternate ? "alternate" : "main"}
@@ -280,6 +286,8 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
                     track={track}
                     album={albumWithTracks}
                     index={index}
+                    displayNumber={displayNumber}
+                    groupedVersion={isAlternate}
                     showAlbumCover={false}
                     density={isAlternate ? "mid" : "full"}
                     composerCredits={data.composerCredits}

@@ -5,11 +5,10 @@ import { Header } from "@/components/layout/Header";
 import { staticMetadata } from "@/lib/seo-server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, siteConfig } from "@/lib/seo";
-import { getCachedAlbumDiscovery, getCachedPlaylists } from "@/lib/harvest/catalog-cache";
+import { getCachedAlbumDiscovery, getCachedLabels, getCachedPlaylists } from "@/lib/harvest/catalog-cache";
 import { getSynchronisations } from "@/lib/youtube/synchronisations";
 import { getFeaturedEditorialVideos } from "@/lib/editorial/videos";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
-import { publishedComposerProfiles } from "@/lib/editorial/contracts";
 
 export const generateMetadata = staticMetadata("/", {
   fr: { title: "Musique de production pour l’image", description: "Parigo Music accompagne films, séries, publicités et contenus de marque avec une sélection musicale exigeante et un licensing clair." },
@@ -23,23 +22,16 @@ function loadHomeData() {
     getCachedAlbumDiscovery({ label: PARIGO_LABEL_ID, limit: 12, sort: "releaseDate" }),
     getSynchronisations(),
     getFeaturedEditorialVideos(8),
+    getCachedLabels(),
   ]);
 }
 
 async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeof loadHomeData> }) {
-  const [playlists, releases, parigoAlbums, synchronisations, clips] = await dataPromise;
-  const homeComposerSlugs = ["ugly-mac-beer", "laurent-dury", "minimatic", "fabien-girard"];
-  const homeComposers = homeComposerSlugs.flatMap((slug) => {
-    const profile = publishedComposerProfiles.find((item) => item.slug === slug);
-    return profile ? [{
-      slug: profile.slug,
-      name: profile.name,
-      image: profile.image,
-      bio: profile.bio,
-      kind: profile.kind,
-      grammaticalGender: profile.grammaticalGender,
-    }] : [];
-  });
+  const [playlists, releases, parigoAlbums, synchronisations, clips, labels] = await dataPromise;
+  const partners = labels
+    .filter((label): label is typeof label & { logo: string } => Boolean(label.logo))
+    .slice(0, 14)
+    .map((label) => ({ id: label.id, slug: label.slug || label.id, name: label.name, logo: label.logo }));
   const initialPlaylists = {
     playlists: playlists.items,
     pagination: {
@@ -55,7 +47,7 @@ async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeo
       initialPlaylists={initialPlaylists}
       initialReleases={releases.items}
       initialParigoAlbums={parigoAlbums.items}
-      homeComposers={homeComposers}
+      partners={partners}
       initialSynchronisations={synchronisations.slice(0, 12)}
       initialClips={clips}
     />

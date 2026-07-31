@@ -182,7 +182,7 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
     ? styles.map((style) => style.name)
     : asList(parsed.Genre || parsed.Keywords);
   const releaseDate = asIsoDate(parsed.ReleaseDate);
-  const identity = albumIdentity(titleOf(parsed), parsed.Code || parsed.CdCode);
+  const identity = albumIdentity(titleOf(parsed), parsed.Code || parsed.CdCode || parsed.CDCode);
   return {
     id,
     slug: id,

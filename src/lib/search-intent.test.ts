@@ -60,6 +60,7 @@ describe("parseSearchIntent", () => {
       expect(resolveSearchBrief(brief, groups)).toEqual({
         original: brief,
         categoryIds: ["ATT_wedding"],
+        criteria: [{ id: "ATT_wedding", group: "musicFor", name: "Wedding" }],
         supported: true,
         source: "parigo-taxonomy",
       });
@@ -70,7 +71,51 @@ describe("parseSearchIntent", () => {
     expect(resolveSearchBrief("Armand Dupont", [])).toEqual({
       original: "Armand Dupont",
       categoryIds: [],
+      criteria: [],
       supported: false,
+      source: "parigo-taxonomy",
+    });
+  });
+
+  it("respecte les limites de mots et ne confond pas rapide avec rap", () => {
+    const intent = parseSearchIntent("Une musique rapide pour un film d’horreur");
+
+    expect(intent.genres).not.toContain("hip-hop");
+    expect(intent.moods).toContain("energetic");
+    expect(intent.musicFor).toContain("horror-film");
+    expect(intent.bpmRange).toEqual([120, 180]);
+  });
+
+  it("résout l’horreur vers le critère Harvest Horror Film", () => {
+    const groups: SearchFilterGroup[] = [
+      { key: "musicFor", label: "Music For", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_horror", name: "Horror Film" }] },
+    ];
+
+    expect(resolveSearchBrief("Une musique pour un film d’horreur", groups)).toEqual({
+      original: "Une musique pour un film d’horreur",
+      categoryIds: ["ATT_horror"],
+      criteria: [{ id: "ATT_horror", group: "musicFor", name: "Horror Film" }],
+      supported: true,
+      source: "parigo-taxonomy",
+    });
+  });
+
+  it("fusionne les critères trouvés dans une traduction DeepL", () => {
+    const groups: SearchFilterGroup[] = [
+      { key: "musicFor", label: "Music For", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_horror", name: "Horror Film" }] },
+    ];
+    const translation = {
+      original: "Une musique effrayante",
+      effective: "Horror film music",
+      source: "machine-translation" as const,
+    };
+
+    expect(resolveSearchBrief("Une musique effrayante", groups, translation)).toEqual({
+      original: "Une musique effrayante",
+      categoryIds: ["ATT_horror"],
+      criteria: [{ id: "ATT_horror", group: "musicFor", name: "Horror Film" }],
+      translation,
+      supported: true,
       source: "parigo-taxonomy",
     });
   });

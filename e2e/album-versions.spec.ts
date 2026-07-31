@@ -44,6 +44,11 @@ test("le détail album groupe réellement les versions et simplifie ses métadon
 
   await page.getByRole("button", { name: "Toutes les versions" }).click();
   await expect(alternateTracks).toHaveCount(24);
+  await expect(mainTracks.first().getByTestId("track-display-number")).toHaveText("1");
+  await expect(alternateTracks.nth(0).getByTestId("track-display-number")).toHaveText("1.1");
+  await expect(alternateTracks.nth(1).getByTestId("track-display-number")).toHaveText("1.2");
+  await expect(alternateTracks.nth(0)).toContainText("Bed (No Drums)");
+  await expect(alternateTracks.nth(0).locator(".parigo-track-row__title")).not.toHaveCSS("white-space", "nowrap");
 
   const mainBox = await mainTracks.first().boundingBox();
   const alternateBox = await alternateTracks.first().boundingBox();
