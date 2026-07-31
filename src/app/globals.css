@@ -3169,8 +3169,11 @@ textarea {
 
 .album-reference-tag {
   display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
   min-height: 1.45rem;
   align-items: center;
+  overflow: hidden;
   padding: .18rem .45rem;
   border: 1px solid var(--line);
   border-bottom-color: color-mix(in srgb, var(--signal-strong) 58%, var(--line));
@@ -3182,7 +3185,9 @@ textarea {
   font-weight: 600;
   letter-spacing: .075em;
   line-height: 1;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 @media (max-width: 639px) {
   .search-results-ledger .album-reference-tag {

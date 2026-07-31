@@ -20,8 +20,8 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
   const albumCover = resizeArtworkSource(album.cover, priority ? 320 : 384);
   const isFavorite = useFavoritesStore((state) => state.albumIds.has(album.id));
   return (
-    <article data-album-card={album.id} data-favorite={isFavorite ? "true" : "false"} className="album-card parigo-frame group/card relative border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
-        <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false} className="block focus-visible:outline-none">
+    <article data-album-card={album.id} data-favorite={isFavorite ? "true" : "false"} className="album-card parigo-frame group/card relative min-w-0 border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
+        <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false} className="block min-w-0 focus-visible:outline-none">
           <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
             <Image
               src={albumCover}
@@ -48,7 +48,7 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
               <span className="flex-shrink-0 text-xs text-[var(--text-muted)]">
                 {album.trackCount} {album.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}
               </span>
-              {album.code && <span className={`album-reference-tag shrink-0 ${isFavorite ? "mr-8 sm:mr-9" : ""}`}>{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
+              {album.code && <span className={`album-reference-tag min-w-0 ${isFavorite ? "mr-8 sm:mr-9" : ""}`}>{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
             </div>
           </div>
         </Link>
