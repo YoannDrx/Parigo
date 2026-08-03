@@ -34,6 +34,20 @@ Si Harvest demande `Authorization: {token}` sans `Bearer`, lancer :
 ```bash
 export HARVEST_AUTH_HEADER_PREFIX=""
 ```
+
+## Conformité de la documentation Public API
+
+La campagne de lecture directe rejoue les contrats publics sûrs avec les exemples
+JSON documentés, puis écrit une synthèse expurgée dans
+`docs/harvest/last-public-read-run.json` :
+
+```bash
+pnpm audit:harvest:public-read
+```
+
+Elle ne supprime aucun compte, ne déclenche aucun paiement ni e-mail et ne lance
+aucun import ou export de catalogue.
+
 ## Rapprochement compositeurs
 
 Avec le serveur Parigo lancé localement, le smoke test suivant vérifie le filtre du label,

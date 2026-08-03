@@ -16,7 +16,7 @@ export interface Track {
   genres: string[];
   moods: string[];
   instruments?: string[];
-  isVocal: boolean;
+  isVocal: boolean | null;
   /** Pre-generated waveform data (array of 0-1 values) */
   waveform: number[] | null;
   trackNumber?: number;
@@ -48,6 +48,7 @@ export interface ComposerCreditLink {
   credit: string;
   name: string;
   slug?: string;
+  href?: string;
 }
 
 export interface Album {
@@ -146,6 +147,12 @@ export interface MemberTrackComment {
   createdAt?: string;
   updatedAt?: string;
   isAdmin?: boolean;
+}
+
+export interface MemberTrackCommentGroup {
+  track: Track;
+  comments: MemberTrackComment[];
+  lastActivityAt?: string;
 }
 
 export interface Label {
@@ -261,6 +268,10 @@ export interface SearchFilterGroup {
   total: number;
   available: number;
   items: SearchFilterItem[];
+  source?: "catalog";
+  state?: "available" | "unavailable";
+  remote?: "harvest-track-composers";
+  description?: string;
 }
 
 export interface MemberProfile {

@@ -245,9 +245,9 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
                   <p className="mb-3 font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--text-muted)]">{locale === "fr" ? "Compositeur" : "Composer"}</p>
                   <div className="flex min-w-0 flex-wrap gap-2">
                     {displayed.composers.map((credit) => {
-                      const profile = composerCredits?.find((item) => item.credit === credit && item.slug);
-                      return profile?.slug
-                        ? <Link key={credit} href={localizedPath(`/compositeurs/${profile.slug}`)} className="track-detail-term px-2.5 py-1.5 text-xs font-semibold transition hover:text-[var(--signal-strong)]">{profile.name}</Link>
+                      const profile = composerCredits?.find((item) => item.credit === credit && item.href);
+                      return profile?.href
+                        ? <Link key={credit} href={localizedPath(profile.href)} className="track-detail-term px-2.5 py-1.5 text-xs font-semibold transition hover:text-[var(--signal-strong)]">{profile.name}</Link>
                         : <span key={credit} className="track-detail-term px-2.5 py-1.5 text-xs font-semibold">{credit}</span>;
                     })}
                   </div>

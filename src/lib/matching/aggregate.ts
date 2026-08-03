@@ -6,9 +6,11 @@ import sheetSnapshotJson from "@/content/matching/google-sheet.snapshot.json";
 import registryJson from "@/content/matching/registry.json";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { composerProfiles, clips, normalizeHarvestCredit } from "@/lib/editorial/contracts";
-import { CLIPS_PLAYLIST_ID, getEditorialVideos } from "@/lib/editorial/videos";
+import { CLIPS_PLAYLIST_ID } from "@/lib/editorial/videos";
 import { cloudSearch } from "@/lib/harvest/catalog";
 import { getCachedAlbumDiscovery } from "@/lib/harvest/catalog-cache";
+import { harvestComposerCreditId } from "@/lib/harvest/composer-credits";
+import { HarvestError } from "@/lib/harvest/errors";
 import { fetchYouTubePlaylist } from "@/lib/youtube/playlists";
 import type { Track } from "@/types";
 import type {
@@ -110,12 +112,15 @@ type HarvestInventory = {
   }>;
   inventory: Array<{ id: string; code?: string; title: string }>;
   failedAlbumIds: string[];
+  trackCount: number;
+  creditCount: number;
 };
 
 const portfolioSnapshot = portfolioSnapshotJson as unknown as PortfolioSnapshot;
 const sheetSnapshot = sheetSnapshotJson as unknown as SheetSnapshot;
 const registry = registryJson as unknown as Registry;
 const PORTFOLIO_PUBLIC_URL = "https://synck-psi.vercel.app";
+const MAX_HARVEST_TRACKS = 10_000;
 
 const getMatchingYouTubeInventory = unstable_cache(
   () => fetchYouTubePlaylist(process.env.YOUTUBE_CLIPS_PLAYLIST_ID || CLIPS_PLAYLIST_ID),
@@ -141,9 +146,25 @@ async function loadHarvestInventory(): Promise<HarvestInventory> {
       sort: "ReleaseDate_Desc",
     });
     tracks.push(...result.tracks);
-    total = Math.min(result.total, 2_000);
+    total = result.total;
+    if (total > MAX_HARVEST_TRACKS) {
+      throw new HarvestError(
+        `L’inventaire matching dépasse la limite contrôlée de ${MAX_HARVEST_TRACKS} pistes`,
+        "HARVEST_INVALID_RESPONSE",
+        502,
+        false,
+      );
+    }
     if (!result.tracks.length) break;
     offset += result.tracks.length;
+  }
+  if (tracks.length < total) {
+    throw new HarvestError(
+      `Inventaire matching Harvest incomplet : ${tracks.length}/${total} pistes chargées`,
+      "HARVEST_INVALID_RESPONSE",
+      502,
+      false,
+    );
   }
   return {
     inventory: inventory.items.map((album) => ({
@@ -166,6 +187,8 @@ async function loadHarvestInventory(): Promise<HarvestInventory> {
         })),
     })),
     failedAlbumIds: [],
+    trackCount: tracks.length,
+    creditCount: new Set(tracks.flatMap((track) => track.composers ?? []).map((credit) => credit.trim()).filter(Boolean)).size,
   };
 }
 
@@ -238,16 +261,14 @@ function classifyAgreement(item: MatchingItem): AgreementState {
 }
 
 export async function getMatchingDashboardData(): Promise<MatchingDashboardData> {
-  const [harvestResult, youtubeResult, editorialVideosResult] = await Promise.allSettled([
+  const [harvestResult, youtubeResult] = await Promise.allSettled([
     getCachedMatchingHarvestInventory(),
     getMatchingYouTubeInventory(),
-    getEditorialVideos(),
   ]);
   const harvest = harvestResult.status === "fulfilled"
     ? harvestResult.value
-    : { albums: [], inventory: [], failedAlbumIds: [] };
+    : { albums: [], inventory: [], failedAlbumIds: [], trackCount: 0, creditCount: 0 };
   const youtubeVideos = youtubeResult.status === "fulfilled" ? youtubeResult.value : [];
-  const editorialVideos = editorialVideosResult.status === "fulfilled" ? editorialVideosResult.value : clips;
   const identityBySlug = new Map(registry.identities.map((identity) => [identity.slug, identity]));
   const normalizedIdentityNames = new Map<string, { slug: string; method: "normalized-exact" | "declared-alias" }>();
   for (const identity of registry.identities) {
@@ -264,13 +285,6 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       });
     }
   }
-  const publishedAliases = new Map(
-    composerProfiles.flatMap((profile) => profile.harvestAliases.map((alias) => [
-      normalizeHarvestCredit(alias),
-      profile.slug,
-    ] as const)),
-  );
-
   const worksByKey = new Map<string, MatchingWorkView>();
   const portfolioWorkBySlug = new Map(portfolioSnapshot.works.map((work) => [work.slug, work]));
   const registerWork = (input: MatchingWorkView) => {
@@ -314,36 +328,34 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       href: `/albums/${album.id}`,
     });
   }
-  for (const video of editorialVideos) {
-    registerWork({
-      key: `clip:${video.slug}`,
-      slug: video.slug,
-      title: video.title.fr,
-      type: "clip",
-      sources: [video.source === "youtube" ? "youtube" : "parigo"],
-      composerNames: [],
-      relatedProjects: video.relatedAlbumCode ? [`album:${video.relatedAlbumCode}`] : [],
-      relationCount: 0,
-      href: `/clips/${video.slug}`,
-      sourceHref: video.youtubeId ? `https://www.youtube.com/watch?v=${video.youtubeId}` : undefined,
-    });
-  }
-  const editorialByYoutube = new Map(
-    editorialVideos.filter((video) => video.youtubeId).map((video) => [video.youtubeId!, video]),
-  );
   for (const video of youtubeVideos) {
-    const editorialVideo = editorialByYoutube.get(video.youtubeId);
+    const slug = `yt-${video.youtubeId}`;
     registerWork({
-      key: `clip:${editorialVideo?.slug || `yt-${video.youtubeId}`}`,
-      slug: editorialVideo?.slug || `yt-${video.youtubeId}`,
-      title: editorialVideo?.title.fr || video.title,
+      key: `clip:${slug}`,
+      slug,
+      title: video.title,
       type: "clip",
       sources: ["youtube"],
       composerNames: [],
-      relatedProjects: editorialVideo?.relatedAlbumCode ? [`album:${editorialVideo.relatedAlbumCode}`] : [],
+      relatedProjects: [],
       relationCount: 0,
-      href: editorialVideo ? `/clips/${editorialVideo.slug}` : undefined,
+      href: `/clips/${slug}`,
       sourceHref: `https://www.youtube.com/watch?v=${video.youtubeId}`,
+    });
+  }
+  const youtubeIds = new Set(youtubeVideos.map((video) => video.youtubeId));
+  for (const video of clips) {
+    const publicSlug = video.youtubeId && youtubeIds.has(video.youtubeId) ? `yt-${video.youtubeId}` : video.slug;
+    registerWork({
+      key: `clip:${publicSlug}`,
+      slug: publicSlug,
+      title: video.title.fr,
+      type: "clip",
+      sources: ["parigo"],
+      composerNames: [],
+      relatedProjects: video.relatedAlbumCode ? [`album:${video.relatedAlbumCode}`] : [],
+      relationCount: 0,
+      sourceHref: video.youtubeId ? `https://www.youtube.com/watch?v=${video.youtubeId}` : undefined,
     });
   }
 
@@ -368,7 +380,6 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
           name: composerName,
           aliases: identity?.aliases ?? [],
           visibility: identity?.visibility,
-          href: identity?.published ? `/compositeurs/${identity.slug}` : undefined,
           sourceHref: identity ? `${PORTFOLIO_PUBLIC_URL}/fr/artistes/${identity.slug}` : undefined,
         },
         work: {
@@ -422,7 +433,7 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
         if (!normalized) continue;
         const resolution = normalizedIdentityNames.get(normalized);
         const identity = resolution ? identityBySlug.get(resolution.slug) : undefined;
-        const creditKey = normalized;
+        const creditKey = harvestComposerCreditId(credit.trim());
         const creditView = rawCreditMap.get(creditKey) ?? {
           normalized,
           display: credit,
@@ -442,9 +453,9 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
         albumCredits.add(normalized);
         harvestCreditNamesByAlbum.set(albumCreditKey, albumCredits);
         const item = relationItem(identity?.slug, identity?.name || credit, target);
-        if (!item.evidence.some((entry) => entry.id === `harvest:${album.id}:${normalized}`)) {
+        if (!item.evidence.some((entry) => entry.id === `harvest:${album.id}:${creditKey}`)) {
           item.evidence.push(evidence(
-            `harvest:${album.id}:${normalized}`,
+            `harvest:${album.id}:${creditKey}`,
             "harvest",
             "harvest-track-credit",
             resolution?.method ?? "direct",
@@ -453,26 +464,27 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
             target.href,
           ));
         }
+        if (item.composer && !item.composer.href) item.composer.href = `/compositeurs/${creditKey}`;
+        item.currentPublished = true;
         if (!identity) item.tags.push("unmatched-harvest");
-        if (identity && publishedAliases.get(normalized) === identity.slug) item.currentPublished = true;
       }
     }
   }
 
-  for (const video of editorialVideos) {
-    const target = worksByKey.get(`clip:${video.slug}`);
+  for (const video of clips) {
+    const publicSlug = video.youtubeId && youtubeIds.has(video.youtubeId) ? `yt-${video.youtubeId}` : video.slug;
+    const target = worksByKey.get(`clip:${publicSlug}`);
     if (!target) continue;
     for (const composerSlug of video.composerSlugs) {
       const identity = identityBySlug.get(composerSlug);
       if (!identity) continue;
       const item = relationItem(identity.slug, identity.name, target);
-      item.currentPublished = true;
       item.evidence.push(evidence(
         `parigo:clip-composer:${video.slug}:${composerSlug}`,
         "parigo",
         video.composerRelationSource === "manual" ? "parigo-manual" : "portfolio-contribution",
         video.composerRelationSource === "manual" ? "manual-decision" : "direct",
-        `Relation actuellement publiée : ${identity.name}`,
+        `Ancienne relation locale : ${identity.name}`,
         video.title.fr,
         target.href,
       ));
@@ -485,13 +497,12 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       if (!target) continue;
       const identity = identityBySlug.get(profile.slug);
       const item = relationItem(profile.slug, identity?.name || profile.name, target);
-      item.currentPublished = true;
       item.evidence.push(evidence(
         `parigo:verified-album:${profile.slug}:${verified.code}`,
         "parigo",
         "parigo-manual",
         "manual-decision",
-        "Relation manuelle Parigo vérifiée",
+        "Ancienne relation manuelle Parigo",
         verified.code,
         target.href,
       ));
@@ -554,8 +565,8 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
   );
   for (const item of itemById.values()) {
     if (item.work?.type !== "clip" || !item.composer) continue;
-    const matchingVideo = editorialVideos.find((video) => video.slug === item.work?.slug);
-    const sheetRow = matchingVideo?.youtubeId ? videoSheetByYoutube.get(matchingVideo.youtubeId) : undefined;
+    const youtubeId = item.work.sourceHref ? youtubeIdFromReference(item.work.sourceHref) : undefined;
+    const sheetRow = youtubeId ? videoSheetByYoutube.get(youtubeId) : undefined;
     if (!sheetRow) continue;
     item.evidence.push(evidence(
       `sheet:${sheetRow.id}:${item.composer.slug || item.composer.name}`,
@@ -629,21 +640,39 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
     }
   }
 
+  const harvestCreditsByComposer = new Map<string, HarvestCreditView[]>();
+  for (const credit of rawCreditMap.values()) {
+    if (!credit.matchedComposerSlug) continue;
+    const credits = harvestCreditsByComposer.get(credit.matchedComposerSlug) ?? [];
+    credits.push(credit);
+    harvestCreditsByComposer.set(credit.matchedComposerSlug, credits);
+  }
+
   const composers: MatchingComposerView[] = registry.identities.map((identity) => {
     const counts = relationCounts.get(identity.slug) ?? { albums: 0, vinyls: 0, clips: 0, total: 0 };
+    const harvestCredits = harvestCreditsByComposer.get(identity.slug) ?? [];
+    const harvestPresence: MatchingComposerView["harvestPresence"] = harvestResult.status === "rejected"
+      ? "unavailable"
+      : harvestCredits.length > 0 ? "confirmed" : "not-detected";
     return {
       slug: identity.slug,
       name: identity.name,
       aliases: identity.aliases,
       candidateAliases: identity.candidateAliases,
+      harvestPresence,
+      harvestCreditNames: [...new Set(harvestCredits.map((credit) => credit.display))]
+        .sort((left, right) => left.localeCompare(right, "fr")),
+      harvestAlbumCodes: [...new Set(harvestCredits.flatMap((credit) => credit.albumCodes))]
+        .sort((left, right) => left.localeCompare(right, "fr")),
+      harvestTrackCount: new Set(harvestCredits.flatMap((credit) => credit.trackTitles)).size,
       visibility: identity.visibility,
-      published: identity.published,
+      historicallyPublished: identity.published,
       albumCount: counts.albums,
       vinylCount: counts.vinyls,
       clipCount: counts.clips,
       contributionCount: portfolioSnapshot.contributions.filter((item) => item.artistSlug === identity.slug).length,
       hasAnyEvidence: counts.total > 0,
-      href: identity.published ? `/compositeurs/${identity.slug}` : undefined,
+      href: harvestCredits[0] ? `/compositeurs/${harvestComposerCreditId(harvestCredits[0].display)}` : undefined,
       sourceHref: `${PORTFOLIO_PUBLIC_URL}/fr/artistes/${identity.slug}`,
     };
   }).sort((left, right) => left.name.localeCompare(right.name, "fr"));
@@ -670,26 +699,29 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       agreement: "unresolved",
       priority: 7,
       initialReviewStatus: "needs-review",
-      currentPublished: composer.published,
+      currentPublished: composer.harvestPresence === "confirmed",
       relationExists: false,
       tags: isGlobalOrphan ? ["composer-orphan", "portfolio-composer-orphan"] : ["portfolio-composer-orphan"],
     });
   }
 
   for (const work of worksByKey.values()) {
-    if ((work.type === "album" || work.type === "vinyl") && work.relationCount === 0) {
+    const isHarvestAlbumWithoutCredit = work.type === "album"
+      && work.sources.includes("harvest")
+      && (harvestCreditNamesByAlbum.get(work.code || work.key.replace(/^album:/, ""))?.size ?? 0) === 0;
+    if (isHarvestAlbumWithoutCredit) {
       const id = `orphan:work:${work.key}`;
       itemById.set(id, {
         id,
-        entityType: work.type,
+        entityType: "album",
         title: work.title,
-        subtitle: work.code || "Aucun compositeur relié",
+        subtitle: work.code ? `${work.code} · aucun crédit compositeur dans l’API` : "Aucun crédit compositeur dans l’API",
         work: {
           key: work.key,
           slug: work.slug,
           code: work.code,
           title: work.title,
-          type: work.type,
+          type: "album",
           href: work.href,
           sourceHref: work.sourceHref,
         },
@@ -748,8 +780,8 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
   }).sort((left, right) => left.priority - right.priority || left.title.localeCompare(right.title, "fr"));
 
   const harvestCredits = [...rawCreditMap.values()].sort((left, right) => left.display.localeCompare(right.display, "fr"));
-  const albumOrphans = [...worksByKey.values()].filter((work) => (
-    (work.type === "album" || work.type === "vinyl") && work.relationCount === 0
+  const albumOrphans = harvest.inventory.filter((album) => (
+    (harvestCreditNamesByAlbum.get(album.code || album.id)?.size ?? 0) === 0
   )).length;
   const clipsWithoutDirectComposer = [...worksByKey.values()].filter((work) => (
     work.type === "clip" && work.composerNames.length === 0
@@ -769,7 +801,7 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       capturedAt: new Date().toISOString(),
       detail: harvestResult.status === "rejected"
         ? "Catalogue indisponible : les autres sources restent consultables."
-        : `${harvest.albums.length}/${harvest.inventory.length} albums détaillés chargés.`,
+        : `${harvest.albums.length} albums · ${harvest.trackCount} pistes · ${harvest.creditCount} crédits exacts.`,
     },
     {
       id: "portfolio",
@@ -788,7 +820,7 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       capturedAt: youtubeResult.status === "fulfilled" ? new Date().toISOString() : undefined,
       detail: youtubeResult.status === "fulfilled"
         ? "Playlist officielle chargée."
-        : "Playlist indisponible ; les clips éditoriaux locaux restent visibles.",
+        : "Playlist indisponible ; les preuves historiques restent séparées.",
     },
     {
       id: "sheet",
@@ -800,12 +832,12 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
     },
     {
       id: "parigo",
-      label: "Parigo / BFF",
-      state: "ok",
-      count: composerProfiles.length + editorialVideos.length,
+      label: "Historique Parigo / BFF",
+      state: "stale",
+      count: registry.identities.length + clips.length,
       capturedAt: registry.updatedAt,
       revision: registry.revision,
-      detail: `${composerProfiles.length} profils actuels · ${editorialVideos.length} clips éditoriaux`,
+      detail: `${registry.identities.length} identités · ${clips.length} anciens clips ; diagnostic uniquement`,
     },
   ];
 
@@ -818,6 +850,9 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       conflicts,
       inferredOnly,
       composerOrphans: composers.filter((composer) => !composer.hasAnyEvidence).length,
+      composersWithoutHarvest: harvestResult.status === "fulfilled"
+        ? composers.filter((composer) => composer.harvestPresence === "not-detected").length
+        : 0,
       portfolioComposerOrphans: composers.filter((composer) => composer.contributionCount === 0).length,
       albumOrphans,
       clipsWithoutDirectComposer,

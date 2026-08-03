@@ -23,6 +23,6 @@ export async function POST(request: NextRequest) {
       method: "POST",
       body: JSON.stringify({ Token: verifyToken }),
     });
-    return NextResponse.json({ data: { verified: true, status: "pending approval" }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ data: { verified: true, status: "verified" }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

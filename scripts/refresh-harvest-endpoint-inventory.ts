@@ -34,6 +34,41 @@ function parseJson(value: unknown): unknown {
   }
 }
 
+function requestBodyFields(request: JsonRecord | undefined, source = "request"): {
+  mode: string;
+  fields: string[];
+  source: string;
+  jsonStatus: string;
+} {
+  const body = record(request?.body);
+  const mode = String(body?.mode || "");
+  if (!mode) return { mode: "", fields: [], source: "", jsonStatus: "not-applicable" };
+  if (mode !== "raw") {
+    const entries = body?.[mode];
+    return {
+      mode,
+      fields: Array.isArray(entries)
+        ? entries.map((entry) => String(record(entry)?.key || "")).filter(Boolean)
+        : [],
+      source,
+      jsonStatus: "not-applicable",
+    };
+  }
+  const raw = typeof body?.raw === "string" ? body.raw : "";
+  if (!raw.trim()) return { mode, fields: [], source: "", jsonStatus: "empty" };
+  const rawLanguage = String(record(record(body?.options)?.raw)?.language || "").toLowerCase();
+  if (rawLanguage && rawLanguage !== "json") {
+    return { mode, fields: [], source, jsonStatus: `non-json:${rawLanguage}` };
+  }
+  const parsed = parseJson(raw);
+  return {
+    mode,
+    fields: fieldPaths(parsed),
+    source,
+    jsonStatus: parsed === undefined ? "invalid" : "valid",
+  };
+}
+
 function csvValue(value: string): string {
   return /[",\n\r]/.test(value) ? `"${value.replaceAll('"', '""')}"` : value;
 }
@@ -56,20 +91,17 @@ async function main() {
       const name = String(item.name || "");
       const request = record(item.request);
       if (request) {
-        const body = record(request.body);
-        const bodyMode = String(body?.mode || "");
-        let inputFields: string[] = [];
-        if (bodyMode === "raw") inputFields = fieldPaths(parseJson(body?.raw));
-        else {
-          const entries = body?.[bodyMode];
-          if (Array.isArray(entries)) {
-            inputFields = entries
-              .map((entry) => String(record(entry)?.key || ""))
-              .filter(Boolean);
-          }
-        }
-
         const responses = Array.isArray(item.response) ? item.response : [];
+        const primaryBody = requestBodyFields(request);
+        const exampleBodies = responses
+          .map((entry) => record(record(entry)?.originalRequest))
+          .map((example) => requestBodyFields(example, "response.originalRequest"))
+          .filter((body) => body.mode && (body.fields.length || body.jsonStatus === "invalid" || body.jsonStatus.startsWith("non-json:")));
+        const bodyContract = primaryBody.fields.length || primaryBody.jsonStatus === "invalid"
+          ? primaryBody
+          : exampleBodies.find((body) => body.jsonStatus === "valid")
+            || exampleBodies[0]
+            || primaryBody;
         const jsonResponse = responses
           .map((entry) => record(entry))
           .find((entry) =>
@@ -85,8 +117,10 @@ async function main() {
           name,
           String(request.method || ""),
           rawUrl.replaceAll("{{", "{").replaceAll("}}", "}"),
-          bodyMode,
-          inputFields.join(", "),
+          bodyContract.mode,
+          bodyContract.fields.join(", "),
+          bodyContract.source,
+          bodyContract.jsonStatus,
           responseFields.join(", "),
         ]);
       }
@@ -102,6 +136,8 @@ async function main() {
     "url",
     "body_mode",
     "input_fields",
+    "request_example_source",
+    "request_json_status",
     "response_top_level_fields",
   ];
   const output = [

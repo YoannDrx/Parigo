@@ -5,12 +5,7 @@ import { notFound } from "next/navigation";
 import { Footer, Header } from "@/components/layout";
 import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { JsonLd } from "@/components/seo/JsonLd";
-import {
-  getComposerProfile,
-} from "@/lib/editorial/contracts";
 import { getEditorialVideo } from "@/lib/editorial/videos";
-import { PARIGO_LABEL_ID } from "@/config/catalog";
-import { getCachedAlbumDiscovery } from "@/lib/harvest/catalog-cache";
 import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
@@ -24,21 +19,6 @@ async function loadClip(slug: string) {
   const clip = await getEditorialVideo(slug);
   if (!clip) notFound();
   return clip;
-}
-
-async function getRelatedAlbum(code?: string) {
-  if (!code) return undefined;
-  try {
-    const result = await getCachedAlbumDiscovery({
-      label: PARIGO_LABEL_ID,
-      query: code,
-      limit: 10,
-      sort: "recent",
-    });
-    return result.items.find((album) => album.code === code);
-  } catch {
-    return undefined;
-  }
 }
 
 export async function generateMetadata({ params }: ClipPageProps): Promise<Metadata> {
@@ -58,10 +38,6 @@ export async function generateMetadata({ params }: ClipPageProps): Promise<Metad
 export default async function ClipPage({ params }: ClipPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
   const clip = await loadClip(slug);
-  const album = await getRelatedAlbum(clip.relatedAlbumCode);
-  const composers = clip.composerSlugs
-    .map(getComposerProfile)
-    .filter((profile): profile is NonNullable<typeof profile> => Boolean(profile));
   const title = clip.title[locale];
   const subtitle = clip.subtitle?.[locale];
   const description = clip.description?.[locale];
@@ -107,34 +83,12 @@ export default async function ClipPage({ params }: ClipPageProps) {
               <SignedTitle className="text-[clamp(2.8rem,5.2vw,5.3rem)] font-semibold leading-[.88] tracking-[-.06em]">{title}</SignedTitle>
               {subtitle && <p className="mt-5 font-semibold">{subtitle}</p>}
               {description && <p className="mt-6 whitespace-pre-line text-base leading-7 text-[var(--text-muted)]">{description}</p>}
-              {clip.source === "youtube" && clip.reviewState === "needs-review" && (
-                <p className="mt-6 border-l-2 border-[var(--signal)] pl-4 text-sm leading-6 text-[var(--text-muted)]">
-                  {locale === "fr"
-                    ? "Vidéo issue de la playlist officielle Parigo. Les crédits éditoriaux seront ajoutés après validation."
-                    : "Video from the official Parigo playlist. Editorial credits will be added once verified."}
-                </p>
-              )}
-              {composers.length > 0 && (
-                <div className="mt-8 border-t border-[var(--line)] pt-6">
-                  <p className="font-mono text-[.56rem] uppercase tracking-[.13em] text-[var(--text-muted)]">
-                    {locale === "fr" ? "Compositeurs" : "Composers"}
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {composers.map((profile) => (
-                      <Link key={profile.slug} href={localizedPath(locale, `/compositeurs/${profile.slug}`)} className="border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold hover:bg-[var(--surface-soft)]">
-                        {profile.name}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <p className="mt-6 border-l-2 border-[var(--signal)] pl-4 text-sm leading-6 text-[var(--text-muted)]">
+                {locale === "fr"
+                  ? "Vidéo et métadonnées issues de la playlist YouTube officielle. Aucun crédit compositeur n’est déduit localement."
+                  : "Video and metadata from the official YouTube playlist. No composer credit is inferred locally."}
+              </p>
               <div className="mt-8 grid gap-3">
-                {album && (
-                  <Link href={localizedPath(locale, `/albums/${album.id}`)} className="flex min-h-12 items-center justify-between border border-[var(--line-strong)] px-4 text-sm font-semibold">
-                    <span>{locale === "fr" ? "Voir l’album" : "View album"} · {album.code}</span>
-                    <ArrowUpRight size={15} />
-                  </Link>
-                )}
                 {clip.youtubeId && (
                   <a href={`https://www.youtube.com/watch?v=${clip.youtubeId}`} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-between border border-[var(--line-strong)] px-4 text-sm font-semibold">
                     <span>YouTube</span>

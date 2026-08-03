@@ -6,7 +6,6 @@ import type {
   SearchFilterGroupKey,
   SearchFilterItem,
 } from "@/types";
-import { publishedComposerProfiles } from "@/lib/editorial/contracts";
 import { getCategories, getLabels } from "./catalog";
 
 const groupKeys: Record<string, SearchFilterGroupKey> = {
@@ -53,9 +52,15 @@ export async function getSearchFilterGroups(
       key: "composers",
       label: language === "fr" ? "Compositeurs" : "Composers",
       selection: "include-only",
-      total: publishedComposerProfiles.length,
-      available: publishedComposerProfiles.length,
-      items: publishedComposerProfiles.map((profile) => ({ id: profile.slug, name: profile.name })),
+      total: 0,
+      available: 0,
+      items: [],
+      source: "catalog",
+      state: "available",
+      remote: "harvest-track-composers",
+      description: language === "fr"
+        ? "Recherche dans les crédits de pistes du catalogue Parigo. Le compteur s’actualise après la saisie."
+        : "Search track credits across the Parigo catalog. The count updates after typing.",
     },
     ...categoryGroups.flatMap((group): SearchFilterGroup[] => {
       const key = groupKeys[group.name.toLocaleLowerCase("en")];

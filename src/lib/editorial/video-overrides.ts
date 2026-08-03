@@ -10,8 +10,8 @@ export interface PlaylistVideoOverride {
   composerRelationSource?: "portfolio-caro" | "harvest" | "manual";
 }
 
-// Explicitly reviewed exceptions from the official playlist. They remain local
-// until the Harvest CMS can expose video entities and structured relations.
+// Historical review evidence used only by audit scripts and /admin/matching.
+// Public video inventories must not import or apply these overrides.
 export const playlistVideoOverrides: Record<string, PlaylistVideoOverride> = {
   l3iFO626BFw: {
     localSlug: "acid-body-music-2",

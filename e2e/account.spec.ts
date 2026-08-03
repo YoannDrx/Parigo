@@ -640,8 +640,68 @@ test("la suppression du compte utilise une alerte éditoriale progressive", asyn
 
   await expect(page.getByRole("heading", { name: "Supprimer votre espace Parigo." })).toBeVisible();
   await page.getByRole("button", { name: /Supprimer mon compte/ }).click();
+  await expect(page.getByRole("radio", { name: /Archiver/ })).toBeChecked();
+  await expect(page.getByRole("radio", { name: /Supprimer définitivement/ })).not.toBeChecked();
+  await expect(page.getByLabel("Mot de passe actuel")).toBeVisible();
   await expect(page.getByPlaceholder("SUPPRIMER")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Confirmer la suppression" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Confirmer l’archivage" })).toBeDisabled();
+  await page.getByRole("radio", { name: /Supprimer définitivement/ }).check();
+  await page.getByLabel("Mot de passe actuel").fill("mot-de-passe-test");
+  await page.getByPlaceholder("SUPPRIMER").fill("SUPPRIMER");
+  await expect(page.getByRole("button", { name: "Confirmer la suppression" })).toBeEnabled();
+});
+
+test("les commentaires du compte sont regroupés par Track et restent modifiables", async ({ page }, testInfo) => {
+  await mockSession(page);
+  let comments: Array<{ id: string; trackId: string; text: string; createdAt?: string; updatedAt?: string }> = [
+    { id: "comment-1", trackId: "track-1", text: "Entrée parfaite à 00:42", createdAt: "2026-08-02T10:00:00.000Z" },
+    { id: "comment-2", trackId: "track-1", text: "Valider avec le client", updatedAt: "2026-08-03T12:00:00.000Z" },
+  ];
+  const responseBody = () => ({ data: { groups: [{ track, comments, lastActivityAt: comments[0]?.updatedAt || comments[0]?.createdAt }] } });
+  await page.route("**/api/user/comments", async (route) => {
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(responseBody()) });
+  });
+  await page.route("**/api/user/tracks/track-1/comments**", async (route) => {
+    if (route.request().method() === "PATCH") {
+      const input = route.request().postDataJSON() as { commentId: string; text: string };
+      comments = comments.map((comment) => comment.id === input.commentId ? { ...comment, text: input.text, updatedAt: "2026-08-03T14:00:00.000Z" } : comment);
+      return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { comment: comments.find((comment) => comment.id === input.commentId) } }) });
+    }
+    const url = new URL(route.request().url());
+    const commentId = url.searchParams.get("commentId");
+    comments = comments.filter((comment) => comment.id !== commentId);
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { removed: true } }) });
+  });
+
+  await page.goto("/account/comments");
+  await expect(page.getByRole("heading", { name: "Commentaires" })).toBeVisible();
+  await expect(page.getByText("1", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("2", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(track.title, { exact: true })).toBeVisible();
+  await expect(page.getByText("Entrée parfaite à 00:42", { exact: true })).toBeVisible();
+  const activeLink = page.getByRole("navigation", { name: "Navigation du compte" }).getByRole("link", { name: "Commentaires" });
+  await expect(activeLink).toHaveAttribute("aria-current", "page");
+  if (testInfo.project.name === "mobile") await expect(activeLink).toBeInViewport();
+
+  const search = page.getByRole("textbox", { name: "Rechercher dans mes commentaires" });
+  await search.fill("introuvable");
+  await expect(page.getByRole("heading", { name: "Aucun commentaire ne correspond." })).toBeVisible();
+  await search.fill("client");
+  await expect(page.getByText(track.title, { exact: true })).toBeVisible();
+  await search.fill("");
+
+  await page.getByRole("button", { name: `Modifier le commentaire sur ${track.title}` }).first().click();
+  const editor = page.locator("textarea");
+  await editor.fill("Entrée validée à 00:42");
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page.getByText("Entrée validée à 00:42", { exact: true })).toBeVisible();
+
+  await page.getByRole("button", { name: `Supprimer le commentaire sur ${track.title}` }).last().click();
+  const dialog = page.getByRole("dialog", { name: "Supprimer cette note ?" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: "Supprimer", exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByText("Valider avec le client", { exact: true })).toHaveCount(0);
 });
 
 test("les recherches sauvegardées restent relançables et supprimables", async ({ page }, testInfo) => {

@@ -42,7 +42,7 @@ async function main() {
     /404/i,
   ], 404);
   await check("/sitemap.xml", [/<sitemapindex/i]);
-  await check("/sitemaps/editorial.xml", [/\/compositeurs\/ugly-mac-beer/i, /\/clips\/ny-parigo-2/i]);
+  await check("/sitemaps/editorial.xml", [/\/compositeurs\/harvest-[a-z0-9-]+/i, /\/clips\/yt-[a-z0-9_-]+/i]);
   await check("/robots.txt", [new RegExp(`sitemap: ${escapedOrigin}/sitemap\\.xml`, "i")]);
   console.log(`Contrats SEO principaux validés pour ${canonicalOrigin}.`);
 }

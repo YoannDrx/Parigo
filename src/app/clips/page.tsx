@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { CatalogHero } from "@/components/catalog/CatalogHero";
 import { ClipCard } from "@/components/editorial/ClipCard";
 import { Footer, Header } from "@/components/layout";
-import { getComposerProfile } from "@/lib/editorial/contracts";
 import { getEditorialVideos } from "@/lib/editorial/videos";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { localizedPath } from "@/lib/locale";
@@ -42,8 +41,8 @@ export default async function ClipsPage({ searchParams }: ClipsPageProps) {
         <CatalogHero
           title="Clips"
           intro={locale === "fr"
-            ? "Clips officiels, making-of, performances et archives : la vidéothèque Parigo reliée aux talents et aux albums."
-            : "Official videos, behind-the-scenes films, performances and archives linked to Parigo talent and albums."}
+            ? "Clips officiels, making-of, performances et archives issus de la playlist YouTube Parigo."
+            : "Official videos, behind-the-scenes films, performances and archives from the Parigo YouTube playlist."}
           meta={`${videos.length} ${locale === "fr" ? "vidéos publiques" : "public videos"}`}
         />
         <section className="mx-auto max-w-[1500px] px-4 py-14 sm:px-6 lg:px-8 md:py-20">
@@ -52,7 +51,6 @@ export default async function ClipsPage({ searchParams }: ClipsPageProps) {
                 <ClipCard
                   key={clip.slug}
                   clip={clip}
-                  composers={clip.composerSlugs.map(getComposerProfile).filter((profile): profile is NonNullable<typeof profile> => Boolean(profile))}
                   locale={locale}
                 />
               ))}

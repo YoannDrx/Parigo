@@ -5,7 +5,7 @@ import { getSynchronisation } from "@/lib/youtube/synchronisations";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { youtubeEmbedUrl } from "@/content/synchronisations";
+import { youtubeEmbedUrl } from "@/lib/youtube/synchronisation-types";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const sync = await getSynchronisation((await params).slug);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, Minus, RotateCcw, Search } from "lucide-react";
 import { cn, formatDuration } from "@/lib/utils";
 import type { SearchFacetItem, SearchFilterGroup, SearchFilterItem } from "@/types";
@@ -35,6 +35,8 @@ const labelsByKey: Record<string, { fr: string; en: string }> = {
   instruments: { fr: "Instruments", en: "Instruments" },
   area: { fr: "Zone", en: "Area" },
 };
+
+const EMPTY_FILTER_ITEMS: SearchFilterItem[] = [];
 
 function unsigned(value: string): string {
   return value.startsWith("-") ? value.slice(1) : value;
@@ -101,7 +103,7 @@ function FilterItemRow({
   const children = item.children ?? [];
   const descendants = descendantStates(children, values);
   const descendantCount = descendants.included + descendants.excluded;
-  const count = counts.get(item.id.replace(/^ATT_/i, ""));
+  const count = counts.get(item.id.replace(/^ATT_/i, "")) ?? item.count;
   const name = item.name;
   return (
     <li>
@@ -195,9 +197,67 @@ function FilterGroupSection({
 }) {
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
-  const visibleItems = useMemo(() => filterTree(group.items, query, locale), [group.items, locale, query]);
+  const [remoteItems, setRemoteItems] = useState<SearchFilterItem[]>([]);
+  const [remoteState, setRemoteState] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [remoteIncomplete, setRemoteIncomplete] = useState(false);
+  const [remoteResultQuery, setRemoteResultQuery] = useState("");
+  const isRemote = group.remote === "harvest-track-composers";
+  const normalizedRemoteQuery = query.trim();
+  useEffect(() => {
+    if (!isRemote) return;
+    if (normalizedRemoteQuery.length < 2) return;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setRemoteState("loading");
+      try {
+        const response = await fetch(`/api/search/composers?q=${encodeURIComponent(normalizedRemoteQuery)}`, {
+          signal: controller.signal,
+        });
+        if (!response.ok) throw new Error("Harvest composer search failed");
+        const payload = await response.json() as {
+          data?: { items?: SearchFilterItem[] };
+          meta?: { incomplete?: boolean };
+        };
+        setRemoteItems(payload.data?.items ?? []);
+        setRemoteIncomplete(Boolean(payload.meta?.incomplete));
+        setRemoteResultQuery(normalizedRemoteQuery);
+        setRemoteState("ready");
+      } catch {
+        if (controller.signal.aborted) return;
+        setRemoteItems([]);
+        setRemoteIncomplete(false);
+        setRemoteResultQuery(normalizedRemoteQuery);
+        setRemoteState("error");
+      }
+    }, 250);
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [isRemote, normalizedRemoteQuery]);
+  const displayedRemoteItems = normalizedRemoteQuery.length >= 2 && remoteResultQuery === normalizedRemoteQuery
+    ? remoteItems
+    : EMPTY_FILTER_ITEMS;
+  const displayedRemoteState = normalizedRemoteQuery.length < 2
+    ? "idle"
+    : remoteResultQuery === normalizedRemoteQuery
+      ? remoteState
+      : "loading";
+  const items = useMemo(() => {
+    if (!isRemote) return group.items;
+    const byId = new Map(displayedRemoteItems.map((item) => [item.id, item]));
+    for (const value of values) {
+      const id = unsigned(value);
+      if (!byId.has(id)) byId.set(id, { id, name: id });
+    }
+    return [...byId.values()];
+  }, [displayedRemoteItems, group.items, isRemote, values]);
+  const visibleItems = useMemo(
+    () => isRemote ? items : filterTree(items, query, locale),
+    [isRemote, items, locale, query],
+  );
   const counts = useMemo(() => facetMap(facets), [facets]);
-  const groupIds = useMemo(() => new Set(flatFilterIds(group.items)), [group.items]);
+  const groupIds = useMemo(() => new Set(flatFilterIds(items)), [items]);
   const selected = values.filter((value) => groupIds.has(unsigned(value))).length;
   const available = facets.length
     ? [...groupIds].filter((id) => counts.has(id.replace(/^ATT_/i, ""))).length
@@ -212,23 +272,48 @@ function FilterGroupSection({
         <span className="search-filter-group__index font-mono text-[.55rem] tracking-[.08em]">{String(index + 1).padStart(2, "0")}</span>
         <span className="min-w-0 flex-1 truncate font-semibold tracking-[-.025em]">{labelsByKey[group.key]?.[locale] ?? group.label}</span>
         <span className="ml-5 flex items-center gap-3">
-          <span
-            className="font-mono text-[.62rem] text-[var(--text-muted)]"
-            aria-label={locale === "fr" ? `${group.total} critères au total, ${available} disponibles` : `${group.total} total filters, ${available} available`}
-          >
-            {group.total}/{available}
-          </span>
+          {isRemote ? (
+            <span
+              data-testid="composer-filter-result-count"
+              className="font-mono text-[.62rem] text-[var(--text-muted)]"
+              aria-label={displayedRemoteState === "ready"
+                ? locale === "fr"
+                  ? `${displayedRemoteItems.length}${remoteIncomplete ? " ou plus" : ""} compositeurs trouvés pour cette recherche`
+                  : `${displayedRemoteItems.length}${remoteIncomplete ? " or more" : ""} composers found for this search`
+                : locale === "fr" ? "Compteur disponible après recherche" : "Count available after search"}
+            >
+              {displayedRemoteState === "ready" ? `${displayedRemoteItems.length}${remoteIncomplete ? "+" : ""}` : "—"}
+            </span>
+          ) : <span
+              className="font-mono text-[.62rem] text-[var(--text-muted)]"
+              aria-label={locale === "fr" ? `${group.total} critères au total, ${available} disponibles` : `${group.total} total filters, ${available} available`}
+            >
+              {group.total}/{available}
+            </span>}
           {selected > 0 && <span className="flex h-6 min-w-6 items-center justify-center bg-[var(--signal-strong)] px-1.5 font-mono text-[.6rem] font-semibold text-white">{selected}</span>}
           <span className="flex h-8 w-8 items-center justify-center border border-transparent transition group-hover:border-[var(--line-strong)]"><ChevronDown size={15} className="transition group-open:rotate-180" /></span>
         </span>
       </summary>
       {open && <div className="search-filter-group__body px-4 pb-5 pt-3">
+        {group.description && (
+          <p className={cn(
+            "mb-3 border-l-2 pl-3 text-[.66rem] leading-5",
+            group.state === "unavailable"
+              ? "border-[var(--danger)] text-[var(--danger)]"
+              : "border-[var(--signal-strong)] text-[var(--text-muted)]",
+          )}>
+            {group.description}
+          </p>
+        )}
+        {group.state === "unavailable" ? null : <>
         <div className="search-filter-field relative mb-2.5">
           <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 opacity-45" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={locale === "fr" ? `Filtrer ${labelsByKey[group.key]?.fr.toLocaleLowerCase("fr") ?? ""}` : `Filter ${labelsByKey[group.key]?.en.toLocaleLowerCase("en") ?? ""}`}
+            placeholder={isRemote
+              ? (locale === "fr" ? "Rechercher dans le catalogue Parigo…" : "Search the Parigo catalog…")
+              : (locale === "fr" ? `Filtrer ${labelsByKey[group.key]?.fr.toLocaleLowerCase("fr") ?? ""}` : `Filter ${labelsByKey[group.key]?.en.toLocaleLowerCase("en") ?? ""}`)}
             className="h-10 w-full border border-[var(--line)] bg-[var(--surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--signal-strong)]"
           />
         </div>
@@ -242,6 +327,32 @@ function FilterGroupSection({
             <FilterItemRow key={item.id} item={item} values={values} selection={group.selection} counts={counts} locale={locale} onChange={onChange} />
           ))}
         </ul>
+        {isRemote && displayedRemoteState === "idle" && values.length === 0 && (
+          <p className="py-4 text-center text-xs text-[var(--text-muted)]">
+            {locale === "fr" ? "Saisissez au moins 2 caractères." : "Enter at least 2 characters."}
+          </p>
+        )}
+        {isRemote && displayedRemoteState === "loading" && (
+          <p className="py-4 text-center text-xs text-[var(--text-muted)]" role="status">
+            {locale === "fr" ? "Recherche dans le catalogue Parigo…" : "Searching the Parigo catalog…"}
+          </p>
+        )}
+        {isRemote && displayedRemoteState === "ready" && displayedRemoteItems.length === 0 && (
+          <p className="py-4 text-center text-xs text-[var(--text-muted)]">
+            {locale === "fr" ? "Aucun compositeur trouvé." : "No composer found."}
+          </p>
+        )}
+        {isRemote && displayedRemoteState === "ready" && remoteIncomplete && (
+          <p className="mt-2 border-l-2 border-[var(--signal-strong)] pl-3 text-[.66rem] leading-5 text-[var(--text-muted)]">
+            {locale === "fr" ? "Plus de 500 pistes correspondent : précisez le nom." : "More than 500 tracks match: refine the name."}
+          </p>
+        )}
+        {isRemote && displayedRemoteState === "error" && (
+          <p className="py-4 text-center text-xs text-[var(--danger)]" role="alert">
+            {locale === "fr" ? "Le catalogue est momentanément indisponible." : "The catalog is temporarily unavailable."}
+          </p>
+        )}
+        </>}
       </div>}
     </details>
   );

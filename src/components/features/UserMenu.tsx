@@ -10,6 +10,7 @@ import {
   LogOut,
   Heart,
   ListMusic,
+  MessageSquareText,
   Clock,
   Download,
   Settings,
@@ -126,6 +127,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
   const menuItems = [
     { icon: Heart, label: t("auth.favorites"), note: locale === "fr" ? "Vos titres repérés" : "Tracks you saved", href: "/account/favorites" },
     { icon: ListMusic, label: t("common.playlists"), note: locale === "fr" ? "Vos récits musicaux" : "Your musical stories", href: "/account/playlists" },
+    { icon: MessageSquareText, label: t("account.comments"), note: locale === "fr" ? "Vos notes, Track par Track" : "Your notes, track by track", href: "/account/comments" },
     { icon: Search, label: t("account.searches"), note: locale === "fr" ? "Vos intentions à retrouver" : "Searches to revisit", href: "/account/searches" },
     { icon: Tags, label: t("account.tags"), note: locale === "fr" ? "Votre vocabulaire de travail" : "Your working vocabulary", href: "/account/tags" },
     { icon: Clock, label: t("auth.history"), note: locale === "fr" ? "Le fil de vos écoutes" : "Your listening trail", href: "/account/history" },

@@ -84,12 +84,12 @@ test("les anciennes routes Sorties Parigo redirigent définitivement", async ({ 
   await expect(page).toHaveURL(/\/en\/label-parigo$/);
 });
 
-test("Ugly Mac Beer relie albums, clips et crédits de pistes", async ({ page }, testInfo) => {
+test("un crédit Harvest brut relie uniquement ses albums et pistes Harvest", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
-  await page.goto("/compositeurs/ugly-mac-beer");
+  await page.goto("/compositeurs/harvest-ugly-mac-beer-1u58k7l");
   await expect(page.getByRole("heading", { level: 1, name: "Ugly Mac Beer" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Albums Parigo" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Clips" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Clips" })).toHaveCount(0);
   const album = page.getByRole("link").filter({ hasText: "Dark Beats" }).first();
   await expect(album).toBeVisible();
   await album.click();
@@ -101,15 +101,15 @@ test("Ugly Mac Beer relie albums, clips et crédits de pistes", async ({ page },
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("Minimatic conserve la relation client vérifiée avec Riviera Bizarre", async ({ page }) => {
+test("Minimatic ne publie plus Riviera Bizarre sans crédit de piste Harvest", async ({ page }) => {
   test.setTimeout(120_000);
-  await page.goto("/compositeurs/minimatic");
-  await expect(page.getByRole("heading", { level: 1, name: "Minimatic" })).toBeVisible();
-  await expect(page.getByRole("link").filter({ hasText: "Riviera Bizarre" }).first()).toBeVisible({ timeout: 60_000 });
+  await page.goto("/compositeurs/harvest-minimatic-ns-1w2ynwe");
+  await expect(page.getByRole("heading", { level: 1, name: "Minimatic (NS)" })).toBeVisible();
+  await expect(page.locator('a[href^="/albums/"]').filter({ hasText: "Riviera Bizarre" })).toHaveCount(0);
 });
 
-test("les clips respectent les crédits stricts et le consentement vidéo", async ({ page }) => {
-  await page.goto("/clips/ny-parigo-2");
+test("les clips YouTube n’infèrent aucun crédit musical local", async ({ page }) => {
+  await page.goto("/clips/yt-jfTecY6qM2Q");
   await expect(page.locator("iframe")).toHaveCount(0);
   await expect(page.getByText(/nécessite votre autorisation/)).toBeVisible();
   await page.evaluate((value) => {
@@ -117,14 +117,10 @@ test("les clips respectent les crédits stricts et le consentement vidéo", asyn
     window.dispatchEvent(new Event("parigo:cookie-consent-change"));
   }, consent(true));
   await expect(page.locator('iframe[src*="youtube-nocookie.com"]')).toHaveCount(0);
-  await page.getByRole("button", { name: "Lire NY Parigo" }).click();
+  await page.getByRole("button", { name: /^Lire / }).click();
   await expect(page.getByTestId("persistent-clip-iframe")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
-  await page.getByRole("button", { name: "Fermer le lecteur vidéo" }).click();
-
-  await page.goto("/clips/acid-body-music-2");
-  await expect(page.locator("iframe")).toHaveCount(0);
-  await expect(page.getByRole("link", { name: "Modulhater" })).toBeVisible();
+  await expect(page.getByText("Aucun crédit compositeur n’est déduit localement.")).toBeVisible();
+  await expect(page.locator("main").getByRole("link", { name: "Ugly Mac Beer", exact: true })).toHaveCount(0);
 });
 
 test("les slugs éditoriaux inconnus sont de vraies 404", async ({ request }) => {

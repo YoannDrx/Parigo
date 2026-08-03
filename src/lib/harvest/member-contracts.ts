@@ -70,8 +70,16 @@ export function buildPasswordResetEmail(email: string) {
   return { Username: "", Email: email, ExternalResetToken: "" };
 }
 
+export function buildMemberVerificationEmail(email: string) {
+  return { Email: email, ExternalVerifyToken: "" };
+}
+
 export function buildPasswordUpdate(token: string, password: string) {
   return { Token: token, Password: password };
+}
+
+export function buildMemberRemoval(password: string, archiveOnly: boolean) {
+  return { Password: password, ArchiveOnly: archiveOnly };
 }
 
 export function buildAddTracksToTags(tagIds: string[], trackIds: string[]) {
@@ -304,8 +312,12 @@ export function buildCommunicationHistory(
   };
 }
 
-export function buildTrackComment(trackId: string, text: string) {
-  return { TrackID: trackId, TagName: text };
+export function buildCreateTrackComment(trackId: string, text: string) {
+  return { trackid: trackId, TagName: text };
+}
+
+export function buildUpdateTrackComment(commentId: string, text: string) {
+  return { TagID: commentId, TagName: text };
 }
 
 export function buildPlaylistSuggestions(limit = 12) {

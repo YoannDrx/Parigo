@@ -18,7 +18,7 @@ import { SignedTitle } from "@/components/ui/SignedTitle";
 export interface PlaylistDetail { id: string; slug?: string; title: string; description?: string; cover: string; category?: string; trackCount?: number; totalDuration: number; isFeatured?: boolean; tracks: Track[]; }
 
 function albumFor(track: Track): Album {
-  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", code: track.albumCode || track.cdCode, cover: track.albumCover || "/images/placeholder-album.svg", label: track.albumLabel || "Parigo", labelSlug: track.albumLabelSlug, genres: track.genres, moods: track.moods, trackCount: 0 };
+  return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", code: track.albumCode || track.cdCode, cover: track.albumCover || "/images/placeholder-album.svg", label: track.albumLabel || "", labelSlug: track.albumLabelSlug, genres: track.genres, moods: track.moods, trackCount: 0 };
 }
 
 export function PlaylistDetailClient({ playlist }: { playlist: PlaylistDetail }) {

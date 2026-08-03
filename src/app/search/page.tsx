@@ -78,7 +78,7 @@ function albumFromTrack(track: Track): Album {
     slug: track.albumSlug,
     title: track.albumTitle || "",
     cover: track.albumCover || "/images/placeholder-album.svg",
-    label: track.albumLabel || "Parigo",
+    label: track.albumLabel || "",
     labelSlug: track.albumLabelSlug,
     code: track.albumCode || track.cdCode,
     genres: track.genres,
@@ -136,7 +136,7 @@ function SearchContent() {
     ...legacyRaw,
   ].map(categoryId).filter((value): value is string => Boolean(value))));
   const [labels, setLabels] = useState<string[]>(sorted(csv(searchParams.get("labels") ?? searchParams.get("label")).filter((value) => !value.startsWith("-"))));
-  const [composers, setComposers] = useState<string[]>(csv(searchParams.get("composer")).slice(0, 1));
+  const [composers, setComposers] = useState<string[]>(searchParams.get("composer") ? [searchParams.get("composer")!] : []);
   const [bpmRange, setBpmRange] = useState<[number, number]>([
     Number(searchParams.get("bpmMin") ?? searchParams.get("minBpm")) || DEFAULT_BPM[0],
     Number(searchParams.get("bpmMax") ?? searchParams.get("maxBpm")) || DEFAULT_BPM[1],

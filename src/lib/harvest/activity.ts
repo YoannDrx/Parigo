@@ -6,6 +6,7 @@ import type {
   MemberSavedSearch,
   MemberTag,
   MemberTrackComment,
+  MemberTrackCommentGroup,
   Playlist,
   RightHolder,
   Track,
@@ -38,7 +39,8 @@ import {
   buildSearchMemberPlaylistTracks,
   buildDownloadInfoQuery,
   buildCommunicationHistory,
-  buildTrackComment,
+  buildCreateTrackComment,
+  buildUpdateTrackComment,
 } from "./member-contracts";
 import {
   WRITE_VERIFICATION_OFFSETS_MS,
@@ -46,6 +48,12 @@ import {
 } from "./write-verification";
 
 type HarvestRecord = Record<string, unknown>;
+
+const TRACK_COMMENT_INDEX_TAG_NAME = "PARIGO_INTERNAL_TRACK_COMMENTS_V1";
+
+export function isReservedMemberTagName(name: string): boolean {
+  return name.trim().toLocaleUpperCase() === TRACK_COMMENT_INDEX_TAG_NAME;
+}
 
 function containsHarvestId(value: unknown, expectedId: string): boolean {
   if (Array.isArray(value)) return value.some((item) => containsHarvestId(item, expectedId));
@@ -802,28 +810,83 @@ export async function getTrackComments(memberToken: string, trackId: string): Pr
   return recordArray(payload, "Tags").map((item) => mapTrackComment(item, trackId)).filter((item) => item.id && item.text);
 }
 
+async function pollTrackComment(
+  memberToken: string,
+  trackId: string,
+  predicate: (comment: MemberTrackComment) => boolean,
+): Promise<MemberTrackComment | null> {
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const comment = (await getTrackComments(memberToken, trackId)).find(predicate);
+    if (comment) return comment;
+  }
+  return null;
+}
+
 export async function createTrackComment(memberToken: string, trackId: string, text: string): Promise<MemberTrackComment> {
-  const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/addtrackmembercomment/${token}`, {
+  await ensureTrackCommentIndexed(memberToken, trackId);
+  const existingIds = new Set((await getTrackComments(memberToken, trackId)).map((comment) => comment.id));
+  await memberRequest(memberToken, (token) => `/addtrackmembercomment/${token}`, {
     method: "POST",
-    body: JSON.stringify(buildTrackComment(trackId, text)),
+    body: JSON.stringify(buildCreateTrackComment(trackId, text)),
   });
-  const item = recordArray(payload, "Tags")[0];
-  if (!item) throw new HarvestError("Parigo did not return the private note", "HARVEST_INVALID_RESPONSE");
-  return mapTrackComment(item, trackId);
+  const created = await pollTrackComment(
+    memberToken,
+    trackId,
+    (comment) => !existingIds.has(comment.id) && comment.text === text,
+  );
+  if (!created) {
+    throw new HarvestError(
+      "Harvest acknowledged the private note but it could not be verified",
+      "HARVEST_INVALID_RESPONSE",
+      502,
+      false,
+      "ACK_UNVERIFIED",
+    );
+  }
+  return created;
 }
 
 export async function updateTrackComment(memberToken: string, commentId: string, trackId: string, text: string): Promise<MemberTrackComment> {
-  const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/updatetrackmembercomment/${token}`, {
+  await ensureTrackCommentIndexed(memberToken, trackId);
+  await memberRequest(memberToken, (token) => `/updatetrackmembercomment/${token}`, {
     method: "POST",
-    body: JSON.stringify(buildTrackComment(commentId, text)),
+    body: JSON.stringify(buildUpdateTrackComment(commentId, text)),
   });
-  const item = recordArray(payload, "Tags")[0];
-  if (!item) throw new HarvestError("Parigo did not return the updated private note", "HARVEST_INVALID_RESPONSE");
-  return mapTrackComment(item, trackId);
+  const updated = await pollTrackComment(
+    memberToken,
+    trackId,
+    (comment) => comment.id === commentId && comment.text === text,
+  );
+  if (!updated) {
+    throw new HarvestError(
+      "Harvest acknowledged the private note update but it could not be verified",
+      "HARVEST_INVALID_RESPONSE",
+      502,
+      false,
+      "ACK_UNVERIFIED",
+    );
+  }
+  return updated;
 }
 
-export async function removeTrackComment(memberToken: string, commentId: string): Promise<void> {
+export async function removeTrackComment(memberToken: string, trackId: string, commentId: string): Promise<void> {
   await memberRequest(memberToken, (token) => `/removetrackmembercomment/${token}/${encodeURIComponent(commentId)}`);
+  for (let index = 0; index < WRITE_VERIFICATION_OFFSETS_MS.length; index += 1) {
+    await waitForVerificationOffset(index);
+    const comments = await getTrackComments(memberToken, trackId);
+    if (!comments.some((comment) => comment.id === commentId)) {
+      if (comments.length === 0) await removeTrackFromCommentIndex(memberToken, trackId).catch(() => undefined);
+      return;
+    }
+  }
+  throw new HarvestError(
+    "Harvest acknowledged the private note deletion but the note is still present",
+    "HARVEST_INVALID_RESPONSE",
+    502,
+    false,
+    "ACK_UNVERIFIED",
+  );
 }
 
 function mapMemberTag(value: unknown): MemberTag {
@@ -836,9 +899,13 @@ function mapMemberTag(value: unknown): MemberTag {
   };
 }
 
-export async function getMemberTags(memberToken: string, skip = 0, limit = 100): Promise<MemberTag[]> {
+async function getRawMemberTags(memberToken: string, skip = 0, limit = 100): Promise<MemberTag[]> {
   const payload = await memberRequest<HarvestRecord>(memberToken, (token) => `/getmembertags/${token}?Skip=${skip}&Limit=${limit}&Sort=Alphabetic_Asc&ReturnTagCount=1`);
   return recordArray(payload, "Tags").map(mapMemberTag);
+}
+
+export async function getMemberTags(memberToken: string, skip = 0, limit = 100): Promise<MemberTag[]> {
+  return (await getRawMemberTags(memberToken, skip, limit)).filter((tag) => !isReservedMemberTagName(tag.name));
 }
 
 export async function getMemberTagsWithTrackCounts(
@@ -866,7 +933,118 @@ export async function getMemberTagsByTrack(memberToken: string, trackId: string)
     memberToken,
     (token) => `/getmembertagsbytrack/${token}/${encodeURIComponent(trackId)}`,
   );
-  return recordArray(payload, "Tags").map(mapMemberTag);
+  return recordArray(payload, "Tags").map(mapMemberTag).filter((tag) => !isReservedMemberTagName(tag.name));
+}
+
+async function getTrackCommentIndexTag(memberToken: string): Promise<MemberTag | null> {
+  return (await getRawMemberTags(memberToken, 0, 500)).find((tag) => isReservedMemberTagName(tag.name)) || null;
+}
+
+export async function assertPublicMemberTag(memberToken: string, tagId: string): Promise<void> {
+  const tag = (await getRawMemberTags(memberToken, 0, 500)).find((candidate) => candidate.id === tagId);
+  if (!tag || isReservedMemberTagName(tag.name)) {
+    throw new HarvestError("Member tag not found", "NOT_FOUND", 404, false);
+  }
+}
+
+async function ensureTrackCommentIndexed(memberToken: string, trackId: string): Promise<void> {
+  await ensureTrackCommentsIndexed(memberToken, [trackId]);
+}
+
+async function ensureTrackCommentsIndexed(memberToken: string, trackIds: string[]): Promise<void> {
+  if (trackIds.length === 0) return;
+  const tag = await getTrackCommentIndexTag(memberToken) || await createMemberTag(memberToken, TRACK_COMMENT_INDEX_TAG_NAME);
+  const indexedTracks = await getMemberTagTracks(memberToken, tag.id, 0, 500);
+  const indexedIds = new Set(indexedTracks.map((track) => track.id));
+  const missingIds = [...new Set(trackIds)].filter((trackId) => !indexedIds.has(trackId));
+  for (let offset = 0; offset < missingIds.length; offset += 500) {
+    await addTracksToMemberTags(memberToken, [tag.id], missingIds.slice(offset, offset + 500));
+  }
+}
+
+async function removeTrackFromCommentIndex(memberToken: string, trackId: string): Promise<void> {
+  const tag = await getTrackCommentIndexTag(memberToken);
+  if (!tag) return;
+  const indexedTracks = await getMemberTagTracks(memberToken, tag.id, 0, 500);
+  if (indexedTracks.some((track) => track.id === trackId)) {
+    await removeTrackFromMemberTag(memberToken, tag.id, trackId);
+  }
+}
+
+export async function getCommentedTracks(memberToken: string): Promise<MemberTrackCommentGroup[]> {
+  const tag = await getTrackCommentIndexTag(memberToken);
+  if (!tag) return [];
+  const tracks = await getMemberTagTracks(memberToken, tag.id, 0, 500);
+  const groups: MemberTrackCommentGroup[] = [];
+  const concurrency = 6;
+  for (let offset = 0; offset < tracks.length; offset += concurrency) {
+    const batch = tracks.slice(offset, offset + concurrency);
+    const hydrated: Array<MemberTrackCommentGroup | null> = await Promise.all(batch.map(async (track) => {
+      const comments = (await getTrackComments(memberToken, track.id)).sort((left, right) => {
+        const leftTime = Date.parse(left.updatedAt || left.createdAt || "");
+        const rightTime = Date.parse(right.updatedAt || right.createdAt || "");
+        return (Number.isNaN(rightTime) ? 0 : rightTime) - (Number.isNaN(leftTime) ? 0 : leftTime);
+      });
+      if (!comments.length) return null;
+      const lastActivityAt = comments[0]?.updatedAt || comments[0]?.createdAt;
+      return { track, comments, ...(lastActivityAt ? { lastActivityAt } : {}) };
+    }));
+    hydrated.forEach((group) => { if (group) groups.push(group); });
+  }
+  return groups.sort((left, right) => {
+    const leftTime = Date.parse(left.lastActivityAt || "");
+    const rightTime = Date.parse(right.lastActivityAt || "");
+    return (Number.isNaN(rightTime) ? 0 : rightTime) - (Number.isNaN(leftTime) ? 0 : leftTime);
+  });
+}
+
+export async function syncTrackCommentIndex(
+  memberToken: string,
+  memberUtcOffsetHours?: number,
+): Promise<{ scannedTracks: number; indexedTracks: number }> {
+  const candidates = new Map<string, Track>();
+  const addTracks = (tracks: Track[]) => {
+    tracks.forEach((track) => {
+      if (track.id && !candidates.has(track.id)) candidates.set(track.id, track);
+    });
+  };
+
+  const [favourites, history, downloads, playlists, tags] = await Promise.all([
+    getFavouriteTracks(memberToken, 0, 500).catch(() => []),
+    getAuditionHistory(memberToken, 0, 500, memberUtcOffsetHours).catch(() => ({ items: [], total: 0 })),
+    getDownloadHistory(memberToken, 0, 500).catch(() => ({ items: [], total: 0 })),
+    getMemberPlaylists(memberToken, 0, 500).catch(() => []),
+    getMemberTags(memberToken, 0, 500).catch(() => []),
+  ]);
+  addTracks(favourites);
+  addTracks(history.items.map((entry) => entry.track));
+  addTracks(downloads.items.map((entry) => entry.track));
+
+  const sourceConcurrency = 6;
+  for (let offset = 0; offset < playlists.length; offset += sourceConcurrency) {
+    const batch = await Promise.all(playlists.slice(offset, offset + sourceConcurrency).map((playlist) =>
+      getMemberPlaylist(memberToken, playlist.id).catch(() => null),
+    ));
+    batch.forEach((playlist) => addTracks(playlist?.tracks || []));
+  }
+  for (let offset = 0; offset < tags.length; offset += sourceConcurrency) {
+    const batch = await Promise.all(tags.slice(offset, offset + sourceConcurrency).map((tag) =>
+      getMemberTagTracks(memberToken, tag.id, 0, 500).catch(() => []),
+    ));
+    batch.forEach(addTracks);
+  }
+
+  const trackIdsWithComments: string[] = [];
+  const candidateTracks = [...candidates.values()];
+  for (let offset = 0; offset < candidateTracks.length; offset += sourceConcurrency) {
+    const batch = candidateTracks.slice(offset, offset + sourceConcurrency);
+    const comments = await Promise.all(batch.map((track) => getTrackComments(memberToken, track.id).catch(() => [])));
+    comments.forEach((items, index) => {
+      if (items.length) trackIdsWithComments.push(batch[index]!.id);
+    });
+  }
+  await ensureTrackCommentsIndexed(memberToken, trackIdsWithComments);
+  return { scannedTracks: candidateTracks.length, indexedTracks: trackIdsWithComments.length };
 }
 
 export async function getTrackRightHolders(memberToken: string | undefined, trackId: string): Promise<RightHolder[]> {

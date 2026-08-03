@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle, Eye, EyeOff } from "lucide-react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SignedTitle } from "@/components/ui/SignedTitle";
+import { registrationErrorMessageKey } from "@/lib/auth-errors";
 
 interface RegistrationForm {
   firstName: string;
@@ -50,6 +51,10 @@ function Field({ label, id, value, onChange, required, type = "text", autoComple
   return <label htmlFor={id} className="block text-sm font-medium"><span className="mb-2 block">{label}{required ? " *" : ""}</span><Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} autoComplete={autoComplete} /></label>;
 }
 
+function PasswordField({ label, id, value, onChange, visible, onToggle, showLabel, hideLabel }: { label: string; id: string; value: string; onChange: (value: string) => void; visible: boolean; onToggle: () => void; showLabel: string; hideLabel: string }) {
+  return <div><label htmlFor={id} className="mb-2 block text-sm font-medium">{label} *</label><div className="relative"><Input id={id} type={visible ? "text" : "password"} value={value} onChange={(event) => onChange(event.target.value)} required autoComplete="new-password" className="pr-12" /><button type="button" aria-label={visible ? hideLabel : showLabel} aria-controls={id} aria-pressed={visible} onClick={onToggle} className="absolute right-1 top-1/2 inline-flex min-h-10 min-w-10 -translate-y-1/2 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)]">{visible ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}</button></div></div>;
+}
+
 export function RegisterForm({
   embedded = false,
   headingId,
@@ -59,7 +64,7 @@ export function RegisterForm({
   embedded?: boolean;
   headingId?: string;
   onLogin?: () => void;
-  onSuccess?: (email: string) => void;
+  onSuccess?: (email: string, verificationEmailSent: boolean) => void;
 } = {}) {
   const { locale, t } = useI18n();
   const router = useRouter();
@@ -68,7 +73,9 @@ export function RegisterForm({
   const [formats, setFormats] = useState<Array<{ id: string; label: string }>>([]);
   const [countries, setCountries] = useState(fallbackCountries);
   const [error, setError] = useState<string | null>(null);
+  const [passwordVisibility, setPasswordVisibility] = useState({ password: false, confirmation: false });
   const [isLoading, setIsLoading] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
 
   const set = <K extends keyof RegistrationForm>(key: K, value: RegistrationForm[K]) => setForm((current) => ({ ...current, [key]: value }));
   const passwordRequirements = useMemo(() => [
@@ -93,10 +100,20 @@ export function RegisterForm({
       .catch(() => undefined);
   }, []);
 
+  useEffect(() => {
+    if (!error) return;
+    const frame = window.requestAnimationFrame(() => {
+      errorRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      errorRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [error]);
+
   const continueToProfile = (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
-    if (!form.firstName || !form.lastName || !form.email) return setError(locale === "fr" ? "Complétez les champs obligatoires." : "Complete all required fields.");
+    if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) return setError(locale === "fr" ? "Veuillez renseigner tous les champs obligatoires avant de continuer." : "Please complete all required fields before continuing.");
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return setError(locale === "fr" ? "Veuillez saisir une adresse e-mail valide." : "Please enter a valid email address.");
     if (form.password !== form.confirmPassword) return setError(locale === "fr" ? "Les mots de passe ne correspondent pas." : "Passwords do not match.");
     if (!passwordRequirements.every((requirement) => requirement.met)) return setError(locale === "fr" ? "Le mot de passe ne respecte pas tous les critères." : "The password does not meet every requirement.");
     setStep(2);
@@ -105,15 +122,20 @@ export function RegisterForm({
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
-    if (!form.country || !form.termsAccepted || !form.privacyAccepted) return setError(locale === "fr" ? "Le pays, les conditions et la confidentialité sont obligatoires." : "Country, terms and privacy consent are required.");
+    if (!form.country) return setError(locale === "fr" ? "Veuillez sélectionner votre pays." : "Please select your country.");
+    if (!form.termsAccepted || !form.privacyAccepted) return setError(locale === "fr" ? "Veuillez cocher les deux cases obligatoires pour accepter les conditions d’utilisation et la politique de confidentialité." : "Please tick both required boxes to accept the terms of use and privacy policy.");
     setIsLoading(true);
     try {
       const { confirmPassword: _confirmPassword, ...payload } = form;
       void _confirmPassword;
       const result = await signUp.email(payload);
-      if (result.error) setError(result.error.message || (locale === "fr" ? "Inscription impossible." : "Registration failed."));
-      else if (onSuccess) onSuccess(form.email);
-      else router.push(`/register/success?email=${encodeURIComponent(form.email)}`);
+      if (result.error) {
+        setError(t(registrationErrorMessageKey(result.error)));
+      } else {
+        const verificationEmailSent = result.data?.verificationEmailSent !== false;
+        if (onSuccess) onSuccess(form.email, verificationEmailSent);
+        else router.push(`/register/success?email=${encodeURIComponent(form.email)}&sent=${verificationEmailSent ? "1" : "0"}`);
+      }
     } catch {
       setError(locale === "fr" ? "Une erreur est survenue lors de l’inscription." : "An error occurred during registration.");
     } finally {
@@ -130,23 +152,23 @@ export function RegisterForm({
         </div>
         <div className="mb-8 grid grid-cols-2 gap-2" aria-hidden="true"><div className="h-[2px] bg-[var(--signal-strong)]" /><div className={cnStep(step === 2)} /></div>
 
-        {error && <div role="alert" className="mb-6 flex items-center gap-3 border border-red-300 bg-red-50 p-4 text-sm text-red-700"><AlertCircle size={19} />{error}</div>}
+        {error && <div ref={errorRef} role="alert" tabIndex={-1} className="contact-consent-error mb-6 !block outline-none"><div className="flex items-start gap-3"><AlertCircle className="mt-0.5 shrink-0 text-[var(--danger)]" size={19} /><p className="leading-6">{error}</p></div></div>}
 
         {step === 1 ? (
-          <form onSubmit={continueToProfile} className="space-y-6">
+          <form onSubmit={continueToProfile} noValidate className="space-y-6">
             <div className="grid gap-5 sm:grid-cols-2"><Field id="firstName" label={locale === "fr" ? "Prénom" : "First name"} value={form.firstName} onChange={(value) => set("firstName", value)} required autoComplete="given-name" /><Field id="lastName" label={locale === "fr" ? "Nom" : "Last name"} value={form.lastName} onChange={(value) => set("lastName", value)} required autoComplete="family-name" /></div>
             <Field id="email" label={`${t("auth.email")} (${locale === "fr" ? "utilisé comme identifiant" : "used as username"})`} value={form.email} onChange={(value) => set("email", value)} required type="email" autoComplete="email" />
-            <div className="grid gap-5 sm:grid-cols-2"><Field id="password" label={t("auth.password")} value={form.password} onChange={(value) => set("password", value)} required type="password" autoComplete="new-password" /><Field id="confirmPassword" label={locale === "fr" ? "Confirmer le mot de passe" : "Confirm password"} value={form.confirmPassword} onChange={(value) => set("confirmPassword", value)} required type="password" autoComplete="new-password" /></div>
+            <div className="grid gap-5 sm:grid-cols-2"><PasswordField id="password" label={t("auth.password")} value={form.password} onChange={(value) => set("password", value)} visible={passwordVisibility.password} onToggle={() => setPasswordVisibility((current) => ({ ...current, password: !current.password }))} showLabel={t("auth.showPassword")} hideLabel={t("auth.hidePassword")} /><PasswordField id="confirmPassword" label={locale === "fr" ? "Confirmer le mot de passe" : "Confirm password"} value={form.confirmPassword} onChange={(value) => set("confirmPassword", value)} visible={passwordVisibility.confirmation} onToggle={() => setPasswordVisibility((current) => ({ ...current, confirmation: !current.confirmation }))} showLabel={locale === "fr" ? "Afficher la confirmation du mot de passe" : "Show password confirmation"} hideLabel={locale === "fr" ? "Masquer la confirmation du mot de passe" : "Hide password confirmation"} /></div>
             {form.password && <div className="grid gap-2 text-xs sm:grid-cols-3">{passwordRequirements.map((requirement) => <span key={requirement.label} className={requirement.met ? "text-green-700" : "text-[var(--text-muted)]"}>{requirement.met ? <CheckCircle className="mr-1 inline" size={14} /> : "○ "}{requirement.label}</span>)}</div>}
             <Button type="submit" size="lg" className="w-full">{locale === "fr" ? "Continuer vers le profil" : "Continue to profile"}<ArrowRight size={18} /></Button>
           </form>
         ) : (
-          <form onSubmit={submit} className="space-y-7">
+          <form onSubmit={submit} noValidate className="space-y-7">
             <div className="grid gap-5 sm:grid-cols-2"><Field id="company" label={locale === "fr" ? "Société" : "Company"} value={form.company} onChange={(value) => set("company", value)} /><label htmlFor="country" className="block text-sm font-medium"><span className="mb-2 block">{locale === "fr" ? "Pays *" : "Country *"}</span><Select id="country" name="country" value={form.country} onValueChange={(value) => set("country", value)} ariaLabel={locale === "fr" ? "Pays *" : "Country *"} className="w-full [&_[role=combobox]]:min-h-12" options={countries.map((country) => ({ value: country.code, label: country.name }))} /></label></div>
             <div className="grid gap-5 sm:grid-cols-3"><Field id="production" label="Production" value={form.production} onChange={(value) => set("production", value)} /><Field id="subProduction" label={locale === "fr" ? "Sous-production" : "Sub-production"} value={form.subProduction} onChange={(value) => set("subProduction", value)} /><Field id="position" label={locale === "fr" ? "Poste" : "Position"} value={form.position} onChange={(value) => set("position", value)} /></div>
             <div className="grid gap-5 sm:grid-cols-2"><Field id="address1" label={locale === "fr" ? "Adresse" : "Address"} value={form.address1} onChange={(value) => set("address1", value)} autoComplete="address-line1" /><Field id="address2" label={locale === "fr" ? "Complément d’adresse" : "Address line 2"} value={form.address2} onChange={(value) => set("address2", value)} autoComplete="address-line2" /><Field id="suburb" label={locale === "fr" ? "Ville" : "City"} value={form.suburb} onChange={(value) => set("suburb", value)} autoComplete="address-level2" /><Field id="state" label={locale === "fr" ? "État / région" : "State / region"} value={form.state} onChange={(value) => set("state", value)} autoComplete="address-level1" /><Field id="postcode" label={locale === "fr" ? "Code postal" : "Postcode"} value={form.postcode} onChange={(value) => set("postcode", value)} autoComplete="postal-code" /><Field id="phone" label={locale === "fr" ? "Téléphone" : "Phone"} value={form.phone} onChange={(value) => set("phone", value)} type="tel" autoComplete="tel" /></div>
             {formats.length > 0 && <label htmlFor="fileFormatId" className="block text-sm font-medium"><span className="mb-2 block">{locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"}</span><Select id="fileFormatId" name="fileFormatId" value={form.fileFormatId} onValueChange={(value) => set("fileFormatId", value)} ariaLabel={locale === "fr" ? "Format de téléchargement préféré" : "Preferred download format"} className="w-full [&_[role=combobox]]:min-h-12" options={formats.map((format) => ({ value: format.id, label: format.label }))} /></label>}
-            <div className="space-y-3 border-t border-[var(--line)] pt-6 text-sm"><label className="flex items-start gap-3"><input type="checkbox" required checked={form.termsAccepted} onChange={(event) => set("termsAccepted", event.target.checked)} /><span>{locale === "fr" ? "J’accepte les " : "I accept the "}<Link className="underline" href="/terms">{locale === "fr" ? "conditions d’utilisation" : "terms of use"}</Link>.</span></label><label className="flex items-start gap-3"><input type="checkbox" required checked={form.privacyAccepted} onChange={(event) => set("privacyAccepted", event.target.checked)} /><span>{locale === "fr" ? "J’accepte la " : "I accept the "}<Link className="underline" href="/privacy">{locale === "fr" ? "politique de confidentialité" : "privacy policy"}</Link>.</span></label><label className="flex items-start gap-3"><input type="checkbox" checked={form.subscribe} onChange={(event) => set("subscribe", event.target.checked)} /><span>{locale === "fr" ? "Recevoir la newsletter et les nouvelles sorties Parigo" : "Receive the Parigo newsletter and new releases"}</span></label></div>
+            <div className="space-y-3 border-t border-[var(--line)] pt-6 text-sm"><label className="flex items-start gap-3"><input type="checkbox" required aria-invalid={Boolean(error && !form.termsAccepted)} checked={form.termsAccepted} onChange={(event) => set("termsAccepted", event.target.checked)} /><span>{locale === "fr" ? "J’accepte les " : "I accept the "}<Link className="underline" href="/terms">{locale === "fr" ? "conditions d’utilisation" : "terms of use"}</Link>.</span></label><label className="flex items-start gap-3"><input type="checkbox" required aria-invalid={Boolean(error && !form.privacyAccepted)} checked={form.privacyAccepted} onChange={(event) => set("privacyAccepted", event.target.checked)} /><span>{locale === "fr" ? "J’accepte la " : "I accept the "}<Link className="underline" href="/privacy">{locale === "fr" ? "politique de confidentialité" : "privacy policy"}</Link>.</span></label><label className="flex items-start gap-3"><input type="checkbox" checked={form.subscribe} onChange={(event) => set("subscribe", event.target.checked)} /><span>{locale === "fr" ? "Recevoir la newsletter et les nouvelles sorties Parigo" : "Receive the Parigo newsletter and new releases"}</span></label></div>
             <div className="flex flex-col-reverse gap-3 sm:flex-row"><Button type="button" variant="outline" size="lg" onClick={() => setStep(1)} disabled={isLoading}><ArrowLeft size={18} />{locale === "fr" ? "Retour" : "Back"}</Button><Button type="submit" size="lg" className="flex-1" disabled={isLoading}>{isLoading ? <><ParigoLoader size="icon" label={t("auth.registering")} />{t("auth.registering")}</> : t("auth.register")}</Button></div>
           </form>
         )}

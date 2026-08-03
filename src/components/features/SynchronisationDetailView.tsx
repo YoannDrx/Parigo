@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { Footer, Header } from "@/components/layout";
 import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { useI18n } from "@/components/providers/I18nProvider";
-import type { Synchronisation } from "@/content/synchronisations";
+import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 
 export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {

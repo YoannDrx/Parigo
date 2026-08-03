@@ -1,0 +1,689 @@
+{
+  "generatedAt": "2026-08-03T13:53:32.502Z",
+  "endpointChecks": 59,
+  "transportErrors": 0,
+  "logicalErrors": 1,
+  "results": [
+    {
+      "endpoint": "oauth2/token",
+      "status": 200,
+      "topKeys": [
+        "access_token",
+        "expires_in",
+        "token_type"
+      ]
+    },
+    {
+      "endpoint": "getservicetoken",
+      "status": 200,
+      "topKeys": [
+        "Token"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getservicetokeninfo (service)",
+      "status": 200,
+      "topKeys": [
+        "Token"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getserviceinfo",
+      "status": 200,
+      "topKeys": [
+        "AccountGlobalSettingsAndRegions",
+        "FileFormats",
+        "SearchSimilarInfo",
+        "ServiceInfoURLs"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "SearchSimilarInfo": 0,
+        "FileFormats": 6
+      }
+    },
+    {
+      "endpoint": "getregions",
+      "status": 200,
+      "topKeys": [
+        "Regions"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Regions": 1
+      }
+    },
+    {
+      "endpoint": "getregion",
+      "status": 200,
+      "topKeys": [
+        "Region"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getregionbyip",
+      "status": 200,
+      "topKeys": [
+        "Country",
+        "Region"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getcountries",
+      "status": 200,
+      "topKeys": [
+        "Countries"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Countries": 245
+      }
+    },
+    {
+      "endpoint": "getguestmembertoken",
+      "status": 200,
+      "topKeys": [
+        "Token"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getlibraries",
+      "status": 200,
+      "topKeys": [
+        "Libraries"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Libraries": 103
+      }
+    },
+    {
+      "endpoint": "getlibraries includeinactive",
+      "status": 200,
+      "topKeys": [
+        "Libraries"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Libraries": 107
+      }
+    },
+    {
+      "endpoint": "getlibrary",
+      "status": 200,
+      "topKeys": [
+        "Library"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getstylegroups",
+      "status": 200,
+      "topKeys": [
+        "Groups"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Groups": 1
+      }
+    },
+    {
+      "endpoint": "getstyles",
+      "status": 200,
+      "topKeys": [
+        "Styles"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Styles": 0
+      }
+    },
+    {
+      "endpoint": "getstyles language",
+      "status": 200,
+      "topKeys": [
+        "Styles"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Styles": 0
+      }
+    },
+    {
+      "endpoint": "getstyles without group",
+      "status": 200,
+      "topKeys": [
+        "Styles"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Styles": 165
+      }
+    },
+    {
+      "endpoint": "getalbums",
+      "status": 200,
+      "topKeys": [
+        "Albums"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Albums": 62
+      }
+    },
+    {
+      "endpoint": "getalbums includeinactive",
+      "status": 200,
+      "topKeys": [
+        "Albums"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Albums": 62
+      }
+    },
+    {
+      "endpoint": "getalbumsbystyles documented JSON",
+      "status": 200,
+      "topKeys": [
+        "Albums"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Albums": 0
+      }
+    },
+    {
+      "endpoint": "getalbumsbyids documented JSON",
+      "status": 200,
+      "topKeys": [
+        "Albums"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Albums": 1
+      }
+    },
+    {
+      "endpoint": "getfeaturedalbums",
+      "status": 200,
+      "topKeys": [
+        "Albums"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Albums": 0
+      }
+    },
+    {
+      "endpoint": "getlatestalbums",
+      "status": 200,
+      "topKeys": [
+        "Albums"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Albums": 5
+      }
+    },
+    {
+      "endpoint": "getalbum",
+      "status": 200,
+      "topKeys": [
+        "Album"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getalbumtracks mainonly",
+      "status": 200,
+      "topKeys": [
+        "Album",
+        "Library",
+        "TotalTracks",
+        "Tracks"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tracks": 10
+      }
+    },
+    {
+      "endpoint": "getalbumtracks includeinactive",
+      "status": 200,
+      "topKeys": [
+        "Album",
+        "Library",
+        "Tracks"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tracks": 54
+      }
+    },
+    {
+      "endpoint": "gettracks documented JSON",
+      "status": 200,
+      "topKeys": [
+        "Album",
+        "CategoryFacet",
+        "Library",
+        "TotalTracks",
+        "Tracks"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tracks": 1,
+        "CategoryFacet": 0
+      }
+    },
+    {
+      "endpoint": "getcategories",
+      "status": 200,
+      "topKeys": [
+        "Categories"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Categories": 6
+      }
+    },
+    {
+      "endpoint": "getrightholders",
+      "status": 200,
+      "topKeys": [
+        "RightHolders"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "RightHolders": 2
+      }
+    },
+    {
+      "endpoint": "gettoptracks corrected JSON",
+      "status": 200,
+      "topKeys": [
+        "Album",
+        "Library",
+        "Tracks"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tracks": 10
+      }
+    },
+    {
+      "endpoint": "getfeaturedplaylistcategories",
+      "status": 200,
+      "topKeys": [
+        "PlaylistCategories",
+        "TotalPlaylistCategoriesCount",
+        "TotalPlaylistsCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "PlaylistCategories": 0
+      }
+    },
+    {
+      "endpoint": "getfeaturedplaylistcategoriesandplaylists",
+      "status": 200,
+      "topKeys": [
+        "PlaylistObjects",
+        "TotalCount",
+        "TotalPlaylistCategoriesCount",
+        "TotalPlaylistsCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "PlaylistObjects": 10
+      }
+    },
+    {
+      "endpoint": "getfeaturedplaylistsplaylistonly",
+      "status": 200,
+      "topKeys": [
+        "Playlists",
+        "Total"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Playlists": 10
+      }
+    },
+    {
+      "endpoint": "getfeaturedplaylistandtracks documented JSON",
+      "status": 200,
+      "topKeys": [
+        "Playlists"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Playlists": 1
+      }
+    },
+    {
+      "endpoint": "getfeaturedplaylistandtracks Parigo empty JSON body",
+      "status": 200,
+      "topKeys": [
+        "Playlists"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Playlists": 1
+      }
+    },
+    {
+      "endpoint": "searchfeaturedplaylisttracks documented JSON",
+      "status": 200,
+      "topKeys": [
+        "Album",
+        "Library",
+        "TotalTracks",
+        "Tracks"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tracks": 10
+      }
+    },
+    {
+      "endpoint": "autocomplete documented JSON subset",
+      "status": 200,
+      "topKeys": [
+        "Albums",
+        "AlbumsFound",
+        "CategoryAttributesFound",
+        "ComposerFound",
+        "FeaturedPlaylistsFound",
+        "KeywordsFound",
+        "LibraryFound",
+        "LyricFound",
+        "RightHolderFound",
+        "StylesFound",
+        "TagsFound",
+        "Tracks",
+        "TracksFound"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Albums": 3,
+        "Tracks": 3
+      }
+    },
+    {
+      "endpoint": "getmembertoken",
+      "status": 200,
+      "topKeys": [
+        "MemberAccount",
+        "MemberToken",
+        "PersistentLoginToken"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getservicetokeninfo member",
+      "status": 200,
+      "topKeys": [
+        "Token"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "validatepersistentlogintoken documented JSON",
+      "status": 200,
+      "topKeys": [
+        "MemberAccount",
+        "MemberToken",
+        "PersistentLoginToken"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getmember",
+      "status": 200,
+      "topKeys": [
+        "Member"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getmemberplaylistcategories",
+      "status": 200,
+      "topKeys": [
+        "PlaylistCategories",
+        "TotalPlaylistCategoriesCount",
+        "TotalPlaylistsCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "PlaylistCategories": 1
+      }
+    },
+    {
+      "endpoint": "getmemberplaylistcategoriesandplaylists",
+      "status": 200,
+      "topKeys": [
+        "PlaylistObjects",
+        "TotalCount",
+        "TotalPlaylistCategoriesCount",
+        "TotalPlaylistsCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "PlaylistObjects": 4
+      }
+    },
+    {
+      "endpoint": "getmemberplaylistsnotracks",
+      "status": 200,
+      "topKeys": [
+        "Playlists",
+        "Total"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Playlists": 5
+      }
+    },
+    {
+      "endpoint": "getmemberplaylists",
+      "status": 200,
+      "topKeys": [
+        "Playlists",
+        "Total"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Playlists": 5
+      }
+    },
+    {
+      "endpoint": "getmemberplaylist",
+      "status": 200,
+      "topKeys": [
+        "Playlists",
+        "Total"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Playlists": 1
+      }
+    },
+    {
+      "endpoint": "getmemberplaylistshares",
+      "status": 200,
+      "topKeys": [
+        "Shares",
+        "Total"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Shares": 0
+      }
+    },
+    {
+      "endpoint": "getmemberplaylistsearches",
+      "status": 200,
+      "topKeys": [
+        "ProjectSearches",
+        "TotalCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "ProjectSearches": 0
+      }
+    },
+    {
+      "endpoint": "getmemberplaylistschedule",
+      "status": 200,
+      "topKeys": [
+        "Error"
+      ],
+      "logicalError": {
+        "Code": "2",
+        "Description": "Playlist Schedule Does Not Exist. The requested playlist does not have a schedule."
+      },
+      "arrays": {}
+    },
+    {
+      "endpoint": "getmemberplaylistschedulerun",
+      "status": 200,
+      "topKeys": [
+        "PlaylistScheduleRun",
+        "TotalCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "PlaylistScheduleRun": 0
+      }
+    },
+    {
+      "endpoint": "searchmemberplaylisttracks minimal",
+      "status": 200,
+      "topKeys": [
+        "Album",
+        "Library",
+        "TotalTracks",
+        "Tracks"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tracks": 8
+      }
+    },
+    {
+      "endpoint": "getfavourites",
+      "status": 200,
+      "topKeys": [
+        "Favourites"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "gethistorybymembertoken",
+      "status": 200,
+      "topKeys": [
+        "History"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getdownloadhistorybymembertoken",
+      "status": 200,
+      "topKeys": [
+        "History"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "gethistorybycommunications",
+      "status": 200,
+      "topKeys": [
+        "History"
+      ],
+      "logicalError": null,
+      "arrays": {}
+    },
+    {
+      "endpoint": "getmembertags",
+      "status": 200,
+      "topKeys": [
+        "Tags",
+        "TotalTagsCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tags": 2
+      }
+    },
+    {
+      "endpoint": "getmembertagtracks",
+      "status": 200,
+      "topKeys": [
+        "Tags",
+        "TotalTracks"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tags": 1
+      }
+    },
+    {
+      "endpoint": "getmembertagsbytrack",
+      "status": 200,
+      "topKeys": [
+        "Tags"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tags": 0
+      }
+    },
+    {
+      "endpoint": "gettrackmembercomments",
+      "status": 200,
+      "topKeys": [
+        "Tags"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "Tags": 0
+      }
+    },
+    {
+      "endpoint": "searchmembersavesearches",
+      "status": 200,
+      "topKeys": [
+        "SavedSearches",
+        "TotalCount"
+      ],
+      "logicalError": null,
+      "arrays": {
+        "SavedSearches": 3
+      }
+    }
+  ],
+  "serviceCapabilities": {
+    "similarityProviders": 0
+  }
+}

@@ -1,6 +1,6 @@
 # Parigo
 
-Site catalogue et lecteur audio de Parigo Music. Harvest reste la source de vérité du catalogue musical, tandis que les profils éditoriaux et les relations encore absentes du CMS/API sont versionnés localement. Les inventaires vidéo proviennent des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
+Site catalogue et lecteur audio de Parigo Music. Harvest est l’unique source de vérité des données musicales publiques. Les anciennes données éditoriales locales restent des preuves historiques consultables dans `/admin/matching`, sans alimenter le catalogue. Les inventaires Clips et Synchronisations proviennent exclusivement des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
 
 ## Installation
 
@@ -58,8 +58,8 @@ La suite Harvest live standard est strictement en lecture. La suite membre exige
 ## Architecture
 
 - `src/lib/harvest/` : OAuth, service/guest/member tokens, client résilient, mappers, recherche, assets, session chiffrée et activités membre.
-- `src/lib/editorial/` : profils, relations vérifiées et adaptateurs temporaires destinés à migrer vers le CMS Harvest.
-- `src/lib/youtube/` : inventaires vidéo officiels, avec API YouTube préférée et lecture publique de secours.
+- `src/lib/editorial/` : classification et présentation des vidéos YouTube ; les profils/relations historiques ne servent qu’à l’audit admin.
+- `src/lib/youtube/` : inventaires vidéo officiels issus des playlists YouTube, sans repli vers un catalogue local.
 - `src/app/api/` : BFF public de Parigo ; aucun secret Harvest n’est envoyé au navigateur.
 - `src/app/` : catalogue, recherche, playlists, comptes et pages institutionnelles.
 - `docs/harvest/` : rapport d’audit, inventaire d’endpoints, registre des écarts et smoke tests live.

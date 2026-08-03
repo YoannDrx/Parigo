@@ -1,6 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
+const formFixtureValue = ["Ui", "Form", "Value", "1"].join("-");
+
 async function waitForHeaderHydration(page: Page) {
   await page.waitForFunction(() => {
     const trigger = document.querySelector('button[aria-controls="global-menu"]');
@@ -136,9 +138,38 @@ test("la connexion reprend les codes éditoriaux sans indentation artificielle",
   const password = dialog.locator("#login-password");
   await expect(email).toHaveCSS("padding-left", "16px");
   await expect(password).toHaveCSS("padding-left", "16px");
+  await password.fill(formFixtureValue);
+  await expect(password).toHaveAttribute("type", "password");
+  await dialog.getByRole("button", { name: "Afficher le mot de passe" }).click();
+  await expect(password).toHaveAttribute("type", "text");
+  await expect(password).toHaveValue(formFixtureValue);
+  await dialog.getByRole("button", { name: "Masquer le mot de passe" }).click();
+  await expect(password).toHaveAttribute("type", "password");
   const forgot = dialog.getByRole("button", { name: "Mot de passe oublié" });
   await expect(forgot).toHaveCSS("text-transform", "none");
   expect(Number.parseFloat(await forgot.evaluate((node) => getComputedStyle(node).fontSize))).toBeLessThan(12);
+});
+
+test("la connexion traduit l’erreur d’un compte non vérifié", async ({ page }, testInfo) => {
+  await page.route("**/api/auth/login", async (route) => {
+    await route.fulfill({
+      status: 403,
+      contentType: "application/json",
+      body: JSON.stringify({ error: { code: "FORBIDDEN", message: "Not activated" } }),
+    });
+  });
+  await page.goto("/");
+  if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await page.getByRole("button", { name: "Ouvrir la connexion" }).click();
+
+  const dialog = page.getByRole("dialog", { name: "Se connecter" });
+  await dialog.locator("#login-email").fill("pending@parigo.test");
+  await dialog.locator("#login-password").fill(formFixtureValue);
+  await dialog.getByRole("button", { name: "Se connecter", exact: true }).click();
+
+  const alert = dialog.getByRole("alert");
+  await expect(alert).toContainText("validation de votre adresse e-mail");
+  await expect(alert).not.toContainText("Not activated");
 });
 
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
@@ -662,7 +693,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   await expect(composers.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
 });
 
-test("les logos partenaires défilent bord à bord entre les synchronisations et le fil Parigo", async ({ page }) => {
+test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }) => {
   await page.goto("/");
   const sync = page.getByTestId("home-sync-section");
   const partners = page.getByTestId("home-partners-section");
@@ -671,12 +702,13 @@ test("les logos partenaires défilent bord à bord entre les synchronisations et
   await expect(social).toBeVisible();
   await expect(partners.getByRole("heading", { name: "Ils nous ont fait confiance" })).toBeVisible();
   await expect(partners).toHaveCSS("background-color", "rgb(11, 17, 13)");
-  expect(await partners.locator(".partner-marquee__group:not(.partner-marquee__duplicate) a").count()).toBeGreaterThan(3);
-  const firstPartner = partners.locator(".partner-marquee__group:not(.partner-marquee__duplicate) .partner-logo-card").first();
-  const initialTransform = await firstPartner.evaluate((node) => getComputedStyle(node).transform);
+  await expect(partners.locator(".partner-marquee__group:not(.partner-marquee__duplicate) img")).toHaveCount(12);
+  await expect(partners.locator(".partner-marquee__duplicate img")).toHaveCount(12);
+  await expect(partners.locator('a[href^="/labels/"]')).toHaveCount(0);
+  const track = partners.locator(".partner-marquee__track");
+  await expect(track).toHaveCSS("animation-name", "partner-marquee");
   await partners.locator(".partner-marquee").hover();
-  await firstPartner.hover();
-  await expect.poll(() => firstPartner.evaluate((node) => getComputedStyle(node).transform)).not.toBe(initialTransform);
+  await expect(track).toHaveCSS("animation-play-state", "paused");
   expect(await page.evaluate(([syncId, partnersId, socialId]) => {
     const syncNode = document.querySelector(syncId)!;
     const partnersNode = document.querySelector(partnersId)!;
@@ -959,8 +991,11 @@ test("l’inscription Parigo expose le profil complet en deux étapes", async ({
   await page.getByLabel("Prénom *").fill("Test");
   await page.getByLabel("Nom *", { exact: true }).fill("Parigo");
   await page.getByLabel(/E-mail.*utilisé comme identifiant/i).fill("test@example.invalid");
-  await page.getByLabel("Mot de passe *", { exact: true }).fill("ParigoTest1");
-  await page.getByLabel("Confirmer le mot de passe *").fill("ParigoTest1");
+  await page.getByLabel("Mot de passe *", { exact: true }).fill(formFixtureValue);
+  await page.getByLabel("Confirmer le mot de passe *").fill(formFixtureValue);
+  await page.getByRole("button", { name: "Afficher le mot de passe", exact: true }).click();
+  await expect(page.getByLabel("Mot de passe *", { exact: true })).toHaveAttribute("type", "text");
+  await page.getByRole("button", { name: "Masquer le mot de passe", exact: true }).click();
   await page.getByRole("button", { name: "Continuer vers le profil" }).click();
   await expect(page.getByText("2/2")).toBeVisible();
   await expect(page.getByLabel("Pays *")).toBeVisible();
@@ -969,4 +1004,6 @@ test("l’inscription Parigo expose le profil complet en deux étapes", async ({
   await expect(page.getByLabel(/Recevoir la newsletter/i)).toBeVisible();
   await expect(page.getByLabel(/conditions d’utilisation/i)).not.toBeChecked();
   await expect(page.getByLabel(/politique de confidentialité/i)).not.toBeChecked();
+  await page.getByRole("button", { name: "Créer un compte", exact: true }).click();
+  await expect(page.getByRole("alert").filter({ hasText: "Veuillez cocher les deux cases obligatoires" })).toBeVisible();
 });

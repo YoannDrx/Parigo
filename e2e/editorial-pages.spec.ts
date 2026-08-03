@@ -65,11 +65,14 @@ test("la home expose une section Clips reliée à la vidéothèque", async ({ pa
   await expect(section.locator(".parigo-video-card").first()).toBeVisible();
 });
 
-test("la recherche et les cards compositeurs utilisent la DA Parigo", async ({ page }) => {
+test("la recherche compositeurs conserve les libellés Harvest exacts", async ({ page }) => {
   await page.goto("/compositeurs");
   const search = page.getByPlaceholder("Rechercher par nom…");
   await expect(search).toBeVisible();
-  await expect(page.locator(".catalog-search-frame.search-query-frame")).toBeVisible();
+  const searchFrame = page.locator(".composer-directory-search");
+  await expect(searchFrame).toBeVisible();
+  await search.focus();
+  await expect(searchFrame).toHaveCSS("box-shadow", "none");
   const card = page.locator(".composer-card").first();
   await expect(card).toBeVisible();
   await expect(card.locator(".composer-card__corner")).toHaveCount(2);
@@ -79,11 +82,10 @@ test("la recherche et les cards compositeurs utilisent la DA Parigo", async ({ p
   const results = page.getByTestId("composer-directory-results");
   await expect(results.locator(".composer-card")).toHaveCount(1);
   await expect(results.getByRole("heading", { name: "Rebecca Meyer" })).toBeVisible();
-  await expect(results.getByText("Compositrice", { exact: true })).toBeVisible();
+  await expect(results.getByText("Crédit Harvest exact", { exact: true })).toBeVisible();
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("Rebecca");
   await search.fill("Minimatic");
-  await expect(results.getByRole("heading", { name: "Minimatic" })).toBeVisible();
-  await expect(results.getByText("Compositeur", { exact: true })).toBeVisible();
+  await expect(results.getByRole("heading", { name: "Minimatic (NS)" })).toBeVisible();
 });
 
 test("le détail d’une synchronisation contient son titre et masque la description YouTube", async ({ page }) => {
@@ -199,13 +201,14 @@ test("les ondes du héros restent légères et animées sur mobile sans forme ci
   await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
 });
 
-test("le héros desktop retrouve ses ondes sans forme organique", async ({ page }, testInfo) => {
+test("le héros desktop conserve ses ondes autonomes sans forme organique", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Les ondes desktop sont contrôlées dans le viewport desktop.");
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   const backdrop = hero.getByTestId("organic-hero-backdrop");
 
   await expect(backdrop).toBeVisible({ timeout: 10_000 });
+  await expect(backdrop).toHaveCSS("pointer-events", "none");
   await expect(backdrop.getByTestId("organic-hero-blob")).toHaveCount(0);
   await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
   const gradientLayer = backdrop.locator(":scope > div").first();
@@ -302,10 +305,10 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
 });
 
 test("le détail compositeur ne dessine plus l’arc décoratif", async ({ page }) => {
-  await page.goto("/compositeurs/minimatic");
-  const hero = page.locator(".editorial-detail-hero--composer");
+  await page.goto("/compositeurs/harvest-minimatic-ns-1w2ynwe");
+  const hero = page.locator(".editorial-detail-hero");
   await expect(hero).toBeVisible();
-  expect(await hero.evaluate((node) => getComputedStyle(node, "::after").display)).toBe("none");
+  expect(await hero.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
 });
 
 test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {

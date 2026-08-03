@@ -21,7 +21,7 @@ export async function GET() {
       slug: albumId,
       title: albumTracks[0]?.albumTitle || "Album",
       cover: albumTracks[0]?.albumCover || "/images/placeholder-album.svg",
-      label: albumTracks[0]?.albumLabel || "Parigo",
+      label: albumTracks[0]?.albumLabel || "",
       labelSlug: albumTracks[0]?.albumLabelSlug || "",
       genres: [...new Set(albumTracks.flatMap((track) => track.genres))],
       moods: [...new Set(albumTracks.flatMap((track) => track.moods))],

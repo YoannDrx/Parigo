@@ -1,5 +1,4 @@
 import type { AutocompleteGroup, AutocompleteItem, AutocompleteKind } from "@/types";
-import { getComposerByCredit } from "@/lib/editorial/contracts";
 import { isRecord } from "./errors";
 import { asNumber, asString, pick } from "./values";
 
@@ -173,13 +172,10 @@ export function mapAutocompleteResponse(payload: unknown): AutocompleteGroup[] {
         asString(pick(item, "firstname", "FirstName")),
         asString(pick(item, "lastname", "LastName")),
       ].filter(Boolean).join(" ");
-    const profile = getComposerByCredit(label);
     return {
       id,
       label,
-      href: profile
-        ? `/compositeurs/${profile.slug}`
-        : `/search?q=${encodeURIComponent(label)}&view=tracks`,
+      href: `/search?view=tracks&type=main&composer=${encodeURIComponent(label)}`,
     };
   }).slice(0, GROUP_LIMIT);
   const lyrics = mapWords(lyricsSource, "lyrics");

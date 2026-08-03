@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { addTracksToMemberTags, getMemberTagTracks, removeTrackFromMemberTag } from "@/lib/harvest/activity";
+import { addTracksToMemberTags, assertPublicMemberTag, getMemberTagTracks, removeTrackFromMemberTag } from "@/lib/harvest/activity";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { assertSameOrigin, requireHarvestSession } from "@/lib/harvest/session";
 
@@ -11,6 +11,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
   try {
     const session = await requireHarvestSession();
     const id = z.string().min(1).parse((await context.params).id);
+    await assertPublicMemberTag(session.memberToken, id);
     const tracks = await getMemberTagTracks(session.memberToken, id);
     return NextResponse.json({ data: { tracks }, meta: { total: tracks.length, requestId: requestID } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, requestID, { surface: "account" }); }
@@ -22,6 +23,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     assertSameOrigin(request);
     const session = await requireHarvestSession();
     const id = z.string().min(1).parse((await context.params).id);
+    await assertPublicMemberTag(session.memberToken, id);
     const input = mutationSchema.parse(await request.json());
     if (input.action === "add") await addTracksToMemberTags(session.memberToken, [id], input.trackIds);
     else await Promise.all(input.trackIds.map((trackId) => removeTrackFromMemberTag(session.memberToken, id, trackId)));

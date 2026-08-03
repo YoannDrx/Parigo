@@ -65,7 +65,7 @@ export function ParigoVideoCard({
           ) : null}
           <Link
             href={href}
-            className="grid h-11 w-11 place-items-center rounded-full border border-white/45 bg-black/55 text-white shadow-xl backdrop-blur-md transition hover:scale-105 hover:bg-white hover:text-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/45 bg-black/55 !text-white shadow-xl backdrop-blur-md transition hover:scale-105 hover:bg-white hover:!text-[#151815] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={locale === "fr" ? `Voir le détail de ${title}` : `View ${title} details`}
           >
             <ArrowUpRight size={18} />

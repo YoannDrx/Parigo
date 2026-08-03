@@ -57,7 +57,7 @@ describe("Harvest autocomplete", () => {
     });
     expect(groups.find((group) => group.key === "composers")?.items[0]).toMatchObject({
       label: "Jane Doe",
-      href: "/search?q=Jane%20Doe&view=tracks",
+      href: "/search?view=tracks&type=main&composer=Jane%20Doe",
     });
     expect(groups.some((group) => (group.key as string) === "styles")).toBe(false);
   });

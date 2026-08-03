@@ -6,7 +6,7 @@ import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, P
 import { useEffect, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
-import type { Synchronisation } from "@/content/synchronisations";
+import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { fetchAlbums } from "@/lib/api-client";
 import { DeferredOrganicHeroBackdrop } from "./DeferredOrganicHeroBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
@@ -19,7 +19,7 @@ import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { resizeArtworkSource } from "@/lib/image-loader";
-import { PartnerMarquee, type HomePartner } from "./PartnerMarquee";
+import { PartnerMarquee } from "./PartnerMarquee";
 
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
 
@@ -84,12 +84,11 @@ interface HomeExperienceProps {
   };
   initialParigoAlbums: Album[];
   initialReleases: Album[];
-  partners: HomePartner[];
   initialSynchronisations: Synchronisation[];
   initialClips: EditorialVideo[];
 }
 
-export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, partners, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
+export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
   const { locale, t, localizedPath } = useI18n();
   const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "parigo">("releases");
   const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>(initialReleases);
@@ -241,7 +240,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
-        <PartnerMarquee partners={partners} />
+        <PartnerMarquee />
 
         <section data-testid="social-follow-section" className="px-4 py-20 md:px-8 md:py-28">
           <SectionReveal className="group relative mx-auto grid max-w-[1580px] overflow-hidden rounded-[1.2rem] bg-[var(--signal-strong)] p-6 text-white md:grid-cols-12 md:items-center md:p-10 lg:p-14">

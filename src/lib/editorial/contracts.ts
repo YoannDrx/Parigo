@@ -1,5 +1,6 @@
 import { z } from "zod";
 import editorial from "@/content/editorial.generated.json";
+import { normalizeHarvestComposerCredit } from "@/lib/harvest/composer-credits";
 export { composerRoleLabel } from "./composer-role";
 
 const localizedCopySchema = z.object({
@@ -106,15 +107,7 @@ const EditorialSchema = z.object({
 });
 
 export function normalizeHarvestCredit(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s*\((?:SACEM|NS|BMI|ASCAP|PRS|SESAC)[^)]*\)\s*$/i, "")
-    .toLowerCase()
-    .replace(/[’']/g, " ")
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
+  return normalizeHarvestComposerCredit(value);
 }
 
 const parsed = EditorialSchema.parse(editorial);

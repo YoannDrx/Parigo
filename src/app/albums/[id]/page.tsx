@@ -2,12 +2,9 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AlbumDetailClient } from "@/components/catalog/AlbumDetailClient";
 import { JsonLd } from "@/components/seo/JsonLd";
-import {
-  getComposerByCredit,
-  getComposerProfile,
-} from "@/lib/editorial/contracts";
-import { getEditorialVideos } from "@/lib/editorial/videos";
+import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { getCachedAlbum } from "@/lib/harvest/catalog-cache";
+import { harvestComposerCreditId } from "@/lib/harvest/composer-credits";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
@@ -49,26 +46,13 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   const album = result.album;
   const composerCredits: ComposerCreditLink[] = [...new Set(
     album.tracks.flatMap((track) => track.composers ?? []),
-  )].map((credit) => {
-    const profile = getComposerByCredit(credit);
-    return {
-      credit,
-      name: profile?.name || credit,
-      slug: profile?.slug,
-    };
-  });
-  const videos = album.code ? await getEditorialVideos() : [];
-  const relatedClips = album.code
-    ? videos
-      .filter((clip) => clip.relatedAlbumCode === album.code)
-      .map((clip) => ({
-        clip,
-        composers: clip.composerSlugs
-          .map(getComposerProfile)
-          .filter((profile): profile is NonNullable<typeof profile> => Boolean(profile))
-          .map(({ slug, name }) => ({ slug, name })),
-      }))
-    : [];
+  )].map((credit) => ({
+    credit,
+    name: credit,
+    href: album.labelSlug === PARIGO_LABEL_ID
+      ? `/compositeurs/${harvestComposerCreditId(credit)}`
+      : `/search?view=tracks&type=main&composer=${encodeURIComponent(credit)}`,
+  }));
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "MusicAlbum",
@@ -87,7 +71,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
     <>
       <JsonLd data={structuredData} />
       <AlbumDetailClient
-        data={{ album, similarAlbums: result.similar, composerCredits, relatedClips }}
+        data={{ album, similarAlbums: result.similar, composerCredits }}
         initialTrackId={typeof resolvedSearchParams.track === "string" ? resolvedSearchParams.track : undefined}
       />
     </>

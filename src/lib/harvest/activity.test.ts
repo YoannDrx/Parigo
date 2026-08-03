@@ -17,7 +17,7 @@ vi.mock("./assets", async (importOriginal) => {
 });
 
 import { getAssetTemplates, type HarvestAssetTemplates } from "./assets";
-import { getDownloadHistory, getMemberPlaylistCategories, getMemberPlaylists, getMemberTagsWithTrackCounts, mapDownloadHistoryResponse } from "./activity";
+import { getCommentedTracks, getDownloadHistory, getMemberPlaylistCategories, getMemberPlaylists, getMemberTags, getMemberTagsWithTrackCounts, isReservedMemberTagName, mapDownloadHistoryResponse } from "./activity";
 import { memberRequest } from "./client";
 
 const templates: HarvestAssetTemplates = {
@@ -119,6 +119,40 @@ describe("Harvest member tag counts", () => {
 
     await expect(getMemberTagsWithTrackCounts("member-token")).resolves.toEqual([
       expect.objectContaining({ id: "tag-1", name: "Test", trackCount: 3 }),
+    ]);
+  });
+
+  it("keeps the private-comment index out of personal tags while hydrating its tracks", async () => {
+    vi.mocked(memberRequest).mockImplementation(async (_memberToken, pathBuilder) => {
+      const path = pathBuilder("redacted-member-token");
+      if (path.startsWith("/getmembertags/")) {
+        return { Tags: [
+          { TagID: "tag-personal", TagName: "Montage", TrackCount: 1 },
+          { TagID: "tag-system", TagName: "PARIGO_INTERNAL_TRACK_COMMENTS_V1", TrackCount: 1 },
+        ] };
+      }
+      if (path.startsWith("/getmembertagtracks/") && path.includes("tag-system")) {
+        return { Tags: [{
+          TagID: "tag-system",
+          TagName: "PARIGO_INTERNAL_TRACK_COMMENTS_V1",
+          Tracks: [{ ID: "track-1", DisplayTitle: "In The Open", AlbumID: "album-1", AlbumName: "Open Fields" }],
+        }] };
+      }
+      if (path.startsWith("/gettrackmembercomments/")) {
+        return { Tags: [{ TagID: "comment-1", TagName: "Garder pour le montage", CreateDate: "2026-08-03T10:00:00Z" }] };
+      }
+      throw new Error(`Unexpected Harvest path: ${path}`);
+    });
+
+    expect(isReservedMemberTagName("parigo_internal_track_comments_v1")).toBe(true);
+    await expect(getMemberTags("member-token")).resolves.toEqual([
+      expect.objectContaining({ id: "tag-personal", name: "Montage" }),
+    ]);
+    await expect(getCommentedTracks("member-token")).resolves.toEqual([
+      expect.objectContaining({
+        track: expect.objectContaining({ id: "track-1", title: "In The Open" }),
+        comments: [expect.objectContaining({ id: "comment-1", trackId: "track-1", text: "Garder pour le montage" })],
+      }),
     ]);
   });
 });

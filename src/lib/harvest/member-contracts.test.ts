@@ -14,9 +14,12 @@ import {
   buildReorderPlaylistTracks,
   buildSavedSearch,
   buildSavedSearchQuery,
-  buildTrackComment,
+  buildCreateTrackComment,
+  buildUpdateTrackComment,
   buildMemberRegistration,
+  buildMemberRemoval,
   buildMemberSubscription,
+  buildMemberVerificationEmail,
   buildPasswordResetEmail,
   buildPasswordUpdate,
   buildPersistentLogin,
@@ -48,6 +51,7 @@ describe("Harvest member request contracts", () => {
     expect(buildPersistentLogin("persistent-token")).toEqual({ Token: "persistent-token", RenewExpiry: true, GenerateMemberToken: true, ReturnMemberDetails: true });
     expect(buildMemberSubscription({ firstName: "Test", lastName: "Member", email: "member@example.invalid" }, false)).toEqual({ FirstName: "Test", LastName: "Member", Email: "member@example.invalid", Subscribe: false });
     expect(buildPasswordResetEmail("member@example.invalid")).toEqual({ Username: "", Email: "member@example.invalid", ExternalResetToken: "" });
+    expect(buildMemberVerificationEmail("member@example.invalid")).toEqual({ Email: "member@example.invalid", ExternalVerifyToken: "" });
     expect(buildPasswordUpdate("reset-token", "Secret123")).toEqual({ Token: "reset-token", Password: "Secret123" });
   });
 
@@ -150,8 +154,26 @@ describe("Harvest member request contracts", () => {
       Description: "PARIGO_URL:/search?q=piano",
       SearchHistoryID: "",
     });
-    expect(buildTrackComment("track-1", "À tester sur le montage")).toEqual({ TrackID: "track-1", TagName: "À tester sur le montage" });
+    expect(buildCreateTrackComment("track-1", "À tester sur le montage")).toEqual({
+      trackid: "track-1",
+      TagName: "À tester sur le montage",
+    });
+    expect(buildUpdateTrackComment("comment-1", "Validé pour le montage")).toEqual({
+      TagID: "comment-1",
+      TagName: "Validé pour le montage",
+    });
     expect(buildPlaylistSuggestions(12)).toEqual({ Skip: 0, Limit: 12, MainOnly: true, SeedDetermination: "Created_Desc", SeedLimit: 5, SeedMin: "" });
+  });
+
+  it("serializes verified member removal without leaking the token into the body", () => {
+    expect(buildMemberRemoval("current-password", false)).toEqual({
+      Password: "current-password",
+      ArchiveOnly: false,
+    });
+    expect(buildMemberRemoval("current-password", true)).toEqual({
+      Password: "current-password",
+      ArchiveOnly: true,
+    });
   });
 
   it("serializes playlist organisation, duplication and server search contracts", () => {

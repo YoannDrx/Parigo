@@ -114,8 +114,12 @@ export interface MatchingComposerView {
   name: string;
   aliases: string[];
   candidateAliases: string[];
+  harvestPresence: "confirmed" | "not-detected" | "unavailable";
+  harvestCreditNames: string[];
+  harvestAlbumCodes: string[];
+  harvestTrackCount: number;
   visibility: "public" | "internal";
-  published: boolean;
+  historicallyPublished: boolean;
   albumCount: number;
   vinylCount: number;
   clipCount: number;
@@ -179,6 +183,7 @@ export interface MatchingMetrics {
   conflicts: number;
   inferredOnly: number;
   composerOrphans: number;
+  composersWithoutHarvest: number;
   portfolioComposerOrphans: number;
   albumOrphans: number;
   clipsWithoutDirectComposer: number;
