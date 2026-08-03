@@ -50,6 +50,7 @@ import { cn } from "@/lib/utils";
 
 type TabId = "albums" | "composers" | "vinyls" | "clips" | "queue" | "compare" | "harvest" | "portfolio" | "sheet" | "draft";
 type QuickFilter = "all" | "conflict" | "inferred" | "composer-orphan" | "portfolio-orphan" | "work-orphan" | "clip-orphan" | "unmatched-harvest" | "sheet-needs-review";
+type ComposerHarvestFilter = "all" | "not-detected" | "confirmed";
 
 const DRAFT_STORAGE_KEY = "parigo-matching-review-v1";
 const REVIEWER_STORAGE_KEY = "parigo-matching-reviewer";
@@ -58,7 +59,7 @@ const primaryTabs: Array<{ id: TabId; label: string; description: string; icon: 
   { id: "composers", label: "Compositeurs", description: "Attribuer des albums", icon: Users },
   { id: "albums", label: "Albums", description: "Attribuer des compositeurs", icon: Database },
   { id: "vinyls", label: "Vinyles", description: "Traiter les projets distincts", icon: Music2 },
-  { id: "clips", label: "Clips", description: "Vérifier les crédits directs", icon: Video },
+  { id: "clips", label: "Clips", description: "Documenter les deltas vidéo", icon: Video },
   { id: "draft", label: "Brouillon & export", description: "Contrôler et appliquer", icon: Download },
 ];
 
@@ -89,9 +90,9 @@ const relationOptions: readonly SelectOption<RelationDecision | "">[] = [
 ];
 
 const publicationOptions: readonly SelectOption<PublicationDecision>[] = [
-  { value: "unchanged", label: "Inchangé" },
-  { value: "public", label: "Public" },
-  { value: "internal", label: "Interne" },
+  { value: "unchanged", label: "Aucun changement demandé" },
+  { value: "public", label: "Public après correction CMS" },
+  { value: "internal", label: "Conserver comme diagnostic interne" },
   { value: "do-not-publish", label: "Ne pas publier" },
 ];
 
@@ -493,12 +494,12 @@ function MatchingMultiPicker({
 function RelationSources({ item }: { item: MatchingItem }) {
   const hasPortfolio = item.evidence.some((entry) => entry.source === "portfolio");
   const hasHarvest = item.evidence.some((entry) => entry.source === "harvest");
-  const hasParigo = item.currentPublished || item.evidence.some((entry) => entry.source === "parigo");
+  const hasHistory = item.evidence.some((entry) => entry.source === "parigo");
   return (
     <span className="inline-flex flex-wrap gap-1">
-      {hasParigo ? <span className="rounded-full bg-[#176b3a] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Site</span> : null}
+      {hasHarvest ? <span className="rounded-full bg-[#176b3a] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Catalogue actuel</span> : null}
       {hasPortfolio ? <span className="rounded-full bg-[#2457a7] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Caro</span> : null}
-      {hasHarvest ? <span className="rounded-full bg-[#5b3f8c] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Harvest</span> : null}
+      {hasHistory ? <span className="rounded-full bg-[#555d57] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Historique</span> : null}
     </span>
   );
 }
@@ -531,7 +532,7 @@ function PrimaryAssignmentEditor({
   const selectedValues = mode === "replace-work-composers"
     ? draft?.selectedComposerSlugs ?? currentValues
     : draft?.selectedWorkKeys ?? currentValues;
-  const pickerLabel = mode === "replace-work-composers" ? "Compositeurs attendus" : "Albums attendus";
+  const pickerLabel = mode === "replace-work-composers" ? "Compositeurs attendus dans le CMS" : "Albums attendus dans le CMS";
   const pickerTitle = mode === "replace-work-composers"
     ? `Compositeurs à associer à ${item.work?.title ?? item.title}`
     : `Albums à associer à ${item.composer?.name ?? item.title}`;
@@ -646,7 +647,7 @@ function QuickReviewEditor({
   return (
     <div className="grid min-w-[19rem] gap-2" data-testid={`quick-editor-${item.id}`}>
       <div className="flex min-h-7 items-center justify-between gap-3 border-l-4 border-[#176b3a] bg-[#edf5ef] px-2.5 py-1 text-[.64rem] text-[#153d24]">
-        <span className="font-mono font-semibold uppercase tracking-[.07em]">Résultat Parigo</span>
+        <span className="font-mono font-semibold uppercase tracking-[.07em]">Correction à préparer</span>
         <span className="min-w-0 truncate text-right font-semibold">
           {selectedComposer?.name ?? "Compositeur à choisir"} → {selectedWork ? `${selectedWork.code ? `${selectedWork.code} · ` : ""}${selectedWork.title}` : "projet à choisir"}
         </span>
@@ -660,7 +661,7 @@ function QuickReviewEditor({
           options={composers.map((composer) => ({
             value: composer.slug,
             label: composer.name,
-            description: composer.aliases.slice(0, 2).join(" · ") || (composer.visibility === "public" ? "Profil Parigo public" : "Profil interne"),
+            description: composer.aliases.slice(0, 2).join(" · ") || (composer.visibility === "public" ? "Ancienne identité publique" : "Identité historique interne"),
           }))}
         />
         <MatchingMultiPicker
@@ -754,6 +755,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [importMessage, setImportMessage] = useState("");
   const [reviewerName, setReviewerName] = useState("");
+  const [composerHarvestFilter, setComposerHarvestFilter] = useState<ComposerHarvestFilter>("all");
   const importRef = useRef<HTMLInputElement>(null);
   const deferredQuery = useDeferredValue(query);
 
@@ -852,7 +854,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
   const relationsByWork = useMemo(() => {
     const map = new Map<string, MatchingItem[]>();
     for (const item of data.items) {
-      if (!item.composer?.slug || !item.work || item.tags.includes("indirect-project")) continue;
+      if (!item.composer || !item.work || item.tags.includes("indirect-project")) continue;
       const relations = map.get(item.work.key) ?? [];
       relations.push(item);
       map.set(item.work.key, relations);
@@ -862,7 +864,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
   const composerPickerOptions = useMemo<MatchingPickerOption[]>(() => data.composers.map((composer) => ({
     value: composer.slug,
     label: composer.name,
-    description: composer.aliases.slice(0, 2).join(" · ") || (composer.published ? "Profil Parigo public" : "Identité interne"),
+    description: composer.aliases.slice(0, 2).join(" · ") || (composer.harvestPresence === "confirmed" ? "Crédit présent dans le catalogue" : "Identité historique"),
   })), [data.composers]);
   const albumPickerOptions = useMemo<MatchingPickerOption[]>(() => data.works
     .filter((work) => work.type === "album")
@@ -881,6 +883,22 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
     }
     return map;
   }, [data.items]);
+  const filteredComposerRows = useMemo(() => {
+    const normalizedQuery = normalize(deferredQuery);
+    return data.composers.filter((composer) => {
+      if (composerHarvestFilter !== "all" && composer.harvestPresence !== composerHarvestFilter) return false;
+      return normalize([
+        composer.name,
+        ...composer.aliases,
+        ...composer.candidateAliases,
+        ...composer.harvestCreditNames,
+        ...composer.harvestAlbumCodes,
+        ...(albumRelationsByComposer.get(composer.slug) ?? []).flatMap((relation) => (
+          [relation.work?.code, relation.work?.title].filter(Boolean)
+        )),
+      ].join(" ")).includes(normalizedQuery);
+    });
+  }, [albumRelationsByComposer, composerHarvestFilter, data.composers, deferredQuery]);
   const reviewItemForComposer = useCallback((slug: string) => (
     data.items.find((item) => item.id === `orphan:composer:${slug}`)
     ?? data.items.find((item) => item.composer?.slug === slug)
@@ -1020,12 +1038,15 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
             <div>
               <p className="text-sm font-semibold">Outil interne accessible par URL, sans authentification</p>
               <p className="mt-1 max-w-3xl text-xs leading-5 text-[var(--inverse-muted)]">
-                Les données sont en lecture seule. Vos décisions et notes restent dans ce navigateur jusqu’à leur export ;
-                le nom du relecteur est déclaratif.
+                L’API Harvest décrit le catalogue actuel. Portfolio, Sheet et anciens mappings servent uniquement à repérer les corrections à faire dans le CMS.
+                Vos notes restent dans ce navigateur jusqu’à leur export.
               </p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2 font-mono text-[.65rem] uppercase tracking-[.08em] text-[var(--inverse-muted)]">
+            <Link href="/admin/compositeurs" className="inline-flex min-h-9 items-center gap-2 border border-white/20 px-3 font-sans text-xs font-semibold normal-case tracking-normal text-[var(--inverse-foreground)] hover:border-white/50">
+              <Users size={14} aria-hidden="true" /> Audit compositeurs
+            </Link>
             <span className="border border-white/15 px-2.5 py-1.5">Révision {data.registryRevision}</span>
             <span className="border border-white/15 px-2.5 py-1.5">Actualisé {formatDate(data.capturedAt)}</span>
           </div>
@@ -1043,8 +1064,8 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
               <span className="block text-[var(--text-muted)]">compositeurs, albums & clips.</span>
             </h1>
             <p className="mt-5 max-w-3xl text-sm leading-6 text-[var(--text-muted)] md:text-base">
-              Chaque preuve conserve sa source. Les calculs du BFF, les liens indirects et les décisions Parigo
-              restent lisibles séparément.
+              Partez d’un album pour contrôler ses crédits de pistes, ou d’un compositeur pour contrôler ses albums.
+              Le catalogue actuel reste séparé des indices historiques et des propositions de correction CMS.
             </p>
           </div>
           <div className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] xl:w-[27rem]">
@@ -1085,7 +1106,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
       <section aria-label="État des sources" className="mx-auto max-w-[1700px] px-4 md:px-7">
         <details className="border border-[var(--line)] bg-[var(--surface)]">
           <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-4 px-4 text-sm font-semibold">
-            <span>Sources et diagnostics secondaires</span>
+            <span>Vérité actuelle et sources de delta</span>
             <span className="font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">
               Harvest · Portfolio · YouTube · Sheet · Parigo
             </span>
@@ -1122,9 +1143,20 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
         <div className="flex gap-3 overflow-x-auto pb-2">
           <MetricCard label="À traiter" value={data.metrics.totalToReview} detail={`sur ${data.metrics.totalItems}`} tone="warning" onClick={() => setMetricFilter("all")} />
           <MetricCard label="Conflits" value={data.metrics.conflicts} detail="sources contradictoires" tone="danger" onClick={() => setMetricFilter("conflict")} />
-          <MetricCard label="Albums à compléter" value={data.metrics.albumOrphans} detail="sans compositeur" onClick={() => setMetricFilter("work-orphan")} />
+          <MetricCard label="Albums à corriger" value={data.metrics.albumOrphans} detail="sans crédit compositeur dans l’API" onClick={() => setMetricFilter("work-orphan")} />
           <MetricCard label="Compositeurs isolés" value={data.metrics.composerOrphans} detail="sans album ni clip" onClick={() => setMetricFilter("composer-orphan")} />
-          <MetricCard label="Clips incomplets" value={data.metrics.clipsWithoutDirectComposer} detail="sans compositeur direct" tone="warning" onClick={() => setMetricFilter("clip-orphan")} />
+          <MetricCard
+            label="Sans preuve Harvest"
+            value={data.metrics.composersWithoutHarvest}
+            detail="crédit non détecté sur les pistes Parigo"
+            tone="danger"
+            onClick={() => {
+              setTab("composers");
+              setComposerHarvestFilter("not-detected");
+              setQuery("");
+            }}
+          />
+          <MetricCard label="Clips à documenter" value={data.metrics.clipsWithoutDirectComposer} detail="sans preuve musicale structurée" tone="info" onClick={() => setMetricFilter("clip-orphan")} />
         </div>
       </section>
 
@@ -1275,8 +1307,8 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                   ["inferred", "Indirects"],
                   ["composer-orphan", "Sans relation"],
                   ["portfolio-orphan", "Sans lien Portfolio"],
-                  ["work-orphan", "Albums vides"],
-                  ["clip-orphan", "Clips incomplets"],
+                  ["work-orphan", "Albums sans crédit API"],
+                  ["clip-orphan", "Clips à documenter"],
                   ["unmatched-harvest", "Crédits non résolus"],
                   ["sheet-needs-review", "Sheet à vérifier"],
                 ] as Array<[QuickFilter, string]>).map(([value, label]) => (
@@ -1318,7 +1350,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                     <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Harvest</th>
                     <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Portfolio</th>
                     <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Google Sheet</th>
-                    <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Parigo / BFF</th>
+                    <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Historique Parigo</th>
                     <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">État</th>
                     <th className="w-[33%] border-b border-white/20 px-3 py-3">Correction rapide · autosauvegardée</th>
                   </tr>
@@ -1339,7 +1371,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                             <ItemIdentity item={item} />
                             <div className="mt-2 flex flex-wrap gap-1.5">
                               <span className="rounded-full border border-[var(--line)] px-2 py-0.5 font-mono text-[.55rem] uppercase">{item.entityType}</span>
-                              {item.currentPublished && <span className="rounded-full bg-[#176b3a] px-2 py-0.5 font-mono text-[.55rem] uppercase text-white">Actuellement public</span>}
+                              {item.currentPublished && <span className="rounded-full bg-[#176b3a] px-2 py-0.5 font-mono text-[.55rem] uppercase text-white">Catalogue actuel</span>}
                             </div>
                           </div>
                         </div>
@@ -1408,8 +1440,8 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
           <InventorySection
             title={tab === "albums" ? "Albums → compositeurs" : "Vinyles → compositeurs"}
             description={tab === "albums"
-              ? "Une ligne par album Harvest. Sélectionnez l’ensemble attendu des compositeurs ; plusieurs choix sont possibles."
-              : "Les vinyles sont séparés des albums de librairie pour éviter de mélanger deux natures de projets."}
+              ? "Une ligne par album du catalogue actuel. Les crédits API sont la référence ; la sélection prépare une demande de correction dans le CMS."
+              : "Les vinyles restent séparés des albums du catalogue : leurs relations historiques constituent des indices, pas des crédits publics."}
             query={query}
             setQuery={setQuery}
           >
@@ -1418,9 +1450,9 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                 <thead className="sticky top-0 z-30 bg-[#30362f] font-mono text-[.6rem] uppercase tracking-[.09em] text-white shadow-[0_2px_0_#30362f]">
                   <tr>
                     <th className="w-[22%] border-r border-white/15 p-3">{tab === "albums" ? "Album" : "Vinyle"}</th>
-                    <th className="w-[35%] border-r border-white/15 p-3">Relations repérées · Site / Caro / Harvest</th>
+                    <th className="w-[35%] border-r border-white/15 p-3">Relations repérées · Catalogue / Caro / historique</th>
                     <th className="w-[11%] border-r border-white/15 p-3">État</th>
-                    <th className="w-[32%] p-3">Compositeurs attendus</th>
+                    <th className="w-[32%] p-3">Correction CMS à préparer</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1430,8 +1462,8 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                   }).map((work) => {
                     const relations = relationsByWork.get(work.key) ?? [];
                     const portfolioRelations = relations.filter((item) => item.evidence.some((entry) => entry.source === "portfolio"));
-                    const parigoRelations = relations.filter((item) => item.currentPublished || item.evidence.some((entry) => entry.source === "parigo"));
-                    const currentValues = [...new Set(parigoRelations.flatMap((item) => item.composer?.slug ? [item.composer.slug] : []))];
+                    const catalogRelations = relations.filter((item) => item.evidence.some((entry) => entry.source === "harvest"));
+                    const currentValues = [...new Set(catalogRelations.flatMap((item) => item.composer?.slug ? [item.composer.slug] : []))];
                     const portfolioValues = [...new Set(portfolioRelations.flatMap((item) => item.composer?.slug ? [item.composer.slug] : []))];
                     const hasPortfolioDelta = portfolioValues.length !== currentValues.length
                       || portfolioValues.some((value) => !currentValues.includes(value));
@@ -1463,9 +1495,9 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                         <td className="border-l border-[var(--line)] p-3">
                           <span className={cn(
                             "rounded-full px-2.5 py-1 text-[.62rem] font-semibold text-white",
-                            drafts[reviewItem?.id ?? ""]?.reviewStatus === "verified" ? "bg-[#176b3a]" : relations.length ? "bg-[#3e4640]" : "bg-[#a45d00]",
+                            drafts[reviewItem?.id ?? ""]?.reviewStatus === "verified" ? "bg-[#176b3a]" : catalogRelations.length ? "bg-[#3e4640]" : "bg-[#a45d00]",
                           )}>
-                            {drafts[reviewItem?.id ?? ""]?.reviewStatus === "verified" ? "Vérifié" : relations.length ? `${relations.length} relation${relations.length > 1 ? "s" : ""}` : "À compléter"}
+                            {drafts[reviewItem?.id ?? ""]?.reviewStatus === "verified" ? "Vérifié" : catalogRelations.length ? `${catalogRelations.length} crédit${catalogRelations.length > 1 ? "s" : ""} API` : "Action CMS"}
                           </span>
                         </td>
                         <td className="border-l border-[var(--line)] p-3">
@@ -1497,44 +1529,98 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
         {tab === "composers" && (
           <InventorySection
             title="Compositeurs → albums"
-            description={`${data.composers.length} compositeurs. Les sources techniques restent visibles uniquement sur les relations existantes.`}
+            description={`${data.composers.length} identités historiques comparées aux crédits de pistes de l’API. « Oui » atteste une présence réelle dans le catalogue, pas encore un identifiant Contributor stable.`}
             query={query}
             setQuery={setQuery}
           >
+            <div className="mb-4 flex flex-col gap-3 border border-[#30362f] bg-[var(--surface)] p-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrer les compositeurs selon leur présence Harvest">
+                {([
+                  ["all", "Tous", data.composers.length],
+                  ["not-detected", "Non détectés dans Harvest", data.metrics.composersWithoutHarvest],
+                  ["confirmed", "Confirmés par Harvest", data.composers.filter((composer) => composer.harvestPresence === "confirmed").length],
+                ] as const).map(([value, label, count]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={composerHarvestFilter === value}
+                    onClick={() => setComposerHarvestFilter(value)}
+                    className={cn(
+                      "min-h-10 border px-3 text-xs font-semibold transition",
+                      composerHarvestFilter === value
+                        ? value === "not-detected" ? "border-[#8c1d14] bg-[#b42318] text-white" : "border-[#30362f] bg-[#30362f] text-white"
+                        : "border-[var(--line-strong)] bg-[var(--background)] hover:border-[#30362f]",
+                    )}
+                  >
+                    {label} · {count}
+                  </button>
+                ))}
+              </div>
+              <p className="max-w-xl text-xs leading-5 text-[var(--text-muted)]">
+                Un « Non » signale une identité historique absente des crédits actuels : il faut corriger ou créer le Contributor dans le CMS avant toute publication. Si l’API est indisponible, aucun faux négatif n’est produit.
+              </p>
+            </div>
             <div data-testid="matching-composer-table" className="max-h-[calc(100dvh-12rem)] overflow-auto border border-[#30362f] bg-[var(--surface)]">
-              <table className="w-full min-w-[1540px] border-collapse text-left text-sm">
+              <table className="w-full min-w-[1780px] border-collapse text-left text-sm">
                 <thead className="sticky top-0 z-30 bg-[#30362f] font-mono text-[.6rem] uppercase tracking-[.09em] text-white shadow-[0_2px_0_#30362f]">
                   <tr>
-                    <th className="w-[13%] border-r border-white/15 p-3">Compositeur</th>
-                    <th className="w-[12%] border-r border-white/15 p-3">Portfolio Caroline</th>
-                    <th className="w-[12%] border-r border-white/15 p-3">Site Parigo</th>
-                    <th className="w-[18%] border-r border-white/15 p-3">Albums Caro</th>
-                    <th className="w-[18%] border-r border-white/15 p-3">Albums Parigo</th>
-                    <th className="w-[11%] border-r border-white/15 p-3">Delta</th>
-                    <th className="w-[28%] p-3">Correction Parigo</th>
+                    <th className="w-[12%] border-r border-white/15 p-3">Compositeur</th>
+                    <th className="w-[15%] border-r border-white/15 p-3">Présence API Harvest ?</th>
+                    <th className="w-[10%] border-r border-white/15 p-3">Portfolio Caroline</th>
+                    <th className="w-[10%] border-r border-white/15 p-3">Site Parigo</th>
+                    <th className="w-[15%] border-r border-white/15 p-3">Albums Caro</th>
+                    <th className="w-[15%] border-r border-white/15 p-3">Albums du catalogue actuel</th>
+                    <th className="w-[9%] border-r border-white/15 p-3">Delta</th>
+                    <th className="w-[24%] p-3">Action CMS à préparer</th>
                   </tr>
                 </thead>
                 <tbody data-testid="matching-composer-rows">
-                  {data.composers.filter((item) => normalize([
-                    item.name,
-                    ...item.aliases,
-                    ...item.candidateAliases,
-                    ...(albumRelationsByComposer.get(item.slug) ?? []).flatMap((relation) => [relation.work?.code, relation.work?.title].filter(Boolean)),
-                  ].join(" ")).includes(normalize(deferredQuery))).map((composer) => {
+                  {filteredComposerRows.map((composer) => {
                     const reviewItem = reviewItemForComposer(composer.slug);
                     const relations = albumRelationsByComposer.get(composer.slug) ?? [];
                     const portfolioRelations = relations.filter((item) => item.evidence.some((entry) => entry.source === "portfolio"));
-                    const parigoRelations = relations.filter((item) => item.currentPublished || item.evidence.some((entry) => entry.source === "parigo"));
+                    const catalogRelations = relations.filter((item) => item.evidence.some((entry) => entry.source === "harvest"));
                     const portfolioValues = [...new Set(portfolioRelations.flatMap((item) => item.work?.key ? [item.work.key] : []))];
-                    const currentValues = [...new Set(parigoRelations.flatMap((item) => item.work?.key ? [item.work.key] : []))];
-                    const missingInParigo = portfolioRelations.filter((item) => item.work?.key && !currentValues.includes(item.work.key));
-                    const extraInParigo = parigoRelations.filter((item) => item.work?.key && !portfolioValues.includes(item.work.key));
+                    const currentValues = [...new Set(catalogRelations.flatMap((item) => item.work?.key ? [item.work.key] : []))];
+                    const missingInCatalog = portfolioRelations.filter((item) => item.work?.key && !currentValues.includes(item.work.key));
+                    const extraInCatalog = catalogRelations.filter((item) => item.work?.key && !portfolioValues.includes(item.work.key));
                     return (
                     <tr key={composer.slug} className="border-t border-[var(--line)] align-top">
                       <td className="p-3">
                         <p className="font-semibold">{composer.name}</p>
                         <p className="mt-1 font-mono text-[.56rem] text-[var(--text-muted)]">{composer.slug}</p>
                         {composer.aliases.length ? <p className="mt-2 text-[.68rem] text-[var(--text-muted)]">Alias : {composer.aliases.join(", ")}</p> : null}
+                      </td>
+                      <td className="border-l border-[var(--line)] p-3">
+                        {composer.harvestPresence === "confirmed" ? (
+                          <div className="space-y-2">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#176b3a] px-2.5 py-1 text-[.62rem] font-semibold text-white">
+                              <Check size={12} aria-hidden="true" /> Oui · crédit Harvest
+                            </span>
+                            <p className="text-xs font-semibold text-[#0d4f2a]">
+                              {composer.harvestTrackCount} piste{composer.harvestTrackCount > 1 ? "s" : ""} · {composer.harvestAlbumCodes.length} album{composer.harvestAlbumCodes.length > 1 ? "s" : ""}
+                            </p>
+                            <p className="text-[.68rem] leading-5 text-[var(--text-muted)]">
+                              {composer.harvestCreditNames.join(" · ")}
+                            </p>
+                            {composer.harvestAlbumCodes.length ? (
+                              <p className="font-mono text-[.56rem] text-[var(--text-muted)]">{composer.harvestAlbumCodes.join(" · ")}</p>
+                            ) : null}
+                          </div>
+                        ) : composer.harvestPresence === "not-detected" ? (
+                          <div className="space-y-2 border-l-4 border-[#b42318] bg-[#fff0ef] p-3 text-[#8c1d14]">
+                            <p className="font-semibold">Non détecté</p>
+                            <p className="text-xs leading-5">
+                              Aucun crédit de piste Parigo ne correspond à ce nom ou à ses alias déclarés.
+                            </p>
+                            {composer.historicallyPublished ? <p className="text-xs font-bold">Ancien profil public : action CMS requise avant toute republication.</p> : null}
+                          </div>
+                        ) : (
+                          <div className="space-y-2 border-l-4 border-[#a45d00] bg-[#fff5e5] p-3 text-[#7a4300]">
+                            <p className="font-semibold">Harvest indisponible</p>
+                            <p className="text-xs leading-5">Impossible de conclure oui ou non pendant cette récupération.</p>
+                          </div>
+                        )}
                       </td>
                       <td className="border-l border-[var(--line)] p-3">
                         {composer.sourceHref ? (
@@ -1566,21 +1652,21 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                       </td>
                       <td className="border-l border-[var(--line)] p-3">
                         <div className="flex flex-wrap gap-2">
-                          {parigoRelations.length ? parigoRelations.map((relation) => (
+                          {catalogRelations.length ? catalogRelations.map((relation) => (
                             <span key={relation.id} className="inline-flex items-center gap-2 border border-[#176b3a] bg-[#edf5ef] px-2.5 py-1.5 text-xs text-[#0d4f2a]">
                               <EntityLink href={relation.work?.href}>{relation.work?.code ? `${relation.work.code} · ` : ""}{relation.work?.title}</EntityLink>
-                              <span className="rounded-full bg-[#176b3a] px-1.5 py-0.5 font-mono text-[.48rem] uppercase text-white">Site</span>
+                              <span className="rounded-full bg-[#176b3a] px-1.5 py-0.5 font-mono text-[.48rem] uppercase text-white">API</span>
                             </span>
-                          )) : <span className="font-semibold text-[#8b4e00]">Aucun album côté Parigo</span>}
+                          )) : <span className="font-semibold text-[#8b4e00]">Aucun album dans les crédits actuels</span>}
                         </div>
                       </td>
                       <td className="border-l border-[var(--line)] p-3">
-                        {missingInParigo.length === 0 && extraInParigo.length === 0 ? (
+                        {missingInCatalog.length === 0 && extraInCatalog.length === 0 ? (
                           <span className="rounded-full bg-[#176b3a] px-2.5 py-1 text-[.62rem] font-semibold text-white">Identique</span>
                         ) : (
                           <div className="space-y-2 text-xs">
-                            {missingInParigo.length ? <p className="font-semibold text-[#a45d00]">+{missingInParigo.length} à ajouter</p> : null}
-                            {extraInParigo.length ? <p className="font-semibold text-[#b42318]">−{extraInParigo.length} à contrôler</p> : null}
+                            {missingInCatalog.length ? <p className="font-semibold text-[#a45d00]">+{missingInCatalog.length} à demander au CMS</p> : null}
+                            {extraInCatalog.length ? <p className="font-semibold text-[#b42318]">−{extraInCatalog.length} à contrôler</p> : null}
                           </div>
                         )}
                       </td>
@@ -1593,7 +1679,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                             currentValues={currentValues}
                             fixedValue={composer.slug}
                             reviewer={reviewerName}
-                            suggestedValues={missingInParigo.length || extraInParigo.length ? portfolioValues : undefined}
+                            suggestedValues={missingInCatalog.length || extraInCatalog.length ? portfolioValues : undefined}
                             suggestedLabel="Reprendre les albums Caro"
                             options={albumPickerOptions}
                             onChange={(patch) => updateDraft(reviewItem, patch)}
@@ -1614,7 +1700,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
             title={tab === "clips" ? "Tous les clips" : "Inventaire Portfolio complet"}
             description={tab === "portfolio"
               ? `${data.portfolioInventory.works} œuvres au commit ${data.portfolioInventory.commitSha.slice(0, 12)}.`
-              : "Les absences de relation restent visibles et comptées."}
+              : "YouTube fournit l’inventaire public. Les anciens crédits et liens Portfolio restent visibles uniquement comme pistes de recherche ; aucun compositeur n’est déduit automatiquement."}
             query={query}
             setQuery={setQuery}
           >
@@ -1890,7 +1976,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
               <section className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge state={selected.agreement} />
-                  {selected.currentPublished && <span className="rounded-full bg-[#176b3a] px-3 py-1 text-xs font-semibold text-white">Actuellement public</span>}
+                  {selected.currentPublished && <span className="rounded-full bg-[#176b3a] px-3 py-1 text-xs font-semibold text-white">Présent dans le catalogue actuel</span>}
                   {!selected.relationExists && <span className="rounded-full bg-[#555d57] px-3 py-1 text-xs font-semibold text-white">Aucun lien actuel</span>}
                 </div>
                 {selected.composer && (
@@ -1960,8 +2046,8 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
 
               <section className="space-y-4 border-t border-[var(--line)] pt-6">
                 <div>
-                  <h3 className="text-lg font-semibold">Relation à appliquer</h3>
-                  <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">Ces listes contiennent toutes les identités et tous les albums, vinyles et clips chargés. La sélection crée une proposition ; elle ne modifie pas le site public avant export et application.</p>
+                  <h3 className="text-lg font-semibold">Correction source à préparer</h3>
+                  <p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">La sélection documente l’état attendu pour une intervention humaine dans le CMS. L’export ne modifie ni Harvest, ni YouTube, ni le site public.</p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <Field label="Compositeur attribué">
@@ -2012,11 +2098,11 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                       options={relationOptions}
                     />
                   </Field>
-                  <Field label="Publication">
+                  <Field label="Cible après correction source">
                     <Select
                       value={selectedDraft.publicationDecision ?? "unchanged"}
                       onValueChange={(publicationDecision) => updateDraft(selected, { publicationDecision })}
-                      ariaLabel="Décision de publication"
+                      ariaLabel="Cible après correction source"
                       options={publicationOptions}
                     />
                   </Field>

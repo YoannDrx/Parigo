@@ -23,6 +23,7 @@ test("le dashboard est public par URL mais exclu des moteurs", async ({ page, re
   await expect(page.getByRole("heading", { level: 1, name: /Contrôle des relations/ })).toBeVisible();
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
   await expect(page.getByText("Outil interne accessible par URL, sans authentification")).toBeVisible();
+  await expect(page.getByText(/L’API Harvest décrit le catalogue actuel/)).toBeVisible();
 });
 
 test("les inventaires Portfolio et Sheet restent exhaustifs", async ({ page }) => {
@@ -31,6 +32,8 @@ test("les inventaires Portfolio et Sheet restent exhaustifs", async ({ page }) =
 
   await page.getByRole("button", { name: "Compositeurs", exact: true }).click();
   await expect(page.getByTestId("matching-composer-rows").locator("tr")).toHaveCount(69);
+  await expect(page.getByRole("columnheader", { name: "Présence API Harvest ?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Non détectés dans Harvest/ })).toBeVisible();
 
   await page.getByText("Sources & diagnostic").click();
   await page.getByRole("button", { name: "Sheet Caroline" }).click();
@@ -76,7 +79,15 @@ test("les tableaux gardent leur en-tête et le sélecteur multiple reste lisible
   await table.evaluate((element) => { element.scrollTop = 700; });
   await expect(head).toBeVisible();
 
-  await page.getByRole("combobox", { name: "Compositeurs attendus" }).first().click();
+  await page.getByRole("button", { name: "Compositeurs", exact: true }).click();
+  const composerTable = page.getByTestId("matching-composer-table");
+  const composerHead = composerTable.locator("thead");
+  await expect(composerHead).toHaveCSS("position", "sticky");
+  await composerTable.evaluate((element) => { element.scrollTop = 700; });
+  await expect(composerHead).toBeVisible();
+
+  await page.getByRole("button", { name: "Albums", exact: true }).click();
+  await page.getByRole("combobox", { name: "Compositeurs attendus dans le CMS" }).first().click();
   const dialog = page.getByRole("dialog", { name: /Compositeurs à associer/ });
   await expect(dialog).toBeVisible();
   await expect(dialog.getByPlaceholder(/Rechercher par nom/)).toBeVisible();

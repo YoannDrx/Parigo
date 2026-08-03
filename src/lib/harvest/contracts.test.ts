@@ -40,6 +40,11 @@ describe("endpoint-specific Harvest contracts", () => {
     expect(track.Bpm).toBe(122);
   });
 
+  it("keeps an unparseable Harvest BPM from breaking the catalogue", () => {
+    const track = HarvestTrackSchema.parse({ ID: "track-without-tempo", Bpm: "Variable" });
+    expect(track.Bpm).toBeNull();
+  });
+
   it("rejects a partial response missing a field required by the view", () => {
     expect(() => HarvestMemberTagSchema.parse({ TagID: "tag-fixture-1" })).toThrow();
   });

@@ -7,7 +7,6 @@ import { readHarvestSession } from "@/lib/harvest/session";
 import { resolveSearchBrief } from "@/lib/search-intent";
 import { translateFrenchSearchQuery } from "@/lib/search-translation";
 import type { QueryResolution, SearchIntentResolution } from "@/types";
-import { getComposerProfile } from "@/lib/editorial/contracts";
 
 const sortMap = {
   relevance: "RankExpression",
@@ -29,7 +28,7 @@ const querySchema = z.object({
   type: z.enum(["main", "alternate", "all"]).default("main"),
   labels: z.string().optional(),
   categories: z.string().optional(),
-  composer: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
+  composer: z.string().trim().min(1).max(200).optional(),
   bpmMin: z.coerce.number().min(1).max(300).optional(),
   bpmMax: z.coerce.number().min(1).max(300).optional(),
   durationMin: z.coerce.number().min(0).optional(),
@@ -72,7 +71,6 @@ export async function GET(request: NextRequest) {
       ...explicitCategories,
       ...(intentResolution?.categoryIds || []),
     ];
-    const composerProfile = input.composer ? getComposerProfile(input.composer) : undefined;
     const skip = (input.page - 1) * input.limit;
     const searchInput = {
       query: intentResolution ? "%" : input.q.trim() || "%",
@@ -86,7 +84,7 @@ export async function GET(request: NextRequest) {
       type: input.view === "tracks" && input.type === "all" ? "main" : input.type,
       labels: list(input.labels),
       categories: categories.length ? [...new Set(categories)] : undefined,
-      composerQuery: composerProfile?.harvestAliases[0] || composerProfile?.name,
+      composerQuery: input.composer,
       minBpm: input.bpmMin ?? intentResolution?.bpmRange?.[0],
       maxBpm: input.bpmMax ?? intentResolution?.bpmRange?.[1],
       minDuration: input.durationMin,

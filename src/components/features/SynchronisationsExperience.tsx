@@ -9,7 +9,7 @@ import { Footer, Header } from "@/components/layout";
 import { SynchronisationCard } from "@/components/editorial/SynchronisationCard";
 import { ViewModeControl } from "@/components/ui/ViewModeControl";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { SYNCHRONISATIONS_PLAYLIST_URL, type Synchronisation } from "@/content/synchronisations";
+import { SYNCHRONISATIONS_PLAYLIST_URL, type Synchronisation } from "@/lib/youtube/synchronisation-types";
 import type { ViewMode } from "@/types";
 import { PageHero } from "@/components/layout/PageHero";
 

@@ -1,10 +1,9 @@
 import { SEO_SELECTIONS } from "@/content/seo-selections";
-import { SYNCHRONISATIONS } from "@/content/synchronisations";
-import { clips, publishedComposerProfiles } from "@/lib/editorial/contracts";
 import { getEditorialVideos } from "@/lib/editorial/videos";
-import type { EditorialVideo } from "@/lib/editorial/video-types";
+import { getParigoHarvestComposerInventory } from "@/lib/harvest/composer-inventory";
 import { getCachedLabels, getCachedPlaylists } from "@/lib/harvest/catalog-cache";
 import { renderUrlSet, unavailableSitemap, xmlResponse } from "@/lib/sitemap-xml";
+import { getSynchronisations } from "@/lib/youtube/synchronisations";
 
 const staticPaths = [
   "", "/albums", "/labels", "/playlists", "/synchronisations",
@@ -16,9 +15,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
   const kind = (await params).kind.replace(/\.xml$/, "");
   try {
     if (kind === "static") {
+      const synchronisations = await getSynchronisations();
       return xmlResponse(renderUrlSet([
         ...staticPaths.map((path) => ({ fr: path || "/", en: `/en${path}`, priority: path === "" ? 1 : 0.7 })),
-        ...SYNCHRONISATIONS.map(({ slug }) => ({ fr: `/synchronisations/${slug}`, en: `/en/synchronisations/${slug}`, priority: 0.6 })),
+        ...synchronisations.map(({ slug, publishedAt }) => ({ fr: `/synchronisations/${slug}`, en: `/en/synchronisations/${slug}`, lastModified: publishedAt, priority: 0.6 })),
       ]));
     }
     if (kind === "labels") {
@@ -33,14 +33,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
       return xmlResponse(renderUrlSet(SEO_SELECTIONS.map((selection) => ({ fr: `/selections/${selection.content.fr.slug}`, en: `/en/selections/${selection.content.en.slug}`, priority: 0.8 }))));
     }
     if (kind === "editorial") {
-      let videos: EditorialVideo[];
-      try {
-        videos = await getEditorialVideos();
-      } catch {
-        videos = clips;
-      }
+      const [videos, composerInventory] = await Promise.all([
+        getEditorialVideos(),
+        getParigoHarvestComposerInventory(),
+      ]);
       return xmlResponse(renderUrlSet([
-        ...publishedComposerProfiles.map(({ slug }) => ({ fr: `/compositeurs/${slug}`, en: `/en/compositeurs/${slug}`, priority: 0.7 })),
+        ...composerInventory.credits.map(({ id }) => ({ fr: `/compositeurs/${id}`, en: `/en/compositeurs/${id}`, priority: 0.7 })),
         ...videos.map(({ slug, publishedAt }) => ({ fr: `/clips/${slug}`, en: `/en/clips/${slug}`, lastModified: publishedAt, priority: 0.65 })),
       ]));
     }

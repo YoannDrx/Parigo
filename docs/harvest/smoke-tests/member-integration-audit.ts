@@ -854,11 +854,24 @@ async function main() {
 
   // Private note lifecycle.
   if (mutationsAllowed) {
+    const notesBefore = await direct(`/gettrackmembercomments/${memberToken}/${encodeURIComponent(trackId)}?includeadmin=false`);
+    const staleAuditNotes = records(notesBefore.payload, "Tags").filter((item) =>
+      String(item.tagname || item.TagName || item.Name || "").startsWith("Parigo audit ")
+    );
+    for (const staleNote of staleAuditNotes) {
+      const staleId = findString(staleNote, ["id", "tagid", "TagID", "ID"]);
+      if (staleId) await direct(`/removetrackmembercomment/${memberToken}/${encodeURIComponent(staleId)}`);
+    }
     const noteText = `${prefix} note`;
     const createNote = await bff(`/api/user/tracks/${encodeURIComponent(trackId)}/comments`, json("POST", { text: noteText }));
     const comment = record(record(createNote.payload)?.data)?.comment;
-    const commentId = findString(comment, ["id", "tagid", "TagID", "ID"]) || "";
     const directNotes = await direct(`/gettrackmembercomments/${memberToken}/${encodeURIComponent(trackId)}?includeadmin=false`);
+    const directComment = records(directNotes.payload, "Tags").find((item) =>
+      String(item.tagname || item.TagName || item.Name || "") === noteText
+    );
+    const commentId = findString(comment, ["id", "tagid", "TagID", "ID"])
+      || findString(directComment, ["id", "tagid", "TagID", "ID"])
+      || "";
     const noteCreated = Boolean(commentId) && containsValue(directNotes.payload, commentId);
     addResult({
       family: "Notes privées",

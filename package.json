@@ -18,6 +18,8 @@
     "test:e2e": "playwright test",
     "email:dev": "email dev --dir src/emails --port 3001",
     "test:harvest": "node --env-file=.env --import tsx docs/harvest/smoke-tests/harvest-api-smoke-test.ts",
+    "audit:harvest:docs": "node --import tsx scripts/refresh-harvest-endpoint-inventory.ts && node --import tsx scripts/generate-harvest-api-audit-inventories.ts && node --import tsx scripts/generate-harvest-code-conformance-matrix.ts",
+    "audit:harvest:public-read": "HARVEST_PUBLIC_READ_AUDIT=1 node --env-file=.env --import tsx docs/harvest/smoke-tests/public-read-conformance-audit.ts",
     "test:harvest:composers": "node --env-file=.env --import tsx docs/harvest/smoke-tests/composer-credit-smoke-test.ts",
     "audit:harvest:composers": "HARVEST_LIVE_TESTS=1 WRITE_EDITORIAL_AUDIT=1 node --env-file=.env --import tsx docs/harvest/smoke-tests/composer-credit-smoke-test.ts",
     "audit:harvest:gaps": "node --import tsx scripts/audit-harvest-gaps.ts",
@@ -82,6 +84,8 @@
   },
   "pnpm": {
     "overrides": {
+      "brace-expansion@5.0.8": "5.0.9",
+      "fast-uri@3.1.4": "3.1.5",
       "postcss": "8.5.23",
       "sharp": "0.35.3"
     }

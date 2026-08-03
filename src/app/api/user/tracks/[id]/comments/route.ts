@@ -42,13 +42,14 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
   } catch (error) { return apiError(error, requestID, { surface: "account" }); }
 }
 
-export async function DELETE(request: NextRequest) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const requestID = requestId();
   try {
     assertSameOrigin(request);
     const session = await requireHarvestSession();
+    const trackId = idSchema.parse((await context.params).id);
     const commentId = idSchema.parse(request.nextUrl.searchParams.get("commentId"));
-    await removeTrackComment(session.memberToken, commentId);
+    await removeTrackComment(session.memberToken, trackId, commentId);
     return NextResponse.json({ data: { removed: true }, meta: { requestId: requestID } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, requestID, { surface: "account" }); }
 }

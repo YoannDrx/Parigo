@@ -20,16 +20,14 @@ const harvestNullableNumber = z.union([z.number(), z.string(), z.null()]).transf
   }
   return parsed;
 });
-const harvestBpm = z.union([z.number(), z.string()]).transform((value, context) => {
+const harvestBpm = z.union([z.number(), z.string()]).transform((value) => {
   const source = String(value).trim();
+  if (!source) return null;
   const range = source.match(/^(\d+(?:\.\d+)?)\s*[-–]\s*(\d+(?:\.\d+)?)$/);
   const parsed = range
     ? (Number(range[1]) + Number(range[2])) / 2
     : Number(source);
-  if (!Number.isFinite(parsed)) {
-    context.addIssue({ code: "custom", message: "Expected a Harvest BPM value" });
-    return z.NEVER;
-  }
+  if (!Number.isFinite(parsed)) return null;
   return Math.round(parsed);
 });
 const harvestBoolean = z.union([z.boolean(), z.number(), z.string()]).transform((value) => {

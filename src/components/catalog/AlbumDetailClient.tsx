@@ -11,13 +11,10 @@ import { Tag } from "@/components/ui/Tag";
 import { TrackRow } from "@/components/features/TrackRow";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { CueSheetButton } from "@/components/features/CueSheetButton";
-import { ClipCard } from "@/components/editorial/ClipCard";
 import { FavoriteButton } from "@/components/features/FavoriteButton";
 import { formatDuration } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
 import type { Album, ComposerCreditLink, Track } from "@/types";
-import type { ComposerProfile } from "@/lib/editorial/contracts";
-import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { formatParigoDate } from "@/lib/date-time";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
@@ -30,7 +27,6 @@ interface AlbumDetailClientProps {
     album: Album & { tracks: NonNullable<Album["tracks"]> };
     similarAlbums: Album[];
     composerCredits: ComposerCreditLink[];
-    relatedClips: Array<{ clip: EditorialVideo; composers: Array<Pick<ComposerProfile, "slug" | "name">> }>;
   };
 }
 
@@ -222,10 +218,10 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
               </p>
               <div className="flex flex-wrap gap-2">
                 {data.composerCredits.map((composer) => (
-                  composer.slug ? (
+                  composer.href ? (
                     <Link
                       key={composer.credit}
-                      href={localizedPath(`/compositeurs/${composer.slug}`)}
+                      href={localizedPath(composer.href)}
                       className="border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold transition hover:bg-[var(--surface-soft)]"
                     >
                       {composer.name}
@@ -300,17 +296,6 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
             <p className="border-y border-[var(--line)] py-16 text-center text-[var(--text-muted)]">{locale === "fr" ? "Aucune piste disponible pour cet album." : "No tracks are available for this album."}</p>
           )}
         </section>
-
-        {data.relatedClips.length > 0 && (
-          <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-            <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">Clips</SignedTitle>
-            <div className="grid gap-5 md:grid-cols-2">
-              {data.relatedClips.map(({ clip, composers }) => (
-                <ClipCard key={clip.slug} clip={clip} composers={composers} locale={locale} />
-              ))}
-            </div>
-          </section>
-        )}
 
         {/* Similar Albums */}
         {similarAlbums.length > 0 && (

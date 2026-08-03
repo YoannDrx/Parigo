@@ -59,12 +59,13 @@ test.beforeEach(async ({ page }) => {
 
 test("un clip se lit dans sa carte, se détache et se réattache au détail sans recréer l’iframe", async ({ page }) => {
   await page.goto("/clips");
-  const play = page.getByRole("button", { name: "Lire Garden of Eden" });
+  const play = page.getByRole("button", { name: /Lire Garden Of Eden/i });
   const card = page.locator(".parigo-video-card").filter({ has: play });
-  const anchor = card.locator('[data-clip-anchor="garden-of-eden"]');
+  const anchor = card.locator("[data-clip-anchor]");
   await card.hover();
   await anchor.evaluate((element) => element.scrollIntoView({ block: "center" }));
-  await expect(anchor).toBeInViewport({ ratio: .6 });
+  // Keep a margin above the 60% attachment threshold to avoid pixel-rounding races.
+  await expect(anchor).toBeInViewport({ ratio: .7 });
   await play.click();
 
   const player = page.getByTestId("persistent-clip-player");
@@ -80,8 +81,8 @@ test("un clip se lit dans sa carte, se détache et se réattache au détail sans
   await expect(player).toHaveAttribute("data-attached", "false");
   await expect(iframe).toHaveAttribute("data-persistence-marker", "same-clip-iframe");
 
-  await player.getByRole("link", { name: "Voir le détail de Garden of Eden" }).click();
-  await expect(page).toHaveURL(/\/clips\/garden-of-eden$/);
+  await player.getByRole("link", { name: /Voir le détail de Garden Of Eden/i }).click();
+  await expect(page).toHaveURL(/\/clips\/yt-[\w-]+$/);
   await expect(player).toHaveAttribute("data-attached", "true");
   await expect(iframe).toHaveAttribute("data-persistence-marker", "same-clip-iframe");
 });
@@ -97,7 +98,7 @@ test("le refus marketing ouvre les préférences sans charger YouTube", async ({
     }));
   });
   await page.goto("/clips");
-  const play = page.getByRole("button", { name: "Lire Garden of Eden" });
+  const play = page.getByRole("button", { name: /Lire Garden Of Eden/i });
   await play.scrollIntoViewIfNeeded();
   await play.click();
 
@@ -110,7 +111,7 @@ test("une track prend la main sur le clip sans perdre son iframe", async ({ page
   test.skip(testInfo.project.name === "mobile", "Le même coordinateur est couvert sur mobile par les autres parcours.");
   test.setTimeout(60_000);
   await page.goto("/clips");
-  const playClip = page.getByRole("button", { name: "Lire Garden of Eden" });
+  const playClip = page.getByRole("button", { name: /Lire Garden Of Eden/i });
   await playClip.scrollIntoViewIfNeeded();
   await playClip.click();
   const clipPlayer = page.getByTestId("persistent-clip-player");
@@ -134,10 +135,28 @@ test("une track prend la main sur le clip sans perdre son iframe", async ({ page
 test("les actions restent visibles et contenues sur mobile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "Le contrat tactile est vérifié sur le projet mobile.");
   await page.goto("/clips");
-  const card = page.locator(".parigo-video-card").filter({ hasText: "Garden of Eden" }).first();
+  const card = page.locator(".parigo-video-card").filter({ hasText: /Garden Of Eden/i }).first();
   const actions = card.locator(".parigo-video-card__actions");
   await expect(actions).toHaveCSS("opacity", "1");
-  await expect(card.getByRole("button", { name: "Lire Garden of Eden" })).toBeVisible();
-  await expect(card.getByRole("link", { name: "Voir le détail de Garden of Eden" })).toBeVisible();
+  await expect(card.getByRole("button", { name: /Lire Garden Of Eden/i })).toBeVisible();
+  const detail = card.getByRole("link", { name: /Voir le détail de Garden Of Eden/i });
+  await expect(detail).toBeVisible();
+  await expect(detail).toHaveCSS("color", "rgb(255, 255, 255)");
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+});
+
+test("le bouton de détail conserve une flèche contrastée sur la card", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop.");
+  await page.goto("/clips");
+  const card = page.locator(".parigo-video-card").filter({ hasText: /Garden Of Eden/i }).first();
+  await card.scrollIntoViewIfNeeded();
+  await card.hover();
+
+  const detail = card.getByRole("link", { name: /Voir le détail de Garden Of Eden/i });
+  await expect(detail).toBeVisible();
+  await expect(detail).toHaveCSS("color", "rgb(255, 255, 255)");
+
+  await detail.hover();
+  await expect(detail).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(detail).toHaveCSS("color", "rgb(21, 24, 21)");
 });

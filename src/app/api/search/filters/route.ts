@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
       { data: { groups }, meta: { requestId: id } },
       {
         headers: {
-          "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
+          "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
           "X-Request-ID": id,
         },
       },

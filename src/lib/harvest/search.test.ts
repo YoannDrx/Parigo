@@ -88,6 +88,24 @@ describe("Harvest Cloud Search", () => {
     });
   });
 
+  it("can search the global catalogue for raw composer labels by substring", () => {
+    const payload = buildCloudSearch({
+      query: "%",
+      view: "Track",
+      composerQuery: "Minimatic",
+      composerMatch: "contains",
+    });
+    const filters = payload.SearchFilters as Record<string, unknown>;
+    const previous = filters.PreviousSearchTermBundles as Array<Record<string, Record<string, unknown>>>;
+
+    expect(previous[0].St_Keyword).toMatchObject({
+      Fields: "TrackComposer",
+      ExactPhrase: false,
+      Wildcard: true,
+      Keywords: "Minimatic",
+    });
+  });
+
   it("serializes included and excluded filters exactly once", () => {
     const payload = buildCloudSearch({
       categories: ["-ATT_df36fdca961e0855_Ambient", "51bcfc1bd83261cd", "51bcfc1bd83261cd"],

@@ -19,6 +19,12 @@ interface SessionState {
   isPending: boolean;
 }
 
+export interface AuthClientError {
+  message: string;
+  code?: string;
+  upstreamCode?: string;
+}
+
 let state: SessionState = { data: null, isPending: true };
 const serverState: SessionState = { data: null, isPending: true };
 let sessionPromise: Promise<void> | undefined;
@@ -56,8 +62,12 @@ async function authRequest(path: string, body?: unknown) {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) {
-    const message = payload?.error?.message || payload?.error || "Authentication failed";
-    return { error: { message }, data: null };
+    const payloadError = payload?.error;
+    const message = payloadError?.message || payloadError || "Authentication failed";
+    const error: AuthClientError = { message };
+    if (typeof payloadError?.code === "string") error.code = payloadError.code;
+    if (typeof payloadError?.upstreamCode === "string") error.upstreamCode = payloadError.upstreamCode;
+    return { error, data: null };
   }
   await loadSession(true);
   return { error: null, data: payload.data ?? null };

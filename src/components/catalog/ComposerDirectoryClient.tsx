@@ -2,9 +2,10 @@
 
 import { Search, X } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
-import { ComposerCard } from "@/components/editorial/ComposerCard";
-import type { ComposerProfile } from "@/lib/editorial/contracts";
+import Link from "next/link";
+import type { HarvestComposerCredit } from "@/lib/harvest/composer-credits";
 import type { Locale } from "@/i18n/messages";
+import { localizedPath } from "@/lib/locale";
 
 function normalizeSearchValue(value: string, locale: Locale) {
   return value
@@ -15,23 +16,23 @@ function normalizeSearchValue(value: string, locale: Locale) {
 }
 
 export function ComposerDirectoryClient({
-  profiles,
+  credits,
   initialQuery,
   locale,
   pathname,
 }: {
-  profiles: ComposerProfile[];
+  credits: HarvestComposerCredit[];
   initialQuery: string;
   locale: Locale;
   pathname: string;
 }) {
   const [query, setQuery] = useState(initialQuery);
   const deferredQuery = useDeferredValue(query);
-  const visibleProfiles = useMemo(() => {
+  const visibleCredits = useMemo(() => {
     const normalized = normalizeSearchValue(deferredQuery, locale);
-    if (!normalized) return profiles;
-    return profiles.filter((profile) => normalizeSearchValue(profile.name, locale).includes(normalized));
-  }, [deferredQuery, locale, profiles]);
+    if (!normalized) return credits;
+    return credits.filter((credit) => normalizeSearchValue(credit.name, locale).includes(normalized));
+  }, [credits, deferredQuery, locale]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -47,7 +48,7 @@ export function ComposerDirectoryClient({
 
   return (
     <>
-      <div className="catalog-search-frame search-query-frame mb-8 flex min-h-14 items-center border border-[var(--line-strong)] bg-[var(--surface)] px-4 focus-within:border-[var(--signal-strong)] focus-within:ring-2 focus-within:ring-[var(--signal)]/20 md:mb-10 md:max-w-2xl">
+      <div className="composer-directory-search catalog-search-frame search-query-frame mb-8 flex min-h-14 items-center border border-[var(--line-strong)] bg-[var(--surface)] px-4 md:mb-10 md:max-w-2xl">
         <Search aria-hidden="true" size={18} className="mr-3 shrink-0 text-[var(--signal-strong)]" />
         <label htmlFor="composer-directory-search" className="sr-only">
           {locale === "fr" ? "Rechercher un compositeur" : "Search composers"}
@@ -73,15 +74,36 @@ export function ComposerDirectoryClient({
         )}
       </div>
       <p className="sr-only" role="status" aria-live="polite">
-        {visibleProfiles.length} {locale === "fr" ? "profils affichés" : "profiles shown"}
+        {visibleCredits.length} {locale === "fr" ? "crédits affichés" : "credits shown"}
       </p>
-      {visibleProfiles.length > 0 ? (
+      {visibleCredits.length > 0 ? (
         <div data-testid="composer-directory-results" className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
-          {visibleProfiles.map((profile) => <ComposerCard key={profile.slug} profile={profile} locale={locale} />)}
+          {visibleCredits.map((credit) => (
+            <Link
+              key={credit.id}
+              href={localizedPath(locale, `/compositeurs/${credit.id}`)}
+              className="composer-card group relative flex min-h-64 flex-col justify-between overflow-hidden border border-[var(--line)] bg-[var(--surface)] p-5 transition hover:border-[var(--line-strong)] hover:bg-[var(--surface-soft)] sm:p-6"
+            >
+              <div>
+                <p className="font-mono text-[.54rem] uppercase tracking-[.14em] text-[var(--signal-strong)]">
+                  {locale === "fr" ? "Crédit Harvest exact" : "Exact Harvest credit"}
+                </p>
+                <h2 className="mt-5 break-words text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{credit.name}</h2>
+              </div>
+              <div className="mt-8 border-t border-[var(--line)] pt-4">
+                <p className="font-mono text-[.62rem] text-[var(--text-muted)]">
+                  {credit.trackCount} {locale === "fr" ? "pistes" : "tracks"} · {credit.albumIds.length} albums
+                </p>
+                {credit.albumCodes.length > 0 && <p className="mt-2 line-clamp-2 text-xs text-[var(--text-muted)]">{credit.albumCodes.join(" · ")}</p>}
+              </div>
+              <span aria-hidden="true" className="composer-card__corner composer-card__corner--top" />
+              <span aria-hidden="true" className="composer-card__corner composer-card__corner--bottom" />
+            </Link>
+          ))}
         </div>
       ) : (
         <p className="border-y border-[var(--line)] py-16 text-center text-[var(--text-muted)]">
-          {locale === "fr" ? "Aucun profil ne correspond à cette recherche." : "No profile matches this search."}
+          {locale === "fr" ? "Aucun crédit Harvest ne correspond à cette recherche." : "No Harvest credit matches this search."}
         </p>
       )}
     </>

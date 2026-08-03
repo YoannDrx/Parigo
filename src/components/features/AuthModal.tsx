@@ -80,7 +80,7 @@ export function AuthModal() {
                 <div className="mx-auto flex min-h-full max-w-md items-center"><div className="w-full"><LoginForm headingId="auth-login-title" onRegister={() => setView("register")} onForgot={() => { close(); router.push("/forgot-password"); }} onSuccess={() => { close(); router.refresh(); }} /></div></div>
               </motion.section>
               <motion.section aria-hidden={view !== "register"} inert={view !== "register" ? true : undefined} animate={{ opacity: view === "register" ? 1 : 0, x: view === "register" ? 0 : 32 }} transition={{ duration: .34, ease: [.22, 1, .36, 1] }} className={`absolute inset-x-0 bottom-0 top-16 overflow-y-auto px-5 pb-10 pt-7 sm:px-9 ${view !== "register" ? "pointer-events-none" : ""}`}>
-                <RegisterForm embedded headingId="auth-register-title" onLogin={() => setView("login")} onSuccess={(email) => { close(); router.push(`/register/success?email=${encodeURIComponent(email)}`); }} />
+                <RegisterForm embedded headingId="auth-register-title" onLogin={() => setView("login")} onSuccess={(email, verificationEmailSent) => { close(); router.push(`/register/success?email=${encodeURIComponent(email)}&sent=${verificationEmailSent ? "1" : "0"}`); }} />
               </motion.section>
             </div>
           </div>

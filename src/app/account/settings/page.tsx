@@ -24,6 +24,9 @@ export default function SettingsPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteMode, setDeleteMode] = useState<"archive" | "delete">("archive");
+  const [deleteError, setDeleteError] = useState("");
 
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState(false);
@@ -97,17 +100,23 @@ export default function SettingsPage() {
     if (deleteConfirmText !== (locale === "fr" ? "SUPPRIMER" : "DELETE")) return;
 
     setIsDeleting(true);
+    setDeleteError("");
     try {
       const response = await fetch("/api/user/delete", {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: deletePassword, archiveOnly: deleteMode === "archive" }),
       });
 
       if (response.ok) {
         await signOut();
         router.push("/");
+      } else {
+        const payload = await response.json().catch(() => null);
+        setDeleteError(payload?.error?.message || (locale === "fr" ? "Impossible de valider cette action. Vérifiez votre mot de passe." : "Could not validate this action. Check your password."));
       }
-    } catch (error) {
-      console.error("Error deleting account:", error);
+    } catch {
+      setDeleteError(locale === "fr" ? "Le service est momentanément indisponible. Réessayez dans quelques instants." : "The service is temporarily unavailable. Try again in a moment.");
     } finally {
       setIsDeleting(false);
     }
@@ -213,12 +222,12 @@ export default function SettingsPage() {
         <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1 bg-[var(--danger)]" />
         <div className="grid gap-6 px-6 py-7 md:grid-cols-[minmax(0,1fr)_12rem] md:items-start md:px-8 md:py-8">
           <div className="max-w-2xl">
-            <p className="eyebrow mb-4 flex items-center gap-2 text-[var(--danger)]"><AlertTriangle size={14} />{locale === "fr" ? "Action irréversible" : "Irreversible action"}</p>
+            <p className="eyebrow mb-4 flex items-center gap-2 text-[var(--danger)]"><AlertTriangle size={14} />{locale === "fr" ? "Gestion de l’accès" : "Access management"}</p>
             <h2 className="font-[var(--font-editorial)] text-[clamp(2rem,4vw,3.25rem)] font-semibold leading-[.94] tracking-[-.05em] text-[var(--foreground)]">
               {locale === "fr" ? "Supprimer votre espace Parigo." : "Delete your Parigo space."}
             </h2>
             <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
-              {locale === "fr" ? "Votre profil, vos playlists et vos favoris seront définitivement supprimés. Prenez le temps de vérifier vos sélections avant de continuer." : "Your profile, playlists and favourites will be permanently removed. Take a moment to review your selections before continuing."}
+              {locale === "fr" ? "Archivez votre compte pour conserver vos données, ou demandez leur suppression définitive. Votre mot de passe actuel sera vérifié avant toute action." : "Archive your account to retain its data, or request permanent deletion. Your current password will be verified before either action."}
             </p>
           </div>
           <div className="hidden border-l border-[var(--line)] pl-6 md:block">
@@ -236,7 +245,36 @@ export default function SettingsPage() {
         ) : (
           <div className="border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--danger)_5%,var(--surface))] px-6 py-6 md:px-8">
             <div className="max-w-xl">
-              <p className="text-sm font-medium leading-6 text-[var(--foreground)]">
+              <fieldset>
+                <legend className="text-sm font-semibold text-[var(--foreground)]">{locale === "fr" ? "Choisissez le devenir de votre compte" : "Choose what happens to your account"}</legend>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  {([{
+                    value: "archive" as const,
+                    title: locale === "fr" ? "Archiver" : "Archive",
+                    description: locale === "fr" ? "L’accès est désactivé, les données du compte restent conservées." : "Access is disabled while the account data remains stored.",
+                  }, {
+                    value: "delete" as const,
+                    title: locale === "fr" ? "Supprimer définitivement" : "Delete permanently",
+                    description: locale === "fr" ? "Le profil et les données du compte sont définitivement supprimés." : "The profile and account data are permanently deleted.",
+                  }]).map((option) => (
+                    <label key={option.value} data-selected={deleteMode === option.value} className="parigo-choice flex cursor-pointer gap-3 border border-[var(--line)] bg-[var(--surface)] p-4 transition-colors data-[selected=true]:border-[var(--danger)] data-[selected=true]:bg-[color-mix(in_srgb,var(--danger)_6%,var(--surface))]">
+                      <input type="radio" name="account-removal-mode" value={option.value} checked={deleteMode === option.value} onChange={() => setDeleteMode(option.value)} className="mt-1 accent-[var(--danger)]" />
+                      <span><span className="block text-sm font-semibold">{option.title}</span><span className="mt-1 block text-xs leading-5 text-[var(--text-muted)]">{option.description}</span></span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+              <label className="mt-5 block text-sm font-semibold text-[var(--foreground)]">
+                <span>{locale === "fr" ? "Mot de passe actuel" : "Current password"}</span>
+                <input
+                  type="password"
+                  value={deletePassword}
+                  onChange={(event) => setDeletePassword(event.target.value)}
+                  autoComplete="current-password"
+                  className="mt-2 min-h-12 w-full border border-[var(--line-strong)] bg-[var(--surface)] px-4 text-sm text-[var(--foreground)] outline-none transition focus:border-[var(--danger)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--danger)_14%,transparent)]"
+                />
+              </label>
+              <p className="mt-5 text-sm font-medium leading-6 text-[var(--foreground)]">
                 {locale === "fr" ? <>Écrivez <strong className="font-mono text-[var(--danger)]">SUPPRIMER</strong> pour confirmer.</> : <>Type <strong className="font-mono text-[var(--danger)]">DELETE</strong> to confirm.</>}
               </p>
               <input
@@ -247,6 +285,7 @@ export default function SettingsPage() {
                 autoComplete="off"
                 className="mt-4 min-h-12 w-full border border-[var(--line-strong)] bg-[var(--surface)] px-4 font-mono text-sm tracking-[.08em] text-[var(--foreground)] outline-none transition focus:border-[var(--danger)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--danger)_14%,transparent)]"
               />
+              {deleteError && <p role="alert" className="mt-4 text-sm leading-6 text-[var(--danger)]">{deleteError}</p>}
             </div>
             <div className="mt-5 flex flex-wrap gap-3">
               <Button
@@ -254,6 +293,8 @@ export default function SettingsPage() {
                 onClick={() => {
                   setShowDeleteConfirm(false);
                   setDeleteConfirmText("");
+                  setDeletePassword("");
+                  setDeleteError("");
                 }}
               >
                 {locale === "fr" ? "Annuler" : "Cancel"}
@@ -261,16 +302,16 @@ export default function SettingsPage() {
               <Button
                 variant="primary"
                 onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== (locale === "fr" ? "SUPPRIMER" : "DELETE") || isDeleting}
+                disabled={deleteConfirmText !== (locale === "fr" ? "SUPPRIMER" : "DELETE") || !deletePassword || isDeleting}
                 className="border-[var(--danger)] bg-[var(--danger)] text-white hover:!border-[var(--danger)] hover:!bg-[var(--danger)] hover:!text-white"
               >
                 {isDeleting ? (
                   <>
                     <ParigoLoader size="icon" label={locale === "fr" ? "Suppression du compte" : "Deleting account"} />
-                    {locale === "fr" ? "Suppression…" : "Deleting…"}
+                    {deleteMode === "archive" ? (locale === "fr" ? "Archivage…" : "Archiving…") : (locale === "fr" ? "Suppression…" : "Deleting…")}
                   </>
                 ) : (
-                  locale === "fr" ? "Confirmer la suppression" : "Confirm deletion"
+                  deleteMode === "archive" ? (locale === "fr" ? "Confirmer l’archivage" : "Confirm archiving") : (locale === "fr" ? "Confirmer la suppression" : "Confirm deletion")
                 )}
               </Button>
             </div>

@@ -1,0 +1,76 @@
+import "server-only";
+
+import { cache } from "react";
+import { unstable_cache } from "next/cache";
+import { PARIGO_LABEL_ID } from "@/config/catalog";
+import type { Track } from "@/types";
+import { HarvestError } from "./errors";
+import { cloudSearch } from "./catalog";
+import { collectHarvestComposerCredits, type HarvestComposerCredit } from "./composer-credits";
+
+export interface ParigoHarvestComposerInventory {
+  capturedAt: string;
+  labelId: string;
+  trackCount: number;
+  credits: HarvestComposerCredit[];
+}
+
+const PAGE_SIZE = 100;
+const MAX_TRACKS = 10_000;
+
+async function loadParigoHarvestComposerInventory(): Promise<ParigoHarvestComposerInventory> {
+  const tracks: Track[] = [];
+  let skip = 0;
+  let total = 1;
+
+  while (skip < total) {
+    const page = await cloudSearch({
+      view: "Track",
+      skip,
+      limit: PAGE_SIZE,
+      labels: [PARIGO_LABEL_ID],
+      sort: "ReleaseDate_Desc",
+    });
+    total = page.total;
+    if (total > MAX_TRACKS) {
+      throw new HarvestError(
+        `L’inventaire compositeurs Parigo dépasse la limite contrôlée de ${MAX_TRACKS} pistes`,
+        "HARVEST_INVALID_RESPONSE",
+        502,
+        false,
+      );
+    }
+    if (!page.tracks.length) break;
+    tracks.push(...page.tracks);
+    skip += page.tracks.length;
+  }
+
+  if (tracks.length < total) {
+    throw new HarvestError(
+      `Inventaire compositeurs Harvest incomplet : ${tracks.length}/${total} pistes chargées`,
+      "HARVEST_INVALID_RESPONSE",
+      502,
+      false,
+    );
+  }
+
+  return {
+    capturedAt: new Date().toISOString(),
+    labelId: PARIGO_LABEL_ID,
+    trackCount: tracks.length,
+    credits: collectHarvestComposerCredits(tracks),
+  };
+}
+
+const getCachedInventory = unstable_cache(
+  loadParigoHarvestComposerInventory,
+  ["parigo-harvest-composer-inventory-v1"],
+  { revalidate: 300, tags: ["catalog", "tracks", "composers", "filters"] },
+);
+
+export const getParigoHarvestComposerInventory = cache(getCachedInventory);
+
+export async function getParigoHarvestComposerCredit(id: string): Promise<HarvestComposerCredit | undefined> {
+  const inventory = await getParigoHarvestComposerInventory();
+  return inventory.credits.find((credit) => credit.id === id);
+}

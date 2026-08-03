@@ -49,7 +49,7 @@ function totalFrom(payload: unknown, fallback: number, ...keys: string[]): numbe
 }
 
 function titleOf(item: { DisplayTitle?: string; Name?: string; Title?: string }): string {
-  return item.DisplayTitle || item.Name || item.Title || "Untitled";
+  return item.DisplayTitle || item.Name || item.Title || "";
 }
 
 export function mapLibraryDescriptions(item: HarvestRecord): Partial<Record<"fr" | "en", string>> {
@@ -65,7 +65,7 @@ export function mapLibraryDescriptions(item: HarvestRecord): Partial<Record<"fr"
 }
 
 function mapCredits(item: HarvestTrackPayload): Array<{ name: string; slug: string }> {
-  return asList(item.Artist || item.Composer).map((name) => ({
+  return asList(item.Artist).map((name) => ({
     name,
     slug: slugify(name),
   }));
@@ -84,7 +84,7 @@ export function mapTrack(
   const albumCode = parsed.CDCode || album?.code || undefined;
   const albumTitle = albumIdentity(rawAlbumTitle, albumCode).title;
   const libraryId = parsed.LibraryID || album?.labelSlug || "";
-  const libraryName = parsed.LibraryName || album?.label || "Parigo";
+  const libraryName = parsed.LibraryName || album?.label || "";
   const composers = asList(parsed.Composer);
   const publishers = asList(parsed.Publisher);
   const normalizedVersion = parsed.Version?.trim().toLowerCase();
@@ -111,7 +111,7 @@ export function mapTrack(
     genres: asList(parsed.Genre),
     moods: asList(parsed.Mood),
     instruments: asList(parsed.Instrumentation),
-    isVocal: Boolean(asString(item.Lyrics)) || /vocal|voice/i.test(parsed.Version || ""),
+    isVocal: null,
     waveform: null,
     trackNumber: parsed.TrackNumber || undefined,
     artists: mapCredits(parsed),
@@ -178,16 +178,14 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
   const id = parsed.ID;
   const labelId = parsed.LibraryID || "";
   const styles = parsed.Styles.map((style) => ({ id: style.ID, name: style.Name }));
-  const genres = styles.length
-    ? styles.map((style) => style.name)
-    : asList(parsed.Genre || parsed.Keywords);
+  const genres = asList(parsed.Genre);
   const releaseDate = asIsoDate(parsed.ReleaseDate);
   const identity = albumIdentity(titleOf(parsed), parsed.Code || parsed.CdCode || parsed.CDCode);
   return {
     id,
     slug: id,
     title: identity.title,
-    label: parsed.LibraryName || "Parigo",
+    label: parsed.LibraryName || "",
     labelSlug: labelId,
     cover: templates.albumArt
       ? assetUrl(templates.albumArt, { id, width: 800, height: 800 })
@@ -324,11 +322,7 @@ export async function getAlbums(options: {
     const featured = await guestRequest<HarvestRecord>((token) =>
       `/getfeaturedalbums/${token}/${limit}?returntrackcount=true&mainonly=true&sort=ReleaseDate_Desc`,
     );
-    let items = recordArray(featured, "Albums");
-    if (!items.length) {
-      const latest = await guestRequest<HarvestRecord>((token) => `/getlatestalbums/${token}/${limit}`);
-      items = recordArray(latest, "Albums");
-    }
+    const items = recordArray(featured, "Albums");
     return { items: items.map((item) => mapAlbum(item, templates)), total: items.length, page: 1, pageSize: limit };
   }
 
@@ -415,7 +409,7 @@ export async function getAlbum(id: string, authenticatedMemberToken?: string): P
     authenticatedMemberToken,
     base,
     "album-detail",
-  ).catch(() => []);
+  );
   const enrichedById = new Map(enrichedTracks.map((track) => [track.id, track]));
   const tracks = mainTracks.map((track) => {
     const enrichedTrack = enrichedById.get(track.id);
@@ -433,16 +427,9 @@ export async function getAlbum(id: string, authenticatedMemberToken?: string): P
       cdCode: base.code,
     };
   });
-  const related = await cloudSearch({
-    view: "Album",
-    limit: 7,
-    labels: base.labelSlug ? [base.labelSlug] : undefined,
-  }, authenticatedMemberToken).catch(() => ({ albums: [] as Album[], tracks: [] as Track[], total: 0, facets: {
-    bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [],
-  } }));
   return {
     album: { ...base, trackCount: tracks.length, tracks },
-    similar: related.albums.filter((album) => album.id !== id).slice(0, 6),
+    similar: [],
   };
 }
 
@@ -450,8 +437,7 @@ export async function getLabels(): Promise<Label[]> {
   const [payload, albumFacets] = await Promise.all([
     guestRequest<HarvestRecord>((token) => `/getlibraries/${token}`),
     cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc" })
-      .then((result) => new Map(result.facets.labels.map((item) => [item.id, item.count])))
-      .catch(() => new Map<string, number>()),
+      .then((result) => new Map(result.facets.labels.map((item) => [item.id, item.count]))),
   ]);
   return recordArray(payload, "Libraries")
     .map((item) => {
@@ -480,11 +466,9 @@ export async function getLabel(id: string): Promise<Label | null> {
       `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true`,
     ),
     cloudSearch({ view: "Album", limit: 1, labels: [id], sort: "ReleaseDate_Desc" })
-      .then((result) => result.total)
-      .catch(() => 0),
+      .then((result) => result.total),
     cloudSearch({ view: "Track", limit: 1, labels: [id], sort: "RankExpression" })
-      .then((result) => result.total)
-      .catch(() => 0),
+      .then((result) => result.total),
   ]);
   const item = isRecord(payload.Library) ? payload.Library : undefined;
   if (!item) return null;
@@ -562,19 +546,15 @@ export async function getPlaylistDiscovery(): Promise<Playlist[]> {
   for (let offset = 0; offset < playlists.length; offset += concurrency) {
     const batch = playlists.slice(offset, offset + concurrency);
     const details = await Promise.all(batch.map(async (playlist) => {
-      try {
-        const detail = await getPlaylist(playlist.id);
-        return {
-          ...playlist,
-          trackCount: detail.tracks.length,
-          genres: uniqueTerms(detail.tracks.map((track) => track.genres)),
-          moods: uniqueTerms(detail.tracks.map((track) => track.moods)),
-          instruments: uniqueTerms(detail.tracks.map((track) => track.instruments)),
-          musicFor: uniqueTerms(detail.tracks.map((track) => track.musicFor)),
-        } satisfies Playlist;
-      } catch {
-        return playlist;
-      }
+      const detail = await getPlaylist(playlist.id);
+      return {
+        ...playlist,
+        trackCount: detail.tracks.length,
+        genres: uniqueTerms(detail.tracks.map((track) => track.genres)),
+        moods: uniqueTerms(detail.tracks.map((track) => track.moods)),
+        instruments: uniqueTerms(detail.tracks.map((track) => track.instruments)),
+        musicFor: uniqueTerms(detail.tracks.map((track) => track.musicFor)),
+      } satisfies Playlist;
     }));
     enriched.push(...details);
   }
@@ -604,8 +584,7 @@ export async function getStyles(): Promise<CatalogCategory[]> {
       `/getstyles/${token}?allowEmptyStyle=false`,
     ),
     cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc", includeStyleFacets: true })
-      .then((result) => new Map((result.facets.styles ?? []).map((item) => [item.id, item.count])))
-      .catch(() => new Map<string, number>()),
+      .then((result) => new Map((result.facets.styles ?? []).map((item) => [item.id, item.count]))),
   ]);
   return recordArray(payload, "Styles").map((item) => ({
     id: asString(item.ID),

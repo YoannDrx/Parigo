@@ -11,7 +11,7 @@ import {
 import { HarvestError, isRecord } from "./errors";
 import { asIsoDate, asNumber, asString, pick, recordArray } from "./values";
 import { assetUrl, getDownloadFormats } from "./assets";
-import { buildMemberRegistration, buildMemberSubscription, buildPersistentLogin } from "./member-contracts";
+import { buildMemberRegistration, buildMemberSubscription, buildMemberVerificationEmail, buildPersistentLogin } from "./member-contracts";
 import { WRITE_VERIFICATION_OFFSETS_MS, waitForVerificationOffset } from "./write-verification";
 
 type HarvestRecord = Record<string, unknown>;
@@ -152,7 +152,7 @@ export async function loginMember(username: string, password: string): Promise<H
   const status = profile.status?.toLowerCase();
   if (status && !["active", "approved"].includes(status)) {
     const message = status.includes("pending")
-      ? "Your account is awaiting Harvest approval"
+      ? "Your account is pending email verification"
       : status.includes("unverified")
         ? "Please verify your email address before signing in"
         : "This Harvest account is not active";
@@ -228,11 +228,17 @@ export async function registerMember(input: {
       body: JSON.stringify(buildMemberRegistration(input)),
     },
   );
+  const verificationEmailSent = await sendMemberVerificationEmail(input.email)
+    .then(() => true)
+    .catch(() => false);
+  return { member, verificationEmailSent };
+}
+
+export async function sendMemberVerificationEmail(email: string): Promise<void> {
   await serviceRequest<HarvestRecord>((token) => `/sendmemberverifylinkemail/${token}`, {
     method: "POST",
-    body: JSON.stringify({ Email: input.email, ExternalVerifyToken: "" }),
+    body: JSON.stringify(buildMemberVerificationEmail(email)),
   });
-  return { member, verificationEmailSent: true };
 }
 
 export async function getRegistrationCountries(): Promise<Array<{ code: string; name: string }>> {

@@ -25,6 +25,9 @@ La cle API Postman personnelle n'est pas stockee dans le repo et n'a pas ete nec
 | Fichier | Role |
 |---|---|
 | [audit-integration-2026-07-29.md](./audit-integration-2026-07-29.md) | Audit live corrigé, centré sur les écarts à transmettre à Harvest |
+| [documentation-conformance-audit-2026-08-03.md](./documentation-conformance-audit-2026-08-03.md) | Audit complet de conformité de la documentation `latest` et des contrats live sûrs |
+| [code-documentation-conformance-matrix-2026-08-03.csv](./code-documentation-conformance-matrix-2026-08-03.csv) | Comparaison ligne par ligne des 257 contrats officiels avec les 87 endpoints documentés utilisés par le code Parigo, plus l'appel non documenté de suppression de compte |
+| [email-draft-api-documentation-feedback-2026-08-03.md](./email-draft-api-documentation-feedback-2026-08-03.md) | Brouillon de réponse à Roland et Peter avec les erreurs reproductibles |
 | [runtime-route-matrix.csv](./runtime-route-matrix.csv) | Matrice UI → BFF → Harvest et preuves de persistance |
 | [last-audit-run.json](./last-audit-run.json) | Synthèse expurgée du dernier run |
 | [rapport-harvest-api.md](./rapport-harvest-api.md) | Rapport Markdown lisible directement dans le repo |
@@ -37,11 +40,24 @@ La cle API Postman personnelle n'est pas stockee dans le repo et n'a pas ete nec
 
 | Metrique | Valeur |
 |---|---:|
-| Entrees documentees | 277 |
-| Endpoints HTTP | 255 |
+| Entrees documentees | 279 |
+| Endpoints HTTP | 257 |
 | Pages guide / INFO | 22 |
 | Routes HTTP methode + chemin uniques | 222 |
-| GET / POST / DELETE | 112 / 140 / 3 |
+| GET / POST / DELETE | 111 / 143 / 3 |
+
+La campagne de conformité en lecture peut être rejouée avec :
+
+```bash
+pnpm audit:harvest:public-read
+```
+
+L'inventaire officiel `latest`, les classifications et la matrice code ↔ documentation
+peuvent être régénérés ensemble avec :
+
+```bash
+pnpm audit:harvest:docs
+```
 
 Le rapport couvre `Public API`, `Export API`, `Import API`, `Agent API / Integration API` et les pages d'informations additionnelles : codes fonctionnels, rate limits et health endpoint.
 

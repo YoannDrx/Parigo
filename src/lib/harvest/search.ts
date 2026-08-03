@@ -13,6 +13,7 @@ export interface HarvestSearchInput {
   styles?: string[];
   categories?: string[];
   composerQuery?: string;
+  composerMatch?: "exact" | "contains";
   minBpm?: number;
   maxBpm?: number;
   minDuration?: number;
@@ -135,8 +136,8 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
     previousBundles.push({
       St_Keyword: {
         Fields: "TrackComposer",
-        ExactPhrase: true,
-        Wildcard: false,
+        ExactPhrase: input.composerMatch !== "contains",
+        Wildcard: input.composerMatch === "contains",
         DisableKeywordGroup: true,
         OrOperation: false,
         Keywords: input.composerQuery.trim(),
