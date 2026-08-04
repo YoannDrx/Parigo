@@ -1,80 +1,79 @@
 "use client";
 
 import {
+  AlertTriangle,
   ArrowUpRight,
   Check,
   ChevronDown,
   CircleHelp,
-  Clipboard,
-  Copy,
   Database,
-  FileWarning,
-  GitCompareArrows,
-  Layers3,
+  Download,
+  ListFilter,
   ListMusic,
+  RefreshCw,
+  RotateCcw,
   Search,
   ShieldCheck,
-  Tags,
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useMemo, useState } from "react";
-import { Tooltip } from "@/components/ui/Tooltip";
+import { useFormStatus } from "react-dom";
 import type {
-  ComposerAuditCredit,
-  ComposerAuditData,
-  ComposerNamingIssue,
-  ComposerTrackAnomalyKind,
+  ComposerAuditAlbum,
+  ComposerAuditAlbumSummary,
+  ComposerAuditIdentitySummary,
+  ComposerAuditRecommendationKind,
+  ComposerAuditSummaryData,
   ComposerTrackRightsState,
+  EditorialAuditStatus,
+  HarvestAuditStatus,
 } from "@/lib/harvest/composer-audit";
 import { cn } from "@/lib/utils";
 
-type DashboardView = "credits" | "track-anomalies";
-type CreditFilter = "all" | "attention" | "society" | "duplicates" | "spelling" | "parenthetical" | "clean";
-type CreditSort = "priority" | "name" | "tracks" | "albums";
-type AnomalyFilter = "all" | ComposerTrackAnomalyKind;
+type WorkFilter = "action" | HarvestAuditStatus | "all";
+type SourceFilter = "all" | "public" | "harvest";
+type PresenceFilter = "all" | "present" | "missing";
+type RightsFilter = "all" | ComposerTrackRightsState;
+type SortValue = "priority" | "name" | "albums" | "tracks";
+type EditorialFilter = "all" | EditorialAuditStatus;
 
-const issueLabels: Record<ComposerNamingIssue, string> = {
-  "society-suffix": "Société dans le nom",
-  parenthetical: "Parenthèses à vérifier",
-  "duplicate-variant": "Variantes / casse",
-  "spelling-candidate": "Orthographe proche",
+const rowGrid = "grid min-w-[1180px] grid-cols-[minmax(200px,1.35fr)_minmax(220px,1.35fr)_70px_70px_60px_60px_60px_125px_120px_44px] items-center gap-3";
+
+const recommendationLabels: Record<ComposerAuditRecommendationKind, string> = {
+  "society-suffix": "Suffixe de société",
+  "preferred-name": "Nom Harvest non préféré",
+  "duplicate-variant": "Variantes à rapprocher",
+  "spelling-candidate": "Orthographe à vérifier",
+  "missing-public-credit": "Composer public manquant",
+  "different-right-holders": "Ayants droit contradictoires",
+  "invalid-character": "Caractère corrompu",
 };
 
-const issueStyles: Record<ComposerNamingIssue, string> = {
-  "society-suffix": "border-[#6f3d00]/30 bg-[#f3dfbf] text-[#6f3d00] dark:bg-[#4b2f0b] dark:text-[#ffdca4]",
-  parenthetical: "border-[#5b3f8c]/30 bg-[#ebe4f7] text-[#5b3f8c] dark:bg-[#302342] dark:text-[#d7c8ef]",
-  "duplicate-variant": "border-[#173b83]/30 bg-[#dce7f8] text-[#173b83] dark:bg-[#1d2d4b] dark:text-[#c7dbff]",
-  "spelling-candidate": "border-[#74170f]/30 bg-[#f7dedb] text-[#74170f] dark:bg-[#45201c] dark:text-[#ffc8c2]",
+const evidenceLabels = {
+  "canonical-registry": "référence éditoriale contrôlée",
+  "structured-right-holder": "ayant droit structuré Harvest",
+  mechanical: "normalisation mécanique sûre",
+};
+
+const harvestStatusLabels: Record<HarvestAuditStatus, string> = {
+  clean: "Correct",
+  "cleanup-required": "Correction disponible",
+  "review-required": "À vérifier",
+  "no-credit": "Sans crédit",
+};
+
+const editorialStatusLabels: Record<EditorialAuditStatus, string> = {
+  complete: "Complet",
+  incomplete: "À compléter",
+  "not-applicable": "Non applicable",
 };
 
 const rightsLabels: Record<ComposerTrackRightsState, string> = {
-  aligned: "Ayant droit aligné",
-  "missing-structured": "Aucun ayant droit structuré",
-  different: "Ayant droit différent",
-};
-
-const anomalyLabels: Record<ComposerTrackAnomalyKind, string> = {
-  "missing-public-credit": "Compositeur public manquant",
-  "different-right-holders": "Noms contradictoires",
-  "missing-structured-credit": "Ayant droit structuré absent",
-};
-
-const creditFilterHelp: Record<CreditFilter, string> = {
-  all: "Affiche tous les libellés Composer exacts renvoyés par Harvest.",
-  attention: "Affiche les crédits qui portent au moins une alerte de nom.",
-  society: "Affiche les noms contenant une société comme NS ou SACEM entre parenthèses.",
-  duplicates: "Affiche les libellés partageant la même base après retrait de la casse, des accents et des suffixes.",
-  spelling: "Affiche les noms très proches détectés comme fautes potentielles ; une validation humaine reste obligatoire.",
-  parenthetical: "Affiche les parenthèses qui ne correspondent pas à une société reconnue.",
-  clean: "Affiche les crédits pour lesquels aucune alerte de nom n’a été détectée.",
-};
-
-const anomalyFilterHelp: Record<AnomalyFilter, string> = {
-  all: "Affiche tous les écarts prioritaires entre le champ Composer et les ayants droit structurés.",
-  "missing-public-credit": "Le champ public Composer est vide alors qu’un auteur, compositeur ou arrangeur structuré est présent.",
-  "different-right-holders": "Le champ Composer et les ayants droit structurés contiennent des noms différents après normalisation.",
-  "missing-structured-credit": "Le champ Composer est renseigné mais aucun auteur, compositeur ou arrangeur structuré n’est renvoyé.",
+  aligned: "Alignés",
+  different: "Contradictoires",
+  "missing-structured": "Non structurés",
 };
 
 function normalize(value: string): string {
@@ -87,10 +86,7 @@ function normalize(value: string): string {
 }
 
 function formatDate(value: string): string {
-  return new Intl.DateTimeFormat("fr-FR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
 function albumHref(albumId: string): string {
@@ -101,487 +97,510 @@ function trackHref(albumId: string, trackId: string): string {
   return `${albumHref(albumId)}?track=${encodeURIComponent(trackId)}`;
 }
 
-function InternalLink({ href, children, className }: { href: string; children: React.ReactNode; className?: string }) {
-  return (
-    <Link
-      href={href}
-      prefetch={false}
-      className={cn("inline-flex items-center gap-1.5 underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]", className)}
-      onClick={(event) => event.stopPropagation()}
-    >
-      {children}
-      <ArrowUpRight size={12} className="shrink-0" aria-hidden="true" />
-    </Link>
-  );
+function identitySearchText(identity: ComposerAuditIdentitySummary): string {
+  return normalize(identity.searchText);
 }
 
-function MetricButton({
-  label,
-  value,
-  detail,
-  help,
-  tone = "neutral",
-  onClick,
-}: {
-  label: string;
-  value: number;
-  detail: string;
-  help: string;
-  tone?: "neutral" | "signal" | "warning" | "danger" | "info";
-  onClick: () => void;
-}) {
-  const tones = {
-    neutral: "border-t-[#343b35]",
-    signal: "border-t-[#176b3a]",
-    warning: "border-t-[#a45d00]",
-    danger: "border-t-[#b42318]",
-    info: "border-t-[#2457a7]",
-  };
+function StatusBadge({ status }: { status: HarvestAuditStatus }) {
   return (
-    <Tooltip label={help} side="bottom" className="min-w-[13rem] flex-1">
-      <button
-        type="button"
-        onClick={onClick}
-        aria-label={`${label} : ${value}. ${detail}. ${help}`}
-        className={cn(
-          "parigo-card w-full border border-t-4 border-[var(--line)] bg-[var(--surface)] p-4 text-left shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:border-x-[var(--line-strong)] hover:border-b-[var(--line-strong)]",
-          tones[tone],
-        )}
-      >
-        <span className="flex items-center justify-between gap-3 font-mono text-[.6rem] uppercase tracking-[.12em] text-[var(--text-muted)]"><span>{label}</span><CircleHelp size={13} aria-hidden="true" /></span>
-        <span className="mt-3 block text-4xl font-semibold tracking-[-.06em]">{value}</span>
-        <span className="mt-1 block text-xs leading-5 text-[var(--text-muted)]">{detail}</span>
-      </button>
-    </Tooltip>
-  );
-}
-
-function HelpTip({ label, side = "top" }: { label: string; side?: "top" | "bottom" }) {
-  return (
-    <Tooltip label={label} side={side}>
-      <button
-        type="button"
-        aria-label={`Aide : ${label}`}
-        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--line)] bg-[var(--surface)] text-[var(--text-muted)] transition hover:border-[var(--line-strong)] hover:text-[var(--signal-strong)]"
-      >
-        <CircleHelp size={14} aria-hidden="true" />
-      </button>
-    </Tooltip>
-  );
-}
-
-function FilterButton({
-  active,
-  label,
-  help,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  help: string;
-  onClick: () => void;
-}) {
-  return (
-    <Tooltip label={help}>
-      <button
-        type="button"
-        aria-pressed={active}
-        onClick={onClick}
-        className={cn(
-          "inline-flex min-h-9 items-center gap-1.5 border px-3 text-xs font-semibold",
-          active
-            ? "border-[var(--surface-inverse)] bg-[var(--surface-inverse)] text-[var(--inverse-foreground)]"
-            : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--line-strong)]",
-        )}
-      >
-        {label}<CircleHelp size={11} className="opacity-60" aria-hidden="true" />
-      </button>
-    </Tooltip>
-  );
-}
-
-function IssueBadge({ issue }: { issue: ComposerNamingIssue }) {
-  return (
-    <span className={cn("inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-[.66rem] font-semibold", issueStyles[issue])}>
-      {issueLabels[issue]}
+    <span className={cn(
+      "inline-flex w-fit rounded-full px-2.5 py-1 text-[.64rem] font-semibold",
+      status === "clean" && "bg-[#176b3a] text-white",
+      status === "cleanup-required" && "bg-[#a45d00] text-white",
+      status === "review-required" && "bg-[#b42318] text-white",
+      status === "no-credit" && "bg-[#555d57] text-white",
+    )}>
+      {harvestStatusLabels[status]}
     </span>
   );
+}
+
+function EditorialBadge({ status }: { status: EditorialAuditStatus }) {
+  return (
+    <span className={cn(
+      "inline-flex w-fit rounded-full px-2.5 py-1 text-[.64rem] font-semibold",
+      status === "complete" && "bg-[#176b3a] text-white",
+      status === "incomplete" && "bg-[#2457a7] text-white",
+      status === "not-applicable" && "bg-[var(--surface-soft)] text-[var(--text-muted)]",
+    )}>
+      {editorialStatusLabels[status]}
+    </span>
+  );
+}
+
+function Presence({ value }: { value: boolean | undefined }) {
+  if (value === undefined) return <span className="text-[.68rem] text-[var(--text-muted)]">N/A</span>;
+  return value
+    ? <span className="inline-flex items-center gap-1 text-[.68rem] font-semibold text-[#176b3a]"><Check size={13} /> Oui</span>
+    : <span className="inline-flex items-center gap-1 text-[.68rem] font-semibold text-[var(--danger)]"><AlertTriangle size={13} /> Non</span>;
 }
 
 function RightsBadge({ state }: { state: ComposerTrackRightsState }) {
   return (
     <span className={cn(
-      "inline-flex w-fit items-center rounded-full px-2 py-1 text-[.58rem] font-semibold",
+      "inline-flex w-fit rounded-full px-2 py-1 text-[.58rem] font-semibold",
       state === "aligned" && "bg-[#176b3a] text-white",
-      state === "missing-structured" && "bg-[#555d57] text-white",
       state === "different" && "bg-[#b42318] text-white",
+      state === "missing-structured" && "bg-[#555d57] text-white",
     )}>
       {rightsLabels[state]}
     </span>
   );
 }
 
-function creditSearchText(credit: ComposerAuditCredit): string {
-  return normalize([
-    credit.name,
-    credit.baseName,
-    ...credit.variants,
-    ...credit.spellingCandidates,
-    ...credit.albums.flatMap((album) => [
-      album.code,
-      album.title,
-      ...album.tracks.flatMap((track) => [track.id, track.title, track.version, ...track.structuredWriterNames]),
-    ]),
-  ].filter(Boolean).join(" "));
-}
-
-function matchesCreditFilter(credit: ComposerAuditCredit, filter: CreditFilter): boolean {
-  if (filter === "all") return true;
-  if (filter === "attention") return credit.issues.length > 0;
-  if (filter === "clean") return credit.issues.length === 0;
-  if (filter === "society") return credit.issues.includes("society-suffix");
-  if (filter === "duplicates") return credit.issues.includes("duplicate-variant");
-  if (filter === "spelling") return credit.issues.includes("spelling-candidate");
-  return credit.issues.includes("parenthetical");
-}
-
-function copyCreditText(credit: ComposerAuditCredit): string {
-  return [
-    `Crédit Harvest : ${credit.name}`,
-    `Base détectée : ${credit.baseName}`,
-    credit.variants.length > 1 ? `Variantes : ${credit.variants.join(" · ")}` : "",
-    credit.spellingCandidates.length ? `Orthographes proches : ${credit.spellingCandidates.join(" · ")}` : "",
-    ...credit.albums.flatMap((album) => [
-      `\n${album.code ? `${album.code} · ` : ""}${album.title} — ${album.id}`,
-      ...album.tracks.map((track) => `- ${track.title}${track.version ? ` [${track.version}]` : ""} — ${track.id}`),
-    ]),
-  ].filter(Boolean).join("\n");
-}
-
-function ComposerCreditCard({ credit }: { credit: ComposerAuditCredit }) {
-  const [open, setOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const copyReferences = async () => {
-    await navigator.clipboard.writeText(copyCreditText(credit));
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1800);
-  };
-
+function RefreshSubmit() {
+  const { pending } = useFormStatus();
   return (
-    <details
-      data-testid="composer-audit-credit"
-      onToggle={(event) => setOpen(event.currentTarget.open)}
-      className="group parigo-frame border border-[var(--line)] bg-[var(--surface)]"
+    <button
+      type="submit"
+      disabled={pending}
+      className="inline-flex min-h-9 items-center gap-2 border border-white/20 px-3 text-xs font-semibold transition hover:border-white/50 disabled:cursor-wait disabled:opacity-60"
     >
-      <summary className="grid cursor-pointer list-none gap-4 p-4 marker:content-none md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:p-5">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="break-words text-xl font-semibold tracking-[-.035em]">{credit.name}</h3>
-            {credit.issues.length === 0 && (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#176b3a] px-2.5 py-1 text-[.65rem] font-semibold text-white">
-                <Check size={11} /> Nom sans alerte
-              </span>
-            )}
-          </div>
-          <p className="mt-1 font-mono text-[.58rem] text-[var(--text-muted)]">{credit.id}</p>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {credit.issues.map((issue) => <IssueBadge key={issue} issue={issue} />)}
-          </div>
-        </div>
-        <div className="flex items-center justify-between gap-5 md:justify-end">
-          <div className="grid grid-cols-2 gap-4 text-right">
-            <div><p className="text-2xl font-semibold">{credit.albumCount}</p><p className="text-[.62rem] text-[var(--text-muted)]">albums</p></div>
-            <div><p className="text-2xl font-semibold">{credit.trackCount}</p><p className="text-[.62rem] text-[var(--text-muted)]">pistes</p></div>
-          </div>
-          <span className="grid h-10 w-10 place-items-center border border-[var(--line)] bg-[var(--background)] transition group-open:rotate-180">
-            <ChevronDown size={17} aria-hidden="true" />
-          </span>
-        </div>
-      </summary>
-
-      {open && <div className="border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--signal)_2.5%,var(--background))] p-4 md:p-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.55fr)]">
-          <div className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-            <p className="font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">Diagnostic du nom</p>
-            <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-              <div><dt className="text-xs text-[var(--text-muted)]">Base sans société détectée</dt><dd className="mt-1 font-semibold">{credit.baseName}</dd></div>
-              <div><dt className="text-xs text-[var(--text-muted)]">Société trouvée dans le texte</dt><dd className="mt-1 font-semibold">{credit.society ?? "Aucune"}</dd></div>
-            </dl>
-            {credit.variants.length > 1 && (
-              <div className="mt-4 border-t border-[var(--line)] pt-4">
-                <p className="text-xs font-semibold">Variantes exactes à rapprocher</p>
-                <div className="mt-2 flex flex-wrap gap-2">{credit.variants.map((variant) => <span key={variant} className="rounded-full border border-[var(--line)] bg-[var(--background)] px-2.5 py-1 text-xs">{variant}</span>)}</div>
-              </div>
-            )}
-            {credit.spellingCandidates.length > 0 && (
-              <div className="mt-4 border-t border-[var(--line)] pt-4">
-                <p className="text-xs font-semibold text-[var(--danger)]">Orthographes proches — validation humaine obligatoire</p>
-                <div className="mt-2 flex flex-wrap gap-2">{credit.spellingCandidates.map((candidate) => <span key={candidate} className="rounded-full border border-[#b42318]/30 bg-[#b42318]/8 px-2.5 py-1 text-xs">{candidate}</span>)}</div>
-              </div>
-            )}
-          </div>
-
-          <div className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-            <p className="font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">Action opérateur</p>
-            <p className="mt-3 text-sm leading-6 text-[var(--text-muted)]">
-              Rechercher ce crédit exact dans le Track Manager, puis contrôler le champ
-              <strong className="text-[var(--foreground)]"> Right Holder Text → Author(s)/Composer(s)/Arranger(s)</strong>.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <InternalLink href={`/compositeurs/${credit.id}`} className="min-h-10 items-center border border-[var(--line)] bg-[var(--background)] px-3 text-xs font-semibold no-underline">
-                Voir la page publique
-              </InternalLink>
-              <button type="button" onClick={() => void copyReferences()} className="inline-flex min-h-10 items-center gap-2 border border-[var(--line)] bg-[var(--background)] px-3 text-xs font-semibold hover:border-[var(--line-strong)]">
-                {copied ? <Clipboard size={14} /> : <Copy size={14} />}{copied ? "Références copiées" : "Copier les références"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 grid gap-4">
-          {credit.albums.map((album) => (
-            <section key={album.id} className="parigo-card overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
-              <div className="flex flex-col gap-2 border-b border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <InternalLink href={albumHref(album.id)} className="font-semibold">
-                    {album.code ? `${album.code} · ` : ""}{album.title}
-                  </InternalLink>
-                  <p className="mt-1 font-mono text-[.56rem] text-[var(--text-muted)]">Album ID · {album.id}</p>
-                </div>
-                <span className="w-fit rounded-full border border-[var(--line)] bg-[var(--surface)] px-2.5 py-1 text-xs font-semibold">{album.tracks.length} piste{album.tracks.length > 1 ? "s" : ""}</span>
-              </div>
-              <div className="divide-y divide-[var(--line)]">
-                {album.tracks.map((track) => (
-                  <div key={track.id} className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_minmax(13rem,.45fr)_auto] md:items-center">
-                    <div className="min-w-0">
-                      <InternalLink href={trackHref(album.id, track.id)} className="font-semibold">{track.title}</InternalLink>
-                      <p className="mt-1 font-mono text-[.56rem] text-[var(--text-muted)]">{track.id}{track.version ? ` · ${track.version}` : ""}{track.isAlternate ? " · version" : ""}</p>
-                    </div>
-                    <div className="text-xs leading-5 text-[var(--text-muted)]">
-                      <p><span className="font-semibold text-[var(--foreground)]">Ayants droit :</span> {track.structuredWriterNames.join(" · ") || "aucun renvoyé"}</p>
-                    </div>
-                    <RightsBadge state={track.rightsState} />
-                  </div>
-                ))}
-              </div>
-            </section>
-          ))}
-        </div>
-      </div>}
-    </details>
+      <RefreshCw size={14} className={pending ? "animate-spin" : undefined} />
+      {pending ? "Actualisation…" : "Actualiser depuis Harvest"}
+    </button>
   );
 }
 
-export function ComposerAuditDashboard({ data }: { data: ComposerAuditData }) {
-  const [view, setView] = useState<DashboardView>("credits");
-  const [query, setQuery] = useState("");
-  const [creditFilter, setCreditFilter] = useState<CreditFilter>("attention");
-  const [creditSort, setCreditSort] = useState<CreditSort>("priority");
-  const [anomalyFilter, setAnomalyFilter] = useState<AnomalyFilter>("all");
-  const [anomalyLimit, setAnomalyLimit] = useState(100);
+function MetricButton({ label, value, active, tone, onClick }: {
+  label: string;
+  value: number;
+  active: boolean;
+  tone: "danger" | "warning" | "success" | "info";
+  onClick: () => void;
+}) {
+  const tones = {
+    danger: "border-t-[#b42318]",
+    warning: "border-t-[#a45d00]",
+    success: "border-t-[#176b3a]",
+    info: "border-t-[#2457a7]",
+  };
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        "parigo-card min-w-[10.5rem] flex-1 border border-t-4 bg-[var(--surface)] p-3 text-left transition hover:border-x-[var(--line-strong)] hover:border-b-[var(--line-strong)]",
+        tones[tone],
+        active ? "border-x-[var(--line-strong)] border-b-[var(--line-strong)] shadow-[var(--shadow-sm)]" : "border-x-[var(--line)] border-b-[var(--line)]",
+      )}
+    >
+      <span className="block font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">{label}</span>
+      <span className="mt-2 block text-3xl font-semibold tracking-[-.05em]">{value}</span>
+    </button>
+  );
+}
+
+function FilterSelect({ label, value, onChange, options }: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<{ value: string; label: string }>;
+}) {
+  return (
+    <label className="grid gap-1">
+      <span className="font-mono text-[.54rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{label}</span>
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="parigo-field min-h-10 border border-[var(--line)] bg-[var(--surface)] px-2.5 text-xs font-semibold"
+      >
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+    </label>
+  );
+}
+
+function AlbumDisclosure({ album, identityId }: { album: ComposerAuditAlbumSummary; identityId: string }) {
+  const [open, setOpen] = useState(false);
+  const [details, setDetails] = useState<ComposerAuditAlbum | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const toggle = async () => {
+    if (open) {
+      setOpen(false);
+      return;
+    }
+    setOpen(true);
+    if (details || loading) return;
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams({ album: album.id });
+      const response = await fetch(`/api/admin/compositeurs/${encodeURIComponent(identityId)}?${params}`, { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok || !payload.data?.album) throw new Error(payload.error?.message || "Pistes indisponibles.");
+      setDetails(payload.data.album as ComposerAuditAlbum);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Pistes indisponibles.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <section className="overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
+      <div className="flex flex-col gap-2 bg-[var(--surface-soft)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <Link href={albumHref(album.id)} prefetch={false} className="inline-flex items-center gap-1.5 font-semibold underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]">
+            {album.code ? `${album.code} · ` : ""}{album.title}<ArrowUpRight size={12} />
+          </Link>
+          <p className="mt-1 font-mono text-[.55rem] text-[var(--text-muted)]">Album ID · {album.id}</p>
+        </div>
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => void toggle()}
+          className="inline-flex min-h-9 items-center justify-center gap-2 border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold hover:border-[var(--line-strong)]"
+        >
+          {album.trackCount} piste{album.trackCount > 1 ? "s" : ""}
+          <ChevronDown size={14} className={open ? "rotate-180" : undefined} />
+        </button>
+      </div>
+      {open && details ? (
+        <div className="divide-y divide-[var(--line)] border-t border-[var(--line)]">
+          {details.tracks.map((track) => (
+            <article key={track.id} className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_minmax(12rem,.65fr)_minmax(12rem,.65fr)_auto] md:items-center">
+              <div className="min-w-0">
+                <Link href={trackHref(album.id, track.id)} prefetch={false} className="inline-flex items-center gap-1.5 font-semibold underline underline-offset-3 hover:text-[var(--signal-strong)]">
+                  {track.title}<ArrowUpRight size={12} />
+                </Link>
+                <p className="mt-1 font-mono text-[.55rem] text-[var(--text-muted)]">
+                  {track.id}{track.version ? ` · ${track.version}` : ""}{track.isAlternate ? " · version" : " · principale"}
+                </p>
+              </div>
+              <div className="text-xs leading-5">
+                <p className="font-mono text-[.53rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Crédit exact lié</p>
+                <p className="mt-1 font-semibold">{track.matchedCreditNames.join(" · ") || "Champ Composer vide"}</p>
+              </div>
+              <div className="text-xs leading-5">
+                <p className="font-mono text-[.53rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Ayants droit structurés</p>
+                <p className="mt-1 font-semibold">{track.structuredWriterNames.join(" · ") || "Aucun renvoyé"}</p>
+              </div>
+              <RightsBadge state={track.rightsState} />
+            </article>
+          ))}
+        </div>
+      ) : open ? <div className="border-t border-[var(--line)] p-5 text-center text-xs text-[var(--text-muted)]">{loading ? "Chargement des pistes…" : error || "Pistes indisponibles."}</div> : null}
+    </section>
+  );
+}
+
+function IdentityDetails({ identity }: { identity: ComposerAuditIdentitySummary }) {
+  return (
+    <div className="border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--signal)_2.5%,var(--background))] p-4 md:p-5">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,.45fr)]">
+        <section className="border border-[var(--line)] bg-[var(--surface)] p-4">
+          <p className="font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">Diagnostic courant</p>
+          {identity.recommendations.length ? (
+            <ul className="mt-3 grid gap-2">
+              {identity.recommendations.map((item) => (
+                <li key={item.id} className={cn("border-l-3 p-3", item.severity === "review" ? "border-l-[#b42318] bg-[#b42318]/6" : "border-l-[#a45d00] bg-[#a45d00]/6")}>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold">{recommendationLabels[item.kind]}</span>
+                    <span className="text-[.65rem] text-[var(--text-muted)]">{item.trackCount} piste{item.trackCount > 1 ? "s" : ""}</span>
+                  </div>
+                  {item.currentNames.length ? <p className="mt-1 text-xs text-[var(--text-muted)]">Actuel : {item.currentNames.join(" · ")}</p> : null}
+                  {item.proposedName ? <p className="mt-1 text-sm font-semibold">Cible : {item.proposedName}</p> : <p className="mt-1 text-xs font-semibold text-[var(--danger)]">Aucune cible certaine : validation humaine requise.</p>}
+                  {item.evidence ? <p className="mt-1 text-[.65rem] text-[var(--text-muted)]">Preuve : {evidenceLabels[item.evidence]}</p> : null}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-[#176b3a]"><Check size={16} /> Aucun écart actif dans le snapshot Harvest.</p>
+          )}
+        </section>
+        <section className="border border-[var(--line)] bg-[var(--surface)] p-4">
+          <p className="font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">Libellés exacts Harvest</p>
+          {identity.exactCredits.length ? (
+            <ul className="mt-3 space-y-2">
+              {identity.exactCredits.map((credit) => <li key={credit.name} className="flex items-center justify-between gap-3 border-b border-[var(--line)] pb-2 text-sm last:border-0"><span className="font-semibold">{credit.name}</span><span className="text-xs text-[var(--text-muted)]">{credit.trackCount} piste{credit.trackCount > 1 ? "s" : ""}</span></li>)}
+            </ul>
+          ) : <p className="mt-3 text-sm text-[var(--text-muted)]">Aucun libellé Composer associé.</p>}
+          <dl className="mt-4 grid grid-cols-3 gap-2 border-t border-[var(--line)] pt-3 text-center">
+            <div><dt className="text-[.58rem] text-[var(--text-muted)]">Alignées</dt><dd className="mt-1 text-lg font-semibold">{identity.alignedTrackCount}</dd></div>
+            <div><dt className="text-[.58rem] text-[var(--text-muted)]">Contradictoires</dt><dd className="mt-1 text-lg font-semibold">{identity.differentRightHolderTrackCount}</dd></div>
+            <div><dt className="text-[.58rem] text-[var(--text-muted)]">Non structurées</dt><dd className="mt-1 text-lg font-semibold">{identity.missingStructuredTrackCount}</dd></div>
+          </dl>
+        </section>
+      </div>
+      <div className="mt-4 grid gap-3">
+        {identity.albums.map((album) => <AlbumDisclosure key={album.id} album={album} identityId={identity.id} />)}
+        {!identity.albums.length ? <p className="border border-dashed border-[var(--line-strong)] bg-[var(--surface)] p-8 text-center text-sm text-[var(--text-muted)]">Aucun album Harvest relié à cette fiche publique.</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function IdentityRow({ identity }: { identity: ComposerAuditIdentitySummary }) {
+  const [open, setOpen] = useState(false);
+  const hasPublicProfile = Boolean(identity.publicProfile);
+  return (
+    <article data-testid="composer-audit-identity" data-status={identity.harvestStatus} className="border-b border-[var(--line)] bg-[var(--surface)] last:border-b-0">
+      <div className={cn(rowGrid, "min-h-[76px] px-3 py-3 text-xs hover:bg-[var(--surface-soft)]")}>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold">{identity.preferredName}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1.5">
+            <span className={cn("rounded-full px-2 py-0.5 text-[.55rem] font-semibold", hasPublicProfile ? "bg-[var(--signal-soft)] text-[var(--signal-strong)]" : "bg-[var(--surface-soft)] text-[var(--text-muted)]")}>
+              {hasPublicProfile ? "Profil public" : identity.source === "unassigned" ? "Non attribué" : "Harvest uniquement"}
+            </span>
+            {identity.publicProfile ? (
+              <Link href={`/compositeurs/${identity.publicProfile.slug}`} className="inline-flex items-center gap-1 text-[.62rem] underline underline-offset-2 hover:text-[var(--signal-strong)]">
+                {identity.publicProfile.name}<ArrowUpRight size={10} />
+              </Link>
+            ) : null}
+          </div>
+        </div>
+        <div className="min-w-0">
+          {identity.exactCredits.length ? (
+            <>
+              <p className="truncate font-semibold">{identity.exactCredits.slice(0, 2).map((credit) => credit.name).join(" · ")}</p>
+              {identity.exactCredits.length > 2 ? <p className="mt-1 text-[.6rem] text-[var(--text-muted)]">+ {identity.exactCredits.length - 2} autre{identity.exactCredits.length - 2 > 1 ? "s" : ""}</p> : null}
+              {identity.exactCredits.some((credit) => credit.name !== identity.preferredName) ? <p className="mt-1 truncate text-[.62rem] font-semibold text-[#a45d00]">→ {identity.preferredName}</p> : null}
+            </>
+          ) : <span className="text-[var(--text-muted)]">Aucun crédit associé</span>}
+        </div>
+        <div><span className="text-lg font-semibold">{identity.albumCount}</span><span className="ml-1 text-[.58rem] text-[var(--text-muted)]">albums</span></div>
+        <div><span className="text-lg font-semibold">{identity.trackCount}</span><span className="ml-1 text-[.58rem] text-[var(--text-muted)]">pistes</span></div>
+        <Presence value={identity.publicProfile?.hasBioFr} />
+        <Presence value={identity.publicProfile?.hasBioEn} />
+        <Presence value={identity.publicProfile?.hasPortrait} />
+        <StatusBadge status={identity.harvestStatus} />
+        <EditorialBadge status={identity.editorialStatus} />
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-label={`${open ? "Replier" : "Ouvrir"} ${identity.preferredName}`}
+          onClick={() => setOpen((current) => !current)}
+          className="grid h-10 w-10 place-items-center border border-[var(--line)] bg-[var(--background)] hover:border-[var(--line-strong)]"
+        >
+          <ChevronDown size={17} className={open ? "rotate-180" : undefined} />
+        </button>
+      </div>
+      {open ? <IdentityDetails identity={identity} /> : null}
+    </article>
+  );
+}
+
+function csvCell(value: unknown): string {
+  const string = Array.isArray(value) ? value.join(" · ") : String(value ?? "");
+  return `"${string.replaceAll('"', '""').replace(/[\r\n]+/g, " ")}"`;
+}
+
+function identitiesCsv(identities: ComposerAuditIdentitySummary[]): string {
+  const header = [
+    "identite", "profil_public", "source", "nom_cible_harvest", "credits_harvest_exacts", "albums", "pistes",
+    "bio_fr", "bio_en", "portrait", "statut_harvest", "statut_editorial", "recommandations", "preuves",
+  ];
+  return `\uFEFF${[
+    header,
+    ...identities.map((identity) => [
+      identity.id,
+      identity.publicProfile?.name,
+      identity.source,
+      identity.preferredName,
+      identity.exactCredits.map((credit) => `${credit.name} (${credit.trackCount})`),
+      identity.albums.map((album) => `${album.code ?? album.id} · ${album.title}`),
+      identity.trackCount,
+      identity.publicProfile?.hasBioFr ?? "N/A",
+      identity.publicProfile?.hasBioEn ?? "N/A",
+      identity.publicProfile?.hasPortrait ?? "N/A",
+      identity.harvestStatus,
+      identity.editorialStatus,
+      identity.recommendations.map((item) => `${recommendationLabels[item.kind]}${item.proposedName ? ` → ${item.proposedName}` : ""}`),
+      identity.recommendations.map((item) => item.evidence ? evidenceLabels[item.evidence] : "validation humaine"),
+    ]),
+  ].map((row) => row.map(csvCell).join(";")).join("\n")}\n`;
+}
+
+function sortPriority(identity: ComposerAuditIdentitySummary): number {
+  if (identity.harvestStatus === "review-required") return 0;
+  if (identity.harvestStatus === "cleanup-required") return 1;
+  if (identity.harvestStatus === "no-credit") return 2;
+  if (identity.editorialStatus === "incomplete") return 3;
+  return 4;
+}
+
+export function ComposerAuditDashboard({ data, refreshAction }: { data: ComposerAuditSummaryData; refreshAction: () => Promise<void> }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.get("q") ?? "";
   const deferredQuery = useDeferredValue(query);
+  const work = (searchParams.get("work") ?? "action") as WorkFilter;
+  const source = (searchParams.get("source") ?? "all") as SourceFilter;
+  const bioFr = (searchParams.get("bioFr") ?? "all") as PresenceFilter;
+  const bioEn = (searchParams.get("bioEn") ?? "all") as PresenceFilter;
+  const photo = (searchParams.get("photo") ?? "all") as PresenceFilter;
+  const editorial = (searchParams.get("editorial") ?? "all") as EditorialFilter;
+  const rights = (searchParams.get("rights") ?? "all") as RightsFilter;
+  const issue = (searchParams.get("issue") ?? "all") as ComposerAuditRecommendationKind | "all";
+  const album = searchParams.get("album") ?? "all";
+  const sort = (searchParams.get("sort") ?? "priority") as SortValue;
 
-  const filteredCredits = useMemo(() => {
-    const normalizedQuery = normalize(deferredQuery);
-    return data.credits
-      .filter((credit) => matchesCreditFilter(credit, creditFilter))
-      .filter((credit) => !normalizedQuery || creditSearchText(credit).includes(normalizedQuery))
-      .sort((left, right) => {
-        if (creditSort === "name") return left.name.localeCompare(right.name, "fr", { sensitivity: "base" });
-        if (creditSort === "tracks") return right.trackCount - left.trackCount || left.name.localeCompare(right.name, "fr");
-        if (creditSort === "albums") return right.albumCount - left.albumCount || left.name.localeCompare(right.name, "fr");
-        return right.issues.length - left.issues.length || left.name.localeCompare(right.name, "fr", { sensitivity: "base" });
-      });
-  }, [creditFilter, creditSort, data.credits, deferredQuery]);
-
-  const filteredAnomalies = useMemo(() => {
-    const normalizedQuery = normalize(deferredQuery);
-    return data.trackAnomalies.filter((anomaly) => {
-      if (anomalyFilter !== "all" && anomaly.kind !== anomalyFilter) return false;
-      if (!normalizedQuery) return true;
-      return normalize([
-        anomaly.track.albumCode,
-        anomaly.track.albumTitle,
-        anomaly.track.id,
-        anomaly.track.title,
-        anomaly.track.version,
-        ...anomaly.track.composerNames,
-        ...anomaly.track.structuredWriterNames,
-      ].filter(Boolean).join(" ")).includes(normalizedQuery);
-    });
-  }, [anomalyFilter, data.trackAnomalies, deferredQuery]);
-
-  const showCredits = (filter: CreditFilter) => {
-    setView("credits");
-    setCreditFilter(filter);
-    setQuery("");
+  const setParam = (key: string, value: string, defaultValue = "all") => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (!value || value === defaultValue) params.delete(key);
+    else params.set(key, value);
+    const suffix = params.toString();
+    router.replace(suffix ? `${pathname}?${suffix}` : pathname, { scroll: false });
   };
 
-  const showAnomalies = (filter: AnomalyFilter) => {
-    setView("track-anomalies");
-    setAnomalyFilter(filter);
-    setQuery("");
-    setAnomalyLimit(100);
+  const albumOptions = useMemo(() => {
+    const values = new Map<string, string>();
+    for (const identity of data.identities) {
+      for (const item of identity.albums) values.set(item.code ?? item.id, `${item.code ? `${item.code} · ` : ""}${item.title}`);
+    }
+    return [...values].sort((left, right) => left[0].localeCompare(right[0], "fr", { numeric: true }));
+  }, [data.identities]);
+
+  const filteredIdentities = useMemo(() => {
+    const normalizedQuery = normalize(deferredQuery);
+    return data.identities.filter((identity) => {
+      if (work === "action" && identity.harvestStatus === "clean" && identity.editorialStatus !== "incomplete") return false;
+      if (work !== "action" && work !== "all" && identity.harvestStatus !== work) return false;
+      if (source === "public" && !identity.publicProfile) return false;
+      if (source === "harvest" && identity.publicProfile) return false;
+      if (bioFr !== "all" && (!identity.publicProfile || identity.publicProfile.hasBioFr !== (bioFr === "present"))) return false;
+      if (bioEn !== "all" && (!identity.publicProfile || identity.publicProfile.hasBioEn !== (bioEn === "present"))) return false;
+      if (photo !== "all" && (!identity.publicProfile || identity.publicProfile.hasPortrait !== (photo === "present"))) return false;
+      if (editorial !== "all" && identity.editorialStatus !== editorial) return false;
+      if (rights === "aligned" && !identity.alignedTrackCount) return false;
+      if (rights === "different" && !identity.differentRightHolderTrackCount) return false;
+      if (rights === "missing-structured" && !identity.missingStructuredTrackCount) return false;
+      if (issue !== "all" && !identity.recommendations.some((item) => item.kind === issue)) return false;
+      if (album !== "all" && !identity.albums.some((item) => (item.code ?? item.id) === album)) return false;
+      return !normalizedQuery || identitySearchText(identity).includes(normalizedQuery);
+    }).sort((left, right) => {
+      if (sort === "name") return left.preferredName.localeCompare(right.preferredName, "fr", { sensitivity: "base" });
+      if (sort === "albums") return right.albumCount - left.albumCount || left.preferredName.localeCompare(right.preferredName, "fr");
+      if (sort === "tracks") return right.trackCount - left.trackCount || left.preferredName.localeCompare(right.preferredName, "fr");
+      return sortPriority(left) - sortPriority(right) || right.trackCount - left.trackCount || left.preferredName.localeCompare(right.preferredName, "fr");
+    });
+  }, [album, bioEn, bioFr, data.identities, deferredQuery, editorial, issue, photo, rights, sort, source, work]);
+
+  const downloadCsv = () => {
+    const href = URL.createObjectURL(new Blob([identitiesCsv(filteredIdentities)], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = href;
+    link.download = `parigo-audit-compositeurs-${data.capturedAt.slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(href);
   };
 
   return (
     <main data-testid="composer-audit-dashboard" className="matching-admin-shell min-h-screen bg-[var(--background)] text-[var(--foreground)]">
       <div className="border-b border-[var(--line)] bg-[var(--surface-inverse)] text-[var(--inverse-foreground)]">
-        <div className="mx-auto flex max-w-[1700px] flex-col gap-4 px-4 py-4 md:px-7 xl:flex-row xl:items-center xl:justify-between">
+        <div className="mx-auto flex max-w-[1800px] flex-col gap-3 px-4 py-4 md:px-7 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--inverse-accent)] text-[var(--inverse-foreground)]"><CircleHelp size={18} /></div>
+            <Database size={19} className="mt-0.5 text-[var(--inverse-accent)]" />
             <div>
-              <p className="text-sm font-semibold">Diagnostic Harvest en lecture seule</p>
-              <p className="mt-1 max-w-3xl text-xs leading-5 text-[var(--inverse-muted)]">Ce dashboard n’écrit rien dans Harvest. Il indique les albums, pistes et champs à contrôler dans le back-office.</p>
+              <p className="text-sm font-semibold">Snapshot Harvest en lecture seule</p>
+              <p className="mt-1 text-xs text-[var(--inverse-muted)]">{data.metrics.albumCount}/{data.sourceAlbumCount} albums · {data.metrics.trackCount} pistes et versions · {data.metrics.exactCreditCount} libellés exacts · actualisé <time data-testid="composer-snapshot-time" dateTime={data.capturedAt}>{formatDate(data.capturedAt)}</time></p>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs">
-            <Link href="/admin/matching" className="inline-flex min-h-9 items-center gap-2 border border-white/20 px-3 font-semibold hover:border-white/50"><GitCompareArrows size={14} /> Matching éditorial</Link>
-            <Link href="/compositeurs" className="inline-flex min-h-9 items-center gap-2 border border-white/20 px-3 font-semibold hover:border-white/50"><Users size={14} /> Répertoire public</Link>
-            <span className="border border-white/15 px-2.5 py-2 font-mono text-[.6rem] uppercase tracking-[.08em] text-[var(--inverse-muted)]">Actualisé {formatDate(data.capturedAt)}</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href="/compositeurs" className="inline-flex min-h-9 items-center gap-2 border border-white/20 px-3 text-xs font-semibold hover:border-white/50"><Users size={14} /> Répertoire public</Link>
+            <form action={refreshAction}><RefreshSubmit /></form>
           </div>
         </div>
       </div>
 
-      <header className="mx-auto max-w-[1700px] px-4 pb-7 pt-8 md:px-7 md:pt-11">
-        <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_28rem] xl:items-end">
-          <div>
-            <p className="font-mono text-[.68rem] font-medium uppercase tracking-[.18em] text-[var(--signal-strong)]">Administration catalogue · Parigo</p>
-            <h1 className="mt-3 max-w-5xl text-4xl font-semibold leading-[.96] tracking-[-.06em] md:text-6xl">Audit des compositeurs<span className="block text-[var(--text-muted)]">crédits, variantes & ayants droit.</span></h1>
-            <p className="mt-5 max-w-3xl text-sm leading-6 text-[var(--text-muted)] md:text-base">Repérez les noms à nettoyer, les doublons potentiels et chaque piste à ouvrir dans Harvest. Les liens pointent vers les pages publiques Parigo pour contrôler immédiatement le résultat exposé.</p>
-          </div>
-          <div className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-5">
-            <div className="flex items-start gap-3"><ShieldCheck className="mt-0.5 shrink-0 text-[var(--signal-strong)]" size={20} /><div><p className="font-semibold">Périmètre chargé</p><p className="mt-1 text-sm leading-6 text-[var(--text-muted)]">{data.metrics.albumCount}/{data.sourceAlbumCount} albums · {data.metrics.trackCount} pistes et versions · {data.metrics.creditCount} crédits exacts.</p></div></div>
-            {data.failedAlbums.length > 0 && <p className="mt-4 border-l-2 border-[var(--danger)] pl-3 text-xs leading-5 text-[var(--danger)]">{data.failedAlbums.length} album(s) indisponible(s) : audit partiel.</p>}
-          </div>
-        </div>
+      <header className="mx-auto max-w-[1800px] px-4 pb-5 pt-7 md:px-7 md:pt-9">
+        <p className="font-mono text-[.64rem] uppercase tracking-[.16em] text-[var(--signal-strong)]">Administration catalogue · Parigo</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-[-.055em] md:text-6xl">Rapprochement des compositeurs</h1>
+        <p className="mt-3 max-w-4xl text-sm leading-6 text-[var(--text-muted)]">Une ligne par identité résolue, avec les variantes exactes Harvest, la complétude éditoriale et les pistes à contrôler. Les recommandations sont recalculées depuis l’API courante.</p>
       </header>
 
-      <section aria-label="Mode d’emploi" className="mx-auto max-w-[1700px] px-4 md:px-7">
-        <div className="grid gap-3 md:grid-cols-3">
-          {[
-            { icon: Search, step: "01", title: "Identifier", text: "Chercher un nom, un code PGO, un titre ou un ID de piste." },
-            { icon: Tags, step: "02", title: "Contrôler le texte public", text: "Modifier Right Holder Text → Author(s)/Composer(s)/Arranger(s)." },
-            { icon: Layers3, step: "03", title: "Vérifier les droits", text: "Comparer séparément les ayants droit, capacités, sociétés et parts." },
-          ].map(({ icon: Icon, step, title, text }) => (
-            <article key={step} className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4 shadow-[4px_5px_0_color-mix(in_srgb,var(--signal)_8%,transparent)]">
-              <div className="flex items-start gap-3"><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--signal-soft)] text-[var(--signal-strong)]"><Icon size={16} /></span><div><p className="font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">Étape {step}</p><h2 className="mt-1 text-base font-semibold">{title}</h2><p className="mt-1 text-xs leading-5 text-[var(--text-muted)]">{text}</p></div></div>
-            </article>
-          ))}
+      {data.failedAlbums.length ? (
+        <section className="mx-auto max-w-[1800px] px-4 md:px-7">
+          <div className="border-l-4 border-l-[var(--danger)] bg-[#b42318]/7 p-4 text-sm">
+            <p className="font-semibold">Audit partiel : aucun verdict global ne peut être considéré comme définitif.</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">Albums indisponibles : {data.failedAlbums.map((item) => `${item.code ? `${item.code} · ` : ""}${item.title} (${item.id})`).join(" · ")}</p>
+          </div>
+        </section>
+      ) : null}
+
+      <section aria-label="Indicateurs" className="mx-auto mt-4 max-w-[1800px] px-4 md:px-7">
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          <MetricButton label="Actions requises" value={data.metrics.actionRequiredCount} active={work === "action"} tone="warning" onClick={() => setParam("work", "action", "action")} />
+          <MetricButton label="Corrections disponibles" value={data.metrics.cleanupRequiredCount} active={work === "cleanup-required"} tone="warning" onClick={() => setParam("work", "cleanup-required", "action")} />
+          <MetricButton label="À vérifier" value={data.metrics.reviewRequiredCount} active={work === "review-required"} tone="danger" onClick={() => setParam("work", "review-required", "action")} />
+          <MetricButton label="Contenus incomplets" value={data.metrics.incompleteEditorialCount} active={editorial === "incomplete"} tone="info" onClick={() => setParam("editorial", "incomplete")} />
+          <MetricButton label="Corrects" value={data.metrics.cleanCount} active={work === "clean"} tone="success" onClick={() => setParam("work", "clean", "action")} />
         </div>
       </section>
 
-      <section aria-label="Documentation du dashboard" className="mx-auto mt-4 max-w-[1700px] px-4 md:px-7">
-        <details data-testid="composer-audit-help" className="group parigo-frame border border-[var(--line)] bg-[var(--surface)]">
-          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 font-semibold marker:content-none md:px-5">
-            <span className="inline-flex items-center gap-2"><CircleHelp size={17} className="text-[var(--signal-strong)]" /> Comprendre les onglets, filtres et indicateurs</span>
-            <ChevronDown size={17} className="shrink-0 transition group-open:rotate-180" aria-hidden="true" />
-          </summary>
-          <div className="grid gap-3 border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--signal)_2.5%,var(--background))] p-4 md:grid-cols-2 md:p-5 xl:grid-cols-3">
-            <article className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-              <h2 className="text-base font-semibold">Crédits compositeurs</h2>
-              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">Une fiche par libellé <code className="font-mono">Composer</code> exact. Ouvrez-la pour voir sa base sans société, ses variantes, ses albums et chaque piste à rechercher dans Harvest.</p>
-            </article>
-            <article className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-              <h2 className="text-base font-semibold">Écarts Composer / ayants droit</h2>
-              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">Compare le texte public <code className="font-mono">Composer</code> aux Right Holders dont la capacité est Author, Composer ou Arranger. Un écart demande une vérification, pas une correction automatique.</p>
-            </article>
-            <article className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-              <h2 className="text-base font-semibold">Recherche</h2>
-              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">Recherche simultanément dans les noms, variantes, codes PGO, titres et identifiants d’albums ou de pistes. Elle s’applique uniquement à l’onglet courant.</p>
-            </article>
-            <article className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-              <h2 className="text-base font-semibold">Filtres de noms</h2>
-              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]"><strong>NS / SACEM</strong> cible les sociétés dans le nom ; <strong>Variantes</strong> rapproche casse, accents et suffixes ; <strong>Orthographe</strong> montre des proximités à valider ; <strong>Parenthèses</strong> cible les autres annotations.</p>
-            </article>
-            <article className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-              <h2 className="text-base font-semibold">Tri</h2>
-              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]"><strong>Priorité</strong> place les crédits ayant le plus d’alertes en premier. Les autres options trient par nom ou par volume d’albums et de pistes.</p>
-            </article>
-            <article className="parigo-card border border-[var(--line)] bg-[var(--surface)] p-4">
-              <h2 className="text-base font-semibold">Indicateurs</h2>
-              <p className="mt-2 text-xs leading-5 text-[var(--text-muted)]">Chaque carte est un raccourci : elle ouvre directement la vue et le filtre correspondant. Les nombres reflètent le snapshot Harvest chargé, jamais une liste locale.</p>
-            </article>
+      <section aria-label="Filtres" className="sticky top-0 z-40 mt-4 border-y border-[var(--line)] bg-[color-mix(in_srgb,var(--background)_92%,transparent)] backdrop-blur-xl">
+        <div className="mx-auto max-w-[1800px] px-4 py-3 md:px-7">
+          <div className="flex flex-col gap-3 xl:flex-row xl:items-end">
+            <label className="grid min-w-0 flex-1 gap-1 xl:max-w-md">
+              <span className="font-mono text-[.54rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Recherche</span>
+              <span className="parigo-field flex min-h-10 items-center gap-2 border border-[var(--line)] bg-[var(--surface)] px-3"><Search size={14} className="text-[var(--text-muted)]" /><input value={query} onChange={(event) => setParam("q", event.target.value, "")} placeholder="Nom, variante, PGO, album, piste ou ID…" className="min-w-0 flex-1 bg-transparent text-sm outline-none" /></span>
+            </label>
+            <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
+              <FilterSelect label="Travail" value={work} onChange={(value) => setParam("work", value, "action")} options={[
+                { value: "action", label: "Actions requises" }, { value: "review-required", label: "À vérifier" }, { value: "cleanup-required", label: "Correction disponible" }, { value: "clean", label: "Correct" }, { value: "no-credit", label: "Sans crédit" }, { value: "all", label: "Tous" },
+              ]} />
+              <FilterSelect label="Source" value={source} onChange={(value) => setParam("source", value)} options={[{ value: "all", label: "Toutes" }, { value: "public", label: "Profil public" }, { value: "harvest", label: "Harvest uniquement" }]} />
+              <FilterSelect label="Bio FR" value={bioFr} onChange={(value) => setParam("bioFr", value)} options={[{ value: "all", label: "Toutes" }, { value: "present", label: "Présente" }, { value: "missing", label: "Manquante" }]} />
+              <FilterSelect label="Bio EN" value={bioEn} onChange={(value) => setParam("bioEn", value)} options={[{ value: "all", label: "Toutes" }, { value: "present", label: "Présente" }, { value: "missing", label: "Manquante" }]} />
+              <FilterSelect label="Photo" value={photo} onChange={(value) => setParam("photo", value)} options={[{ value: "all", label: "Toutes" }, { value: "present", label: "Présente" }, { value: "missing", label: "Manquante" }]} />
+              <FilterSelect label="Tri" value={sort} onChange={(value) => setParam("sort", value, "priority")} options={[{ value: "priority", label: "Priorité" }, { value: "name", label: "Nom A–Z" }, { value: "albums", label: "Plus d’albums" }, { value: "tracks", label: "Plus de pistes" }]} />
+            </div>
+            <button type="button" onClick={() => router.replace(pathname, { scroll: false })} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 border border-[var(--line-strong)] bg-[var(--surface)] px-3 text-xs font-semibold hover:bg-[var(--surface-soft)]"><RotateCcw size={14} /> Réinitialiser les filtres</button>
+          </div>
+          <details className="group mt-3 border-t border-[var(--line)] pt-2">
+            <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold marker:content-none"><ListFilter size={14} /> Filtres avancés <ChevronDown size={13} className="transition group-open:rotate-180" /></summary>
+            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <FilterSelect label="Ayants droit" value={rights} onChange={(value) => setParam("rights", value)} options={[{ value: "all", label: "Tous" }, { value: "aligned", label: "Alignés" }, { value: "different", label: "Contradictoires" }, { value: "missing-structured", label: "Non structurés" }]} />
+              <FilterSelect label="Anomalie" value={issue} onChange={(value) => setParam("issue", value)} options={[{ value: "all", label: "Toutes" }, ...Object.entries(recommendationLabels).map(([value, label]) => ({ value, label }))]} />
+              <FilterSelect label="Album" value={album} onChange={(value) => setParam("album", value)} options={[{ value: "all", label: "Tous les albums" }, ...albumOptions.map(([value, label]) => ({ value, label }))]} />
+              <FilterSelect label="Éditorial" value={editorial} onChange={(value) => setParam("editorial", value)} options={[{ value: "all", label: "Tous" }, { value: "incomplete", label: "À compléter" }, { value: "complete", label: "Complet" }, { value: "not-applicable", label: "Non applicable" }]} />
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-[1800px] px-4 py-6 md:px-7 md:py-8">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="font-mono text-[.6rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">File opérationnelle</p>
+            <h2 className="mt-1 text-2xl font-semibold">{filteredIdentities.length} identité{filteredIdentities.length > 1 ? "s" : ""} affichée{filteredIdentities.length > 1 ? "s" : ""} sur {data.metrics.identityCount}</h2>
+          </div>
+          <button type="button" onClick={downloadCsv} disabled={!filteredIdentities.length} className="inline-flex min-h-10 items-center gap-2 border border-[var(--line-strong)] bg-[var(--surface)] px-4 text-xs font-semibold hover:bg-[var(--surface-soft)] disabled:opacity-50"><Download size={15} /> Exporter la sélection CSV</button>
+        </div>
+
+        <div data-testid="composer-identity-list" className="overflow-x-auto border border-[var(--line)] bg-[var(--surface)]">
+          <div className={cn(rowGrid, "bg-[var(--surface-inverse)] px-3 py-3 font-mono text-[.54rem] font-semibold uppercase tracking-[.07em] text-[var(--inverse-foreground)]")}>
+            <button type="button" onClick={() => setParam("sort", "name", "priority")} className="text-left hover:text-[var(--inverse-accent)]">Contributeur</button>
+            <span>Noms Harvest / cible</span>
+            <button type="button" onClick={() => setParam("sort", "albums", "priority")} className="text-left hover:text-[var(--inverse-accent)]">Albums</button>
+            <button type="button" onClick={() => setParam("sort", "tracks", "priority")} className="text-left hover:text-[var(--inverse-accent)]">Pistes</button>
+            <span>Bio FR</span><span>Bio EN</span><span>Photo</span>
+            <button type="button" onClick={() => setParam("sort", "priority", "priority")} className="text-left hover:text-[var(--inverse-accent)]">État Harvest</button>
+            <span>État éditorial</span><span className="sr-only">Détails</span>
+          </div>
+          {filteredIdentities.map((identity) => <IdentityRow key={identity.id} identity={identity} />)}
+        </div>
+        {!filteredIdentities.length ? <div className="border border-dashed border-[var(--line-strong)] bg-[var(--surface)] py-16 text-center"><Search size={28} className="mx-auto text-[var(--text-muted)]" /><p className="mt-3 font-semibold">Aucune identité ne correspond à ces filtres.</p></div> : null}
+
+        <details className="group mt-5 border border-[var(--line)] bg-[var(--surface)]">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 font-semibold marker:content-none"><span className="inline-flex items-center gap-2"><CircleHelp size={16} className="text-[var(--signal-strong)]" /> Comprendre le rapprochement</span><ChevronDown size={15} className="transition group-open:rotate-180" /></summary>
+          <div className="grid gap-4 border-t border-[var(--line)] p-4 text-xs leading-5 text-[var(--text-muted)] md:grid-cols-3">
+            <p><strong className="text-[var(--foreground)]">Identité résolue.</strong> Les variantes de casse, d’accent et de société sont regroupées. Les personnes différentes d’un collectif restent sur des lignes distinctes.</p>
+            <p><strong className="text-[var(--foreground)]">Deux états.</strong> Harvest juge les crédits et ayants droit. L’éditorial juge séparément les bios FR/EN et le portrait du profil public.</p>
+            <p><strong className="text-[var(--foreground)]">Aucune écriture.</strong> Les cibles sont des diagnostics issus du registre contrôlé et de l’API live ; leur application reste manuelle dans Harvest.</p>
           </div>
         </details>
       </section>
 
-      <section aria-label="Indicateurs" className="mx-auto mt-5 max-w-[1700px] px-4 md:px-7">
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          <MetricButton label="Noms à contrôler" value={data.metrics.creditsWithNamingIssues} detail={`sur ${data.metrics.creditCount} crédits exacts`} help="Crédits contenant au moins un suffixe, une parenthèse, une variante ou une orthographe proche." tone="warning" onClick={() => showCredits("attention")} />
-          <MetricButton label="Suffixes société" value={data.metrics.societySuffixCount} detail="NS, SACEM, BMI…" help="Libellés Composer dont le nom se termine par une société placée entre parenthèses." tone="warning" onClick={() => showCredits("society")} />
-          <MetricButton label="Groupes de variantes" value={data.metrics.duplicateGroupCount} detail="casse, accents ou suffixes" help="Groupes de noms partageant la même base normalisée ; ils peuvent correspondre à une même personne." tone="info" onClick={() => showCredits("duplicates")} />
-          <MetricButton label="Orthographes proches" value={data.metrics.spellingCandidatePairCount} detail="paires à valider humainement" help="Paires très proches détectées par distance d’édition, par exemple une faute probable ; aucune fusion automatique." tone="danger" onClick={() => showCredits("spelling")} />
-          <MetricButton label="Crédits publics manquants" value={data.metrics.missingPublicCreditCount} detail="ayant droit présent, Composer vide" help="Pistes où un auteur, compositeur ou arrangeur structuré existe mais où le champ public Composer est vide." tone="danger" onClick={() => showAnomalies("missing-public-credit")} />
-          <MetricButton label="Noms contradictoires" value={data.metrics.differentRightHoldersCount} detail="texte et ayants droit différents" help="Pistes où les noms du champ Composer ne correspondent pas aux ayants droit structurés après normalisation." tone="danger" onClick={() => showAnomalies("different-right-holders")} />
-        </div>
-      </section>
-
-      <div className="sticky top-0 z-40 mt-7 border-y border-[var(--line)] bg-[color-mix(in_srgb,var(--background)_90%,transparent)] backdrop-blur-xl">
-        <div className="mx-auto flex max-w-[1700px] flex-col gap-2 px-4 py-2 md:px-7 lg:flex-row lg:items-center lg:justify-between">
-          <nav aria-label="Vues du dashboard" className="flex gap-1 overflow-x-auto">
-            <Tooltip label="Une fiche par libellé Composer exact, avec ses variantes, albums, pistes et état des ayants droit." side="bottom">
-              <button type="button" aria-current={view === "credits" ? "page" : undefined} onClick={() => setView("credits")} className={cn("flex min-h-11 shrink-0 items-center gap-2 px-3 text-xs font-semibold", view === "credits" ? "bg-[var(--surface-inverse)] text-[var(--inverse-foreground)] shadow-[inset_0_-3px_0_var(--signal)]" : "hover:bg-[var(--surface)]")}><Users size={15} /> Crédits compositeurs <span className="rounded-full bg-[var(--signal)] px-1.5 py-0.5 text-[.58rem] text-white">{data.metrics.creditCount}</span><CircleHelp size={12} className="opacity-65" /></button>
-            </Tooltip>
-            <Tooltip label="Pistes où le champ Composer est vide ou ne correspond pas aux ayants droit structurés." side="bottom">
-              <button type="button" aria-current={view === "track-anomalies" ? "page" : undefined} onClick={() => setView("track-anomalies")} className={cn("flex min-h-11 shrink-0 items-center gap-2 px-3 text-xs font-semibold", view === "track-anomalies" ? "bg-[var(--surface-inverse)] text-[var(--inverse-foreground)] shadow-[inset_0_-3px_0_var(--signal)]" : "hover:bg-[var(--surface)]")}><FileWarning size={15} /> Écarts Composer / ayants droit <span className="rounded-full bg-[var(--danger)] px-1.5 py-0.5 text-[.58rem] text-white">{data.trackAnomalies.length}</span><CircleHelp size={12} className="opacity-65" /></button>
-            </Tooltip>
-          </nav>
-          <div className="flex min-w-0 flex-1 items-center gap-2 lg:max-w-xl">
-            <label className="parigo-field flex min-h-11 min-w-0 flex-1 items-center gap-2 border border-[var(--line)] bg-[var(--surface)] px-3"><Search size={15} className="text-[var(--text-muted)]" /><span className="sr-only">Rechercher dans l’audit</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nom, PGO, album, piste ou ID Harvest…" aria-describedby="composer-audit-search-help" className="min-w-0 flex-1 border-0 bg-transparent text-sm outline-none" /></label>
-            <HelpTip label="Recherche dans les noms, variantes, codes PGO, albums, pistes et identifiants Harvest de l’onglet courant." side="bottom" />
-            <span id="composer-audit-search-help" className="sr-only">La recherche porte sur les noms, variantes, codes PGO, titres et identifiants Harvest affichés dans l’onglet courant.</span>
-          </div>
-        </div>
-      </div>
-
-      <section className="mx-auto max-w-[1700px] px-4 py-7 md:px-7 md:py-10">
-        {view === "credits" ? (
-          <>
-            <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div><p className="font-mono text-[.62rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">Inventaire exact Harvest</p><h2 className="mt-2 text-2xl font-semibold">{filteredCredits.length} crédit{filteredCredits.length > 1 ? "s" : ""} affiché{filteredCredits.length > 1 ? "s" : ""}</h2></div>
-              <div className="flex flex-wrap gap-2">
-                {([
-                  ["attention", "À contrôler"], ["society", "NS / SACEM"], ["duplicates", "Variantes"], ["spelling", "Orthographe"], ["parenthetical", "Parenthèses"], ["clean", "Sans alerte"], ["all", "Tous"],
-                ] as Array<[CreditFilter, string]>).map(([value, label]) => (
-                  <FilterButton key={value} active={creditFilter === value} label={label} help={creditFilterHelp[value]} onClick={() => setCreditFilter(value)} />
-                ))}
-                <div className="flex items-center gap-1.5">
-                  <select aria-label="Trier les compositeurs" value={creditSort} onChange={(event) => setCreditSort(event.target.value as CreditSort)} className="parigo-field min-h-9 border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold"><option value="priority">Priorité</option><option value="name">Nom A–Z</option><option value="tracks">Plus de pistes</option><option value="albums">Plus d’albums</option></select>
-                  <HelpTip label="Priorité classe d’abord les crédits cumulant le plus d’alertes ; les autres tris utilisent le nom ou les volumes Harvest." />
-                </div>
-              </div>
-            </div>
-            <div className="grid gap-4">{filteredCredits.map((credit) => <ComposerCreditCard key={credit.id} credit={credit} />)}</div>
-            {filteredCredits.length === 0 && <div className="parigo-frame border border-dashed border-[var(--line-strong)] bg-[var(--surface)] py-20 text-center"><Search className="mx-auto text-[var(--text-muted)]" size={28} /><p className="mt-4 font-semibold">Aucun crédit ne correspond à ces filtres.</p></div>}
-          </>
-        ) : (
-          <>
-            <div className="mb-5 flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-              <div><p className="font-mono text-[.62rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">Comparaison des deux couches Harvest</p><h2 className="mt-2 text-2xl font-semibold">{filteredAnomalies.length} piste{filteredAnomalies.length > 1 ? "s" : ""} à contrôler</h2><p className="mt-1 text-xs text-[var(--text-muted)]">{data.metrics.missingStructuredCreditCount} pistes sans ayant droit structuré restent signalées dans le détail de leur crédit, sans être classées comme erreur certaine.</p></div>
-              <div className="flex flex-wrap gap-2">{([[
-                "missing-public-credit", "Composer public manquant"], ["different-right-holders", "Noms contradictoires"], ["all", "Tous les écarts"],
-              ] as Array<[AnomalyFilter, string]>).map(([value, label]) => (
-                <FilterButton key={value} active={anomalyFilter === value} label={label} help={anomalyFilterHelp[value]} onClick={() => { setAnomalyFilter(value); setAnomalyLimit(100); }} />
-              ))}</div>
-            </div>
-            <div data-testid="composer-track-anomalies" className="grid gap-3">
-              {filteredAnomalies.slice(0, anomalyLimit).map((anomaly) => (
-                <article key={anomaly.id} className="parigo-card grid gap-4 border border-l-4 border-[var(--line)] border-l-[var(--danger)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] lg:grid-cols-[minmax(0,1fr)_minmax(15rem,.5fr)_minmax(15rem,.5fr)] lg:items-center">
-                  <div className="min-w-0"><span className="inline-flex rounded-full bg-[var(--danger)] px-2.5 py-1 text-[.6rem] font-semibold text-white">{anomalyLabels[anomaly.kind]}</span><h3 className="mt-3 font-semibold"><InternalLink href={trackHref(anomaly.track.albumId, anomaly.track.id)}>{anomaly.track.title}</InternalLink></h3><p className="mt-1 text-xs text-[var(--text-muted)]"><InternalLink href={albumHref(anomaly.track.albumId)}>{anomaly.track.albumCode ? `${anomaly.track.albumCode} · ` : ""}{anomaly.track.albumTitle}</InternalLink></p><p className="mt-1 font-mono text-[.56rem] text-[var(--text-muted)]">{anomaly.track.id}{anomaly.track.version ? ` · ${anomaly.track.version}` : ""}</p></div>
-                  <div className="border-l-2 border-[var(--signal)] pl-3"><p className="font-mono text-[.55rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Composer public</p><p className="mt-1 text-sm font-semibold">{anomaly.track.composerNames.join(" · ") || "Aucun crédit"}</p></div>
-                  <div className="border-l-2 border-[#2457a7] pl-3"><p className="font-mono text-[.55rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Ayants droit structurés</p><p className="mt-1 text-sm font-semibold">{anomaly.track.structuredWriterNames.join(" · ") || "Aucun ayant droit"}</p></div>
-                </article>
-              ))}
-            </div>
-            {filteredAnomalies.length > anomalyLimit && <div className="mt-6 text-center"><button type="button" onClick={() => setAnomalyLimit((current) => current + 100)} className="parigo-button min-h-11 border border-[var(--line-strong)] bg-[var(--surface)] px-5 text-sm font-semibold">Afficher 100 pistes supplémentaires</button></div>}
-            {filteredAnomalies.length === 0 && <div className="parigo-frame border border-dashed border-[var(--line-strong)] bg-[var(--surface)] py-20 text-center"><Check className="mx-auto text-[var(--signal-strong)]" size={28} /><p className="mt-4 font-semibold">Aucune anomalie ne correspond à ces filtres.</p></div>}
-          </>
-        )}
-      </section>
-
       <footer className="border-t border-[var(--line)] bg-[var(--surface)]">
-        <div className="mx-auto flex max-w-[1700px] flex-col gap-2 px-4 py-5 text-xs text-[var(--text-muted)] md:flex-row md:items-center md:justify-between md:px-7"><p className="inline-flex items-center gap-2"><Database size={14} /> Source unique : API Harvest · label Parigo</p><p className="inline-flex items-center gap-2"><ListMusic size={14} /> Les suggestions orthographiques ne sont jamais appliquées automatiquement.</p></div>
+        <div className="mx-auto flex max-w-[1800px] flex-col gap-2 px-4 py-5 text-xs text-[var(--text-muted)] md:flex-row md:items-center md:justify-between md:px-7">
+          <p className="inline-flex items-center gap-2"><ShieldCheck size={14} /> Source musicale unique : API Harvest · label Parigo</p>
+          <p className="inline-flex items-center gap-2"><ListMusic size={14} /> Les recommandations ambiguës ne reçoivent jamais de cible automatique.</p>
+        </div>
       </footer>
     </main>
   );
