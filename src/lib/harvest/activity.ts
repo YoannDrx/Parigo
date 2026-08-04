@@ -12,7 +12,7 @@ import type {
   Track,
 } from "@/types";
 import { assetUrl, getAssetTemplates, type HarvestAssetTemplates } from "./assets";
-import { findHarvestToken, getRegionId, guestRequest, memberRequest, serviceRequest } from "./client";
+import { guestRequest, memberRequest, serviceRequest } from "./client";
 import { mapPlaylist, mapRightHolder, mapTrack } from "./catalog";
 import { HarvestError, isRecord } from "./errors";
 import { asBoolean, asIsoDate, asNumber, asString, recordArray, recordItem } from "./values";
@@ -37,7 +37,6 @@ import {
   buildUpdatePlaylistCategory,
   buildDuplicateMemberPlaylist,
   buildSearchMemberPlaylistTracks,
-  buildDownloadInfoQuery,
   buildCommunicationHistory,
   buildCreateTrackComment,
   buildUpdateTrackComment,
@@ -426,18 +425,6 @@ export async function searchMemberPlaylistTracks(
   };
 }
 
-export async function setMemberPlaylistArchived(
-  memberToken: string,
-  playlistId: string,
-  archived: boolean,
-): Promise<void> {
-  await memberRequest(
-    memberToken,
-    (token) =>
-      `/${archived ? "archiveplaylist" : "restorearchiveplaylist"}/${token}/${encodeURIComponent(playlistId)}`,
-  );
-}
-
 export async function createMemberPlaylist(
   memberToken: string,
   input: { title: string; description?: string },
@@ -635,27 +622,32 @@ export async function createPlaylistShare(memberToken: string, input: {
   fromEmail: string;
   toEmail: string;
   message?: string;
-  shareType: "Sync" | "Copy";
   allowDownload: boolean;
   allowFollow: boolean;
   allowSave: boolean;
   allowShare: boolean;
   sendEmail: boolean;
 }) {
-  const regionId = await getRegionId();
-  const invited = await serviceRequest<HarvestRecord>((token) => `/getinvitedmembertoken/${token}`, {
-    method: "POST",
-    body: JSON.stringify({ Email: input.toEmail, RegionID: regionId }),
-  });
-  const recipientToken = findHarvestToken(invited);
-  if (!recipientToken) throw new HarvestError("Parigo did not return a recipient token", "HARVEST_INVALID_RESPONSE");
+  let recipientType: "MemberAccount" | "GuestMemberAccount" = "GuestMemberAccount";
+  try {
+    await serviceRequest<HarvestRecord>((token) => `/validatememberemail/${token}`, {
+      method: "POST",
+      body: JSON.stringify({ Email: input.toEmail }),
+    });
+  } catch (error) {
+    if (error instanceof HarvestError && error.upstreamCode === "17") {
+      recipientType = "MemberAccount";
+    } else {
+      throw error;
+    }
+  }
   const share = await serviceRequest<HarvestRecord>((token) => `/getsharemusicurl/${token}`, {
     method: "POST",
     body: JSON.stringify(buildPlaylistShare({
       fromMemberToken: memberToken,
-      toMemberToken: recipientToken,
       playlistId: input.playlistId,
-      shareType: input.shareType,
+      username: input.toEmail,
+      recipientType,
       allowDownload: input.allowDownload,
       allowFollow: input.allowFollow,
       allowSave: input.allowSave,
@@ -678,7 +670,13 @@ export async function createPlaylistShare(memberToken: string, input: {
       }),
     });
   }
-  return { url, emailed: input.sendEmail, status: asString(share.Status, "success") };
+  return {
+    url,
+    emailed: input.sendEmail,
+    recipientType,
+    shareType: "Sync" as const,
+    status: asString(share.Status, "success"),
+  };
 }
 
 const SEARCH_URL_PREFIX = "PARIGO_URL:";
@@ -851,7 +849,7 @@ export async function updateTrackComment(memberToken: string, commentId: string,
   await ensureTrackCommentIndexed(memberToken, trackId);
   await memberRequest(memberToken, (token) => `/updatetrackmembercomment/${token}`, {
     method: "POST",
-    body: JSON.stringify(buildUpdateTrackComment(commentId, text)),
+    body: JSON.stringify(buildUpdateTrackComment(commentId, trackId, text)),
   });
   const updated = await pollTrackComment(
     memberToken,
@@ -1323,21 +1321,6 @@ export async function getDownloadInfo(downloadToken: string) {
     }],
     total: 1,
   };
-}
-
-export async function getDownloadPreparationInfo(
-  identifier: { downloadId: string } | { downloadGroupId: string },
-  skip = 0,
-  limit = 100,
-) {
-  const payload = await serviceRequest<HarvestRecord>(
-    (token) => `/getmusicdownloadinfo/${token}`,
-    {
-      method: "POST",
-      body: JSON.stringify(buildDownloadInfoQuery(identifier, skip, limit)),
-    },
-  );
-  return mapDownloadInfo(payload);
 }
 
 export async function getMemberCommunications(

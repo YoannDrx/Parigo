@@ -3,12 +3,25 @@ import "server-only";
 import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
-import { getCachedAlbum, getCachedAlbumDiscovery } from "./catalog-cache";
-import { buildComposerAudit, type ComposerAuditData } from "./composer-audit";
+import { getAlbum, getAlbumDiscovery } from "./catalog";
+import {
+  buildComposerAudit,
+  summarizeComposerAudit,
+  type ComposerAuditAlbum,
+  type ComposerAuditSummaryData,
+} from "./composer-audit";
 import { HarvestError } from "./errors";
 
 const MAX_PARIGO_ALBUMS = 100;
 const LOAD_CONCURRENCY = 6;
+
+const getCachedAdminComposerAlbum = unstable_cache(
+  async (id: string) => (await getAlbum(id)).album,
+  ["admin-parigo-composer-audit-album-v1"],
+  { revalidate: 300, tags: ["admin-composers"] },
+);
+
+const getAdminComposerAlbum = cache(getCachedAdminComposerAlbum);
 
 async function mapConcurrent<T, R>(values: T[], limit: number, task: (value: T) => Promise<R>): Promise<R[]> {
   const output = new Array<R>(values.length);
@@ -23,8 +36,8 @@ async function mapConcurrent<T, R>(values: T[], limit: number, task: (value: T) 
   return output;
 }
 
-async function loadParigoComposerAudit(): Promise<ComposerAuditData> {
-  const discovery = await getCachedAlbumDiscovery({
+async function loadParigoComposerAuditSummary(): Promise<ComposerAuditSummaryData> {
+  const discovery = await getAlbumDiscovery({
     label: PARIGO_LABEL_ID,
     limit: MAX_PARIGO_ALBUMS,
     sort: "recent",
@@ -41,7 +54,7 @@ async function loadParigoComposerAudit(): Promise<ComposerAuditData> {
 
   const results = await mapConcurrent(discovery.items, LOAD_CONCURRENCY, async (album) => {
     try {
-      return { state: "ready" as const, album: (await getCachedAlbum(album.id)).album };
+      return { state: "ready" as const, album: await getAdminComposerAlbum(album.id) };
     } catch {
       return {
         state: "unavailable" as const,
@@ -53,17 +66,45 @@ async function loadParigoComposerAudit(): Promise<ComposerAuditData> {
   const albums = results.flatMap((result) => result.state === "ready" ? [result.album] : []);
   const failedAlbums = results.flatMap((result) => result.state === "unavailable" ? [result.album] : []);
 
-  return buildComposerAudit(albums, {
+  return summarizeComposerAudit(buildComposerAudit(albums, {
     capturedAt: new Date().toISOString(),
     failedAlbums,
     sourceAlbumCount: discovery.total,
-  });
+  }));
 }
 
-const getCachedParigoComposerAudit = unstable_cache(
-  loadParigoComposerAudit,
-  ["admin-parigo-composer-audit-v3"],
-  { revalidate: 300, tags: ["catalog", "albums", "tracks", "composers", "admin-composers"] },
+const getCachedParigoComposerAuditSummary = unstable_cache(
+  loadParigoComposerAuditSummary,
+  ["admin-parigo-composer-audit-summary-v9"],
+  { revalidate: 300, tags: ["admin-composers"] },
 );
 
-export const getParigoComposerAudit = cache(getCachedParigoComposerAudit);
+export const getParigoComposerAuditSummary = cache(getCachedParigoComposerAuditSummary);
+
+/**
+ * Loads only the albums needed by an expanded row. The complete audit is too
+ * large for the Next.js Data Cache, while a single identity remains small and
+ * can safely be fetched lazily by the dashboard.
+ */
+export async function getParigoComposerAuditAlbum(identityId: string, albumId: string): Promise<{
+  album?: ComposerAuditAlbum;
+  capturedAt: string;
+}> {
+  const summary = await getParigoComposerAuditSummary();
+  const identitySummary = summary.identities.find((identity) => identity.id === identityId);
+  if (!identitySummary?.albums.some((album) => album.id === albumId)) {
+    return { capturedAt: summary.capturedAt };
+  }
+
+  const sourceAlbum = await getAdminComposerAlbum(albumId);
+  const rebuilt = buildComposerAudit([sourceAlbum], {
+    capturedAt: summary.capturedAt,
+    sourceAlbumCount: summary.sourceAlbumCount,
+  }).identities.find((identity) => identity.id === identityId);
+  const album = rebuilt?.albums.find((item) => item.id === albumId);
+
+  return {
+    capturedAt: summary.capturedAt,
+    album,
+  };
+}

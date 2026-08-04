@@ -986,6 +986,34 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   await expect(dialog).toHaveCount(0);
 });
 
+test("le reset n’annonce pas un e-mail quand la route Harvest manque", async ({ page }) => {
+  await page.route("**/api/auth/forgot-password", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { accepted: true, deliveryConfigured: false } }),
+  }));
+  await page.goto("/forgot-password");
+  await page.getByLabel("E-mail").fill("member@example.invalid");
+  await page.getByRole("button", { name: "Envoyer le lien" }).click();
+
+  await expect(page.getByText("La réinitialisation par e-mail n’est pas encore configurée. Contactez Parigo pour récupérer votre accès.")).toBeVisible();
+  await expect(page.getByText(/Parigo vient d’envoyer un lien/)).toHaveCount(0);
+});
+
+test("les anciens liens FLEX change-password restent compatibles", async ({ page }) => {
+  await page.route("**/api/auth/reset-password?token=legacy-reset-token", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { valid: true } }),
+  }));
+
+  await page.goto("/change-password/legacy-reset-token");
+
+  await expect(page).toHaveURL(/\/reset-password\?token=legacy-reset-token$/);
+  await expect(page.getByText("Nouveau mot de passe", { exact: true })).toBeVisible();
+  await expect(page.getByPlaceholder("Confirmer")).toBeVisible();
+});
+
 test("l’inscription Parigo expose le profil complet en deux étapes", async ({ page }) => {
   await page.goto("/register");
   await page.getByLabel("Prénom *").fill("Test");

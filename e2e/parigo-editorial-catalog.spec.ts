@@ -84,9 +84,10 @@ test("les anciennes routes Sorties Parigo redirigent définitivement", async ({ 
   await expect(page).toHaveURL(/\/en\/label-parigo$/);
 });
 
-test("un crédit Harvest brut relie uniquement ses albums et pistes Harvest", async ({ page }, testInfo) => {
+test("un ancien slug Harvest redirige vers le profil public stable et ses albums Harvest", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await page.goto("/compositeurs/harvest-ugly-mac-beer-1u58k7l");
+  await expect(page).toHaveURL(/\/compositeurs\/ugly-mac-beer$/);
   await expect(page.getByRole("heading", { level: 1, name: "Ugly Mac Beer" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Albums Parigo" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Clips" })).toHaveCount(0);
@@ -101,11 +102,23 @@ test("un crédit Harvest brut relie uniquement ses albums et pistes Harvest", as
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("Minimatic ne publie plus Riviera Bizarre sans crédit de piste Harvest", async ({ page }) => {
+test("l’annuaire publie exactement les 45 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
-  await page.goto("/compositeurs/harvest-minimatic-ns-1w2ynwe");
-  await expect(page.getByRole("heading", { level: 1, name: "Minimatic (NS)" })).toBeVisible();
-  await expect(page.locator('a[href^="/albums/"]').filter({ hasText: "Riviera Bizarre" })).toHaveCount(0);
+  await page.goto("/compositeurs");
+  const directory = page.getByTestId("composer-directory-results");
+  await expect(directory.locator("a")).toHaveCount(45);
+  const minimatic = directory.locator('a[href="/compositeurs/minimatic"]');
+  await expect(minimatic).toHaveCount(1);
+  await minimatic.click();
+  await expect(page).toHaveURL(/\/compositeurs\/minimatic$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Minimatic" })).toBeVisible();
+  await expect(page.getByText(/Crédits Harvest associés/)).toBeVisible();
+});
+
+test("une bio réellement absente ne génère aucun bloc de remplacement", async ({ page }) => {
+  await page.goto("/compositeurs/xavier-sibre");
+  await expect(page.getByRole("heading", { level: 1, name: "Xavier Sibre" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
 });
 
 test("les clips YouTube n’infèrent aucun crédit musical local", async ({ page }) => {

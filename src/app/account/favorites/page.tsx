@@ -1,18 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
-import { Heart, Music, Disc3, Search, X } from "lucide-react";
+import { Heart, Music, Search, X } from "lucide-react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
-import { TrackRow, AlbumCard } from "@/components/features";
+import { TrackRow } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { Button, Input, Select } from "@/components/ui";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Album, Track } from "@/types";
-
-type TabType = "tracks" | "albums";
 
 function albumFromTrack(track: Track): Album | undefined {
   if (!track.albumId) return undefined;
@@ -23,9 +21,7 @@ export default function FavoritesPage() {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [activeTab, setActiveTab] = useState<TabType>("tracks");
   const [tracks, setTracks] = useState<Track[]>([]);
-  const [albums, setAlbums] = useState<Album[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
@@ -33,18 +29,11 @@ export default function FavoritesPage() {
   useEffect(() => {
     if (!userId) return;
     const controller = new AbortController();
-    void Promise.all([
-      fetch("/api/user/favorites/tracks", { cache: "no-store", signal: controller.signal }),
-      fetch("/api/user/favorites/albums", { cache: "no-store", signal: controller.signal }),
-    ])
-      .then(async ([tracksRes, albumsRes]) => {
+    void fetch("/api/user/favorites/tracks", { cache: "no-store", signal: controller.signal })
+      .then(async (tracksRes) => {
         if (tracksRes.ok) {
           const data = await tracksRes.json();
           setTracks(data.data?.tracks || []);
-        }
-        if (albumsRes.ok) {
-          const data = await albumsRes.json();
-          setAlbums(data.data?.albums || []);
         }
       })
       .catch((error) => {
@@ -56,17 +45,10 @@ export default function FavoritesPage() {
     return () => controller.abort();
   }, [userId]);
 
-  const tabs = [
-    { id: "tracks" as TabType, label: t("catalog.tracks"), icon: Music, count: tracks.length },
-    { id: "albums" as TabType, label: t("common.albums"), icon: Disc3, count: albums.length },
-  ];
-
   const categories = useMemo(() => {
-    const values = activeTab === "tracks"
-      ? tracks.flatMap((track) => [...track.genres, ...track.moods])
-      : albums.flatMap((album) => [...album.genres, ...(album.moods || [])]);
+    const values = tracks.flatMap((track) => [...track.genres, ...track.moods]);
     return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right, locale));
-  }, [activeTab, albums, locale, tracks]);
+  }, [locale, tracks]);
 
   const filteredTracks = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase(locale);
@@ -76,16 +58,8 @@ export default function FavoritesPage() {
     });
   }, [category, locale, query, tracks]);
 
-  const filteredAlbums = useMemo(() => {
-    const needle = query.trim().toLocaleLowerCase(locale);
-    return albums.filter((album) => {
-      const terms = [album.title, album.label, album.description, ...album.genres, ...(album.moods || []), ...(album.keywords || [])].filter(Boolean).join(" ").toLocaleLowerCase(locale);
-      return (!needle || terms.includes(needle)) && (category === "all" || album.genres.includes(category) || album.moods?.includes(category));
-    });
-  }, [albums, category, locale, query]);
-
-  const activeTotal = activeTab === "tracks" ? tracks.length : albums.length;
-  const activeFilteredTotal = activeTab === "tracks" ? filteredTracks.length : filteredAlbums.length;
+  const activeTotal = tracks.length;
+  const activeFilteredTotal = filteredTracks.length;
   const filtersActive = Boolean(query.trim()) || category !== "all";
 
   return (
@@ -94,39 +68,12 @@ export default function FavoritesPage() {
         icon={Heart}
         eyebrow={locale === "fr" ? "Vos favoris" : "Your favourites"}
         title={t("account.favorites")}
-        description={locale === "fr" ? `${tracks.length + albums.length} éléments conservés pour les retrouver rapidement.` : `${tracks.length + albums.length} items kept close for quick access.`}
+        description={locale === "fr" ? `${tracks.length} piste${tracks.length > 1 ? "s" : ""} conservée${tracks.length > 1 ? "s" : ""} pour les retrouver rapidement.` : `${tracks.length} track${tracks.length === 1 ? "" : "s"} kept close for quick access.`}
       />
-
-      {/* Tabs */}
-      <div className="account-toolbar flex gap-2 overflow-x-auto">
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => { setActiveTab(tab.id); setCategory("all"); }}
-            className={`flex items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2.5 transition-all ${
-              activeTab === tab.id
-                ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]"
-                : "border-[var(--line)] hover:border-[var(--line-strong)]"
-            }`}
-          >
-            <tab.icon size={18} />
-            <span className="font-medium">{tab.label}</span>
-            <span
-              className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                activeTab === tab.id
-                  ? "bg-white text-[var(--color-black)]"
-                  : "bg-[var(--color-gray-100)] text-[var(--color-gray-600)]"
-              }`}
-            >
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
 
       {!isLoading && activeTotal > 0 && (
         <section aria-label={locale === "fr" ? "Rechercher et filtrer les favoris" : "Search and filter favourites"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(16rem,1fr)_minmax(16rem,19rem)_auto] md:items-center">
-          <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={activeTab === "tracks" ? (locale === "fr" ? "Titre, album, humeur, instrument…" : "Title, album, mood, instrument…") : (locale === "fr" ? "Titre, label, genre…" : "Title, label, genre…")} aria-label={locale === "fr" ? "Rechercher dans mes favoris" : "Search my favourites"} />
+          <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Titre, album, humeur, instrument…" : "Title, album, mood, instrument…"} aria-label={locale === "fr" ? "Rechercher dans mes favoris" : "Search my favourites"} />
           <Select value={category} onValueChange={setCategory} ariaLabel={locale === "fr" ? "Filtrer les favoris" : "Filter favourites"} options={[{ value: "all", label: locale === "fr" ? "Tous les genres et humeurs" : "All genres and moods" }, ...categories.map((value) => ({ value, label: value }))]} className="[&_[role=combobox]]:min-h-11" />
           {filtersActive && <Button variant="ghost" className="justify-self-start px-3 md:justify-self-end" onClick={() => { setQuery(""); setCategory("all"); }}><X size={15} />{locale === "fr" ? "Effacer" : "Clear"}</Button>}
           <p className="text-xs text-[var(--text-muted)] md:col-span-3">{activeFilteredTotal} {locale === "fr" ? `sur ${activeTotal} élément${activeTotal > 1 ? "s" : ""}` : `of ${activeTotal} item${activeTotal > 1 ? "s" : ""}`}</p>
@@ -139,16 +86,12 @@ export default function FavoritesPage() {
           <ParigoLoader size="page" label={locale === "fr" ? "Chargement des favoris" : "Loading favourites"} />
         </div>
       ) : (
-        <AnimatePresence mode="wait">
           <motion.div
-            key={activeTab}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.2 }}
           >
-            {/* Tracks Tab */}
-            {activeTab === "tracks" && (
               <div className="space-y-2">
                 {tracks.length === 0 ? (
                   <EmptyState
@@ -177,34 +120,7 @@ export default function FavoritesPage() {
                   </div>
                 )}
               </div>
-            )}
-
-            {/* Albums Tab */}
-            {activeTab === "albums" && (
-              <div>
-                {albums.length === 0 ? (
-                  <EmptyState
-                    icon={Disc3}
-                    title={locale === "fr" ? "Aucun album en favoris" : "No favourite albums"}
-                    description={locale === "fr" ? "Ajoutez des albums à vos favoris pour les retrouver facilement." : "Add albums to your favourites to find them easily."}
-                  />
-                ) : filteredAlbums.length === 0 ? (
-                  <EmptyState icon={Search} title={locale === "fr" ? "Aucun album ne correspond." : "No album matches."} description={locale === "fr" ? "Essayez un autre terme ou retirez le filtre." : "Try another term or remove the filter."} />
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {filteredAlbums.map((album) => (
-                      <AlbumCard
-                        key={album.id}
-                        album={album}
-                      />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
           </motion.div>
-        </AnimatePresence>
       )}
     </div>
   );

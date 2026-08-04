@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServiceInfo } from "@/lib/harvest/client";
+import { getServiceInfo, hasSearchSimilarCapability } from "@/lib/harvest/client";
 import { requestId } from "@/lib/harvest/api";
 import { getHarvestApiConfig, isParigoSessionConfigured } from "@/lib/harvest/config";
 
@@ -33,7 +33,7 @@ export async function GET() {
         catalog: { configured: true, available: true },
         account: { configured: memberConfigured },
         remote: { available: true },
-        searchSimilar: Array.isArray(info.SearchSimilarInfo) && info.SearchSimilarInfo.length > 0,
+        searchSimilar: hasSearchSimilarCapability(info),
         durationMs: Date.now() - startedAt,
       },
       meta: { requestId: id },

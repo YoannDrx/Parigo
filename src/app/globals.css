@@ -3995,12 +3995,6 @@ textarea {
   color: var(--signal-strong);
   outline: none;
 }
-.album-actions__favorite:hover,
-.album-actions__favorite:focus-visible {
-  border-color: color-mix(in srgb, var(--danger) 72%, var(--line));
-  background: color-mix(in srgb, var(--danger) 8%, var(--surface));
-  color: var(--danger) !important;
-}
 .saved-search-rerun::after {
   content: "";
   position: absolute;

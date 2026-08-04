@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1200" role="img" aria-labelledby="title description">
+  <title id="title">Portrait non disponible</title>
+  <desc id="description">Silhouette neutre utilisée lorsqu’aucun portrait validé n’est disponible.</desc>
+  <rect width="1200" height="1200" fill="#e7e5df"/>
+  <circle cx="600" cy="430" r="185" fill="#aba89f"/>
+  <path d="M225 1060c12-244 155-381 375-381s363 137 375 381" fill="#aba89f"/>
+  <path d="M80 80h1040v1040H80z" fill="none" stroke="#282b28" stroke-width="18"/>
+</svg>

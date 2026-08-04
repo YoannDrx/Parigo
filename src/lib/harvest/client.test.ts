@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchHarvestJsonWithTimeout, getHarvestTokenExpiry, isHarvestRequestRetrySafe } from "./client";
+import { fetchHarvestJsonWithTimeout, getHarvestTokenExpiry, hasSearchSimilarCapability, isHarvestRequestRetrySafe } from "./client";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -63,5 +63,13 @@ describe("Harvest token expiry", () => {
       Expiry: "2026-07-29T00:24:11.477",
       UTCOffset: 10,
     })).toBe(Date.parse("2026-07-28T14:24:11.477Z"));
+  });
+});
+
+describe("Harvest capabilities", () => {
+  it("only enables similar-search UI when Harvest publishes a provider", () => {
+    expect(hasSearchSimilarCapability({ SearchSimilarInfo: [] })).toBe(false);
+    expect(hasSearchSimilarCapability({})).toBe(false);
+    expect(hasSearchSimilarCapability({ SearchSimilarInfo: [{ Provider: "AIMS" }] })).toBe(true);
   });
 });

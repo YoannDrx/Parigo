@@ -52,3 +52,7 @@ export function getParigoSessionConfig(): ParigoSessionConfig {
 export function isParigoSessionConfigured(): boolean {
   return Boolean(process.env.HARVEST_SESSION_SECRET?.trim());
 }
+
+export function isHarvestPlaylistSharingEnabled(): boolean {
+  return process.env.HARVEST_PLAYLIST_SHARING_ENABLED?.trim() === "1";
+}

@@ -25,6 +25,11 @@ describe("endpoint-specific Harvest contracts", () => {
     });
   });
 
+  it("types the newsletter source of truth returned by getmember", () => {
+    const member = HarvestMemberSchema.parse({ ID: "member-1", Subscribe: false, SubscribeNewsletter: "true" });
+    expect(member.SubscribeNewsletter).toBe(true);
+  });
+
   it("validates tags independently from catalogue responses", () => {
     const tag = HarvestMemberTagSchema.parse(tagFixture.Tags[0]);
     expect(tag).toMatchObject({ TagID: "tag-fixture-1", TagName: "Documentary shortlist", TrackCount: 3 });

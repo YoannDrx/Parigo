@@ -34,6 +34,15 @@ describe("public catalog source boundaries", () => {
     }
   });
 
+  it("limits the local public composer source to the dedicated canonical registry", () => {
+    const directory = readFileSync(resolve(projectRoot, "src/app/compositeurs/page.tsx"), "utf8");
+    const detail = readFileSync(resolve(projectRoot, "src/app/compositeurs/[slug]/page.tsx"), "utf8");
+    expect(directory).toContain("composers/profiles");
+    expect(detail).toContain("composers/profiles");
+    expect(directory).not.toContain("editorial.generated");
+    expect(detail).not.toContain("editorial.generated");
+  });
+
   it("keeps video inventories connected to their configured YouTube playlists", () => {
     const clips = readFileSync(resolve(projectRoot, "src/lib/editorial/videos.ts"), "utf8");
     const synchronisations = readFileSync(resolve(projectRoot, "src/lib/youtube/synchronisations.ts"), "utf8");

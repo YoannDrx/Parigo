@@ -65,7 +65,7 @@ test("la home expose une section Clips reliée à la vidéothèque", async ({ pa
   await expect(section.locator(".parigo-video-card").first()).toBeVisible();
 });
 
-test("la recherche compositeurs conserve les libellés Harvest exacts", async ({ page }) => {
+test("la recherche compositeurs reste limitée aux profils publics canoniques", async ({ page }) => {
   await page.goto("/compositeurs");
   const search = page.getByPlaceholder("Rechercher par nom…");
   await expect(search).toBeVisible();
@@ -79,13 +79,14 @@ test("la recherche compositeurs conserve les libellés Harvest exacts", async ({
   await expect(page.locator(".composer-card").getByText(/^C\s*\/\s*\d+$/)).toHaveCount(0);
 
   await search.fill("Rebecca");
-  const results = page.getByTestId("composer-directory-results");
-  await expect(results.locator(".composer-card")).toHaveCount(1);
-  await expect(results.getByRole("heading", { name: "Rebecca Meyer" })).toBeVisible();
-  await expect(results.getByText("Crédit Harvest exact", { exact: true })).toBeVisible();
+  await expect(page.locator(".composer-card")).toHaveCount(0);
+  await expect(page.getByText("Aucun compositeur ne correspond à cette recherche.")).toBeVisible();
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("Rebecca");
   await search.fill("Minimatic");
-  await expect(results.getByRole("heading", { name: "Minimatic (NS)" })).toBeVisible();
+  const results = page.getByTestId("composer-directory-results");
+  await expect(results.locator(".composer-card")).toHaveCount(1);
+  await expect(results.getByRole("heading", { name: "Minimatic", exact: true })).toBeVisible();
+  await expect(results.getByText("Minimatic (NS)", { exact: true })).toHaveCount(0);
 });
 
 test("le détail d’une synchronisation contient son titre et masque la description YouTube", async ({ page }) => {

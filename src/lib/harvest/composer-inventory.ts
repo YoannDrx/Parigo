@@ -4,6 +4,13 @@ import { cache } from "react";
 import { unstable_cache } from "next/cache";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import type { Track } from "@/types";
+import {
+  collectCanonicalComposerSummaries,
+  getCanonicalComposerProfile,
+  getCanonicalComposerProfileByLegacySlug,
+  getCanonicalComposerProfileForCredit,
+  type CanonicalComposerSummary,
+} from "@/lib/composers/profiles";
 import { HarvestError } from "./errors";
 import { cloudSearch } from "./catalog";
 import { collectHarvestComposerCredits, type HarvestComposerCredit } from "./composer-credits";
@@ -13,6 +20,7 @@ export interface ParigoHarvestComposerInventory {
   labelId: string;
   trackCount: number;
   credits: HarvestComposerCredit[];
+  profiles: CanonicalComposerSummary[];
 }
 
 const PAGE_SIZE = 100;
@@ -59,12 +67,13 @@ async function loadParigoHarvestComposerInventory(): Promise<ParigoHarvestCompos
     labelId: PARIGO_LABEL_ID,
     trackCount: tracks.length,
     credits: collectHarvestComposerCredits(tracks),
+    profiles: collectCanonicalComposerSummaries(tracks),
   };
 }
 
 const getCachedInventory = unstable_cache(
   loadParigoHarvestComposerInventory,
-  ["parigo-harvest-composer-inventory-v1"],
+  ["parigo-harvest-composer-inventory-v2"],
   { revalidate: 300, tags: ["catalog", "tracks", "composers", "filters"] },
 );
 
@@ -73,4 +82,28 @@ export const getParigoHarvestComposerInventory = cache(getCachedInventory);
 export async function getParigoHarvestComposerCredit(id: string): Promise<HarvestComposerCredit | undefined> {
   const inventory = await getParigoHarvestComposerInventory();
   return inventory.credits.find((credit) => credit.id === id);
+}
+
+export async function getParigoCanonicalComposer(slug: string): Promise<CanonicalComposerSummary | undefined> {
+  const inventory = await getParigoHarvestComposerInventory();
+  return inventory.profiles.find((profile) => profile.slug === slug);
+}
+
+export async function resolveCanonicalComposerSlug(slug: string): Promise<string | undefined> {
+  const direct = getCanonicalComposerProfile(slug);
+  if (direct) return direct.slug;
+  const legacy = getCanonicalComposerProfileByLegacySlug(slug);
+  if (legacy) return legacy.slug;
+  if (!slug.startsWith("harvest-")) return undefined;
+
+  const inventory = await getParigoHarvestComposerInventory();
+  const credit = inventory.credits.find((item) => item.id === slug);
+  if (!credit) return undefined;
+  const global = getCanonicalComposerProfileForCredit(credit.name);
+  if (global) return global.slug;
+  for (const albumCode of credit.albumCodes) {
+    const scoped = getCanonicalComposerProfileForCredit(credit.name, albumCode);
+    if (scoped) return scoped.slug;
+  }
+  return undefined;
 }

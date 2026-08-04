@@ -1,5 +1,8 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { resolveCanonicalComposerCredit } from "../../../src/lib/composers/profiles";
+import { normalizeHarvestComposerCredit as normalize } from "../../../src/lib/harvest/composer-credits";
+import { recommendComposerCreditName } from "../../../src/lib/harvest/composer-naming";
 
 type ApiAlbum = {
   id: string;
@@ -12,30 +15,21 @@ type ApiAlbum = {
   }>;
 };
 
-type EditorialData = {
-  composers: Array<{
+type ComposerRegistry = {
+  profiles: Array<{
     slug: string;
     name: string;
-    published: boolean;
-    harvestAliases: string[];
+    bio: { fr: string | null; en: string | null };
+    imageStatus: "portrait" | "placeholder";
+    harvest: {
+      aliases: string[];
+      scopedRelations: Array<{ albumCodes: string[]; aliases: string[] }>;
+    };
   }>;
-  clips: Array<{ slug: string; composerSlugs: string[] }>;
 };
 
 const PARIGO_LABEL_ID = "b9d701733704e2d7";
 const baseUrl = (process.env.PARIGO_SMOKE_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
-
-function normalize(value: string): string {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/\s*\((?:SACEM|NS|BMI|ASCAP|PRS|SESAC)[^)]*\)\s*$/i, "")
-    .toLowerCase()
-    .replace(/[’']/g, " ")
-    .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, " ")
-    .trim();
-}
 
 async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, init);
@@ -125,9 +119,15 @@ async function main() {
     return;
   }
 
-  const editorial = JSON.parse(
-    await readFile(path.join(process.cwd(), "src/content/editorial.generated.json"), "utf8"),
-  ) as EditorialData;
+  const registry = JSON.parse(
+    await readFile(path.join(process.cwd(), "src/content/composer-profiles.generated.json"), "utf8"),
+  ) as ComposerRegistry;
+  if (registry.profiles.length !== 45) throw new Error(`Le registre canonique contient ${registry.profiles.length} profils au lieu de 45.`);
+  const pairedBios = registry.profiles.filter((profile) => profile.bio.fr && profile.bio.en);
+  const emptyBios = registry.profiles.filter((profile) => !profile.bio.fr && !profile.bio.en);
+  if (pairedBios.length !== 37 || emptyBios.length !== 8) {
+    throw new Error(`Bios canoniques invalides : ${pairedBios.length} complètes et ${emptyBios.length} vides.`);
+  }
   const albumIndex = await getJson<{ data: { albums: ApiAlbum[] }; meta: { total: number } }>(
     `${baseUrl}/api/albums?label=${PARIGO_LABEL_ID}&limit=100&sort=recent`,
   );
@@ -139,33 +139,103 @@ async function main() {
     getJson<{ data: { album: ApiAlbum } }>(`${baseUrl}/api/albums/${album.id}`).then((payload) => payload.data.album)
   ));
   const credits = [...new Set(albums.flatMap((album) => album.tracks?.flatMap((track) => track.composers ?? []) ?? []))].sort();
-  const aliases = new Map<string, string>();
-  for (const profile of editorial.composers.filter((item) => item.published)) {
-    for (const alias of profile.harvestAliases) {
+  const globalAliases = new Map<string, string>();
+  for (const profile of registry.profiles) {
+    for (const alias of profile.harvest.aliases) {
       const normalized = normalize(alias);
-      const owner = aliases.get(normalized);
+      const owner = globalAliases.get(normalized);
       if (owner && owner !== profile.slug) throw new Error(`Collision d’alias : ${alias} (${owner}/${profile.slug})`);
-      aliases.set(normalized, profile.slug);
+      globalAliases.set(normalized, profile.slug);
     }
   }
-  const unmatched = credits.filter((credit) => !aliases.has(normalize(credit)));
-  const matchedProfiles = new Set(credits.map((credit) => aliases.get(normalize(credit))).filter(Boolean));
+  const profileForCredit = (credit: string, albumCode?: string) => {
+    const normalized = normalize(credit);
+    const global = globalAliases.get(normalized);
+    if (global) return global;
+    if (!albumCode) return undefined;
+    return registry.profiles.find((profile) => profile.harvest.scopedRelations.some((relation) => (
+      relation.albumCodes.includes(albumCode)
+      && relation.aliases.some((alias) => normalize(alias) === normalized)
+    )))?.slug;
+  };
+  const creditOccurrences = albums.flatMap((album) => (album.tracks ?? []).flatMap((track) => (
+    (track.composers ?? []).map((credit) => ({ credit, albumCode: album.code, albumId: album.id }))
+  )));
+  const unmatched = [...new Set(creditOccurrences
+    .filter(({ credit, albumCode }) => !profileForCredit(credit, albumCode))
+    .map(({ credit }) => credit))].sort();
+  const matchedProfiles = new Set(creditOccurrences
+    .map(({ credit, albumCode }) => profileForCredit(credit, albumCode))
+    .filter(Boolean));
 
-  const searchableProfiles = editorial.composers.filter((profile) => profile.published && profile.harvestAliases.length);
+  const searchableProfiles = registry.profiles.filter((profile) => creditOccurrences.some(
+    ({ credit, albumCode }) => profileForCredit(credit, albumCode) === profile.slug,
+  ));
+  const searchGaps: string[] = [];
   await mapConcurrent(searchableProfiles, 6, async (profile) => {
-    const expectedIds = new Set(albums
-      .filter((album) => album.tracks?.some((track) => track.composers?.some((credit) => profile.harvestAliases.some((alias) => normalize(alias) === normalize(credit)))))
-      .map((album) => album.id));
-    for (const alias of profile.harvestAliases) {
+    const observedCredits = [...new Set(creditOccurrences
+      .filter(({ credit, albumCode }) => profileForCredit(credit, albumCode) === profile.slug)
+      .map(({ credit }) => credit))];
+    for (const alias of observedCredits) {
+      const expectedIds = new Set(albums
+        .filter((album) => album.tracks?.some((track) => track.composers?.some((credit) => (
+          normalize(credit) === normalize(alias)
+        ))))
+        .map((album) => album.id));
       const result = await getJson<{ data: { albums: ApiAlbum[] } }>(
         `${baseUrl}/api/albums?label=${PARIGO_LABEL_ID}&limit=100&q=${encodeURIComponent(alias)}`,
       );
       const returnedIds = new Set(result.data.albums.map((album) => album.id));
       for (const id of expectedIds) {
-        if (!returnedIds.has(id)) throw new Error(`Recherche incomplète pour ${profile.slug} : album ${id} absent.`);
+        if (!returnedIds.has(id)) searchGaps.push(`${profile.slug}|${alias}|${id}`);
       }
     }
   });
+
+  if (process.env.HARVEST_COMPOSER_CLEAN_EXPECTED === "1") {
+    if (searchGaps.length) throw new Error(`Recherche Cloud Search incomplète après réindexation : ${searchGaps.join(" · ")}`);
+    const activeNamingIssues = albums.flatMap((album) => (album.tracks ?? []).flatMap((track) => {
+      const structuredWriterNames = (track.rightHolders ?? [])
+        .filter((holder) => /composer|author|arranger/i.test(holder.capacity ?? ""))
+        .map((holder) => holder.name);
+      const composerSet = new Set((track.composers ?? []).map(normalize));
+      const writerSet = new Set(structuredWriterNames.map(normalize));
+      const hasContradictoryEvidence = writerSet.size > 0 && (
+        composerSet.size !== writerSet.size || [...composerSet].some((value) => !writerSet.has(value))
+      );
+      return (track.composers ?? []).flatMap((credit) => {
+        const resolved = resolveCanonicalComposerCredit(credit, album.code);
+        const recommendation = recommendComposerCreditName(credit, {
+          preferredName: resolved?.identity.preferredName,
+          structuredWriterNames,
+          hasContradictoryEvidence,
+        });
+        return recommendation.proposedName || recommendation.hasInvalidCharacter || hasContradictoryEvidence
+          ? [`${album.code ?? album.id}/${track.id}: ${credit}${recommendation.proposedName ? ` → ${recommendation.proposedName}` : hasContradictoryEvidence ? " (ayants droit contradictoires)" : " (caractère invalide)"}`]
+          : [];
+      });
+    }));
+    if (activeNamingIssues.length) {
+      throw new Error(`Recommandations de nommage encore actives : ${activeNamingIssues.join(" · ")}`);
+    }
+    const rivieraTracks = albums.find((album) => album.code === "PGO0050")?.tracks ?? [];
+    if (!rivieraTracks.length || rivieraTracks.some((track) => !(track.composers ?? []).some((credit) => normalize(credit) === "minimatic"))) {
+      throw new Error("Minimatic n’est pas présent sur toutes les pistes/versions de PGO0050.");
+    }
+    const scopedLeaks = creditOccurrences.filter(({ credit, albumCode }) => {
+      const normalized = normalize(credit);
+      const profile = registry.profiles.find((candidate) => candidate.harvest.scopedRelations.some((relation) => (
+        relation.aliases.some((alias) => normalize(alias) === normalized)
+      )));
+      return profile && !profile.harvest.scopedRelations.some((relation) => (
+        relation.albumCodes.includes(albumCode ?? "")
+        && relation.aliases.some((alias) => normalize(alias) === normalized)
+      ));
+    });
+    if (scopedLeaks.length) {
+      throw new Error(`Relations collectives hors album autorisé : ${scopedLeaks.map(({ credit, albumCode }) => `${credit}@${albumCode}`).join(" · ")}`);
+    }
+  }
 
   const trackId = albums.flatMap((album) => album.tracks ?? []).find((track) => track.id)?.id;
   if (!trackId) throw new Error("Aucune piste Parigo disponible pour tester les ayants droit.");
@@ -185,9 +255,11 @@ async function main() {
     `Variantes de crédits : ${credits.length}`,
     `Profils rapprochés : ${matchedProfiles.size}`,
     `Crédits non rattachés : ${unmatched.length}`,
+    `Écarts Cloud Search : ${searchGaps.length}`,
     `Ayants droit testés sur ${trackId} : ${firstRightHolders.length}`,
   ].join("\n"));
   if (unmatched.length) console.log(`Non rattachés : ${unmatched.join(" · ")}`);
+  if (searchGaps.length) console.log(`Cloud Search à réindexer : ${searchGaps.join(" · ")}`);
   if (process.env.WRITE_EDITORIAL_AUDIT === "1") {
     const auditPath = path.join(process.cwd(), "docs/editorial/harvest-credit-snapshot.json");
     await writeFile(auditPath, `${JSON.stringify({
@@ -196,16 +268,16 @@ async function main() {
       albumCount: albumIndex.meta.total,
       creditVariantCount: credits.length,
       matchedProfileCount: matchedProfiles.size,
-      credits: credits.map((credit) => ({
+      credits: creditOccurrences.map(({ credit, albumCode, albumId }) => ({
         credit,
+        albumCode,
+        albumId,
         normalized: normalize(credit),
-        composerSlug: aliases.get(normalize(credit)) || null,
+        composerSlug: profileForCredit(credit, albumCode) || null,
       })),
       aliasCollisions: [],
       unmatchedCredits: unmatched,
-      publishedProfiles: editorial.composers.filter((profile) => profile.published).map((profile) => profile.slug),
-      unpublishedProfiles: editorial.composers.filter((profile) => !profile.published).map((profile) => profile.slug),
-      uncreditedClips: editorial.clips.filter((clip) => clip.composerSlugs.length === 0).map((clip) => clip.slug),
+      canonicalProfiles: registry.profiles.map((profile) => profile.slug),
       rightHolders: {
         sampledTrackId: trackId,
         count: firstRightHolders.length,

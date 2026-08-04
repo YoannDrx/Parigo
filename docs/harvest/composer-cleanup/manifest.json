@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-08-03T21:46:57.845Z",
+  "labelId": "b9d701733704e2d7",
+  "albumCount": 55,
+  "trackCount": 1819,
+  "exactComposerValueCount": 179,
+  "backupSha256": "baa536a94275563df673c72b680531d62e329edc8870633eb9b70ca1ebbc7e54",
+  "decisions": {
+    "update": 1673,
+    "needsReview": 15,
+    "noChange": 131
+  },
+  "pilot": {
+    "trackCount": 76,
+    "simpleVariantGroup": "amaury messelier",
+    "categories": {
+      "minimaticPigalle": 18,
+      "minimaticRivieraMissing": 15,
+      "floreMorchin": 1,
+      "legacy208": 4,
+      "simpleVariantGroup": 38
+    }
+  },
+  "rightHolderRegistry": {
+    "exported": false,
+    "reason": "À exporter séparément dans Harvest avant toute fusion ou suppression de fiche."
+  }
+}
