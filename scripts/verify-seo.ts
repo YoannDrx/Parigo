@@ -42,7 +42,13 @@ async function main() {
     /404/i,
   ], 404);
   await check("/sitemap.xml", [/<sitemapindex/i]);
-  await check("/sitemaps/editorial.xml", [/\/compositeurs\/harvest-[a-z0-9-]+/i, /\/clips\/yt-[a-z0-9_-]+/i]);
+  const editorialSitemap = await check("/sitemaps/editorial.xml", [
+    /\/compositeurs\/ugly-mac-beer/i,
+    /\/clips\/yt-[a-z0-9_-]+/i,
+  ]);
+  if (/\/compositeurs\/harvest-[a-z0-9-]+/i.test(editorialSitemap)) {
+    throw new Error("/sitemaps/editorial.xml: un ancien slug Harvest est encore indexé.");
+  }
   await check("/robots.txt", [new RegExp(`sitemap: ${escapedOrigin}/sitemap\\.xml`, "i")]);
   console.log(`Contrats SEO principaux validés pour ${canonicalOrigin}.`);
 }
