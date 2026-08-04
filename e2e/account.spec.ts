@@ -33,18 +33,6 @@ const track = {
   waveform: null,
 };
 
-const album = {
-  id: "album-favorite-1",
-  slug: "album-favorite-1",
-  title: "Album favori visible",
-  code: "PGO 999",
-  cover: "/images/placeholder-album.svg",
-  label: "Parigo",
-  genres: ["Documentary"],
-  moods: ["Intimate"],
-  trackCount: 8,
-};
-
 async function mockSession(page: Page) {
   await page.route("**/api/auth/session", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(sessionPayload) }));
 }
@@ -103,8 +91,7 @@ test("les favoris chargés ne réamorcent pas leur propre requête", async ({ pa
     if (route.request().method() === "GET") trackReads += 1;
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tracks: [track] } }) });
   });
-  await page.route("**/api/user/favorites/albums", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { albums: [] } }) }));
-  await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [track.id], albumIds: [] } }) }));
+  await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [track.id] } }) }));
 
   await page.goto("/account/favorites");
   await expect(page.getByText(track.title, { exact: true })).toBeVisible();
@@ -152,34 +139,6 @@ test("les favoris chargés ne réamorcent pas leur propre requête", async ({ pa
   await page.waitForTimeout(600);
   expect(settledTrackReads).toBeLessThanOrEqual(2);
   expect(trackReads).toBe(settledTrackReads);
-});
-
-test("le favori album passe du centre à un état persistant dans le pied de carte", async ({ page }) => {
-  await mockSession(page);
-  await page.route("**/api/user/favorites/tracks", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tracks: [] } }) }));
-  await page.route("**/api/user/favorites/albums", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { albums: [album] } }) }));
-  await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
-
-  await page.goto("/account/favorites");
-  await page.getByRole("button", { name: "Albums" }).click();
-  const card = page.locator(`[data-album-card="${album.id}"]`);
-  await expect(card).toBeVisible();
-  await card.hover();
-  const centerFavorite = card.locator(".album-card__favorite-overlay").getByRole("button", { name: "Ajouter aux favoris" });
-  await expect(centerFavorite).toBeVisible();
-  await centerFavorite.focus();
-  await expect.poll(() => centerFavorite.evaluate((node) => {
-    const probe = document.createElement("span");
-    probe.style.color = "var(--danger)";
-    node.append(probe);
-    const matchesDanger = getComputedStyle(node).color === getComputedStyle(probe).color;
-    probe.remove();
-    return matchesDanger;
-  })).toBe(true);
-  await centerFavorite.click();
-  await expect(card).toHaveAttribute("data-favorite", "true");
-  await expect(card.locator(".album-card__favorite-saved").getByRole("button", { name: "Retirer des favoris" })).toBeVisible();
-  await expect(card.locator(".album-card__favorite-overlay")).toHaveCount(0);
 });
 
 test("la création d’une première playlist utilise une modale Parigo et alimente la liste filtrable", async ({ page }, testInfo) => {
@@ -335,7 +294,7 @@ test("les tags personnels ramènent vers la piste précise et vers son album", a
 
 test("le sélecteur d’une piste distingue les tags déjà attribués et permet leur retrait", async ({ page }, testInfo) => {
   await mockSession(page);
-  await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] } } }) }));
+  await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] }, capabilities: { playlistSuggestions: true, playlistSharing: true } } }) }));
   await page.route("**/api/user/playlist-categories", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { categories: [] } }) }));
   await page.route(/\/api\/user\/tags(?:\?.*)?$/, (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }, { id: "tag-2", name: "À écouter", trackCount: 0 }] } }) }));
   await page.route("**/api/user/tracks/track-1/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [{ id: "tag-1", name: "Film", trackCount: 1 }] } }) }));
@@ -779,7 +738,7 @@ test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   let nativeDialog: string | null = null;
   page.on("dialog", async (dialog) => { nativeDialog = dialog.type(); await dialog.dismiss(); });
   const suggested = { ...track, id: "track-2", title: "Piano parallèle" };
-  await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] } } }) }));
+  await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] }, capabilities: { playlistSuggestions: true, playlistSharing: true } } }) }));
   await page.route("**/api/user/playlists/playlist-1/suggestions?limit=12", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tracks: [suggested] } }) }));
   let sharePayload: Record<string, unknown> | null = null;
   await page.route("**/api/user/playlists/playlist-1/share", async (route) => {
@@ -819,7 +778,20 @@ test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   await page.getByText("Autoriser le téléchargement", { exact: true }).click();
   await page.getByRole("button", { name: "Créer le lien et envoyer" }).click();
   await expect(page.getByText("https://share.parigo.test/selection", { exact: true })).toBeVisible();
-  expect(sharePayload).toMatchObject({ toEmail: "client@studio.test", allowDownload: true, shareType: "Sync", sendEmail: true });
+  expect(sharePayload).toMatchObject({ toEmail: "client@studio.test", allowDownload: true, sendEmail: true });
+  expect(sharePayload).not.toHaveProperty("shareType");
+});
+
+test("les actions non configurées restent absentes", async ({ page }) => {
+  await mockSession(page);
+  await page.route("**/api/user/playlists/playlist-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlist: { id: "playlist-1", title: "Film été", tracks: [track] }, capabilities: { playlistSuggestions: false, playlistSharing: false } } }) }));
+  await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [] } }) }));
+
+  await page.goto("/account/playlists/playlist-1");
+
+  await expect(page.getByRole("button", { name: "Prolonger la sélection" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Partager", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Dupliquer", exact: true })).toBeVisible();
 });
 
 test("un membre peut ajouter une note privée à une piste", async ({ page }, testInfo) => {

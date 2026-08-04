@@ -24,7 +24,6 @@ import {
   buildPasswordUpdate,
   buildPersistentLogin,
   buildCommunicationHistory,
-  buildDownloadInfoQuery,
   buildDuplicateMemberPlaylist,
   buildPlaylistCategory,
   buildSearchMemberPlaylistTracks,
@@ -50,7 +49,7 @@ describe("Harvest member request contracts", () => {
   it("locks persistent login, newsletter and reset shapes", () => {
     expect(buildPersistentLogin("persistent-token")).toEqual({ Token: "persistent-token", RenewExpiry: true, GenerateMemberToken: true, ReturnMemberDetails: true });
     expect(buildMemberSubscription({ firstName: "Test", lastName: "Member", email: "member@example.invalid" }, false)).toEqual({ FirstName: "Test", LastName: "Member", Email: "member@example.invalid", Subscribe: false });
-    expect(buildPasswordResetEmail("member@example.invalid")).toEqual({ Username: "", Email: "member@example.invalid", ExternalResetToken: "" });
+    expect(buildPasswordResetEmail("member@example.invalid")).toEqual({ Username: "", Email: "member@example.invalid" });
     expect(buildMemberVerificationEmail("member@example.invalid")).toEqual({ Email: "member@example.invalid", ExternalVerifyToken: "" });
     expect(buildPasswordUpdate("reset-token", "Secret123")).toEqual({ Token: "reset-token", Password: "Secret123" });
   });
@@ -156,13 +155,14 @@ describe("Harvest member request contracts", () => {
     });
     expect(buildCreateTrackComment("track-1", "À tester sur le montage")).toEqual({
       trackid: "track-1",
-      TagName: "À tester sur le montage",
+      tagname: "À tester sur le montage",
     });
-    expect(buildUpdateTrackComment("comment-1", "Validé pour le montage")).toEqual({
-      TagID: "comment-1",
-      TagName: "Validé pour le montage",
+    expect(buildUpdateTrackComment("comment-1", "track-1", "Validé pour le montage")).toEqual({
+      tagid: "comment-1",
+      trackid: "track-1",
+      tagname: "Validé pour le montage",
     });
-    expect(buildPlaylistSuggestions(12)).toEqual({ Skip: 0, Limit: 12, MainOnly: true, SeedDetermination: "Created_Desc", SeedLimit: 5, SeedMin: "" });
+    expect(buildPlaylistSuggestions(12)).toEqual({ Skip: 0, Limit: 12, MainOnly: true, SeedDetermination: "Random", SeedLimit: 5, SeedMin: "" });
   });
 
   it("serializes verified member removal without leaking the token into the body", () => {
@@ -202,17 +202,7 @@ describe("Harvest member request contracts", () => {
     });
   });
 
-  it("serializes grouped download tracking and communication history", () => {
-    expect(buildDownloadInfoQuery({ downloadId: "download-1" }, 5, 10)).toEqual({
-      Skip: 5,
-      Limit: 10,
-      DownloadID: "download-1",
-    });
-    expect(buildDownloadInfoQuery({ downloadGroupId: "group-1" })).toEqual({
-      Skip: 0,
-      Limit: 100,
-      DownloadGroupID: "group-1",
-    });
+  it("serializes communication history", () => {
     expect(buildCommunicationHistory({ limit: 25, startDate: "2026-07-01", endDate: "2026-07-29" })).toEqual({
       Skip: 0,
       Limit: 25,
@@ -224,11 +214,15 @@ describe("Harvest member request contracts", () => {
 
   it("keeps advanced playlist sharing permissions explicit", () => {
     expect(buildPlaylistShare({
-      fromMemberToken: "sender", toMemberToken: "recipient", playlistId: "playlist-1", shareType: "Sync",
+      fromMemberToken: "sender", username: "member@example.invalid", recipientType: "MemberAccount", playlistId: "playlist-1",
       allowDownload: true, allowFollow: false, allowSave: true, allowShare: false,
     })).toEqual({
-      FromMemberToken: "sender", ToMemberToken: "recipient", ObjectIdentifier: "playlist-1", ObjectType: "Playlist",
-      ShareType: "Sync", AllowDownload: true, AllowFollow: false, AllowSave: true, AllowShare: false,
+      FromMemberToken: "sender", ObjectIdentifier: "playlist-1", ObjectType: "Playlist",
+      Users: [{ Username: "member@example.invalid", Type: "MemberAccount", ShareType: "Sync", AllowDownload: true, AllowFollow: false, AllowSave: true, AllowShare: false, AllowCollaboration: false, AllowEdit: false }],
     });
+    expect(buildPlaylistShare({
+      fromMemberToken: "sender", username: "guest@example.invalid", recipientType: "GuestMemberAccount", playlistId: "playlist-1",
+      allowDownload: false, allowFollow: false, allowSave: false, allowShare: false,
+    }).Users[0]).toMatchObject({ Username: "", Type: "GuestMemberAccount", ShareType: "Sync" });
   });
 });

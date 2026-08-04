@@ -11,7 +11,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { useI18n } from "@/components/providers/I18nProvider";
 
 interface FavoriteButtonProps {
-  type: "track" | "album";
+  type: "track";
   itemId: string;
   size?: "sm" | "md" | "lg";
   className?: string;
@@ -20,7 +20,6 @@ interface FavoriteButtonProps {
 }
 
 export function FavoriteButton({
-  type,
   itemId,
   size = "md",
   className,
@@ -36,9 +35,7 @@ export function FavoriteButton({
     isLoaded,
     loadFavorites,
     toggleFavoriteTrack,
-    toggleFavoriteAlbum,
     isTrackFavorite,
-    isAlbumFavorite,
   } = useFavoritesStore();
 
   // Load favorites when user is logged in
@@ -48,7 +45,7 @@ export function FavoriteButton({
     }
   }, [userId, isLoaded, isLoading, loadFavorites]);
 
-  const isFavorite = type === "track" ? isTrackFavorite(itemId) : isAlbumFavorite(itemId);
+  const isFavorite = isTrackFavorite(itemId);
 
   const handleToggle = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -59,11 +56,7 @@ export function FavoriteButton({
       return;
     }
 
-    if (type === "track") {
-      await toggleFavoriteTrack(itemId);
-    } else {
-      await toggleFavoriteAlbum(itemId);
-    }
+    await toggleFavoriteTrack(itemId);
   };
 
   const sizeClasses = {

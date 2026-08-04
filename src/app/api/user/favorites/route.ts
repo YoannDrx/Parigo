@@ -10,7 +10,6 @@ export async function GET() {
     const tracks = await getFavouriteTracks(session.memberToken);
     return NextResponse.json({ data: {
       trackIds: tracks.map((track) => track.id),
-      albumIds: [...new Set(tracks.map((track) => track.albumId).filter(Boolean))],
     }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

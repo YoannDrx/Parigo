@@ -1,6 +1,6 @@
 # Parigo
 
-Site catalogue et lecteur audio de Parigo Music. Harvest est l’unique source de vérité des données musicales publiques. Les anciennes données éditoriales locales restent des preuves historiques consultables dans `/admin/matching`, sans alimenter le catalogue. Les inventaires Clips et Synchronisations proviennent exclusivement des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
+Site catalogue et lecteur audio de Parigo Music. Harvest est l’unique source de vérité des albums, pistes, crédits bruts, ayants droit et discographies publiques. L’annuaire `/compositeurs` est limité à un registre éditorial contrôlé de 45 noms publics ; ses bios et portraits proviennent du Portfolio Caro au commit audité, tandis que toutes ses relations musicales restent calculées depuis les pistes Harvest. Les inventaires Clips et Synchronisations proviennent exclusivement des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
 
 ## Installation
 
@@ -58,6 +58,7 @@ La suite Harvest live standard est strictement en lecture. La suite membre exige
 ## Architecture
 
 - `src/lib/harvest/` : OAuth, service/guest/member tokens, client résilient, mappers, recherche, assets, session chiffrée et activités membre.
+- `src/lib/composers/` : registre public canonique, alias civils/scéniques et relations collectives limitées à leurs albums validés.
 - `src/lib/editorial/` : classification et présentation des vidéos YouTube ; les profils/relations historiques ne servent qu’à l’audit admin.
 - `src/lib/youtube/` : inventaires vidéo officiels issus des playlists YouTube, sans repli vers un catalogue local.
 - `src/app/api/` : BFF public de Parigo ; aucun secret Harvest n’est envoyé au navigateur.

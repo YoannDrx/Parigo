@@ -162,6 +162,7 @@ export const HarvestMemberSchema = z.looseObject({
   TermsAccept: harvestBoolean.optional(),
   PrivacyAccept: harvestBoolean.optional(),
   Subscribe: harvestBoolean.optional(),
+  SubscribeNewsletter: harvestBoolean.optional(),
   FileFormat: harvestId.optional().nullable(),
   FileFormats: z.array(z.unknown()).optional().default([]),
   DownloadEnabled: harvestBoolean.optional(),

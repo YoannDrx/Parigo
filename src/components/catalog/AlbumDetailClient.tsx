@@ -11,7 +11,6 @@ import { Tag } from "@/components/ui/Tag";
 import { TrackRow } from "@/components/features/TrackRow";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { CueSheetButton } from "@/components/features/CueSheetButton";
-import { FavoriteButton } from "@/components/features/FavoriteButton";
 import { formatDuration } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
 import type { Album, ComposerCreditLink, Track } from "@/types";
@@ -198,7 +197,6 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
                   <Play size={18} className="mr-1 fill-current" />
                   {t("search.playSelection")}
                 </Button>
-                <FavoriteButton type="album" itemId={data.album.id} size="lg" appearance="editorial" className="album-actions__icon album-actions__favorite" />
                 <Tooltip label={locale === "fr" ? "Partager l’album" : "Share album"}>
                   <button type="button" className="album-actions__icon" onClick={() => void handleShare()} aria-label={locale === "fr" ? "Partager l’album" : "Share album"}>
                     <Share2 size={17} />

@@ -1,6 +1,6 @@
 import { SEO_SELECTIONS } from "@/content/seo-selections";
 import { getEditorialVideos } from "@/lib/editorial/videos";
-import { getParigoHarvestComposerInventory } from "@/lib/harvest/composer-inventory";
+import { canonicalComposerProfiles } from "@/lib/composers/profiles";
 import { getCachedLabels, getCachedPlaylists } from "@/lib/harvest/catalog-cache";
 import { renderUrlSet, unavailableSitemap, xmlResponse } from "@/lib/sitemap-xml";
 import { getSynchronisations } from "@/lib/youtube/synchronisations";
@@ -33,12 +33,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
       return xmlResponse(renderUrlSet(SEO_SELECTIONS.map((selection) => ({ fr: `/selections/${selection.content.fr.slug}`, en: `/en/selections/${selection.content.en.slug}`, priority: 0.8 }))));
     }
     if (kind === "editorial") {
-      const [videos, composerInventory] = await Promise.all([
-        getEditorialVideos(),
-        getParigoHarvestComposerInventory(),
-      ]);
+      const videos = await getEditorialVideos();
       return xmlResponse(renderUrlSet([
-        ...composerInventory.credits.map(({ id }) => ({ fr: `/compositeurs/${id}`, en: `/en/compositeurs/${id}`, priority: 0.7 })),
+        ...canonicalComposerProfiles.map(({ slug }) => ({ fr: `/compositeurs/${slug}`, en: `/en/compositeurs/${slug}`, priority: 0.7 })),
         ...videos.map(({ slug, publishedAt }) => ({ fr: `/clips/${slug}`, en: `/en/clips/${slug}`, lastModified: publishedAt, priority: 0.65 })),
       ]));
     }

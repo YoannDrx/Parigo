@@ -22,9 +22,12 @@ export default function ForgotPasswordPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
     });
+    const payload = await response.json().catch(() => null);
     setPending(false);
-    if (response.ok) setSent(true);
-    else setError(locale === "fr" ? "Impossible d’envoyer l’e-mail pour le moment." : "The email could not be sent right now.");
+    if (response.ok && payload?.data?.deliveryConfigured !== false) setSent(true);
+    else setError(locale === "fr"
+      ? "La réinitialisation par e-mail n’est pas encore configurée. Contactez Parigo pour récupérer votre accès."
+      : "Email password reset is not configured yet. Contact Parigo to recover access.");
   }
 
   return (

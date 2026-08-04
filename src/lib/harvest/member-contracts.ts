@@ -67,7 +67,7 @@ export function buildMemberSubscription(profile: Pick<MemberProfile, "firstName"
 }
 
 export function buildPasswordResetEmail(email: string) {
-  return { Username: "", Email: email, ExternalResetToken: "" };
+  return { Username: "", Email: email };
 }
 
 export function buildMemberVerificationEmail(email: string) {
@@ -286,20 +286,6 @@ export function buildSearchMemberPlaylistTracks(
   };
 }
 
-export function buildDownloadInfoQuery(
-  identifier: { downloadId: string } | { downloadGroupId: string },
-  skip = 0,
-  limit = 100,
-) {
-  return {
-    Skip: skip,
-    Limit: limit,
-    ...("downloadId" in identifier
-      ? { DownloadID: identifier.downloadId }
-      : { DownloadGroupID: identifier.downloadGroupId }),
-  };
-}
-
 export function buildCommunicationHistory(
   input: { skip?: number; limit?: number; startDate?: string; endDate?: string } = {},
 ) {
@@ -313,22 +299,22 @@ export function buildCommunicationHistory(
 }
 
 export function buildCreateTrackComment(trackId: string, text: string) {
-  return { trackid: trackId, TagName: text };
+  return { trackid: trackId, tagname: text };
 }
 
-export function buildUpdateTrackComment(commentId: string, text: string) {
-  return { TagID: commentId, TagName: text };
+export function buildUpdateTrackComment(commentId: string, trackId: string, text: string) {
+  return { tagid: commentId, trackid: trackId, tagname: text };
 }
 
 export function buildPlaylistSuggestions(limit = 12) {
-  return { Skip: 0, Limit: Math.min(100, limit), MainOnly: true, SeedDetermination: "Created_Desc", SeedLimit: 5, SeedMin: "" };
+  return { Skip: 0, Limit: Math.min(100, limit), MainOnly: true, SeedDetermination: "Random", SeedLimit: 5, SeedMin: "" };
 }
 
 export interface PlaylistShareContractInput {
   fromMemberToken: string;
-  toMemberToken: string;
   playlistId: string;
-  shareType: "Sync" | "Copy";
+  username: string;
+  recipientType: "MemberAccount" | "GuestMemberAccount";
   allowDownload: boolean;
   allowFollow: boolean;
   allowSave: boolean;
@@ -338,13 +324,18 @@ export interface PlaylistShareContractInput {
 export function buildPlaylistShare(input: PlaylistShareContractInput) {
   return {
     FromMemberToken: input.fromMemberToken,
-    ToMemberToken: input.toMemberToken,
     ObjectIdentifier: input.playlistId,
     ObjectType: "Playlist",
-    ShareType: input.shareType,
-    AllowDownload: input.allowDownload,
-    AllowFollow: input.allowFollow,
-    AllowSave: input.allowSave,
-    AllowShare: input.allowShare,
+    Users: [{
+      Username: input.recipientType === "MemberAccount" ? input.username : "",
+      Type: input.recipientType,
+      ShareType: "Sync",
+      AllowDownload: input.allowDownload,
+      AllowFollow: input.allowFollow,
+      AllowSave: input.allowSave,
+      AllowShare: input.allowShare,
+      AllowCollaboration: false,
+      AllowEdit: false,
+    }],
   };
 }

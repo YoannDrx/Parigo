@@ -20,4 +20,11 @@ describe("server configuration boundaries", () => {
     expect(isParigoSessionConfigured()).toBe(false);
     expect(() => getParigoSessionConfig()).toThrow(/HARVEST_SESSION_SECRET/);
   });
+
+  it("keeps playlist sharing disabled until the Harvest route is explicitly configured", async () => {
+    const { isHarvestPlaylistSharingEnabled } = await import("./config");
+    expect(isHarvestPlaylistSharingEnabled()).toBe(false);
+    vi.stubEnv("HARVEST_PLAYLIST_SHARING_ENABLED", "1");
+    expect(isHarvestPlaylistSharingEnabled()).toBe(true);
+  });
 });

@@ -290,6 +290,10 @@ export async function getServiceInfo(): Promise<Record<string, unknown>> {
   return serviceInfoPromise;
 }
 
+export function hasSearchSimilarCapability(info: Record<string, unknown>): boolean {
+  return Array.isArray(info.SearchSimilarInfo) && info.SearchSimilarInfo.length > 0;
+}
+
 export async function getRegionId(): Promise<string> {
   if (regionId) return regionId;
   if (regionIdPromise) return regionIdPromise;

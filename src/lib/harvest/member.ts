@@ -91,7 +91,7 @@ export function mapMemberProfile(
     termsAccepted: member.TermsAccept || false,
     privacyAccepted: member.PrivacyAccept || false,
     verified: !["unverified", "pending", "pending-approval"].includes(normalizedStatus),
-    subscribed: member.Subscribe || false,
+    subscribed: member.SubscribeNewsletter ?? member.Subscribe ?? false,
     fileFormatId: member.FileFormat || undefined,
     fileFormats: member.FileFormats.filter(isRecord).map((format) => ({
       id: asString(format.ID),
@@ -301,7 +301,6 @@ export async function updateMemberProfile(
           Website: input.website ?? current.website ?? "",
           TermsAccept: Boolean(current.termsAccepted),
           PrivacyAccept: Boolean(current.privacyAccepted),
-          Subscribe: Boolean(current.subscribed),
           SearchFormat: "Track",
           SearchSort: "New",
           Attributes: [],

@@ -26,16 +26,8 @@ test("le détail album groupe réellement les versions et simplifie ses métadon
   await expect(page.getByTestId("album-label-meta")).toContainText("Primetime Tracks");
   await expect(page.getByTestId("album-label-meta")).toContainText("Réf. PRTM 0212");
   await expect(page.getByText("Crédits compositeurs", { exact: true })).toHaveCount(0);
-  const favorite = page.locator(".album-actions__favorite");
-  await favorite.hover();
-  await expect.poll(() => favorite.evaluate((node) => {
-    const probe = document.createElement("span");
-    probe.style.color = "var(--danger)";
-    node.append(probe);
-    const matchesDanger = getComputedStyle(node).color === getComputedStyle(probe).color;
-    probe.remove();
-    return matchesDanger;
-  })).toBe(true);
+  await expect(page.getByRole("button", { name: "Partager l’album" })).toBeVisible();
+  await expect(page.locator(".album-actions__favorite")).toHaveCount(0);
 
   const mainTracks = page.locator('[data-track-kind="main"]');
   const alternateTracks = page.locator('[data-track-kind="alternate"]');

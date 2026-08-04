@@ -4,7 +4,7 @@ import { AlbumDetailClient } from "@/components/catalog/AlbumDetailClient";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { getCachedAlbum } from "@/lib/harvest/catalog-cache";
-import { harvestComposerCreditId } from "@/lib/harvest/composer-credits";
+import { getCanonicalComposerProfileForCredit } from "@/lib/composers/profiles";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
@@ -46,13 +46,18 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   const album = result.album;
   const composerCredits: ComposerCreditLink[] = [...new Set(
     album.tracks.flatMap((track) => track.composers ?? []),
-  )].map((credit) => ({
-    credit,
-    name: credit,
-    href: album.labelSlug === PARIGO_LABEL_ID
-      ? `/compositeurs/${harvestComposerCreditId(credit)}`
-      : `/search?view=tracks&type=main&composer=${encodeURIComponent(credit)}`,
-  }));
+  )].map((credit) => {
+    const profile = album.labelSlug === PARIGO_LABEL_ID
+      ? getCanonicalComposerProfileForCredit(credit, album.code)
+      : undefined;
+    return {
+      credit,
+      name: credit,
+      href: profile
+        ? `/compositeurs/${profile.slug}`
+        : `/search?view=tracks&type=main&composer=${encodeURIComponent(credit)}`,
+    };
+  });
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "MusicAlbum",
