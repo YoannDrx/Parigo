@@ -154,8 +154,8 @@ async function main() {
       const target = path.join(outputAssets, `${profile.slug}.webp`);
       await sharp(source)
         .rotate()
-        .resize({ width: 1200, height: 1200, fit: "cover", position: "attention", withoutEnlargement: true })
-        .webp({ quality: 84, effort: 5 })
+        .resize({ width: 720, height: 720, fit: "cover", position: "attention", withoutEnlargement: true })
+        .webp({ quality: 78, effort: 6 })
         .toFile(target);
       image = `/images/composers/canonical/${profile.slug}.webp`;
       imageSource = profile.imageSlug;
