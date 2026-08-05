@@ -3,7 +3,7 @@ import { CatalogHero } from "@/components/catalog/CatalogHero";
 import { ComposerDirectoryClient } from "@/components/catalog/ComposerDirectoryClient";
 import { Footer, Header } from "@/components/layout";
 import { getParigoHarvestComposerInventory } from "@/lib/harvest/composer-inventory";
-import { emptyCanonicalComposerSummaries } from "@/lib/composers/profiles";
+import { CANONICAL_COMPOSER_PROFILE_COUNT, emptyCanonicalComposerSummaries } from "@/lib/composers/profiles";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata, type PageSearchParams } from "@/lib/seo";
 
@@ -18,8 +18,8 @@ export async function generateMetadata({ searchParams }: ComposersPageProps): Pr
     path: "/compositeurs",
     title: locale === "fr" ? "Compositeurs" : "Composers",
     description: locale === "fr"
-      ? "Découvrez les 45 compositeurs et collectifs Parigo, leurs biographies et leur discographie Harvest."
-      : "Discover Parigo's 45 composers and collectives, their biographies and Harvest discography.",
+      ? `Découvrez les ${CANONICAL_COMPOSER_PROFILE_COUNT} compositeurs et collectifs Parigo, leurs biographies et leurs albums.`
+      : `Discover Parigo's ${CANONICAL_COMPOSER_PROFILE_COUNT} composers and collectives, their biographies and albums.`,
     index: !params.q,
   });
 }
@@ -40,13 +40,13 @@ export default async function ComposersPage({ searchParams }: ComposersPageProps
         <CatalogHero
           title={locale === "fr" ? "Compositeurs" : "Composers"}
           intro={locale === "fr"
-            ? "Les profils publics Parigo, reliés à leurs crédits et albums réellement renvoyés par Harvest."
-            : "Parigo public profiles, linked to the credits and albums actually returned by Harvest."}
-          meta={`45 ${locale === "fr" ? "profils" : "profiles"}${directory.state === "unavailable" ? ` · ${locale === "fr" ? "discographie temporairement indisponible" : "discography temporarily unavailable"}` : ""}`}
+            ? "Découvrez les compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."
+            : "Meet the composers, artists and collectives who give Parigo’s original catalogue its unique character."}
+          meta={`${CANONICAL_COMPOSER_PROFILE_COUNT} ${locale === "fr" ? "profils" : "profiles"}${directory.state === "unavailable" ? ` · ${locale === "fr" ? "discographie temporairement indisponible" : "discography temporarily unavailable"}` : ""}`}
         />
         <section className="mx-auto max-w-[1700px] px-4 py-14 sm:px-6 lg:px-8 md:py-20">
           {directory.state === "unavailable" && <p role="alert" className="mb-6 border-l-2 border-[var(--danger)] pl-4 text-sm text-[var(--danger)]">
-            {locale === "fr" ? "Les profils restent disponibles, mais les compteurs et albums Harvest n’ont pas pu être chargés." : "Profiles remain available, but Harvest counts and albums could not be loaded."}
+            {locale === "fr" ? "Les profils restent disponibles, mais les compteurs et albums n’ont pas pu être chargés." : "Profiles remain available, but counts and albums could not be loaded."}
           </p>}
           <ComposerDirectoryClient
             profiles={directory.profiles}

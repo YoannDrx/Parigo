@@ -7,6 +7,7 @@ import Image from "next/image";
 import type { CanonicalComposerSummary } from "@/lib/composers/profiles";
 import type { Locale } from "@/i18n/messages";
 import { localizedPath } from "@/lib/locale";
+import { composerRoleLabel } from "@/lib/composers/presentation";
 
 function normalizeSearchValue(value: string, locale: Locale) {
   return value
@@ -97,14 +98,13 @@ export function ComposerDirectoryClient({
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
               <div className="relative p-5 text-white sm:p-6">
                 <p className="font-mono text-[.54rem] uppercase tracking-[.14em] text-white/70">
-                  {profile.kind === "group" ? (locale === "fr" ? "Collectif" : "Collective") : (locale === "fr" ? "Compositeur·rice" : "Composer")}
+                  {composerRoleLabel(profile, locale)}
                 </p>
                 <h2 className="mt-3 break-words text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{profile.name}</h2>
                 <div className="mt-5 border-t border-white/30 pt-3">
                 <p className="font-mono text-[.62rem] text-[var(--text-muted)]">
-                  <span className="text-white/75">{profile.trackCount} {locale === "fr" ? "pistes" : "tracks"} · {profile.albumIds.length} albums</span>
+                  <span className="text-white/75">{profile.trackCount} {locale === "fr" ? "œuvres" : "works"} · {profile.albumIds.length} albums</span>
                 </p>
-                {profile.albumCodes.length > 0 && <p className="mt-2 line-clamp-2 text-xs text-white/65">{profile.albumCodes.join(" · ")}</p>}
                 </div>
               </div>
               <span aria-hidden="true" className="composer-card__corner composer-card__corner--top" />

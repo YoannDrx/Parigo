@@ -271,7 +271,7 @@ test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) 
   await expect(page.locator(".legal-section")).toHaveCount(7);
 });
 
-test("About et Licensing retirent leurs surtitres secondaires et renforcent le manifeste", async ({ page }) => {
+test("About adopte les nouveaux textes et Licensing retire ses étapes secondaires", async ({ page }) => {
   await page.goto("/licensing");
   await expect(page.getByText("Grille indicative", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Un cadre lisible, projet par projet" })).toBeVisible();
@@ -280,11 +280,12 @@ test("About et Licensing retirent leurs surtitres secondaires et renforcent le m
   }
 
   await page.goto("/about");
-  await expect(page.getByText("Notre point de vue", { exact: true })).toHaveCount(0);
-  const manifesto = page.locator(".about-manifesto");
-  await expect(manifesto.getByRole("heading", { name: /Éditer moins.*Écouter mieux.*Défendre chaque morceau/i })).toBeVisible();
-  await expect(manifesto.locator(".about-manifesto__shape")).toBeVisible();
-  expect(await manifesto.evaluate((node) => getComputedStyle(node).borderRadius)).not.toBe("0px");
+  await expect(page.getByRole("heading", { level: 1, name: "À propos" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "La musique, une affaire humaine" })).toBeVisible();
+  await expect(page.getByText("Fondée en 2010, Parigo est une librairie musicale indépendante", { exact: false })).toBeVisible();
+  await expect(page.getByText("Éditer moins", { exact: false })).toHaveCount(0);
+  await expect(page.getByText("Indépendante depuis Paris", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /Parler d.un projet/i })).toHaveCount(0);
 });
 
 test("la page des labels adopte l’intitulé Labels", async ({ page }) => {
@@ -355,6 +356,30 @@ test("le formulaire Contact conserve sa composition d’origine et laisse respir
     buffer: Buffer.from("%PDF-1.7 test"),
   });
   await expect(page.getByText("brief.pdf", { exact: true })).toBeVisible();
+});
+
+test("la page Contact présente uniquement l’équipe Parigo demandée", async ({ page }) => {
+  await page.goto("/contact");
+  const team = page.getByTestId("contact-team");
+  await expect(team.getByRole("heading", { level: 2, name: "Notre équipe" })).toBeVisible();
+  await expect(team.getByRole("heading", { level: 3 })).toHaveText(["Guillaume Albeck", "Caroline Senyk", "Eliott Grellier"]);
+  await expect(team.getByRole("link", { name: "guillaume.albeck@parigomusic.com" })).toHaveAttribute("href", "mailto:guillaume.albeck@parigomusic.com");
+  await expect(team.getByRole("link", { name: "caroline.senyk@parigomusic.com" })).toHaveAttribute("href", "mailto:caroline.senyk@parigomusic.com");
+  await expect(team.getByRole("link", { name: "eliott.grellier@parigomusic.com" })).toHaveAttribute("href", "mailto:eliott.grellier@parigomusic.com");
+  await expect(team.locator("article .font-mono")).toHaveCount(0);
+  const urgentPhone = team.getByRole("link", { name: "+33 (0)6 49 39 69 22" });
+  await expect(urgentPhone).toHaveCSS("white-space", "nowrap");
+  await expect(team).not.toContainText("Mélodie");
+  await expect(team).not.toContainText("Melody");
+});
+
+test("les coordonnées Contact suivent le formulaire sur desktop", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le panneau reste dans le flux sur mobile.");
+  await page.goto("/contact");
+  const details = page.getByTestId("contact-details");
+  await expect(details).toHaveCSS("position", "sticky");
+  const top = await details.evaluate((node) => getComputedStyle(node).top);
+  expect(Number.parseFloat(top)).toBeGreaterThan(0);
 });
 
 test("le consentement du formulaire Contact affiche une validation Parigo accessible", async ({ page }) => {

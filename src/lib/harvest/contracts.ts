@@ -113,6 +113,7 @@ export const HarvestAlbumSchema = z.looseObject({
   Genre: stringList,
   Mood: stringList,
   Keywords: stringList,
+  LanguageItems: z.array(z.unknown()).optional().default([]),
   Styles: z.array(z.looseObject({ ID: harvestId, Name: z.string() })).optional().default([]),
 });
 

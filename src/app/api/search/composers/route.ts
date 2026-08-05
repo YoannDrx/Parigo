@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { cloudSearch } from "@/lib/harvest/catalog";
-import { normalizeHarvestComposerSearchValue } from "@/lib/harvest/composer-credits";
+import {
+  collectHarvestComposerSearchItems,
+  normalizeHarvestComposerSearchValue,
+} from "@/lib/harvest/composer-credits";
+import type { Track } from "@/types";
 
 const querySchema = z.object({
   q: z.string().trim().min(2).max(120).refine(
@@ -18,8 +22,7 @@ export async function GET(request: NextRequest) {
   const id = requestId();
   try {
     const { q } = querySchema.parse({ q: request.nextUrl.searchParams.get("q") ?? "" });
-    const normalizedQuery = normalizeHarvestComposerSearchValue(q);
-    const credits = new Map<string, { id: string; name: string; count: number }>();
+    const tracks: Array<Pick<Track, "id" | "composers">> = [];
     let offset = 0;
     let total = 1;
 
@@ -28,6 +31,8 @@ export async function GET(request: NextRequest) {
         view: "Track",
         query: "%",
         textScope: "title",
+        // Intentionnellement global : tous les compositeurs du catalogue
+        // visible par le jeton Harvest sont recherchables, pas seulement Parigo.
         composerQuery: q,
         composerMatch: "contains",
         skip: offset,
@@ -36,23 +41,12 @@ export async function GET(request: NextRequest) {
         sort: "Alphabetic_Asc",
       });
       total = result.total;
-      for (const track of result.tracks) {
-        for (const rawCredit of new Set(track.composers ?? [])) {
-          const name = rawCredit.trim();
-          const normalized = normalizeHarvestComposerSearchValue(name);
-          if (!name || !normalized.includes(normalizedQuery)) continue;
-          const current = credits.get(name) ?? { id: name, name, count: 0 };
-          current.count += 1;
-          credits.set(name, current);
-        }
-      }
+      tracks.push(...result.tracks);
       if (!result.tracks.length) break;
       offset += result.tracks.length;
     }
 
-    const items = [...credits.values()].sort((left, right) => (
-      left.name.localeCompare(right.name, "fr", { sensitivity: "base" })
-    ));
+    const items = collectHarvestComposerSearchItems(tracks, q);
     return NextResponse.json({
       data: { items },
       meta: {

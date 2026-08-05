@@ -18,6 +18,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { formatParigoDate } from "@/lib/date-time";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { resizeArtworkSource } from "@/lib/image-loader";
+import { resolveAlbumDescription } from "@/lib/harvest/album-descriptions";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 
@@ -41,6 +42,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
   const [trackSort, setTrackSort] = useState<"album" | "title-asc" | "title-desc">("album");
 
   const album = data.album;
+  const albumDescription = resolveAlbumDescription(album, locale);
   const albumCover = resizeArtworkSource(album.cover, 384);
   const mainTracks = data.album.tracks ?? [];
   const sortedMainTracks = trackSort === "album"
@@ -83,7 +85,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      await navigator.share({ title: album.title, text: album.description || undefined, url }).catch(() => undefined);
+      await navigator.share({ title: album.title, text: albumDescription, url }).catch(() => undefined);
     } else {
       await navigator.clipboard.writeText(url);
     }
@@ -137,9 +139,9 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
                 )}
                 {album.code && <span className="album-reference-tag">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
               </div>
-              {album.description && (
+              {albumDescription && (
                 <p className="text-[var(--color-gray-600)] mb-6 max-w-xl">
-                  {album.description}
+                  {albumDescription}
                 </p>
               )}
 
@@ -218,14 +220,14 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
                 {data.composerCredits.map((composer) => (
                   composer.href ? (
                     <Link
-                      key={composer.credit}
+                      key={composer.slug ?? composer.credit}
                       href={localizedPath(composer.href)}
                       className="border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold transition hover:bg-[var(--surface-soft)]"
                     >
                       {composer.name}
                     </Link>
                   ) : (
-                    <span key={composer.credit} className="border border-[var(--line)] px-3 py-2 text-sm text-[var(--text-muted)]">
+                    <span key={composer.slug ?? composer.credit} className="border border-[var(--line)] px-3 py-2 text-sm text-[var(--text-muted)]">
                       {composer.credit}
                     </span>
                   )

@@ -58,9 +58,6 @@ export async function getSearchFilterGroups(
       source: "catalog",
       state: "available",
       remote: "harvest-track-composers",
-      description: language === "fr"
-        ? "Recherche dans les crédits de pistes du catalogue Parigo. Le compteur s’actualise après la saisie."
-        : "Search track credits across the Parigo catalog. The count updates after typing.",
     },
     ...categoryGroups.flatMap((group): SearchFilterGroup[] => {
       const key = groupKeys[group.name.toLocaleLowerCase("en")];

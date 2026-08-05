@@ -146,8 +146,8 @@ export const messages = {
       settings: "Réglages",
     },
     institutional: {
-      aboutTitle: "La musique comme point de vue.",
-      aboutIntro: "Parigo accompagne les professionnels de l’image avec un catalogue édité et une recherche profondément humaine.",
+      aboutTitle: "À propos",
+      aboutIntro: "Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits. Télévision, cinéma, documentaires, publicité, podcasts, radio ou contenus digitaux : notre catalogue international et notre expertise de la synchronisation vous aident à trouver la musique idéale pour votre projet.",
       licensingTitle: "Des droits clairs. Des choix libres.",
       licensingIntro: "Nous accompagnons chaque projet, de la première écoute à l’autorisation de diffusion.",
       contactTitle: "Parlez-nous de l’image.",
@@ -308,8 +308,8 @@ export const messages = {
       settings: "Settings",
     },
     institutional: {
-      aboutTitle: "Music as a point of view.",
-      aboutIntro: "Parigo supports image-makers with an edited catalogue and a deeply human approach to search.",
+      aboutTitle: "About",
+      aboutIntro: "Parigo helps image and sound professionals search for music and manage rights. Television, cinema, documentaries, advertising, podcasts, radio and digital content: our international catalogue and synchronisation expertise help you find the ideal music for your project.",
       licensingTitle: "Clear rights. Free choices.",
       licensingIntro: "We support every project, from first listen to broadcast clearance.",
       contactTitle: "Tell us about the image.",

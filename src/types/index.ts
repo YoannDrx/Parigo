@@ -38,6 +38,10 @@ export interface Track {
   rightHolders?: RightHolder[];
   stems?: Array<{ id: string; title?: string }>;
   alternateTracks?: Track[];
+  /** Audit-only relation when Harvest returns a stem ID from a parent track. */
+  parentTrackId?: string;
+  variantKind?: "main" | "alternate" | "stem";
+  unresolvedStemIds?: string[];
   rate?: Record<string, unknown> | null;
   isExplicit?: boolean;
   libraryType?: string;
@@ -60,6 +64,7 @@ export interface Album {
   cover: string;
   coverBlur?: string;
   description?: string | null;
+  descriptions?: Partial<Record<"fr" | "en", string>>;
   tracks?: Track[];
   genres: string[];
   moods?: string[];

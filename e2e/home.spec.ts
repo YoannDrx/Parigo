@@ -59,6 +59,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
 test("le CTA Qui sommes-nous conserve un contraste lisible dans les deux thèmes", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop.");
   await page.goto("/");
+  await expect(page.getByText("Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits.", { exact: false })).toBeVisible();
   const cta = page.getByRole("link", { name: "Découvrir le catalogue" });
   await cta.scrollIntoViewIfNeeded();
 
@@ -662,19 +663,34 @@ test("le son du showreel et son contrôle persistent pendant la navigation", asy
   ))).toContain("pause:audio");
 });
 
-test("la section compositeurs raconte une relation humaine sans profils nominatifs", async ({ page }) => {
+test("la section compositeurs présente les talents sans cartes de principes", async ({ page }) => {
   await page.goto("/");
   const section = page.getByTestId("home-composers");
-  await expect(section.getByRole("heading", { name: "La musique commence par une rencontre" })).toBeVisible();
+  await expect(section.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(section.getByText("Une maison de compositeurs", { exact: true })).toHaveCount(0);
-  await expect(section).toContainText("Depuis des années, Parigo construit son catalogue avec des compositeurs");
-  await expect(section).toContainText("Parce qu’une musique juste commence toujours par une rencontre humaine.");
-  await expect(section.getByRole("heading", { level: 3 })).toHaveText(["Écouter", "Accompagner", "Construire"]);
+  await expect(section).toContainText("Une musique ne naît jamais seule");
+  await expect(section).toContainText("Découvrez les talents qui donnent une identité unique au catalogue original Parigo.");
+  await expect(section.getByRole("heading", { level: 3 })).toHaveCount(0);
+  for (const removedCard of ["Écouter", "Accompagner", "Construire"]) {
+    await expect(section.getByText(removedCard, { exact: true })).toHaveCount(0);
+  }
   await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
-  await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveAttribute("href", "/compositeurs");
+  await expect(section.getByRole("link", { name: /Découvrez les talents qui donnent une identité unique au catalogue original Parigo/ })).toHaveAttribute("href", "/compositeurs");
+  await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
   await expect(section.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
   await expect(section.locator("img")).toHaveCount(0);
   await expect(page.getByTestId("composer-sticky-stage")).toHaveCount(0);
+});
+
+test("le bouton Play des albums reste visible en thème sombre", async ({ page }) => {
+  await page.emulateMedia({ colorScheme: "dark" });
+  await page.goto("/");
+  const playIndicator = page.locator("#featured .home-release-play").first();
+  await expect(playIndicator).toBeVisible();
+  await expect(playIndicator).toHaveCSS("color", "rgb(255, 255, 255)");
+  await expect(playIndicator).toHaveCSS("opacity", "1");
+  const background = await playIndicator.evaluate((node) => getComputedStyle(node).backgroundColor);
+  expect(background).not.toBe("rgba(0, 0, 0, 0)");
 });
 
 test("le showreel reste sans effet au survol et introduit la relation avec les compositeurs", async ({ page }, testInfo) => {
@@ -688,7 +704,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   await page.mouse.move(box!.x + box!.width * .8, box!.y + box!.height * .75);
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
   const composers = page.getByTestId("home-composers");
-  await expect(composers.getByRole("heading", { name: "La musique commence par une rencontre" })).toBeVisible();
+  await expect(composers.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
   await expect(composers.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
 });

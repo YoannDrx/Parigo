@@ -1,0 +1,28 @@
+{
+  "capturedAt": "2026-08-05T10:30:11.828Z",
+  "labelId": "b9d701733704e2d7",
+  "albumCount": 56,
+  "trackCount": 5807,
+  "exactComposerValueCount": 201,
+  "backupSha256": "372383d9621a0e5f480df8fcbdc0e177ede475a54534f022f498e7c08f8389b6",
+  "decisions": {
+    "update": 4241,
+    "needsReview": 56,
+    "noChange": 1510
+  },
+  "pilot": {
+    "trackCount": 129,
+    "simpleVariantGroup": "drixxxe",
+    "categories": {
+      "minimaticPigalle": 54,
+      "minimaticRivieraMissing": 0,
+      "floreMorchin": 6,
+      "legacy208": 0,
+      "simpleVariantGroup": 69
+    }
+  },
+  "rightHolderRegistry": {
+    "exported": false,
+    "reason": "À exporter séparément dans Harvest avant toute fusion ou suppression de fiche."
+  }
+}
