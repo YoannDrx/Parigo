@@ -346,7 +346,7 @@ test("la sidebar recherche filtre immédiatement par compositeur", async ({ page
     : page.getByRole("complementary", { name: "Filtres de recherche" });
   const composerGroup = filterScope.locator("details").filter({ hasText: "Compositeurs" });
   await composerGroup.locator("summary").click();
-  await expect(composerGroup).toContainText("tous les compositeurs");
+  await expect(composerGroup).toContainText("Saisissez au moins 2 caractères.");
   await composerGroup.getByPlaceholder("Rechercher un compositeur…").fill("Minimatic");
   await expect(composerGroup.getByTestId("composer-filter-result-count")).toHaveText("1");
   const harvestComposerOption = composerGroup.getByRole("button", { name: "Inclure Minimatic" });
