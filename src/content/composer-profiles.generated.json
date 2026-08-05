@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-05T12:18:06.948Z",
+  "generatedAt": "2026-08-05T12:24:48.986Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -307,14 +307,13 @@
       "name": "Cœur",
       "kind": "person",
       "bio": {
-        "fr": "Cœur est une chanteuse et productrice française liée à la scène Mutant Ninja. Sa musique mêle influences pop, hip-hop et électroniques dans une esthétique sombre et introspective, portée par une écriture très personnelle.\nCharlotte Durand, connue sous le nom de Cœur, est une artiste, rappeuse, chanteuse française. Elle est originaire de Lyon et a commencé sa carrière musicale en tant que membre du duo Schlaasss.\nElle a depuis sorti sa première mixtape, Minouche Mafia, en mars 2021. Celle-ci a été produite par Bonetrips et Nicolas Steib. La mixtape est un mélange de rap, d’électronique et de pop, avec des paroles poétiques et charnelles.\nEn parallèle, Cœur est également connue pour ses performances scéniques uniques, où elle porte une robe de mariée blanche et est entourée de danseuses drag queens. Dans les milieux LGBT en France, Cœur est une figure importante du mouvement féministe.\nD’autre part, dans le cadre de performance scéniques, vous avez sûrement déjà pu voir Cœur en première partie de Lorenzo, Chilla, Vald, Charlotte Adigery ou encore Poupie. Dernièrement, l’artiste lyonnaise était en concert dans la région, au Transbordeur (Villeurbanne), en décembre 2023, en première partie de Troubles",
-        "en": "Cœur is a French singer and producer associated with the Mutant Ninja scene. Her music blends pop, hip-hop and electronic influences into a dark, introspective aesthetic driven by deeply personal writing.\nCharlotte Durand, known as Cœur, is a Lyon-born rapper and singer who first emerged as part of the duo Schlaasss. She released her debut mixtape Minouche Mafia in March 2021, produced by Bonetrips and Nicolas Steib. The project mixes rap, electronic music and pop, with poetic, sensual lyrics.\nCœur is also renowned for her singular live performances, where she appears in a white wedding dress surrounded by drag queen dancers. Within LGBT circles in France, she is seen as an important figure of the feminist movement. On stage, she has opened for artists such as Lorenzo, Chilla, Vald, Charlotte Adigéry and Poupie. Most recently, the Lyon-based artist performed at Le Transbordeur in Villeurbanne in December 2023, opening for Troubles."
+        "fr": "Cœur est une chanteuse et productrice française liée à la scène Mutant Ninja. Sa musique mêle influences pop, hip-hop et électroniques dans une esthétique sombre et introspective, portée par une écriture très personnelle.\nCharlotte Duran, connue sous le nom de Cœur, est une artiste, rappeuse, chanteuse française. Elle est originaire de Lyon et a commencé sa carrière musicale en tant que membre du duo Schlaasss.\nElle a depuis sorti sa première mixtape, Minouche Mafia, en mars 2021. Celle-ci a été produite par Bonetrips et Nicolas Steib. La mixtape est un mélange de rap, d’électronique et de pop, avec des paroles poétiques et charnelles.\nEn parallèle, Cœur est également connue pour ses performances scéniques uniques, où elle porte une robe de mariée blanche et est entourée de danseuses drag queens. Dans les milieux LGBT en France, Cœur est une figure importante du mouvement féministe.\nD’autre part, dans le cadre de performance scéniques, vous avez sûrement déjà pu voir Cœur en première partie de Lorenzo, Chilla, Vald, Charlotte Adigery ou encore Poupie. Dernièrement, l’artiste lyonnaise était en concert dans la région, au Transbordeur (Villeurbanne), en décembre 2023, en première partie de Troubles",
+        "en": "Cœur is a French singer and producer associated with the Mutant Ninja scene. Her music blends pop, hip-hop and electronic influences into a dark, introspective aesthetic driven by deeply personal writing.\nCharlotte Duran, known as Cœur, is a Lyon-born rapper and singer who first emerged as part of the duo Schlaasss. She released her debut mixtape Minouche Mafia in March 2021, produced by Bonetrips and Nicolas Steib. The project mixes rap, electronic music and pop, with poetic, sensual lyrics.\nCœur is also renowned for her singular live performances, where she appears in a white wedding dress surrounded by drag queen dancers. Within LGBT circles in France, she is seen as an important figure of the feminist movement. On stage, she has opened for artists such as Lorenzo, Chilla, Vald, Charlotte Adigéry and Poupie. Most recently, the Lyon-based artist performed at Le Transbordeur in Villeurbanne in December 2023, opening for Troubles."
       },
       "image": "/images/composers/canonical/coeur.webp",
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
-          "Charlotte Durand",
           "Charlotte Duran"
         ],
         "scopedRelations": []
@@ -526,7 +525,7 @@
       "harvest": {
         "aliases": [
           "Emile Sornin",
-          "Émile Sornin"
+          "Sornin Emile"
         ],
         "scopedRelations": []
       },
@@ -560,7 +559,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "user-provided",
-        "capturedAt": "2026-08-05T12:18:01.385Z",
+        "capturedAt": "2026-08-05T12:24:42.132Z",
         "bioFile": "frederic-hanak.user-provided.json",
         "imageSource": {
           "repository": "portfolio-caro",
@@ -621,7 +620,6 @@
               "Tcheep",
               "Bonetrips",
               "Amaury Messelier",
-              "Charlotte Durand",
               "Charlotte Duran",
               "Chicho Cortez"
             ]
@@ -750,7 +748,7 @@
           "fr": "https://synck-psi.vercel.app/api/artists?locale=fr",
           "en": "https://synck-psi.vercel.app/api/artists?locale=en"
         },
-        "capturedAt": "2026-08-05T12:18:04.509Z",
+        "capturedAt": "2026-08-05T12:24:46.500Z",
         "artistSlug": "thierry-los",
         "imageUrl": "https://synck-psi.vercel.app/images/projets/photoscompo/thierry-los.jpeg",
         "imageFallback": {

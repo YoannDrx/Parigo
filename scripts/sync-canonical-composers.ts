@@ -80,7 +80,7 @@ const profiles: ProfileSource[] = [
   { slug: "laurent-dury", name: "Laurent Dury", kind: "person", bioSlug: "laurent-dury", imageSlug: "laurent-dury", aliases: ["Laurent Dury"] },
   { slug: "liqid", name: "Liqid", kind: "person", bioSlug: "liqid", imageSlug: "liqid", aliases: ["Liqid"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", bioSlug: "bonetrips", imageSlug: "bonetrips", aliases: ["Bonetrips"] },
-  { slug: "coeur", name: "Cœur", kind: "person", bioSlug: "coeur", imageSlug: "coeur", aliases: ["Charlotte Durand", "Charlotte Duran"] },
+  { slug: "coeur", name: "Cœur", kind: "person", bioSlug: "coeur", imageSlug: "coeur", aliases: ["Charlotte Duran"] },
   { slug: "arom", name: "AROM", kind: "person", bioSlug: "arom", imageSlug: "arom", aliases: ["Amaury Messelier", "AROM"], legacySlugs: ["amaury-messelier"] },
   { slug: "minimatic", name: "Minimatic", kind: "person", bioSlug: "minimatic", imageSlug: "minimatic", aliases: ["Minimatic"] },
   {
@@ -99,7 +99,7 @@ const profiles: ProfileSource[] = [
   { slug: "drixxxe", name: "Drixxxé", kind: "person", bioSlug: "drixxxe", imageSlug: "drixxxe", aliases: ["Drixxxé", "Drixxxe"] },
   { slug: "emmanuel-maree", name: "Emmanuel Marée", kind: "person", bioSlug: "emmanuel-maree", imageSlug: "emmanuel-maree", aliases: ["Emmanuel Marée"] },
   { slug: "f-stokes", name: "F.Stokes", kind: "person", bioSlug: "f-stokes", imageSlug: "f-stokes", aliases: ["Rodney Lucas"] },
-  { slug: "forever-pavot", name: "Forever Pavot", kind: "person", bioSlug: "emile-sornin-forever-pavot", imageSlug: "emile-sornin-forever-pavot", aliases: ["Emile Sornin", "Émile Sornin"], editorialArtistSlug: "emile-sornin-forever-pavot" },
+  { slug: "forever-pavot", name: "Forever Pavot", kind: "person", bioSlug: "emile-sornin-forever-pavot", imageSlug: "emile-sornin-forever-pavot", aliases: ["Emile Sornin", "Sornin Emile"], editorialArtistSlug: "emile-sornin-forever-pavot" },
   { slug: "frederic-hanak", name: "Frédéric Hanak", kind: "person", bioSlug: null, imageSlug: "frederic-hanak", aliases: ["Frédéric Hanak", "Frederic Hanak"], manualBioFile: "frederic-hanak.user-provided.json" },
   { slug: "madben", name: "Madben", kind: "person", bioSlug: "madben", imageSlug: "madben", aliases: ["Madben"] },
   {
@@ -112,7 +112,7 @@ const profiles: ProfileSource[] = [
     editorialArtistSlug: "mutant-ninja-records",
     scopedRelations: [{
       albumCodes: ["PGO0024", "PGO0027", "PGO0032", "PGO0035", "PGO0051"],
-      aliases: ["Liqid", "Tcheep", "Bonetrips", "Amaury Messelier", "Charlotte Durand", "Charlotte Duran", "Chicho Cortez"],
+      aliases: ["Liqid", "Tcheep", "Bonetrips", "Amaury Messelier", "Charlotte Duran", "Chicho Cortez"],
     }],
   },
   { slug: "arandel", name: "Arandel", kind: "person", bioSlug: "arandel", imageSlug: "arandel", aliases: ["Arandel"] },
@@ -260,7 +260,7 @@ function publicBiography(value: string | null): string | null {
   return value
     .replace(/\bMr[ .]?Viktor\b/gi, "Victor Baillet")
     .replace(/\bAociz\b/gi, "Vincent Bouhelier")
-    .replace(/\bCharlie Duran\b/gi, "Charlotte Durand");
+    .replace(/\bCharlie Duran\b/gi, "Charlotte Duran");
 }
 
 async function main() {
