@@ -104,4 +104,16 @@ describe("Harvest composer credits", () => {
     expect(composerCreditMatches(["Eric Debris"], credits)).toBe(true);
     expect(composerCreditMatches(["Eric Debrix"], credits)).toBe(false);
   });
+
+  it("accepte prénom/nom dans les deux ordres sans ignorer l’orthographe", () => {
+    const credits = [{ normalized: normalizeHarvestComposerCredit("SORNIN Emile (SACEM)") }];
+
+    expect(composerCreditMatches(["Emile Sornin"], credits)).toBe(true);
+    expect(composerCreditMatches(["Emile Sormin"], credits)).toBe(false);
+    expect(collectHarvestComposerSearchItems([
+      { id: "track-1", composers: ["Sornin Emile (SACEM)"] },
+    ], "Emile Sornin")).toEqual([
+      { id: "Sornin Emile", name: "Sornin Emile", count: 1 },
+    ]);
+  });
 });

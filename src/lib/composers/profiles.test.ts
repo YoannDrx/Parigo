@@ -43,6 +43,7 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Victor Baillet")?.name).toBe("Victor Baillet");
     expect(getCanonicalComposerProfileForCredit("Vincent Bouhelier")?.name).toBe("Vincent Bouhelier");
     expect(getCanonicalComposerProfileForCredit("Thierry Loshouarn")?.name).toBe("Thierry Los");
+    expect(getCanonicalComposerProfileForCredit("Delplanque Stéphane")?.slug).toBe("aeon-seven");
     expect(getCanonicalComposerProfileForCredit("Mr Viktor")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Aociz")).toBeUndefined();
   });
@@ -51,6 +52,8 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Franck Sinnassamy")?.slug).toBe("dj-hertz");
     expect(getCanonicalComposerProfileForCredit("Amaury Messelier (SACEM)")?.slug).toBe("arom");
     expect(getCanonicalComposerProfileForCredit("Jean-Michel Vallet", "PGO0031")?.slug).toBe("after-in-paris");
+    expect(getCanonicalComposerProfileForCredit("Vallet Jean-Michel", "PGO0031")?.slug).toBe("after-in-paris");
+    expect(getCanonicalComposerProfileForCredit("Vallet Jean-Michel", "PGO0042")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Jean-Michel Vallet", "PGO0042")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0034")?.slug).toBe("pierre-millet");
     expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0046")?.slug).toBe("pierre-millet");

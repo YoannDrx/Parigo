@@ -1,6 +1,6 @@
 import { z } from "zod";
 import registry from "@/content/composer-profiles.generated.json";
-import { harvestComposerCreditId, normalizeHarvestComposerCredit } from "@/lib/harvest/composer-credits";
+import { harvestComposerCreditId, harvestComposerCreditLookupKeys, normalizeHarvestComposerCredit } from "@/lib/harvest/composer-credits";
 import type { Track } from "@/types";
 import { harvestMainWorkId } from "@/lib/harvest/track-works";
 
@@ -89,12 +89,13 @@ const registrySchema = z.object({
     slugs.add(profile.slug);
     names.add(profile.name);
     for (const alias of profile.harvest.aliases) {
-      const normalized = normalizeHarvestComposerCredit(alias);
-      const owner = globalAliases.get(normalized);
-      if (owner && owner !== profile.slug) {
-        context.addIssue({ code: "custom", message: `Alias Harvest global partagé : ${alias} (${owner}, ${profile.slug})` });
+      for (const lookupKey of harvestComposerCreditLookupKeys(alias)) {
+        const owner = globalAliases.get(lookupKey);
+        if (owner && owner !== profile.slug) {
+          context.addIssue({ code: "custom", message: `Alias Harvest global partagé : ${alias} (${owner}, ${profile.slug})` });
+        }
+        globalAliases.set(lookupKey, profile.slug);
       }
-      globalAliases.set(normalized, profile.slug);
     }
   }
 });
@@ -152,7 +153,9 @@ for (const profile of canonicalComposerProfiles) {
       continue;
     }
     for (const alias of identity.aliases) {
-      globalCreditIdentityByAlias.set(normalizeHarvestComposerCredit(alias), entry);
+      for (const lookupKey of harvestComposerCreditLookupKeys(alias)) {
+        globalCreditIdentityByAlias.set(lookupKey, entry);
+      }
     }
   }
 }
@@ -176,14 +179,17 @@ export function resolveCanonicalComposerCredits(
   credit: string,
   albumCode?: string,
 ): Array<{ profile: CanonicalComposerProfile; identity: CanonicalHarvestCreditIdentity }> {
-  const normalized = normalizeHarvestComposerCredit(credit);
+  const lookupKeys = harvestComposerCreditLookupKeys(credit);
+  const lookupKeySet = new Set(lookupKeys);
   const matches: Array<{ profile: CanonicalComposerProfile; identity: CanonicalHarvestCreditIdentity }> = [];
-  const global = globalCreditIdentityByAlias.get(normalized);
-  if (global) matches.push(global);
+  for (const lookupKey of lookupKeys) {
+    const global = globalCreditIdentityByAlias.get(lookupKey);
+    if (global) matches.push(global);
+  }
   if (albumCode) {
     matches.push(...scopedCreditIdentities.filter(({ identity }) => (
       identity.albumCodes?.includes(albumCode)
-      && identity.aliases.some((alias) => normalizeHarvestComposerCredit(alias) === normalized)
+      && identity.aliases.some((alias) => harvestComposerCreditLookupKeys(alias).some((key) => lookupKeySet.has(key)))
     )));
   }
   return matches.filter((match, index) => matches.findIndex((candidate) => (

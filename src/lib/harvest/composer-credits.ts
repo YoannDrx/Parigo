@@ -62,6 +62,21 @@ export function normalizeHarvestComposerCredit(value: string): string {
     .trim();
 }
 
+/**
+ * Clés strictes d'une identité de compositeur. La seconde clé conserve les
+ * mêmes mots mais ignore leur ordre afin de rapprocher `Prénom Nom` et
+ * `Nom Prénom`, sans introduire de ressemblance orthographique approximative.
+ */
+export function harvestComposerCreditLookupKeys(value: string): string[] {
+  const normalized = normalizeHarvestComposerCredit(value);
+  if (!normalized) return [];
+  const orderedTokens = normalized.split(" ").filter(Boolean).sort();
+  return [...new Set([
+    `exact:${normalized}`,
+    ...(orderedTokens.length > 1 ? [`words:${orderedTokens.join(" ")}`] : []),
+  ])];
+}
+
 /** Normalisation réservée à la recherche textuelle d'un libellé brut.
  * Elle conserve notamment les suffixes de société (SACEM, NS, BMI…), car ils
  * font partie de la valeur exacte que Harvest permet de sélectionner.
@@ -87,6 +102,7 @@ export function collectHarvestComposerSearchItems(
   query: string,
 ): HarvestComposerSearchItem[] {
   const normalizedQuery = normalizeHarvestComposerSearchValue(query);
+  const queryTokens = normalizedQuery.split(" ").filter(Boolean);
   const identities = new Map<string, {
     trackIds: Set<string>;
     names: Map<string, { name: string; trackIds: Set<string>; plain: boolean }>;
@@ -97,7 +113,9 @@ export function collectHarvestComposerSearchItems(
       const trimmedCredit = rawCredit.trim();
       for (const name of harvestComposerCreditNames(trimmedCredit)) {
         const identityKey = normalizeHarvestComposerSearchValue(name);
-        if (!identityKey.includes(normalizedQuery)) continue;
+        const identityTokens = new Set(identityKey.split(" ").filter(Boolean));
+        const matchesInAnyOrder = queryTokens.length > 1 && queryTokens.every((token) => identityTokens.has(token));
+        if (!identityKey.includes(normalizedQuery) && !matchesInAnyOrder) continue;
 
         const identity = identities.get(identityKey) ?? {
           trackIds: new Set<string>(),
@@ -212,6 +230,6 @@ export function composerCreditMatches(
   names: string[],
   credits: Pick<HarvestComposerCredit, "normalized">[],
 ): boolean {
-  const allowed = new Set(names.map(normalizeHarvestComposerCredit).filter(Boolean));
-  return credits.some((credit) => allowed.has(credit.normalized));
+  const allowed = new Set(names.flatMap(harvestComposerCreditLookupKeys));
+  return credits.some((credit) => harvestComposerCreditLookupKeys(credit.normalized).some((key) => allowed.has(key)));
 }
