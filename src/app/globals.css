@@ -1690,6 +1690,11 @@ textarea {
 .catalog-search-frame.composer-directory-search {
   box-shadow: none;
 }
+.composer-directory-search input:focus,
+.composer-directory-search input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
 .catalog-search-frame:focus-within {
   border-color: var(--foreground);
   box-shadow: none;
