@@ -62,6 +62,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
       composerCreditsByKey.set(`profile:${profile.slug}`, {
         credit,
         name: profile.name,
+        slug: profile.slug,
         href: `/compositeurs/${profile.slug}`,
       });
     }

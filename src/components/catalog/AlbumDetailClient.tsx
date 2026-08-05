@@ -220,14 +220,14 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
                 {data.composerCredits.map((composer) => (
                   composer.href ? (
                     <Link
-                      key={composer.credit}
+                      key={composer.slug ?? composer.credit}
                       href={localizedPath(composer.href)}
                       className="border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold transition hover:bg-[var(--surface-soft)]"
                     >
                       {composer.name}
                     </Link>
                   ) : (
-                    <span key={composer.credit} className="border border-[var(--line)] px-3 py-2 text-sm text-[var(--text-muted)]">
+                    <span key={composer.slug ?? composer.credit} className="border border-[var(--line)] px-3 py-2 text-sm text-[var(--text-muted)]">
                       {composer.credit}
                     </span>
                   )

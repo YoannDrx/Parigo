@@ -59,7 +59,12 @@ describe("canonical composer registry", () => {
 
   it("maps the twelve new stage-name profiles and keeps collective relations album-scoped", () => {
     expect(getCanonicalComposerProfileForCredit("Wamid AL WAHAB (NS)")?.slug).toBe("aiwa");
-    expect(getCanonicalComposerProfileForCredit("Charlie Duran")?.slug).toBe("coeur");
+    expect(getCanonicalComposerProfileForCredit("Charlotte DURAN (NS)")?.slug).toBe("coeur");
+    expect(getCanonicalComposerProfileForCredit("Charlie Duran")).toBeUndefined();
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "coeur")?.bio.fr).toContain("Charlotte Durand");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "coeur")?.bio.en).toContain("Charlotte Durand");
+    expect(resolveCanonicalComposerCredits("Charlotte DURAN", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["coeur", "mutant-ninja"]);
+    expect(resolveCanonicalComposerCredits("Charlotte DURAN", "PGO0040").map(({ profile }) => profile.slug)).toEqual(["coeur"]);
     expect(getCanonicalComposerProfileForCredit("Emmanuel MAREE (SACEM)")?.slug).toBe("emmanuel-maree");
     expect(getCanonicalComposerProfileForCredit("Rodney Lucas (BMI)")?.slug).toBe("f-stokes");
     expect(getCanonicalComposerProfileForCredit("Emile Sornin")?.slug).toBe("forever-pavot");
