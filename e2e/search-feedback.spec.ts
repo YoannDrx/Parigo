@@ -317,7 +317,7 @@ test("la sidebar recherche filtre immédiatement par compositeur", async ({ page
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({
-        data: { items: [{ id: "Minimatic (NS)", name: "Minimatic (NS)", count: 24 }] },
+        data: { items: [{ id: "Minimatic", name: "Minimatic", count: 24 }] },
         meta: { matchedTracks: 24, inspectedTracks: 24, incomplete: false },
       }),
     });
@@ -346,18 +346,17 @@ test("la sidebar recherche filtre immédiatement par compositeur", async ({ page
     : page.getByRole("complementary", { name: "Filtres de recherche" });
   const composerGroup = filterScope.locator("details").filter({ hasText: "Compositeurs" });
   await composerGroup.locator("summary").click();
-  await expect(composerGroup.getByText("Catalogue", { exact: true })).toHaveCount(0);
-  await expect(composerGroup).toContainText("catalogue Parigo");
-  await composerGroup.getByPlaceholder("Rechercher dans le catalogue Parigo…").fill("Minimatic");
+  await expect(composerGroup).toContainText("tous les compositeurs");
+  await composerGroup.getByPlaceholder("Rechercher un compositeur…").fill("Minimatic");
   await expect(composerGroup.getByTestId("composer-filter-result-count")).toHaveText("1");
-  const harvestComposerOption = composerGroup.getByRole("button", { name: "Inclure Minimatic (NS)" });
+  const harvestComposerOption = composerGroup.getByRole("button", { name: "Inclure Minimatic" });
   await expect(harvestComposerOption).toBeVisible();
   await harvestComposerOption.click();
   if (testInfo.project.name === "mobile") {
     await filterScope.getByRole("button", { name: /Voir \d+ résultats/ }).click();
   }
-  await expect.poll(() => new URL(page.url()).searchParams.get("composer")).toBe("Minimatic (NS)");
-  await expect(page.getByRole("button", { name: /Minimatic \(NS\)/ }).last()).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get("composer")).toBe("Minimatic");
+  await expect(page.getByRole("button", { name: /^Minimatic/ }).last()).toBeVisible();
 });
 
 test("les anciennes URL sont canonicalisées sans disposition, match, Style ni anciens tris", async ({ page }) => {

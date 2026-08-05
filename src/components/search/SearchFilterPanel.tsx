@@ -312,7 +312,7 @@ function FilterGroupSection({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder={isRemote
-              ? (locale === "fr" ? "Rechercher dans le catalogue Parigo…" : "Search the Parigo catalog…")
+              ? (locale === "fr" ? "Rechercher un compositeur…" : "Search for a composer…")
               : (locale === "fr" ? `Filtrer ${labelsByKey[group.key]?.fr.toLocaleLowerCase("fr") ?? ""}` : `Filter ${labelsByKey[group.key]?.en.toLocaleLowerCase("en") ?? ""}`)}
             className="h-10 w-full border border-[var(--line)] bg-[var(--surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--signal-strong)]"
           />
