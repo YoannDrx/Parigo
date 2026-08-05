@@ -56,8 +56,8 @@ export async function generateMetadata({ params }: ComposerPageProps): Promise<M
     path: `/compositeurs/${profile.slug}`,
     title: profile.name,
     description: bio?.slice(0, 190) ?? (locale === "fr"
-      ? `Profil et discographie Harvest de ${profile.name}.`
-      : `Profile and Harvest discography for ${profile.name}.`),
+      ? `Profil et discographie de ${profile.name}.`
+      : `Profile and discography for ${profile.name}.`),
     image: profile.imageStatus === "portrait" ? profile.image : undefined,
   });
 }
@@ -159,11 +159,11 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               </div>
             ) : (
               <p className="border-y border-[var(--line)] py-14 text-[var(--text-muted)]">
-                {locale === "fr" ? "Aucune discographie Harvest n’est actuellement disponible pour ce profil." : "No Harvest discography is currently available for this profile."}
+                {locale === "fr" ? "Aucune discographie n’est actuellement disponible pour ce profil." : "No discography is currently available for this profile."}
               </p>
             )}
             {hasUnavailableAlbums && <p role="alert" className="mt-6 border-l-2 border-[var(--danger)] pl-4 text-sm text-[var(--danger)]">
-              {locale === "fr" ? "Certains albums Harvest sont momentanément indisponibles." : "Some Harvest albums are temporarily unavailable."}
+              {locale === "fr" ? "Certains albums sont momentanément indisponibles." : "Some albums are temporarily unavailable."}
             </p>}
           </div>
         </section>
