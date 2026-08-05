@@ -26,8 +26,9 @@ test("la file de rapprochement expose toutes les identités et ses contrôles", 
   await expect(page.getByRole("button", { name: "Actualiser depuis Harvest" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Exporter la sélection CSV" })).toBeVisible();
 
-  const identities = page.getByTestId("composer-audit-identity");
-  expect(await identities.count()).toBeGreaterThan(45);
+  const identities = page.getByTestId("composer-identity-list").getByTestId("composer-audit-identity");
+  await expect(identities).toHaveCount(57);
+  await expect(page.getByText(/Autres contributeurs Harvest/)).toBeVisible();
 });
 
 test("les filtres se combinent, se restaurent depuis l’URL et se réinitialisent", async ({ page }) => {
@@ -42,7 +43,7 @@ test("les filtres se combinent, se restaurent depuis l’URL et se réinitialise
 
   await page.getByRole("button", { name: "Réinitialiser les filtres" }).click();
   await expect(page).toHaveURL(/\/admin\/compositeurs$/);
-  await expect(page.getByLabel("Travail")).toHaveValue("action");
+  await expect(page.getByLabel("Travail")).toHaveValue("all");
 
   await page.getByLabel("Photo").selectOption("missing");
   await expect(page).toHaveURL(/photo=missing/);
@@ -55,25 +56,24 @@ test("les filtres se combinent, se restaurent depuis l’URL et se réinitialise
   const csvPath = await download.path();
   expect(csvPath).toBeTruthy();
   const csv = await readFile(csvPath!, "utf8");
-  expect(csv).toContain('"statut_harvest"');
-  expect(csv).toContain('"public-profile"');
-  expect(csv).not.toContain('"harvest-only"');
+  expect(csv).toContain('"track_id"');
+  expect(csv).toContain('"composer_actuel"');
+  expect(csv).toContain('"artist_distinct"');
 });
 
-test("une identité déplie ses albums et toutes les pistes restent des deep links", async ({ page }) => {
+test("un profil déplie ses œuvres et fournit le contexte Harvest sans faux deep link piste", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/admin/compositeurs?work=all&sort=tracks");
 
   const firstIdentity = page.getByTestId("composer-audit-identity").first();
   await firstIdentity.getByRole("button", { name: /^Ouvrir / }).click();
-  await expect(firstIdentity.locator('a[href^="/albums/"]').first()).toBeVisible({ timeout: 30_000 });
+  await expect(firstIdentity.locator('a[href*="admin.harvestmedia.net/music/music.aspx"]').first()).toBeVisible({ timeout: 30_000 });
 
-  const albumToggle = firstIdentity.getByRole("button", { name: /pistes?$/ }).first();
+  const albumToggle = firstIdentity.getByRole("button", { name: /œuvres?/ }).first();
   await albumToggle.click();
-  await expect(firstIdentity.locator('a[href*="?track="]').first()).toBeVisible({ timeout: 30_000 });
+  await expect(firstIdentity.getByRole("button", { name: "Copier le Track ID" }).first()).toBeVisible({ timeout: 30_000 });
   await expect(firstIdentity.getByText("Ayants droit structurés").first()).toBeVisible();
-  const alternate = firstIdentity.getByText(/· version$/).first().locator("xpath=ancestor::article[1]");
-  await expect(alternate.locator('a[href*="?track="]')).toHaveAttribute("href", /^\/albums\/[^?]+\?track=.+/);
+  await expect(firstIdentity.locator('a[href*="?track="]')).toHaveCount(0);
 });
 
 test("l’aide explique les identités, les deux états et la lecture seule", async ({ page }) => {

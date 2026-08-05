@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { resolveCanonicalComposerCredit } from "../src/lib/composers/profiles";
+import { canonicalComposerProfiles, resolveCanonicalComposerCredit } from "../src/lib/composers/profiles";
 import { normalizeHarvestComposerCredit } from "../src/lib/harvest/composer-credits";
 import { recommendComposerCreditName } from "../src/lib/harvest/composer-naming";
 
@@ -33,6 +33,10 @@ type Track = {
   artists?: Array<{ name: string }>;
   publishers?: string[];
   rightHolders?: RightHolder[];
+  variantKind?: "main" | "alternate" | "stem";
+  parentTrackId?: string;
+  alternateTracks?: Track[];
+  unresolvedStemIds?: string[];
 };
 
 type Album = {
@@ -44,7 +48,26 @@ type Album = {
   tracks?: Track[];
 };
 
-type FlatTrack = Track & { albumId: string; albumCode: string; albumTitle: string };
+type FlatTrack = Track & { albumId: string; albumCode: string; albumTitle: string; parentTrackId?: string };
+
+type ExhaustiveAuditRow = {
+  albumId: string;
+  albumCode?: string;
+  albumTitle: string;
+  trackId: string;
+  mainTrackId?: string;
+  workId?: string;
+  title: string;
+  version?: string;
+  variantKind: "main" | "alternate" | "stem";
+  composerRaw: string[];
+  artistRaw: string[];
+  expectedComposerNames: string[];
+  publicProfileSlugs: string[];
+  structuredWriterNames: string[];
+  anomalies: string[];
+  status: string;
+};
 
 const writerCapacity = /composer|author|arranger/i;
 
@@ -83,6 +106,25 @@ function csvCell(value: unknown): string {
 
 function csv(rows: unknown[][]): string {
   return `\uFEFF${rows.map((row) => row.map(csvCell).join(";")).join("\n")}\n`;
+}
+
+function flattenAlbumTracks(album: Album): FlatTrack[] {
+  const rows: FlatTrack[] = [];
+  const seen = new Set<string>();
+  const visit = (track: Track, parentTrackId?: string) => {
+    if (seen.has(track.id)) return;
+    seen.add(track.id);
+    rows.push({
+      ...track,
+      albumId: album.id,
+      albumCode: album.code ?? "",
+      albumTitle: album.title,
+      parentTrackId: track.parentTrackId ?? parentTrackId,
+    });
+    for (const alternate of track.alternateTracks ?? []) visit(alternate, track.id);
+  };
+  for (const track of album.tracks ?? []) visit(track);
+  return rows;
 }
 
 function proposedName(name: string, track: FlatTrack): { value: string; reason?: string } {
@@ -156,14 +198,12 @@ async function main() {
   const albums = await mapConcurrent(index.data.albums, 6, async (album) => (
     getJson<{ data: { album: Album } }>(`${baseUrl}/api/albums/${album.id}`).then((payload) => payload.data.album)
   ));
+  const exhaustive = await getJson<{ data: { capturedAt: string; rows: ExhaustiveAuditRow[] } }>(
+    `${baseUrl}/api/admin/compositeurs/export?format=json`,
+  );
   if (albums.some((album) => album.labelSlug !== PARIGO_LABEL_ID)) throw new Error("L’export contient un album hors label Parigo.");
 
-  const tracks: FlatTrack[] = albums.flatMap((album) => (album.tracks ?? []).map((track) => ({
-    ...track,
-    albumId: album.id,
-    albumCode: album.code ?? "",
-    albumTitle: album.title,
-  })));
+  const tracks: FlatTrack[] = albums.flatMap(flattenAlbumTracks);
   const decisions = tracks.map((track) => ({ ...track, ...decision(track) }));
 
   const variantGroups = new Map<string, Set<string>>();
@@ -215,6 +255,58 @@ async function main() {
   }
 
   const capturedAt = new Date().toISOString();
+  const dateKey = capturedAt.slice(0, 10);
+  const records = exhaustive.data.rows;
+  const profileAudit = canonicalComposerProfiles.map((profile) => {
+    const profileRows = records.filter((row) => row.publicProfileSlugs.includes(profile.slug));
+    const albumIds = [...new Set(profileRows.map((row) => row.albumId))];
+    const profileAlbums = albumIds.map((albumId) => {
+      const albumRows = profileRows.filter((row) => row.albumId === albumId);
+      const workKeys = [...new Set(albumRows.map((row) => row.workId ?? `orphan:${row.trackId}`))];
+      return {
+        id: albumId,
+        code: albumRows[0]?.albumCode,
+        title: albumRows[0]?.albumTitle,
+        works: workKeys.map((workId) => {
+          const entries = albumRows.filter((row) => (row.workId ?? `orphan:${row.trackId}`) === workId);
+          return {
+            id: workId,
+            counted: !workId.startsWith("orphan:"),
+            main: entries.find((entry) => entry.variantKind === "main"),
+            variants: entries.filter((entry) => entry.variantKind !== "main"),
+          };
+        }),
+      };
+    });
+    return {
+      slug: profile.slug,
+      name: profile.name,
+      harvestValues: unique(profileRows.flatMap((row) => row.composerRaw)),
+      albumCount: profileAlbums.filter((album) => album.works.some((work) => work.counted)).length,
+      workCount: new Set(profileAlbums.flatMap((album) => album.works.filter((work) => work.counted).map((work) => `${album.id}:${work.id}`))).size,
+      variantCount: new Set(profileRows.map((row) => `${row.albumId}:${row.trackId}`)).size,
+      albums: profileAlbums,
+    };
+  });
+  const otherContributors = records.filter((row) => !row.publicProfileSlugs.length);
+  const exhaustiveAudit = {
+    schemaVersion: 2,
+    capturedAt: exhaustive.data.capturedAt,
+    source: `${baseUrl}/api/albums`,
+    readOnly: true,
+    albumCount: albums.length,
+    trackAndVariantCount: records.length,
+    profiles: profileAudit,
+    otherContributors,
+  };
+  const profileSummary = profileAudit.map((profile) => ({
+    slug: profile.slug,
+    name: profile.name,
+    harvestValues: profile.harvestValues,
+    albumCount: profile.albumCount,
+    workCount: profile.workCount,
+    variantCount: profile.variantCount,
+  }));
   const rollbackAlbums = albums.map((album) => ({
     id: album.id,
     code: album.code,
@@ -246,17 +338,23 @@ async function main() {
   const checksum = createHash("sha256").update(backupJson).digest("hex");
   await mkdir(outputRoot, { recursive: true });
   await Promise.all([
-    writeFile(path.join(outputRoot, "2026-08-03-before.json"), backupJson),
-    writeFile(path.join(outputRoot, "2026-08-03-before.sha256"), `${checksum}  2026-08-03-before.json\n`),
-    writeFile(path.join(outputRoot, "track-decisions.csv"), csv([
+    writeFile(path.join(outputRoot, `${dateKey}-before.json`), backupJson),
+    writeFile(path.join(outputRoot, `${dateKey}-before.sha256`), `${checksum}  ${dateKey}-before.json\n`),
+    writeFile(path.join(outputRoot, `audit-${dateKey}.json`), `${JSON.stringify(exhaustiveAudit, null, 2)}\n`),
+    writeFile(path.join(outputRoot, `summary-${dateKey}.json`), `${JSON.stringify({ capturedAt, profiles: profileSummary }, null, 2)}\n`),
+    writeFile(path.join(outputRoot, `audit-${dateKey}.csv`), csv([
+      ["album_code", "album_id", "album", "track_id", "main_track_id", "parent_track_id", "work_id", "titre", "version", "type", "composer_actuel", "composer_attendu", "artist_distinct", "ayants_droit_structurés", "anomalies", "statut"],
+      ...records.map((row) => [row.albumCode, row.albumId, row.albumTitle, row.trackId, row.mainTrackId, "", row.workId, row.title, row.version, row.variantKind, row.composerRaw, row.expectedComposerNames, row.artistRaw, row.structuredWriterNames, row.anomalies, row.status]),
+    ])),
+    writeFile(path.join(outputRoot, `track-decisions-${dateKey}.csv`), csv([
       ["album_code", "album_id", "album", "track_id", "main_track_id", "titre", "version", "alternate", "composer_avant", "composer_proposé", "action", "justification", "artist", "publisher", "ayants_droit_structurés", "validation"],
       ...decisions.map((row) => [row.albumCode, row.albumId, row.albumTitle, row.id, row.mainTrackId, row.title, row.version, Boolean(row.isAlternate || row.mainTrackId), row.before, row.after, row.action, row.reason, row.artists?.map((artist) => artist.name), row.publishers, row.rightHolders?.map((holder) => `${holder.name}|${holder.capacity ?? ""}|${holder.collectingSociety ?? ""}|${holder.ipi ?? ""}|${holder.share ?? ""}`), row.action === "update" ? "pilot-pending" : row.action]),
     ])),
-    writeFile(path.join(outputRoot, "composer-values.csv"), csv([
+    writeFile(path.join(outputRoot, `composer-values-${dateKey}.csv`), csv([
       ["valeur_actuelle", "valeur_canonique_proposée", "actions", "pistes", "albums", "versions", "justifications", "validation"],
       ...[...exactValues.entries()].sort(([left], [right]) => left.localeCompare(right, "fr", { sensitivity: "base" })).map(([name, item]) => [name || "[VIDE]", [...item.proposed], [...item.actions], [...item.trackIds], [...item.albums], [...item.versions], [...item.reasons], [...item.actions].includes("needs-review") ? "needs-review" : "pilot-pending"]),
     ])),
-    writeFile(path.join(outputRoot, "pilot.csv"), csv([
+    writeFile(path.join(outputRoot, `pilot-${dateKey}.csv`), csv([
       ["album_code", "album_id", "album", "track_id", "main_track_id", "titre", "version", "composer_avant", "composer_proposé", "action", "justification", "validation"],
       ...pilotRows.map((row) => [row.albumCode, row.albumId, row.albumTitle, row.id, row.mainTrackId, row.title, row.version, row.before, row.after, row.action, row.reason, "à-valider-avant-première-sauvegarde"]),
     ])),
@@ -273,7 +371,7 @@ async function main() {
       ? pilotRows.filter((row) => row.before.map(normalizeHarvestComposerCredit).includes(simplePilotGroup)).length
       : 0,
   };
-  await writeFile(path.join(outputRoot, "manifest.json"), `${JSON.stringify({
+  await writeFile(path.join(outputRoot, `manifest-${dateKey}.json`), `${JSON.stringify({
     capturedAt,
     labelId: PARIGO_LABEL_ID,
     albumCount: albums.length,

@@ -72,3 +72,10 @@ Ce document centralise les capacités absentes, ambiguës ou défaillantes renco
 ## Règle de maintenance
 
 Tout nouveau manque Harvest découvert pendant le développement doit créer ou mettre à jour une entrée de ce registre dans le même changement de code. Une limitation amont ne doit jamais être transformée silencieusement en donnée vide ou en relation supposée.
+# Description d’album bilingue non exposée par l’API
+
+Vérification initiale du 5 août 2026 sur l’album PGO0031 : Album Manager propose bien des onglets de description EN et FR, mais `getalbum` ne renvoyait que `Detail` en anglais.
+
+Nouvelle vérification live le 5 août 2026, après l’ajout effectif d’une description française dans Album Manager : la mise à jour est visible (`LastUpdated: 2026-08-05T18:37:48Z`), mais la Public API continue de renvoyer uniquement `Detail` en anglais. Elle n’expose toujours ni description française, ni `LanguageItems` d’album. Le mapper Parigo est prêt à consommer une future valeur localisée, mais l’affichage FR conserve donc actuellement le fallback anglais. Ajouter les traductions dans Album Manager reste utile pour préparer les données, mais ne les rend pas encore récupérables par le site via le contrat Public API observé.
+
+Le site conserve donc `Detail` comme description anglaise et applique le fallback suivant : langue courante, anglais, ancien champ `description`. Si Harvest ajoute ultérieurement des `LanguageItems` dont le type désigne une description, les valeurs `fr` et `en` seront consommées automatiquement. Le cache catalogue reste fixé à cinq minutes ; une modification du contrat ou du contenu apparaîtra après revalidation.

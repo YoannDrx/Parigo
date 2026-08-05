@@ -6,6 +6,7 @@ import {
   Check,
   ChevronDown,
   CircleHelp,
+  Copy,
   Database,
   Download,
   ListFilter,
@@ -39,7 +40,7 @@ type RightsFilter = "all" | ComposerTrackRightsState;
 type SortValue = "priority" | "name" | "albums" | "tracks";
 type EditorialFilter = "all" | EditorialAuditStatus;
 
-const rowGrid = "grid min-w-[1180px] grid-cols-[minmax(200px,1.35fr)_minmax(220px,1.35fr)_70px_70px_60px_60px_60px_125px_120px_44px] items-center gap-3";
+const rowGrid = "grid min-w-[1260px] grid-cols-[minmax(200px,1.35fr)_minmax(220px,1.35fr)_70px_70px_70px_60px_60px_60px_125px_120px_44px] items-center gap-3";
 
 const recommendationLabels: Record<ComposerAuditRecommendationKind, string> = {
   "society-suffix": "Suffixe de société",
@@ -49,6 +50,8 @@ const recommendationLabels: Record<ComposerAuditRecommendationKind, string> = {
   "missing-public-credit": "Composer public manquant",
   "different-right-holders": "Ayants droit contradictoires",
   "invalid-character": "Caractère corrompu",
+  "orphan-variant": "Version orpheline",
+  "main-variant-disagreement": "Désaccord principale / variantes",
 };
 
 const evidenceLabels = {
@@ -89,12 +92,8 @@ function formatDate(value: string): string {
   return new Intl.DateTimeFormat("fr-FR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(value));
 }
 
-function albumHref(albumId: string): string {
-  return `/albums/${albumId}`;
-}
-
-function trackHref(albumId: string, trackId: string): string {
-  return `${albumHref(albumId)}?track=${encodeURIComponent(trackId)}`;
+function harvestAlbumHref(albumId: string): string {
+  return `https://admin.harvestmedia.net/music/music.aspx?accountid=f924c25e35500090&collectionid=${encodeURIComponent(albumId)}&details=1`;
 }
 
 function identitySearchText(identity: ComposerAuditIdentitySummary): string {
@@ -243,10 +242,11 @@ function AlbumDisclosure({ album, identityId }: { album: ComposerAuditAlbumSumma
     <section className="overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
       <div className="flex flex-col gap-2 bg-[var(--surface-soft)] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
-          <Link href={albumHref(album.id)} prefetch={false} className="inline-flex items-center gap-1.5 font-semibold underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]">
-            {album.code ? `${album.code} · ` : ""}{album.title}<ArrowUpRight size={12} />
-          </Link>
+          <a href={harvestAlbumHref(album.id)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 font-semibold underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]">
+            Ouvrir l’album dans Harvest · {album.code ? `${album.code} · ` : ""}{album.title}<ArrowUpRight size={12} />
+          </a>
           <p className="mt-1 font-mono text-[.55rem] text-[var(--text-muted)]">Album ID · {album.id}</p>
+          {album.updatedAt ? <p className="mt-1 text-[.62rem] text-[var(--text-muted)]">LastUpdated Harvest · {formatDate(album.updatedAt)}</p> : null}
         </div>
         <button
           type="button"
@@ -254,32 +254,41 @@ function AlbumDisclosure({ album, identityId }: { album: ComposerAuditAlbumSumma
           onClick={() => void toggle()}
           className="inline-flex min-h-9 items-center justify-center gap-2 border border-[var(--line)] bg-[var(--surface)] px-3 text-xs font-semibold hover:border-[var(--line-strong)]"
         >
-          {album.trackCount} piste{album.trackCount > 1 ? "s" : ""}
+          {album.trackCount} œuvre{album.trackCount > 1 ? "s" : ""} · {album.variantCount} entrée{album.variantCount > 1 ? "s" : ""}
           <ChevronDown size={14} className={open ? "rotate-180" : undefined} />
         </button>
       </div>
       {open && details ? (
         <div className="divide-y divide-[var(--line)] border-t border-[var(--line)]">
-          {details.tracks.map((track) => (
-            <article key={track.id} className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_minmax(12rem,.65fr)_minmax(12rem,.65fr)_auto] md:items-center">
-              <div className="min-w-0">
-                <Link href={trackHref(album.id, track.id)} prefetch={false} className="inline-flex items-center gap-1.5 font-semibold underline underline-offset-3 hover:text-[var(--signal-strong)]">
-                  {track.title}<ArrowUpRight size={12} />
-                </Link>
-                <p className="mt-1 font-mono text-[.55rem] text-[var(--text-muted)]">
-                  {track.id}{track.version ? ` · ${track.version}` : ""}{track.isAlternate ? " · version" : " · principale"}
-                </p>
+          {details.works.map((work) => (
+            <section key={work.id} className="bg-[var(--surface)]">
+              <div className="border-b border-[var(--line)] bg-[var(--surface-soft)] px-4 py-2">
+                <p className="text-xs font-semibold">{work.counted ? "Œuvre principale" : "Version orpheline à vérifier"} · {work.title}</p>
               </div>
-              <div className="text-xs leading-5">
-                <p className="font-mono text-[.53rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Crédit exact lié</p>
-                <p className="mt-1 font-semibold">{track.matchedCreditNames.join(" · ") || "Champ Composer vide"}</p>
-              </div>
-              <div className="text-xs leading-5">
-                <p className="font-mono text-[.53rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Ayants droit structurés</p>
-                <p className="mt-1 font-semibold">{track.structuredWriterNames.join(" · ") || "Aucun renvoyé"}</p>
-              </div>
-              <RightsBadge state={track.rightsState} />
-            </article>
+              {work.tracks.map((track) => (
+                <article key={track.id} className={cn("grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_minmax(12rem,.65fr)_minmax(12rem,.65fr)_auto] md:items-center", track.variantKind !== "main" && "ml-4 border-l-2 border-l-[var(--line-strong)]")}>
+                  <div className="min-w-0">
+                    <p className="font-semibold">{track.title}</p>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 font-mono text-[.55rem] text-[var(--text-muted)]">
+                      <span>{track.id}</span>
+                      <button type="button" onClick={() => void navigator.clipboard.writeText(track.id)} className="inline-flex items-center gap-1 underline underline-offset-2"><Copy size={10} /> Copier le Track ID</button>
+                      <span>{track.version || (track.variantKind === "main" ? "principale" : track.variantKind)}</span>
+                    </div>
+                  </div>
+                  <div className="text-xs leading-5">
+                    <p className="font-mono text-[.53rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Actuel · Composer</p>
+                    <p className="mt-1 font-semibold">{track.matchedCreditNames.join(" · ") || "Champ Composer vide"}</p>
+                    <p className="mt-1 text-[.65rem] text-[var(--text-muted)]">Attendu · {track.expectedComposerNames.join(" · ") || "Validation humaine"}</p>
+                    {track.indexState === "reindex-pending" ? <p className="mt-1 font-semibold text-[#a45d00]">Cloud Search : réindexation possiblement en attente ({track.indexedComposerNames.join(" · ") || "vide"})</p> : null}
+                  </div>
+                  <div className="text-xs leading-5">
+                    <p className="font-mono text-[.53rem] uppercase tracking-[.08em] text-[var(--text-muted)]">Ayants droit structurés</p>
+                    <p className="mt-1 font-semibold">{track.structuredWriterNames.join(" · ") || "Aucun renvoyé"}</p>
+                  </div>
+                  <RightsBadge state={track.rightsState} />
+                </article>
+              ))}
+            </section>
           ))}
         </div>
       ) : open ? <div className="border-t border-[var(--line)] p-5 text-center text-xs text-[var(--text-muted)]">{loading ? "Chargement des pistes…" : error || "Pistes indisponibles."}</div> : null}
@@ -362,7 +371,8 @@ function IdentityRow({ identity }: { identity: ComposerAuditIdentitySummary }) {
           ) : <span className="text-[var(--text-muted)]">Aucun crédit associé</span>}
         </div>
         <div><span className="text-lg font-semibold">{identity.albumCount}</span><span className="ml-1 text-[.58rem] text-[var(--text-muted)]">albums</span></div>
-        <div><span className="text-lg font-semibold">{identity.trackCount}</span><span className="ml-1 text-[.58rem] text-[var(--text-muted)]">pistes</span></div>
+        <div><span className="text-lg font-semibold">{identity.trackCount}</span><span className="ml-1 text-[.58rem] text-[var(--text-muted)]">œuvres</span></div>
+        <div><span className="text-lg font-semibold">{identity.variantCount}</span><span className="ml-1 text-[.58rem] text-[var(--text-muted)]">entrées</span></div>
         <Presence value={identity.publicProfile?.hasBioFr} />
         <Presence value={identity.publicProfile?.hasBioEn} />
         <Presence value={identity.publicProfile?.hasPortrait} />
@@ -383,37 +393,6 @@ function IdentityRow({ identity }: { identity: ComposerAuditIdentitySummary }) {
   );
 }
 
-function csvCell(value: unknown): string {
-  const string = Array.isArray(value) ? value.join(" · ") : String(value ?? "");
-  return `"${string.replaceAll('"', '""').replace(/[\r\n]+/g, " ")}"`;
-}
-
-function identitiesCsv(identities: ComposerAuditIdentitySummary[]): string {
-  const header = [
-    "identite", "profil_public", "source", "nom_cible_harvest", "credits_harvest_exacts", "albums", "pistes",
-    "bio_fr", "bio_en", "portrait", "statut_harvest", "statut_editorial", "recommandations", "preuves",
-  ];
-  return `\uFEFF${[
-    header,
-    ...identities.map((identity) => [
-      identity.id,
-      identity.publicProfile?.name,
-      identity.source,
-      identity.preferredName,
-      identity.exactCredits.map((credit) => `${credit.name} (${credit.trackCount})`),
-      identity.albums.map((album) => `${album.code ?? album.id} · ${album.title}`),
-      identity.trackCount,
-      identity.publicProfile?.hasBioFr ?? "N/A",
-      identity.publicProfile?.hasBioEn ?? "N/A",
-      identity.publicProfile?.hasPortrait ?? "N/A",
-      identity.harvestStatus,
-      identity.editorialStatus,
-      identity.recommendations.map((item) => `${recommendationLabels[item.kind]}${item.proposedName ? ` → ${item.proposedName}` : ""}`),
-      identity.recommendations.map((item) => item.evidence ? evidenceLabels[item.evidence] : "validation humaine"),
-    ]),
-  ].map((row) => row.map(csvCell).join(";")).join("\n")}\n`;
-}
-
 function sortPriority(identity: ComposerAuditIdentitySummary): number {
   if (identity.harvestStatus === "review-required") return 0;
   if (identity.harvestStatus === "cleanup-required") return 1;
@@ -428,7 +407,7 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
   const searchParams = useSearchParams();
   const query = searchParams.get("q") ?? "";
   const deferredQuery = useDeferredValue(query);
-  const work = (searchParams.get("work") ?? "action") as WorkFilter;
+  const work = (searchParams.get("work") ?? "all") as WorkFilter;
   const source = (searchParams.get("source") ?? "all") as SourceFilter;
   const bioFr = (searchParams.get("bioFr") ?? "all") as PresenceFilter;
   const bioEn = (searchParams.get("bioEn") ?? "all") as PresenceFilter;
@@ -437,6 +416,7 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
   const rights = (searchParams.get("rights") ?? "all") as RightsFilter;
   const issue = (searchParams.get("issue") ?? "all") as ComposerAuditRecommendationKind | "all";
   const album = searchParams.get("album") ?? "all";
+  const profile = searchParams.get("profile") ?? "all";
   const sort = (searchParams.get("sort") ?? "priority") as SortValue;
 
   const setParam = (key: string, value: string, defaultValue = "all") => {
@@ -470,6 +450,7 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
       if (rights === "different" && !identity.differentRightHolderTrackCount) return false;
       if (rights === "missing-structured" && !identity.missingStructuredTrackCount) return false;
       if (issue !== "all" && !identity.recommendations.some((item) => item.kind === issue)) return false;
+      if (profile !== "all" && identity.publicProfile?.slug !== profile) return false;
       if (album !== "all" && !identity.albums.some((item) => (item.code ?? item.id) === album)) return false;
       return !normalizedQuery || identitySearchText(identity).includes(normalizedQuery);
     }).sort((left, right) => {
@@ -478,15 +459,27 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
       if (sort === "tracks") return right.trackCount - left.trackCount || left.preferredName.localeCompare(right.preferredName, "fr");
       return sortPriority(left) - sortPriority(right) || right.trackCount - left.trackCount || left.preferredName.localeCompare(right.preferredName, "fr");
     });
-  }, [album, bioEn, bioFr, data.identities, deferredQuery, editorial, issue, photo, rights, sort, source, work]);
+  }, [album, bioEn, bioFr, data.identities, deferredQuery, editorial, issue, photo, profile, rights, sort, source, work]);
+
+  const filteredOtherIdentities = useMemo(() => {
+    if (source === "public") return [];
+    const normalizedQuery = normalize(deferredQuery);
+    return data.otherIdentities.filter((identity) => {
+      if (work === "action" && identity.harvestStatus === "clean") return false;
+      if (work !== "action" && work !== "all" && identity.harvestStatus !== work) return false;
+      if (issue !== "all" && !identity.recommendations.some((item) => item.kind === issue)) return false;
+      if (album !== "all" && !identity.albums.some((item) => (item.code ?? item.id) === album)) return false;
+      return !normalizedQuery || identitySearchText(identity).includes(normalizedQuery);
+    }).sort((left, right) => sortPriority(left) - sortPriority(right) || left.preferredName.localeCompare(right.preferredName, "fr"));
+  }, [album, data.otherIdentities, deferredQuery, issue, source, work]);
 
   const downloadCsv = () => {
-    const href = URL.createObjectURL(new Blob([identitiesCsv(filteredIdentities)], { type: "text/csv;charset=utf-8" }));
+    const params = new URLSearchParams(searchParams.toString());
+    if (work === "action") params.delete("work");
+    const href = `/api/admin/compositeurs/export?${params.toString()}`;
     const link = document.createElement("a");
     link.href = href;
-    link.download = `parigo-audit-compositeurs-${data.capturedAt.slice(0, 10)}.csv`;
     link.click();
-    URL.revokeObjectURL(href);
   };
 
   return (
@@ -497,7 +490,7 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
             <Database size={19} className="mt-0.5 text-[var(--inverse-accent)]" />
             <div>
               <p className="text-sm font-semibold">Snapshot Harvest en lecture seule</p>
-              <p className="mt-1 text-xs text-[var(--inverse-muted)]">{data.metrics.albumCount}/{data.sourceAlbumCount} albums · {data.metrics.trackCount} pistes et versions · {data.metrics.exactCreditCount} libellés exacts · actualisé <time data-testid="composer-snapshot-time" dateTime={data.capturedAt}>{formatDate(data.capturedAt)}</time></p>
+              <p className="mt-1 text-xs text-[var(--inverse-muted)]">{data.metrics.albumCount}/{data.sourceAlbumCount} albums · {data.metrics.trackCount} pistes et versions · {data.metrics.exactCreditCount} libellés exacts · API lue <time data-testid="composer-snapshot-time" dateTime={data.capturedAt}>{formatDate(data.capturedAt)}</time>{data.indexCapturedAt ? ` · index Cloud Search lu ${formatDate(data.indexCapturedAt)}` : " · index Cloud Search indisponible"}</p>
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -513,22 +506,23 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
         <p className="mt-3 max-w-4xl text-sm leading-6 text-[var(--text-muted)]">Une ligne par identité résolue, avec les variantes exactes Harvest, la complétude éditoriale et les pistes à contrôler. Les recommandations sont recalculées depuis l’API courante.</p>
       </header>
 
-      {data.failedAlbums.length ? (
+      {data.failedAlbums.length || data.unresolvedVariants.length ? (
         <section className="mx-auto max-w-[1800px] px-4 md:px-7">
           <div className="border-l-4 border-l-[var(--danger)] bg-[#b42318]/7 p-4 text-sm">
             <p className="font-semibold">Audit partiel : aucun verdict global ne peut être considéré comme définitif.</p>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Albums indisponibles : {data.failedAlbums.map((item) => `${item.code ? `${item.code} · ` : ""}${item.title} (${item.id})`).join(" · ")}</p>
+            {data.failedAlbums.length ? <p className="mt-1 text-xs text-[var(--text-muted)]">Albums indisponibles : {data.failedAlbums.map((item) => `${item.code ? `${item.code} · ` : ""}${item.title} (${item.id})`).join(" · ")}</p> : null}
+            {data.unresolvedVariants.length ? <p className="mt-1 text-xs text-[var(--text-muted)]">Stems non résolus : {data.unresolvedVariants.map((item) => `${item.albumCode ?? item.albumId} · parent ${item.parentTrackId} · stem ${item.variantId}`).join(" · ")}</p> : null}
           </div>
         </section>
       ) : null}
 
       <section aria-label="Indicateurs" className="mx-auto mt-4 max-w-[1800px] px-4 md:px-7">
         <div className="flex gap-3 overflow-x-auto pb-2">
-          <MetricButton label="Actions requises" value={data.metrics.actionRequiredCount} active={work === "action"} tone="warning" onClick={() => setParam("work", "action", "action")} />
-          <MetricButton label="Corrections disponibles" value={data.metrics.cleanupRequiredCount} active={work === "cleanup-required"} tone="warning" onClick={() => setParam("work", "cleanup-required", "action")} />
-          <MetricButton label="À vérifier" value={data.metrics.reviewRequiredCount} active={work === "review-required"} tone="danger" onClick={() => setParam("work", "review-required", "action")} />
+          <MetricButton label="Actions requises" value={data.metrics.actionRequiredCount} active={work === "action"} tone="warning" onClick={() => setParam("work", "action")} />
+          <MetricButton label="Corrections disponibles" value={data.metrics.cleanupRequiredCount} active={work === "cleanup-required"} tone="warning" onClick={() => setParam("work", "cleanup-required")} />
+          <MetricButton label="À vérifier" value={data.metrics.reviewRequiredCount} active={work === "review-required"} tone="danger" onClick={() => setParam("work", "review-required")} />
           <MetricButton label="Contenus incomplets" value={data.metrics.incompleteEditorialCount} active={editorial === "incomplete"} tone="info" onClick={() => setParam("editorial", "incomplete")} />
-          <MetricButton label="Corrects" value={data.metrics.cleanCount} active={work === "clean"} tone="success" onClick={() => setParam("work", "clean", "action")} />
+          <MetricButton label="Corrects" value={data.metrics.cleanCount} active={work === "clean"} tone="success" onClick={() => setParam("work", "clean")} />
         </div>
       </section>
 
@@ -540,8 +534,8 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
               <span className="parigo-field flex min-h-10 items-center gap-2 border border-[var(--line)] bg-[var(--surface)] px-3"><Search size={14} className="text-[var(--text-muted)]" /><input value={query} onChange={(event) => setParam("q", event.target.value, "")} placeholder="Nom, variante, PGO, album, piste ou ID…" className="min-w-0 flex-1 bg-transparent text-sm outline-none" /></span>
             </label>
             <div className="grid flex-1 grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6">
-              <FilterSelect label="Travail" value={work} onChange={(value) => setParam("work", value, "action")} options={[
-                { value: "action", label: "Actions requises" }, { value: "review-required", label: "À vérifier" }, { value: "cleanup-required", label: "Correction disponible" }, { value: "clean", label: "Correct" }, { value: "no-credit", label: "Sans crédit" }, { value: "all", label: "Tous" },
+              <FilterSelect label="Travail" value={work} onChange={(value) => setParam("work", value)} options={[
+                { value: "all", label: "Tous" }, { value: "action", label: "Actions requises" }, { value: "review-required", label: "À vérifier" }, { value: "cleanup-required", label: "Correction disponible" }, { value: "clean", label: "Correct" }, { value: "no-credit", label: "Sans crédit" },
               ]} />
               <FilterSelect label="Source" value={source} onChange={(value) => setParam("source", value)} options={[{ value: "all", label: "Toutes" }, { value: "public", label: "Profil public" }, { value: "harvest", label: "Harvest uniquement" }]} />
               <FilterSelect label="Bio FR" value={bioFr} onChange={(value) => setParam("bioFr", value)} options={[{ value: "all", label: "Toutes" }, { value: "present", label: "Présente" }, { value: "missing", label: "Manquante" }]} />
@@ -553,7 +547,8 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
           </div>
           <details className="group mt-3 border-t border-[var(--line)] pt-2">
             <summary className="flex cursor-pointer list-none items-center gap-2 text-xs font-semibold marker:content-none"><ListFilter size={14} /> Filtres avancés <ChevronDown size={13} className="transition group-open:rotate-180" /></summary>
-            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              <FilterSelect label="Profil" value={profile} onChange={(value) => setParam("profile", value)} options={[{ value: "all", label: "Tous les profils" }, ...data.identities.map((identity) => ({ value: identity.publicProfile?.slug ?? identity.id, label: identity.publicProfile?.name ?? identity.preferredName })).sort((left, right) => left.label.localeCompare(right.label, "fr"))]} />
               <FilterSelect label="Ayants droit" value={rights} onChange={(value) => setParam("rights", value)} options={[{ value: "all", label: "Tous" }, { value: "aligned", label: "Alignés" }, { value: "different", label: "Contradictoires" }, { value: "missing-structured", label: "Non structurés" }]} />
               <FilterSelect label="Anomalie" value={issue} onChange={(value) => setParam("issue", value)} options={[{ value: "all", label: "Toutes" }, ...Object.entries(recommendationLabels).map(([value, label]) => ({ value, label }))]} />
               <FilterSelect label="Album" value={album} onChange={(value) => setParam("album", value)} options={[{ value: "all", label: "Tous les albums" }, ...albumOptions.map(([value, label]) => ({ value, label }))]} />
@@ -567,7 +562,7 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="font-mono text-[.6rem] uppercase tracking-[.1em] text-[var(--signal-strong)]">File opérationnelle</p>
-            <h2 className="mt-1 text-2xl font-semibold">{filteredIdentities.length} identité{filteredIdentities.length > 1 ? "s" : ""} affichée{filteredIdentities.length > 1 ? "s" : ""} sur {data.metrics.identityCount}</h2>
+            <h2 className="mt-1 text-2xl font-semibold">{filteredIdentities.length} profil{filteredIdentities.length > 1 ? "s" : ""} affiché{filteredIdentities.length > 1 ? "s" : ""} sur {data.identities.length}</h2>
           </div>
           <button type="button" onClick={downloadCsv} disabled={!filteredIdentities.length} className="inline-flex min-h-10 items-center gap-2 border border-[var(--line-strong)] bg-[var(--surface)] px-4 text-xs font-semibold hover:bg-[var(--surface-soft)] disabled:opacity-50"><Download size={15} /> Exporter la sélection CSV</button>
         </div>
@@ -577,7 +572,8 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
             <button type="button" onClick={() => setParam("sort", "name", "priority")} className="text-left hover:text-[var(--inverse-accent)]">Contributeur</button>
             <span>Noms Harvest / cible</span>
             <button type="button" onClick={() => setParam("sort", "albums", "priority")} className="text-left hover:text-[var(--inverse-accent)]">Albums</button>
-            <button type="button" onClick={() => setParam("sort", "tracks", "priority")} className="text-left hover:text-[var(--inverse-accent)]">Pistes</button>
+            <button type="button" onClick={() => setParam("sort", "tracks", "priority")} className="text-left hover:text-[var(--inverse-accent)]">Œuvres</button>
+            <span>Variantes</span>
             <span>Bio FR</span><span>Bio EN</span><span>Photo</span>
             <button type="button" onClick={() => setParam("sort", "priority", "priority")} className="text-left hover:text-[var(--inverse-accent)]">État Harvest</button>
             <span>État éditorial</span><span className="sr-only">Détails</span>
@@ -585,6 +581,22 @@ export function ComposerAuditDashboard({ data, refreshAction }: { data: Composer
           {filteredIdentities.map((identity) => <IdentityRow key={identity.id} identity={identity} />)}
         </div>
         {!filteredIdentities.length ? <div className="border border-dashed border-[var(--line-strong)] bg-[var(--surface)] py-16 text-center"><Search size={28} className="mx-auto text-[var(--text-muted)]" /><p className="mt-3 font-semibold">Aucune identité ne correspond à ces filtres.</p></div> : null}
+
+        <details className="group mt-5 border border-[var(--line)] bg-[var(--surface)]">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 font-semibold marker:content-none">
+            <span className="inline-flex items-center gap-2"><Users size={16} className="text-[var(--signal-strong)]" /> Autres contributeurs Harvest · {filteredOtherIdentities.length}</span>
+            <ChevronDown size={15} className="transition group-open:rotate-180" />
+          </summary>
+          <div className="overflow-x-auto border-t border-[var(--line)]">
+            {filteredOtherIdentities.map((identity) => <IdentityRow key={identity.id} identity={identity} />)}
+            {!filteredOtherIdentities.length ? <p className="p-6 text-center text-sm text-[var(--text-muted)]">Aucun autre contributeur ne correspond aux filtres actifs.</p> : null}
+          </div>
+        </details>
+
+        <aside className="mt-5 rounded-[var(--radius-lg)] border border-[#a45d00]/35 bg-[#a45d00]/7 p-4 text-sm leading-6">
+          <p className="font-semibold">Champ Harvest à nettoyer uniquement</p>
+          <p className="mt-1 text-[var(--text-muted)]">Dans Right Holder Text, modifier seulement <strong className="text-[var(--foreground)]">Author(s)/Composer(s)/Arranger(s)</strong>. Ne pas modifier Artist(s), Publisher(s), les sociétés, IPI, parts ou ayants droit structurés. Cet écran et ses exports restent strictement en lecture seule.</p>
+        </aside>
 
         <details className="group mt-5 border border-[var(--line)] bg-[var(--surface)]">
           <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 font-semibold marker:content-none"><span className="inline-flex items-center gap-2"><CircleHelp size={16} className="text-[var(--signal-strong)]" /> Comprendre le rapprochement</span><ChevronDown size={15} className="transition group-open:rotate-180" /></summary>

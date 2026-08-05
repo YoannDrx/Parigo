@@ -17,6 +17,7 @@ import { getParigoHarvestComposerInventory, resolveCanonicalComposerSlug } from 
 import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata } from "@/lib/seo";
+import { composerRoleLabel } from "@/lib/composers/presentation";
 
 interface ComposerPageProps {
   params: Promise<{ slug: string }>;
@@ -75,50 +76,50 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
     <div className="page-shell min-h-screen">
       <Header />
       <main className="pt-[70px]">
-        <section className="editorial-detail-hero relative mx-auto max-w-[1500px] overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-8 md:pb-24">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1500px] px-4 pb-12 pt-8 sm:px-6 lg:px-8 md:pb-20">
           <Link href={localizedPath(locale, "/compositeurs")} className="mb-10 inline-flex min-h-11 items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Tous les compositeurs" : "All composers"}
           </Link>
-          <div className="grid gap-8 border-y border-[var(--line-strong)] py-10 md:grid-cols-[minmax(17rem,.72fr)_minmax(0,1fr)] md:gap-12 md:py-16">
-            <div className="relative aspect-square overflow-hidden bg-[var(--surface-soft)]">
+          <div className="composer-detail-hero parigo-panel grid gap-7 overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] p-3 shadow-[var(--shadow-sm)] sm:p-5 md:grid-cols-[minmax(17rem,.78fr)_minmax(0,1fr)] md:gap-10 lg:p-8">
+            <div className="parigo-frame relative aspect-square min-w-0 overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
               <Image
                 src={profile.image}
                 alt={profile.imageStatus === "portrait" ? profile.name : ""}
                 fill
                 priority
-                sizes="(max-width: 768px) 100vw, 42vw"
-                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 38vw"
+                className="object-cover transition-transform duration-700 hover:scale-[1.02]"
               />
             </div>
-            <div className="self-end">
-              <p className="font-mono text-[.62rem] uppercase tracking-[.14em] text-[var(--signal-strong)]">
-                {profile.kind === "group" ? (locale === "fr" ? "Collectif Parigo" : "Parigo collective") : (locale === "fr" ? "Compositeur·rice Parigo" : "Parigo composer")}
+            <div className="flex min-w-0 flex-col justify-end px-2 pb-2 pt-3 md:px-0 md:pb-4 md:pt-8">
+              <p className="inline-flex w-fit rounded-full border border-[var(--line-strong)] bg-[var(--signal-soft)] px-3 py-1.5 font-mono text-[.6rem] font-semibold uppercase tracking-[.13em] text-[var(--signal-strong)]">
+                {composerRoleLabel(profile, locale)}
               </p>
-              <SignedTitle className="mt-5 break-words font-[var(--font-editorial)] text-6xl leading-[.9] tracking-[-.055em] md:text-8xl">{profile.name}</SignedTitle>
-              <dl className="mt-10 grid gap-4 text-sm sm:grid-cols-3">
-                <div><dt className="text-[var(--text-muted)]">{locale === "fr" ? "Pistes" : "Tracks"}</dt><dd className="mt-1 text-2xl font-semibold">{profile.trackCount}</dd></div>
-                <div><dt className="text-[var(--text-muted)]">Albums</dt><dd className="mt-1 text-2xl font-semibold">{profile.albumIds.length}</dd></div>
-                <div><dt className="text-[var(--text-muted)]">{locale === "fr" ? "Références" : "References"}</dt><dd className="mt-2 font-mono text-xs">{profile.albumCodes.join(" · ") || "—"}</dd></div>
+              <SignedTitle className="mt-5 max-w-full [overflow-wrap:anywhere] font-[var(--font-editorial)] text-[clamp(3.5rem,9vw,7.8rem)] leading-[.86] tracking-[-.06em]">{profile.name}</SignedTitle>
+              <dl className="mt-8 grid grid-cols-2 gap-3 text-sm sm:max-w-xl">
+                <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-4"><dt className="text-[var(--text-muted)]">{locale === "fr" ? "Œuvres principales" : "Main works"}</dt><dd className="mt-1 text-3xl font-semibold tracking-[-.05em]">{profile.trackCount}</dd></div>
+                <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-4"><dt className="text-[var(--text-muted)]">Albums</dt><dd className="mt-1 text-3xl font-semibold tracking-[-.05em]">{profile.albumIds.length}</dd></div>
               </dl>
-              {profile.harvestCredits.length > 0 && <p className="mt-8 max-w-3xl text-xs leading-5 text-[var(--text-muted)]">
-                <span className="font-semibold text-[var(--foreground)]">{locale === "fr" ? "Crédits Harvest associés :" : "Associated Harvest credits:"}</span>{" "}
-                {profile.harvestCredits.map((credit) => credit.name).join(" · ")}
-              </p>}
             </div>
           </div>
         </section>
 
-        {bio && <section className="border-t border-[var(--line)]">
-          <div className="mx-auto grid max-w-[1500px] gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[18rem_minmax(0,1fr)] lg:px-8 md:py-24">
-            <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">Biographie</SignedTitle>
-            <div className="max-w-4xl text-base leading-8 text-[var(--text-muted)] md:text-lg"><Bio value={bio} /></div>
+        {bio && <section>
+          <div className="mx-auto max-w-[1500px] px-4 py-10 sm:px-6 lg:px-8 md:py-16">
+            <div className="parigo-panel grid gap-8 border border-[var(--line)] bg-[var(--surface)] p-6 shadow-[var(--shadow-sm)] md:p-10 lg:grid-cols-[16rem_minmax(0,1fr)] lg:gap-12">
+              <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">{locale === "fr" ? "Biographie" : "Biography"}</SignedTitle>
+              <div className="max-w-3xl text-base leading-8 text-[var(--text-muted)] md:text-lg"><Bio value={bio} /></div>
+            </div>
           </div>
         </section>}
 
-        <section className="border-t border-[var(--line)]">
+        <section>
           <div className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-            <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl tracking-[-.05em]">Albums Parigo</SignedTitle>
+            <div className="mb-10 flex flex-wrap items-end justify-between gap-4 border-b border-[var(--line)] pb-5">
+              <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">{locale === "fr" ? "Albums Parigo" : "Parigo albums"}</SignedTitle>
+              <p className="font-mono text-[.62rem] uppercase tracking-[.12em] text-[var(--text-muted)]">{albums.length} album{albums.length > 1 ? "s" : ""}</p>
+            </div>
             {albums.length > 0 ? (
               <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
                 {albums.map((album) => <AlbumCard key={album.id} album={album} />)}

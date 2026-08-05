@@ -122,7 +122,7 @@ async function main() {
   const registry = JSON.parse(
     await readFile(path.join(process.cwd(), "src/content/composer-profiles.generated.json"), "utf8"),
   ) as ComposerRegistry;
-  if (registry.profiles.length !== 45) throw new Error(`Le registre canonique contient ${registry.profiles.length} profils au lieu de 45.`);
+  if (registry.profiles.length !== 57) throw new Error(`Le registre canonique contient ${registry.profiles.length} profils au lieu de 57.`);
   const pairedBios = registry.profiles.filter((profile) => profile.bio.fr && profile.bio.en);
   const emptyBios = registry.profiles.filter((profile) => !profile.bio.fr && !profile.bio.en);
   if (pairedBios.length !== 37 || emptyBios.length !== 8) {

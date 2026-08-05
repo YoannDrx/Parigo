@@ -64,6 +64,30 @@ export function mapLibraryDescriptions(item: HarvestRecord): Partial<Record<"fr"
   return descriptions;
 }
 
+export function mapAlbumDescriptions(
+  languageItems: unknown[],
+  englishDescription?: string | null,
+): Partial<Record<"fr" | "en", string>> {
+  const descriptions: Partial<Record<"fr" | "en", string>> = {};
+  const english = englishDescription?.trim();
+  if (english) descriptions.en = english;
+  for (const languageItem of languageItems) {
+    if (!isRecord(languageItem)) continue;
+    const type = asString(languageItem.Type).toLocaleLowerCase("en");
+    if (!type.includes("description")) continue;
+    const language = asString(pick(
+      languageItem,
+      "LanguageCode_ISO639_1",
+      "LanguageCode",
+      "Language",
+      "CultureCode",
+    )).trim().toLocaleLowerCase("en").slice(0, 2);
+    const value = asString(pick(languageItem, "Value", "Detail", "Description", "Text")).trim();
+    if ((language === "fr" || language === "en") && value) descriptions[language] = value;
+  }
+  return descriptions;
+}
+
 function mapCredits(item: HarvestTrackPayload): Array<{ name: string; slug: string }> {
   return asList(item.Artist).map((name) => ({
     name,
@@ -121,6 +145,7 @@ export function mapTrack(
     // Some Cloud Search payloads flag the main version as alternate. Harvest's
     // explicit version and main-track relationship are the reliable contract.
     isAlternate: isMainVersion ? false : Boolean(parsed.MainTrackID || parsed.IsAlternate),
+    variantKind: isMainVersion || (!parsed.MainTrackID && !parsed.IsAlternate) ? "main" : "alternate",
     alternateCount: parsed.AlternateCount || 0,
     stemCount: parsed.StemCount || 0,
     isrc: parsed.ISRC || undefined,
@@ -152,7 +177,7 @@ export function mapTrack(
   };
   track.alternateTracks = parsed.AlternateTracks
     .filter(isRecord)
-    .map((alternate) => ({ ...mapTrack(alternate, templates, album, `${source}-alternate`), isAlternate: true }));
+    .map((alternate) => ({ ...mapTrack(alternate, templates, album, `${source}-alternate`), isAlternate: true, variantKind: "alternate" }));
   return track;
 }
 
@@ -181,6 +206,7 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
   const genres = asList(parsed.Genre);
   const releaseDate = asIsoDate(parsed.ReleaseDate);
   const identity = albumIdentity(titleOf(parsed), parsed.Code || parsed.CdCode || parsed.CDCode);
+  const descriptions = mapAlbumDescriptions(parsed.LanguageItems, parsed.Detail || parsed.Description);
   return {
     id,
     slug: id,
@@ -190,7 +216,8 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
     cover: templates.albumArt
       ? assetUrl(templates.albumArt, { id, width: 800, height: 800 })
       : "/images/placeholder-album.svg",
-    description: parsed.Detail || parsed.Description || null,
+    description: descriptions.en || parsed.Detail || parsed.Description || null,
+    ...(Object.keys(descriptions).length ? { descriptions } : {}),
     genres,
     moods: asList(parsed.Mood),
     releaseDate,
@@ -379,7 +406,11 @@ export async function getAlbumDiscovery(options: {
   };
 }
 
-export async function getAlbum(id: string, authenticatedMemberToken?: string): Promise<{ album: Album & { tracks: Track[] }; similar: Album[] }> {
+export async function getAlbum(
+  id: string,
+  authenticatedMemberToken?: string,
+  options: { resolveStemDetails?: boolean } = {},
+): Promise<{ album: Album & { tracks: Track[] }; similar: Album[] }> {
   const detailPromise = guestRequest<HarvestRecord>(
     (token) => `/getalbum/${token}/${encodeURIComponent(id)}?returnLibraryCodes=false`,
   );
@@ -427,6 +458,33 @@ export async function getAlbum(id: string, authenticatedMemberToken?: string): P
       cdCode: base.code,
     };
   });
+  const allKnownTracks = new Map<string, Track>();
+  const visit = (track: Track) => {
+    allKnownTracks.set(track.id, track);
+    for (const alternate of track.alternateTracks ?? []) visit(alternate);
+  };
+  tracks.forEach(visit);
+  const stemRelations = [...allKnownTracks.values()].flatMap((parent) => (
+    (parent.stems ?? []).map((stem) => ({ parent, stemId: stem.id }))
+  ));
+  const unresolvedStemIds = options.resolveStemDetails
+    ? [...new Set(stemRelations.map((item) => item.stemId).filter((id) => !allKnownTracks.has(id)))]
+    : [];
+  const resolvedStems = options.resolveStemDetails
+    ? await getTracksByIds(unresolvedStemIds, authenticatedMemberToken, base, "album-stem")
+    : [];
+  const resolvedStemsById = new Map(resolvedStems.map((track) => [track.id, track]));
+  for (const { parent, stemId } of options.resolveStemDetails ? stemRelations : []) {
+    if (allKnownTracks.has(stemId)) continue;
+    const resolved = resolvedStemsById.get(stemId);
+    if (!resolved) {
+      parent.unresolvedStemIds = [...new Set([...(parent.unresolvedStemIds ?? []), stemId])];
+      continue;
+    }
+    const stem: Track = { ...resolved, isAlternate: true, variantKind: "stem", parentTrackId: parent.id };
+    parent.alternateTracks = [...(parent.alternateTracks ?? []), stem];
+    allKnownTracks.set(stem.id, stem);
+  }
   return {
     album: { ...base, trackCount: tracks.length, tracks },
     similar: [],

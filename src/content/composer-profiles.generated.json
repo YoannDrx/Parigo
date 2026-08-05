@@ -1,6 +1,96 @@
 {
-  "generatedAt": "2026-08-03",
+  "generatedAt": "2026-08-05T10:49:16.689Z",
   "profiles": [
+    {
+      "slug": "aiwa",
+      "name": "Aiwa",
+      "kind": "group",
+      "bio": {
+        "fr": "Formé en 1998 par Wamid et Naufalle Al Wahab, deux frères d'origine irakienne ayant grandi en France, Aïwa est un collectif musical qui fusionne avec brio les sonorités de la musique classique arabe et les rythmes de la musique électronique occidentale moderne. Le nom du groupe, signifiant \"oui\" en arabe, reflète leur approche positive et affirmée de la musique, cherchant à créer des ponts entre différentes cultures musicales.\nDès leur jeunesse, les frères Al Wahab ont été bercés par les mélodies d'icônes telles que Oum Kalthoum et Abdel Halim Hafez, influences qui se ressentent profondément dans leur musique. Wamid, bassiste, et Naufalle, spécialiste de la derbouka et du rap arabe, ont enrichi leur son avec des touches électroniques, créant un style unique qui mélange l'électronica à des éléments traditionnels arabes.\nLe groupe s'est agrandi pour inclure plusieurs talents musicaux de Rennes, notamment Séverine à la voix et à la composition, Gaël au saxophone et à la flûte, DJ Sambal aux platines, Damien à la guitare, et Matt à la batterie. Cette collaboration a permis de diversifier leur palette sonore et d'intégrer des influences variées dans leur musique.\nLeur première grande percée a eu lieu en 2002 avec la signature chez le label canadien Wikkid Records, qui a facilité la sortie de leur premier album en mai 2003. Cet album a bénéficié d'une distribution internationale, touchant des audiences dans de nombreux pays, de l'Europe au Moyen-Orient.\nLeur deuxième opus, \"Elnar\" (qui signifie \"le feu\" en arabe), a montré une maturité croissante et a confirmé leur capacité à innover. L'album mélange habilement hip-hop, musique arabe et influences globales, avec des morceaux notables tels que \"Elnar\", \"Dioud\", et \"Ibn Sina\". L'ajout de voix invitées, comme celle d'Anissa Derkaoui, a enrichi le projet, apportant une nouvelle dimension à leur son déjà riche.\nAïwa s'est également fait remarquer sur la scène live, notamment lors de performances mémorables aux Transmusicales de Rennes en 2000. Leur présence sur scène est complétée par des performances vidéo-live qui ajoutent une dimension visuelle à leur musique audacieuse et expérimentale.\nAvec un style qui traverse et redéfinit les genres, Aïwa continue de fasciner et d'innover, offrant une expérience musicale qui est à la fois un hommage à leurs racines culturelles et une exploration audacieuse de nouvelles territoires musicaux. Leur musique n'est pas seulement une fusion de sons, mais un véritable dialogue entre les cultures, faisant d'Aïwa un groupe essentiel dans le paysage musical moderne.",
+        "en": "Formed in 1998 by brothers Wamid and Naufalle Al Wahab, of Iraqi origin and raised in France, Aïwa is a musical collective that brilliantly fuses the sounds of classical Arabic music with the rhythms of modern Western electronic music. The group’s name, meaning “yes” in Arabic, reflects their positive, assertive approach, seeking to build bridges between different musical cultures.\nFrom an early age, the Al Wahab brothers were immersed in the melodies of icons such as Oum Kalthoum and Abdel Halim Hafez, influences that run deep through their music. Wamid, a bassist, and Naufalle, a specialist in derbouka and Arabic rap, expanded their sound with electronic textures, creating a unique style that blends electronica with traditional Arabic elements.\nThe group grew to include several musicians from Rennes: Séverine on vocals and composition, Gaël on saxophone and flute, DJ Sambal on turntables, Damien on guitar, and Matt on drums. This collaboration broadened their sonic palette and allowed them to integrate a wide range of influences into their music.\nTheir first major breakthrough came in 2002 when they signed with Canadian label Wikkid Records, which released their debut album in May 2003. The record enjoyed international distribution, reaching audiences across many countries, from Europe to the Middle East.\nTheir second album, Elnar (meaning “the fire” in Arabic), showcased a growing maturity and confirmed their ability to innovate. The album skillfully combines hip-hop, Arabic music and global influences, with standout tracks such as “Elnar”, “Dioud”, and “Ibn Sina”. Guest vocals, including that of Anissa Derkaoui, enriched the project and added another dimension to their already dense sound.\nAïwa also made a strong impression on stage, notably with memorable performances at the Transmusicales de Rennes in 2000. Their live shows are enhanced by video performances, adding a visual layer to their bold, experimental music.\nWith a style that crosses and redefines genres, Aïwa continues to captivate and innovate, offering a musical experience that is both a tribute to their cultural roots and a daring exploration of new musical territories. Their music is not just a fusion of sounds, but a true dialogue between cultures, making Aïwa a key group on the contemporary music scene."
+      },
+      "image": "/images/composers/canonical/aiwa.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Naufalle Al Wahab",
+          "Al Wahab Naufalle",
+          "Wamid Al Wahab",
+          "Al Wahab Wamid"
+        ],
+        "scopedRelations": [],
+        "creditIdentities": [
+          {
+            "preferredName": "Naufalle Al Wahab",
+            "aliases": [
+              "Naufalle Al Wahab",
+              "Al Wahab Naufalle"
+            ]
+          },
+          {
+            "preferredName": "Wamid Al Wahab",
+            "aliases": [
+              "Wamid Al Wahab",
+              "Al Wahab Wamid"
+            ]
+          }
+        ]
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "aiwa",
+        "imageSlug": "aiwa",
+        "editorialArtistSlug": "aiwa"
+      }
+    },
+    {
+      "slug": "arat-kilo",
+      "name": "Arat Kilo",
+      "kind": "group",
+      "bio": {
+        "fr": "Leader incontesté de la scène éthio-jazz en France, Arat Kilo forme un des tissages transculturels les plus excitants du moment. Accompagnés de Mamani Keita, diva malienne, et Mike Ladd, pionnier du rap US, ce super groupe enchaîne les superlatifs tant sur disque que sur scène. A coup de rythmiques hypnotiques, de cuivres enflammés et de mélodies irrésistibles, il reste fidèle à l’esprit de la musique des anciens sans jamais verser dans la nostalgie. Malgré des thèmes abordés tels les violences policières, les injustices sociales ou l’héritage colonial, on retient surtout les intonations urbaines et festives des compositions qui empruntent autant à Adis Abeba qu’à Paris ou Boston.\nDe la rencontre, en 2008, dans un festival au cœur du parc alpin du Queyras, de trois blancs-becs parigots : Fabien Girard (guitariste), Michaël Havard (saxophoniste), Samuel Hirsch (bassiste), tous mabouls des compilations Éthiopiques du label Buda Musique et des audaces de John Zorn. Du choix de cet étrange nom de groupe, « Arat Kilo », en hommage à ce quartier étudiant – oasis de jeunesse, de savoir, de lumière – d’Addis-Abeba situé à « quatre kilomètres » de la gare. Du premier EP autoproduit, sans titre, enregistré la nuit dans le studio d’Arte Radio. Du premier album officiel, A Night in Abyssinia, clin d’œil à Dizzy Gillespie, avec au chant la Malienne Rokia Traoré, le rappeur québécois SoCalled ou la présence du vénéré mentor Mulatu Astatke, qui reprenait l’un de ses morceaux envoûtants, Dewel, en compagnie de jeunes disciples enchantés. De ce bref séjour « à l’arrache » en Éthiopie, pour ouvrir leurs oreilles au-delà du fantasme, qui aboutit à ce mini-album de vingt minutes, 12 days in Addis, enregistré dans la capitale avec des pointures locales (2012). De l’arrivée providentielle de Florent Berteau (batteur), Gérald Bonnegrace (percussionniste) et Aristide Gonçalves (trompettiste et pianiste), décuplant les thèmes qui pousseront dans l’album autoproduit Nouvelle fleur (2016), marqué par deux premières collaborations avec la chanteuse malienne Mamani Keïta et le rappeur américain Mike Ladd. De la signature sur le label Accords Croisés pour produire Visions of Selam (2018, avec Mike et Mamani) et De Kaboul à Bamako : Sowal Diabi (2022, né de leur rencontre avec des musicien·ne·s afghan·e·s, kurdes ou iranien·ne·s, toujours avec Mamani) ou faire tourner depuis 2019 le spectacle Le Dernier Rimbaud, lecture musicale des lettres envoyées depuis l’Abyssinie par l’auteur brûlant d’Une saison en enfer, imaginé avec l’écrivain.",
+        "en": "Undisputed leaders of the Ethio-jazz scene in France, Arat Kilo are one of the most exciting cross-cultural outfits around. Joined by Malian diva Mamani Keita and US rap pioneer Mike Ladd, this supergroup racks up superlatives both on record and on stage. With hypnotic grooves, blazing horns and irresistible melodies, they stay true to the spirit of the music of their elders without ever lapsing into nostalgia. Even when tackling themes such as police violence, social injustice or the legacy of colonialism, what stands out most are the urban, celebratory overtones of their songs, which draw as much from Addis Ababa as from Paris or Boston.\nIt all began in 2008 at a festival in the heart of the Queyras Alps, when three Parisian kids met: guitarist Fabien Girard, saxophonist Michaël Havard and bassist Samuel Hirsch, all obsessed with Buda Musique’s Éthiopiques compilations and the daring experiments of John Zorn. The band chose the unusual name “Arat Kilo” as a tribute to a student district of Addis Ababa – an oasis of youth, knowledge and light – located “four kilometres” from the train station.\nThey self-released a first untitled EP, recorded at night in the Arte Radio studio, followed by their official debut album A Night in Abyssinia – a nod to Dizzy Gillespie – featuring Malian singer Rokia Traoré, Canadian rapper Socalled and their revered mentor Mulatu Astatke, who revisited one of his mesmerising pieces, “Dewel”, alongside his thrilled young disciples.\nA brief, improvised trip to Ethiopia to listen beyond their fantasies led to the mini-album 12 Days in Addis (2012), recorded in the capital with top local musicians. The line-up was then strengthened by the arrival of drummer Florent Berteau, percussionist Gérald Bonnegrace and trumpeter/pianist Aristide Gonçalves, dramatically expanding the band’s sound palette and paving the way for the self-produced album Nouvelle Fleur (2016), marked by their first collaborations with Malian singer Mamani Keita and American rapper Mike Ladd.\nThey later signed to the label Accords Croisés to release Visions of Selam (2018, with Mike and Mamani) and De Kaboul à Bamako: Sowal Diabi (2022, born from encounters with Afghan, Kurdish and Iranian musicians, again with Mamani), and since 2019 have been touring the show Le Dernier Rimbaud, a musical reading of the letters sent from Abyssinia by the author of A Season in Hell, created in collaboration with a writer."
+      },
+      "image": "/images/composers/canonical/arat-kilo.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [],
+        "scopedRelations": [
+          {
+            "albumCodes": [
+              "PGO0030"
+            ],
+            "aliases": [
+              "Samuel Hirsch",
+              "Florent Berteau",
+              "Fabien Girard",
+              "Gerald Bonnegrace",
+              "Michael Havard",
+              "Aristide Goncalves",
+              "Arnold Turpin",
+              "Camille Floriot",
+              "Assitan Keita",
+              "Mike Ladd",
+              "Nardos Tesfaw",
+              "ROCE",
+              "Bruck Tesfaye"
+            ]
+          }
+        ]
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "arat-kilo",
+        "imageSlug": "arat-kilo",
+        "editorialArtistSlug": "arat-kilo"
+      }
+    },
     {
       "slug": "fabien-girard",
       "name": "Fabien Girard",
@@ -19,10 +109,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "fabien-girard",
-        "imageSlug": "fabien-girard"
+        "imageSlug": "fabien-girard",
+        "editorialArtistSlug": "fabien-girard"
       }
     },
     {
@@ -43,10 +135,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": null,
-        "imageSlug": null
+        "imageSlug": null,
+        "editorialArtistSlug": null
       }
     },
     {
@@ -67,10 +161,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "ugly-mac-beer",
-        "imageSlug": "ugly-mac-beer"
+        "imageSlug": "ugly-mac-beer",
+        "editorialArtistSlug": "ugly-mac-beer"
       }
     },
     {
@@ -91,10 +187,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "yann-kornowicz",
-        "imageSlug": "yann-kornowicz"
+        "imageSlug": "yann-kornowicz",
+        "editorialArtistSlug": "yann-kornowicz"
       }
     },
     {
@@ -118,10 +216,12 @@
         "franck-sinnassamy"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "dj-hertz",
-        "imageSlug": "dj-hertz"
+        "imageSlug": "dj-hertz",
+        "editorialArtistSlug": "dj-hertz"
       }
     },
     {
@@ -142,10 +242,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "laurent-dury",
-        "imageSlug": "laurent-dury"
+        "imageSlug": "laurent-dury",
+        "editorialArtistSlug": "laurent-dury"
       }
     },
     {
@@ -166,10 +268,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "liqid",
-        "imageSlug": "liqid"
+        "imageSlug": "liqid",
+        "editorialArtistSlug": "liqid"
       }
     },
     {
@@ -190,10 +294,38 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "bonetrips",
-        "imageSlug": "bonetrips"
+        "imageSlug": "bonetrips",
+        "editorialArtistSlug": "bonetrips"
+      }
+    },
+    {
+      "slug": "coeur",
+      "name": "Cœur",
+      "kind": "person",
+      "bio": {
+        "fr": "Cœur est une chanteuse et productrice française liée à la scène Mutant Ninja. Sa musique mêle influences pop, hip-hop et électroniques dans une esthétique sombre et introspective, portée par une écriture très personnelle.\nCharlie Duran, connue sous le nom de Cœur, est une artiste, rappeuse, chanteuse française. Elle est originaire de Lyon et a commencé sa carrière musicale en tant que membre du duo Schlaasss.\nElle a depuis sorti sa première mixtape, Minouche Mafia, en mars 2021. Celle-ci a été produite par Bonetrips et Nicolas Steib. La mixtape est un mélange de rap, d’électronique et de pop, avec des paroles poétiques et charnelles.\nEn parallèle, Cœur est également connue pour ses performances scéniques uniques, où elle porte une robe de mariée blanche et est entourée de danseuses drag queens. Dans les milieux LGBT en France, Cœur est une figure importante du mouvement féministe.\nD’autre part, dans le cadre de performance scéniques, vous avez sûrement déjà pu voir Cœur en première partie de Lorenzo, Chilla, Vald, Charlotte Adigery ou encore Poupie. Dernièrement, l’artiste lyonnaise était en concert dans la région, au Transbordeur (Villeurbanne), en décembre 2023, en première partie de Troubles",
+        "en": "Cœur is a French singer and producer associated with the Mutant Ninja scene. Her music blends pop, hip-hop and electronic influences into a dark, introspective aesthetic driven by deeply personal writing.\nCharlie Duran, known as Cœur, is a Lyon-born rapper and singer who first emerged as part of the duo Schlaasss. She released her debut mixtape Minouche Mafia in March 2021, produced by Bonetrips and Nicolas Steib. The project mixes rap, electronic music and pop, with poetic, sensual lyrics.\nCœur is also renowned for her singular live performances, where she appears in a white wedding dress surrounded by drag queen dancers. Within LGBT circles in France, she is seen as an important figure of the feminist movement. On stage, she has opened for artists such as Lorenzo, Chilla, Vald, Charlotte Adigéry and Poupie. Most recently, the Lyon-based artist performed at Le Transbordeur in Villeurbanne in December 2023, opening for Troubles."
+      },
+      "image": "/images/composers/canonical/coeur.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Charlie Duran"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "coeur",
+        "imageSlug": "coeur",
+        "editorialArtistSlug": "coeur"
       }
     },
     {
@@ -217,10 +349,12 @@
         "amaury-messelier"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "arom",
-        "imageSlug": "arom"
+        "imageSlug": "arom",
+        "editorialArtistSlug": "arom"
       }
     },
     {
@@ -241,10 +375,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "minimatic",
-        "imageSlug": "minimatic"
+        "imageSlug": "minimatic",
+        "editorialArtistSlug": "minimatic"
       }
     },
     {
@@ -289,10 +425,12 @@
         "n-zeng"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "sebastien-blanchon",
-        "imageSlug": "sebastien-blanchon"
+        "imageSlug": "sebastien-blanchon",
+        "editorialArtistSlug": "sebastien-blanchon"
       }
     },
     {
@@ -314,10 +452,120 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "drixxxe",
-        "imageSlug": "drixxxe"
+        "imageSlug": "drixxxe",
+        "editorialArtistSlug": "drixxxe"
+      }
+    },
+    {
+      "slug": "emmanuel-maree",
+      "name": "Emmanuel Marée",
+      "kind": "person",
+      "bio": {
+        "fr": "Emmanuel Marée est un batteur et compositeur français éclectique, au parcours marqué par la curiosité et le mélange des genres. Formé aux classes de jazz du Conservatoire, il y développe un solide bagage technique avant de s'envoler pour New York, où il poursuit son apprentissage au contact de la scène locale. À son retour à Paris, il élargit son langage musical bien au-delà du jazz : électro, comédie musicale (notamment Hair), pop-folk aux côtés de Hugh Coltman ou Ndidi O, indie-pop avec Robi, mais aussi chanson française avec Benoît Carré ou Alexandre Kinn. Batteur du groupe de rock My Friend Jeff et du chanteur Zanarelli (auprès de qui il participe au dernier album de Christophe), Emmanuel Marée multiplie les collaborations en studio comme sur scène. Toujours en quête d'ouverture, il rejoint le projet scénique « Georges », hommage au répertoire de l'ère Canetti – de Brassens à Brel en passant par Vian ou Gainsbourg – pour une vingtaine de dates. Ce spectacle lui permet de revisiter des titres mythiques des années 50 et de mettre en commun ses multiples influences pour proposer une relecture originale du patrimoine de la chanson française. Entre jazz, rock, électro et chanson, Emmanuel Marée s'impose ainsi comme un musicien caméléon, au service des projets qu'il accompagne autant par son jeu de batterie que par son sens de la co-composition.",
+        "en": "Emmanuel Marée is a versatile French drummer and composer whose career is driven by curiosity and a love of blending genres. Trained in jazz classes at the Conservatoire, he built a solid technical foundation before moving to New York to further his musical journey on the local scene. After returning to Paris several years later, Emmanuel broadened his musical language far beyond jazz: exploring electronic music, musical theatre (notably Hair), pop-folk with Hugh Coltman and Ndidi O, indie pop with Robi, and French chanson alongside Benoît Carré and Alexandre Kinn. Drummer for the rock band My Friend Jeff and for singer Zanarelli (with whom he contributed to Christophe's final album), Emmanuel Marée multiplies collaborations both in the studio and on stage. Constantly seeking new horizons, he joined the stage project \"Georges\", a tribute to the Canetti-era repertoire – from Brassens to Brel via Vian and Gainsbourg – for around twenty dates. This show allowed him to revisit iconic songs from the 1950s and to bring together his many influences in a fresh reinterpretation of the French chanson heritage. Moving between jazz, rock, electronic music and chanson, Emmanuel Marée stands out as a chameleonic musician, serving each project through both his drumming and his sense of co-composition."
+      },
+      "image": "/images/composers/canonical/emmanuel-maree.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Emmanuel Marée"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "emmanuel-maree",
+        "imageSlug": "emmanuel-maree",
+        "editorialArtistSlug": "emmanuel-maree"
+      }
+    },
+    {
+      "slug": "f-stokes",
+      "name": "F.Stokes",
+      "kind": "person",
+      "bio": {
+        "fr": "F. Stokes (Rodney Lucas) est un rappeur et storyteller originaire du South Side de Chicago. Sa musique mêle hip-hop, spoken word et influences soul, avec des textes très narratifs inspirés de son histoire personnelle et de ses voyages. Il a partagé l’affiche dans le monde entier avec Nas, Mos Def, Pusha T, Sean P, Bastille, Erykah Badu, P.O.S., Ryan Leslie, Stalley, Redman et DMX, et s’est produit dans divers festivals, notamment le Festival International de Jazz de Montréal, l’Essence Festival, le VooDoo Festival, le Brooklyn Hip Hop Festival et le Summer Set Festival. Le travail lyrique de F. Stokes est centré sur le triomphe du possible humain, et il développe actuellement “Rappin’ Ricky”, un projet visant à créer un jeune rappeur animé qui utilise le hip-hop comme outil pédagogique pour inspirer des enfants de tous âges et de tous horizons.",
+        "en": "F. Stokes (Rodney Lucas) is a rapper and storyteller from Chicago’s South Side. His music blends hip-hop, spoken word and soul influences, with highly narrative lyrics inspired by his personal history and his travels. He has shared stages around the world with Nas, Mos Def, Pusha T, Sean P, Bastille, Erykah Badu, P.O.S., Ryan Leslie, Stalley, Redman and DMX, and has performed at festivals such as the Montreal International Jazz Festival, the Essence Festival, VooDoo Festival, Brooklyn Hip Hop Festival and Summer Set Festival. F. Stokes’ lyrical work focuses on the triumph of human possibility, and he is currently developing “Rappin’ Ricky”, a project to create a young animated rapper who uses hip-hop as an educational tool to inspire children of all ages and backgrounds."
+      },
+      "image": "/images/composers/canonical/f-stokes.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Rodney Lucas"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "f-stokes",
+        "imageSlug": "f-stokes",
+        "editorialArtistSlug": "f-stokes"
+      }
+    },
+    {
+      "slug": "forever-pavot",
+      "name": "Forever Pavot",
+      "kind": "person",
+      "bio": {
+        "fr": "Forever Pavot est le projet du multi-instrumentiste français Émile Sornin, situé entre pop psychédélique, rock progressif et musiques de films imaginaires. Signé chez Born Bad Records, le groupe se distingue par ses orchestrations baroques et ses influences 60-70’s. Émile Sornin a un nouveau partenaire, un robot à la voix vocodée qui fait quasiment tout à sa place. L’ex-étudiant en cinéma, multi-instrumentiste et bidouilleur classieux aime raconter des histoires. Après quelques albums, clips, courts-métrages et B.O du cinéma des années 60-70, Emile Sornin crée le groupe de pop-rock progressif Forever Pavot en 2012. Sur L’Idiophone, dernier album de Forever Pavot sorti en mars 2023, Emile cisèle des chansons rêveuses pensées comme de courtes scènes de films, où l’influence des BO des années 60-70 et de son travail à l’image se ressent pleinement. Cette même année Emile a signé les musiques originales de La Morsure, réalisé par Romain de Saint-Blanquat, et du long-métrage de Monia Chokri Simple comme Sylvain, sélectionné au Festival de Cannes 2023 dans la catégorie Un Certain Regard. Il vient d’achever le score de L’engloutie de Louise Hémon sélectionné à la Quinzaine des Cinéastes au Festival de Cannes 2025.",
+        "en": "Forever Pavot is the project of French multi-instrumentalist Émile Sornin, sitting somewhere between psychedelic pop, progressive rock and imaginary film scores. Signed to Born Bad Records, the band stands out for its baroque orchestrations and strong 60s–70s influences. Sornin, a former film student, classy tinkerer and multi-instrumentalist, loves telling stories – these days with a new partner: a vocoder-voiced robot that almost does everything in his place. After several albums, videos, short films and 60s–70s-inspired soundtracks, he created the progressive pop-rock band Forever Pavot in 2012.On L’Idiophone, Forever Pavot’s latest album released in March 2023, Émile crafts dreamlike songs conceived as short film scenes, where the influence of 60s–70s soundtracks and his work for the screen is fully felt. That same year, he composed the original score for La Morsure, directed by Romain de Saint-Blanquat, and for Monia Chokri’s feature film Simple comme Sylvain, selected at the 2023 Cannes Film Festival in the Un Certain Regard section. He has just completed the score for L’Engloutie by Louise Hémon, selected for the Directors’ Fortnight at the 2025 Cannes Film Festival."
+      },
+      "image": "/images/composers/canonical/forever-pavot.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Emile Sornin",
+          "Émile Sornin"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "emile-sornin-forever-pavot",
+        "imageSlug": "emile-sornin-forever-pavot",
+        "editorialArtistSlug": "emile-sornin-forever-pavot"
+      }
+    },
+    {
+      "slug": "frederic-hanak",
+      "name": "Frédéric Hanak",
+      "kind": "person",
+      "bio": {
+        "fr": "Frédéric Hanak (1972–2018) est un musicien, producteur et compositeur français, figure majeure de l'underground électronique. Installé à Paris, il fonde à la fin des années 1990, avec son frère Jean-Baptiste (JB Hanak), le duo dDamage, un véritable laboratoire sonore où se rencontrent hip-hop, électro, rock, breakcore et noise.\n\nTrès vite, dDamage s'impose comme un ovni de la scène électronique française. Sa musique, à la fois brute, inventive et résolument personnelle, mêle machines saturées, rythmes disloqués et textures lo-fi dans une approche singulière de la création sonore.\n\nAvec dDamage, Frédéric Hanak signe une discographie riche, composée d'albums, d'EP et de bandes originales, et se produit près de 600 fois à travers le monde, du Japon aux États-Unis en passant par l'Europe. Le duo collabore avec des figures majeures du rap et de la scène underground internationale, parmi lesquelles La Caution, TTC, MF DOOM, Mike Ladd ou Doseone, affirmant une identité artistique aussi exigeante en studio que sur scène.\n\nSon œuvre continue aujourd'hui d'occuper une place essentielle dans l'histoire de la musique électronique expérimentale et demeure une source d'inspiration pour les amateurs comme pour les créateurs de musiques innovantes.",
+        "en": "Frédéric Hanak (1972–2018) is a French musician, producer and composer, widely recognized as a leading figure of the electronic underground. Based in Paris, he co-founded the duo dDamage in the late 1990s with his brother, Jean-Baptiste Hanak (JB Hanak), creating a sonic laboratory where hip-hop, electronic music, rock, breakcore and noise converge.\n\ndDamage quickly established itself as one of the most distinctive acts on the French electronic scene. Raw, inventive and deeply personal, its music blends saturated machines, fractured beats and lo-fi textures into a singular approach to sound design and composition.\n\nWith dDamage, Frédéric Hanak built an extensive discography of albums, EPs and original soundtracks, while performing nearly 600 concerts around the world, from Japan and the United States to venues across Europe. The duo collaborated with leading figures of international hip-hop and the underground scene, including La Caution, TTC, MF DOOM, Mike Ladd and Doseone, earning a reputation for an artistic vision as uncompromising in the studio as it was on stage.\n\nHis work continues to hold an important place in the history of experimental electronic music and remains a source of inspiration for music lovers and creators seeking bold and innovative sonic landscapes."
+      },
+      "image": "/images/composers/canonical/frederic-hanak.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Frédéric Hanak",
+          "Frederic Hanak"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "user-provided",
+        "capturedAt": "2026-08-05T10:49:10.383Z",
+        "bioFile": "frederic-hanak.user-provided.json",
+        "imageSource": {
+          "repository": "portfolio-caro",
+          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+          "imageSlug": "frederic-hanak"
+        }
       }
     },
     {
@@ -338,10 +586,54 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "madben",
-        "imageSlug": "madben"
+        "imageSlug": "madben",
+        "editorialArtistSlug": "madben"
+      }
+    },
+    {
+      "slug": "mutant-ninja",
+      "name": "Mutant Ninja",
+      "kind": "group",
+      "bio": {
+        "fr": null,
+        "en": null
+      },
+      "image": "/images/composers/canonical/mutant-ninja.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [],
+        "scopedRelations": [
+          {
+            "albumCodes": [
+              "PGO0024",
+              "PGO0027",
+              "PGO0032",
+              "PGO0035",
+              "PGO0051"
+            ],
+            "aliases": [
+              "Liqid",
+              "Tcheep",
+              "Bonetrips",
+              "Amaury Messelier",
+              "Charlie Duran",
+              "Chicho Cortez"
+            ]
+          }
+        ]
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": null,
+        "imageSlug": "mutant-ninja-records",
+        "editorialArtistSlug": "mutant-ninja-records"
       }
     },
     {
@@ -362,10 +654,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "arandel",
-        "imageSlug": "arandel"
+        "imageSlug": "arandel",
+        "editorialArtistSlug": "arandel"
       }
     },
     {
@@ -386,10 +680,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "the-architect",
-        "imageSlug": "the-architect"
+        "imageSlug": "the-architect",
+        "editorialArtistSlug": "the-architect"
       }
     },
     {
@@ -420,10 +716,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "after-in-paris",
-        "imageSlug": "after-in-paris"
+        "imageSlug": "after-in-paris",
+        "editorialArtistSlug": "after-in-paris"
       }
     },
     {
@@ -431,11 +729,11 @@
       "name": "Thierry Los",
       "kind": "person",
       "bio": {
-        "fr": null,
-        "en": null
+        "fr": "Thierry Los est une figure emblématique de la scène musicale française, active depuis plus de 30 ans. Il a marqué l'industrie avec ses groupes Dodge Veg-O-Matic et Vegomatic, et a collaboré avec des artistes de renom tels que le chanteur italien Massimo Guadalupi avec qui il a obtenu un titre gold sur FIP en 2006 pour \"Jazz On The Road\", et la comédienne-chanteuse italienne Clara Galante, connue pour \"La Sirena nella notte\", le slow torride de Laetitia Casta sur UNE ILE d'ARTE. Il a également travaillé étroitement avec le Soul Man anglais Myles Sanko, co-composant ses deux premiers albums. Outre ses collaborations artistiques, Thierry a également composé pour les défilés Haute-Couture du créateur Maurizio Galante, et ses compositions ont régulièrement été diffusées sur France Télévision, notamment pour des documentaires de prime time et des publicités TV. Depuis 2019, il est sociétaire définitif de la SACEM et a intensément contribué à la librairie musicale depuis sa découverte du domaine en 2000, grâce à Guillaume Albeck qui lui commanda son premier album dans son style de prédilection, l'Electro Surf. En dehors de la musique, Thierry Los est également réalisateur de court-métrages primés, collectionneur d'autos anciennes qu'il loue pour des tournages de cinéma et des shootings de mode. Par ailleurs, il s'est également aventuré dans le mannequinat et la comédie, apparaissant récemment dans la publicité TV SUPERPROF en tant que professeur de guitare incarnant un vieux rocker.",
+        "en": "Thierry Los is a seminal figure on the French music scene, active for more than 30 years. He first made his mark with the bands Dodge Veg-O-Matic and Vegomatic, and has collaborated with numerous renowned artists, including Italian singer Massimo Guadalupi, with whom he earned a gold title on FIP in 2006 for “Jazz On The Road”, and Italian actress-singer Clara Galante, known for “La Sirena nella notte”, the steamy slow track performed by Laetitia Casta in ARTE’s series Une Île. He has also worked closely with British soul man Myles Sanko, co-writing his first two albums. Beyond his artistic collaborations, Thierry has composed for Haute Couture runway shows by designer Maurizio Galante, and his music is regularly broadcast on France Télévisions, notably in prime-time documentaries and TV commercials. Since 2019, he has been a full member of SACEM. He has been deeply involved in production music ever since discovering the field in 2000, when Guillaume Albeck commissioned his first album in his favourite style: electro-surf. Outside of music, Thierry Los is an award-winning short-film director and a collector of vintage cars, which he rents out for film shoots and fashion photoshoots. He has also ventured into modelling and acting, most recently appearing in a SUPERPROF TV commercial as a guitar teacher playing the part of an old rocker."
       },
-      "image": "/images/composers/composer-placeholder.svg",
-      "imageStatus": "placeholder",
+      "image": "/images/composers/canonical/thierry-los.webp",
+      "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Thierry Loshouarn",
@@ -445,10 +743,19 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
-        "bioSlug": null,
-        "imageSlug": null
+        "source": "portfolio-caro-api",
+        "urls": {
+          "fr": "https://synck-psi.vercel.app/api/artists?locale=fr",
+          "en": "https://synck-psi.vercel.app/api/artists?locale=en"
+        },
+        "capturedAt": "2026-08-05T09:42:24.000Z",
+        "artistSlug": "thierry-los",
+        "imageUrl": "https://synck-psi.vercel.app/images/projets/photoscompo/thierry-los.jpeg",
+        "imageFallback": {
+          "repository": "portfolio-caro",
+          "ref": "890a906^",
+          "path": "public/images/projets/photoscompo/thierry-los.jpeg"
+        }
       }
     },
     {
@@ -474,10 +781,12 @@
         "nicodrums-friends"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "nicodrums-friends",
-        "imageSlug": "nicodrums-friends"
+        "imageSlug": "nicodrums-friends",
+        "editorialArtistSlug": "nicodrums-friends"
       }
     },
     {
@@ -499,10 +808,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "2080",
-        "imageSlug": "2080"
+        "imageSlug": "2080",
+        "editorialArtistSlug": "2080"
       }
     },
     {
@@ -525,22 +836,24 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "jb-hanak",
-        "imageSlug": "jb-hanak"
+        "imageSlug": "jb-hanak",
+        "editorialArtistSlug": "jb-hanak"
       }
     },
     {
-      "slug": "stephane-delplanque",
-      "name": "Stéphane Delplanque",
+      "slug": "aeon-seven",
+      "name": "Aeon Seven",
       "kind": "person",
       "bio": {
-        "fr": null,
-        "en": null
+        "fr": "Avant de rouler à tombeau ouvert avec son projet électro Christine, Aeon Seven fut l’un des premiers turntablists de sa région, incollable en matière de hip-hop, de funk et de samples obscures en tous genres.\nMusique et skateboard rythmeront l’adolescence d’Aeon Seven, avec Jason Lee, Matt Hensley, Public Enemy, Beastie Boys et Sonic Youth en toile de fond. Guitariste dans un éphémère groupe de punk-rock et diggers avant l’heure, il se forge sa culture musicale en collectionnant des disques vinyles d’occasions. Le déclic se fait en 1995, avec la découverte de DJ Shadow et DJ Qbert. A partir de ce moment-là, il s’immerge plus profondément dans la culture hip-hop, se procure une seconde platine vinyle, une table de mix, exploite tous les disques accumulés et devient DJ. Résident du mythique Café Curieux, il se penche en 2000 sur la production musicale et sort son premier vinyle “Beyond The Time Barrier”. Un disque composé d’instrumentaux hip-hop et de plages de sons, un disque destiné aux turntablists. Il est par la suite programmé en 2003 au festival Rock Dans Tous Ses Etats et partage la scène en 2004 avec Hexstatic et Modeselektor au Nördik Impakt n°6. En 2005, il sortira le EP “Funky Furious”, révélant sa passion pour le deep-funk et les “breaks” de batterie qui constituent les fondements mêmes de la production hip-hop.\nFin 2007, Aeon Seven rencontre Kunst Throw, un jeune DJ avec qui il partage les mêmes influences musicales. Ils se produisent ensemble dans des soirées endiablées qui les conduiront à mêler leurs influences hip-hop/funk/rock à la nouvelle scène électro alors en pleine effervescence. En 2010, ils fondent le projet “Christine”. Le duo se fait d’abord remarquer pour ses prestations live, remporte le tremplin Booster parrainé par le FAIR en 2011 et se retrouve sélectionné la même année pour les « découvertes du Printemps de Bourges » et pour les Transmusicales de Rennes. En 2012, ils obtiennent la tournée « 78 tours » et Les Détours d’Adami, leur permettant de jouer dans les plus grands festivals francophones (Francofolies, Vielles Charrues, Solidays, le MEG à Montreal, Sakifo à La Réunion, Eurockéennes, Montreux et Paléo en Suisse…). Le groupe sort 2 EP « Catharsis » et « Death On Wheels » la même année. Viennent ensuite 2 EP autoproduis : « Ecstatic Sole » et « Brand New Furies », suivi de la production intégrale de la BO d’un film de genre « Sam Was Here » réalisé par Christophe Deroo.\nDJ et Producteur actif depuis plus de 20 ans, cet inconditionnel des disques vinyles décide de quitter Christine fin 2015 pour revenir à ses premiers amours en solo. Après une carrière de producteur remontant à l’an 2000, le premier album d’AEON SEVEN “Hand Funktion” est enfin parmi nous ! Ce maestro français a été une force créative dans tous les domaines de la production, du DJing, du graphisme et de l’animation. Ayant d’abord attiré l’attention de la communauté funk/breaks du monde entier avec son exceptionnel “Funky Furious EP” (2005), il a continué à produire une série de mix tapes incroyables qui révèlent magnifiquement sa dextérité sur les platines comme en studio. Il a sorti quelques singles pour 45 Live Records et produit des disques « outils » astucieux pour DJ avec la série ‘Thundercuts’ sur 7″ et 12″.\nPendant tout ce temps, Aeon Seven a perfectionné son art à la fois musicalement et visuellement. Son amour de l’instrumental et son amour évident pour les BO de films, le psyché, le jazz et le funk, transparaissent dans toutes ses productions. Du paysage sonore dirigé par la harpe cosmique du morceau d’ouverture “Outer Space Illusion”, des thèmes étranges et atmosphériques de “The Hidden Hand” aux vibrations de blaxploitation uptempo et funky de “Mankind Hunt”, la maîtrise de la composition musicale d’Aeon Seven est mature et habilement exécuté.",
+        "en": "Before going full throttle with his electro project Christine, Aeon Seven was one of the first turntablists in his region, endlessly knowledgeable about hip-hop, funk and all kinds of obscure samples. Music and skateboarding set the pace of his teenage years, with Jason Lee, Matt Hensley, Public Enemy, Beastie Boys and Sonic Youth in the background. A guitarist in a short-lived punk-rock band and a “digger” before the term became widespread, he built his musical culture by collecting second-hand vinyl records. The turning point came in 1995 when he discovered DJ Shadow and DJ Qbert. From then on, he immersed himself in hip-hop culture, bought a second turntable and a mixer, dug into all the records he had accumulated and became a DJ. Resident at the legendary Café Curieux, he turned to music production in 2000 and released his first vinyl, Beyond The Time Barrier — a record made up of hip-hop instrumentals and sound tools designed for turntablists. He was later booked at the Rock Dans Tous Ses États festival in 2003, and in 2004 shared the stage with Hexstatic and Modeselektor at Nördik Impakt #6. In 2005, he released the Funky Furious EP, revealing his passion for deep funk and drum breaks, the very foundations of hip-hop production.\nAt the end of 2007, Aeon Seven met Kunst Throw, a young DJ who shared the same musical influences. They started playing wild shows together, blending their hip-hop/funk/rock background with the then-booming new electro scene. In 2010, they founded the project Christine. The duo first made a name for itself on stage, winning the Booster competition sponsored by the FAIR in 2011, and being selected the same year for the “Discoveries” program at Le Printemps de Bourges and for the Transmusicales de Rennes. In 2012, they landed the “78 Tours” and “Les Détours d’Adami” tours, which took them to some of the biggest French-speaking festivals (Francofolies, Vieilles Charrues, Solidays, MEG in Montreal, Sakifo in La Réunion, Eurockéennes, Montreux and Paléo in Switzerland, etc.). The group released two EPs, Catharsis and Death On Wheels, that same year, followed by two self-produced EPs, Ecstatic Sole and Brand New Furies, and then the full score for Christophe Deroo’s genre film Sam Was Here.\nAn active DJ and producer for over 20 years and an unconditional vinyl enthusiast, he left Christine at the end of 2015 to return to his first loves as a solo artist. After a producer career that began in 2000, Aeon Seven’s first full-length album, Hand Funktion, is finally here. This French maestro has been a creative force in every field he touches: production, DJing, graphic design and animation. First noticed by the global funk/breaks community with his outstanding Funky Furious EP (2005), he went on to release a series of stunning mixtapes that showcase his dexterity both on the decks and in the studio. He has put out several singles on 45 Live Records, as well as clever DJ tool records with the Thundercuts series on 7″ and 12″.\nAll the while, Aeon Seven has honed his craft both musically and visually. His love of instrumentals and his clear affection for film scores, psychedelia, jazz and funk shines through in all his productions. From the harp-driven cosmic soundscape of the opening track “Outer Space Illusion” and the strange, atmospheric themes of “The Hidden Hand” to the uptempo blaxploitation-style funk of “Mankind Hunt”, Aeon Seven’s command of musical composition is fully mature and masterfully executed."
       },
-      "image": "/images/composers/composer-placeholder.svg",
-      "imageStatus": "placeholder",
+      "image": "/images/composers/canonical/aeon-seven.webp",
+      "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Stéphane Delplanque",
@@ -550,10 +863,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
-        "bioSlug": null,
-        "imageSlug": null
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "aeon-seven",
+        "imageSlug": "aeon-seven",
+        "editorialArtistSlug": "aeon-seven"
       }
     },
     {
@@ -577,10 +892,12 @@
         "dan-amozig"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "dan-amozig",
-        "imageSlug": "dan-amozig"
+        "imageSlug": "dan-amozig",
+        "editorialArtistSlug": "dan-amozig"
       }
     },
     {
@@ -601,10 +918,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "yann-jankielewicz",
-        "imageSlug": "yann-jankielewicz"
+        "imageSlug": "yann-jankielewicz",
+        "editorialArtistSlug": "yann-jankielewicz"
       }
     },
     {
@@ -612,11 +931,11 @@
       "name": "Victor Baillet",
       "kind": "person",
       "bio": {
-        "fr": null,
-        "en": null
+        "fr": "Victor Baillet est un DJ, producteur et turntablist français, figure reconnue de la scène scratch. Membre du trio 9 O'Clock aux côtés de DJ Hertz et Vincent Bouhelier, il remporte à trois reprises le titre de champion du monde DMC par équipe (2013, 2014, 2015), imposant la formation comme une référence internationale du turntablism. Passé par les battles dès la fin des années 90, il affine un style ultra précis mêlant scratch, beat juggling et sens de la production. Signé au sein de l'univers Scratch Science, il multiplie ensuite les collaborations sur scène et en studio avec des artistes issus du rap et des musiques électroniques. Entre showcases techniques, performances filmées pour des marques et communautés de DJs, et travail de producteur, Victor Baillet poursuit aujourd'hui un parcours où la virtuosité des platines reste au service de morceaux et de lives pensés pour le public autant que pour les passionnés de scratch.",
+        "en": "Victor Baillet is a French DJ, producer and turntablist widely respected on the scratch scene. As a member of the trio 9 O'Clock, alongside DJ Hertz and Vincent Bouhelier, he won the DMC World Team Championship three times in a row (2013, 2014, 2015), cementing the crew's status as an international reference in turntablism. Having cut his teeth in battles since the late '90s, he has developed an extremely precise style that blends scratch, beat juggling and a strong ear for production. Within the Scratch Science ecosystem, he has gone on to perform and record with artists from both rap and electronic music. Moving between technical showcases, filmed performances for DJ brands and communities, and studio work as a producer, Victor Baillet continues to build a career where turntable virtuosity always serves the music, crafting tracks and live shows that speak both to the general audience and to hardcore scratch heads."
       },
-      "image": "/images/composers/composer-placeholder.svg",
-      "imageStatus": "placeholder",
+      "image": "/images/composers/canonical/victor-baillet.webp",
+      "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Victor Baillet"
@@ -625,10 +944,16 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
-        "bioSlug": null,
-        "imageSlug": null
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "mr-viktor",
+        "imageSlug": "mr-viktor",
+        "editorialArtistSlug": "mr-viktor",
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "victor-baillet.user-provided.jpg"
+        }
       }
     },
     {
@@ -636,11 +961,11 @@
       "name": "Vincent Bouhelier",
       "kind": "person",
       "bio": {
-        "fr": null,
-        "en": null
+        "fr": "Vincent Bouhelier est un DJ et turntablist français, membre fondateur du trio 9 O'Clock aux côtés de DJ Hertz et Victor Baillet. Ensemble, ils remportent à trois reprises le titre de champion du monde DMC par équipe (2013, 2014, 2015), s'imposant comme une référence internationale du turntablism. Fort de cette expertise technique, Vincent Bouhelier développe un style personnel mêlant scratch, beat juggling et sens aigu de la production. Au sein de 9 O'Clock, il participe à la création de l'EP « Wake Up », premier projet du groupe entièrement composé de morceaux originaux, oscillant entre house lumineuse et électronique Future Beat. Présent sur les compilations Afro Pop et Future Beat éditées par PARIGO, Vincent Bouhelier poursuit son parcours entre performances live spectaculaires et travail en studio, contribuant à faire rayonner la scène scratch française sur la scène internationale.",
+        "en": "Vincent Bouhelier is a French DJ and turntablist, founding member of the trio 9 O'Clock alongside DJ Hertz and Victor Baillet. Together, they won the DMC World Team Championship three times (2013, 2014, 2015), establishing themselves as an international reference in turntablism. Building on this technical expertise, Vincent Bouhelier has developed a personal style blending scratch, beat juggling and a sharp sense of production. Within 9 O'Clock, he contributed to the creation of the \"Wake Up\" EP, the group's first project entirely made of original tracks, moving between bright house and Future Beat electronics. Featured on the Afro Pop and Future Beat compilations released by PARIGO, Vincent Bouhelier continues his journey between spectacular live performances and studio work, helping to put the French scratch scene on the international map."
       },
-      "image": "/images/composers/composer-placeholder.svg",
-      "imageStatus": "placeholder",
+      "image": "/images/composers/canonical/vincent-bouhelier.webp",
+      "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Vincent Bouhelier"
@@ -649,10 +974,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
-        "bioSlug": null,
-        "imageSlug": null
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "aociz",
+        "imageSlug": "aociz",
+        "editorialArtistSlug": "aociz"
       }
     },
     {
@@ -684,10 +1011,38 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "ana-kap",
-        "imageSlug": "ana-kap"
+        "imageSlug": "ana-kap",
+        "editorialArtistSlug": "ana-kap"
+      }
+    },
+    {
+      "slug": "pierre-millet",
+      "name": "Pierre Millet",
+      "kind": "person",
+      "bio": {
+        "fr": "Pierre Millet, trompettiste et compositeur de renom, est un pilier de la scène musicale contemporaine, réputé pour sa capacité à fusionner le jazz avec une multitude d'autres genres, allant du rock au klezmer. Issu d'une famille influente dans le monde du jazz normand, il a été baigné dès son plus jeune âge dans un environnement musical enrichissant, partageant cette passion avec son frère, son père et son arrière-grand-père. Ces influences familiales précoces ont forgé son approche unique et diversifiée de la musique. Au fil des ans, Pierre a accumulé une expérience considérable tant sur la scène française qu'internationale, participant à une trentaine d'albums en tant que leader et compositeur pour des projets variés tels que Decor-um, B.L.A.S.T, Renza Bô, et Chromatic Museum, mais aussi en tant que sideman pour divers artistes. Sa collaboration avec des artistes de milieux aussi variés que le cirque et la poésie souligne sa polyvalence et sa capacité à transcender les genres musicaux. Son projet actuel, Ana Kap, créé en 2009, illustre parfaitement cette capacité. En compagnie de Jean-Michel Trotoux à l'accordéon et de Manuel Decocq au violon, Ana Kap est une célébration de l'esprit ludique et populaire du jazz, teintée de nuances balkaniques et d'échos de la musique de guinguette. Leur musique évoque les compositions cinématographiques de Federico Fellini et d'Astor Piazzolla, ainsi que les œuvres de Dave Douglas, une influence majeure pour Pierre. Ana Kap ne se contente pas de jouer de la musique ; le trio s'engage également dans une démarche théâtrale avec leur \"Trauma show\", un mélange de comédie et de musique visant à rendre leur art plus accessible. Ce spectacle, mis en scène par Fabrice Bisson, combine musique, chansons et saynètes à la manière des films classiques en noir et blanc, offrant un aperçu humoristique et humain des dynamiques amicales et des éclats de vie des musiciens. En dehors de ses engagements avec Ana Kap, Pierre continue de se produire avec des artistes et ensembles variés tels que le pianiste palestinien Faraj Suleiman et les groupes Surnatural Orchestra et Chromatic Museum. Son travail a été couronné par la sortie récente de deux albums avec Ana Kap, \"Topinambour du futur\" et \"La gazette de Libor\", qui reflètent l'étendue de son talent musical et son approche innovante de la composition. Ce parcours exceptionnel fait de Pierre Millet une figure incontournable du jazz moderne, dont la créativité et la maîtrise instrumentale continuent d'enrichir la scène musicale internationale.",
+        "en": "Pierre Millet is a renowned trumpeter and composer and a mainstay of the contemporary music scene, celebrated for the way he fuses jazz with a wide range of styles, from rock to klezmer. Born into a key jazz family in Normandy, he grew up in a rich musical environment shared with his brother, father and great-grandfather – early influences that shaped his distinctive, wide-ranging approach to music. Over the years, Pierre has built up extensive experience on both the French and international scenes, appearing on around thirty albums as leader and composer for projects such as Decor-um, B.L.A.S.T, Renza Bô and Chromatic Museum, as well as a sideman for many other artists. His collaborations span worlds as varied as circus and poetry, underlining his versatility and his ability to transcend stylistic boundaries. His current project, Ana Kap, founded in 2009 with Jean-Michel Trotoux on accordion and Manuel Decocq on violin, perfectly illustrates this spirit. Ana Kap celebrates the playful, popular side of jazz, coloured with Balkan flavours and echoes of guinguette music. Their sound evokes the cinematic worlds of Federico Fellini and Astor Piazzolla, as well as the work of Dave Douglas, a major influence on Pierre.\nAna Kap doesn’t just play music: the trio also embraces a theatrical dimension with their “Trauma Show”, a blend of comedy and music aimed at making their art even more accessible. Directed by Fabrice Bisson, the show weaves together music, songs and short scenes in the style of classic black-and-white films, offering a humorous, deeply human look at friendship and the flashes of life shared between musicians. Alongside Ana Kap, Pierre continues to perform with a wide variety of artists and ensembles, including Palestinian pianist Faraj Suleiman and the groups Surnatural Orchestra and Chromatic Museum. His recent releases with Ana Kap, Topinambour du futur and La gazette de Libor, showcase the breadth of his musical talent and his innovative approach to composition. This remarkable journey makes Pierre Millet a key figure in modern jazz, whose creativity and instrumental mastery continue to enrich the international music scene."
+      },
+      "image": "/images/composers/canonical/pierre-millet.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Pierre Millet"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "pierre-millet",
+        "imageSlug": "pierre-millet",
+        "editorialArtistSlug": "pierre-millet"
       }
     },
     {
@@ -711,10 +1066,12 @@
         "alexis-molenat-les-cavaliers"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "alexis-molenat-les-cavaliers",
-        "imageSlug": "alexis-molenat-les-cavaliers"
+        "imageSlug": "alexis-molenat-les-cavaliers",
+        "editorialArtistSlug": "alexis-molenat-les-cavaliers"
       }
     },
     {
@@ -738,10 +1095,12 @@
         "maxime-raynier-les-arondes"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "maxime-raynier-les-arondes",
-        "imageSlug": "maxime-raynier-les-arondes"
+        "imageSlug": "maxime-raynier-les-arondes",
+        "editorialArtistSlug": "maxime-raynier-les-arondes"
       }
     },
     {
@@ -765,10 +1124,12 @@
         "patrice-dambrine-viro-major-records"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "patrice-dambrine-viro-major-records",
-        "imageSlug": "patrice-dambrine-viro-major-records"
+        "imageSlug": "patrice-dambrine-viro-major-records",
+        "editorialArtistSlug": "patrice-dambrine-viro-major-records"
       }
     },
     {
@@ -789,10 +1150,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "bruno-hovart",
-        "imageSlug": "bruno-hovart"
+        "imageSlug": "bruno-hovart",
+        "editorialArtistSlug": "bruno-hovart"
       }
     },
     {
@@ -816,10 +1179,12 @@
         "sr-ortegon"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "sr-ortegon",
-        "imageSlug": "sr-ortegon"
+        "imageSlug": "sr-ortegon",
+        "editorialArtistSlug": "sr-ortegon"
       }
     },
     {
@@ -842,10 +1207,12 @@
         "stan-galouo-palma-coco-reccords"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": null,
-        "imageSlug": "stan-galouo-palma-coco-reccords"
+        "imageSlug": "stan-galouo-palma-coco-reccords",
+        "editorialArtistSlug": null
       }
     },
     {
@@ -866,10 +1233,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "modulhater",
-        "imageSlug": "modulhater"
+        "imageSlug": "modulhater",
+        "editorialArtistSlug": "modulhater"
       }
     },
     {
@@ -890,10 +1259,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "ducer",
-        "imageSlug": "ducer"
+        "imageSlug": "ducer",
+        "editorialArtistSlug": "ducer"
       }
     },
     {
@@ -915,10 +1286,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "dj-troubl",
-        "imageSlug": "dj-troubl"
+        "imageSlug": "dj-troubl",
+        "editorialArtistSlug": "dj-troubl"
       }
     },
     {
@@ -942,10 +1315,12 @@
         "of-ivory-horn"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "of-ivory-horn",
-        "imageSlug": "of-ivory-horn"
+        "imageSlug": "of-ivory-horn",
+        "editorialArtistSlug": "of-ivory-horn"
       }
     },
     {
@@ -966,10 +1341,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "mister-modo",
-        "imageSlug": "mister-modo"
+        "imageSlug": "mister-modo",
+        "editorialArtistSlug": "mister-modo"
       }
     },
     {
@@ -990,10 +1367,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "grand-david",
-        "imageSlug": "grand-david"
+        "imageSlug": "grand-david",
+        "editorialArtistSlug": "grand-david"
       }
     },
     {
@@ -1016,10 +1395,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "jean-pierre-menager",
-        "imageSlug": "jean-pierre-menager"
+        "imageSlug": "jean-pierre-menager",
+        "editorialArtistSlug": "jean-pierre-menager"
       }
     },
     {
@@ -1041,10 +1422,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": null,
-        "imageSlug": null
+        "imageSlug": null,
+        "editorialArtistSlug": null
       }
     },
     {
@@ -1065,10 +1448,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "cyril-laurent",
-        "imageSlug": "cyril-laurent"
+        "imageSlug": "cyril-laurent",
+        "editorialArtistSlug": "cyril-laurent"
       }
     },
     {
@@ -1089,10 +1474,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "charlotte-savary",
-        "imageSlug": "charlotte-savary"
+        "imageSlug": "charlotte-savary",
+        "editorialArtistSlug": "charlotte-savary"
       }
     },
     {
@@ -1116,10 +1503,98 @@
         "scherazade"
       ],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": null,
-        "imageSlug": "scherazade"
+        "imageSlug": "scherazade",
+        "editorialArtistSlug": null
+      }
+    },
+    {
+      "slug": "roma-luca",
+      "name": "Roma Luca",
+      "kind": "person",
+      "bio": {
+        "fr": null,
+        "en": null
+      },
+      "image": "/images/composers/canonical/roma-luca.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Camille Luca"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": null,
+        "imageSlug": "roma-luca",
+        "editorialArtistSlug": null
+      }
+    },
+    {
+      "slug": "the-real-fake-mc",
+      "name": "The Real Fake MC",
+      "kind": "person",
+      "bio": {
+        "fr": null,
+        "en": null
+      },
+      "image": "/images/composers/canonical/the-real-fake-mc.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "The Real Fake MC"
+        ],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": null,
+        "imageSlug": "the-real-fake-mc",
+        "editorialArtistSlug": null
+      }
+    },
+    {
+      "slug": "the-well-quartet",
+      "name": "The Well Quartet",
+      "kind": "group",
+      "bio": {
+        "fr": "Créé en 2012, le WELL Quartet est un quatuor à cordes constitué de quatre musiciennes talentueuses aux parcours singuliers, explorant un éventail infini de styles musicaux. En effet, ces quatre musiciennes, manient habilement la musique classique, le rock, le jazz, la chanson, en passant par les musiques traditionnelles et les musiques contemporaines. Arrangeuses et compositrices, le WELL Quartet propose également de jouer et/ou d’écrire des arrangements et compositions (pour cordes, orchestre symphonique…) pour sublimer la production d’un disque ou d’une bande originale. Chanteuses (lead et choeur) dans divers projets, elles exploitent leurs 4 voix en studio comme en live. Les musiciennes ont collaboré ensemble ou individuellement avec de nombreux artistes tels que : Imany, Cabadzi, JB Dunckel (Air), Canine, Fred Radix (Le Siffleur), Michel Pinhero’s African Salsa Orchestra, Thibaud Defever (Presque Oui), Emel Mathlouthi, Orchestre Orage (Uèle Lamore), Lionne, Les Enfoirés, Médéric Collignon, Mokawoods, Nina Attal, Smos (feat Charles Pasi), Monica Passos, Titi Robin, Nico Dri, Monsieur Pierre, Lucrèce Sassella, Antoine Sahler, The Airplane, Isma Hill, Kristo Numpuby, Caroline Loeb, Syd Kult, Ellinoa et le Wanderlust Orchestra, Gino Sitson, Tom Poisson, Kyrie Kristmanson, Chapelier Fou… Elles prêtent régulièrement leurs cordes à l’enregistrement de musiques à l’image (cf le film Qanis de Reda Mustafa composée par Loïc Ouaret) et de théâtre (Françoise par Sagan, mise en scène de Alex Lutz,avec Caroline Loeb. Le Siffleur de Fred Radix)... En live, le quatuor se produit régulièrement en concert en France ou à l’international: Paris Jazz Festival, Festival de Jazz de Canton, Festival International de Jazz de Shenzhen, Festival International de Jazz de Changsha, Tempo Latino… Chaque membre du quatuor est régulièrement amené à jouer en soliste, en duo ou en trio.",
+        "en": "Founded in 2012, WELL Quartet is a string quartet made up of four talented musicians with singular backgrounds, exploring an infinite range of musical styles. They move with ease between classical music, rock, jazz, chanson, traditional music and contemporary repertoire. Arrangers and composers, WELL Quartet also offer to perform and/or write arrangements and original works (for strings, symphony orchestra, etc.) to enhance an album or a film score. All four are singers (lead and backing vocals) in various projects and make full use of their voices both in the studio and on stage.Together or individually, they have collaborated with many artists, including: Imany, Cabadzi, JB Dunckel (Air), Canine, Fred Radix (Le Siffleur), Michel Pinhero’s African Salsa Orchestra, Thibaud Defever (Presque Oui), Emel Mathlouthi, Orchestre Orage (Uèle Lamore), Lionne, Les Enfoirés, Médéric Collignon, Mokawoods, Nina Attal, Smos (feat. Charles Pasi), Monica Passos, Titi Robin, Nico Dri, Monsieur Pierre, Lucrèce Sassella, Antoine Sahler, The Airplane, Isma Hill, Kristo Numpuby, Caroline Loeb, Syd Kult, Ellinoa & the Wanderlust Orchestra, Gino Sitson, Tom Poisson, Kyrie Kristmanson, Chapelier Fou…They regularly lend their strings to recording sessions for film music (e.g. the film Qanis by Reda Mustafa, scored by Loïc Ouaret) and theatre (Françoise par Sagan, directed by Alex Lutz with Caroline Loeb; Le Siffleur by Fred Radix, etc.). On stage, the quartet performs frequently in France and abroad: Paris Jazz Festival, Canton Jazz Festival, Shenzhen International Jazz Festival, Changsha International Jazz Festival, Tempo Latino, and more. Each member of the quartet also regularly performs as a soloist, in duo or in trio formations."
+      },
+      "image": "/images/composers/canonical/the-well-quartet.webp",
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [],
+        "scopedRelations": [
+          {
+            "albumCodes": [
+              "PGO0060"
+            ],
+            "aliases": [
+              "The Well Quartet",
+              "Well Quartet"
+            ]
+          }
+        ]
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "portfolio-caro-git",
+        "repository": "portfolio-caro",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
+        "bioSlug": "well-quartet",
+        "imageSlug": "well-quartet",
+        "editorialArtistSlug": "well-quartet"
       }
     },
     {
@@ -1152,10 +1627,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "flore",
-        "imageSlug": "flore"
+        "imageSlug": "flore",
+        "editorialArtistSlug": "flore"
       }
     },
     {
@@ -1178,10 +1655,12 @@
       },
       "legacySlugs": [],
       "provenance": {
+        "source": "portfolio-caro-git",
         "repository": "portfolio-caro",
-        "commit": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
+        "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
         "bioSlug": "cedric-hanak",
-        "imageSlug": "cedric-hanak"
+        "imageSlug": "cedric-hanak",
+        "editorialArtistSlug": "cedric-hanak"
       }
     }
   ]

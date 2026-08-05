@@ -190,10 +190,24 @@ describe("Harvest composer audit", () => {
   });
 
   it("déduplique les versions déjà présentes à plat tout en parcourant les versions imbriquées", () => {
-    const alternate = track({ id: "alternate-1", title: "Main 30 sec", isAlternate: true, composers: ["Minimatic"] });
+    const alternate = track({ id: "alternate-1", title: "Main 30 sec", isAlternate: true, mainTrackId: "main-1", composers: ["Minimatic"] });
     const main = track({ id: "main-1", title: "Main", composers: ["Minimatic"], alternateTracks: [alternate] });
     const data = buildComposerAudit([album([main, alternate])]);
     expect(data.metrics.trackCount).toBe(2);
-    expect(identityByName(data, "Minimatic").trackCount).toBe(2);
+    expect(identityByName(data, "Minimatic")).toMatchObject({ trackCount: 1, variantCount: 2, albumCount: 1 });
+    expect(identityByName(data, "Minimatic").albums[0].works[0].tracks).toHaveLength(2);
+  });
+
+  it("regroupe plusieurs stems et signale une version sans MainTrackID", () => {
+    const data = buildComposerAudit([album([
+      track({ id: "main", title: "Main", composers: ["Minimatic"] }),
+      track({ id: "stem-1", title: "Drums", isAlternate: true, variantKind: "stem", mainTrackId: "main", composers: ["Minimatic"] }),
+      track({ id: "stem-2", title: "Bass", isAlternate: true, variantKind: "stem", mainTrackId: "main", composers: ["Minimatic"] }),
+      track({ id: "orphan", title: "Orphan", isAlternate: true, composers: ["Minimatic"] }),
+    ])]);
+    const identity = identityByName(data, "Minimatic");
+    expect(identity).toMatchObject({ trackCount: 1, variantCount: 4, harvestStatus: "review-required" });
+    expect(identity.recommendations).toEqual(expect.arrayContaining([expect.objectContaining({ kind: "orphan-variant" })]));
+    expect(identity.albums[0].works).toHaveLength(2);
   });
 });

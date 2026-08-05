@@ -1,0 +1,23 @@
+{
+  "capturedAt": "2026-08-05T09:42:24.000Z",
+  "urls": {
+    "fr": "https://synck-psi.vercel.app/api/artists?locale=fr",
+    "en": "https://synck-psi.vercel.app/api/artists?locale=en"
+  },
+  "artists": {
+    "fr": {
+      "id": "cmiaidoxx00kdskhuthr0wyeu",
+      "slug": "thierry-los",
+      "name": "Thierry Los",
+      "bio": "Thierry Los est une figure emblématique de la scène musicale française, active depuis plus de 30 ans. Il a marqué l'industrie avec ses groupes Dodge Veg-O-Matic et Vegomatic, et a collaboré avec des artistes de renom tels que le chanteur italien Massimo Guadalupi avec qui il a obtenu un titre gold sur FIP en 2006 pour \"Jazz On The Road\", et la comédienne-chanteuse italienne Clara Galante, connue pour \"La Sirena nella notte\", le slow torride de Laetitia Casta sur UNE ILE d'ARTE. Il a également travaillé étroitement avec le Soul Man anglais Myles Sanko, co-composant ses deux premiers albums. Outre ses collaborations artistiques, Thierry a également composé pour les défilés Haute-Couture du créateur Maurizio Galante, et ses compositions ont régulièrement été diffusées sur France Télévision, notamment pour des documentaires de prime time et des publicités TV. Depuis 2019, il est sociétaire définitif de la SACEM et a intensément contribué à la librairie musicale depuis sa découverte du domaine en 2000, grâce à Guillaume Albeck qui lui commanda son premier album dans son style de prédilection, l'Electro Surf. En dehors de la musique, Thierry Los est également réalisateur de court-métrages primés, collectionneur d'autos anciennes qu'il loue pour des tournages de cinéma et des shootings de mode. Par ailleurs, il s'est également aventuré dans le mannequinat et la comédie, apparaissant récemment dans la publicité TV SUPERPROF en tant que professeur de guitare incarnant un vieux rocker.",
+      "image": "/images/projets/photoscompo/thierry-los.jpeg"
+    },
+    "en": {
+      "id": "cmiaidoxx00kdskhuthr0wyeu",
+      "slug": "thierry-los",
+      "name": "Thierry Los",
+      "bio": "Thierry Los is a seminal figure on the French music scene, active for more than 30 years. He first made his mark with the bands Dodge Veg-O-Matic and Vegomatic, and has collaborated with numerous renowned artists, including Italian singer Massimo Guadalupi, with whom he earned a gold title on FIP in 2006 for “Jazz On The Road”, and Italian actress-singer Clara Galante, known for “La Sirena nella notte”, the steamy slow track performed by Laetitia Casta in ARTE’s series Une Île. He has also worked closely with British soul man Myles Sanko, co-writing his first two albums. Beyond his artistic collaborations, Thierry has composed for Haute Couture runway shows by designer Maurizio Galante, and his music is regularly broadcast on France Télévisions, notably in prime-time documentaries and TV commercials. Since 2019, he has been a full member of SACEM. He has been deeply involved in production music ever since discovering the field in 2000, when Guillaume Albeck commissioned his first album in his favourite style: electro-surf. Outside of music, Thierry Los is an award-winning short-film director and a collector of vintage cars, which he rents out for film shoots and fashion photoshoots. He has also ventured into modelling and acting, most recently appearing in a SUPERPROF TV commercial as a guitar teacher playing the part of an old rocker.",
+      "image": "/images/projets/photoscompo/thierry-los.jpeg"
+    }
+  }
+}

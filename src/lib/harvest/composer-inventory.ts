@@ -21,6 +21,7 @@ export interface ParigoHarvestComposerInventory {
   trackCount: number;
   credits: HarvestComposerCredit[];
   profiles: CanonicalComposerSummary[];
+  indexedComposerNamesByTrackId: Record<string, string[]>;
 }
 
 const PAGE_SIZE = 100;
@@ -68,12 +69,13 @@ async function loadParigoHarvestComposerInventory(): Promise<ParigoHarvestCompos
     trackCount: tracks.length,
     credits: collectHarvestComposerCredits(tracks),
     profiles: collectCanonicalComposerSummaries(tracks),
+    indexedComposerNamesByTrackId: Object.fromEntries(tracks.map((track) => [track.id, track.composers ?? []])),
   };
 }
 
 const getCachedInventory = unstable_cache(
   loadParigoHarvestComposerInventory,
-  ["parigo-harvest-composer-inventory-v2"],
+  ["parigo-harvest-composer-inventory-v3"],
   { revalidate: 300, tags: ["catalog", "tracks", "composers", "filters"] },
 );
 

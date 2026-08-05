@@ -2,6 +2,7 @@ import { z } from "zod";
 import registry from "@/content/composer-profiles.generated.json";
 import { harvestComposerCreditId, normalizeHarvestComposerCredit } from "@/lib/harvest/composer-credits";
 import type { Track } from "@/types";
+import { harvestMainWorkId } from "@/lib/harvest/track-works";
 
 const nullableBioSchema = z.object({
   fr: z.string().min(1).nullable(),
@@ -35,17 +36,49 @@ const composerProfileSchema = z.object({
     creditIdentities: z.array(harvestCreditIdentitySchema).optional(),
   }),
   legacySlugs: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)),
-  provenance: z.object({
-    repository: z.literal("portfolio-caro"),
-    commit: z.literal("6e88259a2634d82c7fc7cc723fbd3537da9371af"),
-    bioSlug: z.string().nullable(),
-    imageSlug: z.string().nullable(),
-  }),
+  provenance: z.discriminatedUnion("source", [
+    z.object({
+      source: z.literal("portfolio-caro-git"),
+      repository: z.literal("portfolio-caro"),
+      commit: z.string().regex(/^[a-f0-9]{40}$/),
+      bioSlug: z.string().nullable(),
+      imageSlug: z.string().nullable(),
+      editorialArtistSlug: z.string().nullable(),
+      imageOverride: z.object({
+        source: z.literal("user-provided"),
+        file: z.string().min(1),
+      }).optional(),
+    }),
+    z.object({
+      source: z.literal("portfolio-caro-api"),
+      urls: z.object({ fr: z.string().url(), en: z.string().url() }),
+      capturedAt: z.string().datetime(),
+      artistSlug: z.string().min(1),
+      imageUrl: z.string().url(),
+      imageFallback: z.object({
+        repository: z.literal("portfolio-caro"),
+        ref: z.string().min(1),
+        path: z.string().min(1),
+      }).optional(),
+    }),
+    z.object({
+      source: z.literal("user-provided"),
+      capturedAt: z.string().datetime(),
+      bioFile: z.string().min(1),
+      imageSource: z.object({
+        repository: z.literal("portfolio-caro"),
+        commit: z.string().regex(/^[a-f0-9]{40}$/),
+        imageSlug: z.string().nullable(),
+      }),
+    }),
+  ]),
 });
+
+export const CANONICAL_COMPOSER_PROFILE_COUNT = 57;
 
 const registrySchema = z.object({
   generatedAt: z.string(),
-  profiles: z.array(composerProfileSchema).length(45),
+  profiles: z.array(composerProfileSchema).length(CANONICAL_COMPOSER_PROFILE_COUNT),
 }).superRefine((value, context) => {
   const slugs = new Set<string>();
   const names = new Set<string>();
@@ -71,7 +104,7 @@ export type CanonicalHarvestCreditIdentity = z.infer<typeof harvestCreditIdentit
 
 const parsedRegistry = registrySchema.parse(registry);
 
-export const CANONICAL_COMPOSER_SOURCE_COMMIT = "6e88259a2634d82c7fc7cc723fbd3537da9371af";
+export const CANONICAL_COMPOSER_SOURCE_COMMIT = "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2";
 export const canonicalComposerProfiles: CanonicalComposerProfile[] = [...parsedRegistry.profiles]
   .sort((left, right) => left.name.localeCompare(right.name, "fr", { sensitivity: "base" }));
 
@@ -136,14 +169,27 @@ export function resolveCanonicalComposerCredit(
   credit: string,
   albumCode?: string,
 ): { profile: CanonicalComposerProfile; identity: CanonicalHarvestCreditIdentity } | undefined {
+  return resolveCanonicalComposerCredits(credit, albumCode)[0];
+}
+
+export function resolveCanonicalComposerCredits(
+  credit: string,
+  albumCode?: string,
+): Array<{ profile: CanonicalComposerProfile; identity: CanonicalHarvestCreditIdentity }> {
   const normalized = normalizeHarvestComposerCredit(credit);
+  const matches: Array<{ profile: CanonicalComposerProfile; identity: CanonicalHarvestCreditIdentity }> = [];
   const global = globalCreditIdentityByAlias.get(normalized);
-  if (global) return global;
-  if (!albumCode) return undefined;
-  return scopedCreditIdentities.find(({ identity }) => (
-    identity.albumCodes?.includes(albumCode)
-    && identity.aliases.some((alias) => normalizeHarvestComposerCredit(alias) === normalized)
-  ));
+  if (global) matches.push(global);
+  if (albumCode) {
+    matches.push(...scopedCreditIdentities.filter(({ identity }) => (
+      identity.albumCodes?.includes(albumCode)
+      && identity.aliases.some((alias) => normalizeHarvestComposerCredit(alias) === normalized)
+    )));
+  }
+  return matches.filter((match, index) => matches.findIndex((candidate) => (
+    candidate.profile.slug === match.profile.slug
+    && candidate.identity.preferredName === match.identity.preferredName
+  )) === index);
 }
 
 export function getCanonicalComposerProfileForCredit(
@@ -161,17 +207,19 @@ export interface CanonicalComposerCreditSummary {
 
 export interface CanonicalComposerSummary extends CanonicalComposerProfile {
   trackCount: number;
+  variantCount: number;
   albumIds: string[];
   albumCodes: string[];
   albumTitles: string[];
   harvestCredits: CanonicalComposerCreditSummary[];
 }
 
-type ComposerTrack = Pick<Track, "id" | "albumId" | "albumCode" | "albumTitle" | "composers">;
+type ComposerTrack = Pick<Track, "id" | "albumId" | "albumCode" | "albumTitle" | "composers" | "artists" | "mainTrackId" | "isAlternate">;
 
 export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): CanonicalComposerSummary[] {
   const aggregate = new Map<string, {
-    trackIds: Set<string>;
+    workIds: Set<string>;
+    variantIds: Set<string>;
     albumIds: Set<string>;
     albumCodes: Set<string>;
     albumTitles: Set<string>;
@@ -180,7 +228,8 @@ export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): Cano
 
   for (const profile of canonicalComposerProfiles) {
     aggregate.set(profile.slug, {
-      trackIds: new Set(),
+      workIds: new Set(),
+      variantIds: new Set(),
       albumIds: new Set(),
       albumCodes: new Set(),
       albumTitles: new Set(),
@@ -192,16 +241,20 @@ export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): Cano
     for (const rawCredit of new Set(track.composers ?? [])) {
       const name = rawCredit.trim();
       if (!name) continue;
-      const profile = getCanonicalComposerProfileForCredit(name, track.albumCode);
-      if (!profile) continue;
-      const item = aggregate.get(profile.slug)!;
-      item.trackIds.add(track.id);
-      if (track.albumId) item.albumIds.add(track.albumId);
-      if (track.albumCode) item.albumCodes.add(track.albumCode);
-      if (track.albumTitle) item.albumTitles.add(track.albumTitle);
-      const ids = item.creditTracks.get(name) ?? new Set<string>();
-      ids.add(track.id);
-      item.creditTracks.set(name, ids);
+      for (const { profile } of resolveCanonicalComposerCredits(name, track.albumCode)) {
+        const item = aggregate.get(profile.slug)!;
+        item.variantIds.add(track.id);
+        const workId = harvestMainWorkId(track);
+        if (workId) {
+          item.workIds.add(workId);
+          if (track.albumId) item.albumIds.add(track.albumId);
+          if (track.albumCode) item.albumCodes.add(track.albumCode);
+          if (track.albumTitle) item.albumTitles.add(track.albumTitle);
+        }
+        const ids = item.creditTracks.get(name) ?? new Set<string>();
+        if (workId) ids.add(workId);
+        item.creditTracks.set(name, ids);
+      }
     }
   }
 
@@ -209,7 +262,8 @@ export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): Cano
     const item = aggregate.get(profile.slug)!;
     return {
       ...profile,
-      trackCount: item.trackIds.size,
+      trackCount: item.workIds.size,
+      variantCount: item.variantIds.size,
       albumIds: [...item.albumIds].sort(),
       albumCodes: [...item.albumCodes].sort((left, right) => left.localeCompare(right, "fr", { numeric: true })),
       albumTitles: [...item.albumTitles].sort((left, right) => left.localeCompare(right, "fr", { sensitivity: "base" })),
