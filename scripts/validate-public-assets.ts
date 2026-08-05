@@ -4,7 +4,10 @@ import path from "node:path";
 
 const root = process.cwd();
 const publicRoot = path.join(root, "public");
-const MAX_STATIC_PUBLIC_BYTES = 12 * 1024 * 1024;
+// The canonical composer catalogue now includes the requested local portraits.
+// Keep a narrow allowance above the current footprint so new assets still have
+// to fit within an explicit budget instead of disabling the aggregate guard.
+const MAX_STATIC_PUBLIC_BYTES = 13 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 72 * 1024 * 1024;
 const LARGE_ASSET_BYTES = 500 * 1024;
 const MEDIA_EXTENSIONS = /\.(mp3|wav|ogg|mp4|webm|jpg|jpeg|png|avif|webp)$/i;
