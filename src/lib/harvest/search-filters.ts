@@ -58,9 +58,6 @@ export async function getSearchFilterGroups(
       source: "catalog",
       state: "available",
       remote: "harvest-track-composers",
-      description: language === "fr"
-        ? "Recherche parmi tous les compositeurs crédités dans le catalogue Harvest accessible. Les variantes et crédits composites sont regroupés."
-        : "Search every composer credited in the accessible Harvest catalog. Variants and combined credits are grouped.",
     },
     ...categoryGroups.flatMap((group): SearchFilterGroup[] => {
       const key = groupKeys[group.name.toLocaleLowerCase("en")];

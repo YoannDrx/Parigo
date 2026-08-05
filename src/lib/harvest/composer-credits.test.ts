@@ -69,6 +69,17 @@ describe("Harvest composer credits", () => {
     ]);
   });
 
+  it("conserve les noms de scène numériques sans exposer les numéros IPI", () => {
+    expect(harvestComposerCreditNames("2080")).toEqual(["2080"]);
+    expect(harvestComposerCreditNames("248219461")).toEqual([]);
+    expect(collectHarvestComposerSearchItems([
+      { id: "track-1", composers: ["2080"] },
+      { id: "track-2", composers: ["2080"] },
+    ], "2080")).toEqual([
+      { id: "2080", name: "2080", count: 2 },
+    ]);
+  });
+
   it("agrège les pistes et albums sans fusionner les libellés Harvest", () => {
     const credits = collectHarvestComposerCredits([
       {

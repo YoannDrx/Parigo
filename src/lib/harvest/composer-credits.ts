@@ -31,6 +31,7 @@ const COMPOSER_SOCIETY_SUFFIX = new RegExp(
 const COMPOSER_CREDIT_SEPARATOR = /\s+\/\s+|\s*;\s*|\s*\|\s*|[\r\n]+/;
 const COMPOSER_SHARE_PREFIX = /^(?:\d{6,}\)?\s*)?(?:\d+(?:[.,]\d+)?\s*%\s*)+/;
 const HAS_LETTER = /\p{Letter}/u;
+const SHORT_NUMERIC_STAGE_NAME = /^\d{1,5}$/;
 
 export function harvestComposerCreditBaseName(value: string): string {
   return value.replace(COMPOSER_SOCIETY_SUFFIX, "").trim();
@@ -46,7 +47,10 @@ export function harvestComposerCreditNames(value: string): string[] {
     .split(COMPOSER_CREDIT_SEPARATOR)
     .map((part) => part.replace(COMPOSER_SHARE_PREFIX, "").trim())
     .map(harvestComposerCreditBaseName)
-    .filter((name) => name && HAS_LETTER.test(name));
+    // Numeric stage names such as `2080` are valid credits. Keep short,
+    // standalone values while rejecting IPI-shaped numeric fragments (the
+    // upstream cleanup contract already treats six or more digits as an IPI).
+    .filter((name) => name && (HAS_LETTER.test(name) || SHORT_NUMERIC_STAGE_NAME.test(name)));
 
   return [...new Map(names.map((name) => [normalizeHarvestComposerSearchValue(name), name])).values()];
 }
