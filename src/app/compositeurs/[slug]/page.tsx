@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, AudioLines, Disc3 } from "lucide-react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { Footer, Header } from "@/components/layout";
@@ -93,14 +93,47 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               />
             </div>
             <div className="flex min-w-0 flex-col justify-end px-2 pb-2 pt-3 md:px-0 md:pb-4 md:pt-8">
-              <p className="inline-flex w-fit rounded-full border border-[var(--line-strong)] bg-[var(--signal-soft)] px-3 py-1.5 font-mono text-[.6rem] font-semibold uppercase tracking-[.13em] text-[var(--signal-strong)]">
-                {composerRoleLabel(profile, locale)}
-              </p>
+              <div className="flex w-fit items-center gap-3 text-[var(--signal-strong)]">
+                <span aria-hidden="true" className="h-px w-7 bg-current" />
+                <p className="font-mono text-[.58rem] font-medium uppercase tracking-[.17em]">
+                  {composerRoleLabel(profile, locale)}
+                </p>
+                <span aria-hidden="true" className="h-1.5 w-1.5 rotate-45 border border-current" />
+              </div>
               <SignedTitle className="mt-5 max-w-full [overflow-wrap:anywhere] font-[var(--font-editorial)] text-[clamp(3.5rem,9vw,7.8rem)] leading-[.86] tracking-[-.06em]">{profile.name}</SignedTitle>
-              <dl className="mt-8 grid grid-cols-2 gap-3 text-sm sm:max-w-xl">
-                <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-4"><dt className="text-[var(--text-muted)]">{locale === "fr" ? "Œuvres principales" : "Main works"}</dt><dd className="mt-1 text-3xl font-semibold tracking-[-.05em]">{profile.trackCount}</dd></div>
-                <div className="rounded-[var(--radius-lg)] border border-[var(--line)] bg-[var(--surface-soft)] p-4"><dt className="text-[var(--text-muted)]">Albums</dt><dd className="mt-1 text-3xl font-semibold tracking-[-.05em]">{profile.albumIds.length}</dd></div>
-              </dl>
+              <div className="mt-9 max-w-xl border-y border-[var(--line)] py-5">
+                <p className="font-mono text-[.56rem] font-medium uppercase tracking-[.16em] text-[var(--text-muted)]">
+                  Tracks &amp; albums
+                </p>
+                <dl className="mt-4 grid grid-cols-2">
+                  <div className="group/stat min-w-0 pr-4 sm:pr-8">
+                    <dt className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                      <AudioLines aria-hidden="true" size={15} strokeWidth={1.7} className="text-[var(--signal-strong)] transition-transform duration-300 group-hover/stat:scale-x-110 motion-reduce:transition-none" />
+                      Tracks
+                    </dt>
+                    <dd className="mt-2 flex min-w-0 items-baseline gap-2">
+                      <span className="font-[var(--font-editorial)] text-[clamp(2.5rem,5vw,4.25rem)] leading-none tracking-[-.06em] transition-transform duration-300 group-hover/stat:-translate-y-0.5 motion-reduce:transform-none motion-reduce:transition-none">{profile.trackCount}</span>
+                      <span className="truncate font-mono text-[.52rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
+                        {locale === "fr" ? "au catalogue" : "in catalogue"}
+                      </span>
+                    </dd>
+                    <span aria-hidden="true" className="mt-3 block h-px w-10 bg-[var(--signal-strong)] transition-[width] duration-300 group-hover/stat:w-16 motion-reduce:transition-none" />
+                  </div>
+                  <div className="group/stat min-w-0 border-l border-[var(--line)] pl-4 sm:pl-8">
+                    <dt className="flex items-center gap-2 text-xs text-[var(--text-muted)]">
+                      <Disc3 aria-hidden="true" size={15} strokeWidth={1.7} className="text-[var(--signal-strong)] transition-transform duration-500 group-hover/stat:rotate-45 motion-reduce:transform-none motion-reduce:transition-none" />
+                      Albums
+                    </dt>
+                    <dd className="mt-2 flex min-w-0 items-baseline gap-2">
+                      <span className="font-[var(--font-editorial)] text-[clamp(2.5rem,5vw,4.25rem)] leading-none tracking-[-.06em] transition-transform duration-300 group-hover/stat:-translate-y-0.5 motion-reduce:transform-none motion-reduce:transition-none">{profile.albumIds.length}</span>
+                      <span className="truncate font-mono text-[.52rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
+                        Parigo
+                      </span>
+                    </dd>
+                    <span aria-hidden="true" className="mt-3 block h-px w-10 bg-[var(--signal-strong)] transition-[width] duration-300 group-hover/stat:w-16 motion-reduce:transition-none" />
+                  </div>
+                </dl>
+              </div>
             </div>
           </div>
         </section>
