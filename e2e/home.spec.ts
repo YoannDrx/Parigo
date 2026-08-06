@@ -667,23 +667,54 @@ test("le son du showreel et son contrôle persistent pendant la navigation", asy
   ))).toContain("pause:audio");
 });
 
-test("la section compositeurs présente les talents sans cartes de principes", async ({ page }) => {
+test("la section compositeurs présente un flux désaxé de talents", async ({ page }, testInfo) => {
   await page.goto("/");
   const section = page.getByTestId("home-composers");
   await expect(section.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(section.getByText("Une maison de compositeurs", { exact: true })).toHaveCount(0);
   await expect(section).toContainText("Une musique ne naît jamais seule");
-  await expect(section).toContainText("Découvrez les talents qui donnent une identité unique au catalogue original Parigo.");
+  await expect(section).toContainText("Découvrez nos talents");
+  await expect(section).not.toContainText("Découvrez les talents qui donnent une identité unique au catalogue original Parigo.");
   await expect(section.getByRole("heading", { level: 3 })).toHaveCount(0);
   for (const removedCard of ["Écouter", "Accompagner", "Construire"]) {
     await expect(section.getByText(removedCard, { exact: true })).toHaveCount(0);
   }
   await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
-  await expect(section.getByRole("link", { name: /Découvrez les talents qui donnent une identité unique au catalogue original Parigo/ })).toHaveAttribute("href", "/compositeurs");
+  const cta = section.getByRole("link", { name: "Découvrez nos talents" });
+  await expect(cta).toHaveAttribute("href", "/compositeurs");
+  await expect(cta).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(cta.locator("span")).toHaveCSS("text-decoration-line", "underline");
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
-  await expect(section.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
-  await expect(section.locator("img")).toHaveCount(0);
+  const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]');
+  await expect(primaryCards).toHaveCount(55);
+  await expect(primaryCards.locator("svg")).toHaveCount(0);
+  await expect(section.locator('.composer-cloud__duplicate a[href^="/compositeurs/"]')).toHaveCount(55);
+  await expect(section.locator("img")).toHaveCount(110);
+  await expect(primaryCards.locator("img").first()).toHaveAttribute("src", /\/images\/composers\/detail\//);
+  await expect(primaryCards.locator("img").first()).toHaveCSS("object-fit", "cover");
+  const verticalOffsets = await section.locator('.composer-cloud__group:not([aria-hidden="true"]) .composer-cloud__item').evaluateAll((items) => (
+    items.map((item) => getComputedStyle(item).paddingTop)
+  ));
+  expect(new Set(verticalOffsets).size).toBeGreaterThan(8);
+  const track = section.locator(".composer-cloud__track");
+  await expect(track).toHaveCSS("animation-name", "composer-cloud-drift");
+  if (testInfo.project.name === "desktop") {
+    await section.locator(".composer-cloud").hover();
+    await expect(track).toHaveCSS("animation-play-state", "paused");
+  }
+  await expect(section.locator("header > p")).toHaveCount(1);
+  await expect(section.locator("header > p")).toHaveCSS("border-top-width", "0px");
   await expect(page.getByTestId("composer-sticky-stage")).toHaveCount(0);
+});
+
+test("la home adopte les nouvelles accroches éditoriales", async ({ page }) => {
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero).toContainText("Des compositions originales pensées pour raconter vos images");
+  await expect(hero).toContainText("Explorez, écoutez, comparez et licenciez en quelques clics.");
+  await expect(hero).not.toContainText("Un catalogue édité pour les monteurs");
+  await expect(page.locator("#about").getByRole("heading", { name: "Qui sommes nous" })).toBeVisible();
+  await expect(page.getByTestId("home-clips-section")).not.toContainText("Les créations audiovisuelles du label");
 });
 
 test("le bouton Play des albums reste visible en thème sombre", async ({ page }) => {
@@ -695,6 +726,42 @@ test("le bouton Play des albums reste visible en thème sombre", async ({ page }
   await expect(playIndicator).toHaveCSS("opacity", "1");
   const background = await playIndicator.evaluate((node) => getComputedStyle(node).backgroundColor);
   expect(background).not.toBe("rgba(0, 0, 0, 0)");
+});
+
+test("les nouveautés se rafraîchissent dès l’affichage initial", async ({ page }) => {
+  let releaseRequests = 0;
+  await page.route(/\/api\/albums\?/, async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.has("label")) {
+      await route.continue();
+      return;
+    }
+    releaseRequests += 1;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          albums: [{
+            id: "fresh-release",
+            slug: "fresh-release",
+            title: "Sortie fraîche",
+            cover: "/images/placeholder-album.svg",
+            label: "Parigo",
+            trackCount: 1,
+            releaseDate: "2026-08-06T00:00:00.000Z",
+          }],
+        },
+        meta: { total: 1, page: 1, pageSize: 12 },
+      }),
+    });
+  });
+
+  await page.goto("/");
+  const featured = page.locator("#featured");
+  await expect(featured.getByText("Sortie fraîche", { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(featured.getByRole("tab", { name: "Nouveautés" })).toHaveAttribute("aria-selected", "true");
+  expect(releaseRequests).toBeGreaterThan(0);
 });
 
 test("les cartes À écouter maintenant séparent lecture et navigation", async ({ page }) => {
@@ -781,7 +848,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   const composers = page.getByTestId("home-composers");
   await expect(composers.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
-  await expect(composers.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
+  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]')).toHaveCount(55);
 });
 
 test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }) => {

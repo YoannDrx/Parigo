@@ -89,7 +89,7 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await page.goto("/compositeurs/harvest-ugly-mac-beer-1u58k7l");
   await expect(page).toHaveURL(/\/compositeurs\/ugly-mac-beer$/);
   await expect(page.getByRole("heading", { level: 1, name: "Ugly Mac Beer" })).toBeVisible();
-  await expect(page.locator('img[src*="canonical/ugly_mac_beer"]')).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/ugly_mac_beer/);
   await expect(page.getByRole("heading", { name: "Albums Parigo" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Clips" })).toHaveCount(0);
   const album = page.getByRole("link").filter({ hasText: "Dark Beats" }).first();
@@ -124,7 +124,8 @@ test("les nouveaux profils publient leurs noms de scène et le contenu disponibl
   await page.goto("/compositeurs/forever-pavot");
   await expect(page.getByRole("heading", { level: 1, name: "Forever Pavot" })).toBeVisible();
   await expect(page.locator('img[src*="forever_pavot"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Biographie" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
+  await expect(page.getByTestId("composer-biography")).toHaveClass(/w-full/);
 
   await page.goto("/en/compositeurs/frederic-hanak");
   await expect(page.getByRole("heading", { level: 1, name: "Frédéric Hanak" })).toBeVisible();
@@ -137,11 +138,18 @@ test("les nouveaux profils publient leurs noms de scène et le contenu disponibl
 
   await page.goto("/compositeurs/stan-galouo");
   await expect(page.getByRole("heading", { level: 1, name: "Stan Galouo" })).toBeVisible();
-  await expect(page.locator('img[src*="canonical/stan_galouo"]')).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/stan_galouo/);
 
   await page.goto("/compositeurs/patrice-dambrine");
   await expect(page.getByRole("heading", { level: 1, name: "Patrice Dambrine" })).toBeVisible();
-  await expect(page.locator('img[src*="canonical/patrice_dambrine"]')).toBeVisible();
+  const patriceImage = page.getByTestId("composer-detail-image");
+  await expect(patriceImage).toHaveAttribute("src", /\/images\/composers\/detail\/patrice_dambrine/);
+  const patriceRatios = await patriceImage.evaluate((image: HTMLImageElement) => ({
+    rendered: image.getBoundingClientRect().width / image.getBoundingClientRect().height,
+    objectFit: getComputedStyle(image).objectFit,
+  }));
+  expect(Math.abs(1 - patriceRatios.rendered)).toBeLessThan(0.02);
+  expect(patriceRatios.objectFit).toBe("cover");
   await expect(page.getByText(/Patrice Dambrine est un musicien, compositeur et producteur français/)).toBeVisible();
 });
 
@@ -150,7 +158,7 @@ test("les quatre profils rematchés utilisent leurs noms, portraits et bios édi
   await page.goto("/compositeurs/aeon-seven");
   await expect(page.getByRole("heading", { level: 1, name: "Aeon Seven" })).toBeVisible();
   await expect(page.locator('img[src*="aeon_seven"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Biographie" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
   await expect(page.locator("main")).not.toContainText("Stéphane Delplanque");
   expect((await request.get("/compositeurs/stephane-delplanque")).status()).toBe(404);
 
@@ -180,8 +188,18 @@ test("les fiches compositeur n’affichent plus de libellé de rôle", async ({ 
 test("les biographies éditoriales nouvellement fournies sont publiées", async ({ page }) => {
   await page.goto("/compositeurs/xavier-sibre");
   await expect(page.getByRole("heading", { level: 1, name: "Xavier Sibre" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Biographie" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Xavier Sibre" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
   await expect(page.getByText(/multi-instrumentiste, compositeur et arrangeur français/)).toBeVisible();
+});
+
+test("After In Paris publie les cinq albums attestés par Harvest", async ({ page }) => {
+  await page.goto("/compositeurs/after-in-paris");
+  const albums = page.locator("section").filter({ has: page.getByRole("heading", { name: "Albums Parigo" }) });
+  await expect(albums.locator('a[href^="/albums/"]')).toHaveCount(5);
+  for (const title of ["Paris Postcards", "A French Romance", "The Projectionist", "Solo Piano", "Solo Piano Vol.2"]) {
+    await expect(albums.getByText(title, { exact: true })).toBeVisible();
+  }
 });
 
 test("les clips YouTube n’infèrent aucun crédit musical local", async ({ page }) => {

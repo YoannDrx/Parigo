@@ -71,7 +71,7 @@ export function HomeHero() {
           {locale === "fr" ? "Trouvez la bonne musique" : "Find the right music"}
         </SignedTitle>
         <p className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
-          {locale === "fr" ? <>Un catalogue édité pour les monteurs, superviseurs musicaux et producteurs.<br className="hidden sm:block" />Cherchez, écoutez, comparez et licenciez — sans bruit inutile.</> : <>A curated catalogue built for editors, music supervisors and producers.<br className="hidden sm:block" />Search, listen, compare and license — without the noise.</>}
+          {locale === "fr" ? <>Des compositions originales pensées pour raconter vos images<br className="hidden sm:block" />Explorez, écoutez, comparez et licenciez en quelques clics.</> : <>Original compositions created to tell the story of your images<br className="hidden sm:block" />Explore, listen, compare and license in just a few clicks.</>}
         </p>
         <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch mode="assisted" /></div>
       </div>
@@ -88,9 +88,10 @@ interface HomeExperienceProps {
   initialReleases: Album[];
   initialSynchronisations: Synchronisation[];
   initialClips: EditorialVideo[];
+  initialComposers: Array<{ slug: string; name: string; image: string }>;
 }
 
-export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
+export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, initialSynchronisations: syncs, initialClips: clips, initialComposers }: HomeExperienceProps) {
   const { locale, t, localizedPath } = useI18n();
   const currentTrack = usePlayerStore((state) => state.currentTrack);
   const isPlaying = usePlayerStore((state) => state.isPlaying);
@@ -107,6 +108,8 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
   const [loadingAudioSelection, setLoadingAudioSelection] = useState<string | null>(null);
   const [audioPlaybackError, setAudioPlaybackError] = useState<string | null>(null);
   const audioTracks = useRef(new Map<string, Track[]>());
+  const releasesRef = useRef(releases);
+  const parigoAlbumsRef = useRef(parigoAlbums);
   const editorialPlaylists = initialPlaylists.playlists;
   const isFeaturedTabLoading = (
     featuredTab === "releases" && releases.length === 0 && tabError !== "releases"
@@ -116,8 +119,6 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
 
   useEffect(() => {
     if (featuredTab !== "releases" && featuredTab !== "parigo") return;
-    if (featuredTab === "releases" && releases.length > 0) return;
-    if (featuredTab === "parigo" && parigoAlbums.length > 0) return;
     const controller = new AbortController();
     const tab = featuredTab;
     void fetchAlbums(
@@ -126,13 +127,21 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
         : { limit: 12, sort: "releaseDate" },
       controller.signal,
     ).then((data) => {
-      if (tab === "parigo") setParigoAlbums(data.albums);
-      else setReleases(data.albums);
+      if (tab === "parigo") {
+        parigoAlbumsRef.current = data.albums;
+        setParigoAlbums(data.albums);
+      } else {
+        releasesRef.current = data.albums;
+        setReleases(data.albums);
+      }
+      setTabError((current) => current === tab ? null : current);
     }).catch((error: unknown) => {
-      if (!(error instanceof DOMException && error.name === "AbortError")) setTabError(tab);
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      const hasFallback = tab === "parigo" ? parigoAlbumsRef.current.length > 0 : releasesRef.current.length > 0;
+      if (!hasFallback) setTabError(tab);
     });
     return () => controller.abort();
-  }, [featuredTab, parigoAlbums.length, releases.length, retryVersion]);
+  }, [featuredTab, retryVersion]);
 
   const playAudioSelection = async (selectionKey: string, loadTracks: () => Promise<Track[]>) => {
     if (loadingAudioSelection) return;
@@ -168,7 +177,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
               <Image src="/images/parigo-studio.jpg" alt="Studio PARIGO avec une sélection de vinyles" fill loading="lazy" quality={75} sizes="100vw" className="object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
               <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
-                <SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes-nous ?" : "Who are we?"}</SignedTitle>
+                <SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes nous ?" : "Who are we?"}</SignedTitle>
                 <p className="mt-7 max-w-2xl text-base leading-7 text-white/88 md:text-lg">{locale === "fr" ? "Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits. Télévision, cinéma, documentaires, publicité, podcasts, radio ou contenus digitaux : notre catalogue international et notre expertise de la synchronisation vous aident à trouver la musique idéale pour votre projet." : "Parigo helps image and sound professionals search for music and manage rights. Television, cinema, documentaries, advertising, podcasts, radio and digital content: our international catalogue and synchronisation expertise help you find the ideal music for your project."}</p>
                 <Link href="/albums" className="home-about-cta mt-8 inline-flex min-h-11 w-fit items-center gap-2 rounded-md px-5 text-sm font-semibold transition">{locale === "fr" ? "Découvrir le catalogue" : "Explore the catalogue"}<ArrowRight size={15} /></Link>
               </div>
@@ -198,7 +207,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
             ) : tabError === featuredTab ? (
               <div className="rounded-xl border border-[var(--line)] px-6 py-20 text-center"><AlertCircle className="mx-auto text-[var(--signal-strong)]" /><h3 className="mt-4 text-2xl">{locale === "fr" ? "Cette sélection est momentanément indisponible." : "This selection is temporarily unavailable."}</h3><button type="button" onClick={() => { setTabError(null); setRetryVersion((version) => version + 1); }} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--line)] px-4 text-sm font-semibold"><RotateCcw size={15} />{t("common.retry")}</button></div>
             ) : featuredTab === "playlists" ? (
-              <HorizontalRail tone="surface" label={locale === "fr" ? "Playlists à écouter maintenant" : "Playlists to listen to now"}>
+              <HorizontalRail key={featuredTab} tone="surface" label={locale === "fr" ? "Playlists à écouter maintenant" : "Playlists to listen to now"}>
                 {editorialPlaylists.map((playlist) => {
                   const selectionKey = `playlist:${playlist.id}`;
                   return (
@@ -218,7 +227,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                 })}
               </HorizontalRail>
             ) : (
-            <HorizontalRail tone="surface" label={featuredTab === "parigo" ? (locale === "fr" ? "Albums Parigo" : "Parigo albums") : locale === "fr" ? "Dernières sorties" : "New releases"}>
+            <HorizontalRail key={featuredTab} tone="surface" label={featuredTab === "parigo" ? (locale === "fr" ? "Albums Parigo" : "Parigo albums") : locale === "fr" ? "Dernières sorties" : "New releases"}>
               {(featuredTab === "parigo" ? parigoAlbums : releases).map((release) => {
                 const selectionKey = `album:${release.id}`;
                 return (
@@ -245,17 +254,12 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
 
         <section data-testid="home-clips-section" className="border-b border-[var(--line)] bg-[var(--background)] px-4 py-20 md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
-            <SectionReveal className="mb-12 grid gap-6 md:grid-cols-12 md:items-end">
-              <div className="md:col-span-7">
+            <SectionReveal className="mb-12">
+              <div>
                 <SignedTitle as="h2" className="text-[clamp(2.8rem,5vw,5.6rem)] font-semibold leading-[.92] tracking-[-.055em]">
                   {locale === "fr" ? "Clips, teasers et performances" : "Clips, teasers and performances"}
                 </SignedTitle>
               </div>
-              <p className="max-w-md text-[var(--text-muted)] md:col-span-4 md:col-start-9">
-                {locale === "fr"
-                  ? "Les créations audiovisuelles du label, reliées aux compositeurs et aux albums."
-                  : "The label’s audiovisual work, linked to composers and albums."}
-              </p>
             </SectionReveal>
             <HorizontalRail cinema tone="page" label={locale === "fr" ? "Clips Parigo" : "Parigo videos"}>
               {clips.map((clip) => (
@@ -287,7 +291,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
-        <DeferredHomeStorySections locale={locale} />
+        <DeferredHomeStorySections locale={locale} profiles={initialComposers} />
 
         <section data-testid="home-sync-section" className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">

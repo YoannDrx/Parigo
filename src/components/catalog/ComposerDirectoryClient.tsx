@@ -85,14 +85,14 @@ export function ComposerDirectoryClient({
             <Link
               key={profile.slug}
               href={localizedPath(locale, `/compositeurs/${profile.slug}`)}
-              className="composer-card group relative flex min-h-72 flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)] sm:min-h-80"
+              className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
             >
               <Image
-                src={profile.image}
+                src={profile.detailImage?.src ?? profile.image}
                 alt=""
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                className="object-cover grayscale transition duration-500 group-hover:scale-[1.025] group-hover:grayscale-0"
+                className="object-cover grayscale transition duration-500 group-hover:grayscale-0"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
               <div className="relative p-5 text-white sm:p-6">

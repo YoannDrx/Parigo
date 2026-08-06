@@ -9,6 +9,7 @@ import { getCachedAlbumDiscovery, getCachedPlaylists } from "@/lib/harvest/catal
 import { getSynchronisations } from "@/lib/youtube/synchronisations";
 import { getFeaturedEditorialVideos } from "@/lib/editorial/videos";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
+import { canonicalComposerProfiles } from "@/lib/composers/profiles";
 
 export const generateMetadata = staticMetadata("/", {
   fr: { title: "Musique de production pour l’image", description: "Parigo Music accompagne films, séries, publicités et contenus de marque avec une sélection musicale exigeante et un licensing clair." },
@@ -24,6 +25,12 @@ function loadHomeData() {
     getFeaturedEditorialVideos(8),
   ]);
 }
+
+const homeComposerProfiles = canonicalComposerProfiles.map((profile) => ({
+  slug: profile.slug,
+  name: profile.name,
+  image: profile.detailImage?.src ?? profile.image,
+}));
 
 async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeof loadHomeData> }) {
   const [playlists, releases, parigoAlbums, synchronisations, clips] = await dataPromise;
@@ -44,6 +51,7 @@ async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeo
       initialParigoAlbums={parigoAlbums.items}
       initialSynchronisations={synchronisations.slice(0, 12)}
       initialClips={clips}
+      initialComposers={homeComposerProfiles}
     />
   );
 }

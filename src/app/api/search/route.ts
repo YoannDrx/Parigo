@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { cloudSearch, getTracksByIds } from "@/lib/harvest/catalog";
+import {
+  findStaleIndexedComposerQuery,
+  refreshInvalidComposerTracks,
+} from "@/lib/harvest/composer-search";
 import { getSearchFilterGroups } from "@/lib/harvest/search-filters";
 import { readHarvestSession } from "@/lib/harvest/session";
 import { resolveSearchBrief } from "@/lib/search-intent";
@@ -120,6 +124,16 @@ export async function GET(request: NextRequest) {
         if (appliedResult.total > 0) appliedQueryResolution = queryResolution;
       }
     }
+    if (!intentResolution && appliedResult.total === 0 && input.view === "tracks" && input.composer) {
+      const staleComposerQuery = await findStaleIndexedComposerQuery(input.composer, session?.memberToken);
+      if (staleComposerQuery && staleComposerQuery !== input.composer) {
+        appliedResult = await cloudSearch({
+          ...searchInput,
+          composerQuery: staleComposerQuery,
+          saveSearchHistory: Boolean(session),
+        }, session?.memberToken);
+      }
+    }
     if (input.view === "tracks" && input.type === "all" && appliedResult.tracks.length) {
       const enrichedTracks = await getTracksByIds(
         appliedResult.tracks.map((track) => track.id),
@@ -134,6 +148,16 @@ export async function GET(request: NextRequest) {
           ...track,
           ...(enrichedById.get(track.id) ?? {}),
         })),
+      };
+    }
+    if (input.view === "tracks" && appliedResult.tracks.length) {
+      appliedResult = {
+        ...appliedResult,
+        tracks: await refreshInvalidComposerTracks(
+          appliedResult.tracks,
+          session?.memberToken,
+          "search-composer-refresh",
+        ),
       };
     }
     const items = input.view === "albums" ? appliedResult.albums : appliedResult.tracks;

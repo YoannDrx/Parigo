@@ -18,6 +18,13 @@ type ProfileSource = {
   imageSlug: string | null;
   imageFile?: string;
   localImageFile?: string;
+  cardImageTransform?: {
+    fit?: "cover" | "contain";
+    position?: "attention" | "center" | "north" | "west";
+    background?: string;
+    inset?: number;
+    extract?: { left: number; top: number; width: number; height: number };
+  };
   localImageProvenance?: {
     source: "portfolio-caro-git";
     repository: "portfolio-caro";
@@ -25,6 +32,7 @@ type ProfileSource = {
     path: string;
   };
   aliases: string[];
+  memberAliases?: string[];
   scopedRelations?: Array<{ albumCodes: string[]; aliases: string[] }>;
   creditIdentities?: Array<{ preferredName: string; aliases: string[]; albumCodes?: string[] }>;
   legacySlugs?: string[];
@@ -65,7 +73,7 @@ const USER_PROVIDED_BIOGRAPHIES_FILE = "site-biographies.user-provided.json";
 const profiles: ProfileSource[] = [
   {
     slug: "aiwa",
-    name: "Aiwa",
+    name: "Aïwa",
     kind: "group",
     bioSlug: "aiwa",
     imageSlug: "aiwa",
@@ -81,30 +89,27 @@ const profiles: ProfileSource[] = [
     kind: "group",
     bioSlug: "arat-kilo",
     imageSlug: "arat-kilo",
-    aliases: [],
-    scopedRelations: [{
-      albumCodes: ["PGO0030"],
-      aliases: [
-        "Samuel Hirsch", "Florent Berteau", "Fabien Girard", "Gerald Bonnegrace", "Michael Havard",
-        "Aristide Goncalves", "Arnold Turpin", "Camille Floriot", "Assitan Keita", "Mike Ladd",
-        "Nardos Tesfaw", "ROCE", "Bruck Tesfaye",
-      ],
-    }],
+    aliases: ["Arat Kilo"],
+    memberAliases: [
+      "Samuel Hirsch", "Florent Berteau", "Fabien Girard", "Gerald Bonnegrace", "Michael Havard",
+      "Aristide Goncalves", "Arnold Turpin", "Camille Floriot", "Assitan Keita", "Mike Ladd",
+      "Nardos Tesfaw", "ROCE", "Bruck Tesfaye",
+    ],
   },
-  { slug: "fabien-girard", name: "Fabien Girard", kind: "person", bioSlug: "fabien-girard", imageSlug: "fabien-girard", aliases: ["Fabien Girard"] },
-  { slug: "xavier-sibre", name: "Xavier Sibre", kind: "person", bioSlug: null, imageSlug: null, aliases: ["Xavier Sibre"] },
+  { slug: "fabien-girard", name: "Fabien Girard", kind: "person", bioSlug: "fabien-girard", imageSlug: "fabien-girard", cardImageTransform: { inset: 0.035, background: "#1f2a27" }, aliases: ["Fabien Girard"] },
+  { slug: "xavier-sibre", name: "Xavier Sibre", kind: "person", bioSlug: null, imageSlug: null, localImageFile: "xavier_sibre.jpg", aliases: ["Xavier Sibre"] },
   { slug: "ugly-mac-beer", name: "Ugly Mac Beer", kind: "person", bioSlug: "ugly-mac-beer", imageSlug: "ugly-mac-beer", localImageFile: "ugly_mac_beer.jpg", aliases: ["Ugly Mac Beer"] },
   { slug: "yann-kornowicz", name: "Yann Kornowicz", kind: "person", bioSlug: "yann-kornowicz", imageSlug: "yann-kornowicz", aliases: ["Yann Kornowicz"] },
-  { slug: "dj-hertz", name: "DJ HERTZ", kind: "person", bioSlug: "dj-hertz", imageSlug: "dj-hertz", aliases: ["Franck Sinnassamy", "DJ HERTZ"], legacySlugs: ["franck-sinnassamy"] },
-  { slug: "laurent-dury", name: "Laurent Dury", kind: "person", bioSlug: "laurent-dury", imageSlug: "laurent-dury", localImageFile: "laurent_dury.png", aliases: ["Laurent Dury"] },
+  { slug: "dj-hertz", name: "DJ Hertz", kind: "person", bioSlug: "dj-hertz", imageSlug: "dj-hertz", aliases: ["Franck Sinnassamy", "DJ HERTZ", "DJ Hertz"], legacySlugs: ["franck-sinnassamy"] },
+  { slug: "laurent-dury", name: "Laurent Dury", kind: "person", bioSlug: "laurent-dury", imageSlug: "laurent-dury", localImageFile: "laurent_dury.png", cardImageTransform: { extract: { left: 430, top: 250, width: 760, height: 760 }, position: "center" }, aliases: ["Laurent Dury"] },
   { slug: "liqid", name: "Liqid", kind: "person", bioSlug: "liqid", imageSlug: "liqid", aliases: ["Liqid"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", bioSlug: "bonetrips", imageSlug: "bonetrips", aliases: ["Bonetrips"] },
-  { slug: "coeur", name: "Cœur", kind: "person", bioSlug: "coeur", imageSlug: "coeur", aliases: ["Charlotte Duran"] },
-  { slug: "arom", name: "AROM", kind: "person", bioSlug: "arom", imageSlug: "arom", aliases: ["Amaury Messelier", "AROM"], legacySlugs: ["amaury-messelier"] },
-  { slug: "minimatic", name: "Minimatic", kind: "person", bioSlug: "minimatic", imageSlug: "minimatic", aliases: ["Minimatic"] },
+  { slug: "coeur", name: "Cœur", kind: "person", bioSlug: "coeur", imageSlug: "coeur", localImageFile: "coeur.jpg", aliases: ["Charlotte Duran"] },
+  { slug: "arom", name: "Arom", kind: "person", bioSlug: "arom", imageSlug: "arom", localImageFile: "arom.jpg", aliases: ["Amaury Messelier", "AROM", "Arom"], legacySlugs: ["amaury-messelier"] },
+  { slug: "minimatic", name: "Minimatic", kind: "person", bioSlug: "minimatic", imageSlug: "minimatic", localImageFile: "minimatic.jpg", aliases: ["Minimatic"] },
   {
     slug: "sebastien-blanchon-n-zeng",
-    name: "Sébastien Blanchon (N’Zeng)",
+    name: "Sébastien Blanchon",
     kind: "person",
     bioSlug: "sebastien-blanchon",
     imageSlug: "sebastien-blanchon",
@@ -124,12 +129,12 @@ const profiles: ProfileSource[] = [
   },
   { slug: "drixxxe", name: "Drixxxé", kind: "person", bioSlug: "drixxxe", imageSlug: "drixxxe", aliases: ["Drixxxé", "Drixxxe"] },
   { slug: "emmanuel-maree", name: "Emmanuel Marée", kind: "person", bioSlug: "emmanuel-maree", imageSlug: "emmanuel-maree", aliases: ["Emmanuel Marée"] },
-  { slug: "f-stokes", name: "F.Stokes", kind: "person", bioSlug: "f-stokes", imageSlug: "f-stokes", aliases: ["Rodney Lucas"] },
+  { slug: "f-stokes", name: "F.Stokes", kind: "person", bioSlug: "f-stokes", imageSlug: "f-stokes", cardImageTransform: { inset: 0.025, background: "#c8817c" }, aliases: ["Rodney Lucas"] },
   { slug: "forever-pavot", name: "Forever Pavot", kind: "person", bioSlug: "emile-sornin-forever-pavot", imageSlug: "emile-sornin-forever-pavot", aliases: ["Emile Sornin", "Sornin Emile"], editorialArtistSlug: "emile-sornin-forever-pavot" },
   { slug: "frederic-hanak", name: "Frédéric Hanak", kind: "person", bioSlug: null, imageSlug: "frederic-hanak", aliases: ["Frédéric Hanak", "Frederic Hanak"], manualBioFile: "frederic-hanak.user-provided.json" },
-  { slug: "madben", name: "Madben", kind: "person", bioSlug: "madben", imageSlug: "madben", aliases: ["Madben"] },
-  { slug: "arandel", name: "Arandel", kind: "person", bioSlug: "arandel", imageSlug: "arandel", aliases: ["Arandel"] },
-  { slug: "the-architect", name: "The Architect", kind: "person", bioSlug: "the-architect", imageSlug: "the-architect", aliases: ["The Architect"] },
+  { slug: "madben", name: "Madben", kind: "person", bioSlug: "madben", imageSlug: "madben", cardImageTransform: { inset: 0.05, background: "#f0f0ee" }, aliases: ["Madben"] },
+  { slug: "arandel", name: "Arandel", kind: "person", bioSlug: "arandel", imageSlug: "arandel", localImageFile: "arandel.jpg", aliases: ["Arandel"] },
+  { slug: "the-architect", name: "The Architect", kind: "person", bioSlug: "the-architect", imageSlug: "the-architect", localImageFile: "the_architect.jpg", aliases: ["The Architect"] },
   {
     slug: "after-in-paris",
     name: "After In Paris",
@@ -137,45 +142,47 @@ const profiles: ProfileSource[] = [
     bioSlug: "after-in-paris",
     imageSlug: "after-in-paris",
     localImageFile: "after_in_paris.jpg",
-    aliases: [],
-    scopedRelations: [{ albumCodes: ["PGO0031"], aliases: ["Jean-Michel Vallet", "Claire Michael", "Patrick Chartol", "After In Paris"] }],
+    aliases: ["After In Paris"],
+    memberAliases: ["Jean-Michel Vallet", "Claire Michael", "Patrick Chartol"],
   },
-  { slug: "thierry-los", name: "Thierry Los", kind: "person", bioSlug: null, imageSlug: null, localImageFile: "thierry_los.jpg", aliases: ["Thierry Loshouarn", "Thierry Los"] },
+  { slug: "thierry-los", name: "Thierry Los", kind: "person", bioSlug: null, imageSlug: null, localImageFile: "thierry_los.jpg", cardImageTransform: { inset: 0.06, background: "#eee6ad" }, aliases: ["Thierry Loshouarn", "Thierry Los"] },
   { slug: "nicodrum", name: "Nicodrum", kind: "person", bioSlug: "nicodrums-friends", imageSlug: "nicodrums-friends", aliases: ["Nicodrum", "Nicodrums", "Nicodrums & Friends", "Nicodrums Friends"], legacySlugs: ["nicodrums-friends"] },
   { slug: "2080", name: "2080", kind: "person", bioSlug: "2080", imageSlug: "2080", aliases: ["2080", "208"] },
-  { slug: "jb-hanak", name: "JB Hanak", kind: "person", bioSlug: "jb-hanak", imageSlug: "jb-hanak", aliases: ["Jean-Baptiste Hanak", "Jean Baptiste Hanak", "JB HANAK"] },
-  { slug: "aeon-seven", name: "Aeon Seven", kind: "person", bioSlug: "aeon-seven", imageSlug: "aeon-seven", aliases: ["Stéphane Delplanque", "Stephane Delplanque"], editorialArtistSlug: "aeon-seven" },
-  { slug: "daniel-amozig", name: "Daniel Amozig", kind: "person", bioSlug: "dan-amozig", imageSlug: "dan-amozig", aliases: ["Daniel Amozig", "Dan Amozig"], legacySlugs: ["dan-amozig"] },
-  { slug: "yann-jankielewicz", name: "Yann Jankielewicz", kind: "person", bioSlug: "yann-jankielewicz", imageSlug: "yann-jankielewicz", aliases: ["Yann Jankielewicz"] },
-  { slug: "victor-baillet", name: "Victor Baillet", kind: "person", bioSlug: "mr-viktor", imageSlug: "mr-viktor", localImageFile: "victor_baillet.jpg", aliases: ["Victor Baillet"], editorialArtistSlug: "mr-viktor" },
+  { slug: "jb-hanak", name: "JB Hanak", kind: "person", bioSlug: "jb-hanak", imageSlug: "jb-hanak", localImageFile: "jb_hanak.jpg", aliases: ["Jean-Baptiste Hanak", "Jean Baptiste Hanak", "JB HANAK"] },
+  { slug: "aeon-seven", name: "Aeon Seven", kind: "person", bioSlug: "aeon-seven", imageSlug: "aeon-seven", localImageFile: "aeon_seven.png", aliases: ["Stéphane Delplanque", "Stephane Delplanque"], editorialArtistSlug: "aeon-seven" },
+  { slug: "daniel-amozig", name: "Dan Amozig", kind: "person", bioSlug: "dan-amozig", imageSlug: "dan-amozig", localImageFile: "dan_amozig.jpg", cardImageTransform: { fit: "contain", position: "center", background: "#050505" }, aliases: ["Daniel Amozig", "Dan Amozig"], legacySlugs: ["dan-amozig"] },
+  { slug: "yann-jankielewicz", name: "Yann Jankielewicz", kind: "person", bioSlug: "yann-jankielewicz", imageSlug: "yann-jankielewicz", cardImageTransform: { inset: 0.035, background: "#175a61" }, aliases: ["Yann Jankielewicz"] },
+  { slug: "victor-baillet", name: "Victor Baillet", kind: "person", bioSlug: "mr-viktor", imageSlug: "mr-viktor", localImageFile: "victor_baillet.jpg", cardImageTransform: { inset: 0.035, background: "#eeeeec" }, aliases: ["Victor Baillet"], editorialArtistSlug: "mr-viktor" },
   { slug: "vincent-bouhelier", name: "Vincent Bouhelier", kind: "person", bioSlug: "aociz", imageSlug: "aociz", aliases: ["Vincent Bouhelier"], editorialArtistSlug: "aociz" },
   {
     slug: "ana-kap",
-    name: "ANA KAP",
+    name: "Ana Kap",
     kind: "group",
     bioSlug: "ana-kap",
     imageSlug: "ana-kap",
-    aliases: [],
-    scopedRelations: [{ albumCodes: ["PGO0034"], aliases: ["Emin Dzijan", "Manuel Decocq", "Pierre Millet", "Jean-Michel Trotoux", "ANA KAP"] }],
+    localImageFile: "ana_kap.jpg",
+    cardImageTransform: { extract: { left: 0, top: 340, width: 980, height: 980 }, position: "center" },
+    aliases: ["ANA KAP", "Ana Kap"],
+    memberAliases: ["Emin Dzijan", "Manuel Decocq", "Pierre Millet", "Jean-Michel Trotoux"],
   },
   { slug: "alexis-molenat", name: "Alexis Molenat", kind: "person", bioSlug: "alexis-molenat-les-cavaliers", imageSlug: "alexis-molenat-les-cavaliers", aliases: ["Alexis Molenat", "Molenat Alexis"], legacySlugs: ["alexis-molenat-les-cavaliers"] },
   { slug: "maxime-raynier", name: "Maxime Raynier", kind: "person", bioSlug: "maxime-raynier-les-arondes", imageSlug: "maxime-raynier-les-arondes", aliases: ["Maxime Raynier", "Raynier Maxime"], legacySlugs: ["maxime-raynier-les-arondes"] },
-  { slug: "patrice-dambrine", name: "Patrice Dambrine", kind: "person", bioSlug: "patrice-dambrine-viro-major-records", imageSlug: "patrice-dambrine-viro-major-records", localImageFile: "patrice_dambrine.jpg", aliases: ["Patrice Dambrine", "Dambrine Patrice"], legacySlugs: ["patrice-dambrine-viro-major-records"] },
-  { slug: "bruno-hovart", name: "Bruno Hovart", kind: "person", bioSlug: "bruno-hovart", imageSlug: "bruno-hovart", aliases: ["Bruno Hovart"] },
-  { slug: "senior-ortegon", name: "Senior Ortegon", kind: "person", bioSlug: "sr-ortegon", imageSlug: "sr-ortegon", aliases: ["Senior Ortegon", "SR Ortegon"], legacySlugs: ["sr-ortegon"] },
-  { slug: "stan-galouo", name: "Stan Galouo", kind: "person", bioSlug: null, imageSlug: "stan-galouo-palma-coco-reccords", localImageFile: "stan_galouo.png", aliases: ["Stan Galouo"], legacySlugs: ["stan-galouo-palma-coco-reccords"] },
-  { slug: "modulhater", name: "Modulhater", kind: "person", bioSlug: "modulhater", imageSlug: "modulhater", aliases: ["Modulhater"] },
+  { slug: "patrice-dambrine", name: "Patrice Dambrine", kind: "person", bioSlug: "patrice-dambrine-viro-major-records", imageSlug: "patrice-dambrine-viro-major-records", localImageFile: "patrice_dambrine.jpg", cardImageTransform: { fit: "contain", position: "center", background: "#000000" }, aliases: ["Patrice Dambrine", "Dambrine Patrice"], legacySlugs: ["patrice-dambrine-viro-major-records"] },
+  { slug: "bruno-hovart", name: "Bruno Hovart", kind: "person", bioSlug: "bruno-hovart", imageSlug: "bruno-hovart", localImageFile: "bruno_hovart.jpg", aliases: ["Bruno Hovart"] },
+  { slug: "senior-ortegon", name: "Sr Ortegon", kind: "person", bioSlug: "sr-ortegon", imageSlug: "sr-ortegon", cardImageTransform: { inset: 0.04, background: "#030218" }, aliases: ["Senior Ortegon", "SR Ortegon", "Sr Ortegon"], legacySlugs: ["sr-ortegon"] },
+  { slug: "stan-galouo", name: "Stan Galouo", kind: "person", bioSlug: null, imageSlug: "stan-galouo-palma-coco-reccords", localImageFile: "stan_galouo.png", cardImageTransform: { inset: 0.05, background: "#efefed" }, aliases: ["Stan Galouo"], legacySlugs: ["stan-galouo-palma-coco-reccords"] },
+  { slug: "modulhater", name: "Modulhater", kind: "person", bioSlug: "modulhater", imageSlug: "modulhater", localImageFile: "modulhater.jpg", aliases: ["Modulhater"] },
   { slug: "ducer", name: "Ducer", kind: "person", bioSlug: "ducer", imageSlug: "ducer", aliases: ["Ducer"] },
-  { slug: "dj-troubl", name: "DJ TRoubl", kind: "person", bioSlug: "dj-troubl", imageSlug: "dj-troubl", aliases: ["DJ TRoubl", "DJ Troubl"] },
-  { slug: "of-ivory-and-horn", name: "Of Ivory And Horn", kind: "group", bioSlug: "of-ivory-horn", imageSlug: "of-ivory-horn", aliases: ["Of Ivory And Horn", "Of Ivory & Horn"], legacySlugs: ["of-ivory-horn"] },
-  { slug: "mister-modo", name: "Mister Modo", kind: "person", bioSlug: "mister-modo", imageSlug: "mister-modo", aliases: ["Mister Modo"] },
-  { slug: "grand-david", name: "Le Grand David", kind: "person", bioSlug: "grand-david", imageSlug: "grand-david", aliases: ["Grand David", "Le Grand David"] },
-  { slug: "jean-pierre-menager", name: "Jean Pierre Ménager", kind: "person", bioSlug: "jean-pierre-menager", imageSlug: "jean-pierre-menager", aliases: ["Jean Pierre Ménager", "Jean-Pierre Ménager", "Jean Pierre Menager"] },
-  { slug: "loic-laporte", name: "Loic Laporte", kind: "person", bioSlug: null, imageSlug: null, aliases: ["Loic Laporte", "Loïc Laporte"] },
+  { slug: "dj-troubl", name: "DJ Troubl", kind: "person", bioSlug: "dj-troubl", imageSlug: "dj-troubl", aliases: ["DJ TRoubl", "DJ Troubl"] },
+  { slug: "of-ivory-and-horn", name: "Of Ivory & Horn", kind: "group", bioSlug: "of-ivory-horn", imageSlug: "of-ivory-horn", localImageFile: "of_ivory_and_horn.jpg", aliases: ["Of Ivory And Horn", "Of Ivory & Horn"], legacySlugs: ["of-ivory-horn"] },
+  { slug: "mister-modo", name: "Mister Modo", kind: "person", bioSlug: "mister-modo", imageSlug: "mister-modo", localImageFile: "mister_modo.jpg", aliases: ["Mister Modo"] },
+  { slug: "grand-david", name: "Le Grand David", kind: "person", bioSlug: "grand-david", imageSlug: "grand-david", localImageFile: "grand_david.jpeg", cardImageTransform: { position: "attention" }, aliases: ["Grand David", "Le Grand David"] },
+  { slug: "jean-pierre-menager", name: "Jean Pierre Ménager", kind: "person", bioSlug: "jean-pierre-menager", imageSlug: "jean-pierre-menager", cardImageTransform: { fit: "contain", background: "#080808" }, aliases: ["Jean Pierre Ménager", "Jean-Pierre Ménager", "Jean Pierre Menager"] },
+  { slug: "loic-laporte", name: "Loïc Laporte", kind: "person", bioSlug: null, imageSlug: null, localImageFile: "loic_laporte.webp", cardImageTransform: { fit: "contain", position: "center", background: "#000000" }, aliases: ["Loic Laporte", "Loïc Laporte"] },
   { slug: "cyril-laurent", name: "Cyril Laurent", kind: "person", bioSlug: "cyril-laurent", imageSlug: "cyril-laurent", aliases: ["Cyril Laurent"] },
-  { slug: "charlotte-savary", name: "Charlotte Savary", kind: "person", bioSlug: "charlotte-savary", imageSlug: "charlotte-savary", aliases: ["Charlotte Savary"] },
+  { slug: "charlotte-savary", name: "Charlotte Savary", kind: "person", bioSlug: "charlotte-savary", imageSlug: "charlotte-savary", cardImageTransform: { inset: 0.035, background: "#b9b7b8" }, aliases: ["Charlotte Savary"] },
   { slug: "scherazade-aissahine", name: "Schérazade", kind: "person", bioSlug: null, imageSlug: "scherazade", aliases: ["Scherazade Aissahine", "Schérazade Aissahine"], legacySlugs: ["scherazade"] },
-  { slug: "roma-luca", name: "Roma Luca", kind: "person", bioSlug: null, imageSlug: "roma-luca", aliases: ["Camille Luca"] },
+  { slug: "roma-luca", name: "Roma Luca", kind: "person", bioSlug: null, imageSlug: "roma-luca", cardImageTransform: { inset: 0.045, background: "#3b2822" }, aliases: ["Camille Luca"] },
   {
     slug: "the-real-fake-mc",
     name: "The Real Fake MC",
@@ -183,6 +190,7 @@ const profiles: ProfileSource[] = [
     bioSlug: null,
     imageSlug: "the-real-fake-mc",
     localImageFile: "the_real_fake_mc.jpg",
+    cardImageTransform: { inset: 0.04, background: "#f1f1ef" },
     localImageProvenance: {
       source: "portfolio-caro-git",
       repository: "portfolio-caro",
@@ -193,13 +201,14 @@ const profiles: ProfileSource[] = [
   },
   {
     slug: "the-well-quartet",
-    name: "The Well Quartet",
+    name: "Le Well Quartet",
     kind: "group",
     bioSlug: "well-quartet",
     imageSlug: "well-quartet",
-    aliases: [],
+    localImageFile: "the_well_quartet.jpeg",
+    cardImageTransform: { position: "center" },
+    aliases: ["The Well Quartet", "Well Quartet", "Le Well Quartet"],
     editorialArtistSlug: "well-quartet",
-    scopedRelations: [{ albumCodes: ["PGO0060"], aliases: ["The Well Quartet", "Well Quartet"] }],
   },
   {
     slug: "flore",
@@ -207,10 +216,26 @@ const profiles: ProfileSource[] = [
     kind: "person",
     bioSlug: "flore",
     imageSlug: "flore",
+    cardImageTransform: { inset: 0.035, background: "#dce6e9" },
     aliases: ["Flore", "Flore Morfin", "Flore Morchin"],
     creditIdentities: [{ preferredName: "Flore Morfin", aliases: ["Flore Morfin", "Flore Morchin", "Flore"] }],
   },
-  { slug: "cedric-hanak", name: "Cédric Hanak", kind: "person", bioSlug: "cedric-hanak", imageSlug: "cedric-hanak", localImageFile: "cedric_hanak.jpg", aliases: ["Cédric Hanak", "Cedric Hanak", "Cédric HANAK"] },
+  {
+    slug: "cedric-hanak",
+    name: "Cédric Hanak",
+    kind: "person",
+    bioSlug: "cedric-hanak",
+    imageSlug: "cedric-hanak",
+    localImageFile: "cedric_hanak.jpg",
+    cardImageTransform: { position: "center" },
+    localImageProvenance: {
+      source: "portfolio-caro-git",
+      repository: "portfolio-caro",
+      commit: "734441d8ad1280d538ae9b104bace0c9de6248a9",
+      path: "public/images/projets/photoscompo/cedric-hanak.jpg",
+    },
+    aliases: ["Cédric Hanak", "Cedric Hanak", "Cédric HANAK"],
+  },
 ];
 
 const root = process.cwd();
@@ -268,6 +293,61 @@ function imageOverride(profile: ProfileSource) {
 
 function composerPortraitFilename(slug: string): string {
   return `${slug.replaceAll("-", "_")}.webp`;
+}
+
+type PortraitInput = string | Buffer;
+
+async function writePortraitAssets(
+  input: PortraitInput,
+  profile: ProfileSource,
+  outputAssets: string,
+  outputDetailAssets: string,
+  quality: number,
+) {
+  const filename = composerPortraitFilename(profile.slug);
+  const transform = profile.cardImageTransform;
+  const inset = transform?.inset ?? 0;
+  if (inset < 0 || inset >= 0.25) throw new Error(`Inset portrait invalide pour ${profile.slug}`);
+
+  let card = sharp(input).rotate();
+  if (transform?.extract) card = card.extract(transform.extract);
+  const padding = Math.round(720 * inset);
+  const innerSize = 720 - (padding * 2);
+  card = card.resize({
+    width: innerSize,
+    height: innerSize,
+    fit: transform?.fit ?? "cover",
+    position: transform?.position ?? "attention",
+    withoutEnlargement: !transform,
+    ...(transform?.background ? { background: transform.background } : {}),
+  });
+  if (padding) {
+    card = card.extend({
+      top: padding,
+      bottom: padding,
+      left: padding,
+      right: padding,
+      background: transform?.background ?? "#111111",
+    });
+  }
+  await card
+    .webp({ quality, effort: 6 })
+    .toFile(path.join(outputAssets, filename));
+
+  const detailInfo = await sharp(input)
+    .rotate()
+    .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: 84, effort: 6 })
+    .toFile(path.join(outputDetailAssets, filename));
+
+  return {
+    image: `/images/composers/canonical/${filename}`,
+    detailImage: {
+      src: `/images/composers/detail/${filename}`,
+      width: detailInfo.width,
+      height: detailInfo.height,
+    },
+  };
 }
 
 async function fetchPortfolioArtist(locale: "fr" | "en", slug: string): Promise<PortfolioApiArtist> {
@@ -333,7 +413,11 @@ async function main() {
   const artistsBySlug = new Map(artists.map((artist) => [artist.slug, artist]));
   const providedBiographies = await readUserProvidedBiographies();
   const outputAssets = path.join(root, "public/images/composers/canonical");
-  await mkdir(outputAssets, { recursive: true });
+  const outputDetailAssets = path.join(root, "public/images/composers/detail");
+  await Promise.all([
+    mkdir(outputAssets, { recursive: true }),
+    mkdir(outputDetailAssets, { recursive: true }),
+  ]);
 
   const output = [];
   for (const profile of profiles) {
@@ -352,17 +436,11 @@ async function main() {
     if (Boolean(fr) !== Boolean(en)) throw new Error(`Bio FR/EN incomplète pour ${profile.slug}`);
 
     let image = "/images/composers/composer_placeholder.svg";
+    let detailImage: { src: string; width: number; height: number } | null = null;
     let imageSource: string | null = null;
     if (profile.localImageFile) {
       const source = path.join(root, "src/content/composer-sources", profile.localImageFile);
-      const portraitFilename = composerPortraitFilename(profile.slug);
-      const target = path.join(outputAssets, portraitFilename);
-      await sharp(source)
-        .rotate()
-        .resize({ width: 720, height: 720, fit: "cover", position: "attention", withoutEnlargement: true })
-        .webp({ quality: 82, effort: 6 })
-        .toFile(target);
-      image = `/images/composers/canonical/${portraitFilename}`;
+      ({ image, detailImage } = await writePortraitAssets(source, profile, outputAssets, outputDetailAssets, 82));
       imageSource = profile.imageSlug;
     } else if (apiFr) {
       const imageUrl = new URL(apiFr.image, PORTFOLIO_API_ORIGIN).toString();
@@ -374,27 +452,13 @@ async function main() {
       const imageBuffer = response.ok
         ? Buffer.from(await response.arrayBuffer())
         : await readPortfolioGitAsset(THIERRY_IMAGE_GIT_REF, THIERRY_IMAGE_PATH);
-      const portraitFilename = composerPortraitFilename(profile.slug);
-      const target = path.join(outputAssets, portraitFilename);
-      await sharp(imageBuffer)
-        .rotate()
-        .resize({ width: 720, height: 720, fit: "cover", position: "attention", withoutEnlargement: true })
-        .webp({ quality: 78, effort: 6 })
-        .toFile(target);
-      image = `/images/composers/canonical/${portraitFilename}`;
+      ({ image, detailImage } = await writePortraitAssets(imageBuffer, profile, outputAssets, outputDetailAssets, 78));
       imageSource = apiFr.image;
     } else if (profile.imageSlug) {
       const artist = artistsBySlug.get(profile.imageSlug);
       if (!artist) throw new Error(`Portrait Portfolio introuvable : ${profile.imageSlug}`);
       const source = path.join(portfolioRoot, profile.imageFile ?? artist.image);
-      const portraitFilename = composerPortraitFilename(profile.slug);
-      const target = path.join(outputAssets, portraitFilename);
-      await sharp(source)
-        .rotate()
-        .resize({ width: 720, height: 720, fit: "cover", position: "attention", withoutEnlargement: true })
-        .webp({ quality: 78, effort: 6 })
-        .toFile(target);
-      image = `/images/composers/canonical/${portraitFilename}`;
+      ({ image, detailImage } = await writePortraitAssets(source, profile, outputAssets, outputDetailAssets, 78));
       imageSource = profile.imageSlug;
     }
 
@@ -404,9 +468,11 @@ async function main() {
       kind: profile.kind,
       bio: { fr, en },
       image,
+      detailImage,
       imageStatus: profile.localImageFile || profile.imageSlug || profile.apiSource ? "portrait" : "placeholder",
       harvest: {
         aliases: profile.aliases,
+        memberAliases: profile.memberAliases ?? [],
         scopedRelations: profile.scopedRelations ?? [],
         ...(profile.creditIdentities ? { creditIdentities: profile.creditIdentities } : {}),
       },

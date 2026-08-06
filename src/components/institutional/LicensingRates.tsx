@@ -9,7 +9,7 @@ interface Category { title: string; intro: string; rates: Rate[]; rights: string
 
 export function LicensingRates() {
   const { locale } = useI18n();
-  const [openIndex, setOpenIndex] = useState(0);
+  const [openIndex, setOpenIndex] = useState(-1);
   const categories: Category[] = locale === "fr" ? [
     { title: "Film d’entreprise", intro: "Communication institutionnelle, films de marque et contenus corporate.", rates: [{ label: "Support physique / intranet", price: "0,70 € HT / sec" }, { label: "Internet hors réseaux sociaux", price: "1,70 € HT / sec" }, { label: "Internet + réseaux sociaux", price: "2,70 € HT / sec" }, { label: "Minimum de facturation", price: "75 € HT" }], rights: "Monde · 30 ans. Redevances SACEM/SDRM éventuelles en sus." },
     { title: "Webcast", intro: "Reportages, magazines, documentaires et séries conçus pour le web.", rates: [{ label: "Reportage corporate / sponsorisé", price: "75 € HT / min entamée" }, { label: "Reportage / magazine web", price: "40 € HT / min" }, { label: "Documentaire web", price: "60 € HT / min" }, { label: "Web-série", price: "125 € HT / min" }], rights: "Internet et réseaux sociaux · Monde · 30 ans. Achat média publicitaire exclu." },

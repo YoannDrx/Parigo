@@ -163,6 +163,38 @@ export function collectHarvestComposerSearchItems(
     .map(({ id, name, count }) => ({ id, name, count }));
 }
 
+function replacementCharacterPattern(value: string): RegExp {
+  const escapedParts = value
+    .normalize("NFC")
+    .split("\uFFFD")
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return new RegExp(`^${escapedParts.join(".")}$`, "iu");
+}
+
+/**
+ * Retrouve le libellé encore présent dans l'index Cloud Search lorsqu'une
+ * fiche piste fraîche a déjà réparé un caractère de remplacement. Cette clé
+ * transitoire permet de continuer à interroger l'index pendant sa propagation.
+ */
+export function findIndexedHarvestComposerName(
+  indexedComposers: string[],
+  freshComposers: string[],
+  freshName: string,
+): string | undefined {
+  const normalizedFreshName = normalizeHarvestComposerSearchValue(freshName);
+  const freshIndex = freshComposers.findIndex((composer) => (
+    harvestComposerCreditNames(composer).some((name) => normalizeHarvestComposerSearchValue(name) === normalizedFreshName)
+  ));
+  const indexedNames = indexedComposers.flatMap(harvestComposerCreditNames);
+  const indexedAtSamePosition = freshIndex >= 0
+    ? harvestComposerCreditNames(indexedComposers[freshIndex] ?? "")
+    : [];
+
+  return [...indexedAtSamePosition, ...indexedNames].find((name) => (
+    name.includes("\uFFFD") && replacementCharacterPattern(name).test(freshName)
+  ));
+}
+
 function stableHash(value: string): string {
   let hash = 2166136261;
   for (const character of value.normalize("NFC")) {

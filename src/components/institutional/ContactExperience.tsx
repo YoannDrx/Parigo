@@ -15,8 +15,8 @@ const TEAM = [
   {
     name: "Caroline Senyk",
     role: {
-      fr: "Responsable copyright, administration et production musicale",
-      en: "Head of Copyright, Administration and Music Production",
+      fr: "Responsable copyright et production musicale",
+      en: "Head of Copyright and Music Production",
     },
     email: "caroline.senyk@parigomusic.com",
   },
@@ -62,10 +62,11 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
                 <a href="tel:+33149239476" className="mt-4 block w-fit underline decoration-[var(--signal-strong)]/35 underline-offset-4">+33 (0)1 49 23 94 76</a>
                 <a href="mailto:info@parigomusic.com" className="block w-fit break-all underline decoration-[var(--signal-strong)]/35 underline-offset-4">info@parigomusic.com</a>
               </address>
-              <p className="mt-10 border-t border-[var(--line)] pt-6 text-sm leading-relaxed opacity-60">
-                {locale === "fr"
-                  ? "Demandes de licence, recherches musicales et accompagnement éditorial."
-                  : "Licensing requests, music searches and editorial support."}
+              <p className="mt-10 border-t border-[var(--line)] pt-6 text-sm leading-relaxed text-[var(--text-muted)]">
+                <span className="block">{locale === "fr" ? "Une question urgente ? Appelez-nous :" : "Need a quick answer? Call us:"}</span>
+                <a href="tel:+33649396922" className="mt-2 block w-fit whitespace-nowrap text-lg text-[var(--foreground)] underline decoration-[var(--signal-strong)]/50 underline-offset-4">
+                  <strong>+33 (0)6 49 39 69 22</strong>
+                </a>
               </p>
             </div>
           </aside>
@@ -75,14 +76,10 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
         </div>
 
         <div data-testid="contact-team" className="mx-auto mt-20 max-w-[1500px] md:mt-28">
-          <div className="grid gap-6 md:grid-cols-12 md:items-end">
-            <SignedTitle as="h2" className="text-[clamp(2.8rem,5vw,5.8rem)] leading-[.92] tracking-[-.055em] md:col-span-7">
+          <div>
+            <SignedTitle as="h2" className="text-[clamp(2.8rem,5vw,5.8rem)] leading-[.92] tracking-[-.055em]">
               {locale === "fr" ? "Notre équipe" : "Our team"}
             </SignedTitle>
-            <p className="flex max-w-md flex-col items-start gap-1 text-[var(--text-muted)] md:col-span-4 md:col-start-9">
-              <span>{locale === "fr" ? "Une question urgente ? Appelez-nous :" : "Need a quick answer? Call us:"}</span>
-              <a href="tel:+33649396922" className="whitespace-nowrap text-lg font-semibold text-[var(--foreground)] underline decoration-[var(--signal-strong)]/35 underline-offset-4">+33 (0)6 49 39 69 22</a>
-            </p>
           </div>
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {TEAM.map((member) => (

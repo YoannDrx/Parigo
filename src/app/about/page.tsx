@@ -20,13 +20,13 @@ export default function AboutPage() {
       ];
 
   return (
-    <InstitutionalShell title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")}>
-      <section className="px-4 py-20 md:px-8 md:py-32">
+    <InstitutionalShell title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")} showHero={false}>
+      <section className="px-4 pb-20 pt-28 md:px-8 md:pb-32 md:pt-40">
         <div className="mx-auto grid max-w-[1700px] gap-16 md:grid-cols-12">
-          <div className="parigo-frame relative aspect-[4/3] overflow-hidden border border-[var(--line-strong)] md:col-span-7"><Image src="/images/synchros/le-monde-de-demain2.jpg" alt="Le Monde de demain — Parigo" fill sizes="(max-width:768px) 100vw, 58vw" className="object-cover grayscale transition duration-1000 hover:grayscale-0" /></div>
+          <div className="parigo-frame relative aspect-[4/3] overflow-hidden border border-[var(--line-strong)] md:col-span-7"><Image src="/images/synchros/le-monde-de-demain2.jpg" alt="Le Monde de demain — Parigo" fill loading="eager" sizes="(max-width:768px) 100vw, 58vw" className="object-cover grayscale transition duration-1000 hover:grayscale-0" /></div>
           <div className="self-center md:col-span-4 md:col-start-9">
-            <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl font-normal leading-[.93] tracking-[-.05em] md:text-7xl">
-              {locale === "fr" ? "La musique, une affaire humaine." : "Music, a human endeavour."}
+            <SignedTitle as="h1" className="font-[var(--font-editorial)] text-5xl font-normal leading-[.93] tracking-[-.05em] md:text-7xl">
+              {locale === "fr" ? "Une librairie avant tout" : "A music library first"}
             </SignedTitle>
             <div className="mt-8 space-y-5 leading-relaxed text-[var(--text-muted)]">
               {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}

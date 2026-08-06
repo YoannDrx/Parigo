@@ -1,15 +1,20 @@
 {
-  "generatedAt": "2026-08-06T10:37:15.115Z",
+  "generatedAt": "2026-08-06T20:59:09.031Z",
   "profiles": [
     {
       "slug": "aiwa",
-      "name": "Aiwa",
+      "name": "Aïwa",
       "kind": "group",
       "bio": {
         "fr": "Fondé en 1998 par les frères Wamid et Naufalle Al Wahab, Aïwa est un collectif musical qui fait dialoguer les traditions de la musique classique arabe avec les sonorités de l'électronique contemporaine. Entre héritage culturel et création moderne, le groupe développe un univers singulier où les rythmes orientaux rencontrent le hip-hop, les textures électroniques et les musiques du monde.\n\nNourris par les grandes voix du patrimoine arabe, comme Oum Kalthoum ou Abdel Halim Hafez, les frères Al Wahab façonnent une identité musicale profondément métissée. Autour d'eux, une équipe de musiciens et d'interprètes enrichit cette palette sonore en mêlant voix, saxophone, flûte, guitare, batterie, turntablism et percussions orientales.\n\nDepuis son premier album, distribué à l'international en 2003, Aïwa poursuit une démarche artistique ouverte sur le dialogue entre les cultures. Le collectif s'est illustré aussi bien en studio que sur scène, notamment aux Trans Musicales de Rennes, avec des performances mêlant musique et création visuelle.\n\nÀ travers chacune de ses compositions, Aïwa célèbre la rencontre entre Orient et Occident, tradition et modernité, offrant une musique à la fois immersive, cinématographique et résolument contemporaine.",
         "en": "Founded in 1998 by brothers Wamid and Naufalle Al Wahab, Aïwa is a musical collective that brings together the rich traditions of classical Arabic music and contemporary electronic sounds. Blending cultural heritage with modern production, the group has developed a distinctive musical identity where Middle Eastern rhythms meet hip-hop, electronic music and global influences.\n\nInspired by legendary voices such as Umm Kulthum and Abdel Halim Hafez, the Al Wahab brothers have created a sound deeply rooted in Arabic musical traditions while embracing contemporary production techniques. Joined by a collective of musicians and performers, Aïwa combines vocals, saxophone, flute, guitar, drums, turntablism and traditional Middle Eastern percussion into a rich and expressive sonic palette.\n\nSince the international release of its debut album in 2003, Aïwa has continued to explore music as a dialogue between cultures. The collective has built a strong reputation both in the studio and on stage, notably through acclaimed performances at the Trans Musicales festival in Rennes, where live music and visual creation come together.\n\nThrough every composition, Aïwa celebrates the meeting of East and West, tradition and modernity, creating immersive, cinematic music that transcends cultural boundaries."
       },
       "image": "/images/composers/canonical/aiwa.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/aiwa.webp",
+        "width": 400,
+        "height": 400
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
@@ -18,6 +23,7 @@
           "Wamid Al Wahab",
           "Al Wahab Wamid"
         ],
+        "memberAliases": [],
         "scopedRelations": [],
         "creditIdentities": [
           {
@@ -58,31 +64,32 @@
         "en": "Arat Kilo is a French collective widely recognised as one of the leading voices of contemporary Ethio-jazz. Since its formation in 2008, the group has built a distinctive musical universe where the rich heritage of Ethiopian music meets jazz, hip-hop, African rhythms and contemporary urban influences.\n\nInspired by the work of Mulatu Astatke and the legendary Éthiopiques compilations, Arat Kilo creates music that is hypnotic, vibrant and deeply cross-cultural. Brass, driving percussion and improvisation blend seamlessly with modern production, resulting in a sound that is both rooted in tradition and unmistakably contemporary.\n\nOver the years, the collective has collaborated with renowned artists including Mamani Keïta, Mike Ladd, Rokia Traoré and Mulatu Astatke. Their work has taken them to international stages while also inspiring multidisciplinary projects that bring together music, literature and intercultural dialogue.\n\nThrough every composition, Arat Kilo celebrates the meeting of cultures and traditions, creating music that transforms heritage into a living, contemporary language of exchange, freedom and creativity."
       },
       "image": "/images/composers/canonical/arat_kilo.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/arat_kilo.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
-        "aliases": [],
-        "scopedRelations": [
-          {
-            "albumCodes": [
-              "PGO0030"
-            ],
-            "aliases": [
-              "Samuel Hirsch",
-              "Florent Berteau",
-              "Fabien Girard",
-              "Gerald Bonnegrace",
-              "Michael Havard",
-              "Aristide Goncalves",
-              "Arnold Turpin",
-              "Camille Floriot",
-              "Assitan Keita",
-              "Mike Ladd",
-              "Nardos Tesfaw",
-              "ROCE",
-              "Bruck Tesfaye"
-            ]
-          }
-        ]
+        "aliases": [
+          "Arat Kilo"
+        ],
+        "memberAliases": [
+          "Samuel Hirsch",
+          "Florent Berteau",
+          "Fabien Girard",
+          "Gerald Bonnegrace",
+          "Michael Havard",
+          "Aristide Goncalves",
+          "Arnold Turpin",
+          "Camille Floriot",
+          "Assitan Keita",
+          "Mike Ladd",
+          "Nardos Tesfaw",
+          "ROCE",
+          "Bruck Tesfaye"
+        ],
+        "scopedRelations": []
       },
       "legacySlugs": [],
       "provenance": {
@@ -106,11 +113,17 @@
         "en": "Fabien Girard is a French composer, guitarist and sound designer whose musical universe lies at the crossroads of jazz, world music, electronic composition and music for screen. Driven by an insatiable curiosity for sound, he draws inspiration from the musical traditions of Ethiopia, West Africa, Brazil and India, while embracing the creative possibilities of synthesizers and contemporary sound design.\n\nComposing professionally since 2005, Fabien Girard has developed a highly personal approach to music, where timbre, sonic space and the intention behind every note are just as important as melody itself. This artistic vision allows him to move effortlessly between electronic music, orchestral writing and cinematic composition.\n\nAs the co-founder of Arat Kilo and Balaphonics, he has built an international career while also composing for advertising, documentaries, fashion and production music. His work reflects an open-minded vision of composition, where groove, organic textures and sonic exploration naturally coexist.\n\nAcross every project, Fabien Girard pursues a contemporary and boundary-free approach to music, placing the dialogue between cultures, technology and emotion at the heart of his creative process."
       },
       "image": "/images/composers/canonical/fabien_girard.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/fabien_girard.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Fabien Girard"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -134,12 +147,18 @@
         "fr": "Xavier Sibre est un multi-instrumentiste, compositeur et arrangeur français dont le parcours réunit musique classique, jazz, musiques afro-américaines et création contemporaine. Formé dès l'enfance au Conservatoire de Pantin puis au Conservatoire National de Région de Paris, il obtient une médaille d'or de flûte à bec avant d'élargir son univers musical au saxophone, à la clarinette, au piano et aux synthétiseurs.\n\nAu fil de plus de vingt ans de carrière, il s'impose comme un musicien de scène et de studio particulièrement recherché. Il accompagne des artistes tels que Manu Dibango, Keziah Jones, Liz McComb, Ben l'Oncle Soul, Natalia M. King, Dédé Saint-Prix ou encore Charly Aponte, explorant avec la même aisance le jazz, la soul, les musiques africaines, caribéennes et latino-américaines, ainsi que les comédies musicales. Son parcours s'est également enrichi au contact de musiciens comme David Murray ou Craig Harris, qui ont profondément influencé son approche de l'improvisation et de l'écriture.\n\nParallèlement à son activité d'interprète, Xavier Sibre développe un travail de compositeur pour l'image et la production musicale. Il collabore régulièrement à des projets audiovisuels, participe aux ciné-concerts du festival Côté Court et co-compose l'album The World Wedding March, édité et produit par PARIGO. Ce projet illustre son goût pour les orchestrations raffinées, les traditions musicales du monde et une écriture cinématographique ouverte sur les cultures.\n\nToujours animé par une grande curiosité artistique, Xavier Sibre construit une musique où héritage classique, groove afro-américain, improvisation jazz et influences du monde dialoguent avec naturel. À travers chacune de ses créations, il met sa maîtrise instrumentale et son sens de la narration musicale au service d'univers sonores riches, vivants et profondément évocateurs.",
         "en": "Xavier Sibre is a French multi-instrumentalist, composer and arranger whose musical journey bridges classical music, jazz, Afro-American traditions and contemporary creation. Trained from an early age at the Conservatoire de Pantin and later at the Conservatoire National de Région de Paris, he was awarded a Gold Medal in recorder performance before expanding his artistic language to include saxophone, clarinet, piano and synthesizers.\n\nOver more than two decades, Xavier Sibre has established himself as a highly sought-after live and studio musician. He has performed and recorded with artists including Manu Dibango, Keziah Jones, Liz McComb, Ben l'Oncle Soul, Natalia M. King, Dédé Saint-Prix and Charly Aponte, moving effortlessly between jazz, soul, African, Caribbean and Latin music, as well as musical theatre. His artistic development has also been shaped by encounters with renowned musicians such as David Murray and Craig Harris, whose influence has deepened his approach to improvisation and composition.\n\nAlongside his work as a performer, Xavier Sibre has developed a growing career as a composer for screen and production music. He regularly contributes to audiovisual projects, performs in the live film concerts of the Côté Court Short Film Festival, and recently co-composed The World Wedding March, an album produced and published by Parigo. The project reflects his affinity for refined orchestration, musical traditions from around the world and cinematic storytelling.\n\nDriven by an enduring artistic curiosity, Xavier Sibre creates music where classical heritage, Afro-American groove, jazz improvisation and global influences blend seamlessly. Through each of his compositions, he combines instrumental virtuosity with a strong sense of musical storytelling, crafting rich, vibrant and deeply evocative sonic landscapes."
       },
-      "image": "/images/composers/composer_placeholder.svg",
-      "imageStatus": "placeholder",
+      "image": "/images/composers/canonical/xavier_sibre.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/xavier_sibre.webp",
+        "width": 700,
+        "height": 700
+      },
+      "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Xavier Sibre"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -152,6 +171,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": null
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "xavier_sibre.jpg"
         }
       }
     },
@@ -164,11 +187,17 @@
         "en": "Ugly Mac Beer is a French DJ, producer, beatmaker and composer who has been a leading figure in the instrumental hip-hop and turntablism scene since the late 1990s. After beginning his career as the DJ for La Formule alongside Wax Tailor, he quickly developed a distinctive artistic identity shaped by sampling culture, cinema, pop culture and a deep passion for instrumental music.\n\nAs the founder of Beatsqueeze Records, he has established himself as one of the most creative producers on the French independent scene. His collaboration with Mister Modo gave birth to the acclaimed project Modonut, whose albums and collaborations with artists including MF Grimm, Kool Keith, Mike Ladd, Guilty Simpson, Psycho Les and DJ D-Styles helped bring their music to audiences far beyond France.\n\nOver the years, Ugly Mac Beer has expanded his creative focus towards music for screen, where his instinct for groove, storytelling and sound design has found a natural home. He has composed several albums for Parigo's original catalogue while continuing to develop his solo career with projects such as BROKEN ILL, where hip-hop, electronic music, post-punk and cinematic textures converge in an increasingly personal and distinctive body of work.\n\nThrough every project, Ugly Mac Beer cultivates a unique approach to beatmaking, where sampling, composition and visual storytelling interact with complete creative freedom, resulting in music that is inventive, sophisticated and instantly recognisable."
       },
       "image": "/images/composers/canonical/ugly_mac_beer.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/ugly_mac_beer.webp",
+        "width": 1583,
+        "height": 1600
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Ugly Mac Beer"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -197,11 +226,17 @@
         "en": "Raised in a family of musicians, Yann Kornowicz was immersed in classical music from an early age, studying the violin at the conservatory for five years. Influenced by his two composer uncles, he discovered the works of John Adams, Steve Reich, Witold Lutosławski, Philip Glass and many of the leading voices of late 20th-century contemporary music. It was during his teenage years that he discovered film music, captivated by its ability to draw upon such a wide range of musical influences, and found the artistic playground that would shape his career.\n\nA self-taught composer, he has developed a distinctive musical language rooted in genre-driven composition and inspired by the sound aesthetics of different eras. Rather than recreating the past, he reinterprets these influences through a contemporary lens, crafting musical uchronias that exist somewhere between hauntology and cinematic storytelling, with a particular affinity for dark, atmospheric soundscapes.\n\nOver the years, he has established himself as a composer for documentaries, advertising, exhibitions and production music, while also working as an artistic director on numerous audiovisual productions. From his Silvercut Studio in Paris, he has developed a highly personal approach to music production, bringing together composition, recording and sound design within a single creative process.\n\nThrough every project, he creates evocative sonic worlds where musical heritage, sound design and cinematic storytelling converge, resulting in immersive compositions distinguished by their atmosphere, originality and emotional depth."
       },
       "image": "/images/composers/canonical/yann_kornowicz.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/yann_kornowicz.webp",
+        "width": 600,
+        "height": 600
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Yann Kornowicz"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -219,19 +254,26 @@
     },
     {
       "slug": "dj-hertz",
-      "name": "DJ HERTZ",
+      "name": "DJ Hertz",
       "kind": "person",
       "bio": {
         "fr": "DJ Hertz, de son vrai nom Franck Sinnassamy, est un DJ, producteur, compositeur et turntablist français. Figure majeure du scratch contemporain, il développe depuis plus de vingt ans un univers où virtuosité technique, innovation sonore et écriture musicale se rencontrent avec une même exigence artistique.\n\nFondateur du label Scratch Science, il contribue au développement de la scène internationale du turntablism en créant des disques de référence destinés aux DJs et scratchers du monde entier. Membre du collectif 9 O'Clock, il remporte à trois reprises le championnat du monde DMC par équipe (2013, 2014 et 2015), imposant son groupe parmi les références incontournables de la discipline.\n\nParallèlement à son activité de performer, DJ Hertz compose pour des artistes, la publicité et la musique à l'image. Ses créations, diffusées dans de nombreuses productions audiovisuelles, témoignent de sa capacité à passer avec la même aisance de la performance live à une écriture plus cinématographique. Lauréat d'un Mark Award, il développe aujourd'hui un catalogue où hip-hop, électronique et design sonore se mettent au service de l'image et de la narration.\n\nÀ travers chacun de ses projets, DJ Hertz poursuit une même ambition : repousser les possibilités créatives des platines et de la production musicale, tout en construisant des univers sonores à la fois techniques, expressifs et profondément contemporains.",
         "en": "DJ Hertz, born Franck Sinnassamy, is a French DJ, producer, composer and turntablist. A leading figure in contemporary scratch culture, he has spent more than two decades developing a distinctive artistic universe where technical mastery, sonic innovation and musical composition come together.\n\nAs the founder of Scratch Science, he has played a key role in the international turntablism community by producing benchmark scratch records for DJs and turntablists worldwide. As a member of the collective 9 O'Clock, he won the DMC World Team Championship three consecutive times (2013, 2014 and 2015), establishing the group as one of the discipline's leading international acts.\n\nAlongside his work as a performer, DJ Hertz composes for artists, advertising and screen productions. His music has been featured in numerous television series and audiovisual projects, reflecting his ability to move seamlessly between live performance and cinematic composition. A recipient of a prestigious Mark Award, he continues to develop a catalogue where hip-hop, electronic music and sound design come together in service of storytelling and the moving image.\n\nThrough every project, DJ Hertz continues to push the creative possibilities of turntablism and music production, crafting sound worlds that are both technically accomplished and artistically expressive."
       },
       "image": "/images/composers/canonical/dj_hertz.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/dj_hertz.webp",
+        "width": 500,
+        "height": 500
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Franck Sinnassamy",
-          "DJ HERTZ"
+          "DJ HERTZ",
+          "DJ Hertz"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -258,11 +300,17 @@
         "en": "Laurent Dury is a French composer, pianist and sound designer whose musical universe blends minimalist composition, contemporary orchestral writing and cinematic soundscapes. Classically trained in piano and musicology, he has developed a refined musical language where simplicity, emotion and acoustic depth come together in a deeply contemplative approach.\n\nAfter working in both France and the United Kingdom, including several years composing for the advertising industry in London, Laurent Dury broadened his artistic vision through extensive travels across Africa, Cuba, Louisiana and Asia. These experiences continue to shape a distinctive musical identity where world influences, electronic textures and acoustic instruments coexist with remarkable naturalness.\n\nOver the years, his work has evolved towards an increasingly minimalist aesthetic, favouring acoustic recording and the creation of immersive sonic environments. As a composer for production music and screen, he approaches every composition as a space capable of supporting a story, an emotion or a landscape. His album Minimal Stories 3, released by Parigo, perfectly reflects this artistic vision through atmospheric, delicate and deeply cinematic music.\n\nRecipient of the 2019 UNAC Grand Prize for Production Music, Laurent Dury continues to explore the meeting point between composition, acoustics and sound design, creating timeless musical worlds defined by subtlety, emotion and a strong sense of place."
       },
       "image": "/images/composers/canonical/laurent_dury.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/laurent_dury.webp",
+        "width": 1448,
+        "height": 1086
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Laurent Dury"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -291,11 +339,17 @@
         "en": "Liqid is a French-Syrian rapper, songwriter, producer and creative director whose musical universe blends hip-hop, geek culture and a sharp sense of storytelling. Through a style that combines humour, self-deprecation and social awareness, he has developed a distinctive artistic identity that moves effortlessly between lo-fi boom bap, contemporary trap and instrumental production.\n\nAs the co-founder of Mutant Ninja Records, Liqid has played an active role in shaping the French independent hip-hop scene for many years. His career spans a wide range of solo and collaborative projects, reflecting both his artistic curiosity and his passion for creative partnerships. His work is defined by its freedom of expression, originality and willingness to push beyond the traditional boundaries of hip-hop.\n\nDeeply connected to his roots and committed to artistic outreach, Liqid is also involved in a number of social and cultural initiatives. Through the Wameed project, he leads rap and audiovisual workshops for young refugees in Jordan, while his instrumental project Amal pays tribute to his heritage through music conceived as an act of solidarity and cultural dialogue.\n\nAcross every project, Liqid embraces a vision of hip-hop as a space for expression, sharing and openness, where artistic ambition naturally goes hand in hand with human commitment."
       },
       "image": "/images/composers/canonical/liqid.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/liqid.webp",
+        "width": 500,
+        "height": 500
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Liqid"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -320,11 +374,17 @@
         "en": "Bonetrips is a French producer, composer and sound engineer affiliated with Mutant Ninja Records. His musical universe draws on boom bap, hip-hop, trap and electronic music, shaped by a strong cinematic sensibility and a passion for analogue textures and dark, atmospheric soundscapes.\n\nThrough his productions, Bonetrips has developed a distinctive sonic identity where samples, rhythms and layered textures interact with remarkable precision. Blending influences from hip-hop, pop and West Coast music, he creates immersive compositions that are both contemporary and deeply evocative.\n\nA prolific composer and beatmaker, he collaborates on numerous projects, including the duo Gonzo84 with Liqid and the collective Cœur. Alongside his work as a producer, he is also responsible for mixing and mastering many of Mutant Ninja Records' releases at Studio Polycarpe, working alongside Tony Tandoori.\n\nDriven by a constant desire to explore new sonic territories, Bonetrips continues to push the boundaries of music production, crafting compositions that are cinematic, refined and unmistakably modern."
       },
       "image": "/images/composers/canonical/bonetrips.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/bonetrips.webp",
+        "width": 540,
+        "height": 540
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Bonetrips"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -349,11 +409,17 @@
         "en": "Cœur is a French singer-songwriter, producer and performer whose musical universe blends rap, pop and electronic music. Through intimate, poetic and deeply expressive songwriting, she has developed a distinctive artistic identity where vulnerability, strength and sensuality coexist.\n\nOriginally from Lyon, she began her career as a member of the duo Schlaasss before launching a more personal solo project. With her debut mixtape Minouche Mafia, produced alongside Bonetrips and Nicolas Steib, she established a bold musical direction rooted in hip-hop, electronic and alternative influences, with storytelling at the heart of her work.\n\nOn stage, Cœur delivers immersive performances that combine music, visual aesthetics and performance art. Her artistic universe, deeply committed to inclusivity and creative freedom, has made her one of the distinctive voices of the French independent music scene. She has shared the stage with artists including Lorenzo, Chilla, Vald, Charlotte Adigéry and Poupie.\n\nThrough every project, Cœur explores emotion, identity and human relationships with honesty and artistic freedom, creating music that is both deeply personal and unmistakably contemporary."
       },
       "image": "/images/composers/canonical/coeur.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/coeur.webp",
+        "width": 900,
+        "height": 900
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Charlotte Duran"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -366,24 +432,35 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "coeur"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "coeur.jpg"
         }
       }
     },
     {
       "slug": "arom",
-      "name": "AROM",
+      "name": "Arom",
       "kind": "person",
       "bio": {
         "fr": "Arom est un compositeur, producteur et auteur français dont l'univers puise dans le hip-hop, les musiques électroniques, la science-fiction et la culture vidéoludique. À travers une esthétique sombre, futuriste et cinématographique, il construit une identité sonore singulière où se croisent beats incisifs, synthétiseurs analogiques et textures électroniques.\n\nInfluencé par le rap américain, les films de science-fiction des années 1990 et l'imaginaire du jeu vidéo, Arom développe un langage musical riche qu'il explore aussi bien dans ses projets personnels que dans de nombreuses collaborations avec des artistes internationaux, parmi lesquels Madchild, Chino XL, Emsallam, Deadi ou La Gale.\n\nCompositeur polyvalent, il crée aussi bien des productions hip-hop que des morceaux chiptune, synthwave et funkwave pour des éditeurs de musique à l'image tels que Parigo, Sonoton, West One ou Prodigious. Son travail s'étend également au cinéma et au jeu vidéo, avec notamment une participation à la bande originale du film La Dérive des continents (au sud) de Lionel Baier et au sound design du jeu G.I. Joe: Wrath of Cobra.\n\nParallèlement à son activité artistique, Arom anime depuis plusieurs années des ateliers d'écriture, de composition et d'enregistrement auprès de structures sociales, mettant la musique au service de la transmission, de la création et du partage.",
         "en": "Arom is a French composer, producer and songwriter whose musical universe draws on hip-hop, electronic music, science fiction and video game culture. Through a dark, futuristic and cinematic aesthetic, he has developed a distinctive sonic identity where hard-hitting beats, analogue synthesizers and electronic textures come together.\n\nInspired by American hip-hop, 1990s science fiction films and the world of video games, Arom has built a rich musical language that extends across both his solo projects and collaborations with international artists including Madchild, Chino XL, Emsallam, Deadi and La Gale.\n\nA versatile composer, he creates everything from hip-hop productions to chiptune, synthwave and funkwave tracks for leading production music publishers such as Parigo, Sonoton, West One and Prodigious. His work also extends to film and video games, notably contributing to the soundtrack of Lionel Baier's feature film The Continents Drift (South) (La Dérive des continents (au sud)) and the sound design of the video game G.I. Joe: Wrath of Cobra.\n\nAlongside his artistic career, Arom has spent several years leading songwriting, music production and recording workshops within community organisations, using music as a tool for creativity, education and social engagement."
       },
       "image": "/images/composers/canonical/arom.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/arom.webp",
+        "width": 1600,
+        "height": 1600
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Amaury Messelier",
-          "AROM"
+          "AROM",
+          "Arom"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -398,6 +475,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "arom"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "arom.jpg"
         }
       }
     },
@@ -410,11 +491,17 @@
         "en": "MINIMATIC is a French composer, producer and multi-instrumentalist whose musical universe blends electronic music, jazz, soul, pop and vintage-inspired sounds. Through what he describes as a \"retro-modern\" aesthetic, he reimagines the sonic heritage of the past using contemporary production techniques, creating music that is elegant, warm and instantly evocative.\n\nAfter beginning his musical journey as a rock drummer, he taught himself piano, bass and composition before establishing himself as one of France's leading figures in electro-swing, nu-soul and production music. His work is distinguished by refined songwriting in which acoustic instruments, analogue synthesizers and organic grooves blend seamlessly into a distinctive sonic identity.\n\nA composer for screen and production music for more than two decades, MINIMATIC has created music for advertising, media productions and major international music libraries. His album Pigalle Bizarre, awarded a prestigious Mark Award in Los Angeles, perfectly illustrates his affinity for cinematic worlds where elegance, humour and retro influences coexist. More recently, Riviera Bizarre extends this artistic vision through a collection of compositions inspired by the French Riviera, combining easy listening, soul, exotica and orchestral pop into richly atmospheric soundscapes.\n\nAlso an accomplished DJ and live performer, MINIMATIC continues to explore the relationship between groove and musical storytelling, creating timeless compositions where heritage and modernity come together with imagination, precision and an unmistakable sense of style."
       },
       "image": "/images/composers/canonical/minimatic.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/minimatic.webp",
+        "width": 1600,
+        "height": 1600
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Minimatic"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -427,18 +514,27 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "minimatic"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "minimatic.jpg"
         }
       }
     },
     {
       "slug": "sebastien-blanchon-n-zeng",
-      "name": "Sébastien Blanchon (N’Zeng)",
+      "name": "Sébastien Blanchon",
       "kind": "person",
       "bio": {
         "fr": "Sébastien Blanchon, plus connu sous le nom de N'Zeng, est un trompettiste, compositeur, arrangeur, producteur et DJ français dont l'univers se situe à la croisée du trip-hop, du jazz, de l'afrobeat et de la musique de film. Formé au Conservatoire de Saint-Étienne puis au Conservatoire National de Région de Lyon, il développe très tôt une approche où l'écriture orchestrale dialogue avec les cultures urbaines et les musiques électroniques.\n\nFigure emblématique du groupe Le Peuple de l'Herbe pendant plus d'une décennie, il participe à six albums studio, deux albums live et plusieurs centaines de concerts internationaux. Son parcours l'amène ensuite à collaborer avec des artistes tels que Tony Allen, Beth Gibbons, Agoria, Rone, L'Entourloop, Asian Dub Foundation ou encore Charlotte Savary, affirmant un langage musical nourri autant par le groove que par les atmosphères cinématographiques.\n\nCompositeur pour le cinéma, la télévision, le spectacle vivant et la musique à l'image, N'Zeng signe notamment la bande originale du long métrage Le bonheur est une bête sauvage, récompensée en 2025 par le prix de la Meilleure Musique Originale au festival Life Beyond Life de Turin. Il réalise également les arrangements du Degiheugi Orchestra et poursuit une activité soutenue de créateur pour des projets audiovisuels et scéniques.\n\nEn 2024, il dévoile The Trip, son premier album solo édité par Parigo. Porté par la voix de Charlotte Savary et enrichi par la participation de Dan Amozig, The Waxidermist et du Well Quartet, cet album mêle trip-hop, jazz, musique orchestrale et bandes originales imaginaires dans une écriture raffinée où la trompette devient un véritable instrument de narration.\n\nÀ travers chacun de ses projets, N'Zeng compose des paysages sonores où l'élégance des arrangements, la richesse des instruments acoustiques et la précision du beatmaking se rencontrent pour créer une musique profondément cinématographique, immersive et intemporelle.",
         "en": "Sébastien Blanchon, better known as N'Zeng, is a French trumpeter, composer, arranger, producer and DJ whose musical universe lies at the crossroads of trip-hop, jazz, Afrobeat and film music. Trained at the Conservatoire de Saint-Étienne and later at the Conservatoire National de Région de Lyon, he developed an artistic approach that naturally bridges orchestral writing, urban music and electronic production.\n\nA key member of the acclaimed French collective Le Peuple de l'Herbe for more than a decade, he contributed to six studio albums, two live records and hundreds of concerts around the world. Throughout his career, he has collaborated with artists including Tony Allen, Beth Gibbons, Agoria, Rone, L'Entourloop, Asian Dub Foundation and Charlotte Savary, forging a distinctive musical language where groove meets cinematic storytelling.\n\nAlongside his work for film, television, live performance and production music, N'Zeng has established himself as a sought-after composer and arranger. He wrote the original score for the feature film Le bonheur est une bête sauvage, which received the Best Original Soundtrack Award at the 2025 Life Beyond Life Film Festival in Turin. He has also created orchestral arrangements for the Degiheugi Orchestra while continuing to compose for a wide range of audiovisual and stage productions.\n\nIn 2024, he released The Trip, his debut solo album on Parigo. Featuring Charlotte Savary, Dan Amozig, The Waxidermist and the WELL Quartet, the album blends trip-hop, jazz, orchestral music and imagined film scores into an elegant and immersive body of work in which the trumpet becomes a true storytelling instrument.\n\nThrough every project, N'Zeng crafts richly cinematic soundscapes where sophisticated arrangements, acoustic instrumentation and refined beatmaking come together to create music that is immersive, timeless and emotionally resonant."
       },
       "image": "/images/composers/canonical/sebastien_blanchon_n_zeng.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/sebastien_blanchon_n_zeng.webp",
+        "width": 1200,
+        "height": 800
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
@@ -448,6 +544,7 @@
           "N’Zeng",
           "N'Zeng"
         ],
+        "memberAliases": [],
         "scopedRelations": [],
         "creditIdentities": [
           {
@@ -499,12 +596,18 @@
         "en": "Drixxxé, born Cédric Aubrun, is a French producer, beatmaker and composer whose musical universe draws on hip-hop, film soundtracks and electronic music. A passionate crate digger and sampling enthusiast, he has spent more than two decades crafting a distinctive sound where vintage grooves, cinematic textures and contemporary production come together with remarkable freedom.\n\nFirst gaining recognition as a member of the French hip-hop group Triptik, Drixxxé quickly established himself as one of the country's leading beatmakers. Alongside his work with the group, he has produced and remixed music for artists including Yelle, Lomepal and The Rodeo, while exploring new creative directions through his side project McLuvin.\n\nA devoted collector of film soundtracks, Drixxxé paid tribute to the golden age of 1970s cinema through his acclaimed Sextapes mixtape series, which received international recognition from publications including Nova, Wax Poetics and Okayplayer. His passion for cinematic music naturally extends to composing for feature films, documentaries, television and audiovisual productions.\n\nWith his debut solo album, conceived as the soundtrack to an imaginary film, Drixxxé brings together 1970s pop, electronic music and classical influences in a deeply cinematic body of work. Through every composition, he continues to explore the dialogue between musical heritage and contemporary creation, using sound as a powerful medium for storytelling."
       },
       "image": "/images/composers/canonical/drixxxe.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/drixxxe.webp",
+        "width": 491,
+        "height": 491
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Drixxxé",
           "Drixxxe"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -529,11 +632,17 @@
         "en": "Emmanuel Marée is a French drummer, composer and arranger whose career has been shaped by an enduring curiosity and a passion for musical exploration. Initially trained in jazz at the Conservatoire before furthering his studies in New York, he has developed a musical approach where technical mastery always serves groove, emotion and collective performance.\n\nThroughout his career, Emmanuel Marée has embraced a wide range of musical styles, from jazz and rock to pop, electronic music, French chanson and musical theatre. Equally at home on stage and in the studio, he has collaborated with artists including Hugh Coltman, Ndidi O, Robi, Benoît Carré, Alexandre Kinn, My Friend Jeff and Zanarelli, contributing notably to the final album by Christophe.\n\nDriven by a constant desire to explore new artistic territories, he also joined the stage production Georges, a contemporary reinterpretation of songs by Georges Brassens, Jacques Brel, Boris Vian and Serge Gainsbourg. The project perfectly reflects his artistic philosophy: bringing musical heritage into dialogue with a contemporary sensibility.\n\nAcross every collaboration, Emmanuel Marée demonstrates a deeply open vision of music, where artistic excellence, versatility and a strong sense of collective creativity come together to shape an elegant and timeless musical identity."
       },
       "image": "/images/composers/canonical/emmanuel_maree.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/emmanuel_maree.webp",
+        "width": 1200,
+        "height": 1200
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Emmanuel Marée"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -558,11 +667,17 @@
         "en": "F. Stokes, born Rodney Lucas, is a rapper, songwriter and storyteller from Chicago's South Side. Blending hip-hop, spoken word and soul, he has developed a deeply narrative style where personal experiences, social observation and a message of hope come together through honest and compelling songwriting.\n\nWidely recognised for his lyrical depth and powerful stage presence, F. Stokes has performed around the world alongside artists including Nas, Mos Def, Pusha T, Erykah Badu, Redman, DMX and Bastille. He has also appeared at major international festivals such as the Montreal International Jazz Festival, Essence Festival, Voodoo Festival, Brooklyn Hip Hop Festival and Summer Set Festival.\n\nBeyond his music career, F. Stokes is deeply committed to education and creative empowerment. Through his project Rappin' Ricky, he explores the educational potential of hip-hop by creating an animated young rapper designed to inspire children of all backgrounds through music, storytelling and creativity.\n\nAcross every project, F. Stokes celebrates resilience, imagination and the power of storytelling, using music as a way to connect people and encourage them to transform their own experiences into sources of inspiration."
       },
       "image": "/images/composers/canonical/f_stokes.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/f_stokes.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Rodney Lucas"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -587,12 +702,18 @@
         "en": "Forever Pavot is the musical project of French composer, multi-instrumentalist and producer Émile Sornin. At the crossroads of psychedelic pop, progressive rock and film music, he has created a distinctive sonic universe where lush orchestration, vintage instrumentation and cinematic melodies come together to form deeply evocative works.\n\nSigned to Born Bad Records, Forever Pavot draws inspiration from the orchestral pop of the 1960s and 1970s, classic European film scores and library music. Each album further explores this fascination with cinematic worlds through baroque arrangements, analogue experimentation and a melodic language that is instantly recognisable.\n\nAlongside Forever Pavot, Émile Sornin has established himself as one of France's rising film composers. He has written the original scores for the feature films La Morsure by Romain de Saint-Blanquat, Simple comme Sylvain by Monia Chokri, selected for the Un Certain Regard section at the Cannes Film Festival, and L'Engloutie by Louise Hémon, selected for the Directors' Fortnight at the 2025 Cannes Film Festival.\n\nThrough both Forever Pavot and his film compositions, Émile Sornin has developed a musical language in which songwriting, orchestral music and sonic illustration constantly enrich one another. His gift for orchestration, his passion for analogue timbres and his vivid cinematic imagination have shaped a unique body of work, where every composition feels like the soundtrack to a film waiting to be imagined."
       },
       "image": "/images/composers/canonical/forever_pavot.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/forever_pavot.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Emile Sornin",
           "Sornin Emile"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -617,12 +738,18 @@
         "en": "Frédéric Hanak (1972–2018) was a French musician, producer and composer, widely regarded as one of the leading figures of the experimental electronic underground. Based in Paris, he co-founded the duo dDamage with his brother Jean-Baptiste (JB Hanak) in the late 1990s, creating a true sonic laboratory where hip-hop, electronic music, rock, breakcore and noise converged.\n\ndDamage quickly established itself as one of the most distinctive acts on the French electronic scene. Their music combined raw energy, experimentation and a deeply personal artistic vision, blending saturated machines, fractured rhythms and lo-fi textures into a unique approach to sound creation.\n\nWith dDamage, Frédéric Hanak released a prolific catalogue of albums, EPs and original soundtracks, while performing nearly 600 concerts across Europe, Japan and the United States. The duo collaborated with leading figures of the international hip-hop and underground scenes, including La Caution, TTC, MF DOOM, Mike Ladd and Doseone, forging an artistic identity that was as uncompromising in the studio as it was on stage.\n\nHis work continues to hold an essential place in the history of experimental electronic music and remains a lasting source of inspiration for both listeners and artists exploring new sonic territories."
       },
       "image": "/images/composers/canonical/frederic_hanak.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/frederic_hanak.webp",
+        "width": 680,
+        "height": 451
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Frédéric Hanak",
           "Frederic Hanak"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -647,11 +774,17 @@
         "en": "Madben is a French DJ, producer and composer widely recognised as one of the leading figures of the European techno scene. Inspired by the legacy of Detroit techno, he has spent more than fifteen years crafting a distinctive sound where driving rhythms, immersive melodies and sophisticated sound design come together in music designed as much for the dancefloor as for focused listening.\n\nAfter establishing himself as both a DJ and event organiser, Madben gained international recognition through releases on renowned labels including Astropolis Records, Bedrock and Ellum Audio. His music blends the raw energy of rave culture with the elegance of melodic techno and a deeply cinematic approach to composition, turning each production into a fully immersive sonic experience.\n\nHis albums Fréquence(s) and Troisième Sens marked important milestones in his artistic journey, showcasing a musical identity where meticulous sound design meets emotional depth. Equally at home behind the decks or performing live, Madben has appeared in some of Europe's most iconic clubs and festivals, including Berghain, Printworks, Awakenings, Nuits Sonores, Astropolis and Offweek.\n\nAlongside his solo work, he co-founded the duo Trunkline with Yann Lean, an analogue live project built entirely around synthesizers and drum machines, without the use of computers. This ongoing exploration of sound, texture and improvisation reflects his commitment to pushing the boundaries of contemporary electronic music."
       },
       "image": "/images/composers/canonical/madben.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/madben.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Madben"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -676,11 +809,17 @@
         "en": "Arandel is a French musical project built around a singular artistic principle: letting the music take centre stage. Remaining deliberately anonymous, the artist performs behind curtains during live shows, transforming each performance into an immersive experience where the focus rests entirely on the music and the emotions it conveys.\n\nRejecting samplers and MIDI devices, Arandel composes exclusively with musical instruments, creating a distinctive sound world where electronic music, contemporary composition and classical influences meet with remarkable freedom. This organic yet experimental approach gives rise to richly textured and deeply immersive sonic landscapes.\n\nSince the release of his debut album In D in 2010, now regarded as a landmark of experimental electronic music, Arandel has continued to develop a highly distinctive body of work through albums such as Solarispellis, Aleae, InBach and InBach Vol. 2. His productions are highly regarded by record collectors, DJs and sample diggers alike, while leading publications including The Wire, XLR8R and The Line of Best Fit have consistently praised the originality of his artistic vision."
       },
       "image": "/images/composers/canonical/arandel.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/arandel.webp",
+        "width": 843,
+        "height": 1069
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Arandel"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -693,6 +832,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "arandel"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "arandel.jpg"
         }
       }
     },
@@ -705,11 +848,17 @@
         "en": "The Architect is a French DJ, producer and beatmaker whose musical universe moves effortlessly between hip-hop, jazz, soul, funk, reggae and electronic music. A passionate vinyl collector and dedicated crate digger, he has spent more than two decades crafting a body of work driven by sampling, artistic collaboration and an insatiable curiosity for musical cultures from around the world.\n\nHe first gained widespread recognition with his 2013 EP Foundations, featuring standout tracks such as Les Pensées and Dreader Than Dread, recorded with L'Entourloop and Skarra Mucci. The project launched an international touring career, allowing him to develop a distinctive sound where organic grooves, global influences and contemporary production blend seamlessly.\n\nAlongside his work with L'Entourloop and Bloc., The Architect has continued to build an acclaimed solo career with Une plage sur la lune, followed by a series of collaborative projects and new singles that further showcase his passion for experimentation and musical cross-pollination. His productions combine acoustic instruments, carefully crafted samples, orchestral arrangements and urban rhythms into richly cinematic compositions.\n\nThrough every project, The Architect creates music that is open to the world, transforming every record, every encounter and every culture into the building blocks of a distinctive, warm and instantly recognisable musical language."
       },
       "image": "/images/composers/canonical/the_architect.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/the_architect.webp",
+        "width": 1600,
+        "height": 1067
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "The Architect"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -722,6 +871,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "the-architect"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "the_architect.jpg"
         }
       }
     },
@@ -734,22 +887,22 @@
         "en": "After in Paris is a trio of composers and instrumentalists featuring Claire Michael (saxophone, flute and vocals), Jean-Michel Vallet (keyboards) and Patrick Chartol (bass and double bass). Together, they create a distinctive musical universe where jazz, cinematic composition, electronic music and orchestral textures come together to produce elegant, evocative and emotionally rich soundscapes.\n\nWith more than 1,000 compositions written for production music, After in Paris creates original works for film, television, radio, theatre and audiovisual productions. Their music combines acoustic instruments, electronic textures, ambient sound design and jazz influences, offering a versatile musical palette designed to enhance storytelling and emotion.\n\nThe trio has performed at numerous international festivals and venues across France, Brazil, Austria, Turkey and Azerbaijan. Individually, its members have also collaborated with renowned artists including Johnny Hallyday, Jacques Higelin, MC Solaar, Manu Dibango, Didier Lockwood, William Sheller, Paolo Fresu and Dave Liebman.\n\nDriven by a shared artistic vision, After in Paris continues to explore a musical language that is at once contemporary, cinematic and timeless, where every composition is conceived as an invitation to travel through sound and emotion."
       },
       "image": "/images/composers/canonical/after_in_paris.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/after_in_paris.webp",
+        "width": 717,
+        "height": 715
+      },
       "imageStatus": "portrait",
       "harvest": {
-        "aliases": [],
-        "scopedRelations": [
-          {
-            "albumCodes": [
-              "PGO0031"
-            ],
-            "aliases": [
-              "Jean-Michel Vallet",
-              "Claire Michael",
-              "Patrick Chartol",
-              "After In Paris"
-            ]
-          }
-        ]
+        "aliases": [
+          "After In Paris"
+        ],
+        "memberAliases": [
+          "Jean-Michel Vallet",
+          "Claire Michael",
+          "Patrick Chartol"
+        ],
+        "scopedRelations": []
       },
       "legacySlugs": [],
       "provenance": {
@@ -777,12 +930,18 @@
         "en": "Thierry Los is a French composer, producer, filmmaker and multi-instrumentalist whose career spans more than three decades. A distinctive figure on the independent music scene, he is best known as the founder of the bands Dodge Veg-O-Matic and Vegomatic, through which he developed a unique musical universe blending rock, surf music and electronic sounds from the early 1990s onwards.\n\nThroughout his career, he has collaborated with numerous French and international artists, including Myles Sanko, Massimo Guadalupi and Clara Galante, while also composing music for haute couture, advertising, documentaries and audiovisual productions. His passion for experimentation and interdisciplinary creation has also led him to direct several award-winning short films, developing an artistic universe where music and image are in constant dialogue.\n\nA prolific production music composer for more than twenty years, Thierry Los has made a significant contribution to Parigo's original catalogue through several albums, including his signature Electro Surf projects. Alongside his work for screen, he continues to pursue his own artistic path with Thierry Los s'arrange, his first solo album, which pays tribute to classic French chanson through elegant, contemporary arrangements.\n\nDriven by an enduring spirit of curiosity, Thierry Los continues to explore new creative territories, bringing together composition, production, filmmaking and visual arts within a body of work that is both remarkably eclectic and deeply personal."
       },
       "image": "/images/composers/canonical/thierry_los.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/thierry_los.webp",
+        "width": 960,
+        "height": 957
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Thierry Loshouarn",
           "Thierry Los"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -811,6 +970,11 @@
         "en": "Nicodrum & Friends is the project of French percussionist, composer and multi-instrumentalist Nicodrum, dedicated to Jamaican music, roots reggae, dub, and the traditional Nyabinghi and Burru rhythms. Passionate about percussion for more than two decades, he has developed a deeply respectful approach to these musical traditions while reimagining them through contemporary compositions for production music and screen.\n\nThroughout his career, Nicodrum has collaborated with some of the most influential names in international reggae, including Touré Kunda, Capleton, Morgan Heritage, Richie Spice, Queen Omega, Jah Mason, Pressure, Willie Williams, Taïro, Blacko and Mo'Kalamity. His close relationship with legendary Jamaican percussionist Skully Simms, a master of the Nyabinghi tradition, has profoundly shaped his musical vision and his exploration of Rastafarian ceremonial rhythms.\n\nWith Back to Fundehchan!, recorded entirely using analogue equipment, Nicodrum pays tribute to the Aketeh drum tradition by bringing together a wide community of musicians from the reggae, jazz and world music scenes. He continues this artistic journey through Parigo's original catalogue with the albums Reggae Experience and Dub Experience, where acoustic instruments, melodica, horns and hand percussion combine to create warm, organic and deeply cinematic soundscapes.\n\nThrough Nicodrum & Friends, tradition becomes a living source of inspiration. Every composition celebrates the richness of Jamaican musical heritage while reinterpreting it through a contemporary sensibility, resulting in music that is authentic, generous and universally expressive."
       },
       "image": "/images/composers/canonical/nicodrum.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/nicodrum.webp",
+        "width": 336,
+        "height": 336
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
@@ -819,6 +983,7 @@
           "Nicodrums & Friends",
           "Nicodrums Friends"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -845,12 +1010,18 @@
         "en": "2080 is a French composer and producer whose musical universe sits at the crossroads of electronic music, chiptune and video game culture. Drawing inspiration from 8-bit and 16-bit gaming consoles as much as from artists such as Jean-Michel Jarre, Orbital, The Prodigy and The Chemical Brothers, he has developed a distinctive sonic identity where retro textures meet contemporary electronic music.\n\nHis compositions combine analogue synthesizers, vintage game-console sounds and electronic beats to create music that is energetic, melodic and highly evocative. Deeply inspired by the world of video games, 2080 transforms the nostalgia of retro gaming into a modern and immersive musical experience.\n\nA leading figure on the French independent electronic scene, he gained widespread recognition with his music video My Megadrive, which has amassed more than 600,000 views, and through collaborations with dDamage, Red Bull, ARTE, Canal+ and a variety of film, television and video game productions.\n\nWhether on stage or in the studio, 2080 embraces a playful approach to music-making, where emotion emerges as much from childhood memories as from sonic experimentation. His instantly recognisable sound bridges pop culture, electronic music and innovation with infectious energy."
       },
       "image": "/images/composers/canonical/2080.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/2080.webp",
+        "width": 786,
+        "height": 786
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "2080",
           "208"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -875,6 +1046,11 @@
         "en": "JB Hanak is a French composer, musician and visual artist whose work exists at the intersection of music, visual arts and cinema. Since the mid-1990s, he has developed a deeply experimental artistic universe where sound creation and visual expression continuously inform and enrich one another.\n\nAlongside his brother Frédéric, he co-founded the duo dDamage, which has become one of the leading names in the international underground electronic scene. For nearly two decades, the duo forged a distinctive body of work blending hip-hop, techno, noise, breakcore and experimental electronics, building a critically acclaimed discography and performing on stages around the world.\n\nAlongside his musical projects, JB Hanak has continued to pursue an artistic practice in which drawing, painting and illustration play a central role. Characterised by a dense, organic aesthetic, his visual work directly influences his musical writing, making each project an immersive dialogue between sound and image. This multidisciplinary approach has led him to exhibit his work in France and internationally, with pieces entering both public and private collections.\n\nAs a composer for film, JB Hanak has developed a longstanding collaboration with filmmaker Olympe de G while continuing to create original music for the screen. His project Hexahedre, created with Cyril Laurent, extends this artistic exploration by combining ambient music, electronic textures, visual arts and immersive soundscapes.\n\nThrough each of his creations, JB Hanak embraces a deeply independent artistic vision, where music, image and experimentation converge to create singular sensory worlds, always driven by curiosity, innovation and a constant desire to push creative boundaries."
       },
       "image": "/images/composers/canonical/jb_hanak.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/jb_hanak.webp",
+        "width": 1024,
+        "height": 768
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
@@ -882,6 +1058,7 @@
           "Jean Baptiste Hanak",
           "JB HANAK"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -894,6 +1071,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "jb-hanak"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "jb_hanak.jpg"
         }
       }
     },
@@ -906,12 +1087,18 @@
         "en": "Aeon Seven is a French DJ, producer and composer whose musical universe draws on hip-hop, funk, electronic music and vinyl culture. A pioneering turntablist in his region, he developed an early passion for sampling, breakbeats and film scores, shaping a distinctive artistic identity rooted in both groove and experimentation.\n\nAfter establishing himself as a DJ and producer in the early 2000s, he co-founded the electronic duo Christine in 2010. Renowned for its dynamic live performances, the project quickly gained national recognition, winning the Booster competition supported by Le FAIR before being selected for both the Printemps de Bourges and the Trans Musicales de Rennes. Christine went on to perform at some of the leading festivals across France, Europe and Canada.\n\nAlongside the duo, Aeon Seven composed several original soundtracks while continuing to develop his work as a producer, drawing inspiration from cinema, jazz, psychedelic funk and instrumental music. In 2015, he returned to a solo career, allowing him to fully explore a personal sound blending organic grooves, analogue textures and cinematic influences.\n\nToday, Aeon Seven continues to craft elegant and immersive instrumental music, where hip-hop, funk, soul and electronic music converge through meticulous production, expressive composition and a strong sense of atmosphere."
       },
       "image": "/images/composers/canonical/aeon_seven.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/aeon_seven.webp",
+        "width": 1600,
+        "height": 1600
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Stéphane Delplanque",
           "Stephane Delplanque"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -924,24 +1111,34 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "aeon-seven"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "aeon_seven.png"
         }
       }
     },
     {
       "slug": "daniel-amozig",
-      "name": "Daniel Amozig",
+      "name": "Dan Amozig",
       "kind": "person",
       "bio": {
         "fr": "Dan Amozig est un compositeur, multi-instrumentiste et producteur français dont l'univers se nourrit aussi bien du jazz que du hip-hop, de la soul et de la musique à l'image. Guitariste, bassiste, trompettiste, bugliste et chanteur, il développe une approche musicale ouverte où l'improvisation, le groove et la mélodie occupent une place centrale.\n\nInfluencé par des figures majeures telles que Wayne Shorter, Wes Montgomery, Madlib ou MF DOOM, Dan Amozig construit une identité artistique qui fait dialoguer les traditions du jazz avec les esthétiques contemporaines du hip-hop et des musiques actuelles. Depuis son installation à Paris en 2010, il collabore avec de nombreux artistes et formations, se produisant sur les scènes de festivals majeurs en France.\n\nMusicien de scène, compositeur et pédagogue, il partage également son expertise à travers l'enseignement des musiques actuelles et anime pendant de nombreuses années l'émission Fine Cuts sur Radio Campus Paris, véritable espace de découverte consacré aux cultures musicales contemporaines.\n\nToujours animé par une grande curiosité artistique, Dan Amozig poursuit aujourd'hui des collaborations dans des univers aussi variés que le rap, la soul, le trip-hop ou la musique de film, affirmant une écriture où virtuosité instrumentale, sens du collectif et exigence musicale se conjuguent naturellement.",
         "en": "Dan Amozig is a French composer, multi-instrumentalist and producer whose musical universe draws equally from jazz, hip-hop, soul and music for screen. A guitarist, bassist, trumpeter, flugelhorn player and vocalist, he has developed an open and versatile approach to music where improvisation, groove and melody are at the heart of his work.\n\nInspired by artists such as Wayne Shorter, Wes Montgomery, Madlib and MF DOOM, Dan Amozig has built a distinctive musical identity that bridges the traditions of jazz with the contemporary aesthetics of hip-hop and modern music. Since moving to Paris in 2010, he has collaborated with numerous artists and ensembles, performing at some of France's leading festivals.\n\nAlongside his work as a performer and composer, Dan Amozig is also an educator, sharing his passion for contemporary music through teaching, while hosting the long-running radio show Fine Cuts on Radio Campus Paris, dedicated to exploring today's musical cultures.\n\nDriven by an ever-present artistic curiosity, he continues to collaborate across a wide range of genres, from rap and soul to trip-hop and film music, crafting a body of work where instrumental virtuosity, musical dialogue and creative exploration come together naturally."
       },
       "image": "/images/composers/canonical/daniel_amozig.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/daniel_amozig.webp",
+        "width": 599,
+        "height": 566
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Daniel Amozig",
           "Dan Amozig"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -956,6 +1153,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "dan-amozig"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "dan_amozig.jpg"
         }
       }
     },
@@ -968,11 +1169,17 @@
         "en": "Yann Jankielewicz is a French saxophonist, composer, arranger and artistic director whose career reflects a boundless musical curiosity. Trained in both jazz and classical composition, he has developed a distinctive artistic language where improvisation, African rhythms, orchestral writing and contemporary music come together with remarkable fluidity.\n\nThroughout his career, he has collaborated with a wide range of internationally acclaimed artists, including Tony Allen, Mano Solo, Sébastien Tellier, Alpha Blondy, Matthieu Chedid, Youssou N'Dour and Sandra Nkaké. His close collaboration with legendary drummer Tony Allen, for whom he served as musical director during the final years of his career, has had a profound influence on his musical identity, enriching his work with the rhythmic language of Afrobeat, jazz and improvised music.\n\nAlongside his work as a composer for film, television and production music, Yann Jankielewicz has developed several personal projects, including the large ensemble Vaporetto and Keep It Simple, his debut album as a bandleader, recorded between New York and Paris with Jason Lindner and Josh Dion. Blending contemporary jazz, Afrobeat and rock influences, the album reflects a free-spirited approach to composition where groove, sonic exploration and melodic sophistication coexist with exceptional musical craftsmanship.\n\nDriven by a constant desire for collaboration and experimentation, Yann Jankielewicz continues to create music without boundaries, bringing together performance, composition, production and sound direction into a singular artistic vision that is both adventurous and deeply expressive."
       },
       "image": "/images/composers/canonical/yann_jankielewicz.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/yann_jankielewicz.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Yann Jankielewicz"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -997,11 +1204,17 @@
         "en": "Mr Viktor (Victor Baillet) is a French DJ, producer, composer and turntablist, widely recognised as one of the leading figures of the French scratch scene. As a member of the trio 9 O'Clock alongside DJ Hertz and Aociz, he won the DMC World Team Championship three consecutive times (2013, 2014 and 2015), establishing the group as an international benchmark in turntablism.\n\nPassionate about the art of the turntable from an early age, Mr Viktor has developed a style where technical virtuosity, rhythmic precision and deep-rooted hip-hop culture are always placed at the service of musicality. Over the years, he has expanded his creative scope by collaborating with artists from both the hip-hop and electronic music scenes, while steadily building a career as a producer and composer.\n\nHis music has been featured in international advertising campaigns and audiovisual productions, including Far Cry 6, showcasing his ability to translate the precision and creativity of turntablism into compelling music for screen. Alongside his own releases, he continues to explore scratching as a true musical language, where precision, groove and innovation come together naturally.\n\nThrough every project, Mr Viktor promotes a modern vision of turntablism in which technical mastery is never an end in itself, but rather a powerful tool for composition, performance and artistic expression."
       },
       "image": "/images/composers/canonical/victor_baillet.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/victor_baillet.webp",
+        "width": 1200,
+        "height": 1200
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Victor Baillet"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1030,11 +1243,17 @@
         "en": "Aociz is a French DJ, producer and turntablist, widely recognised as one of the leading figures of contemporary scratch and turntablism. As a member of the trio 9 O'Clock alongside DJ Hertz and Mr Viktor, he won the DMC World Team Championship three consecutive times (2013, 2014 and 2015), establishing the group as one of the most respected acts in the discipline.\n\nA virtuoso turntablist, Aociz has developed a musical universe where hip-hop, bass music and electronic music seamlessly converge. Through highly precise routines, live remixes and original productions, he transforms the turntable into a true musical instrument, pushing the creative possibilities of DJ performance.\n\nAlongside his solo projects and releases with 9 O'Clock, including the EPs Wake Up and Escape, Aociz has earned numerous individual accolades. After winning several French DMC Championship titles, he claimed the DMC Scratch World Championship in 2024 before successfully defending his title in 2025, cementing his reputation as one of the world's finest turntablists. A highly sought-after live performer, he also serves as the official DJ for French rapper Vald, performing alongside him on major tours and festival stages while collaborating with leading names in the world of DJ culture and live performance.\n\nAt the crossroads of technical mastery and artistic expression, Aociz embodies a modern vision of turntablism, where virtuosity, creativity and musicality come together in the service of a bold and contemporary approach to DJing."
       },
       "image": "/images/composers/canonical/vincent_bouhelier.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/vincent_bouhelier.webp",
+        "width": 225,
+        "height": 225
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Vincent Bouhelier"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1052,30 +1271,31 @@
     },
     {
       "slug": "ana-kap",
-      "name": "ANA KAP",
+      "name": "Ana Kap",
       "kind": "group",
       "bio": {
         "fr": "Ana Kap est un trio caennais qui fait dialoguer jazz, musiques balkaniques et esprit guinguette avec une imagination débordante. On y retrouve l'époque où le jazz était à la fois joueur et populaire : une musique virtuose mais légère, qui se danse autant qu'elle s'écoute. Trompette, accordéon et violon déploient une palette sonore qui nous entraîne tour à tour dans une cave de jazz enfumée, un bal au bord de Marne ou une fanfare d'Europe de l'Est.\n\nLe groupe interprète exclusivement ses propres compositions, nourries autant par les musiques de film de Nino Rota et l'univers d'Astor Piazzolla que par certains albums de Dave Douglas (Charms of the Night Sky, A Thousand Evenings). Une écriture finement ciselée laisse une large place à l'improvisation, créant cette urgence joyeuse capable de faire passer l'auditeur du rire à l'émotion en quelques mesures.\n\nAvec son univers « polissonique », Ana Kap propose une musique sensible, festive et généreuse, accessible à toutes les oreilles curieuses. Chaque concert devient la bande originale d'un film imaginaire, où poésie, swing et liberté d'improvisation tiennent les premiers rôles.",
         "en": "Ana Kap is a trio from Caen that brings together jazz, Balkan music and the spirit of the French guinguette with boundless imagination. Their music recalls a time when jazz was both playful and popular—virtuosic yet light-hearted, made as much for dancing as for listening. Trumpet, accordion and violin weave a vibrant sonic palette, transporting listeners from smoky jazz clubs to riverside dance halls and the brass bands of Eastern Europe.\n\nThe trio performs exclusively original compositions, drawing inspiration from the film scores of Nino Rota, the musical world of Astor Piazzolla and landmark albums by Dave Douglas, including Charms of the Night Sky and A Thousand Evenings. Finely crafted compositions leave ample room for improvisation, creating an infectious sense of spontaneity that can carry the listener from laughter to deep emotion in just a few bars.\n\nWith its uniquely \"polissonic\" universe, Ana Kap creates music that is warm, vibrant and full of character, inviting curious listeners of all ages into its world. Every performance becomes the soundtrack to an imaginary film, where poetry, swing and the freedom of improvisation take centre stage."
       },
       "image": "/images/composers/canonical/ana_kap.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/ana_kap.webp",
+        "width": 980,
+        "height": 1473
+      },
       "imageStatus": "portrait",
       "harvest": {
-        "aliases": [],
-        "scopedRelations": [
-          {
-            "albumCodes": [
-              "PGO0034"
-            ],
-            "aliases": [
-              "Emin Dzijan",
-              "Manuel Decocq",
-              "Pierre Millet",
-              "Jean-Michel Trotoux",
-              "ANA KAP"
-            ]
-          }
-        ]
+        "aliases": [
+          "ANA KAP",
+          "Ana Kap"
+        ],
+        "memberAliases": [
+          "Emin Dzijan",
+          "Manuel Decocq",
+          "Pierre Millet",
+          "Jean-Michel Trotoux"
+        ],
+        "scopedRelations": []
       },
       "legacySlugs": [],
       "provenance": {
@@ -1087,6 +1307,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "ana-kap"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "ana_kap.jpg"
         }
       }
     },
@@ -1099,12 +1323,18 @@
         "en": "Alexis Molenat is a French composer, guitarist and producer whose musical universe blends indie rock, electronic music and instrumental composition. A passionate collector of vintage instruments and analogue synthesizers, he has developed a distinctive sound where the energy of garage rock meets electronic textures and the cinematic spirit of 1960s and 1970s film music.\n\nThroughout his career, he has founded or joined several notable projects, including The Cavaliers, Cité Lumière and Agent Casio, while collaborating with artists such as La Femme, Forever Pavot, Frustration and Last Night. Alongside his work as a performer, he composes for theatre and production music, constantly exploring new creative directions through both solo and collaborative projects.\n\nBased in Rennes since 2020, Alexis Molenat continues to develop his musical vision from his Fiat Lux studio, creating instrumental works inspired by pop culture, analogue synthesizers and classic film scores. Blending cinematic melodies, retro textures and contemporary production, his music has become instantly recognisable for its distinctive sonic identity."
       },
       "image": "/images/composers/canonical/alexis_molenat.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/alexis_molenat.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Alexis Molenat",
           "Molenat Alexis"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -1131,12 +1361,18 @@
         "en": "Maxime Raynier is a French guitarist, composer and musician renowned for his work in surf rock and instrumental rock. Drawing inspiration from the great American surf bands of the 1960s, he has developed a distinctive musical language where reverberating guitars, memorable melodies and raw rock energy create richly cinematic soundscapes.\n\nAs a member of Les Arondes, one of France's leading surf rock bands, he has contributed to a number of acclaimed releases that pay tribute to the pioneers of the genre while bringing a contemporary perspective to its timeless aesthetic. Inspired by artists such as Dick Dale, The Astronauts and The Trashmen, his playing combines technical precision, melodic instinct and a deep appreciation for vintage guitar sounds.\n\nAlongside this work, Maxime Raynier co-founded Les Cavaliers, a project through which he explores a more cinematic approach to surf music. Their album Surf Fiction, released by Parigo, evokes the spirit of classic film soundtracks, open roads and the imagery of cult genre cinema. He has also contributed to several other instrumental projects, including Les Braqueurs and The Suttles.\n\nAcross every composition, Maxime Raynier celebrates the evocative power of instrumental music, using the guitar as a storytelling instrument capable of creating vivid imagery long before a single frame appears on screen."
       },
       "image": "/images/composers/canonical/maxime_raynier.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/maxime_raynier.webp",
+        "width": 1200,
+        "height": 1200
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Maxime Raynier",
           "Raynier Maxime"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -1163,12 +1399,18 @@
         "en": "Patrice Dambrine is a French musician, composer and producer whose work draws from punk, garage rock, post-punk and electronic music. An active figure in the French independent music scene for more than two decades, he has developed a distinctly DIY (Do It Yourself) approach, shaped by the raw energy of alternative music and a deep-rooted connection to underground culture.\n\nBest known as the bassist of the post-punk band Frustration, signed to Born Bad Records, Patrice Dambrine is also the co-founder, vocalist and guitarist of the punk rock/noise band Last Night, as well as one half of the electro-punk/hip-hop duo Règlement. Across these projects, he has forged a distinctive musical language where driving bass lines, abrasive guitars, electronic machines and tense rhythms combine to create an aesthetic that is direct, organic and unmistakably contemporary.\n\nAlongside his work as a performing artist, Patrice Dambrine composes for production music and screen projects, bringing his instinct for impactful rhythms, rich sonic textures and atmospheric storytelling to compositions for film, television and audiovisual media. Drawing equally from post-punk, cold wave, garage rock and electronic music, his writing is instantly recognisable for its intensity, energy and strong narrative character.\n\nThrough each of his creations, Patrice Dambrine remains true to the independent spirit that has defined his career, combining artistic integrity, alternative culture and musical efficiency to create raw, immersive and resolutely modern sonic worlds."
       },
       "image": "/images/composers/canonical/patrice_dambrine.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/patrice_dambrine.webp",
+        "width": 720,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Patrice Dambrine",
           "Dambrine Patrice"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -1199,11 +1441,17 @@
         "en": "Bruno Hovart is a French producer, composer, multi-instrumentalist and remixer, internationally recognised under the name Patchworks. Since the mid-1990s, he has crafted a distinctive musical universe where soul, funk, jazz, African music, Jamaican influences and electronic sounds come together with remarkable freedom.\n\nBased in Lyon after spending several years between Angers, Birmingham and London, Bruno Hovart has developed a deeply hands-on approach to music production. A bassist by training, he composes, arranges, records and produces his projects across a wide range of musical styles, always driven by a passion for groove, melody and organic instrumentation.\n\nThroughout his career, he has created several acclaimed projects, including Patchworks, Uptown Funk Empire, Voilaaa, Patchworks Galactic Project, Mr President and Taggy Matcher. Alongside these projects, he has collaborated with numerous artists and bands while releasing music through respected labels across Europe, North America, Asia and Australia.\n\nAcross every project, Bruno Hovart celebrates a borderless vision of music, blending musical traditions with contemporary production to create a sound that is warm, timeless and universally engaging."
       },
       "image": "/images/composers/canonical/bruno_hovart.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/bruno_hovart.webp",
+        "width": 382,
+        "height": 382
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Bruno Hovart"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1216,24 +1464,35 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "bruno-hovart"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "bruno_hovart.jpg"
         }
       }
     },
     {
       "slug": "senior-ortegon",
-      "name": "Senior Ortegon",
+      "name": "Sr Ortegon",
       "kind": "person",
       "bio": {
         "fr": "José Miguel Ortegón, plus connu sous le pseudonyme de Sr Ortegon, est un compositeur, producteur et musicien colombien originaire de Cali, reconnu comme l'une des références internationales de la musique latine pour l'image. Depuis plus de vingt-cinq ans, il développe un univers où les rythmes afro-latins, les sonorités tropicales et les musiques du monde rencontrent une production contemporaine au service du cinéma, de la télévision, des jeux vidéo et de la publicité.\n\nSpécialiste des musiques latino-américaines et de leurs multiples influences, Sr Ortegon compose des œuvres qui allient authenticité culturelle, richesse orchestrale et efficacité narrative. Inspiré par ses nombreux voyages entre l'Amérique latine et l'Europe, il façonne une identité musicale singulière, mêlant traditions populaires, instruments acoustiques et production moderne.\n\nSes compositions ont accompagné plusieurs centaines de productions audiovisuelles internationales et figurent dans des films et séries emblématiques tels que Spider-Man: Into the Spider-Verse (Oscar du Meilleur film d'animation), Rambo: Last Blood, Terminator Salvation, Lady Bird, Mechanic: Resurrection, Cobra Kai ou encore Les Simpson. Son travail est aujourd'hui diffusé par les plus prestigieuses librairies musicales internationales et utilisé dans des productions distribuées par les principaux studios et diffuseurs mondiaux.\n\nNommé aux Latin Grammy Awards pour un album de Tropical Fusion, lauréat d'un Mark Award de la Production Music Association pour son titre Ole Bongó et récompensé au Cristal Festival, Sr Ortegon s'est imposé comme l'un des compositeurs les plus reconnus dans le domaine de la musique de production. Membre de la Television Academy (Emmy), il poursuit aujourd'hui une carrière internationale où créativité, exigence musicale et maîtrise des esthétiques latino-américaines font de chacune de ses compositions une signature immédiatement reconnaissable.",
         "en": "José Miguel Ortegón, better known as Sr Ortegon, is a Colombian composer, producer and musician from Cali, internationally recognised as one of the leading specialists in Latin production music. For more than twenty-five years, he has crafted a distinctive musical universe where Afro-Latin rhythms, tropical sounds and world music traditions meet contemporary production for film, television, video games and advertising.\n\nSpecialising in Latin American music and its many influences, Sr Ortegon creates compositions that combine cultural authenticity, rich orchestration and strong cinematic storytelling. Inspired by his travels throughout Latin America and Europe, he has developed a unique musical identity that blends traditional instruments, folkloric rhythms and modern production techniques into vibrant, emotionally engaging soundscapes.\n\nHis music has been featured in hundreds of international audiovisual productions, including Spider-Man: Into the Spider-Verse (Academy Award® winner for Best Animated Feature), Rambo: Last Blood, Terminator Salvation, Lady Bird, Mechanic: Resurrection, Cobra Kai and The Simpsons. His work is represented by some of the world's leading production music libraries and is regularly featured in projects produced by major international studios, broadcasters and streaming platforms.\n\nNominated for a Latin Grammy Award for Best Tropical Fusion Album, recipient of a Mark Award from the Production Music Association for his track Ole Bongó, and honoured at the Cristal Festival, Sr Ortegon has established himself as one of the industry's most respected production music composers. A member of the Television Academy (Emmys), he continues to build an international career defined by musical excellence, creative versatility and a deep mastery of Latin musical traditions, making each of his compositions instantly recognisable."
       },
       "image": "/images/composers/canonical/senior_ortegon.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/senior_ortegon.webp",
+        "width": 400,
+        "height": 400
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Senior Ortegon",
-          "SR Ortegon"
+          "SR Ortegon",
+          "Sr Ortegon"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -1260,11 +1519,17 @@
         "en": "Stan Galouo (Norbert Galouo) is a French-Congolese composer, producer, artistic director and music content creator, widely recognised as one of the leading specialists in Afro-Latin and tropical music for screen. Active in the music industry for more than twenty-five years, he has developed a distinctive musical universe where salsa, boogaloo, cumbia, reggaeton, Afrobeat, Latin jazz, merengue, bachata and funk come together in contemporary productions created for film, television, advertising and video games.\n\nIn 2002, he co-founded PalmaCoco Records before launching BooGaloO in 2019, a label entirely dedicated to Afro, Latin and tropical music. Through these ventures, he has built a catalogue of more than 500 compositions while collaborating with artists and musicians from across the globe, making cultural authenticity and musical fusion the defining hallmarks of his work.\n\nA long-time collaborator of Colombian composer Sr Ortegon, Stan Galouo co-produced Boogaflow, nominated for a Latin GRAMMY Award in the Best Tropical Fusion Album category, as well as numerous production music albums including Latin Experience, Salsa Evolution, Mexico Norteño and Fiesta Latina. His music has been featured in major international productions such as Spider-Man: Into the Spider-Verse, Terminator: Dark Fate, Rambo: Last Blood, Saw X, Cobra Kai, The Boys, HPI and The Blacklist.\n\nWinner of a Hollywood Independent Music Award in 2023 and a Mark Award from the Production Music Association, nominated for a Latin GRAMMY Award, and a member of the Recording Academy, the Latin Recording Academy, the Television Academy (Emmys) and SACEM, Stan Galouo continues to build an international career distinguished by musical excellence, cultural richness and a remarkable gift for cinematic storytelling, making each of his productions instantly recognisable."
       },
       "image": "/images/composers/canonical/stan_galouo.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/stan_galouo.webp",
+        "width": 720,
+        "height": 720
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Stan Galouo"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -1295,11 +1560,17 @@
         "en": "MODULHATER is the solo project of French composer, producer and musician Thomas Papay. Emerging from the industrial, EBM and techno scenes, he has spent more than two decades developing a distinctive musical universe where analogue synthesizers, vintage drum machines and electronic textures come together to create powerful, dark and deeply cinematic soundscapes.\n\nAfter exploring industrial and experimental music through his projects Le Diktat and Rope, Thomas Papay launched MODULHATER in 2019 as a return to the roots of techno, acid and EBM. Inspired by the pioneers of Detroit techno and the late-1980s New Beat movement, he has developed a musical language built on machine precision, driving rhythms and meticulous sound design.\n\nHis productions have been released on internationally respected labels including Audiotrauma, mau5trap and Beatsqueeze Records. Albums such as Velodrome and Acid Body Music showcase a distinctive artistic identity where raw energy, hypnotic melodies and analogue production combine with remarkable attention to detail. Several of his compositions have been featured in major international productions, including Kleo (Netflix), Tokyo Vice (HBO) and La Luz Más Oscura, while his track Gevaert received a Production Music Award in 2022.\n\nThrough MODULHATER, Thomas Papay continues to explore the intersection of electronic heritage and contemporary production, creating immersive compositions that blur the boundaries between club music, cinematic storytelling and music for screen."
       },
       "image": "/images/composers/canonical/modulhater.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/modulhater.webp",
+        "width": 1600,
+        "height": 1067
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Modulhater"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1312,6 +1583,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "modulhater"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "modulhater.jpg"
         }
       }
     },
@@ -1324,11 +1599,17 @@
         "en": "Ducer is a French producer and composer whose musical universe blends electro-house, EDM, future garage and contemporary electronic music. Since the late 2000s, he has developed a distinctive sound where energy, melody and refined production come together to create music that is both powerful and atmospheric.\n\nThrough releases such as the EPs Heading and Traffic in the Big City, followed by the album Cleptomania, Ducer established a musical identity shaped by modern electronic music, combining driving rhythms, atmospheric synthesizers and immersive sound design. His compositions balance dancefloor energy with a strong cinematic sensibility.\n\nAs a composer for production music, Ducer has also contributed several albums to Parigo's original catalogue, including EDM From Paris (Parigo No. 23) and Caught In The Trap (Parigo No. 24). Across his work, he continues to explore contemporary electronic production through dynamic soundscapes, rich textures and forward-thinking compositions."
       },
       "image": "/images/composers/canonical/ducer.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/ducer.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Ducer"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1346,19 +1627,25 @@
     },
     {
       "slug": "dj-troubl",
-      "name": "DJ TRoubl",
+      "name": "DJ Troubl",
       "kind": "person",
       "bio": {
-        "fr": "DJ Troubl' est un DJ, producteur et turntablist français originaire de Poitiers. Double vice-champion du monde DMC et multiple champion de France, il s'impose depuis de nombreuses années comme l'une des figures majeures du turntablism, reconnu pour sa maîtrise du scratch, du beat juggling et de la performance live.\n\nPassionné par la culture hip-hop, il développe un univers où funk, rap américain, bass music et musiques électroniques se rencontrent avec une grande liberté. Derrière les platines, DJ Troubl' alterne techniques virtuoses, sélections exigeantes et sens du groove, faisant de chacun de ses sets une véritable démonstration musicale.\n\nIl est également le créateur du projet anonyme UZ, devenu une référence internationale de la scène trap électronique. À travers ses productions comme ses performances, DJ Troubl' explore sans cesse de nouveaux territoires sonores, mêlant précision technique, puissance rythmique et créativité.\n\nToujours animé par une même exigence artistique, DJ Troubl' continue de repousser les frontières du turntablism et de la production musicale, affirmant une identité où innovation, énergie et culture hip-hop demeurent au cœur de son travail.",
-        "en": "DJ Troubl' is a French DJ, producer and turntablist from Poitiers. A two-time DMC World Vice Champion and multiple French DMC Champion, he has established himself as one of the leading figures in contemporary turntablism, renowned for his mastery of scratching, beat juggling and live performance.\n\nDeeply rooted in hip-hop culture, DJ Troubl' has developed a musical universe where funk, American hip-hop, bass music and electronic sounds converge. Behind the turntables, he combines technical virtuosity, carefully crafted selections and an instinctive sense of groove, turning every performance into a true musical experience.\n\nHe is also the artist behind the anonymous project UZ, which became an internationally acclaimed name in the electronic trap scene. Through both his productions and live performances, DJ Troubl' continues to explore new sonic territories, blending technical precision, rhythmic intensity and creative innovation.\n\nDriven by a constant pursuit of artistic excellence, DJ Troubl' continues to push the boundaries of turntablism and music production, creating a body of work where innovation, energy and hip-hop culture remain at the heart of his musical identity."
+        "fr": "DJ Troubl est un DJ, producteur et turntablist français originaire de Poitiers. Double vice-champion du monde DMC et multiple champion de France, il s'impose depuis de nombreuses années comme l'une des figures majeures du turntablism, reconnu pour sa maîtrise du scratch, du beat juggling et de la performance live.\n\nPassionné par la culture hip-hop, il développe un univers où funk, rap américain, bass music et musiques électroniques se rencontrent avec une grande liberté. Derrière les platines, DJ Troubl alterne techniques virtuoses, sélections exigeantes et sens du groove, faisant de chacun de ses sets une véritable démonstration musicale.\n\nIl est également le créateur du projet anonyme UZ, devenu une référence internationale de la scène trap électronique. À travers ses productions comme ses performances, DJ Troubl explore sans cesse de nouveaux territoires sonores, mêlant précision technique, puissance rythmique et créativité.\n\nToujours animé par une même exigence artistique, DJ Troubl continue de repousser les frontières du turntablism et de la production musicale, affirmant une identité où innovation, énergie et culture hip-hop demeurent au cœur de son travail.",
+        "en": "DJ Troubl is a French DJ, producer and turntablist from Poitiers. A two-time DMC World Vice Champion and multiple French DMC Champion, he has established himself as one of the leading figures in contemporary turntablism, renowned for his mastery of scratching, beat juggling and live performance.\n\nDeeply rooted in hip-hop culture, DJ Troubl has developed a musical universe where funk, American hip-hop, bass music and electronic sounds converge. Behind the turntables, he combines technical virtuosity, carefully crafted selections and an instinctive sense of groove, turning every performance into a true musical experience.\n\nHe is also the artist behind the anonymous project UZ, which became an internationally acclaimed name in the electronic trap scene. Through both his productions and live performances, DJ Troubl continues to explore new sonic territories, blending technical precision, rhythmic intensity and creative innovation.\n\nDriven by a constant pursuit of artistic excellence, DJ Troubl continues to push the boundaries of turntablism and music production, creating a body of work where innovation, energy and hip-hop culture remain at the heart of his musical identity."
       },
       "image": "/images/composers/canonical/dj_troubl.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/dj_troubl.webp",
+        "width": 1000,
+        "height": 1000
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "DJ TRoubl",
           "DJ Troubl"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1376,19 +1663,25 @@
     },
     {
       "slug": "of-ivory-and-horn",
-      "name": "Of Ivory And Horn",
+      "name": "Of Ivory & Horn",
       "kind": "group",
       "bio": {
         "fr": "Of Ivory & Horn est le projet du compositeur, guitariste et chanteur français Dorian Chamoin. Inspiré par la mythologie grecque, son nom évoque les deux portes des rêves, une image qui reflète parfaitement son univers musical, à la fois contemplatif, onirique et profondément cinématographique.\n\nFormé au piano, au violon puis à la guitare, Dorian développe une écriture où la folk acoustique rencontre les influences de la musique minimaliste et impressionniste. Nourri par des compositeurs tels qu'Arvo Pärt ou Claude Debussy, il façonne un langage musical où le silence occupe une place aussi importante que les notes elles-mêmes. Sa guitare, souvent jouée en fingerpicking et enrichie de techniques percussives, devient le fil conducteur de compositions délicates et évocatrices.\n\nÀ travers Of Ivory & Horn, il explore les thèmes de la mémoire, de la perte, de la nature et de la transformation. Ses concerts privilégient l'interprétation en direct et la spontanéité, dans une recherche constante d'authenticité et d'émotion. Musique, image et poésie se rejoignent également dans ses créations visuelles et ses collaborations artistiques, prolongeant son univers bien au-delà du seul cadre musical.\n\nChaque composition invite l'auditeur à ralentir, à contempler et à se laisser guider dans un paysage sonore où la simplicité devient une véritable force expressive.",
         "en": "Of Ivory & Horn is the solo project of French composer, guitarist and singer Dorian Chamoin. Inspired by Greek mythology, the project's name refers to the two gates of dreams, a fitting image for a musical universe that is contemplative, dreamlike and deeply cinematic.\n\nInitially trained in piano, violin and later guitar, Dorian has developed a distinctive musical language where acoustic folk meets minimalist and impressionist influences. Inspired by composers such as Arvo Pärt and Claude Debussy, he creates music in which silence is just as meaningful as the notes themselves. His fingerstyle guitar playing, enriched with percussive techniques, forms the backbone of delicate, evocative compositions that blur the boundaries between folk, contemporary classical music and cinematic storytelling.\n\nThrough Of Ivory & Horn, he explores themes of memory, loss, nature and transformation. His live performances favour spontaneity and genuine human connection, embracing the authenticity of live instruments and vocals over pre-recorded tracks. Music, visual art and poetry also converge throughout his work, extending his artistic universe far beyond the boundaries of sound alone.\n\nEach composition invites the listener to slow down, reflect and become immersed in a sonic landscape where simplicity becomes a powerful form of expression."
       },
       "image": "/images/composers/canonical/of_ivory_and_horn.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/of_ivory_and_horn.webp",
+        "width": 1066,
+        "height": 1600
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Of Ivory And Horn",
           "Of Ivory & Horn"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -1403,6 +1696,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "of-ivory-horn"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "of_ivory_and_horn.jpg"
         }
       }
     },
@@ -1415,11 +1712,17 @@
         "en": "Mister Modo is a French DJ, beatmaker, producer and dedicated crate digger whose musical universe is deeply rooted in the art of sampling. A passionate vinyl collector since the late 1990s, he has developed a distinctive approach where hip-hop, soul, funk, jazz and film music are brought together through an inspired and meticulously crafted collage of sounds.\n\nFirst gaining recognition as one half of the duo Modonut alongside Ugly Mac Beer, Mister Modo quickly established himself as one of the leading figures of the French beatmaking scene. Fuelled by an encyclopaedic knowledge of recorded music and an exceptional ear for rare samples, his productions combine organic grooves, cinematic arrangements and instrumental beats with an instantly recognisable signature.\n\nAlongside his work as a producer, he has composed several albums for Parigo's original catalogue, exploring a wide range of musical territories, from hip-hop-inspired compositions and urban soundscapes to more atmospheric and cinematic pieces. With Music for Bugs, his latest solo project, he continues this artistic exploration through a conceptual beat tape filled with rich textures, unexpected loops and immersive sonic atmospheres.\n\nAcross every project, Mister Modo celebrates sampling as an art form in its own right, transforming forgotten records into the raw material for inventive, soulful and timeless music."
       },
       "image": "/images/composers/canonical/mister_modo.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/mister_modo.webp",
+        "width": 1200,
+        "height": 1200
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Mister Modo"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1432,6 +1735,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "mister-modo"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "mister_modo.jpg"
         }
       }
     },
@@ -1444,12 +1751,18 @@
         "en": "Le Grand David is a French composer, producer and multi-instrumentalist whose musical universe lies at the crossroads of pop, electronic music and production music. Since the early 2000s, he has developed a distinctive musical language in which analogue synthesizers, vintage instruments and contemporary production come together in a subtle balance between nostalgia and modernity.\n\nA passionate collector of unique sounds and an avid admirer of classic film scores, Le Grand David draws inspiration from composers such as François de Roubaix, Roger Roger and Raymond Scott. His approach naturally blends sophisticated orchestration, pop energy and a playful sense of irreverence, resulting in music that is as refined as it is inventive, with humour playing a central role in his creative identity.\n\nHis albums, including Disco World and Sci-Fi Era, showcase this creative freedom by exploring everything from disco-inspired grooves to futuristic electronic soundscapes. Always eager to embrace new collaborations, he has worked with artists such as Emma Lamadji and composes for several leading production music publishers, including Cézame Music, Koka Media, Télé Music, Zomba Music, Encore Merci and Parigo.\n\nThrough each of his creations, Le Grand David pursues the same ambition: to craft instantly evocative sonic worlds where rich arrangements, a passion for vintage timbres and the inventiveness of contemporary production come together in the service of deeply cinematic music."
       },
       "image": "/images/composers/canonical/grand_david.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/grand_david.webp",
+        "width": 591,
+        "height": 529
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Grand David",
           "Le Grand David"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1462,6 +1775,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "grand-david"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "grand_david.jpeg"
         }
       }
     },
@@ -1474,6 +1791,11 @@
         "en": "Jean-Pierre Ménager is a French composer, arranger, conductor and multi-instrumentalist whose career reflects remarkable artistic versatility. Classically trained from an early age, he has developed a musical language that moves effortlessly between jazz, French chanson, music for screen, theatre and large-scale orchestral writing.\n\nRecipient of several prestigious awards, including the ORTF Accordion Prize, Jean-Pierre Ménager has built an international career that has taken him to more than eighty countries, notably as conductor aboard the French cruise liner Le Mermoz. These experiences have shaped a generous musical vision in which diverse influences come together while retaining their own distinctive character.\n\nThroughout his career, he has collaborated with leading artists including Maurice André, James Galway, François Jeanneau, Michel Leeb, Jean-Claude Brialy, Charles Dumont and Isabelle Aubret. A prolific composer, he has written more than 650 works, contributed to over fifty albums, and composed extensively for film, radio, live performance and production music.\n\nDriven by a lifelong passion for sharing music, Jean-Pierre Ménager continues to create new works and stage productions that bring together history, cultural heritage and emotion through elegant, accessible composition."
       },
       "image": "/images/composers/canonical/jean_pierre_menager.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/jean_pierre_menager.webp",
+        "width": 535,
+        "height": 640
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
@@ -1481,6 +1803,7 @@
           "Jean-Pierre Ménager",
           "Jean Pierre Menager"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1498,19 +1821,25 @@
     },
     {
       "slug": "loic-laporte",
-      "name": "Loic Laporte",
+      "name": "Loïc Laporte",
       "kind": "person",
       "bio": {
         "fr": "Loïc Laporte est un compositeur, arrangeur, réalisateur musical et multi-instrumentiste français dont l'univers se nourrit d'une grande diversité d'influences, de la chanson à la pop, en passant par le jazz, les musiques de film et le répertoire jeunesse. Installé à Toulouse, il développe depuis plus de vingt ans une approche artisanale de la création musicale, réunissant composition, orchestration, interprétation, enregistrement et réalisation sonore au sein d'un même processus créatif.\n\nMusicien particulièrement polyvalent, il maîtrise un large éventail d'instruments – saxophones, clarinettes, flûtes, guitares, basse, banjo, piano et claviers – qui enrichissent une écriture à la fois mélodique, sensible et profondément évocatrice. Au fil de sa carrière, il collabore avec des artistes tels que Zebda, Arthur H, Loïc Lantoine, Éric Lareine ou Hervé Suhubiette, tout en intervenant comme musicien, arrangeur ou réalisateur sur des projets destinés au disque, au spectacle vivant, au théâtre et à l'audiovisuel.\n\nParallèlement à son activité de compositeur pour la musique à l'image, Loïc Laporte travaille avec de nombreux éditeurs et producteurs de contenus, parmi lesquels Didier Jeunesse, Milan Presse, Fleurus, Wagram, France 3 ou encore TAT Productions. Son travail se distingue par une attention particulière portée à la narration, à la couleur instrumentale et à la qualité des arrangements, quel que soit le format ou le public auquel il s'adresse.\n\nIl développe également un important catalogue d'arrangements de comptines et de chansons traditionnelles, revisitant le répertoire jeunesse avec une production contemporaine, des orchestrations raffinées et une place privilégiée accordée aux instruments acoustiques. À travers ces réinterprétations, il insuffle une nouvelle vie à un patrimoine musical universel tout en préservant sa simplicité, sa poésie et son pouvoir d'évocation.\n\nÀ travers chacun de ses projets, Loïc Laporte met son sens de la mélodie, son exigence d'arrangeur et sa curiosité musicale au service d'une création généreuse, où savoir-faire artisanal et émotion se conjuguent pour donner naissance à des univers sonores riches, accessibles et intemporels.",
         "en": "Loïc Laporte is a French composer, arranger, music producer and multi-instrumentalist whose musical universe is shaped by a wide range of influences, from French chanson and pop to jazz, film music and children's repertoire. Based in Toulouse, he has spent more than two decades cultivating a hands-on approach to music creation, bringing together composition, orchestration, performance, recording and music production within a single creative process.\n\nAn exceptionally versatile musician, Loïc Laporte performs on a wide range of instruments—including saxophones, clarinets, flutes, guitars, bass, banjo, piano and keyboards—which enrich a musical language that is both melodic, expressive and deeply evocative. Throughout his career, he has collaborated with artists including Zebda, Arthur H, Loïc Lantoine, Éric Lareine and Hervé Suhubiette, while working as a performer, arranger and music producer on projects spanning albums, live performances, theatre and audiovisual productions.\n\nAlongside his work as a composer for screen and production music, Loïc Laporte collaborates with leading publishers and content producers including Didier Jeunesse, Milan Presse, Fleurus, Wagram, France 3 and TAT Productions. His work is distinguished by a particular attention to storytelling, instrumental colour and the craft of arranging, regardless of the format or audience.\n\nHe has also developed an extensive catalogue of arrangements of traditional nursery rhymes and children's songs, reimagining this timeless repertoire through contemporary production, refined orchestration and a strong emphasis on acoustic instruments. Through these reinterpretations, he breathes new life into a universal musical heritage while preserving its simplicity, poetry and enduring emotional appeal.\n\nAcross every project, Loïc Laporte brings together his gift for melody, meticulous approach to arranging and boundless musical curiosity to create works where craftsmanship and emotion combine to produce rich, accessible and timeless sonic worlds."
       },
-      "image": "/images/composers/composer_placeholder.svg",
-      "imageStatus": "placeholder",
+      "image": "/images/composers/canonical/loic_laporte.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/loic_laporte.webp",
+        "width": 450,
+        "height": 624
+      },
+      "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Loic Laporte",
           "Loïc Laporte"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1523,6 +1852,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": null
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "loic_laporte.webp"
         }
       }
     },
@@ -1535,11 +1868,17 @@
         "en": "Cyril Laurent is a French composer, producer and musician whose work explores the worlds of ambient, electronic and cinematic music. Through his solo project LAMBWOOL, launched in 2000, he has developed a contemplative musical language where immersive soundscapes, analogue textures and delicate melodies come together to create richly atmospheric compositions.\n\nInspired by artists such as Brian Eno, Tangerine Dream and Dead Can Dance, Cyril Laurent blends sonic experimentation with emotional depth, crafting a distinctive artistic identity that has earned recognition from the specialist music press and led to collaborations with numerous French and international artists.\n\nAlongside his solo work, he composes extensively for film and television, with music featured on broadcasters including Canal+, France 3 and France 5. His catalogue is also represented internationally by leading production music companies such as Bucks Music Group, 5 Alarm Music and Spirit Production Music.\n\nDriven by a constant desire to explore new sonic territories, Cyril Laurent also develops experimental projects such as Hexahedre, created in collaboration with JB Hanak. Combining ambient music, electronics and organic textures, the project unfolds as a hypnotic, cinematic and deeply immersive experience.\n\nThrough every composition, Cyril Laurent continues to pursue the same artistic vision: creating soundscapes that inspire emotion, imagination and contemplation."
       },
       "image": "/images/composers/canonical/cyril_laurent.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/cyril_laurent.webp",
+        "width": 1600,
+        "height": 1600
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Cyril Laurent"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1564,11 +1903,17 @@
         "en": "Charlotte Savary is a French singer-songwriter whose distinctive voice, characterised by its delicate vibrato and expressive sensitivity, moves effortlessly between pop, folk, trip-hop, jazz and electronic music. Performing in both French and English, she has developed a refined musical universe where elegant melodies and emotional storytelling come together with remarkable subtlety.\n\nA leading figure on the French independent music scene, Charlotte Savary is best known for her long-standing collaboration with Wax Tailor, becoming one of the defining voices of the project through several acclaimed albums and some of its most iconic tracks. Her poetic songwriting and nuanced performances bring a unique emotional depth to every collaboration.\n\nAlongside her work with Wax Tailor, she has pursued a rich artistic journey through projects such as Felipecha, SEYES and her own solo recordings. Curious by nature and stylistically versatile, she continues to explore a wide range of musical landscapes, from intimate songwriting to electronic soundscapes, while collaborating with artists from diverse backgrounds.\n\nAs a songwriter, composer, performer and producer, Charlotte Savary continues to create deeply personal music where the voice remains the central thread of an artistic world defined by sensitivity, elegance and timeless expression."
       },
       "image": "/images/composers/canonical/charlotte_savary.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/charlotte_savary.webp",
+        "width": 772,
+        "height": 772
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Charlotte Savary"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1593,12 +1938,18 @@
         "en": "Schérazade is a French singer-songwriter from Béziers, now based in Paris. Classically trained from an early age before honing her craft in the city's piano bars, she has developed a distinctive songwriting style that blends French chanson, soul, 1960s and 1970s pop, yéyé and funk, all infused with a deeply cinematic imagination.\n\nShe first gained recognition through her reinterpretation of Ann Sorel's L'amour à plusieurs, before gradually establishing a refined and sensual musical universe while also building a successful career as a songwriter and topliner for other artists. Her contribution to Stromae's Ave Cesaria, featured on the acclaimed album Multitude, highlights the elegance of her writing and her ability to craft songs that are both emotionally resonant and widely accessible.\n\nWith the release of her EP Pink Flamingo, followed by singles such as Crise humaine and I Don't Wanna Sleep Alone Tonight, Schérazade further defined a musical identity where electro-pop, chanson and soul converge within sophisticated, nocturnal and highly cinematic soundscapes. Each of her songs introduces compelling female characters who embody freedom, vulnerability and quiet strength, blurring the line between intimate confession and imagined cinema.\n\nWhether writing for herself or for others, Schérazade creates elegant, timeless music in which memorable melodies and finely crafted lyrics come together to form a uniquely evocative artistic universe."
       },
       "image": "/images/composers/canonical/scherazade_aissahine.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/scherazade_aissahine.webp",
+        "width": 1600,
+        "height": 1200
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Scherazade Aissahine",
           "Schérazade Aissahine"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [
@@ -1625,11 +1976,17 @@
         "en": "Roma Luca is the solo project of French singer-songwriter Camille Luca, also known as the bassist and vocalist of indie rock band Ottis Cœur. Through Roma Luca, she has crafted a deeply personal musical universe at the crossroads of French chanson, alternative rock and dark, introspective pop.\n\nHer lyrics, shaped by themes of doubt, desire and loss, are carried by sharp-edged guitars and raw, textured arrangements that evoke artists such as PJ Harvey and Angel Olsen, while remaining firmly rooted in the contemporary French independent scene.\n\nFollowing the release of several acclaimed singles, including Invisible Figure and Sleep Paralysis, she unveiled her debut EP Invisible Figure in 2025. She continued this artistic journey with Séléné in 2026, a new chapter that further expands her distinctive blend of alternative rock, folk and French songwriting. On stage, Roma Luca captivates audiences with an intense yet vulnerable presence, where voice and lyrics take centre stage.\n\nAlongside her solo work, she has also lent her voice to a variety of collaborative projects, notably Mayday in the Cloud by Arom, featured on Parigo's Trap in the Cloud album. This collaboration highlights her ability to move effortlessly between alternative rock, singer-songwriter music and music for screen.\n\nThrough every composition, Roma Luca explores vulnerability, emotional tension and the complexities of everyday life with remarkable honesty, balancing the intensity of her lyrics with the expressive power of her guitar-driven sound."
       },
       "image": "/images/composers/canonical/roma_luca.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/roma_luca.webp",
+        "width": 500,
+        "height": 500
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Camille Luca"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1654,11 +2011,17 @@
         "en": "The Real Fake MC, born Clyde Kingrap, is an American rapper, MC and songwriter from New Jersey who is now based in France. Inspired by old-school hip-hop pioneers such as Grandmaster Flash, Kurtis Blow and Afrika Bambaataa, he has developed a distinctive musical universe where rap meets P-Funk, Washington D.C. go-go, soul and 1980s funk.\n\nKnown for his energetic flow and infectious sense of groove, he champions an organic vision of hip-hop in which live instrumentation, horns, keyboards and basslines are just as important as the lyrics themselves. Since the mid-2000s, he has released numerous EPs, albums and collaborative projects, most notably alongside French producer Patchworks, with whom he has crafted a unique blend of funk, humour and hip-hop culture.\n\nIn 2019, he composed Go-Go Funk (Parigo No. 29) for Parigo, a tribute to Washington D.C.'s go-go scene, classic block parties and the pioneering spirit of early hip-hop. Designed for both live performance and music for screen, the album perfectly illustrates his ability to capture the festive, communal energy that defined the genre's earliest days.\n\nThrough every project, The Real Fake MC celebrates music that is generous, uplifting and deeply rooted in the tradition of groove, keeping the spirit and energy of live performance at the heart of every composition."
       },
       "image": "/images/composers/canonical/the_real_fake_mc.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/the_real_fake_mc.webp",
+        "width": 942,
+        "height": 942
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "The Real Fake MC"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1683,27 +2046,27 @@
     },
     {
       "slug": "the-well-quartet",
-      "name": "The Well Quartet",
+      "name": "Le Well Quartet",
       "kind": "group",
       "bio": {
         "fr": "Créé en 2012, le WELL Quartet est un quatuor à cordes féminin réunissant quatre musiciennes, compositrices, arrangeuses et chanteuses aux parcours aussi éclectiques que complémentaires. De la musique classique au jazz, du rock à la chanson, en passant par les musiques du monde et la création contemporaine, le quatuor développe un langage musical ouvert, porté par une grande liberté d'interprétation.\n\nAu-delà de son activité de concert, le WELL Quartet réalise des arrangements et des compositions pour quatuor à cordes, orchestre à cordes ou orchestre symphonique, intervenant aussi bien sur des albums que sur des bandes originales de films, de séries ou de spectacles. Les quatre musiciennes prêtent également leurs voix à de nombreux projets, faisant du chant une composante naturelle de leur identité artistique.\n\nEnsemble ou individuellement, elles collaborent avec de nombreux artistes tels qu'Imany, JB Dunckel (AIR), Canine, Emel Mathlouthi, Chapelier Fou, Médéric Collignon, Titi Robin, Nina Attal, Tom Poisson, Antoine Sahler ou encore Uèle Lamore. Elles participent également à de nombreux enregistrements de musiques à l'image et se produisent régulièrement sur les scènes françaises et internationales, du Paris Jazz Festival aux festivals de jazz de Canton, Shenzhen ou Changsha.\n\nÀ travers chacune de ses créations, le WELL Quartet fait dialoguer l'exigence de la musique de chambre avec la liberté des musiques actuelles, mettant la richesse des cordes au service de projets artistiques d'une grande diversité.",
         "en": "Founded in 2012, the WELL Quartet is an all-female string quartet bringing together four musicians, composers, arrangers and vocalists whose diverse backgrounds complement one another. From classical music and jazz to rock, chanson, world music and contemporary creation, the quartet has developed an open musical language defined by versatility, creativity and expressive freedom.\n\nBeyond its concert activity, the WELL Quartet creates original arrangements and compositions for string quartet, string orchestra and full symphony orchestra, contributing to albums, film scores, television productions and live performances. The four musicians also lend their voices to a wide variety of projects, making vocal performance a natural extension of their artistic identity.\n\nTogether and individually, they have collaborated with a broad range of artists including Imany, JB Dunckel (AIR), Canine, Emel Mathlouthi, Chapelier Fou, Médéric Collignon, Titi Robin, Nina Attal, Tom Poisson, Antoine Sahler and Uèle Lamore. They also regularly perform on film and television soundtracks and appear on stages across France and internationally, including the Paris Jazz Festival as well as the International Jazz Festivals of Canton, Shenzhen and Changsha.\n\nThrough every project, the WELL Quartet brings together the precision and elegance of chamber music with the creative freedom of contemporary musical genres, placing the expressive richness of string instruments at the service of a wide variety of artistic collaborations."
       },
       "image": "/images/composers/canonical/the_well_quartet.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/the_well_quartet.webp",
+        "width": 447,
+        "height": 447
+      },
       "imageStatus": "portrait",
       "harvest": {
-        "aliases": [],
-        "scopedRelations": [
-          {
-            "albumCodes": [
-              "PGO0060"
-            ],
-            "aliases": [
-              "The Well Quartet",
-              "Well Quartet"
-            ]
-          }
-        ]
+        "aliases": [
+          "The Well Quartet",
+          "Well Quartet",
+          "Le Well Quartet"
+        ],
+        "memberAliases": [],
+        "scopedRelations": []
       },
       "legacySlugs": [],
       "provenance": {
@@ -1715,6 +2078,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "well-quartet"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "the_well_quartet.jpeg"
         }
       }
     },
@@ -1727,6 +2094,11 @@
         "en": "Flore is a French DJ, producer and composer, widely recognised as one of the leading figures of the French bass music and electronic scene. Founder of the POLAAR label, she has developed a distinctive musical universe that blends bass music, techno, acid house and Afro-Caribbean influences through a bold and forward-thinking artistic vision.\n\nAcross both her productions and live performances, Flore crafts immersive soundscapes driven by syncopated rhythms, powerful basslines and finely detailed electronic textures. Celebrated for their energy and eclecticism, her DJ sets reflect an ever-evolving musical curiosity and a remarkable ability to connect diverse influences.\n\nPassionate about new technologies and immersive performance, she also explores the dialogue between music and visual art through collaborations with visual artist WSK. Together, they create multidisciplinary live experiences combining electronic music with 360-degree video mapping and audiovisual scenography.\n\nAs an artist, curator and label founder, Flore continues to play an active role in shaping contemporary electronic music, placing innovation, artistic dialogue and sonic exploration at the heart of her creative practice."
       },
       "image": "/images/composers/canonical/flore.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/flore.webp",
+        "width": 1080,
+        "height": 1080
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
@@ -1734,6 +2106,7 @@
           "Flore Morfin",
           "Flore Morchin"
         ],
+        "memberAliases": [],
         "scopedRelations": [],
         "creditIdentities": [
           {
@@ -1768,6 +2141,11 @@
         "en": "Cédric Hanak is a French composer, multi-instrumentalist and music producer whose work seamlessly blends analogue synthesizers, classical influences and contemporary cinematic writing. Drawing inspiration from both orchestral music and electronic textures, he has developed a deeply emotional musical language in which every composition is conceived as a true sonic narrative.\n\nThrough both his personal projects and his work for screen, he has forged a distinctive artistic identity at the crossroads of folk, electronic music and cinematic composition. This creative vision finds one of its most accomplished expressions in Light Ambient, an album produced by Parigo, for which he co-composed every track alongside JB Hanak. Carried by understated and elegant production, the album showcases a refined musical language in which melodies, harmonies and instrumental textures interact with remarkable subtlety in the service of emotion.\n\nAlongside his work as a composer, Cédric Hanak has developed an extensive career writing for film, television and documentary productions. His original scores accompany works in which music plays a central narrative role, allowing him to explore an orchestral and atmospheric musical language while maintaining a distinctive sonic identity. Blending analogue synthesizers, piano, strings and organic textures, he creates soundscapes that are at once intimate, immersive and profoundly cinematic.\n\nAcross every project, Cédric Hanak places emotion at the heart of his creative process. His music, where tradition and modernity naturally converge, gives rise to elegant, timeless and deeply evocative works, where songwriting and screen composition are united by the same artistic vision and commitment to musical storytelling."
       },
       "image": "/images/composers/canonical/cedric_hanak.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/cedric_hanak.webp",
+        "width": 1280,
+        "height": 720
+      },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
@@ -1775,6 +2153,7 @@
           "Cedric Hanak",
           "Cédric HANAK"
         ],
+        "memberAliases": [],
         "scopedRelations": []
       },
       "legacySlugs": [],
@@ -1789,7 +2168,10 @@
           "imageSlug": "cedric-hanak"
         },
         "imageOverride": {
-          "source": "user-provided",
+          "source": "portfolio-caro-git",
+          "repository": "portfolio-caro",
+          "commit": "734441d8ad1280d538ae9b104bace0c9de6248a9",
+          "path": "public/images/projets/photoscompo/cedric-hanak.jpg",
           "file": "cedric_hanak.jpg"
         }
       }

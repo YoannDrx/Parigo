@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: ComposerPageProps): Promise<M
     description: bio?.slice(0, 190) ?? (locale === "fr"
       ? `Profil et discographie de ${profile.name}.`
       : `Profile and discography for ${profile.name}.`),
-    image: profile.imageStatus === "portrait" ? profile.image : undefined,
+    image: profile.imageStatus === "portrait" ? profile.detailImage?.src ?? profile.image : undefined,
   });
 }
 
@@ -70,6 +70,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
   const albums = albumResults.flatMap((result) => result.status === "fulfilled" ? [result.value.album] : []);
   const hasUnavailableAlbums = albumResults.some((result) => result.status === "rejected");
   const bio = profile.bio[locale];
+  const detailImage = profile.detailImage ?? { src: profile.image, width: 720, height: 720 };
 
   return (
     <div className="page-shell min-h-screen">
@@ -81,25 +82,25 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
             {locale === "fr" ? "Tous les compositeurs" : "All composers"}
           </ContextualBackLink>
           <article className="composer-detail-hero parigo-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-6 md:p-8 lg:p-10">
-            <div className="grid items-end gap-7 md:grid-cols-[minmax(13rem,19rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
-              <div className="parigo-frame relative aspect-square w-full max-w-[19rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
+            <div className="grid items-end gap-7 md:grid-cols-[minmax(13rem,28rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
+              <div className="parigo-frame relative aspect-square w-full max-w-[28rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
                 <Image
-                  src={profile.image}
+                  data-testid="composer-detail-image"
+                  src={detailImage.src}
                   alt={profile.imageStatus === "portrait" ? profile.name : ""}
                   fill
                   priority
-                  sizes="(max-width: 768px) 19rem, 19rem"
-                  className="object-cover transition-transform duration-700 hover:scale-[1.02]"
+                  sizes="(max-width: 768px) 100vw, 28rem"
+                  className="object-cover"
                 />
               </div>
-              <div className="min-w-0 pb-1 md:pb-4">
+              <div className="min-w-0">
                 <SignedTitle className="max-w-full [overflow-wrap:anywhere] font-[var(--font-editorial)] text-[clamp(3.25rem,8vw,7rem)] leading-[.88] tracking-[-.06em]">{profile.name}</SignedTitle>
               </div>
             </div>
             {bio ? (
-              <div className="mt-8 grid gap-6 border-t border-[var(--line)] pt-8 md:mt-10 md:pt-10 lg:grid-cols-[minmax(15rem,17rem)_minmax(0,1fr)] lg:gap-12">
-                <SignedTitle as="h2" className="max-w-full font-[var(--font-editorial)] text-4xl tracking-[-.05em] md:text-5xl">{locale === "fr" ? "Biographie" : "Biography"}</SignedTitle>
-                <div className="min-w-0 max-w-4xl text-base leading-8 text-[var(--text-muted)] md:text-lg">
+              <div className="mt-8 border-t border-[var(--line)] pt-8 md:mt-10 md:pt-10">
+                <div data-testid="composer-biography" className="min-w-0 w-full text-base leading-8 text-[var(--text-muted)] md:text-lg">
                   <Bio value={bio} />
                 </div>
               </div>

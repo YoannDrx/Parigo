@@ -3,6 +3,7 @@ import {
   collectHarvestComposerSearchItems,
   collectHarvestComposerCredits,
   composerCreditMatches,
+  findIndexedHarvestComposerName,
   harvestComposerCreditId,
   harvestComposerCreditNames,
   normalizeHarvestComposerCredit,
@@ -126,5 +127,18 @@ describe("Harvest composer credits", () => {
     ], "Emile Sornin")).toEqual([
       { id: "Sornin Emile", name: "Sornin Emile", count: 1 },
     ]);
+  });
+
+  it("retrouve temporairement la clé corrompue d'un index Harvest pas encore propagé", () => {
+    expect(findIndexedHarvestComposerName(
+      ["Franck SINNASSAMY", "Victor BAILLET", "Sosth�ne Fanou"],
+      ["Franck SINNASSAMY", "Victor BAILLET", "Sosthène Fanou"],
+      "Sosthène Fanou",
+    )).toBe("Sosth�ne Fanou");
+    expect(findIndexedHarvestComposerName(
+      ["Franck SINNASSAMY", "Victor BAILLET", "Sosthène Fanou"],
+      ["Franck SINNASSAMY", "Victor BAILLET", "Sosthène Fanou"],
+      "Sosthène Fanou",
+    )).toBeUndefined();
   });
 });

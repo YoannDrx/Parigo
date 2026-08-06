@@ -4,10 +4,10 @@ import path from "node:path";
 
 const root = process.cwd();
 const publicRoot = path.join(root, "public");
-// The canonical composer catalogue now includes the requested local portraits.
-// Keep a narrow allowance above the current footprint so new assets still have
-// to fit within an explicit budget instead of disabling the aggregate guard.
-const MAX_STATIC_PUBLIC_BYTES = 13 * 1024 * 1024;
+// The composer detail pages intentionally ship full-composition derivatives in
+// addition to the square directory thumbnails. Keep an explicit ceiling with a
+// small margin above that audited catalogue instead of disabling the guard.
+const MAX_STATIC_PUBLIC_BYTES = 20 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 72 * 1024 * 1024;
 const LARGE_ASSET_BYTES = 500 * 1024;
 const MEDIA_EXTENSIONS = /\.(mp3|wav|ogg|mp4|webm|jpg|jpeg|png|avif|webp)$/i;
@@ -53,7 +53,7 @@ for (const file of publicFiles) {
   }
 }
 
-if (staticBytes > MAX_STATIC_PUBLIC_BYTES) failures.push(`Budget public statique dépassé : ${(staticBytes / 1024 / 1024).toFixed(2)} Mio > 12 Mio`);
+if (staticBytes > MAX_STATIC_PUBLIC_BYTES) failures.push(`Budget public statique dépassé : ${(staticBytes / 1024 / 1024).toFixed(2)} Mio > ${(MAX_STATIC_PUBLIC_BYTES / 1024 / 1024).toFixed(0)} Mio`);
 if (videoBytes > MAX_VIDEO_BYTES) failures.push(`Budget vidéo public dépassé : ${(videoBytes / 1024 / 1024).toFixed(2)} Mio > 72 Mio`);
 if (failures.length) {
   console.error(failures.join("\n"));

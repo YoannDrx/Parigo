@@ -28,6 +28,12 @@ const imageOverrideSchema = z.discriminatedUnion("source", [
   }),
 ]);
 
+const detailImageSchema = z.object({
+  src: z.string().regex(/^\/images\/composers\/detail\/[a-z0-9_]+\.webp$/),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+});
+
 const harvestCreditIdentitySchema = z.object({
   preferredName: z.string().min(1),
   aliases: z.array(z.string().min(1)).min(1),
@@ -43,9 +49,11 @@ const composerProfileSchema = z.object({
   kind: z.enum(["person", "group"]),
   bio: nullableBioSchema,
   image: z.string().regex(/^\/images\/composers\/(?:canonical\/[a-z0-9_]+\.webp|composer_placeholder\.svg)$/),
+  detailImage: detailImageSchema.nullable(),
   imageStatus: z.enum(["portrait", "placeholder"]),
   harvest: z.object({
     aliases: z.array(z.string().min(1)),
+    memberAliases: z.array(z.string().min(1)),
     scopedRelations: z.array(scopedRelationSchema),
     creditIdentities: z.array(harvestCreditIdentitySchema).optional(),
   }),
@@ -101,6 +109,15 @@ const registrySchema = z.object({
     if (names.has(profile.name)) context.addIssue({ code: "custom", message: `Nom compositeur dupliqué : ${profile.name}` });
     slugs.add(profile.slug);
     names.add(profile.name);
+    if (profile.imageStatus === "portrait" && !profile.detailImage) {
+      context.addIssue({ code: "custom", message: `Image de détail manquante : ${profile.slug}` });
+    }
+    if (profile.imageStatus === "placeholder" && profile.detailImage) {
+      context.addIssue({ code: "custom", message: `Image de détail inattendue pour un placeholder : ${profile.slug}` });
+    }
+    if (profile.harvest.memberAliases.length && profile.kind !== "group") {
+      context.addIssue({ code: "custom", message: `Seul un collectif peut déclarer des membres Harvest : ${profile.slug}` });
+    }
     for (const alias of profile.harvest.aliases) {
       for (const lookupKey of harvestComposerCreditLookupKeys(alias)) {
         const owner = globalAliases.get(lookupKey);
@@ -149,14 +166,20 @@ export function canonicalHarvestCreditIdentities(profile: CanonicalComposerProfi
   return identities;
 }
 
-const globalCreditIdentityByAlias = new Map<string, {
+type CreditIdentityEntry = {
   profile: CanonicalComposerProfile;
   identity: CanonicalHarvestCreditIdentity;
-}>();
-const scopedCreditIdentities: Array<{
-  profile: CanonicalComposerProfile;
-  identity: CanonicalHarvestCreditIdentity;
-}> = [];
+};
+
+const globalCreditIdentitiesByAlias = new Map<string, CreditIdentityEntry[]>();
+const globalMemberIdentitiesByAlias = new Map<string, CreditIdentityEntry[]>();
+const scopedCreditIdentities: CreditIdentityEntry[] = [];
+
+function addGlobalIdentity(map: Map<string, CreditIdentityEntry[]>, lookupKey: string, entry: CreditIdentityEntry) {
+  const entries = map.get(lookupKey) ?? [];
+  entries.push(entry);
+  map.set(lookupKey, entries);
+}
 
 for (const profile of canonicalComposerProfiles) {
   for (const identity of canonicalHarvestCreditIdentities(profile)) {
@@ -167,8 +190,14 @@ for (const profile of canonicalComposerProfiles) {
     }
     for (const alias of identity.aliases) {
       for (const lookupKey of harvestComposerCreditLookupKeys(alias)) {
-        globalCreditIdentityByAlias.set(lookupKey, entry);
+        addGlobalIdentity(globalCreditIdentitiesByAlias, lookupKey, entry);
       }
+    }
+  }
+  for (const alias of profile.harvest.memberAliases) {
+    const entry = { profile, identity: { preferredName: alias, aliases: [alias] } };
+    for (const lookupKey of harvestComposerCreditLookupKeys(alias)) {
+      addGlobalIdentity(globalMemberIdentitiesByAlias, lookupKey, entry);
     }
   }
 }
@@ -196,14 +225,16 @@ export function resolveCanonicalComposerCredits(
   const lookupKeySet = new Set(lookupKeys);
   const matches: Array<{ profile: CanonicalComposerProfile; identity: CanonicalHarvestCreditIdentity }> = [];
   for (const lookupKey of lookupKeys) {
-    const global = globalCreditIdentityByAlias.get(lookupKey);
-    if (global) matches.push(global);
+    matches.push(...(globalCreditIdentitiesByAlias.get(lookupKey) ?? []));
   }
   if (albumCode) {
     matches.push(...scopedCreditIdentities.filter(({ identity }) => (
       identity.albumCodes?.includes(albumCode)
       && identity.aliases.some((alias) => harvestComposerCreditLookupKeys(alias).some((key) => lookupKeySet.has(key)))
     )));
+  }
+  for (const lookupKey of lookupKeys) {
+    matches.push(...(globalMemberIdentitiesByAlias.get(lookupKey) ?? []));
   }
   return matches.filter((match, index) => matches.findIndex((candidate) => (
     candidate.profile.slug === match.profile.slug
