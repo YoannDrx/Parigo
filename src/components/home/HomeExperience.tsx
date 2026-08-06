@@ -2,16 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, Play, RotateCcw, Youtube } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
-import { fetchAlbums } from "@/lib/api-client";
+import { fetchAlbum, fetchAlbums, fetchPlaylist } from "@/lib/api-client";
 import { DeferredOrganicHeroBackdrop } from "./DeferredOrganicHeroBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
 import { DeferredHomeStorySections } from "./DeferredHomeStorySections";
-import type { Album, Playlist } from "@/types";
+import type { Album, Playlist, Track } from "@/types";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { ParigoVideoCard } from "@/components/editorial/ParigoVideoCard";
 import { SynchronisationCard } from "@/components/editorial/SynchronisationCard";
@@ -20,6 +20,8 @@ import { SignedTitle } from "@/components/ui/SignedTitle";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { resizeArtworkSource } from "@/lib/image-loader";
 import { PartnerMarquee } from "./PartnerMarquee";
+import { HomeAudioCard } from "./HomeAudioCard";
+import { usePlayerStore } from "@/stores/player-store";
 
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
 
@@ -90,11 +92,21 @@ interface HomeExperienceProps {
 
 export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialReleases, initialSynchronisations: syncs, initialClips: clips }: HomeExperienceProps) {
   const { locale, t, localizedPath } = useI18n();
+  const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const isPlaying = usePlayerStore((state) => state.isPlaying);
+  const pause = usePlayerStore((state) => state.pause);
+  const play = usePlayerStore((state) => state.play);
+  const resume = usePlayerStore((state) => state.resume);
+  const setQueue = usePlayerStore((state) => state.setQueue);
   const [featuredTab, setFeaturedTab] = useState<"playlists" | "releases" | "parigo">("releases");
   const [releases, setReleases] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>(initialReleases);
   const [parigoAlbums, setParigoAlbums] = useState<Awaited<ReturnType<typeof fetchAlbums>>["albums"]>(initialParigoAlbums);
   const [tabError, setTabError] = useState<"releases" | "parigo" | null>(null);
   const [retryVersion, setRetryVersion] = useState(0);
+  const [activeAudioSelection, setActiveAudioSelection] = useState<string | null>(null);
+  const [loadingAudioSelection, setLoadingAudioSelection] = useState<string | null>(null);
+  const [audioPlaybackError, setAudioPlaybackError] = useState<string | null>(null);
+  const audioTracks = useRef(new Map<string, Track[]>());
   const editorialPlaylists = initialPlaylists.playlists;
   const isFeaturedTabLoading = (
     featuredTab === "releases" && releases.length === 0 && tabError !== "releases"
@@ -121,6 +133,33 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
     });
     return () => controller.abort();
   }, [featuredTab, parigoAlbums.length, releases.length, retryVersion]);
+
+  const playAudioSelection = async (selectionKey: string, loadTracks: () => Promise<Track[]>) => {
+    if (loadingAudioSelection) return;
+    if (activeAudioSelection === selectionKey && currentTrack) {
+      if (isPlaying) pause();
+      else resume();
+      return;
+    }
+
+    setAudioPlaybackError(null);
+    setLoadingAudioSelection(selectionKey);
+    try {
+      const tracks = audioTracks.current.get(selectionKey) ?? await loadTracks();
+      audioTracks.current.set(selectionKey, tracks);
+      if (tracks.length === 0) throw new Error("Empty audio selection");
+      setQueue(tracks, 0);
+      play(tracks[0]);
+      setActiveAudioSelection(selectionKey);
+    } catch {
+      setAudioPlaybackError(locale === "fr"
+        ? "Impossible de lancer cette sélection pour le moment."
+        : "This selection cannot be played right now.");
+    } finally {
+      setLoadingAudioSelection(null);
+    }
+  };
+
   return (
     <>
         <section id="about" className="px-4 py-16 md:px-8 md:py-24">
@@ -146,7 +185,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                   ["releases", locale === "fr" ? "Nouveautés" : "New releases"],
                   ["playlists", "Playlists"],
                   ["parigo", "Label Parigo"],
-                ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => { setTabError(null); setFeaturedTab(id); }} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
+                ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => { setTabError(null); setAudioPlaybackError(null); setFeaturedTab(id); }} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
               </div>
             </SectionReveal>
             {isFeaturedTabLoading ? (
@@ -159,17 +198,47 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
             ) : tabError === featuredTab ? (
               <div className="rounded-xl border border-[var(--line)] px-6 py-20 text-center"><AlertCircle className="mx-auto text-[var(--signal-strong)]" /><h3 className="mt-4 text-2xl">{locale === "fr" ? "Cette sélection est momentanément indisponible." : "This selection is temporarily unavailable."}</h3><button type="button" onClick={() => { setTabError(null); setRetryVersion((version) => version + 1); }} className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-md border border-[var(--line)] px-4 text-sm font-semibold"><RotateCcw size={15} />{t("common.retry")}</button></div>
             ) : featuredTab === "playlists" ? (
-              <HorizontalRail tone="surface" label={locale === "fr" ? "Playlists à écouter maintenant" : "Playlists to listen to now"}>{editorialPlaylists.map((playlist) => <Link key={playlist.id} href={`/playlists/${playlist.id}`} className="home-rail-card group block snap-start"><div className="home-rail-card__media relative aspect-square overflow-hidden rounded-[.8rem] bg-[var(--surface-soft)]"><Image src={resizeArtworkSource(playlist.cover, 320)} alt={playlist.title} fill sizes="(max-width:640px) 78vw, 25vw" className="object-cover transition duration-700 group-hover:scale-[1.035]" /></div><div className="flex min-h-24 items-end justify-between gap-4 px-1 pb-1 pt-5"><div className="min-w-0"><p className="font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--signal-strong)]">{locale === "fr" ? "Sélection Parigo" : "Parigo selection"}</p><h3 className="mt-2 line-clamp-2 text-lg leading-[1.05]">{playlist.title}</h3></div><p className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{playlist.trackCount ?? 0} {t("catalog.tracks")}</p></div></Link>)}</HorizontalRail>
+              <HorizontalRail tone="surface" label={locale === "fr" ? "Playlists à écouter maintenant" : "Playlists to listen to now"}>
+                {editorialPlaylists.map((playlist) => {
+                  const selectionKey = `playlist:${playlist.id}`;
+                  return (
+                    <HomeAudioCard
+                      key={playlist.id}
+                      href={localizedPath(`/playlists/${playlist.slug || playlist.id}`)}
+                      image={resizeArtworkSource(playlist.cover, 320)}
+                      title={playlist.title}
+                      eyebrow={locale === "fr" ? "Sélection Parigo" : "Parigo selection"}
+                      meta={`${playlist.trackCount ?? 0} ${t("catalog.tracks")}`}
+                      active={activeAudioSelection === selectionKey && Boolean(currentTrack)}
+                      playing={activeAudioSelection === selectionKey && Boolean(currentTrack) && isPlaying}
+                      loading={loadingAudioSelection === selectionKey}
+                      onPlay={() => void playAudioSelection(selectionKey, async () => (await fetchPlaylist(playlist.slug || playlist.id)).tracks)}
+                    />
+                  );
+                })}
+              </HorizontalRail>
             ) : (
             <HorizontalRail tone="surface" label={featuredTab === "parigo" ? (locale === "fr" ? "Albums Parigo" : "Parigo albums") : locale === "fr" ? "Dernières sorties" : "New releases"}>
-              {(featuredTab === "parigo" ? parigoAlbums : releases).map((release) => (
-                  <Link key={release.id} href={`/albums/${release.id}`} className="home-rail-card group block snap-start">
-                    <div className="home-rail-card__media relative aspect-square overflow-hidden rounded-[.8rem] bg-[var(--surface-soft)]"><Image src={release.cover} alt={release.title} fill sizes="(max-width:640px) 78vw, 25vw" className="object-cover transition-transform duration-700 group-hover:scale-[1.035]" /><span aria-hidden="true" className="home-release-play absolute left-3 top-3 z-[2] flex h-11 w-11 items-center justify-center rounded-full border border-white/45 bg-black/55 text-white shadow-xl backdrop-blur-md transition group-hover:scale-110 group-hover:bg-[var(--signal)] group-focus-visible:scale-110 group-focus-visible:bg-[var(--signal)]"><Play size={16} className="ml-0.5" fill="currentColor" /></span></div>
-                    <div className="flex min-h-24 items-end justify-between gap-4 px-1 pb-1 pt-5"><div className="min-w-0"><h3 className="line-clamp-2 text-lg font-semibold leading-[1.05] tracking-[-.025em]">{release.title}</h3><p className="mt-2 truncate font-mono text-[.55rem] uppercase tracking-[.12em] text-[var(--text-muted)]">{release.label}</p></div><span className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{release.trackCount} {t("catalog.tracks")}</span></div>
-                  </Link>
-              ))}
+              {(featuredTab === "parigo" ? parigoAlbums : releases).map((release) => {
+                const selectionKey = `album:${release.id}`;
+                return (
+                  <HomeAudioCard
+                    key={release.id}
+                    href={localizedPath(`/albums/${release.slug || release.id}`)}
+                    image={release.cover}
+                    title={release.title}
+                    eyebrow={release.label}
+                    meta={`${release.trackCount} ${t("catalog.tracks")}`}
+                    active={activeAudioSelection === selectionKey && Boolean(currentTrack)}
+                    playing={activeAudioSelection === selectionKey && Boolean(currentTrack) && isPlaying}
+                    loading={loadingAudioSelection === selectionKey}
+                    onPlay={() => void playAudioSelection(selectionKey, async () => (await fetchAlbum(release.slug || release.id)).album.tracks)}
+                  />
+                );
+              })}
             </HorizontalRail>
             )}
+            {audioPlaybackError && <p role="alert" className="mt-4 text-sm text-[var(--danger)]">{audioPlaybackError}</p>}
             <div className="mt-8 text-right"><HomeSeeAllLink href={localizedPath(featuredTab === "playlists" ? "/playlists" : featuredTab === "parigo" ? "/label-parigo" : "/albums")}>{t("common.seeAll")}</HomeSeeAllLink></div>
           </div>
         </section>

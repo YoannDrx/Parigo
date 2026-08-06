@@ -697,6 +697,77 @@ test("le bouton Play des albums reste visible en thème sombre", async ({ page }
   expect(background).not.toBe("rgba(0, 0, 0, 0)");
 });
 
+test("les cartes À écouter maintenant séparent lecture et navigation", async ({ page }) => {
+  const track = (id: string, albumId: string) => ({
+    id,
+    title: `Piste ${id}`,
+    duration: 90,
+    audioUrl: null,
+    albumId,
+    albumTitle: "Sélection de test",
+    albumCover: "/images/placeholder-album.svg",
+    genres: [],
+    moods: [],
+    isVocal: false,
+    waveform: null,
+  });
+
+  await page.route(/\/api\/albums\/[^/?]+$/, async (route) => {
+    const albumId = new URL(route.request().url()).pathname.split("/").at(-1)!;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { album: { id: albumId, tracks: [track("album-track", albumId)] }, similarAlbums: [] } }),
+    });
+  });
+  await page.route(/\/api\/playlists\/[^/?]+$/, async (route) => {
+    const playlistId = new URL(route.request().url()).pathname.split("/").at(-1)!;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { playlist: { id: playlistId, tracks: [track("playlist-track", "playlist-album")] } } }),
+    });
+  });
+
+  await page.goto("/");
+  const featured = page.locator("#featured");
+  await featured.scrollIntoViewIfNeeded();
+
+  const releaseCard = featured.locator(".home-audio-card").first();
+  const releasePlay = releaseCard.locator(".home-release-play");
+  const releaseCardLink = releaseCard.locator(".home-audio-card__card-link");
+  const releaseDetail = releaseCard.getByRole("link", { name: /^Voir le détail de / }).first();
+  const releaseHref = await releaseCardLink.getAttribute("href");
+  expect(releaseHref).not.toBeNull();
+  await expect(releasePlay).toHaveAttribute("aria-label", /^Lire /);
+  await expect(releaseCardLink).toHaveAttribute("href", /^\/albums\//);
+  await expect(releaseDetail).toHaveAttribute("href", releaseHref!);
+
+  await releasePlay.click();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByTestId("player-dock")).toBeVisible();
+  await expect(releasePlay).toHaveAttribute("aria-label", /^Mettre en pause /);
+  await releasePlay.click();
+  await expect(releasePlay).toHaveAttribute("aria-label", /^Reprendre /);
+
+  await featured.getByRole("tab", { name: "Playlists" }).click();
+  const playlistCard = featured.locator(".home-audio-card").first();
+  await expect(playlistCard.locator(".home-release-play")).toHaveAttribute("aria-label", /^Lire /);
+  await expect(playlistCard.locator(".home-audio-card__card-link")).toHaveAttribute("href", /^\/playlists\//);
+  await playlistCard.locator(".home-release-play").click();
+  await expect(playlistCard.locator(".home-release-play")).toHaveAttribute("aria-label", /^Mettre en pause /);
+
+  await featured.getByRole("tab", { name: "Label Parigo" }).click();
+  const parigoCard = featured.locator(".home-audio-card").first();
+  const parigoCardLink = parigoCard.locator(".home-audio-card__card-link");
+  const parigoHref = await parigoCardLink.getAttribute("href");
+  expect(parigoHref).toMatch(/^\/albums\//);
+  await expect(parigoCard.locator(".home-release-play")).toHaveAttribute("aria-label", /^Lire /);
+  await expect(parigoCard.getByRole("link", { name: /^Voir le détail de / })).toHaveCount(2);
+  await parigoCardLink.click();
+  await expect(page).toHaveURL(new RegExp(`${parigoHref}$`));
+});
+
 test("le showreel reste sans effet au survol et introduit la relation avec les compositeurs", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est contrôlé avec un pointeur desktop.");
   await page.goto("/");

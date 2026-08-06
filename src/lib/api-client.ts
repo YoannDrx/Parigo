@@ -277,6 +277,13 @@ export async function fetchPlaylists(params?: {
   return { playlists: payload.data.playlists, pagination: { total: payload.meta.total, limit: payload.meta.pageSize, offset: (payload.meta.page - 1) * payload.meta.pageSize, hasMore: payload.meta.page * payload.meta.pageSize < payload.meta.total } };
 }
 
+export async function fetchPlaylist(idOrSlug: string): Promise<ApiPlaylist & { tracks: ApiTrack[] }> {
+  const res = await fetch(`${API_BASE}/playlists/${idOrSlug}`);
+  if (!res.ok) throw new Error("Failed to fetch playlist");
+  const payload = await res.json() as { data: { playlist: ApiPlaylist & { tracks: ApiTrack[] } } };
+  return payload.data.playlist;
+}
+
 export async function fetchGenres(): Promise<{ genres: ApiGenre[] }> {
   const res = await fetch(`${API_BASE}/genres`);
   if (!res.ok) throw new Error("Failed to fetch genres");
