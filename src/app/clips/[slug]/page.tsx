@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Footer, Header } from "@/components/layout";
@@ -10,6 +9,7 @@ import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { SignedTitle } from "@/components/ui/SignedTitle";
+import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
 
 interface ClipPageProps {
   params: Promise<{ slug: string }>;
@@ -57,10 +57,10 @@ export default async function ClipPage({ params }: ClipPageProps) {
       <Header />
       <main className="px-4 pb-24 pt-28 md:px-8 md:pb-36 md:pt-32">
         <div className="mx-auto max-w-[1440px]">
-          <Link href={localizedPath(locale, "/clips")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--signal-strong)]">
+          <ContextualBackLink href={localizedPath(locale, "/clips")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Tous les clips" : "All clips"}
-          </Link>
+          </ContextualBackLink>
           <div className="editorial-detail-hero relative mt-9 grid gap-7 overflow-hidden pb-8 lg:grid-cols-12 lg:items-start">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
               <div className="flex items-center justify-between border-b border-white/12 px-3 py-2.5 text-white/46">

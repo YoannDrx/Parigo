@@ -21,6 +21,7 @@ import { resizeArtworkSource } from "@/lib/image-loader";
 import { resolveAlbumDescription } from "@/lib/harvest/album-descriptions";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { SignedTitle } from "@/components/ui/SignedTitle";
+import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
 
 interface AlbumDetailClientProps {
   data: {
@@ -98,13 +99,13 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
       <main className="flex-1 pb-24 pt-[70px]">
         {/* Back Link */}
         <div className="mx-auto max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
-          <Link
+          <ContextualBackLink
             href={localizedPath("/albums")}
             className="inline-flex items-center gap-2 text-[var(--text-muted)] transition-colors hover:text-[var(--foreground)]"
           >
             <ArrowLeft size={18} />
             {t("common.back")} · {t("common.albums")}
-          </Link>
+          </ContextualBackLink>
         </div>
 
         {/* Album Header */}

@@ -13,6 +13,7 @@ import { ClientErrorMonitor } from "./ClientErrorMonitor";
 import { ShowreelAudioProvider } from "./ShowreelAudioProvider";
 import { PlaybackCoordinatorProvider, usePlaybackCoordinator } from "./PlaybackCoordinatorProvider";
 import { ClipPlaybackProvider } from "./ClipPlaybackProvider";
+import { NavigationHistoryProvider } from "@/components/navigation/ContextualBackLink";
 
 function GlobalOverlays() {
   const authOpen = useAuthModalStore((state) => state.isOpen);
@@ -63,15 +64,17 @@ export function QueryProvider({ children, initialLocale, initialConsentSnapshot 
   return (
     <ThemeProvider>
       <I18nProvider initialLocale={initialLocale}>
-        <PlaybackCoordinatorProvider>
-          <ClipPlaybackProvider initialConsentSnapshot={initialConsentSnapshot}>
-            <ShowreelAudioProvider>
-              {children}
-              <GlobalOverlays />
-            </ShowreelAudioProvider>
-          </ClipPlaybackProvider>
-          <CookieConsent initialSnapshot={initialConsentSnapshot} />
-        </PlaybackCoordinatorProvider>
+        <NavigationHistoryProvider>
+          <PlaybackCoordinatorProvider>
+            <ClipPlaybackProvider initialConsentSnapshot={initialConsentSnapshot}>
+              <ShowreelAudioProvider>
+                {children}
+                <GlobalOverlays />
+              </ShowreelAudioProvider>
+            </ClipPlaybackProvider>
+            <CookieConsent initialSnapshot={initialConsentSnapshot} />
+          </PlaybackCoordinatorProvider>
+        </NavigationHistoryProvider>
         <AnalyticsGate />
         <ClientErrorMonitor />
       </I18nProvider>

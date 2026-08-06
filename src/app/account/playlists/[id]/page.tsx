@@ -9,6 +9,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Album, MemberPlaylistCategory, Track } from "@/types";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { useContextualBack } from "@/components/navigation/ContextualBackLink";
 
 interface MemberPlaylist { id: string; title: string; description?: string; categoryId?: string; tracks: Track[]; }
 
@@ -19,6 +20,7 @@ function albumFor(track: Track): Album {
 export default function MemberPlaylistPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const backToPlaylists = useContextualBack("/account/playlists");
   const { locale } = useI18n();
   const [playlist, setPlaylist] = useState<MemberPlaylist | null>(null);
   const [loading, setLoading] = useState(true);
@@ -229,10 +231,10 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
   };
 
   if (loading) return <div className="flex min-h-80 items-center justify-center"><ParigoLoader size="page" label={locale === "fr" ? "Chargement de la playlist" : "Loading playlist"} /></div>;
-  if (!playlist) return <div className="py-20 text-center"><p>{error}</p><Button variant="outline" className="mt-6" onClick={() => router.push("/account/playlists")}><ArrowLeft size={16} /> {locale === "fr" ? "Retour" : "Back"}</Button></div>;
+  if (!playlist) return <div className="py-20 text-center"><p>{error}</p><Button variant="outline" className="mt-6" onClick={backToPlaylists}><ArrowLeft size={16} /> {locale === "fr" ? "Retour" : "Back"}</Button></div>;
 
   return <div className="account-page space-y-8">
-    <button type="button" onClick={() => router.push("/account/playlists")} className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)]"><ArrowLeft size={16} /> {locale === "fr" ? "Mes playlists" : "My playlists"}</button>
+    <button type="button" onClick={backToPlaylists} className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)]"><ArrowLeft size={16} /> {locale === "fr" ? "Mes playlists" : "My playlists"}</button>
     <AccountPageHeader
       icon={ListMusic}
       eyebrow={`Parigo · ${playlist.tracks.length} ${locale === "fr" ? "pistes" : "tracks"}`}
