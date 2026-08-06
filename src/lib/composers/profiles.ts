@@ -65,16 +65,21 @@ const composerProfileSchema = z.object({
       source: z.literal("user-provided"),
       capturedAt: z.string().datetime(),
       bioFile: z.string().min(1),
+      sourceDocument: z.string().min(1).optional(),
       imageSource: z.object({
         repository: z.literal("portfolio-caro"),
         commit: z.string().regex(/^[a-f0-9]{40}$/),
         imageSlug: z.string().nullable(),
       }),
+      imageOverride: z.object({
+        source: z.literal("user-provided"),
+        file: z.string().min(1),
+      }).optional(),
     }),
   ]),
 });
 
-export const CANONICAL_COMPOSER_PROFILE_COUNT = 57;
+export const CANONICAL_COMPOSER_PROFILE_COUNT = 55;
 
 const registrySchema = z.object({
   generatedAt: z.string(),

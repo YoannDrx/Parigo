@@ -54,7 +54,6 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
       composerCreditsByKey.set(`credit:${credit}`, {
         credit,
         name: credit,
-        href: `/search?view=tracks&type=main&composer=${encodeURIComponent(credit)}`,
       });
       continue;
     }

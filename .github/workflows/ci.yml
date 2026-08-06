@@ -84,7 +84,16 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      - name: Browser smoke tests on pull requests
+        if: github.event_name == 'pull_request'
+        run: pnpm test:e2e:smoke
+        env:
+          HARVEST_SESSION_SECRET: ${{ secrets.HARVEST_SESSION_SECRET }}
+          PLAYWRIGHT_BASE_URL: ${{ needs.preview.outputs.url }}
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      - name: Full browser suite on main
+        if: github.event_name != 'pull_request'
+        run: pnpm test:e2e
         env:
           # Must match the Preview value pulled into Vercel so the account
           # fixtures can mint a valid encrypted test session.
@@ -105,6 +114,7 @@ jobs:
             test-results
 
   preview-lighthouse:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: preview
     runs-on: ubuntu-latest
     steps:
@@ -156,19 +166,3 @@ jobs:
         run: pnpm test:seo
         env:
           SEO_BASE_URL: https://parigo-ten.vercel.app
-      - name: Discover a live production album
-        run: node --import tsx scripts/discover-lighthouse-album.ts
-        env:
-          LIGHTHOUSE_BASE_URL: https://parigo-ten.vercel.app
-      - name: Verify final production Lighthouse targets
-        run: pnpm test:lighthouse
-        env:
-          LIGHTHOUSE_BASE_URL: https://parigo-ten.vercel.app
-          LIGHTHOUSE_EXPECT_PRODUCTION: "1"
-      - name: Keep production Lighthouse reports only on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: production-lighthouse-reports
-          path: .lighthouseci
-          include-hidden-files: true

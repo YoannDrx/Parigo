@@ -58,7 +58,7 @@ function AlbumExplorerFallback({ loadingLabel }: { loadingLabel: string }) {
       <div aria-hidden="true" className="hidden min-h-[34rem] border border-[var(--line)] bg-[var(--surface-soft)] lg:block" />
       <div className="min-w-0">
         <div aria-hidden="true" className="mb-4 h-44 border border-[var(--line)] bg-[var(--surface-soft)] sm:h-32" />
-        <div aria-hidden="true" className="grid grid-cols-1 gap-x-4 gap-y-12 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <div aria-hidden="true" className="grid grid-cols-1 gap-x-4 gap-y-12 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {Array.from({ length: 20 }, (_, index) => (
             <div key={index} className="border border-[var(--line)] bg-[var(--surface)]">
               <div className="aspect-square border-b border-[var(--line)] bg-[var(--surface-soft)]" />

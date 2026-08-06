@@ -391,8 +391,11 @@ export function ClipPlaybackProvider({
         return;
       }
 
-      const inset = window.innerWidth >= 640 ? 20 : 12;
-      const width = Math.min(360, window.innerWidth - inset * 2);
+      const desktop = window.innerWidth >= 640;
+      const inset = desktop ? 20 : 10;
+      const width = desktop
+        ? Math.min(360, window.innerWidth - inset * 2)
+        : Math.min(200, Math.max(144, window.innerWidth * .44));
       const height = width * 9 / 16;
       let bottom = Math.max(inset, safeAreaBottom + inset);
       const shortlist = document.querySelector<HTMLElement>("[data-shortlist-trigger]");
@@ -500,7 +503,7 @@ export function ClipPlaybackProvider({
                   playerRef.current?.seekTo(0, true);
                   resumeClip();
                 }}
-                className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/72 backdrop-blur-md"
+                className="grid h-9 w-9 place-items-center rounded-full border border-white/25 bg-black/72 backdrop-blur-md sm:h-11 sm:w-11"
                 aria-label={locale === "fr" ? "Rejouer le clip" : "Replay video"}
               >
                 <RotateCcw size={17} />
@@ -508,7 +511,7 @@ export function ClipPlaybackProvider({
             ) : null}
             <Link
               href={activeClip.href}
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/72 backdrop-blur-md"
+              className="grid h-9 w-9 place-items-center rounded-full border border-white/25 bg-black/72 backdrop-blur-md sm:h-11 sm:w-11"
               aria-label={locale === "fr" ? `Voir le détail de ${localizedTitle}` : `View ${localizedTitle} details`}
             >
               <ExternalLink size={17} />
@@ -516,7 +519,7 @@ export function ClipPlaybackProvider({
             <button
               type="button"
               onClick={closeClip}
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/25 bg-black/72 backdrop-blur-md"
+              className="grid h-9 w-9 place-items-center rounded-full border border-white/25 bg-black/72 backdrop-blur-md sm:h-11 sm:w-11"
               aria-label={locale === "fr" ? "Fermer le lecteur vidéo" : "Close video player"}
             >
               <X size={18} />

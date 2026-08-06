@@ -417,19 +417,20 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await expect(featured.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
   const dedicatedSyncSection = page.getByRole("heading", { name: "Nos synchronisations" }).locator("xpath=ancestor::section");
   const firstSync = dedicatedSyncSection.locator('a[href^="/synchronisations/"]').first();
+  const firstSyncCard = firstSync.locator("xpath=ancestor::article");
   await expect(firstSync).toBeVisible();
-  await expect(firstSync.locator("img")).toHaveClass(/object-contain/);
-  const syncFrame = await firstSync.locator(".home-sync-card__frame").boundingBox();
+  await expect(firstSyncCard.locator("img")).toHaveClass(/object-contain/);
+  const syncFrame = await firstSyncCard.locator(".home-sync-card__frame").boundingBox();
   expect(syncFrame).not.toBeNull();
   expect(syncFrame!.width / syncFrame!.height).toBeGreaterThan(1.7);
-  const syncCaption = firstSync.locator(".home-sync-card__caption");
+  const syncCaption = firstSyncCard.locator(".home-sync-card__caption");
   if (testInfo.project.name === "mobile") {
     await expect(syncCaption).toHaveCSS("opacity", "1");
   } else {
     await expect(syncCaption).toHaveCSS("opacity", "0");
-    await firstSync.hover();
+    await firstSyncCard.hover();
     await expect(syncCaption).toHaveCSS("opacity", "1");
-    await expect(firstSync.locator(".home-sync-card__image")).toHaveCSS("filter", "blur(5px)");
+    await expect(firstSyncCard.locator(".home-sync-card__image")).toHaveCSS("filter", "blur(5px)");
   }
   const syncHref = await firstSync.getAttribute("href");
   expect(syncHref).toMatch(/^\/synchronisations\/[^/]+$/);
@@ -446,7 +447,10 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     }));
     window.dispatchEvent(new Event("parigo:cookie-consent-change"));
   });
-  await expect(page.locator('iframe[src*="youtube-nocookie.com/embed/"]')).toBeVisible();
+  const detailPlay = page.getByRole("button", { name: /^Lire / });
+  await expect(detailPlay).toBeVisible();
+  await detailPlay.click();
+  await expect(page.getByTestId("persistent-clip-iframe")).toBeVisible();
 });
 
 test("les trois rails éditoriaux laissent apparaître exactement le fond de leur section", async ({ page }) => {

@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { cn } from "@/lib/utils";
 
@@ -17,12 +17,25 @@ export function PageHero({
   action,
   className,
 }: PageHeroProps) {
+  const longestWordLength = Math.max(...title.trim().split(/\s+/u).map((word) => word.length));
+  const fittedTitleSize = longestWordLength >= 15
+    ? "clamp(1.75rem, 6.4vw, 7.2rem)"
+    : longestWordLength >= 12
+      ? "clamp(2.2rem, 6.4vw, 7.2rem)"
+      : undefined;
+  const titleStyle = fittedTitleSize
+    ? { fontSize: fittedTitleSize } as CSSProperties
+    : undefined;
+
   return (
     <header className={cn("page-hero border-b border-[var(--line)] px-4 pb-14 pt-28 md:px-8 md:pb-20 md:pt-36", className)}>
       <div className="mx-auto max-w-[1700px]">
         <div className="page-hero__frame parigo-frame relative grid overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] md:grid-cols-12">
           <div className="page-hero__title-panel relative min-w-0 px-6 py-9 sm:px-8 sm:py-11 md:col-span-8 lg:px-12 lg:py-14">
-            <SignedTitle className="page-hero__title max-w-[13ch] break-words font-[var(--font-editorial)] font-semibold leading-[.9] tracking-[-.06em]">
+            <SignedTitle
+              className="page-hero__title max-w-full break-words font-[var(--font-editorial)] font-semibold leading-[.9] tracking-[-.06em] md:max-w-[13ch]"
+              style={titleStyle}
+            >
               {title}
             </SignedTitle>
           </div>

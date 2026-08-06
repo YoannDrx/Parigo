@@ -303,7 +303,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
             <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
               {locale === "fr" ? "Dans le même univers" : "In the same universe"}
             </SignedTitle>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 md:gap-6">
               {similarAlbums.map((similarAlbum) => (
                 <div key={similarAlbum.id}>
                   <AlbumCard album={similarAlbum} />

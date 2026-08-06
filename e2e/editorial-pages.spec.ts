@@ -29,6 +29,48 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   expect(firstCard!.x + firstCard!.width).toBeLessThanOrEqual(320);
 });
 
+test("les titres signés et les grilles catalogue restent lisibles sur mobile", async ({ page }) => {
+  for (const width of [320, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of ["/compositeurs", "/synchronisations", "/privacy"]) {
+      await page.goto(path);
+      const frame = page.locator(".page-hero__frame");
+      const title = frame.getByRole("heading", { level: 1 });
+      const signature = title.locator(".parigo-title-signature");
+      await expect(signature).toBeVisible();
+      const [frameBox, titleBox, signatureBox] = await Promise.all([
+        frame.boundingBox(),
+        title.boundingBox(),
+        signature.boundingBox(),
+      ]);
+      expect(frameBox, `cadre absent sur ${path} à ${width}px`).not.toBeNull();
+      expect(titleBox, `titre absent sur ${path} à ${width}px`).not.toBeNull();
+      expect(signatureBox, `signature absente sur ${path} à ${width}px`).not.toBeNull();
+      expect(titleBox!.x + titleBox!.width, `titre débordant sur ${path} à ${width}px`).toBeLessThanOrEqual(frameBox!.x + frameBox!.width + 1);
+      expect(signatureBox!.x + signatureBox!.width, `signature débordante sur ${path} à ${width}px`).toBeLessThanOrEqual(frameBox!.x + frameBox!.width + 1);
+    }
+  }
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/compositeurs");
+  const composerCards = page.locator("[data-testid='composer-directory-results'] .composer-card");
+  await expect(composerCards.nth(1)).toBeVisible();
+  const [firstComposer, secondComposer] = await Promise.all([
+    composerCards.nth(0).boundingBox(),
+    composerCards.nth(1).boundingBox(),
+  ]);
+  expect(secondComposer!.y).toBeGreaterThan(firstComposer!.y + firstComposer!.height - 1);
+
+  await page.goto("/albums");
+  const albumCards = page.locator('main a[href^="/albums/"]');
+  await expect(albumCards.nth(1)).toBeVisible({ timeout: 30_000 });
+  const [firstAlbum, secondAlbum] = await Promise.all([
+    albumCards.nth(0).boundingBox(),
+    albumCards.nth(1).boundingBox(),
+  ]);
+  expect(secondAlbum!.y).toBeGreaterThan(firstAlbum!.y + firstAlbum!.height - 1);
+});
+
 test("les headers catalogue, synchronisations et légaux partagent la même composition", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "La comparaison typographique desktop suffit ; la version mobile est couverte séparément.");
   const fontSizes: string[] = [];

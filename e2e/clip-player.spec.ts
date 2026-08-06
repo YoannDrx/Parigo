@@ -57,7 +57,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("un clip se lit dans sa carte, se détache et se réattache au détail sans recréer l’iframe", async ({ page }) => {
+test("un clip se lit dans sa carte, se détache et se réattache au détail sans recréer l’iframe", async ({ page }, testInfo) => {
   await page.goto("/clips");
   const play = page.getByRole("button", { name: /Lire Garden Of Eden/i });
   const card = page.locator(".parigo-video-card").filter({ has: play });
@@ -80,11 +80,41 @@ test("un clip se lit dans sa carte, se détache et se réattache au détail sans
   await page.locator("footer").scrollIntoViewIfNeeded();
   await expect(player).toHaveAttribute("data-attached", "false");
   await expect(iframe).toHaveAttribute("data-persistence-marker", "same-clip-iframe");
+  if (testInfo.project.name === "mobile") {
+    await expect.poll(async () => (await player.boundingBox())?.width ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(200);
+    const detachedBox = await player.boundingBox();
+    expect(detachedBox).not.toBeNull();
+    expect(390 - (detachedBox!.x + detachedBox!.width)).toBeLessThanOrEqual(12);
+  }
 
   await player.getByRole("link", { name: /Voir le détail de Garden Of Eden/i }).click();
   await expect(page).toHaveURL(/\/clips\/yt-[\w-]+$/);
   await expect(player).toHaveAttribute("data-attached", "true");
   await expect(iframe).toHaveAttribute("data-persistence-marker", "same-clip-iframe");
+});
+
+test("une synchronisation utilise le même lecteur persistant que les clips", async ({ page }) => {
+  await page.goto("/synchronisations");
+  const card = page.locator(".sync-gallery-card").first();
+  const play = card.getByRole("button", { name: /^Lire / });
+  const anchor = card.locator("[data-clip-anchor]");
+  await anchor.evaluate((element) => element.scrollIntoView({ block: "center" }));
+  await expect(anchor).toBeInViewport({ ratio: .7 });
+  await play.click();
+
+  const player = page.getByTestId("persistent-clip-player");
+  const iframe = page.getByTestId("persistent-clip-iframe");
+  await expect(player).toHaveAttribute("data-attached", "true");
+  await iframe.evaluate((element) => {
+    element.dataset.persistenceMarker = "same-sync-iframe";
+  });
+
+  await page.locator("footer").scrollIntoViewIfNeeded();
+  await expect(player).toHaveAttribute("data-attached", "false");
+  await player.getByRole("link", { name: /Voir le détail de / }).click();
+  await expect(page).toHaveURL(/\/synchronisations\/[\w-]+$/);
+  await expect(player).toHaveAttribute("data-attached", "true");
+  await expect(iframe).toHaveAttribute("data-persistence-marker", "same-sync-iframe");
 });
 
 test("le refus marketing ouvre les préférences sans charger YouTube", async ({ page }) => {

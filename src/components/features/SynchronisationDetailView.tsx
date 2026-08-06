@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { useMemo } from "react";
 import { Footer, Header } from "@/components/layout";
 import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -10,6 +11,13 @@ import { SignedTitle } from "@/components/ui/SignedTitle";
 
 export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   const { locale, localizedPath } = useI18n();
+  const clip = useMemo(() => ({
+    slug: `synchronisation-${sync.slug}`,
+    youtubeId: sync.youtubeId,
+    title: { fr: sync.title, en: sync.title },
+    cover: sync.image,
+    href: localizedPath(`/synchronisations/${sync.slug}`),
+  }), [localizedPath, sync.image, sync.slug, sync.title, sync.youtubeId]);
   const titleSize = sync.title.length > 105
     ? "text-[clamp(1.5rem,8.5cqi,2.85rem)] leading-[.98] tracking-[-.04em]"
     : sync.title.length > 68
@@ -29,11 +37,7 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
           <div className="mt-9 grid gap-7 lg:grid-cols-12 lg:items-start">
             <section className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8" aria-label={locale === "fr" ? "Lecteur vidéo" : "Video player"}>
               <div className="overflow-hidden rounded-[.7rem]">
-                <ConsentAwareYouTubeEmbed
-                  title={sync.title}
-                  cover={sync.image}
-                  youtubeId={sync.youtubeId}
-                />
+                <ConsentAwareYouTubeEmbed clip={clip} />
               </div>
             </section>
 

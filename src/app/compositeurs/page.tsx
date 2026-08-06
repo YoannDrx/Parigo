@@ -42,11 +42,10 @@ export default async function ComposersPage({ searchParams }: ComposersPageProps
           intro={locale === "fr"
             ? "Découvrez les compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."
             : "Meet the composers, artists and collectives who give Parigo’s original catalogue its unique character."}
-          meta={`${CANONICAL_COMPOSER_PROFILE_COUNT} ${locale === "fr" ? "profils" : "profiles"}${directory.state === "unavailable" ? ` · ${locale === "fr" ? "discographie temporairement indisponible" : "discography temporarily unavailable"}` : ""}`}
         />
         <section className="mx-auto max-w-[1700px] px-4 py-14 sm:px-6 lg:px-8 md:py-20">
           {directory.state === "unavailable" && <p role="alert" className="mb-6 border-l-2 border-[var(--danger)] pl-4 text-sm text-[var(--danger)]">
-            {locale === "fr" ? "Les profils restent disponibles, mais les compteurs et albums n’ont pas pu être chargés." : "Profiles remain available, but counts and albums could not be loaded."}
+            {locale === "fr" ? "Les profils restent disponibles, mais les discographies n’ont pas pu être chargées." : "Profiles remain available, but discographies could not be loaded."}
           </p>}
           <ComposerDirectoryClient
             profiles={directory.profiles}

@@ -263,7 +263,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
           {albumsQuery.isFetching && !albumsQuery.data ? (
             <div className="grid min-h-72 place-items-center"><ParigoLoader size="page" label={t("common.loading")} /></div>
           ) : albums.length ? (
-            <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-4 gap-y-12 min-[360px]:grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
+            <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-4 gap-y-12 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
               {albums.map((album, index) => view === "grid"
                 ? <AlbumCard key={album.id} album={album} headingLevel={headingLevel} priority={index < 2} />
                 : <Link key={album.id} href={localizedPath(`/albums/${album.slug || album.id}`)} prefetch={false} className="catalog-list-row group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 last:border-0 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:px-4">
