@@ -17,6 +17,8 @@ describe("canonical composer registry", () => {
     expect(canonicalComposerProfiles).toHaveLength(55);
     expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(55);
     expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(55);
+    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(54);
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toBeNull();
   });
 
   it("keeps pinned, dated or user-provided provenance and leaves only unattested bios empty", () => {
@@ -38,7 +40,7 @@ describe("canonical composer registry", () => {
         en: biography.en,
       });
     }
-    for (const slug of ["after-in-paris", "cedric-hanak", "laurent-dury", "patrice-dambrine", "stan-galouo", "thierry-los", "ugly-mac-beer"]) {
+    for (const slug of ["after-in-paris", "arom", "daniel-amozig", "laurent-dury", "modulhater", "patrice-dambrine", "stan-galouo", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
         source: "user-provided",
         imageOverride: { source: "user-provided" },
@@ -58,20 +60,24 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Aociz")).toBeUndefined();
   });
 
-  it("maps civil identities globally and collective identities only on their audited album", () => {
+  it("maps collective members globally without hiding their individual profiles", () => {
     expect(getCanonicalComposerProfileForCredit("Franck Sinnassamy")?.slug).toBe("dj-hertz");
     expect(getCanonicalComposerProfileForCredit("Amaury Messelier (SACEM)")?.slug).toBe("arom");
     expect(getCanonicalComposerProfileForCredit("Jean-Michel Vallet", "PGO0031")?.slug).toBe("after-in-paris");
+    expect(getCanonicalComposerProfileForCredit("Jean-Michel Vallet", "PGO0008")?.slug).toBe("after-in-paris");
+    expect(getCanonicalComposerProfileForCredit("Claire Michael", "PGO0020")?.slug).toBe("after-in-paris");
+    expect(getCanonicalComposerProfileForCredit("Patrick Chartol", "PGO0047")?.slug).toBe("after-in-paris");
+    expect(getCanonicalComposerProfileForCredit("Patrick Chartol", "PGO0048")?.slug).toBe("after-in-paris");
     expect(getCanonicalComposerProfileForCredit("Vallet Jean-Michel", "PGO0031")?.slug).toBe("after-in-paris");
-    expect(getCanonicalComposerProfileForCredit("Vallet Jean-Michel", "PGO0042")).toBeUndefined();
-    expect(getCanonicalComposerProfileForCredit("Jean-Michel Vallet", "PGO0042")).toBeUndefined();
+    expect(getCanonicalComposerProfileForCredit("Vallet Jean-Michel", "PGO0042")?.slug).toBe("after-in-paris");
+    expect(getCanonicalComposerProfileForCredit("Jean-Michel Vallet")?.slug).toBe("after-in-paris");
     expect(getCanonicalComposerProfile("pierre-millet")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0034")?.slug).toBe("ana-kap");
-    expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0046")).toBeUndefined();
+    expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0046")?.slug).toBe("ana-kap");
     expect(resolveCanonicalComposerCredits("Pierre Millet", "PGO0034").map(({ profile }) => profile.slug)).toEqual(["ana-kap"]);
   });
 
-  it("maps the twelve new stage-name profiles and keeps collective relations album-scoped", () => {
+  it("maps stage-name profiles and lets collective memberships span the full catalogue", () => {
     expect(getCanonicalComposerProfileForCredit("Wamid AL WAHAB (NS)")?.slug).toBe("aiwa");
     expect(getCanonicalComposerProfileForCredit("Charlotte DURAN (NS)")?.slug).toBe("coeur");
     expect(getCanonicalComposerProfileForCredit("Charlotte Durand")).toBeUndefined();
@@ -98,7 +104,9 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Camille LUCA")?.slug).toBe("roma-luca");
     expect(getCanonicalComposerProfileForCredit("THE REAL FAKE MC (SACEM)")?.slug).toBe("the-real-fake-mc");
     expect(getCanonicalComposerProfileForCredit("Samuel HIRSCH (NS)", "PGO0030")?.slug).toBe("arat-kilo");
-    expect(getCanonicalComposerProfileForCredit("Samuel HIRSCH (NS)", "PGO0048")).toBeUndefined();
+    expect(getCanonicalComposerProfileForCredit("Samuel HIRSCH (NS)", "PGO0048")?.slug).toBe("arat-kilo");
+    expect(getCanonicalComposerProfileForCredit("Fabien GIRARD (NS)")?.slug).toBe("fabien-girard");
+    expect(resolveCanonicalComposerCredits("Fabien GIRARD (NS)").map(({ profile }) => profile.slug)).toEqual(["fabien-girard", "arat-kilo"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0040").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(getCanonicalComposerProfileForCredit("The Well Quartet", "PGO0060")?.slug).toBe("the-well-quartet");
@@ -110,6 +118,24 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfile("jb-hanak")?.name).toBe("JB Hanak");
     expect(getCanonicalComposerProfileForCredit("Jean-Baptiste HANAK")?.name).toBe("JB Hanak");
     expect(getCanonicalComposerProfile("cedric-hanak")?.name).toBe("Cédric Hanak");
+  });
+
+  it("uses the requested public spelling and casing for composer names", () => {
+    expect(Object.fromEntries(canonicalComposerProfiles.map((profile) => [profile.slug, profile.name]))).toMatchObject({
+      aiwa: "Aïwa",
+      "ana-kap": "Ana Kap",
+      arom: "Arom",
+      "daniel-amozig": "Dan Amozig",
+      "dj-hertz": "DJ Hertz",
+      "dj-troubl": "DJ Troubl",
+      "loic-laporte": "Loïc Laporte",
+      "of-ivory-and-horn": "Of Ivory & Horn",
+      "sebastien-blanchon-n-zeng": "Sébastien Blanchon",
+      "senior-ortegon": "Sr Ortegon",
+      "the-well-quartet": "Le Well Quartet",
+    });
+    expect(getCanonicalComposerProfile("dj-troubl")?.bio.fr).not.toContain("Troubl'");
+    expect(getCanonicalComposerProfile("dj-troubl")?.bio.en).not.toContain("Troubl'");
   });
 
   it("publishes Schérazade without her surname while preserving full-name credits", () => {
@@ -135,6 +161,14 @@ describe("canonical composer registry", () => {
         path: "public/images/projets/photoscompo/therealfakemc.jpg",
       },
     });
+    expect(getCanonicalComposerProfile("cedric-hanak")?.provenance).toMatchObject({
+      imageOverride: {
+        source: "portfolio-caro-git",
+        repository: "portfolio-caro",
+        commit: "734441d8ad1280d538ae9b104bace0c9de6248a9",
+        path: "public/images/projets/photoscompo/cedric-hanak.jpg",
+      },
+    });
   });
 
   it("keeps Mutant Ninja contributors as unlinked credits when they have no public profile", () => {
@@ -156,16 +190,32 @@ describe("canonical composer registry", () => {
     expect(resolveCanonicalComposerCredit("Jean-Michel Vallet", "PGO0031")?.identity.preferredName).toBe("Jean-Michel Vallet");
   });
 
-  it("does not leak scoped relations while aggregating tracks", () => {
+  it("aggregates collective members on every album without creating individual profiles", () => {
     const profiles = collectCanonicalComposerSummaries([
       { id: "a", albumId: "1", albumCode: "PGO0031", albumTitle: "After", composers: ["Jean-Michel Vallet"] },
       { id: "b", albumId: "2", albumCode: "PGO0099", albumTitle: "Solo", composers: ["Jean-Michel Vallet"] },
       { id: "c", albumId: "3", albumCode: "PGO0034", albumTitle: "Ana", composers: ["Pierre Millet"] },
       { id: "d", albumId: "4", albumCode: "PGO0046", albumTitle: "Other", composers: ["Pierre Millet"] },
     ]);
-    expect(profiles.find((profile) => profile.slug === "after-in-paris")?.trackCount).toBe(1);
-    expect(profiles.find((profile) => profile.slug === "ana-kap")?.trackCount).toBe(1);
+    expect(profiles.find((profile) => profile.slug === "after-in-paris")?.trackCount).toBe(2);
+    expect(profiles.find((profile) => profile.slug === "ana-kap")?.trackCount).toBe(2);
     expect(profiles.find((profile) => profile.slug === "pierre-millet")).toBeUndefined();
+  });
+
+  it("collects the five After In Paris albums attested by the Harvest member credits", () => {
+    const codes = ["PGO0008", "PGO0020", "PGO0031", "PGO0047", "PGO0048"];
+    const profiles = collectCanonicalComposerSummaries(codes.map((albumCode, index) => ({
+      id: `after-${index}`,
+      albumId: `album-${index}`,
+      albumCode,
+      albumTitle: `After ${index}`,
+      composers: ["Jean-Michel Vallet", "Claire Michael", "Patrick Chartol"],
+    })));
+    expect(profiles.find((profile) => profile.slug === "after-in-paris")).toMatchObject({
+      trackCount: 5,
+      albumCodes: codes,
+      albumIds: codes.map((_, index) => `album-${index}`),
+    });
   });
 
   it("counts distinct main works and keeps variants separate from Artist metadata", () => {

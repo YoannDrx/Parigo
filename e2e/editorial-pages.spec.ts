@@ -59,6 +59,7 @@ test("les titres signés et les grilles catalogue restent lisibles sur mobile", 
     composerCards.nth(0).boundingBox(),
     composerCards.nth(1).boundingBox(),
   ]);
+  expect(Math.abs(firstComposer!.width - firstComposer!.height)).toBeLessThanOrEqual(1);
   expect(secondComposer!.y).toBeGreaterThan(firstComposer!.y + firstComposer!.height - 1);
 
   await page.goto("/albums");

@@ -6,6 +6,7 @@ import {
   collectHarvestComposerSearchItems,
   normalizeHarvestComposerSearchValue,
 } from "@/lib/harvest/composer-credits";
+import { refreshInvalidComposerTracks } from "@/lib/harvest/composer-search";
 import type { Track } from "@/types";
 
 const querySchema = z.object({
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   const id = requestId();
   try {
     const { q } = querySchema.parse({ q: request.nextUrl.searchParams.get("q") ?? "" });
-    const tracks: Array<Pick<Track, "id" | "composers">> = [];
+    const tracks: Track[] = [];
     let offset = 0;
     let total = 1;
 
@@ -46,7 +47,8 @@ export async function GET(request: NextRequest) {
       offset += result.tracks.length;
     }
 
-    const items = collectHarvestComposerSearchItems(tracks, q);
+    const freshTracks = await refreshInvalidComposerTracks(tracks, undefined, "composer-autocomplete-refresh");
+    const items = collectHarvestComposerSearchItems(freshTracks, q);
     return NextResponse.json({
       data: { items },
       meta: {

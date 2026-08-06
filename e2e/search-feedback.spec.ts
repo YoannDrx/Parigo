@@ -359,6 +359,29 @@ test("la sidebar recherche filtre immédiatement par compositeur", async ({ page
   await expect(page.getByRole("button", { name: /^Minimatic/ }).last()).toBeVisible();
 });
 
+test("le filtre compositeur préfère la fiche Harvest fraîche à son index encore corrompu", async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+  await page.goto("/search");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: /^Filtres$/ }).click();
+  }
+  const filterScope = testInfo.project.name === "mobile"
+    ? page.getByRole("dialog", { name: "Filtres" })
+    : page.getByRole("complementary", { name: "Filtres de recherche" });
+  const composerGroup = filterScope.locator("details").filter({ hasText: "Compositeurs" });
+  await composerGroup.locator("summary").click();
+  await composerGroup.getByPlaceholder("Rechercher un compositeur…").fill("sost");
+  await expect(composerGroup.getByTestId("composer-filter-result-count")).toHaveText("1");
+  await expect(composerGroup).not.toContainText("Sosth�ne Fanou");
+  await composerGroup.getByRole("button", { name: "Inclure Sosthène Fanou" }).click();
+  if (testInfo.project.name === "mobile") {
+    await filterScope.getByRole("button", { name: /Voir \d+ résultats/ }).click();
+  }
+  await expect.poll(() => new URL(page.url()).searchParams.get("composer")).toBe("Sosthène Fanou");
+  await expect(page.getByText("LOUIS VIE", { exact: true }).first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.locator("main")).not.toContainText("Sosth�ne Fanou");
+});
+
 test("les anciennes URL sont canonicalisées sans disposition, match, Style ni anciens tris", async ({ page }) => {
   await page.goto('/search?keyword=%22crime%22&view=tracks&page=1&layout=grid&match=exact&styles=obsolete&sort=bpm-asc');
   await expect.poll(() => {
