@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T20:41:36.131Z",
+  "generatedAt": "2026-08-06T20:45:33.424Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -1040,8 +1040,8 @@
       "image": "/images/composers/canonical/jb_hanak.webp",
       "detailImage": {
         "src": "/images/composers/detail/jb_hanak.webp",
-        "width": 1600,
-        "height": 1600
+        "width": 1024,
+        "height": 768
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -1063,6 +1063,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "jb-hanak"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "jb_hanak.jpg"
         }
       }
     },
@@ -1652,8 +1656,8 @@
       "image": "/images/composers/canonical/of_ivory_and_horn.webp",
       "detailImage": {
         "src": "/images/composers/detail/of_ivory_and_horn.webp",
-        "width": 200,
-        "height": 300
+        "width": 1066,
+        "height": 1600
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -1676,6 +1680,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "of-ivory-horn"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "of_ivory_and_horn.jpg"
         }
       }
     },

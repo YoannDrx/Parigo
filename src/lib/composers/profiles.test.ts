@@ -44,7 +44,7 @@ describe("canonical composer registry", () => {
         en: biography.en,
       });
     }
-    for (const slug of ["after-in-paris", "arom", "bruno-hovart", "daniel-amozig", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "patrice-dambrine", "stan-galouo", "the-architect", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
+    for (const slug of ["after-in-paris", "arom", "bruno-hovart", "daniel-amozig", "jb-hanak", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "of-ivory-and-horn", "patrice-dambrine", "stan-galouo", "the-architect", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
         source: "user-provided",
         imageOverride: { source: "user-provided" },
