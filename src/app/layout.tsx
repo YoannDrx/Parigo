@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Archivo, Manrope, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { isLocale } from "@/lib/locale";
 import { siteConfig } from "@/lib/seo";
-import { CONSENT_COOKIE_NAME, CONSENT_UNSET, normalizeConsentSnapshot } from "@/lib/consent";
-import { CookieConsentBanner } from "@/components/privacy/CookieConsentBanner";
+import { CONSENT_UNSET } from "@/lib/consent";
+import { ClientCookieConsentBanner } from "@/components/privacy/ClientCookieConsentBanner";
 
 const archivo = Archivo({
   variable: "--font-heading",
@@ -61,10 +61,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [headerStore, cookieStore] = await Promise.all([headers(), cookies()]);
+  const headerStore = await headers();
   const localeHeader = headerStore.get("x-parigo-locale");
   const locale = isLocale(localeHeader) ? localeHeader : "fr";
-  const initialConsentSnapshot = normalizeConsentSnapshot(cookieStore.get(CONSENT_COOKIE_NAME)?.value);
 
   return (
     <html lang={locale} suppressHydrationWarning>
@@ -81,10 +80,10 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} antialiased`}
       >
-        <QueryProvider initialLocale={locale} initialConsentSnapshot={initialConsentSnapshot}>
+        <QueryProvider initialLocale={locale} initialConsentSnapshot={CONSENT_UNSET}>
           {children}
         </QueryProvider>
-        {initialConsentSnapshot === CONSENT_UNSET && <CookieConsentBanner locale={locale} />}
+        <ClientCookieConsentBanner locale={locale} />
       </body>
     </html>
   );

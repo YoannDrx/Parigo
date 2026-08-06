@@ -9,6 +9,41 @@ const withBundleAnalyzer = bundleAnalyzer({
 const isProduction = process.env.VERCEL_ENV === "production";
 const isDevelopment = process.env.NODE_ENV === "development";
 
+const publicPageSources = [
+  "/",
+  "/en",
+  ...[
+    "about",
+    "albums",
+    "clips",
+    "compositeurs",
+    "contact",
+    "label-parigo",
+    "labels",
+    "legal",
+    "licensing",
+    "playlists",
+    "privacy",
+    "rights",
+    "selections",
+    "synchronisations",
+    "terms",
+  ].flatMap((route) => [
+    `/${route}`,
+    `/${route}/:path*`,
+    `/en/${route}`,
+    `/en/${route}/:path*`,
+  ]),
+];
+
+const publicPageCacheHeaders = [
+  { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+  {
+    key: "Vercel-CDN-Cache-Control",
+    value: "public, max-age=300, stale-while-revalidate=600",
+  },
+];
+
 // Next.js 16 can incorrectly promote an AppRender.fetch span to the root span
 // in development. Local Sentry tracing is sampled at 0, so skip only those
 // fetch spans locally while preserving full tracing in preview and production.
@@ -42,6 +77,10 @@ const nextConfig: NextConfig = {
   htmlLimitedBots: /.*/,
   async headers() {
     return [
+      ...publicPageSources.map((source) => ({
+        source,
+        headers: publicPageCacheHeaders,
+      })),
       {
         source: "/admin/:path*",
         headers: [
