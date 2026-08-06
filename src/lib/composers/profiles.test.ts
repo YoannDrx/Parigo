@@ -17,8 +17,12 @@ describe("canonical composer registry", () => {
     expect(canonicalComposerProfiles).toHaveLength(55);
     expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(55);
     expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(55);
-    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(54);
-    expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toBeNull();
+    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(55);
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toMatchObject({
+      src: "/images/composers/detail/loic_laporte.webp",
+      width: 450,
+      height: 624,
+    });
   });
 
   it("keeps pinned, dated or user-provided provenance and leaves only unattested bios empty", () => {
@@ -40,7 +44,7 @@ describe("canonical composer registry", () => {
         en: biography.en,
       });
     }
-    for (const slug of ["after-in-paris", "arom", "daniel-amozig", "laurent-dury", "modulhater", "patrice-dambrine", "stan-galouo", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
+    for (const slug of ["after-in-paris", "arom", "bruno-hovart", "daniel-amozig", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "patrice-dambrine", "stan-galouo", "the-architect", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
         source: "user-provided",
         imageOverride: { source: "user-provided" },

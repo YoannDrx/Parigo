@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T20:29:07.582Z",
+  "generatedAt": "2026-08-06T20:41:36.131Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -489,8 +489,8 @@
       "image": "/images/composers/canonical/minimatic.webp",
       "detailImage": {
         "src": "/images/composers/detail/minimatic.webp",
-        "width": 638,
-        "height": 638
+        "width": 1600,
+        "height": 1600
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -510,6 +510,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "minimatic"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "minimatic.jpg"
         }
       }
     },
@@ -838,8 +842,8 @@
       "image": "/images/composers/canonical/the_architect.webp",
       "detailImage": {
         "src": "/images/composers/detail/the_architect.webp",
-        "width": 1080,
-        "height": 1080
+        "width": 1600,
+        "height": 1067
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -859,6 +863,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "the-architect"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "the_architect.jpg"
         }
       }
     },
@@ -1682,8 +1690,8 @@
       "image": "/images/composers/canonical/mister_modo.webp",
       "detailImage": {
         "src": "/images/composers/detail/mister_modo.webp",
-        "width": 800,
-        "height": 576
+        "width": 1200,
+        "height": 1200
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -1703,6 +1711,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "mister-modo"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "mister_modo.jpg"
         }
       }
     },
@@ -1787,9 +1799,13 @@
         "fr": "Loïc Laporte est un compositeur, arrangeur, réalisateur musical et multi-instrumentiste français dont l'univers se nourrit d'une grande diversité d'influences, de la chanson à la pop, en passant par le jazz, les musiques de film et le répertoire jeunesse. Installé à Toulouse, il développe depuis plus de vingt ans une approche artisanale de la création musicale, réunissant composition, orchestration, interprétation, enregistrement et réalisation sonore au sein d'un même processus créatif.\n\nMusicien particulièrement polyvalent, il maîtrise un large éventail d'instruments – saxophones, clarinettes, flûtes, guitares, basse, banjo, piano et claviers – qui enrichissent une écriture à la fois mélodique, sensible et profondément évocatrice. Au fil de sa carrière, il collabore avec des artistes tels que Zebda, Arthur H, Loïc Lantoine, Éric Lareine ou Hervé Suhubiette, tout en intervenant comme musicien, arrangeur ou réalisateur sur des projets destinés au disque, au spectacle vivant, au théâtre et à l'audiovisuel.\n\nParallèlement à son activité de compositeur pour la musique à l'image, Loïc Laporte travaille avec de nombreux éditeurs et producteurs de contenus, parmi lesquels Didier Jeunesse, Milan Presse, Fleurus, Wagram, France 3 ou encore TAT Productions. Son travail se distingue par une attention particulière portée à la narration, à la couleur instrumentale et à la qualité des arrangements, quel que soit le format ou le public auquel il s'adresse.\n\nIl développe également un important catalogue d'arrangements de comptines et de chansons traditionnelles, revisitant le répertoire jeunesse avec une production contemporaine, des orchestrations raffinées et une place privilégiée accordée aux instruments acoustiques. À travers ces réinterprétations, il insuffle une nouvelle vie à un patrimoine musical universel tout en préservant sa simplicité, sa poésie et son pouvoir d'évocation.\n\nÀ travers chacun de ses projets, Loïc Laporte met son sens de la mélodie, son exigence d'arrangeur et sa curiosité musicale au service d'une création généreuse, où savoir-faire artisanal et émotion se conjuguent pour donner naissance à des univers sonores riches, accessibles et intemporels.",
         "en": "Loïc Laporte is a French composer, arranger, music producer and multi-instrumentalist whose musical universe is shaped by a wide range of influences, from French chanson and pop to jazz, film music and children's repertoire. Based in Toulouse, he has spent more than two decades cultivating a hands-on approach to music creation, bringing together composition, orchestration, performance, recording and music production within a single creative process.\n\nAn exceptionally versatile musician, Loïc Laporte performs on a wide range of instruments—including saxophones, clarinets, flutes, guitars, bass, banjo, piano and keyboards—which enrich a musical language that is both melodic, expressive and deeply evocative. Throughout his career, he has collaborated with artists including Zebda, Arthur H, Loïc Lantoine, Éric Lareine and Hervé Suhubiette, while working as a performer, arranger and music producer on projects spanning albums, live performances, theatre and audiovisual productions.\n\nAlongside his work as a composer for screen and production music, Loïc Laporte collaborates with leading publishers and content producers including Didier Jeunesse, Milan Presse, Fleurus, Wagram, France 3 and TAT Productions. His work is distinguished by a particular attention to storytelling, instrumental colour and the craft of arranging, regardless of the format or audience.\n\nHe has also developed an extensive catalogue of arrangements of traditional nursery rhymes and children's songs, reimagining this timeless repertoire through contemporary production, refined orchestration and a strong emphasis on acoustic instruments. Through these reinterpretations, he breathes new life into a universal musical heritage while preserving its simplicity, poetry and enduring emotional appeal.\n\nAcross every project, Loïc Laporte brings together his gift for melody, meticulous approach to arranging and boundless musical curiosity to create works where craftsmanship and emotion combine to produce rich, accessible and timeless sonic worlds."
       },
-      "image": "/images/composers/composer_placeholder.svg",
-      "detailImage": null,
-      "imageStatus": "placeholder",
+      "image": "/images/composers/canonical/loic_laporte.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/loic_laporte.webp",
+        "width": 450,
+        "height": 624
+      },
+      "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Loic Laporte",
@@ -1808,6 +1824,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": null
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "loic_laporte.webp"
         }
       }
     },
