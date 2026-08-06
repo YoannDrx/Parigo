@@ -160,6 +160,8 @@ const profiles: ProfileSource[] = [
     kind: "group",
     bioSlug: "ana-kap",
     imageSlug: "ana-kap",
+    localImageFile: "ana_kap.jpg",
+    cardImageTransform: { extract: { left: 0, top: 340, width: 980, height: 980 }, position: "center" },
     aliases: ["ANA KAP", "Ana Kap"],
     memberAliases: ["Emin Dzijan", "Manuel Decocq", "Pierre Millet", "Jean-Michel Trotoux"],
   },

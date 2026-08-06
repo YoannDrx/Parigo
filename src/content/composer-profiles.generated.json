@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T20:48:47.643Z",
+  "generatedAt": "2026-08-06T20:51:21.996Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -1272,8 +1272,8 @@
       "image": "/images/composers/canonical/ana_kap.webp",
       "detailImage": {
         "src": "/images/composers/detail/ana_kap.webp",
-        "width": 800,
-        "height": 800
+        "width": 980,
+        "height": 1473
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -1299,6 +1299,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "ana-kap"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "ana_kap.jpg"
         }
       }
     },
