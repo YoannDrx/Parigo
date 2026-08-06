@@ -44,7 +44,7 @@ describe("canonical composer registry", () => {
         en: biography.en,
       });
     }
-    for (const slug of ["aeon-seven", "after-in-paris", "ana-kap", "arandel", "arom", "bruno-hovart", "coeur", "daniel-amozig", "grand-david", "jb-hanak", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "of-ivory-and-horn", "patrice-dambrine", "stan-galouo", "the-architect", "the-well-quartet", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
+    for (const slug of ["aeon-seven", "after-in-paris", "ana-kap", "arandel", "arom", "bruno-hovart", "cedric-hanak", "coeur", "daniel-amozig", "drixxxe", "grand-david", "jb-hanak", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "of-ivory-and-horn", "patrice-dambrine", "stan-galouo", "the-architect", "the-well-quartet", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
         source: "user-provided",
         imageOverride: { source: "user-provided" },
@@ -163,14 +163,6 @@ describe("canonical composer registry", () => {
         repository: "portfolio-caro",
         commit: "03a28ab9431751a42cd5d4d1a7a8bb3b8dd821e3",
         path: "public/images/projets/photoscompo/therealfakemc.jpg",
-      },
-    });
-    expect(getCanonicalComposerProfile("cedric-hanak")?.provenance).toMatchObject({
-      imageOverride: {
-        source: "portfolio-caro-git",
-        repository: "portfolio-caro",
-        commit: "734441d8ad1280d538ae9b104bace0c9de6248a9",
-        path: "public/images/projets/photoscompo/cedric-hanak.jpg",
       },
     });
   });
