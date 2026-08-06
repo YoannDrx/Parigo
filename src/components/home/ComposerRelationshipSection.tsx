@@ -55,11 +55,8 @@ function ComposerStreamGroup({ duplicate = false, locale }: { duplicate?: boolea
               sizes="(max-width: 767px) 46vw, 17vw"
               className="object-cover grayscale transition duration-700 group-hover:scale-[1.035] group-hover:grayscale-0 group-focus-visible:grayscale-0"
             />
-            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/82 via-black/40 to-transparent px-4 pb-4 pt-16 text-left text-sm font-semibold text-white sm:text-base">
+            <span className="composer-cloud__name absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/82 via-black/40 to-transparent px-4 pb-4 pt-16 text-left text-sm font-semibold text-white transition-colors duration-300 group-hover:text-[var(--signal-strong)] group-hover:underline group-hover:decoration-2 group-hover:underline-offset-4 group-focus-visible:text-[var(--signal-strong)] group-focus-visible:underline group-focus-visible:decoration-2 group-focus-visible:underline-offset-4 sm:text-base">
               {composer.name}
-            </span>
-            <span aria-hidden="true" className="absolute right-3 top-3 grid h-9 w-9 place-items-center rounded-full bg-black/42 text-white backdrop-blur-sm transition duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:bg-[var(--signal-strong)] group-hover:text-[#0f1611]">
-              <ArrowUpRight size={15} />
             </span>
           </Link>
         </li>

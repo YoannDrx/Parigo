@@ -687,6 +687,7 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
   const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]');
   await expect(primaryCards).toHaveCount(14);
+  await expect(primaryCards.locator("svg")).toHaveCount(0);
   await expect(section.locator('.composer-cloud__duplicate a[href^="/compositeurs/"]')).toHaveCount(14);
   await expect(section.locator("img")).toHaveCount(28);
   const verticalOffsets = await section.locator('.composer-cloud__group:not([aria-hidden="true"]) .composer-cloud__item').evaluateAll((items) => (
@@ -698,6 +699,9 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   if (testInfo.project.name === "desktop") {
     await section.locator(".composer-cloud").hover();
     await expect(track).toHaveCSS("animation-play-state", "paused");
+    const firstComposerName = primaryCards.first().locator(".composer-cloud__name");
+    await primaryCards.first().hover();
+    await expect(firstComposerName).toHaveCSS("text-decoration-line", "underline");
   }
   await expect(section.locator("header > p")).toHaveCount(1);
   await expect(section.locator("header > p")).toHaveCSS("border-top-width", "0px");
