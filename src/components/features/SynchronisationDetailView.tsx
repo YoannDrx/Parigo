@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { useMemo } from "react";
 import { Footer, Header } from "@/components/layout";
@@ -8,6 +7,7 @@ import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTube
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { SignedTitle } from "@/components/ui/SignedTitle";
+import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
 
 export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   const { locale, localizedPath } = useI18n();
@@ -29,10 +29,10 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
       <Header />
       <main className="px-4 pb-24 pt-28 md:px-8 md:pb-36 md:pt-32">
         <div className="mx-auto max-w-[1440px]">
-          <Link href={localizedPath("/synchronisations")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]">
+          <ContextualBackLink href={localizedPath("/synchronisations")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Toutes les synchronisations" : "All syncs"}
-          </Link>
+          </ContextualBackLink>
 
           <div className="mt-9 grid gap-7 lg:grid-cols-12 lg:items-start">
             <section className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8" aria-label={locale === "fr" ? "Lecteur vidéo" : "Video player"}>

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { notFound, permanentRedirect } from "next/navigation";
 import { AlbumCard } from "@/components/features/AlbumCard";
@@ -17,6 +16,7 @@ import { getParigoHarvestComposerInventory, resolveCanonicalComposerSlug } from 
 import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata } from "@/lib/seo";
+import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
 
 interface ComposerPageProps {
   params: Promise<{ slug: string }>;
@@ -76,10 +76,10 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
       <Header />
       <main className="pt-[70px]">
         <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-4 pb-10 pt-8 sm:px-6 lg:px-8 md:pb-14">
-          <Link href={localizedPath(locale, "/compositeurs")} className="mb-7 inline-flex min-h-11 items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] md:mb-9">
+          <ContextualBackLink href={localizedPath(locale, "/compositeurs")} className="mb-7 inline-flex min-h-11 items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)] md:mb-9">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Tous les compositeurs" : "All composers"}
-          </Link>
+          </ContextualBackLink>
           <article className="composer-detail-hero parigo-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-6 md:p-8 lg:p-10">
             <div className="grid items-end gap-7 md:grid-cols-[minmax(13rem,19rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
               <div className="parigo-frame relative aspect-square w-full max-w-[19rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
