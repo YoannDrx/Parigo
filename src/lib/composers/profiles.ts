@@ -14,6 +14,20 @@ const scopedRelationSchema = z.object({
   aliases: z.array(z.string().min(1)).min(1),
 });
 
+const imageOverrideSchema = z.discriminatedUnion("source", [
+  z.object({
+    source: z.literal("user-provided"),
+    file: z.string().regex(/^[a-z0-9_]+\.(?:jpe?g|png|webp)$/),
+  }),
+  z.object({
+    source: z.literal("portfolio-caro-git"),
+    repository: z.literal("portfolio-caro"),
+    commit: z.string().regex(/^[a-f0-9]{40}$/),
+    path: z.string().min(1),
+    file: z.string().regex(/^[a-z0-9_]+\.(?:jpe?g|png|webp)$/),
+  }),
+]);
+
 const harvestCreditIdentitySchema = z.object({
   preferredName: z.string().min(1),
   aliases: z.array(z.string().min(1)).min(1),
@@ -28,7 +42,7 @@ const composerProfileSchema = z.object({
   name: z.string().min(1),
   kind: z.enum(["person", "group"]),
   bio: nullableBioSchema,
-  image: z.string().startsWith("/images/composers/"),
+  image: z.string().regex(/^\/images\/composers\/(?:canonical\/[a-z0-9_]+\.webp|composer_placeholder\.svg)$/),
   imageStatus: z.enum(["portrait", "placeholder"]),
   harvest: z.object({
     aliases: z.array(z.string().min(1)),
@@ -44,10 +58,7 @@ const composerProfileSchema = z.object({
       bioSlug: z.string().nullable(),
       imageSlug: z.string().nullable(),
       editorialArtistSlug: z.string().nullable(),
-      imageOverride: z.object({
-        source: z.literal("user-provided"),
-        file: z.string().min(1),
-      }).optional(),
+      imageOverride: imageOverrideSchema.optional(),
     }),
     z.object({
       source: z.literal("portfolio-caro-api"),
@@ -71,10 +82,7 @@ const composerProfileSchema = z.object({
         commit: z.string().regex(/^[a-f0-9]{40}$/),
         imageSlug: z.string().nullable(),
       }),
-      imageOverride: z.object({
-        source: z.literal("user-provided"),
-        file: z.string().min(1),
-      }).optional(),
+      imageOverride: imageOverrideSchema.optional(),
     }),
   ]),
 });
