@@ -598,8 +598,8 @@
       "image": "/images/composers/canonical/drixxxe.webp",
       "detailImage": {
         "src": "/images/composers/detail/drixxxe.webp",
-        "width": 491,
-        "height": 491
+        "width": 400,
+        "height": 400
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -620,6 +620,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "drixxxe"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "drixxxe.jpg"
         }
       }
     },
@@ -2143,8 +2147,8 @@
       "image": "/images/composers/canonical/cedric_hanak.webp",
       "detailImage": {
         "src": "/images/composers/detail/cedric_hanak.webp",
-        "width": 1280,
-        "height": 720
+        "width": 1024,
+        "height": 1024
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -2168,10 +2172,7 @@
           "imageSlug": "cedric-hanak"
         },
         "imageOverride": {
-          "source": "portfolio-caro-git",
-          "repository": "portfolio-caro",
-          "commit": "734441d8ad1280d538ae9b104bace0c9de6248a9",
-          "path": "public/images/projets/photoscompo/cedric-hanak.jpg",
+          "source": "user-provided",
           "file": "cedric_hanak.jpg"
         }
       }

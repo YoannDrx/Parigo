@@ -127,7 +127,7 @@ const profiles: ProfileSource[] = [
     ],
     legacySlugs: ["sebastien-blanchon", "n-zeng"],
   },
-  { slug: "drixxxe", name: "Drixxxé", kind: "person", bioSlug: "drixxxe", imageSlug: "drixxxe", aliases: ["Drixxxé", "Drixxxe"] },
+  { slug: "drixxxe", name: "Drixxxé", kind: "person", bioSlug: "drixxxe", imageSlug: "drixxxe", localImageFile: "drixxxe.jpg", aliases: ["Drixxxé", "Drixxxe"] },
   { slug: "emmanuel-maree", name: "Emmanuel Marée", kind: "person", bioSlug: "emmanuel-maree", imageSlug: "emmanuel-maree", aliases: ["Emmanuel Marée"] },
   { slug: "f-stokes", name: "F.Stokes", kind: "person", bioSlug: "f-stokes", imageSlug: "f-stokes", cardImageTransform: { inset: 0.025, background: "#c8817c" }, aliases: ["Rodney Lucas"] },
   { slug: "forever-pavot", name: "Forever Pavot", kind: "person", bioSlug: "emile-sornin-forever-pavot", imageSlug: "emile-sornin-forever-pavot", aliases: ["Emile Sornin", "Sornin Emile"], editorialArtistSlug: "emile-sornin-forever-pavot" },
@@ -228,12 +228,6 @@ const profiles: ProfileSource[] = [
     imageSlug: "cedric-hanak",
     localImageFile: "cedric_hanak.jpg",
     cardImageTransform: { position: "center" },
-    localImageProvenance: {
-      source: "portfolio-caro-git",
-      repository: "portfolio-caro",
-      commit: "734441d8ad1280d538ae9b104bace0c9de6248a9",
-      path: "public/images/projets/photoscompo/cedric-hanak.jpg",
-    },
     aliases: ["Cédric Hanak", "Cedric Hanak", "Cédric HANAK"],
   },
 ];
