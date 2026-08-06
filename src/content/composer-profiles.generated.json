@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T20:45:33.424Z",
+  "generatedAt": "2026-08-06T20:48:47.643Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -1081,8 +1081,8 @@
       "image": "/images/composers/canonical/aeon_seven.webp",
       "detailImage": {
         "src": "/images/composers/detail/aeon_seven.webp",
-        "width": 1080,
-        "height": 1080
+        "width": 1600,
+        "height": 1600
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -1103,6 +1103,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "aeon-seven"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "aeon_seven.png"
         }
       }
     },
@@ -1737,8 +1741,8 @@
       "image": "/images/composers/canonical/grand_david.webp",
       "detailImage": {
         "src": "/images/composers/detail/grand_david.webp",
-        "width": 480,
-        "height": 480
+        "width": 591,
+        "height": 529
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -1759,6 +1763,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "grand-david"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "grand_david.jpeg"
         }
       }
     },
@@ -2035,8 +2043,8 @@
       "image": "/images/composers/canonical/the_well_quartet.webp",
       "detailImage": {
         "src": "/images/composers/detail/the_well_quartet.webp",
-        "width": 225,
-        "height": 224
+        "width": 447,
+        "height": 447
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -2058,6 +2066,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "well-quartet"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "the_well_quartet.jpeg"
         }
       }
     },
