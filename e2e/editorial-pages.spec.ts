@@ -323,8 +323,10 @@ test("About adopte les nouveaux textes et Licensing retire ses étapes secondair
   }
 
   await page.goto("/about");
-  await expect(page.getByRole("heading", { level: 1, name: "À propos" })).toBeVisible();
-  await expect(page.getByRole("heading", { level: 2, name: "La musique, une affaire humaine" })).toBeVisible();
+  await expect(page.locator(".page-hero")).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Une librairie avant tout" })).toBeVisible();
+  await expect(page.locator("main").getByText("À propos", { exact: true })).toHaveCount(0);
+  await expect(page.locator("main").getByText("La musique, une affaire humaine", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Fondée en 2010, Parigo est une librairie musicale indépendante", { exact: false })).toBeVisible();
   await expect(page.getByText("Éditer moins", { exact: false })).toHaveCount(0);
   await expect(page.getByText("Indépendante depuis Paris", { exact: true })).toHaveCount(0);
@@ -410,8 +412,13 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
   await expect(team.getByRole("link", { name: "caroline.senyk@parigomusic.com" })).toHaveAttribute("href", "mailto:caroline.senyk@parigomusic.com");
   await expect(team.getByRole("link", { name: "eliott.grellier@parigomusic.com" })).toHaveAttribute("href", "mailto:eliott.grellier@parigomusic.com");
   await expect(team.locator("article .font-mono")).toHaveCount(0);
-  const urgentPhone = team.getByRole("link", { name: "+33 (0)6 49 39 69 22" });
+  await expect(team).not.toContainText("Une question urgente ? Appelez-nous :");
+  const details = page.getByTestId("contact-details");
+  await expect(details).toContainText("Une question urgente ? Appelez-nous :");
+  await expect(details).not.toContainText("Demandes de licence, recherches musicales et accompagnement éditorial.");
+  const urgentPhone = details.getByRole("link", { name: "+33 (0)6 49 39 69 22" });
   await expect(urgentPhone).toHaveCSS("white-space", "nowrap");
+  await expect(urgentPhone.locator("strong")).toHaveCount(1);
   await expect(team).not.toContainText("Mélodie");
   await expect(team).not.toContainText("Melody");
 });

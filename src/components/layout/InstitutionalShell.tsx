@@ -7,14 +7,15 @@ interface InstitutionalShellProps {
   title: string;
   intro: string;
   children: ReactNode;
+  showHero?: boolean;
 }
 
-export function InstitutionalShell({ title, intro, children }: InstitutionalShellProps) {
+export function InstitutionalShell({ title, intro, children, showHero = true }: InstitutionalShellProps) {
   return (
     <div className="page-shell overflow-x-clip">
       <Header />
       <main>
-        <PageHero title={title} intro={intro} />
+        {showHero ? <PageHero title={title} intro={intro} /> : null}
         {children}
       </main>
       <Footer />

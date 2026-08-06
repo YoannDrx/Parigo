@@ -681,9 +681,20 @@ test("la section compositeurs présente les talents sans cartes de principes", a
   await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
   await expect(section.getByRole("link", { name: /Découvrez les talents qui donnent une identité unique au catalogue original Parigo/ })).toHaveAttribute("href", "/compositeurs");
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
-  await expect(section.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
-  await expect(section.locator("img")).toHaveCount(0);
+  await expect(section.locator('a[href^="/compositeurs/"]')).toHaveCount(5);
+  await expect(section.locator("img")).toHaveCount(5);
+  await expect(section.locator("header > p")).toHaveCount(1);
+  await expect(section.locator("header > p")).toHaveCSS("border-top-width", "0px");
   await expect(page.getByTestId("composer-sticky-stage")).toHaveCount(0);
+});
+
+test("la home adopte les nouvelles accroches éditoriales", async ({ page }) => {
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero).toContainText("Des compositions originales pensées pour raconter vos images");
+  await expect(hero).toContainText("Explorez, écoutez, comparez et licenciez en quelques clics.");
+  await expect(hero).not.toContainText("Un catalogue édité pour les monteurs");
+  await expect(page.locator("#about").getByRole("heading", { name: "Qui sommes nous" })).toBeVisible();
 });
 
 test("le bouton Play des albums reste visible en thème sombre", async ({ page }) => {
@@ -781,7 +792,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   const composers = page.getByTestId("home-composers");
   await expect(composers.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
-  await expect(composers.locator('a[href^="/compositeurs/"]')).toHaveCount(0);
+  await expect(composers.locator('a[href^="/compositeurs/"]')).toHaveCount(5);
 });
 
 test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }) => {
