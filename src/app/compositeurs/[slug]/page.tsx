@@ -113,7 +113,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">{locale === "fr" ? "Albums Parigo" : "Parigo albums"}</SignedTitle>
             </div>
             {albums.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
                 {albums.map((album) => <AlbumCard key={album.id} album={album} />)}
               </div>
             ) : (

@@ -527,6 +527,15 @@ textarea {
 }
 @media (max-width: 767px) {
   .page-hero__frame { min-height: 0; }
+  .page-hero__title {
+    font-size: clamp(2.5rem, 12vw, 3.15rem);
+  }
+  .page-hero__title--compact {
+    font-size: clamp(2.1rem, 10.4vw, 2.75rem);
+  }
+  .page-hero__title--long-word {
+    font-size: clamp(1.55rem, 8vw, 2.25rem);
+  }
   .page-hero__aside::before {
     width: 4rem;
     height: 1.75rem;
@@ -3724,7 +3733,7 @@ textarea {
   pointer-events: none;
   transition: border-color 300ms ease, box-shadow 300ms ease;
 }
-.home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible) .home-sync-card__frame::after {
+.home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible, :focus-within) .home-sync-card__frame::after {
   border-color: color-mix(in srgb, var(--signal) 78%, white 10%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--signal) 22%, transparent);
 }
@@ -3743,15 +3752,15 @@ textarea {
     opacity: 0;
     transform: translateY(1rem);
   }
-  .home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible) .home-sync-card__image {
+  .home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible, :focus-within) .home-sync-card__image {
     filter: blur(5px);
     transform: scale(1.045);
   }
-  .home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible) .home-sync-card__veil {
+  .home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible, :focus-within) .home-sync-card__veil {
     background: rgba(0,0,0,.48);
     backdrop-filter: blur(2px);
   }
-  .home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible) .home-sync-card__caption {
+  .home-sync-card:not(.parigo-video-card):is(:hover, :focus-visible, :focus-within) .home-sync-card__caption {
     opacity: 1;
     transform: translateY(0);
   }

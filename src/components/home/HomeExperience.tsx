@@ -227,6 +227,8 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
               {syncs.map((sync) => (
                 <SynchronisationCard
                   key={sync.slug}
+                  slug={sync.slug}
+                  youtubeId={sync.youtubeId}
                   href={localizedPath(`/synchronisations/${sync.slug}`)}
                   image={sync.image}
                   title={sync.title}

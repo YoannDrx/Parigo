@@ -54,6 +54,8 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
             {synchronisations.map((sync) => (
               <SynchronisationCard
                 key={sync.youtubeId}
+                slug={sync.slug}
+                youtubeId={sync.youtubeId}
                 href={localizedPath(`/synchronisations/${sync.slug}`)}
                 image={sync.image}
                 title={sync.title}

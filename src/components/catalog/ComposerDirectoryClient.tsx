@@ -80,7 +80,7 @@ export function ComposerDirectoryClient({
         {visibleCredits.length} {locale === "fr" ? "crédits affichés" : "credits shown"}
       </p>
       {visibleCredits.length > 0 ? (
-        <div data-testid="composer-directory-results" className="grid grid-cols-2 gap-4 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
+        <div data-testid="composer-directory-results" className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
           {visibleCredits.map((profile) => (
             <Link
               key={profile.slug}
@@ -91,7 +91,7 @@ export function ComposerDirectoryClient({
                 src={profile.image}
                 alt=""
                 fill
-                sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
                 className="object-cover grayscale transition duration-500 group-hover:scale-[1.025] group-hover:grayscale-0"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />

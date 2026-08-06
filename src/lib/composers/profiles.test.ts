@@ -104,6 +104,13 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("The Well Quartet", "PGO0060")?.slug).toBe("the-well-quartet");
   });
 
+  it("uses the requested public names for Le Grand David and JB HANAK", () => {
+    expect(getCanonicalComposerProfile("grand-david")?.name).toBe("Le Grand David");
+    expect(getCanonicalComposerProfileForCredit("Grand David")?.name).toBe("Le Grand David");
+    expect(getCanonicalComposerProfile("jb-hanak")?.name).toBe("JB HANAK");
+    expect(getCanonicalComposerProfileForCredit("Jean-Baptiste HANAK")?.name).toBe("JB HANAK");
+  });
+
   it("keeps Mutant Ninja contributors as unlinked credits when they have no public profile", () => {
     expect(getCanonicalComposerProfile("mutant-ninja")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Liqid")?.slug).toBe("liqid");

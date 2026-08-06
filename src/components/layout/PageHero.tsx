@@ -17,12 +17,19 @@ export function PageHero({
   action,
   className,
 }: PageHeroProps) {
+  const longestWordLength = Math.max(...title.trim().split(/\s+/u).map((word) => word.length));
+  const titleLengthClass = longestWordLength >= 15
+    ? "page-hero__title--long-word"
+    : longestWordLength >= 12
+      ? "page-hero__title--compact"
+      : undefined;
+
   return (
     <header className={cn("page-hero border-b border-[var(--line)] px-4 pb-14 pt-28 md:px-8 md:pb-20 md:pt-36", className)}>
       <div className="mx-auto max-w-[1700px]">
         <div className="page-hero__frame parigo-frame relative grid overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] md:grid-cols-12">
           <div className="page-hero__title-panel relative min-w-0 px-6 py-9 sm:px-8 sm:py-11 md:col-span-8 lg:px-12 lg:py-14">
-            <SignedTitle className="page-hero__title max-w-[13ch] break-words font-[var(--font-editorial)] font-semibold leading-[.9] tracking-[-.06em]">
+            <SignedTitle className={cn("page-hero__title max-w-full break-words font-[var(--font-editorial)] font-semibold leading-[.9] tracking-[-.06em] md:max-w-[13ch]", titleLengthClass)}>
               {title}
             </SignedTitle>
           </div>
