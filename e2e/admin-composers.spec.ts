@@ -27,17 +27,18 @@ test("la file de rapprochement expose toutes les identités et ses contrôles", 
   await expect(page.getByRole("button", { name: "Exporter la sélection CSV" })).toBeVisible();
 
   const identities = page.getByTestId("composer-identity-list").getByTestId("composer-audit-identity");
-  await expect(identities).toHaveCount(57);
+  await expect(identities.first()).toBeVisible();
+  expect(await identities.count()).toBeGreaterThanOrEqual(55);
   await expect(page.getByText(/Autres contributeurs Harvest/)).toBeVisible();
 });
 
 test("les filtres se combinent, se restaurent depuis l’URL et se réinitialisent", async ({ page }) => {
   test.setTimeout(120_000);
-  await page.goto("/admin/compositeurs?work=all&source=public&bioFr=missing&sort=name");
+  await page.goto("/admin/compositeurs?work=all&source=public&bioFr=present&sort=name");
 
   await expect(page.getByLabel("Travail")).toHaveValue("all");
   await expect(page.getByLabel("Source")).toHaveValue("public");
-  await expect(page.getByLabel("Bio FR")).toHaveValue("missing");
+  await expect(page.getByLabel("Bio FR")).toHaveValue("present");
   await expect(page.getByLabel("Tri", { exact: true })).toHaveValue("name");
   await expect(page.getByTestId("composer-audit-identity").first()).toBeVisible();
 

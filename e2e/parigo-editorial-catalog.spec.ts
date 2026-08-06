@@ -102,11 +102,13 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("l’annuaire publie exactement les 57 profils canoniques", async ({ page }) => {
+test("l’annuaire publie exactement les 55 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/compositeurs");
   const directory = page.getByTestId("composer-directory-results");
-  await expect(directory.locator("a")).toHaveCount(57);
+  await expect(directory.locator("a")).toHaveCount(55);
+  await expect(directory.locator('a[href="/compositeurs/pierre-millet"]')).toHaveCount(0);
+  await expect(directory.locator('a[href="/compositeurs/mutant-ninja"]')).toHaveCount(0);
   const minimatic = directory.locator('a[href="/compositeurs/minimatic"]');
   await expect(minimatic).toHaveCount(1);
   await minimatic.click();
@@ -123,12 +125,12 @@ test("les nouveaux profils publient leurs noms de scène et le contenu disponibl
 
   await page.goto("/en/compositeurs/frederic-hanak");
   await expect(page.getByRole("heading", { level: 1, name: "Frédéric Hanak" })).toBeVisible();
-  await expect(page.getByText(/widely recognized as a leading figure/)).toBeVisible();
+  await expect(page.getByText(/widely regarded as one of the leading figures/)).toBeVisible();
 
   await page.goto("/compositeurs/the-real-fake-mc");
   await expect(page.getByRole("heading", { level: 1, name: "The Real Fake MC" })).toBeVisible();
   await expect(page.locator('img[src*="the-real-fake-mc"]')).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
+  await expect(page.getByText(/de son vrai nom Clyde Kingrap/)).toBeVisible();
 });
 
 test("les quatre profils rematchés utilisent leurs noms, portraits et bios éditoriaux", async ({ page, request }) => {
@@ -142,29 +144,32 @@ test("les quatre profils rematchés utilisent leurs noms, portraits et bios édi
 
   await page.goto("/compositeurs/victor-baillet");
   await expect(page.getByRole("heading", { level: 1, name: "Victor Baillet" })).toBeVisible();
-  await expect(page.locator("main")).not.toContainText("Mr Viktor");
+  await expect(page.getByText(/Mr Viktor \(Victor Baillet\) est un DJ/)).toBeVisible();
 
   await page.goto("/compositeurs/vincent-bouhelier");
   await expect(page.getByRole("heading", { level: 1, name: "Vincent Bouhelier" })).toBeVisible();
-  await expect(page.locator("main")).not.toContainText("Aociz");
+  await expect(page.getByText(/Vincent Bouhelier \(Aociz\) est un DJ/)).toBeVisible();
 
   await page.goto("/en/compositeurs/thierry-los");
   await expect(page.getByRole("heading", { level: 1, name: "Thierry Los" })).toBeVisible();
-  await expect(page.getByText(/seminal figure on the French music scene/)).toBeVisible();
+  await expect(page.getByText(/distinctive figure on the independent music scene/)).toBeVisible();
 });
 
-test("Flore est la seule fiche libellée Compositrice", async ({ page }) => {
+test("les fiches compositeur n’affichent plus de libellé de rôle", async ({ page }) => {
   await page.goto("/compositeurs/flore");
-  await expect(page.getByText("Compositrice", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Flore" })).toBeVisible();
+  await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
   await page.goto("/compositeurs/charlotte-savary");
-  await expect(page.getByText("Compositeur", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Charlotte Savary" })).toBeVisible();
+  await expect(page.getByText("Compositeur", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
 });
 
-test("une bio réellement absente ne génère aucun bloc de remplacement", async ({ page }) => {
+test("les biographies éditoriales nouvellement fournies sont publiées", async ({ page }) => {
   await page.goto("/compositeurs/xavier-sibre");
   await expect(page.getByRole("heading", { level: 1, name: "Xavier Sibre" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Biographie" })).toBeVisible();
+  await expect(page.getByText(/multi-instrumentiste, compositeur et arrangeur français/)).toBeVisible();
 });
 
 test("les clips YouTube n’infèrent aucun crédit musical local", async ({ page }) => {
