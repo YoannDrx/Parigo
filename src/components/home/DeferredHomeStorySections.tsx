@@ -3,9 +3,11 @@
 import { useEffect, useState, type ComponentType } from "react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
+import type { ComposerStreamProfile } from "./ComposerRelationshipSection";
 
 type StoryProps = {
   locale: "fr" | "en";
+  profiles: ComposerStreamProfile[];
 };
 
 export function DeferredHomeStorySections(props: StoryProps) {

@@ -145,10 +145,11 @@ test("les nouveaux profils publient leurs noms de scène et le contenu disponibl
   const patriceImage = page.getByTestId("composer-detail-image");
   await expect(patriceImage).toHaveAttribute("src", /\/images\/composers\/detail\/patrice_dambrine/);
   const patriceRatios = await patriceImage.evaluate((image: HTMLImageElement) => ({
-    natural: image.naturalWidth / image.naturalHeight,
     rendered: image.getBoundingClientRect().width / image.getBoundingClientRect().height,
+    objectFit: getComputedStyle(image).objectFit,
   }));
-  expect(Math.abs(patriceRatios.natural - patriceRatios.rendered)).toBeLessThan(0.02);
+  expect(Math.abs(1 - patriceRatios.rendered)).toBeLessThan(0.02);
+  expect(patriceRatios.objectFit).toBe("cover");
   await expect(page.getByText(/Patrice Dambrine est un musicien, compositeur et producteur français/)).toBeVisible();
 });
 

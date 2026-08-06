@@ -148,7 +148,7 @@ export const messages = {
     institutional: {
       aboutTitle: "À propos",
       aboutIntro: "Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits. Télévision, cinéma, documentaires, publicité, podcasts, radio ou contenus digitaux : notre catalogue international et notre expertise de la synchronisation vous aident à trouver la musique idéale pour votre projet.",
-      licensingTitle: "Des droits clairs. Des choix libres.",
+      licensingTitle: "Une musique trouvée, une licence maîtrisée.",
       licensingIntro: "Nous accompagnons chaque projet, de la première écoute à l’autorisation de diffusion.",
       contactTitle: "Parlez-nous de l’image.",
       contactIntro: "Format, sensation, territoire, calendrier : quelques repères suffisent pour commencer.",

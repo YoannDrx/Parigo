@@ -118,6 +118,8 @@ test("la recherche compositeurs reste limitée aux profils publics canoniques", 
   await expect(searchFrame).toHaveCSS("box-shadow", "none");
   const card = page.locator(".composer-card").first();
   await expect(card).toBeVisible();
+  await expect(card.locator("img")).toHaveAttribute("src", /\/images\/composers\/detail\//);
+  await expect(card.locator("img")).toHaveCSS("object-fit", "cover");
   await expect(card.locator(".composer-card__corner")).toHaveCount(2);
   await expect(page.locator(".composer-card").getByText(/^C\s*\/\s*\d+$/)).toHaveCount(0);
 
@@ -314,10 +316,16 @@ test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) 
   await expect(page.locator(".legal-section")).toHaveCount(7);
 });
 
-test("About adopte les nouveaux textes et Licensing retire ses étapes secondaires", async ({ page }) => {
+test("About adopte les nouveaux textes et Licensing ouvre sur une grille repliée", async ({ page }) => {
   await page.goto("/licensing");
+  await expect(page.getByRole("heading", { level: 1, name: "Une musique trouvée, une licence maîtrisée" })).toBeVisible();
   await expect(page.getByText("Grille indicative", { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("heading", { name: "Un cadre lisible, projet par projet" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Un cadre lisible, projet par projet" })).toHaveCount(0);
+  await expect(page.getByText("Tarifs publics indicatifs", { exact: false })).toHaveCount(0);
+  const rateButtons = page.locator('main button[aria-controls^="licensing-panel-"]');
+  await expect(rateButtons).toHaveCount(6);
+  expect(await rateButtons.evaluateAll((buttons) => buttons.map((button) => button.getAttribute("aria-expanded")))).toEqual(Array(6).fill("false"));
+  await expect(page.locator('main [id^="licensing-panel-"]')).toHaveCount(0);
   for (const removedStep of ["Repérage", "Vérification", "Autorisation", "Diffusion"]) {
     await expect(page.getByText(removedStep, { exact: true })).toHaveCount(0);
   }
@@ -325,6 +333,7 @@ test("About adopte les nouveaux textes et Licensing retire ses étapes secondair
   await page.goto("/about");
   await expect(page.locator(".page-hero")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1, name: "Une librairie avant tout" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "Le Monde de demain — Parigo" })).toHaveAttribute("loading", "eager");
   await expect(page.locator("main").getByText("À propos", { exact: true })).toHaveCount(0);
   await expect(page.locator("main").getByText("La musique, une affaire humaine", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Fondée en 2010, Parigo est une librairie musicale indépendante", { exact: false })).toBeVisible();
@@ -339,6 +348,12 @@ test("la page des labels adopte l’intitulé Labels", async ({ page }) => {
   await expect(page.locator("footer").getByRole("link", { name: "Labels", exact: true })).toBeVisible();
 });
 
+test("la page Clips porte l’introduction éditoriale complète", async ({ page }) => {
+  await page.goto("/clips");
+  await expect(page.locator("main")).toContainText("Clips officiels, making-of, performances et archives issus de la playlist YouTube Parigo.");
+  await expect(page.locator("main")).toContainText("Les créations audiovisuelles du label sont reliées aux compositeurs et aux albums.");
+});
+
 test("le détail label privilégie le logo et ne renvoie plus vers son site", async ({ page }) => {
   test.setTimeout(90_000);
   await page.goto("/labels/0f9769346759ee5a");
@@ -351,11 +366,20 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
   expect(logoPanelBox!.height).toBeGreaterThanOrEqual(350);
 });
 
-test("le détail compositeur ne dessine plus l’arc décoratif", async ({ page }) => {
+test("le détail compositeur aligne le nom en bas du portrait sans arc décoratif", async ({ page }, testInfo) => {
   await page.goto("/compositeurs/harvest-minimatic-ns-1w2ynwe");
   const hero = page.locator(".editorial-detail-hero");
   await expect(hero).toBeVisible();
   expect(await hero.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
+  if (testInfo.project.name === "desktop") {
+    const [portraitBox, titleBox] = await Promise.all([
+      page.getByTestId("composer-detail-image").locator("..").boundingBox(),
+      page.getByRole("heading", { level: 1, name: "Minimatic" }).boundingBox(),
+    ]);
+    expect(portraitBox).not.toBeNull();
+    expect(titleBox).not.toBeNull();
+    expect(Math.abs((portraitBox!.y + portraitBox!.height) - (titleBox!.y + titleBox!.height))).toBeLessThanOrEqual(2);
+  }
 });
 
 test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {
@@ -422,6 +446,10 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
   await expect(urgentPhone.locator("strong")).toHaveCount(1);
   await expect(team).not.toContainText("Mélodie");
   await expect(team).not.toContainText("Melody");
+
+  await page.goto("/en/contact");
+  await expect(page.getByTestId("contact-team").getByText("Head of Copyright and Music Production", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("contact-team")).not.toContainText("Administration");
 });
 
 test("les coordonnées Contact suivent le formulaire sur desktop", async ({ page }, testInfo) => {

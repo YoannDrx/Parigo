@@ -686,10 +686,12 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   await expect(cta.locator("span")).toHaveCSS("text-decoration-line", "underline");
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
   const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]');
-  await expect(primaryCards).toHaveCount(14);
+  await expect(primaryCards).toHaveCount(55);
   await expect(primaryCards.locator("svg")).toHaveCount(0);
-  await expect(section.locator('.composer-cloud__duplicate a[href^="/compositeurs/"]')).toHaveCount(14);
-  await expect(section.locator("img")).toHaveCount(28);
+  await expect(section.locator('.composer-cloud__duplicate a[href^="/compositeurs/"]')).toHaveCount(55);
+  await expect(section.locator("img")).toHaveCount(110);
+  await expect(primaryCards.locator("img").first()).toHaveAttribute("src", /\/images\/composers\/detail\//);
+  await expect(primaryCards.locator("img").first()).toHaveCSS("object-fit", "cover");
   const verticalOffsets = await section.locator('.composer-cloud__group:not([aria-hidden="true"]) .composer-cloud__item').evaluateAll((items) => (
     items.map((item) => getComputedStyle(item).paddingTop)
   ));
@@ -712,6 +714,7 @@ test("la home adopte les nouvelles accroches éditoriales", async ({ page }) => 
   await expect(hero).toContainText("Explorez, écoutez, comparez et licenciez en quelques clics.");
   await expect(hero).not.toContainText("Un catalogue édité pour les monteurs");
   await expect(page.locator("#about").getByRole("heading", { name: "Qui sommes nous" })).toBeVisible();
+  await expect(page.getByTestId("home-clips-section")).not.toContainText("Les créations audiovisuelles du label");
 });
 
 test("le bouton Play des albums reste visible en thème sombre", async ({ page }) => {
@@ -723,6 +726,42 @@ test("le bouton Play des albums reste visible en thème sombre", async ({ page }
   await expect(playIndicator).toHaveCSS("opacity", "1");
   const background = await playIndicator.evaluate((node) => getComputedStyle(node).backgroundColor);
   expect(background).not.toBe("rgba(0, 0, 0, 0)");
+});
+
+test("les nouveautés se rafraîchissent dès l’affichage initial", async ({ page }) => {
+  let releaseRequests = 0;
+  await page.route(/\/api\/albums\?/, async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.has("label")) {
+      await route.continue();
+      return;
+    }
+    releaseRequests += 1;
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          albums: [{
+            id: "fresh-release",
+            slug: "fresh-release",
+            title: "Sortie fraîche",
+            cover: "/images/placeholder-album.svg",
+            label: "Parigo",
+            trackCount: 1,
+            releaseDate: "2026-08-06T00:00:00.000Z",
+          }],
+        },
+        meta: { total: 1, page: 1, pageSize: 12 },
+      }),
+    });
+  });
+
+  await page.goto("/");
+  const featured = page.locator("#featured");
+  await expect(featured.getByText("Sortie fraîche", { exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(featured.getByRole("tab", { name: "Nouveautés" })).toHaveAttribute("aria-selected", "true");
+  expect(releaseRequests).toBeGreaterThan(0);
 });
 
 test("les cartes À écouter maintenant séparent lecture et navigation", async ({ page }) => {
@@ -809,7 +848,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   const composers = page.getByTestId("home-composers");
   await expect(composers.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
-  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]')).toHaveCount(14);
+  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]')).toHaveCount(55);
 });
 
 test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }) => {

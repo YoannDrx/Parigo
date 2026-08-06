@@ -88,7 +88,7 @@ export function ComposerDirectoryClient({
               className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
             >
               <Image
-                src={profile.image}
+                src={profile.detailImage?.src ?? profile.image}
                 alt=""
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"

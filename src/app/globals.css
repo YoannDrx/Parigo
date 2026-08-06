@@ -540,7 +540,7 @@ textarea {
 .composer-relationship {background:color-mix(in srgb,var(--signal) 3%,var(--background))}
 .composer-cloud {--composer-cloud-gap:clamp(.8rem,1.5vw,1.5rem);overflow:hidden}
 .composer-cloud__viewport { height: clamp(30rem, 38vw, 36rem); padding-block: 1rem 2rem; mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
-.composer-cloud__track {display:flex;width:max-content;height:100%;animation:composer-cloud-drift 72s linear infinite;will-change:transform}
+.composer-cloud__track {display:flex;width:max-content;height:100%;animation:composer-cloud-drift var(--composer-cloud-duration,72s) linear infinite;will-change:transform}
 .composer-cloud:is(:hover, :focus-within) .composer-cloud__track { animation-play-state: paused; }
 .composer-cloud__group { display: flex; flex: none; align-items: flex-start; gap: var(--composer-cloud-gap); height: 100%; padding: 0 var(--composer-cloud-gap) 0 0; }
 .composer-cloud__item { width: var(--composer-width); flex: none; padding-top: var(--composer-offset); transform: rotate(var(--composer-rotation)); }

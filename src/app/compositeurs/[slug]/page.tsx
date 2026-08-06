@@ -82,20 +82,19 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
             {locale === "fr" ? "Tous les compositeurs" : "All composers"}
           </ContextualBackLink>
           <article className="composer-detail-hero parigo-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-6 md:p-8 lg:p-10">
-            <div className="grid items-center gap-7 md:grid-cols-[minmax(13rem,28rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
-              <div className="parigo-frame w-full max-w-[28rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
+            <div className="grid items-end gap-7 md:grid-cols-[minmax(13rem,28rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
+              <div className="parigo-frame relative aspect-square w-full max-w-[28rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
                 <Image
                   data-testid="composer-detail-image"
                   src={detailImage.src}
                   alt={profile.imageStatus === "portrait" ? profile.name : ""}
-                  width={detailImage.width}
-                  height={detailImage.height}
+                  fill
                   priority
                   sizes="(max-width: 768px) 100vw, 28rem"
-                  className="h-auto w-full object-contain"
+                  className="object-cover"
                 />
               </div>
-              <div className="min-w-0 pb-1 md:pb-4">
+              <div className="min-w-0">
                 <SignedTitle className="max-w-full [overflow-wrap:anywhere] font-[var(--font-editorial)] text-[clamp(3.25rem,8vw,7rem)] leading-[.88] tracking-[-.06em]">{profile.name}</SignedTitle>
               </div>
             </div>
