@@ -38,7 +38,7 @@ describe("canonical composer registry", () => {
         en: biography.en,
       });
     }
-    for (const slug of ["after-in-paris", "cedric-hanak", "laurent-dury", "thierry-los"]) {
+    for (const slug of ["after-in-paris", "cedric-hanak", "laurent-dury", "patrice-dambrine", "stan-galouo", "thierry-los", "ugly-mac-beer"]) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
         source: "user-provided",
         imageOverride: { source: "user-provided" },
@@ -104,11 +104,37 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("The Well Quartet", "PGO0060")?.slug).toBe("the-well-quartet");
   });
 
-  it("uses the requested public names for Le Grand David and JB HANAK", () => {
+  it("uses the requested public names for Le Grand David and JB Hanak", () => {
     expect(getCanonicalComposerProfile("grand-david")?.name).toBe("Le Grand David");
     expect(getCanonicalComposerProfileForCredit("Grand David")?.name).toBe("Le Grand David");
-    expect(getCanonicalComposerProfile("jb-hanak")?.name).toBe("JB HANAK");
-    expect(getCanonicalComposerProfileForCredit("Jean-Baptiste HANAK")?.name).toBe("JB HANAK");
+    expect(getCanonicalComposerProfile("jb-hanak")?.name).toBe("JB Hanak");
+    expect(getCanonicalComposerProfileForCredit("Jean-Baptiste HANAK")?.name).toBe("JB Hanak");
+    expect(getCanonicalComposerProfile("cedric-hanak")?.name).toBe("Cédric Hanak");
+  });
+
+  it("publishes Schérazade without her surname while preserving full-name credits", () => {
+    expect(getCanonicalComposerProfile("scherazade-aissahine")?.name).toBe("Schérazade");
+    expect(getCanonicalComposerProfileForCredit("Scherazade Aissahine")?.name).toBe("Schérazade");
+    expect(getCanonicalComposerProfileForCredit("Schérazade Aissahine")?.slug).toBe("scherazade-aissahine");
+  });
+
+  it("records the exact high-resolution historical portraits restored from the portfolio", () => {
+    expect(getCanonicalComposerProfile("sebastien-blanchon-n-zeng")?.provenance).toMatchObject({
+      imageOverride: {
+        source: "portfolio-caro-git",
+        repository: "portfolio-caro",
+        commit: "03a28ab9431751a42cd5d4d1a7a8bb3b8dd821e3",
+        path: "public/images/projets/photoscompo/sebastienblanchon.jpg",
+      },
+    });
+    expect(getCanonicalComposerProfile("the-real-fake-mc")?.provenance).toMatchObject({
+      imageOverride: {
+        source: "portfolio-caro-git",
+        repository: "portfolio-caro",
+        commit: "03a28ab9431751a42cd5d4d1a7a8bb3b8dd821e3",
+        path: "public/images/projets/photoscompo/therealfakemc.jpg",
+      },
+    });
   });
 
   it("keeps Mutant Ninja contributors as unlinked credits when they have no public profile", () => {

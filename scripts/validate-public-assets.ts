@@ -38,6 +38,9 @@ for (const file of publicFiles) {
   else staticBytes += details.size;
   const relative = `/${path.relative(publicRoot, file).split(path.sep).join("/")}`;
   if (/\/(\.DS_Store|Thumbs\.db)$/i.test(relative)) failures.push(`Fichier système interdit : ${relative}`);
+  if (relative.startsWith("/images/composers/") && !/^[a-z0-9_]+\.(?:svg|webp)$/.test(path.basename(file))) {
+    failures.push(`Nom de portrait compositeur non normalisé : ${relative}`);
+  }
   if (MEDIA_EXTENSIONS.test(file)) {
     const prefix = (await readFile(file)).subarray(0, 256).toString("utf8").trimStart().toLowerCase();
     if (prefix.startsWith("<!doctype html") || prefix.startsWith("<html")) failures.push(`HTML déguisé en média : ${relative}`);

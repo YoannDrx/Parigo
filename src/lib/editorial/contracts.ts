@@ -11,7 +11,7 @@ const localizedCopySchema = z.object({
 export const ComposerProfileSchema = z.object({
   slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   name: z.string().min(1),
-  image: z.string().startsWith("/images/composers/"),
+  image: z.string().regex(/^\/images\/composers\/[a-z0-9_]+\.webp$/),
   bio: localizedCopySchema,
   links: z.array(z.object({
     platform: z.string().min(1),

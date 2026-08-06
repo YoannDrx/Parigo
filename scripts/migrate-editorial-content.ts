@@ -251,7 +251,7 @@ async function main() {
     return {
       slug: artist.slug,
       name: artist.name,
-      image: `/images/composers/${artist.slug}.webp`,
+      image: `/images/composers/${artist.slug.replaceAll("-", "_")}.webp`,
       bio: {
         fr: await bio("fr", artist.slug),
         en: await bio("en", artist.slug),
