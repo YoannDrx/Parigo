@@ -408,6 +408,7 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
   const team = page.getByTestId("contact-team");
   await expect(team.getByRole("heading", { level: 2, name: "Notre équipe" })).toBeVisible();
   await expect(team.getByRole("heading", { level: 3 })).toHaveText(["Guillaume Albeck", "Caroline Senyk", "Eliott Grellier"]);
+  await expect(team.getByText("Responsable copyright et production musicale", { exact: true })).toBeVisible();
   await expect(team.getByRole("link", { name: "guillaume.albeck@parigomusic.com" })).toHaveAttribute("href", "mailto:guillaume.albeck@parigomusic.com");
   await expect(team.getByRole("link", { name: "caroline.senyk@parigomusic.com" })).toHaveAttribute("href", "mailto:caroline.senyk@parigomusic.com");
   await expect(team.getByRole("link", { name: "eliott.grellier@parigomusic.com" })).toHaveAttribute("href", "mailto:eliott.grellier@parigomusic.com");

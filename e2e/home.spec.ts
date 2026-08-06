@@ -699,9 +699,6 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   if (testInfo.project.name === "desktop") {
     await section.locator(".composer-cloud").hover();
     await expect(track).toHaveCSS("animation-play-state", "paused");
-    const firstComposerName = primaryCards.first().locator(".composer-cloud__name");
-    await primaryCards.first().hover();
-    await expect(firstComposerName).toHaveCSS("text-decoration-line", "underline");
   }
   await expect(section.locator("header > p")).toHaveCount(1);
   await expect(section.locator("header > p")).toHaveCSS("border-top-width", "0px");

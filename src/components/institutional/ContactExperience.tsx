@@ -15,7 +15,7 @@ const TEAM = [
   {
     name: "Caroline Senyk",
     role: {
-      fr: "Responsable copyright, administration et production musicale",
+      fr: "Responsable copyright et production musicale",
       en: "Head of Copyright, Administration and Music Production",
     },
     email: "caroline.senyk@parigomusic.com",

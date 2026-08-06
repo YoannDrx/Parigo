@@ -537,84 +537,24 @@ textarea {
   }
 }
 
-.composer-relationship {
-  background: color-mix(in srgb, var(--signal) 3%, var(--background));
-}
-.composer-cloud {
-  --composer-cloud-gap: clamp(.8rem, 1.5vw, 1.5rem);
-  overflow: hidden;
-}
-.composer-cloud__viewport {
-  height: clamp(30rem, 38vw, 36rem);
-  overflow: hidden;
-  padding-block: 1rem 2rem;
-  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-}
-.composer-cloud__track {
-  display: flex;
-  width: max-content;
-  height: 100%;
-  animation: composer-cloud-drift 72s linear infinite;
-  will-change: transform;
-}
-.composer-cloud:is(:hover, :focus-within) .composer-cloud__track {
-  animation-play-state: paused;
-}
-.composer-cloud__group {
-  display: flex;
-  flex-shrink: 0;
-  align-items: flex-start;
-  gap: var(--composer-cloud-gap);
-  height: 100%;
-  margin: 0;
-  padding: 0 var(--composer-cloud-gap) 0 0;
-  list-style: none;
-}
-.composer-cloud__item {
-  width: var(--composer-width);
-  flex: none;
-  padding-top: var(--composer-offset);
-  transform: rotate(var(--composer-rotation));
-  transform-origin: center;
-}
-.composer-cloud__card {
-  width: 100%;
-  border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
-  box-shadow: 7px 8px 0 color-mix(in srgb, var(--signal) 11%, transparent);
-  transition: border-color 320ms ease, box-shadow 480ms var(--ease-out), transform 480ms var(--ease-out);
-}
-.composer-cloud__card:is(:hover, :focus-visible) {
-  border-color: var(--signal-strong);
-  box-shadow: 11px 13px 0 color-mix(in srgb, var(--signal) 16%, transparent);
-  transform: translateY(-6px) scale(1.015);
-}
-@keyframes composer-cloud-drift {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
+.composer-relationship {background:color-mix(in srgb,var(--signal) 3%,var(--background))}
+.composer-cloud {--composer-cloud-gap:clamp(.8rem,1.5vw,1.5rem);overflow:hidden}
+.composer-cloud__viewport { height: clamp(30rem, 38vw, 36rem); padding-block: 1rem 2rem; mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+.composer-cloud__track {display:flex;width:max-content;height:100%;animation:composer-cloud-drift 72s linear infinite;will-change:transform}
+.composer-cloud:is(:hover, :focus-within) .composer-cloud__track { animation-play-state: paused; }
+.composer-cloud__group { display: flex; flex: none; align-items: flex-start; gap: var(--composer-cloud-gap); height: 100%; padding: 0 var(--composer-cloud-gap) 0 0; }
+.composer-cloud__item { width: var(--composer-width); flex: none; padding-top: var(--composer-offset); transform: rotate(var(--composer-rotation)); }
+.composer-cloud__card { border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg); box-shadow: 7px 8px 0 color-mix(in srgb, var(--signal) 11%, transparent); transition: border-color 320ms ease, box-shadow 480ms var(--ease-out), transform 480ms var(--ease-out); }
+.composer-cloud__card:is(:hover, :focus-visible) { border-color: var(--signal-strong); box-shadow: 11px 13px 0 color-mix(in srgb, var(--signal) 16%, transparent); transform: translateY(-6px) scale(1.015); }
+@keyframes composer-cloud-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (max-width: 767px) {
-  .composer-cloud__viewport {
-    height: 30rem;
-    mask-image: linear-gradient(90deg, transparent, #000 2.5%, #000 97.5%, transparent);
-  }
+  .composer-cloud__viewport { height: 30rem; mask-image: linear-gradient(90deg, transparent, #000 2.5%, #000 97.5%, transparent); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .composer-cloud__viewport {
-    overflow-x: auto;
-    mask-image: none;
-    scrollbar-width: none;
-  }
-  .composer-cloud__track {
-    animation: none;
-    will-change: auto;
-  }
-  .composer-cloud__duplicate {
-    display: none;
-  }
-  .composer-cloud__card,
-  .composer-cloud__card img {
-    transition: none;
-  }
+  .composer-cloud__viewport { overflow-x: auto; mask-image: none; scrollbar-width: none; }
+  .composer-cloud__track { animation: none; will-change: auto; }
+  .composer-cloud__duplicate { display: none; }
+  .composer-cloud__card, .composer-cloud__card img { transition: none; }
 }
 
 .partner-section__glow {
@@ -3516,20 +3456,9 @@ textarea {
   transition: transform 780ms var(--ease-out);
 }
 .home-rail-card:hover .home-rail-card__media::after { transform: translateX(140%); }
-.home-audio-card__actions {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 240ms ease, transform 360ms var(--ease-out);
-}
 @media (hover: hover) and (pointer: fine) {
-  .home-audio-card__actions {
-    opacity: 0;
-    transform: translateY(-.45rem);
-  }
-  .home-audio-card:is(:hover, :focus-within) .home-audio-card__actions {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  .home-audio-card__actions { opacity: 0; transform: translateY(-.45rem); transition: opacity 240ms ease, transform 360ms var(--ease-out); }
+  .home-audio-card:is(:hover, :focus-within) .home-audio-card__actions { opacity: 1; transform: translateY(0); }
 }
 
 .home-rail-nav {
