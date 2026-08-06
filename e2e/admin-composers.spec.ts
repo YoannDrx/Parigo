@@ -48,9 +48,14 @@ test("les filtres se combinent, se restaurent depuis l’URL et se réinitialise
 
   await page.getByLabel("Photo").selectOption("missing");
   await expect(page).toHaveURL(/photo=missing/);
-  await expect(page.getByTestId("composer-audit-identity").first()).toBeVisible();
+  await expect(page.getByRole("heading", { name: /\d+ profils? affichés? sur \d+/ })).toBeVisible();
 
+  await page.getByRole("button", { name: "Réinitialiser les filtres" }).click();
+  await expect(page).toHaveURL(/\/admin\/compositeurs$/);
+  await expect(page.getByLabel("Photo")).toHaveValue("all");
   await page.getByLabel("Source").selectOption("public");
+  await expect(page).toHaveURL(/source=public/);
+  await expect(page.getByRole("button", { name: "Exporter la sélection CSV" })).toBeEnabled();
   const downloadPromise = page.waitForEvent("download");
   await page.getByRole("button", { name: "Exporter la sélection CSV" }).click();
   const download = await downloadPromise;

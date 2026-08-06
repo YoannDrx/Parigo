@@ -196,7 +196,7 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
-  await expect(page.getByRole("main").getByText(/A curated catalogue built for editors, music supervisors and producers/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Who are we" })).toBeVisible();
   for (const heading of ["Who are we", "From brief to selection"]) {
     const element = page.getByRole("heading", { name: heading });
     const color = await element.evaluate((node) => getComputedStyle(node).color);
@@ -386,7 +386,7 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await page.getByRole("tab", { name: "Playlists" }).click();
   await expect(page.locator('#featured a[href^="/playlists/"]').first()).toBeVisible({ timeout: 30_000 });
   const featured = page.locator("#featured");
-  const featuredArtwork = featured.locator('a[href^="/playlists/"] img').first();
+  const featuredArtwork = featured.locator(".home-audio-card img").first();
   await expect(featuredArtwork).toHaveAttribute(
     "src",
     /^https:\/\/d3vy0pmxxxelni\.cloudfront\.net\/assets\/playlistart\//,
