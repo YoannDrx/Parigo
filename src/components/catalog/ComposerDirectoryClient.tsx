@@ -7,7 +7,6 @@ import Image from "next/image";
 import type { CanonicalComposerSummary } from "@/lib/composers/profiles";
 import type { Locale } from "@/i18n/messages";
 import { localizedPath } from "@/lib/locale";
-import { composerRoleLabel } from "@/lib/composers/presentation";
 
 function normalizeSearchValue(value: string, locale: Locale) {
   return value
@@ -86,7 +85,7 @@ export function ComposerDirectoryClient({
             <Link
               key={profile.slug}
               href={localizedPath(locale, `/compositeurs/${profile.slug}`)}
-              className="composer-card group relative flex min-h-80 flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
+              className="composer-card group relative flex min-h-72 flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)] sm:min-h-80"
             >
               <Image
                 src={profile.image}
@@ -97,15 +96,7 @@ export function ComposerDirectoryClient({
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
               <div className="relative p-5 text-white sm:p-6">
-                <p className="font-mono text-[.54rem] uppercase tracking-[.14em] text-white/70">
-                  {composerRoleLabel(profile, locale)}
-                </p>
-                <h2 className="mt-3 break-words text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{profile.name}</h2>
-                <div className="mt-5 border-t border-white/30 pt-3">
-                <p className="font-mono text-[.62rem] text-[var(--text-muted)]">
-                  <span className="text-white/75">{profile.trackCount} {locale === "fr" ? "œuvres" : "works"} · {profile.albumIds.length} albums</span>
-                </p>
-                </div>
+                <h2 className="break-words text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{profile.name}</h2>
               </div>
               <span aria-hidden="true" className="composer-card__corner composer-card__corner--top" />
               <span aria-hidden="true" className="composer-card__corner composer-card__corner--bottom" />

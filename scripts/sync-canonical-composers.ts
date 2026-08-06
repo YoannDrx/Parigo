@@ -8,7 +8,7 @@ const PORTFOLIO_COMMIT = "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2";
 const PORTFOLIO_API_ORIGIN = "https://synck-psi.vercel.app";
 const THIERRY_IMAGE_GIT_REF = "890a906^";
 const THIERRY_IMAGE_PATH = "public/images/projets/photoscompo/thierry-los.jpeg";
-const CANONICAL_PROFILE_COUNT = 57;
+const CANONICAL_PROFILE_COUNT = 55;
 
 type ProfileSource = {
   slug: string;
@@ -42,6 +42,19 @@ type PortfolioApiSnapshot = {
   urls: { fr: string; en: string };
   artists: { fr: PortfolioApiArtist; en: PortfolioApiArtist };
 };
+
+type UserProvidedBiography = {
+  sourceFile: string;
+  fr: string;
+  en: string;
+};
+
+type UserProvidedBiographyRegistry = {
+  capturedAt: string;
+  profiles: Record<string, UserProvidedBiography>;
+};
+
+const USER_PROVIDED_BIOGRAPHIES_FILE = "site-biographies.user-provided.json";
 
 const profiles: ProfileSource[] = [
   {
@@ -77,7 +90,7 @@ const profiles: ProfileSource[] = [
   { slug: "ugly-mac-beer", name: "Ugly Mac Beer", kind: "person", bioSlug: "ugly-mac-beer", imageSlug: "ugly-mac-beer", aliases: ["Ugly Mac Beer"] },
   { slug: "yann-kornowicz", name: "Yann Kornowicz", kind: "person", bioSlug: "yann-kornowicz", imageSlug: "yann-kornowicz", aliases: ["Yann Kornowicz"] },
   { slug: "dj-hertz", name: "DJ HERTZ", kind: "person", bioSlug: "dj-hertz", imageSlug: "dj-hertz", aliases: ["Franck Sinnassamy", "DJ HERTZ"], legacySlugs: ["franck-sinnassamy"] },
-  { slug: "laurent-dury", name: "Laurent Dury", kind: "person", bioSlug: "laurent-dury", imageSlug: "laurent-dury", aliases: ["Laurent Dury"] },
+  { slug: "laurent-dury", name: "Laurent Dury", kind: "person", bioSlug: "laurent-dury", imageSlug: "laurent-dury", localImageFile: "laurent-dury.user-provided.png", aliases: ["Laurent Dury"] },
   { slug: "liqid", name: "Liqid", kind: "person", bioSlug: "liqid", imageSlug: "liqid", aliases: ["Liqid"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", bioSlug: "bonetrips", imageSlug: "bonetrips", aliases: ["Bonetrips"] },
   { slug: "coeur", name: "Cœur", kind: "person", bioSlug: "coeur", imageSlug: "coeur", aliases: ["Charlotte Duran"] },
@@ -102,19 +115,6 @@ const profiles: ProfileSource[] = [
   { slug: "forever-pavot", name: "Forever Pavot", kind: "person", bioSlug: "emile-sornin-forever-pavot", imageSlug: "emile-sornin-forever-pavot", aliases: ["Emile Sornin", "Sornin Emile"], editorialArtistSlug: "emile-sornin-forever-pavot" },
   { slug: "frederic-hanak", name: "Frédéric Hanak", kind: "person", bioSlug: null, imageSlug: "frederic-hanak", aliases: ["Frédéric Hanak", "Frederic Hanak"], manualBioFile: "frederic-hanak.user-provided.json" },
   { slug: "madben", name: "Madben", kind: "person", bioSlug: "madben", imageSlug: "madben", aliases: ["Madben"] },
-  {
-    slug: "mutant-ninja",
-    name: "Mutant Ninja",
-    kind: "group",
-    bioSlug: null,
-    imageSlug: "mutant-ninja-records",
-    aliases: [],
-    editorialArtistSlug: "mutant-ninja-records",
-    scopedRelations: [{
-      albumCodes: ["PGO0024", "PGO0027", "PGO0032", "PGO0035", "PGO0051"],
-      aliases: ["Liqid", "Tcheep", "Bonetrips", "Amaury Messelier", "Charlotte Duran", "Chicho Cortez"],
-    }],
-  },
   { slug: "arandel", name: "Arandel", kind: "person", bioSlug: "arandel", imageSlug: "arandel", aliases: ["Arandel"] },
   { slug: "the-architect", name: "The Architect", kind: "person", bioSlug: "the-architect", imageSlug: "the-architect", aliases: ["The Architect"] },
   {
@@ -123,10 +123,11 @@ const profiles: ProfileSource[] = [
     kind: "group",
     bioSlug: "after-in-paris",
     imageSlug: "after-in-paris",
+    localImageFile: "after-in-paris.user-provided.jpg",
     aliases: [],
     scopedRelations: [{ albumCodes: ["PGO0031"], aliases: ["Jean-Michel Vallet", "Claire Michael", "Patrick Chartol", "After In Paris"] }],
   },
-  { slug: "thierry-los", name: "Thierry Los", kind: "person", bioSlug: null, imageSlug: null, aliases: ["Thierry Loshouarn", "Thierry Los"], apiSource: { slug: "thierry-los" } },
+  { slug: "thierry-los", name: "Thierry Los", kind: "person", bioSlug: null, imageSlug: null, localImageFile: "thierry-los.user-provided.jpg", aliases: ["Thierry Loshouarn", "Thierry Los"] },
   { slug: "nicodrum", name: "Nicodrum", kind: "person", bioSlug: "nicodrums-friends", imageSlug: "nicodrums-friends", aliases: ["Nicodrum", "Nicodrums", "Nicodrums & Friends", "Nicodrums Friends"], legacySlugs: ["nicodrums-friends"] },
   { slug: "2080", name: "2080", kind: "person", bioSlug: "2080", imageSlug: "2080", aliases: ["2080", "208"] },
   { slug: "jb-hanak", name: "JB HANAK", kind: "person", bioSlug: "jb-hanak", imageSlug: "jb-hanak", aliases: ["Jean-Baptiste Hanak", "Jean Baptiste Hanak", "JB HANAK"] },
@@ -144,7 +145,6 @@ const profiles: ProfileSource[] = [
     aliases: [],
     scopedRelations: [{ albumCodes: ["PGO0034"], aliases: ["Emin Dzijan", "Manuel Decocq", "Pierre Millet", "Jean-Michel Trotoux", "ANA KAP"] }],
   },
-  { slug: "pierre-millet", name: "Pierre Millet", kind: "person", bioSlug: "pierre-millet", imageSlug: "pierre-millet", aliases: ["Pierre Millet"] },
   { slug: "alexis-molenat", name: "Alexis Molenat", kind: "person", bioSlug: "alexis-molenat-les-cavaliers", imageSlug: "alexis-molenat-les-cavaliers", aliases: ["Alexis Molenat", "Molenat Alexis"], legacySlugs: ["alexis-molenat-les-cavaliers"] },
   { slug: "maxime-raynier", name: "Maxime Raynier", kind: "person", bioSlug: "maxime-raynier-les-arondes", imageSlug: "maxime-raynier-les-arondes", aliases: ["Maxime Raynier", "Raynier Maxime"], legacySlugs: ["maxime-raynier-les-arondes"] },
   { slug: "patrice-dambrine", name: "Patrice Dambrine", kind: "person", bioSlug: "patrice-dambrine-viro-major-records", imageSlug: "patrice-dambrine-viro-major-records", aliases: ["Patrice Dambrine", "Dambrine Patrice"], legacySlugs: ["patrice-dambrine-viro-major-records"] },
@@ -183,7 +183,7 @@ const profiles: ProfileSource[] = [
     aliases: ["Flore", "Flore Morfin", "Flore Morchin"],
     creditIdentities: [{ preferredName: "Flore Morfin", aliases: ["Flore Morfin", "Flore Morchin", "Flore"] }],
   },
-  { slug: "cedric-hanak", name: "Cédric HANAK", kind: "person", bioSlug: "cedric-hanak", imageSlug: "cedric-hanak", aliases: ["Cédric Hanak", "Cedric Hanak", "Cédric HANAK"] },
+  { slug: "cedric-hanak", name: "Cédric HANAK", kind: "person", bioSlug: "cedric-hanak", imageSlug: "cedric-hanak", localImageFile: "cedric-hanak.user-provided.jpg", aliases: ["Cédric Hanak", "Cedric Hanak", "Cédric HANAK"] },
 ];
 
 const root = process.cwd();
@@ -211,6 +211,25 @@ async function readManualBio(file: string): Promise<{ fr: string; en: string }> 
     throw new Error(`Bio manuelle FR/EN invalide : ${file}`);
   }
   return { fr: value.fr.trim(), en: value.en.trim() };
+}
+
+async function readUserProvidedBiographies(): Promise<UserProvidedBiographyRegistry> {
+  const source = path.join(root, "src/content/composer-sources", USER_PROVIDED_BIOGRAPHIES_FILE);
+  const value = JSON.parse(await readFile(source, "utf8")) as Partial<UserProvidedBiographyRegistry>;
+  if (typeof value.capturedAt !== "string" || Number.isNaN(Date.parse(value.capturedAt)) || !value.profiles) {
+    throw new Error(`Registre de biographies fourni invalide : ${USER_PROVIDED_BIOGRAPHIES_FILE}`);
+  }
+  for (const [slug, biography] of Object.entries(value.profiles)) {
+    if (!profiles.some((profile) => profile.slug === slug)) throw new Error(`Bio fournie sans profil canonique : ${slug}`);
+    if (
+      typeof biography?.sourceFile !== "string" || !biography.sourceFile.trim()
+      || typeof biography.fr !== "string" || !biography.fr.trim()
+      || typeof biography.en !== "string" || !biography.en.trim()
+    ) {
+      throw new Error(`Bio fournie FR/EN invalide : ${slug}`);
+    }
+  }
+  return value as UserProvidedBiographyRegistry;
 }
 
 async function fetchPortfolioArtist(locale: "fr" | "en", slug: string): Promise<PortfolioApiArtist> {
@@ -274,21 +293,24 @@ async function main() {
 
   const artists = JSON.parse(await readFile(path.join(portfolioRoot, "seed-data/artists.json"), "utf8")) as PortfolioArtist[];
   const artistsBySlug = new Map(artists.map((artist) => [artist.slug, artist]));
+  const providedBiographies = await readUserProvidedBiographies();
   const outputAssets = path.join(root, "public/images/composers/canonical");
   await mkdir(outputAssets, { recursive: true });
 
   const output = [];
   for (const profile of profiles) {
     const apiSnapshot = profile.apiSource ? await loadPortfolioApiSnapshot(profile.apiSource.slug) : null;
-    const capturedAt = apiSnapshot?.capturedAt ?? new Date().toISOString();
     const [apiFr, apiEn] = apiSnapshot ? [apiSnapshot.artists.fr, apiSnapshot.artists.en] : [null, null];
-    const manualBio = profile.manualBioFile ? await readManualBio(profile.manualBioFile) : null;
+    const providedBio = providedBiographies.profiles[profile.slug] ?? null;
+    const manualBio = providedBio ?? (profile.manualBioFile ? await readManualBio(profile.manualBioFile) : null);
     const [sourceFr, sourceEn] = manualBio
       ? [manualBio.fr, manualBio.en]
       : apiFr && apiEn
         ? [apiFr.bio.trim(), apiEn.bio.trim()]
         : await Promise.all([readBio("fr", profile.bioSlug), readBio("en", profile.bioSlug)]);
-    const [fr, en] = [publicBiography(sourceFr), publicBiography(sourceEn)];
+    const [fr, en] = manualBio
+      ? [sourceFr?.trim() ?? null, sourceEn?.trim() ?? null]
+      : [publicBiography(sourceFr), publicBiography(sourceEn)];
     if (Boolean(fr) !== Boolean(en)) throw new Error(`Bio FR/EN incomplète pour ${profile.slug}`);
 
     let image = "/images/composers/composer-placeholder.svg";
@@ -348,22 +370,26 @@ async function main() {
         ...(profile.creditIdentities ? { creditIdentities: profile.creditIdentities } : {}),
       },
       legacySlugs: profile.legacySlugs ?? [],
-      provenance: profile.manualBioFile
+      provenance: providedBio || profile.manualBioFile
         ? {
             source: "user-provided",
-            capturedAt,
-            bioFile: profile.manualBioFile,
+            capturedAt: providedBio ? providedBiographies.capturedAt : new Date().toISOString(),
+            bioFile: providedBio ? USER_PROVIDED_BIOGRAPHIES_FILE : profile.manualBioFile!,
+            ...(providedBio ? { sourceDocument: providedBio.sourceFile } : {}),
             imageSource: {
               repository: "portfolio-caro",
               commit: PORTFOLIO_COMMIT,
               imageSlug: imageSource,
             },
+            ...(profile.localImageFile
+              ? { imageOverride: { source: "user-provided", file: profile.localImageFile } }
+              : {}),
           }
         : profile.apiSource
         ? {
             source: "portfolio-caro-api",
             urls: apiSnapshot!.urls,
-            capturedAt,
+            capturedAt: apiSnapshot!.capturedAt,
             artistSlug: profile.apiSource.slug,
             imageUrl: new URL(imageSource!, PORTFOLIO_API_ORIGIN).toString(),
             imageFallback: { repository: "portfolio-caro", ref: THIERRY_IMAGE_GIT_REF, path: THIERRY_IMAGE_PATH },

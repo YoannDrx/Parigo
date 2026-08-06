@@ -11,9 +11,9 @@ Ce dossier contient les snapshots historiques et les diagnostics préparés avan
 - `pilot.csv` : lot pilote à valider avant la première sauvegarde Harvest.
 - `pilot-execution-2026-08-04.json` : journal du lot pilote, avec le point de reprise et les validations Harvest rencontrées.
 - `manifest.json` : métriques, empreinte, composition du pilote et état des exports.
-- `audit-AAAA-MM-JJ.json` : modèle exhaustif `profil → album → œuvre principale → variantes`, incluant les contributeurs hors des 57 profils.
+- `audit-AAAA-MM-JJ.json` : modèle exhaustif `profil → album → œuvre principale → variantes`, incluant les contributeurs hors des 55 profils.
 - `audit-AAAA-MM-JJ.csv` : une ligne opérationnelle par piste, version ou stem, avec Composer actuel/attendu, `Artist` séparé, ayants droit, anomalies et statut.
-- `summary-AAAA-MM-JJ.json` : résumé daté des 57 profils publics.
+- `summary-AAAA-MM-JJ.json` : résumé daté des 55 profils publics.
 - `track-decisions-AAAA-MM-JJ.csv`, `composer-values-AAAA-MM-JJ.csv`, `pilot-AAAA-MM-JJ.csv` et `manifest-AAAA-MM-JJ.json` : diagnostics opérationnels de l’exécution courante. Les fichiers génériques sans date restent le témoignage historique du premier audit et ne sont plus écrasés.
 
 Les valeurs `needs-review` ne doivent jamais être appliquées automatiquement. Elles restent inchangées tant qu’un ayant droit structuré, le Portfolio ou Parigo ne permet pas de les confirmer.

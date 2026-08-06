@@ -1,20 +1,22 @@
 import { describe, expect, it } from "vitest";
+import suppliedBiographies from "@/content/composer-sources/site-biographies.user-provided.json";
 import {
   CANONICAL_COMPOSER_SOURCE_COMMIT,
   CANONICAL_COMPOSER_PROFILE_COUNT,
   canonicalComposerProfiles,
   collectCanonicalComposerSummaries,
+  getCanonicalComposerProfile,
   getCanonicalComposerProfileForCredit,
   resolveCanonicalComposerCredit,
   resolveCanonicalComposerCredits,
 } from "./profiles";
 
 describe("canonical composer registry", () => {
-  it("contains exactly the 57 unique public profiles", () => {
-    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(57);
-    expect(canonicalComposerProfiles).toHaveLength(57);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(57);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(57);
+  it("contains exactly the 55 unique public profiles", () => {
+    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(55);
+    expect(canonicalComposerProfiles).toHaveLength(55);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(55);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(55);
   });
 
   it("keeps pinned, dated or user-provided provenance and leaves only unattested bios empty", () => {
@@ -22,18 +24,26 @@ describe("canonical composer registry", () => {
     const withoutBio = canonicalComposerProfiles
       .filter((profile) => profile.bio.fr === null && profile.bio.en === null)
       .map((profile) => profile.name);
-    expect(withoutBio).toEqual([
-      "Loic Laporte",
-      "Mutant Ninja",
-      "Roma Luca",
-      "Scherazade Aissahine",
-      "Stan Galouo",
-      "The Real Fake MC",
-      "Xavier Sibre",
-    ]);
-    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(50);
-    expect(canonicalComposerProfiles.find((profile) => profile.slug === "thierry-los")?.provenance.source).toBe("portfolio-caro-api");
+    expect(withoutBio).toEqual([]);
+    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(55);
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "thierry-los")?.provenance.source).toBe("user-provided");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "frederic-hanak")?.provenance.source).toBe("user-provided");
+  });
+
+  it("publishes the supplied biographies verbatim and records portrait overrides", () => {
+    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(55);
+    for (const [slug, biography] of Object.entries(suppliedBiographies.profiles)) {
+      expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.bio).toEqual({
+        fr: biography.fr,
+        en: biography.en,
+      });
+    }
+    for (const slug of ["after-in-paris", "cedric-hanak", "laurent-dury", "thierry-los"]) {
+      expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
+        source: "user-provided",
+        imageOverride: { source: "user-provided" },
+      });
+    }
   });
 
   it("maps the four editorial profiles without leaking stage names into Harvest aliases", () => {
@@ -55,9 +65,10 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Vallet Jean-Michel", "PGO0031")?.slug).toBe("after-in-paris");
     expect(getCanonicalComposerProfileForCredit("Vallet Jean-Michel", "PGO0042")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Jean-Michel Vallet", "PGO0042")).toBeUndefined();
-    expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0034")?.slug).toBe("pierre-millet");
-    expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0046")?.slug).toBe("pierre-millet");
-    expect(resolveCanonicalComposerCredits("Pierre Millet", "PGO0034").map(({ profile }) => profile.slug)).toEqual(["pierre-millet", "ana-kap"]);
+    expect(getCanonicalComposerProfile("pierre-millet")).toBeUndefined();
+    expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0034")?.slug).toBe("ana-kap");
+    expect(getCanonicalComposerProfileForCredit("Pierre Millet", "PGO0046")).toBeUndefined();
+    expect(resolveCanonicalComposerCredits("Pierre Millet", "PGO0034").map(({ profile }) => profile.slug)).toEqual(["ana-kap"]);
   });
 
   it("maps the twelve new stage-name profiles and keeps collective relations album-scoped", () => {
@@ -65,9 +76,9 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Charlotte DURAN (NS)")?.slug).toBe("coeur");
     expect(getCanonicalComposerProfileForCredit("Charlotte Durand")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Charlie Duran")).toBeUndefined();
-    expect(canonicalComposerProfiles.find((profile) => profile.slug === "coeur")?.bio.fr).toContain("Charlotte Duran");
-    expect(canonicalComposerProfiles.find((profile) => profile.slug === "coeur")?.bio.en).toContain("Charlotte Duran");
-    expect(resolveCanonicalComposerCredits("Charlotte DURAN", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["coeur", "mutant-ninja"]);
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "coeur")?.bio.fr).toContain("Cœur est une autrice");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "coeur")?.bio.en).toContain("Cœur is a French singer-songwriter");
+    expect(resolveCanonicalComposerCredits("Charlotte DURAN", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["coeur"]);
     expect(resolveCanonicalComposerCredits("Charlotte DURAN", "PGO0040").map(({ profile }) => profile.slug)).toEqual(["coeur"]);
     expect(getCanonicalComposerProfileForCredit("Emmanuel MAREE (SACEM)")?.slug).toBe("emmanuel-maree");
     expect(getCanonicalComposerProfileForCredit("Rodney Lucas (BMI)")?.slug).toBe("f-stokes");
@@ -88,9 +99,19 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("THE REAL FAKE MC (SACEM)")?.slug).toBe("the-real-fake-mc");
     expect(getCanonicalComposerProfileForCredit("Samuel HIRSCH (NS)", "PGO0030")?.slug).toBe("arat-kilo");
     expect(getCanonicalComposerProfileForCredit("Samuel HIRSCH (NS)", "PGO0048")).toBeUndefined();
-    expect(resolveCanonicalComposerCredits("Liqid", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["liqid", "mutant-ninja"]);
+    expect(resolveCanonicalComposerCredits("Liqid", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0040").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(getCanonicalComposerProfileForCredit("The Well Quartet", "PGO0060")?.slug).toBe("the-well-quartet");
+  });
+
+  it("keeps Mutant Ninja contributors as unlinked credits when they have no public profile", () => {
+    expect(getCanonicalComposerProfile("mutant-ninja")).toBeUndefined();
+    expect(getCanonicalComposerProfileForCredit("Liqid")?.slug).toBe("liqid");
+    expect(getCanonicalComposerProfileForCredit("Bonetrips")?.slug).toBe("bonetrips");
+    expect(getCanonicalComposerProfileForCredit("Amaury Messelier")?.slug).toBe("arom");
+    expect(getCanonicalComposerProfileForCredit("Charlotte Duran")?.slug).toBe("coeur");
+    expect(getCanonicalComposerProfileForCredit("Tcheep")).toBeUndefined();
+    expect(getCanonicalComposerProfileForCredit("Chicho Cortez")).toBeUndefined();
   });
 
   it("exposes the preferred Harvest identity without merging distinct credited names", () => {
@@ -111,7 +132,7 @@ describe("canonical composer registry", () => {
     ]);
     expect(profiles.find((profile) => profile.slug === "after-in-paris")?.trackCount).toBe(1);
     expect(profiles.find((profile) => profile.slug === "ana-kap")?.trackCount).toBe(1);
-    expect(profiles.find((profile) => profile.slug === "pierre-millet")?.trackCount).toBe(2);
+    expect(profiles.find((profile) => profile.slug === "pierre-millet")).toBeUndefined();
   });
 
   it("counts distinct main works and keeps variants separate from Artist metadata", () => {

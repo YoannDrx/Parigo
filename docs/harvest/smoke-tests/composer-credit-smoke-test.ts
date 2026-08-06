@@ -122,10 +122,10 @@ async function main() {
   const registry = JSON.parse(
     await readFile(path.join(process.cwd(), "src/content/composer-profiles.generated.json"), "utf8"),
   ) as ComposerRegistry;
-  if (registry.profiles.length !== 57) throw new Error(`Le registre canonique contient ${registry.profiles.length} profils au lieu de 57.`);
+  if (registry.profiles.length !== 55) throw new Error(`Le registre canonique contient ${registry.profiles.length} profils au lieu de 55.`);
   const pairedBios = registry.profiles.filter((profile) => profile.bio.fr && profile.bio.en);
   const emptyBios = registry.profiles.filter((profile) => !profile.bio.fr && !profile.bio.en);
-  if (pairedBios.length !== 37 || emptyBios.length !== 8) {
+  if (pairedBios.length !== 55 || emptyBios.length !== 0) {
     throw new Error(`Bios canoniques invalides : ${pairedBios.length} complètes et ${emptyBios.length} vides.`);
   }
   const albumIndex = await getJson<{ data: { albums: ApiAlbum[] }; meta: { total: number } }>(
