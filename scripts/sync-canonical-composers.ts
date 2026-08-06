@@ -133,7 +133,7 @@ const profiles: ProfileSource[] = [
   { slug: "forever-pavot", name: "Forever Pavot", kind: "person", bioSlug: "emile-sornin-forever-pavot", imageSlug: "emile-sornin-forever-pavot", aliases: ["Emile Sornin", "Sornin Emile"], editorialArtistSlug: "emile-sornin-forever-pavot" },
   { slug: "frederic-hanak", name: "Frédéric Hanak", kind: "person", bioSlug: null, imageSlug: "frederic-hanak", aliases: ["Frédéric Hanak", "Frederic Hanak"], manualBioFile: "frederic-hanak.user-provided.json" },
   { slug: "madben", name: "Madben", kind: "person", bioSlug: "madben", imageSlug: "madben", cardImageTransform: { inset: 0.05, background: "#f0f0ee" }, aliases: ["Madben"] },
-  { slug: "arandel", name: "Arandel", kind: "person", bioSlug: "arandel", imageSlug: "arandel", aliases: ["Arandel"] },
+  { slug: "arandel", name: "Arandel", kind: "person", bioSlug: "arandel", imageSlug: "arandel", localImageFile: "arandel.jpg", aliases: ["Arandel"] },
   { slug: "the-architect", name: "The Architect", kind: "person", bioSlug: "the-architect", imageSlug: "the-architect", localImageFile: "the_architect.jpg", aliases: ["The Architect"] },
   {
     slug: "after-in-paris",

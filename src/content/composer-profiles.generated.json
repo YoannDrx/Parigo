@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T20:51:21.996Z",
+  "generatedAt": "2026-08-06T20:55:15.693Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -807,8 +807,8 @@
       "image": "/images/composers/canonical/arandel.webp",
       "detailImage": {
         "src": "/images/composers/detail/arandel.webp",
-        "width": 1074,
-        "height": 1074
+        "width": 843,
+        "height": 1069
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -828,6 +828,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "arandel"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "arandel.jpg"
         }
       }
     },

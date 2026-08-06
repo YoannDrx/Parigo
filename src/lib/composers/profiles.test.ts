@@ -44,7 +44,7 @@ describe("canonical composer registry", () => {
         en: biography.en,
       });
     }
-    for (const slug of ["aeon-seven", "after-in-paris", "ana-kap", "arom", "bruno-hovart", "daniel-amozig", "grand-david", "jb-hanak", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "of-ivory-and-horn", "patrice-dambrine", "stan-galouo", "the-architect", "the-well-quartet", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
+    for (const slug of ["aeon-seven", "after-in-paris", "ana-kap", "arandel", "arom", "bruno-hovart", "daniel-amozig", "grand-david", "jb-hanak", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "of-ivory-and-horn", "patrice-dambrine", "stan-galouo", "the-architect", "the-well-quartet", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
         source: "user-provided",
         imageOverride: { source: "user-provided" },
