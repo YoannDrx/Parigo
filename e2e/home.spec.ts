@@ -667,22 +667,38 @@ test("le son du showreel et son contrôle persistent pendant la navigation", asy
   ))).toContain("pause:audio");
 });
 
-test("la section compositeurs présente les talents sans cartes de principes", async ({ page }) => {
+test("la section compositeurs présente un flux désaxé de talents", async ({ page }, testInfo) => {
   await page.goto("/");
   const section = page.getByTestId("home-composers");
   await expect(section.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(section.getByText("Une maison de compositeurs", { exact: true })).toHaveCount(0);
   await expect(section).toContainText("Une musique ne naît jamais seule");
-  await expect(section).toContainText("Découvrez les talents qui donnent une identité unique au catalogue original Parigo.");
+  await expect(section).toContainText("Découvrez nos talents");
+  await expect(section).not.toContainText("Découvrez les talents qui donnent une identité unique au catalogue original Parigo.");
   await expect(section.getByRole("heading", { level: 3 })).toHaveCount(0);
   for (const removedCard of ["Écouter", "Accompagner", "Construire"]) {
     await expect(section.getByText(removedCard, { exact: true })).toHaveCount(0);
   }
   await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
-  await expect(section.getByRole("link", { name: /Découvrez les talents qui donnent une identité unique au catalogue original Parigo/ })).toHaveAttribute("href", "/compositeurs");
+  const cta = section.getByRole("link", { name: "Découvrez nos talents" });
+  await expect(cta).toHaveAttribute("href", "/compositeurs");
+  await expect(cta).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(cta.locator("span")).toHaveCSS("text-decoration-line", "underline");
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
-  await expect(section.locator('a[href^="/compositeurs/"]')).toHaveCount(5);
-  await expect(section.locator("img")).toHaveCount(5);
+  const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]');
+  await expect(primaryCards).toHaveCount(14);
+  await expect(section.locator('.composer-cloud__duplicate a[href^="/compositeurs/"]')).toHaveCount(14);
+  await expect(section.locator("img")).toHaveCount(28);
+  const verticalOffsets = await section.locator('.composer-cloud__group:not([aria-hidden="true"]) .composer-cloud__item').evaluateAll((items) => (
+    items.map((item) => getComputedStyle(item).paddingTop)
+  ));
+  expect(new Set(verticalOffsets).size).toBeGreaterThan(8);
+  const track = section.locator(".composer-cloud__track");
+  await expect(track).toHaveCSS("animation-name", "composer-cloud-drift");
+  if (testInfo.project.name === "desktop") {
+    await section.locator(".composer-cloud").hover();
+    await expect(track).toHaveCSS("animation-play-state", "paused");
+  }
   await expect(section.locator("header > p")).toHaveCount(1);
   await expect(section.locator("header > p")).toHaveCSS("border-top-width", "0px");
   await expect(page.getByTestId("composer-sticky-stage")).toHaveCount(0);
@@ -792,7 +808,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   const composers = page.getByTestId("home-composers");
   await expect(composers.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
-  await expect(composers.locator('a[href^="/compositeurs/"]')).toHaveCount(5);
+  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]')).toHaveCount(14);
 });
 
 test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }) => {
