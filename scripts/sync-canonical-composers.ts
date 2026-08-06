@@ -104,7 +104,7 @@ const profiles: ProfileSource[] = [
   { slug: "laurent-dury", name: "Laurent Dury", kind: "person", bioSlug: "laurent-dury", imageSlug: "laurent-dury", localImageFile: "laurent_dury.png", cardImageTransform: { extract: { left: 430, top: 250, width: 760, height: 760 }, position: "center" }, aliases: ["Laurent Dury"] },
   { slug: "liqid", name: "Liqid", kind: "person", bioSlug: "liqid", imageSlug: "liqid", aliases: ["Liqid"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", bioSlug: "bonetrips", imageSlug: "bonetrips", aliases: ["Bonetrips"] },
-  { slug: "coeur", name: "Cœur", kind: "person", bioSlug: "coeur", imageSlug: "coeur", aliases: ["Charlotte Duran"] },
+  { slug: "coeur", name: "Cœur", kind: "person", bioSlug: "coeur", imageSlug: "coeur", localImageFile: "coeur.jpg", aliases: ["Charlotte Duran"] },
   { slug: "arom", name: "Arom", kind: "person", bioSlug: "arom", imageSlug: "arom", localImageFile: "arom.jpg", aliases: ["Amaury Messelier", "AROM", "Arom"], legacySlugs: ["amaury-messelier"] },
   { slug: "minimatic", name: "Minimatic", kind: "person", bioSlug: "minimatic", imageSlug: "minimatic", localImageFile: "minimatic.jpg", aliases: ["Minimatic"] },
   {

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T20:55:15.693Z",
+  "generatedAt": "2026-08-06T20:59:09.031Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -411,8 +411,8 @@
       "image": "/images/composers/canonical/coeur.webp",
       "detailImage": {
         "src": "/images/composers/detail/coeur.webp",
-        "width": 795,
-        "height": 795
+        "width": 900,
+        "height": 900
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -432,6 +432,10 @@
           "repository": "portfolio-caro",
           "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
           "imageSlug": "coeur"
+        },
+        "imageOverride": {
+          "source": "user-provided",
+          "file": "coeur.jpg"
         }
       }
     },
