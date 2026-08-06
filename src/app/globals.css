@@ -527,15 +527,6 @@ textarea {
 }
 @media (max-width: 767px) {
   .page-hero__frame { min-height: 0; }
-  .page-hero__title {
-    font-size: clamp(2.5rem, 12vw, 3.15rem);
-  }
-  .page-hero__title--compact {
-    font-size: clamp(2.1rem, 10.4vw, 2.75rem);
-  }
-  .page-hero__title--long-word {
-    font-size: clamp(1.55rem, 8vw, 2.25rem);
-  }
   .page-hero__aside::before {
     width: 4rem;
     height: 1.75rem;
