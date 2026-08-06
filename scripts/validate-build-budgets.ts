@@ -5,9 +5,9 @@ import path from "node:path";
 const root = process.cwd();
 const nextRoot = path.join(root, ".next");
 const staticRoot = path.join(nextRoot, "static");
-// The editorial home, menu and floating audio controls intentionally add
-// responsive states while keeping a narrow margin over the current 128.8 KiB.
-const CSS_BUDGET = 132 * 1024;
+// The editorial home, menu and audio-card actions intentionally add responsive
+// states while keeping a narrow margin over the current 132.3 KiB.
+const CSS_BUDGET = 133 * 1024;
 // Persistent showreel and clip coordination adds 3.9 KiB Brotli to the shared
 // runtime while keeping a narrow margin over the current 204.7 KiB maximum.
 const DEFAULT_JS_BUDGET = 208 * 1024;
