@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-const CANONICAL_PROFILE_COUNT = 56;
+const CANONICAL_PROFILE_COUNT = 61;
 
 type ProfileSource = {
   slug: string;
@@ -65,6 +65,8 @@ const profiles: ProfileSource[] = [
   { slug: "dj-hertz", name: "DJ Hertz", kind: "person", aliases: ["Franck Sinnassamy", "DJ HERTZ", "DJ Hertz"], legacySlugs: ["franck-sinnassamy"] },
   { slug: "laurent-dury", name: "Laurent Dury", kind: "person", localImageFile: "laurent_dury.png", cardImageTransform: { extract: { left: 430, top: 250, width: 760, height: 760 }, position: "center" }, aliases: ["Laurent Dury"] },
   { slug: "liqid", name: "Liqid", kind: "person", aliases: ["Liqid"] },
+  { slug: "tcheep", name: "Tcheep", kind: "person", localImageFile: "tcheep.jpg", aliases: ["Tcheep"] },
+  { slug: "chicho-cortez", name: "Chicho Cortez", kind: "person", localImageFile: "chicho_cortez.jpeg", cardImageTransform: { fit: "contain", position: "center", background: "#000000" }, aliases: ["Chicho Cortez"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", aliases: ["Bonetrips"] },
   { slug: "coeur", name: "Cœur", kind: "person", localImageFile: "coeur.jpg", aliases: ["Charlotte Duran"] },
   { slug: "arom", name: "Arom", kind: "person", localImageFile: "arom.jpg", aliases: ["Amaury Messelier", "AROM", "Arom"], legacySlugs: ["amaury-messelier"] },
@@ -99,6 +101,9 @@ const profiles: ProfileSource[] = [
   },
   { slug: "thierry-los", name: "Thierry Los", kind: "person", localImageFile: "thierry_los.jpg", cardImageTransform: { inset: 0.06, background: "#eee6ad" }, aliases: ["Thierry Loshouarn", "Thierry Los"] },
   { slug: "nicolas-pisani", name: "Nicolas Pisani", kind: "person", localImageFile: "nicolas_pisani.jpg", aliases: ["Nicolas Pisani"] },
+  { slug: "blanka", name: "Blanka", kind: "person", localImageFile: "blanka.jpg", cardImageTransform: { position: "center" }, aliases: ["Blankalfe", "Blanka"] },
+  { slug: "gerz", name: "Gerz", kind: "person", localImageFile: "gerz.jpg", cardImageTransform: { position: "attention" }, aliases: ["Gerz Marcellino", "Marcellino Gerz"] },
+  { slug: "nsdos", name: "NSDOS", kind: "person", localImageFile: "nsdos.jpg", cardImageTransform: { position: "north" }, aliases: ["Brice Torres", "Torres Brice", "NSDOS"] },
   { slug: "nicodrum", name: "Nicodrum", kind: "person", aliases: ["Nicodrum", "Nicodrums", "Nicodrums & Friends", "Nicodrums Friends"], legacySlugs: ["nicodrums-friends"] },
   { slug: "2080", name: "2080", kind: "person", aliases: ["2080", "208"] },
   { slug: "jb-hanak", name: "JB Hanak", kind: "person", localImageFile: "jb_hanak.jpg", aliases: ["Jean-Baptiste Hanak", "Jean Baptiste Hanak", "JB HANAK"] },
@@ -124,7 +129,7 @@ const profiles: ProfileSource[] = [
   { slug: "stan-galouo", name: "Stan Galouo", kind: "person", localImageFile: "stan_galouo.png", cardImageTransform: { inset: 0.05, background: "#efefed" }, aliases: ["Stan Galouo"], legacySlugs: ["stan-galouo-palma-coco-reccords"] },
   { slug: "modulhater", name: "Modulhater", kind: "person", localImageFile: "modulhater.jpg", aliases: ["Modulhater"] },
   { slug: "ducer", name: "Ducer", kind: "person", aliases: ["Ducer"] },
-  { slug: "dj-troubl", name: "DJ Troubl", kind: "person", aliases: ["DJ TRoubl", "DJ Troubl"] },
+  { slug: "dj-troubl", name: "DJ Troubl", kind: "person", localImageFile: "dj_troubl.jpg", aliases: ["DJ TRoubl", "DJ Troubl"] },
   { slug: "of-ivory-and-horn", name: "Of Ivory & Horn", kind: "group", localImageFile: "of_ivory_and_horn.jpg", aliases: ["Of Ivory And Horn", "Of Ivory & Horn"], legacySlugs: ["of-ivory-horn"] },
   { slug: "mister-modo", name: "Mister Modo", kind: "person", localImageFile: "mister_modo.jpg", aliases: ["Mister Modo"] },
   { slug: "grand-david", name: "Le Grand David", kind: "person", localImageFile: "grand_david.jpeg", cardImageTransform: { position: "attention" }, aliases: ["Grand David", "Le Grand David"] },

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T19:54:24.568Z",
+  "generatedAt": "2026-08-07T21:49:32.446Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -45,7 +45,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aïwa.docx",
         "portraitFile": "public/images/composers/detail/aiwa.webp"
@@ -90,7 +90,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arat Kilo.docx",
         "portraitFile": "public/images/composers/detail/arat_kilo.webp"
@@ -121,7 +121,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Fabien Girard.docx",
         "portraitFile": "public/images/composers/detail/fabien_girard.webp"
@@ -152,7 +152,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Xavier Sibre.docx",
         "portraitFile": "xavier_sibre.jpg"
@@ -183,7 +183,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Ugly Mac Beer.docx",
         "portraitFile": "ugly_mac_beer.jpg"
@@ -214,7 +214,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Kornowicz.docx",
         "portraitFile": "public/images/composers/detail/yann_kornowicz.webp"
@@ -249,7 +249,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ HERTZ (Franck Sinnassamy).docx",
         "portraitFile": "public/images/composers/detail/dj_hertz.webp"
@@ -280,7 +280,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Laurent Dury.docx",
         "portraitFile": "laurent_dury.png"
@@ -311,10 +311,72 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Liqid.docx",
         "portraitFile": "public/images/composers/detail/liqid.webp"
+      }
+    },
+    {
+      "slug": "tcheep",
+      "name": "Tcheep",
+      "kind": "person",
+      "bio": {
+        "fr": "Tcheep est un beatmaker et producteur français dont l'univers puise ses racines dans la culture hip-hop, le sampling et l'art du digging. Cofondateur du label indépendant Mutant Ninja Records, il développe depuis de nombreuses années une approche très personnelle du beatmaking, façonnée notamment autour de sa SP-404, où le grain des samples, les rythmiques boom bap et les textures lo-fi occupent une place centrale.\n\nProducteur prolifique et insatiable explorateur sonore, Tcheep nourrit ses compositions d'influences particulièrement diverses : hip-hop East Coast, jazz, rock psychédélique, musiques traditionnelles d'Europe de l'Est ou encore sonorités orientales et indiennes. Cette curiosité donne naissance à une musique instrumentale où grooves chaleureux, mélodies évocatrices et recherche sonore se rencontrent avec une identité immédiatement reconnaissable.\n\nSa discographie témoigne de cette liberté créative. De l'univers mystérieux de Technodrome aux expérimentations psychédéliques d'Acid Monsters Temple, en passant par les couleurs orientales d'Oasis Mecanic et les trois volumes de Futuroscope, Tcheep navigue constamment entre beat tapes, hip-hop instrumental et paysages sonores cinématographiques. Des projets comme Biggie Bros. prolongent cette exploration en faisant dialoguer beats lo-fi, culture hip-hop et sonorités 8-bit inspirées du jeu vidéo.\n\nToujours en mouvement, Tcheep poursuit aujourd'hui ses expérimentations à travers de nouvelles productions, dont Mue, sorti en 2026. Entre culture du sample, machines et goût pour les croisements inattendus, il affirme une conception libre et instinctive du beatmaking, où chaque morceau devient un nouveau terrain d'exploration.",
+        "en": "Tcheep is a French beatmaker and producer whose musical universe is deeply rooted in hip-hop culture, sampling and the art of digging. Co-founder of the independent label Mutant Ninja Records, he has developed a highly personal approach to beatmaking over the years, shaped in particular around his SP-404, with dusty samples, boom-bap rhythms and lo-fi textures at the heart of his sound.\n\nA prolific producer and tireless sonic explorer, Tcheep draws inspiration from an exceptionally wide range of influences, including East Coast hip-hop, jazz, psychedelic rock, traditional Eastern European music, as well as Middle Eastern and Indian sounds. This curiosity gives rise to instrumental music where warm grooves, evocative melodies and sonic experimentation come together to form an instantly recognisable identity.\n\nHis discography reflects this creative freedom. From the mysterious world of Technodrome and the psychedelic experiments of Acid Monsters Temple to the Eastern-inspired colours of Oasis Mecanic and the three volumes of Futuroscope, Tcheep constantly moves between beat tapes, instrumental hip-hop and cinematic soundscapes. Projects such as Biggie Bros. extend this exploration even further, bringing together lo-fi beats, hip-hop culture and video game-inspired 8-bit sounds.\n\nAlways in motion, Tcheep continues to explore new musical territories through new productions, including Mue, released in 2026. Combining sample culture, machines and a taste for unexpected musical crossovers, he embraces a free and instinctive approach to beatmaking, turning each track into a new field of sonic exploration."
+      },
+      "image": "/images/composers/canonical/tcheep.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/tcheep.webp",
+        "width": 860,
+        "height": 860
+      },
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Tcheep"
+        ],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "Tcheep.docx",
+        "portraitFile": "tcheep.jpg"
+      }
+    },
+    {
+      "slug": "chicho-cortez",
+      "name": "Chicho Cortez",
+      "kind": "person",
+      "bio": {
+        "fr": "Chicho Cortez est un producteur et beatmaker français issu de la scène lyonnaise, dont l'univers puise profondément dans la culture hip-hop et l'art du sampling. Proche de l'écosystème Mutant Ninja Records, il développe une écriture fortement marquée par le boom-bap et le hip-hop des années 1990, où batteries percutantes, samples soigneusement travaillés et textures vintage composent un son à la fois brut, chaleureux et évocateur.\n\nAu fil de son parcours, Chicho Cortez multiplie les collaborations avec des artistes et producteurs tels que Tcheep, Bonetrips, Liqid ou Arom. Il participe notamment à différents projets liés à Mutant Ninja Records, parmi lesquels Liqid contre le reste du monde et la compilation Amal, pour laquelle il signe le titre Zaatari. Il collabore également avec Scratch Bandits Crew et Bonetrips sur Aiwa, issu de l'album Tangram Series.\n\nSon travail s'étend également à la production music et à la composition pour l'image. En 2021, il participe notamment à la composition de Célavie, interprété par Sainte Fortune avec Arom, Bonetrips et Liqid pour l'album Rap : à la française. En 2023, il retrouve Tcheep et Bonetrips autour de Lofi Hip Hop, album produit par PARIGO. À travers treize compositions mêlant beats feutrés, influences jazz, guitares, claviers et textures atmosphériques, le trio explore une facette plus contemplative du hip-hop instrumental, pensée autant pour l'écoute que pour accompagner l'image.\n\nEntre héritage du boom-bap, culture du sample et recherche sonore, Chicho Cortez développe une approche du beatmaking où le groove et la matière occupent une place centrale. Son parcours entre productions artistiques, collaborations et musique à l'image témoigne d'une même volonté : faire évoluer les codes du hip-hop instrumental tout en restant profondément attaché à ses racines.",
+        "en": "Chicho Cortez is a French producer and beatmaker from the Lyon music scene, whose work is deeply rooted in hip-hop culture and the art of sampling. Closely associated with the Mutant Ninja Records ecosystem, he has developed a style strongly influenced by boom-bap and 1990s hip-hop, where hard-hitting drums, carefully crafted samples and vintage textures come together to create a sound that is raw, warm and evocative.\n\nThroughout his career, Chicho Cortez has collaborated with artists and producers including Tcheep, Bonetrips, Liqid and Arom. He has contributed to several projects connected to Mutant Ninja Records, including Liqid contre le reste du monde and the compilation Amal, for which he produced the track Zaatari. He also collaborated with Scratch Bandits Crew and Bonetrips on Aiwa, featured on the album Tangram Series.\n\nHis work also extends to production music and composition for visual media. In 2021, he contributed to the composition of Célavie, performed by Sainte Fortune with Arom, Bonetrips and Liqid for the album Rap : à la française. In 2023, he reunited with Tcheep and Bonetrips for Lofi Hip Hop, an album produced by PARIGO. Across thirteen compositions blending mellow beats, jazz influences, guitars, keyboards and atmospheric textures, the trio explores a more contemplative side of instrumental hip-hop, created both for listening and to accompany visual storytelling.\n\nCombining the legacy of boom-bap, sample culture and sonic exploration, Chicho Cortez has developed an approach to beatmaking in which groove and texture take centre stage. His work across artistic productions, collaborations and music for visual media reflects a consistent desire to push instrumental hip-hop forward while remaining deeply connected to its roots."
+      },
+      "image": "/images/composers/canonical/chicho_cortez.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/chicho_cortez.webp",
+        "width": 176,
+        "height": 176
+      },
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Chicho Cortez"
+        ],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "Chicho Cortez.docx",
+        "portraitFile": "chicho_cortez.jpeg"
       }
     },
     {
@@ -342,7 +404,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bonetrips.docx",
         "portraitFile": "public/images/composers/detail/bonetrips.webp"
@@ -373,7 +435,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Cœur.docx",
         "portraitFile": "coeur.jpg"
@@ -408,7 +470,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "AROM.docx",
         "portraitFile": "arom.jpg"
@@ -439,7 +501,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Minimatic.docx",
         "portraitFile": "minimatic.jpg"
@@ -494,7 +556,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Sébastien Blanchon.docx",
         "portraitFile": "sebastien_blanchon.jpg"
@@ -526,7 +588,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Drixxxé.docx",
         "portraitFile": "drixxxe.jpg"
@@ -557,7 +619,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Emmanuel Marée.docx",
         "portraitFile": "public/images/composers/detail/emmanuel_maree.webp"
@@ -588,7 +650,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "F. Stokes.docx",
         "portraitFile": "public/images/composers/detail/f_stokes.webp"
@@ -620,7 +682,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Forever Pavot.docx",
         "portraitFile": "forever_pavot.jpg"
@@ -652,7 +714,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "frederic-hanak.docx",
         "portraitFile": "public/images/composers/detail/frederic_hanak.webp"
@@ -683,7 +745,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Madben.docx",
         "portraitFile": "public/images/composers/detail/madben.webp"
@@ -714,7 +776,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arandel.docx",
         "portraitFile": "arandel.jpg"
@@ -745,7 +807,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "The Architect.docx",
         "portraitFile": "the_architect.jpg"
@@ -780,7 +842,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "After in Paris.docx",
         "portraitFile": "after_in_paris.jpg"
@@ -812,7 +874,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Thierry Los.docx",
         "portraitFile": "thierry_los.jpg"
@@ -843,10 +905,107 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Nicolas Pisani.docx",
         "portraitFile": "nicolas_pisani.jpg"
+      }
+    },
+    {
+      "slug": "blanka",
+      "name": "Blanka",
+      "kind": "person",
+      "bio": {
+        "fr": "Blanka est un beatmaker, producteur et ingénieur du son français dont le parcours se construit depuis plus de vingt ans autour du hip-hop, de la culture du sample et de la recherche sonore. Né à Marseille, il est membre fondateur de La Fine Équipe aux côtés de oOgo, Mr Gib et Chomsky, avec lesquels il développe une musique nourrie par le hip-hop instrumental et les musiques électroniques. Des premiers volumes de La Boulangerie à Fantastic Planet, 5th Season et Cycles, le collectif s'est progressivement imposé sur la scène électronique française et internationale.\n\nEn parallèle, Blanka développe depuis 2006 Kasablanka Mastering, son propre studio de mastering. Formé à l'ingénierie du son au SAE Institute, il y façonne le son de plusieurs centaines de disques pour des artistes tels qu'Onra, Chinese Man, Kool Keith, Guts, Wax Tailor, Fakear ou Lomepal. Cette double expertise de beatmaker et d'ingénieur du son occupe une place centrale dans son approche de la production, du mixage et des arrangements.\n\nSon travail en solo lui permet d'explorer une facette plus personnelle de son univers. Après des projets comme Kasablanka, Hypnotic et Flares, il dévoile en 2024 Birds, un album à la croisée du lo-fi et du hip-hop instrumental, inspiré par son installation dans la campagne du sud de la France. Composé dans le studio qu'il y a construit, le disque transforme les sons et les rythmes de la nature environnante en matière musicale et accueille notamment Onra, Sara Lugo, King Krab, De Phase et Papa Rua.\n\nToujours très actif, Blanka poursuit en 2026 ses explorations en solo avec Faune et Me and You, en collaboration avec Moka Only, tout en retrouvant oOgo pour Confiseries & Bain-Marie, un projet qui fait dialoguer leurs racines hip-hop et skate avec des influences house et UK garage. Entre beatmaking, production, arrangements et maîtrise du son, Blanka développe ainsi une approche où culture du sample, sens du groove et exigence sonore se nourrissent en permanence.",
+        "en": "Blanka is a French beatmaker, producer and sound engineer whose career has been shaped for over two decades by hip-hop, sample culture and sonic exploration. Born in Marseille, he is a founding member of La Fine Équipe alongside oOgo, Mr Gib and Chomsky, with whom he has developed a sound rooted in instrumental hip-hop and electronic music. From the early La Boulangerie releases to Fantastic Planet, 5th Season and Cycles, the collective has gradually established itself on the French and international electronic music scenes.\n\nAlongside his work with the group, Blanka has been running his own mastering studio, Kasablanka Mastering, since 2006. Trained in sound engineering at SAE Institute, he has shaped the sound of several hundred records for artists including Onra, Chinese Man, Kool Keith, Guts, Wax Tailor, Fakear and Lomepal. This dual expertise as both a beatmaker and sound engineer plays a central role in his approach to production, mixing and arrangements.\n\nHis solo work allows him to explore a more personal side of his musical universe. Following projects such as Kasablanka, Hypnotic and Flares, he released Birds in 2024, an album at the crossroads of lo-fi and instrumental hip-hop, inspired by his move to the countryside in the south of France. Composed in the studio he built there, the album transforms the sounds and rhythms of the surrounding natural environment into musical material, and features collaborations with Onra, Sara Lugo, King Krab, De Phase and Papa Rua.\n\nStill highly active, Blanka continued his solo explorations in 2026 with Faune and Me and You, featuring Moka Only, while reuniting with oOgo for Confiseries & Bain-Marie, a project blending their hip-hop and skate culture roots with house and UK garage influences. Moving between beatmaking, production, arrangements and sound engineering, Blanka has developed an approach in which sample culture, a strong sense of groove and meticulous attention to sound constantly feed into one another."
+      },
+      "image": "/images/composers/canonical/blanka.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/blanka.webp",
+        "width": 400,
+        "height": 400
+      },
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Blankalfe",
+          "Blanka"
+        ],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "BLANKA.docx",
+        "portraitFile": "blanka.jpg"
+      }
+    },
+    {
+      "slug": "gerz",
+      "name": "Gerz",
+      "kind": "person",
+      "bio": {
+        "fr": "Gerz Marcellino est un DJ, producteur, turntablist et artiste visuel français originaire de Maisons-Alfort. Issu de la culture hip-hop et du scratch, il se fait connaître au début des années 2000 sur le circuit des championnats DMC, avant de devenir champion de France en 2003 puis en 2004 et de représenter la France lors des finales mondiales à Londres.\n\nDerrière les platines, il développe rapidement une approche décloisonnée du DJing, faisant dialoguer hip-hop, électronique et club music. Son parcours l'amène à se produire en France comme à l'international et à partager l'affiche avec des artistes tels que J Dilla, Kid Koala, Daedelus ou La Caution. Il accompagne également sur scène de nombreuses figures de la scène rap et alternative française, parmi lesquelles Orelsan, Svinkels, Grems, Triptik, Kohndo ou Gravité Zéro.\n\nParallèlement au turntablism, Gerz Marcellino développe dès le milieu des années 2000 son travail de producteur à travers de nombreux mixes et projets, parmi lesquels Welcome, Welcome 2, Sport Elek Trop Beat ou 7 3/8. Avec Dabaaz, il participe également à la création de l'univers Poyz & Pirlz, projet à la croisée du hip-hop, de la culture club, du graphisme et de la mode. Pour PARIGO, il collabore notamment avec Ugly Mac Beer sur le titre Hey Boy, issu de l'album Caught In The Trap.\n\nArtiste visuel et graffeur sous le nom Gerz, il prolonge cette même culture underground à travers le dessin et le graffiti, participant à différents collectifs et projets artistiques. Entre platines, production musicale et création graphique, Gerz Marcellino développe ainsi un univers où hip-hop, culture électronique et arts visuels se nourrissent mutuellement, dans une démarche profondément ancrée dans l'esprit indépendant et la culture urbaine.",
+        "en": "Gerz Marcellino is a French DJ, producer, turntablist and visual artist from Maisons-Alfort. Rooted in hip-hop culture and the art of scratching, he first gained recognition on the DMC competition circuit in the early 2000s, before becoming French DMC Champion in 2003 and again in 2004, representing France at the World Finals in London.\n\nBehind the decks, he quickly developed an open-minded approach to DJing, bringing together hip-hop, electronic music and club sounds. His career has taken him to stages across France and internationally, sharing line-ups with artists such as J Dilla, Kid Koala, Daedelus and La Caution. He has also performed alongside numerous figures from the French rap and alternative scenes, including Orelsan, Svinkels, Grems, Triptik, Kohndo and Gravité Zéro.\n\nAlongside turntablism, Gerz Marcellino began developing his work as a producer in the mid-2000s through numerous mixes and projects, including Welcome, Welcome 2, Sport Elek Trop Beat and 7 3/8. Together with Dabaaz, he also contributed to the creation of Poyz & Pirlz, a project at the crossroads of hip-hop, club culture, graphic design and fashion. For PARIGO, he notably collaborated with Ugly Mac Beer on the track Hey Boy, featured on the album Caught In The Trap.\n\nAs a visual artist and graffiti writer under the name Gerz, he extends this same underground culture through drawing and graffiti, taking part in various collectives and artistic projects. Moving between turntables, music production and visual creation, Gerz Marcellino has developed a distinctive universe where hip-hop, electronic culture and visual arts constantly feed into one another, driven by a deeply independent spirit and a strong connection to urban culture."
+      },
+      "image": "/images/composers/canonical/gerz.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/gerz.webp",
+        "width": 330,
+        "height": 355
+      },
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Gerz Marcellino",
+          "Marcellino Gerz"
+        ],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "GERZ MARCELLINO.docx",
+        "portraitFile": "gerz.jpg"
+      }
+    },
+    {
+      "slug": "nsdos",
+      "name": "NSDOS",
+      "kind": "person",
+      "bio": {
+        "fr": "NSDOS est un artiste pluridisciplinaire français né à Paris en 1984, dont le travail se situe à la croisée de la musique électronique, de la danse, des arts numériques et de la performance. Formé à l’Académie Internationale de la Danse, il commence à créer ses propres sons pour accompagner ses mouvements, faisant progressivement de la relation entre le corps, la musique et la technologie le cœur de sa démarche artistique.\n\nParfois qualifié de « hacker de la techno », NSDOS détourne les outils technologiques et les codes traditionnels de la musique électronique pour imaginer de nouvelles formes de création. Capteurs corporels, dispositifs interactifs, programmation et collecte de données deviennent autant d’instruments lui permettant de transformer le mouvement et son environnement en matière sonore. La structure mécanique de la techno rencontre ainsi une approche organique, dans laquelle le geste peut directement influencer le son.\n\nCette recherche l’amène à concevoir des performances qui dépassent le cadre traditionnel du concert. NSDOS explore différents territoires, environnements et dispositifs pour collecter des données, expérimenter de nouvelles interactions et questionner les relations entre l’humain et la machine. Le public est régulièrement intégré à cette démarche à travers des performances, installations, ateliers et master-classes.\n\nSon travail l’a conduit sur de nombreuses scènes et dans des institutions consacrées à la création contemporaine et aux arts numériques à travers le monde. Il s’est notamment produit dans le cadre des festivals MUTEK à Montréal, Mexico et Tokyo, du BIAN à Montréal, de la Biennale de Gwangju en Corée du Sud ou encore de la Triennale de Milan, affirmant la dimension internationale et transdisciplinaire de son parcours.\n\nÀ travers ses créations musicales comme ses performances, NSDOS développe une conception singulière de la musique électronique, envisagée comme un espace d’expérimentation où corps, machines, données et environnement interagissent en permanence. Son travail repousse ainsi les frontières entre composition, danse et arts numériques pour donner naissance à des expériences sonores et visuelles en constante évolution.",
+        "en": "NSDOS is a French multidisciplinary artist born in Paris in 1984, whose work lies at the intersection of electronic music, dance, digital arts and performance. Trained at the Académie Internationale de la Danse, he began creating his own sounds to accompany his movements, gradually making the relationship between the body, music and technology the core of his artistic practice.\n\nSometimes described as a “techno hacker”, NSDOS subverts technological tools and the traditional codes of electronic music to imagine new forms of creation. Body sensors, interactive devices, programming and data collection become instruments through which he transforms movement and his environment into sonic material. The mechanical structure of techno thus meets an organic approach, in which physical gestures can directly influence sound.\n\nThis research has led him to create performances that extend far beyond the traditional concert format. NSDOS explores different territories, environments and technological systems to collect data, experiment with new forms of interaction and question the relationship between humans and machines. Audiences are regularly invited to become part of this process through performances, installations, workshops and masterclasses.\n\nHis work has taken him to numerous stages and institutions dedicated to contemporary creation and digital arts around the world. He has notably appeared at MUTEK festivals in Montreal, Mexico City and Tokyo, BIAN in Montreal, the Gwangju Biennale in South Korea and the Milan Triennale, reflecting the international and transdisciplinary nature of his career.\n\nThrough both his musical creations and performances, NSDOS has developed a distinctive vision of electronic music as a space for experimentation, where bodies, machines, data and environments constantly interact. His work pushes the boundaries between composition, dance and digital arts, giving rise to sonic and visual experiences in constant evolution."
+      },
+      "image": "/images/composers/canonical/nsdos.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/nsdos.webp",
+        "width": 769,
+        "height": 960
+      },
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Brice Torres",
+          "Torres Brice",
+          "NSDOS"
+        ],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "NSDOS.docx",
+        "portraitFile": "nsdos.jpg"
       }
     },
     {
@@ -879,7 +1038,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Nicodrum.docx",
         "portraitFile": "public/images/composers/detail/nicodrum.webp"
@@ -911,7 +1070,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "2080.docx",
         "portraitFile": "public/images/composers/detail/2080.webp"
@@ -944,7 +1103,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "JB Hanak.docx",
         "portraitFile": "jb_hanak.jpg"
@@ -976,7 +1135,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aeon Seven.docx",
         "portraitFile": "aeon_seven.png"
@@ -1010,7 +1169,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Dan Amozig.docx",
         "portraitFile": "dan_amozig.jpg"
@@ -1041,7 +1200,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Jankielewicz.docx",
         "portraitFile": "public/images/composers/detail/yann_jankielewicz.webp"
@@ -1072,7 +1231,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Victor Baillet.docx",
         "portraitFile": "victor_baillet.jpg"
@@ -1103,7 +1262,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Vincent Bouhelier.docx",
         "portraitFile": "public/images/composers/detail/vincent_bouhelier.webp"
@@ -1140,7 +1299,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "ANA KAP.docx",
         "portraitFile": "ana_kap.jpg"
@@ -1174,7 +1333,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "ALEXIS MOLENAT.docx",
         "portraitFile": "public/images/composers/detail/alexis_molenat.webp"
@@ -1208,7 +1367,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Maxime Raynier.docx",
         "portraitFile": "public/images/composers/detail/maxime_raynier.webp"
@@ -1242,7 +1401,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Patrice Dambrine.docx",
         "portraitFile": "patrice_dambrine.jpg"
@@ -1273,7 +1432,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bruno Hovart.docx",
         "portraitFile": "bruno_hovart.jpg"
@@ -1308,7 +1467,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Sr Ortegon.docx",
         "portraitFile": "public/images/composers/detail/senior_ortegon.webp"
@@ -1341,7 +1500,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Stan Galouo.docx",
         "portraitFile": "stan_galouo.png"
@@ -1372,7 +1531,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Modulhater.docx",
         "portraitFile": "modulhater.jpg"
@@ -1403,7 +1562,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Ducer.docx",
         "portraitFile": "public/images/composers/detail/ducer.webp"
@@ -1420,8 +1579,8 @@
       "image": "/images/composers/canonical/dj_troubl.webp",
       "detailImage": {
         "src": "/images/composers/detail/dj_troubl.webp",
-        "width": 1000,
-        "height": 1000
+        "width": 1548,
+        "height": 1024
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -1435,10 +1594,10 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ TROUBL.docx",
-        "portraitFile": "public/images/composers/detail/dj_troubl.webp"
+        "portraitFile": "dj_troubl.jpg"
       }
     },
     {
@@ -1469,7 +1628,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Of Ivory & Horn (Dorian Chamoin).docx",
         "portraitFile": "of_ivory_and_horn.jpg"
@@ -1500,7 +1659,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Mister Modo.docx",
         "portraitFile": "mister_modo.jpg"
@@ -1532,7 +1691,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Le Grand David.docx",
         "portraitFile": "grand_david.jpeg"
@@ -1565,7 +1724,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Jean-Pierre Ménager.docx",
         "portraitFile": "public/images/composers/detail/jean_pierre_menager.webp"
@@ -1597,7 +1756,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Loic Laporte.docx",
         "portraitFile": "loic_laporte.webp"
@@ -1628,7 +1787,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Cyril laurent.docx",
         "portraitFile": "public/images/composers/detail/cyril_laurent.webp"
@@ -1659,7 +1818,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Charlotte Savary.docx",
         "portraitFile": "public/images/composers/detail/charlotte_savary.webp"
@@ -1693,7 +1852,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Schérazade.docx",
         "portraitFile": "public/images/composers/detail/scherazade_aissahine.webp"
@@ -1724,7 +1883,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Roma Luca.docx",
         "portraitFile": "public/images/composers/detail/roma_luca.webp"
@@ -1755,7 +1914,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "The Real Fake MC.docx",
         "portraitFile": "the_real_fake_mc.jpg"
@@ -1788,7 +1947,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Well Quartet.docx",
         "portraitFile": "the_well_quartet.jpeg"
@@ -1831,7 +1990,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Flore.docx",
         "portraitFile": "public/images/composers/detail/flore.webp"
@@ -1864,7 +2023,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T19:55:00.000Z",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "nouvelle bio latest CEDRIC HANAK.docx",
         "portraitFile": "cedric_hanak.jpg"

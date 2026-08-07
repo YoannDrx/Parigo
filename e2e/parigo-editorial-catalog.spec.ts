@@ -112,17 +112,22 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("l’annuaire publie exactement les 56 profils canoniques", async ({ page }) => {
+test("l’annuaire publie exactement les 61 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/talents");
   await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
   const directory = page.getByTestId("composer-directory-results");
-  await expect(directory.locator("a")).toHaveCount(56);
+  await expect(directory.locator("a")).toHaveCount(61);
   await expect(directory.locator('a[href="/talents/pierre-millet"]')).toHaveCount(0);
   await expect(directory.locator('a[href="/talents/mutant-ninja"]')).toHaveCount(0);
   await expect(directory.getByText("Schérazade", { exact: true })).toBeVisible();
   await expect(directory.getByText("Schérazade Aissahine", { exact: true })).toHaveCount(0);
   await expect(directory.locator('a[href="/talents/nicolas-pisani"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/tcheep"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/blanka"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/chicho-cortez"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/gerz"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/nsdos"]')).toHaveCount(1);
   const minimatic = directory.locator('a[href="/talents/minimatic"]');
   await expect(minimatic).toHaveCount(1);
   await minimatic.click();
@@ -176,6 +181,53 @@ test("Nicolas Pisani publie sa biographie, son portrait et son album Harvest", a
     "Nicolas Pisani est un compositeur, producteur, ingénieur du son et sound designer français",
   );
   await expect(page.getByRole("link").filter({ hasText: "Brand Content" }).first()).toBeVisible();
+});
+
+test("Tcheep, Blanka, Chicho Cortez, Gerz et NSDOS publient leurs portraits, bios et discographies exactes", async ({ page }) => {
+  test.setTimeout(120_000);
+
+  await page.goto("/talents/tcheep");
+  await expect(page.getByRole("heading", { level: 1, name: "Tcheep" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/tcheep/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Tcheep est un beatmaker et producteur français",
+  );
+  await expect(page.getByRole("link").filter({ hasText: "Diggin Hip-Hop Vol.2" }).first()).toBeVisible();
+  await expect(page.getByRole("link").filter({ hasText: "Lofi Hip Hop" }).first()).toBeVisible();
+
+  await page.goto("/talents/chicho-cortez");
+  await expect(page.getByRole("heading", { level: 1, name: "Chicho Cortez" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/chicho_cortez/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Chicho Cortez est un producteur et beatmaker français issu de la scène lyonnaise",
+  );
+  await expect(page.getByRole("link").filter({ hasText: "Caught In The Trap" }).first()).toBeVisible();
+  await expect(page.getByRole("link").filter({ hasText: "Lofi Hip Hop" }).first()).toBeVisible();
+
+  await page.goto("/talents/blanka");
+  await expect(page.getByRole("heading", { level: 1, name: "Blanka" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/blanka/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Blanka est un beatmaker, producteur et ingénieur du son français",
+  );
+  await expect(page.getByTestId("composer-biography")).not.toContainText("Je préfère nettement cette version");
+  await expect(page.getByRole("link").filter({ hasText: "Diggin Hip-Hop Vol.2" }).first()).toBeVisible();
+
+  await page.goto("/talents/gerz");
+  await expect(page.getByRole("heading", { level: 1, name: "Gerz" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/gerz/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Gerz Marcellino est un DJ, producteur, turntablist et artiste visuel français",
+  );
+  await expect(page.getByRole("link").filter({ hasText: "Caught In The Trap" }).first()).toBeVisible();
+
+  await page.goto("/talents/nsdos");
+  await expect(page.getByRole("heading", { level: 1, name: "NSDOS" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/nsdos/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "NSDOS est un artiste pluridisciplinaire français né à Paris en 1984",
+  );
+  await expect(page.getByRole("link").filter({ hasText: "Odyssey Suites And Remixes" }).first()).toBeVisible();
 });
 
 test("les quatre profils rematchés utilisent leurs noms, portraits et bios éditoriaux", async ({ page, request }) => {

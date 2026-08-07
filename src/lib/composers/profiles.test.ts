@@ -11,12 +11,12 @@ import {
 } from "./profiles";
 
 describe("canonical composer registry", () => {
-  it("contains exactly the 56 unique public profiles", () => {
-    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(56);
-    expect(canonicalComposerProfiles).toHaveLength(56);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(56);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(56);
-    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(56);
+  it("contains exactly the 61 unique public profiles", () => {
+    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(61);
+    expect(canonicalComposerProfiles).toHaveLength(61);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(61);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(61);
+    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(61);
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toMatchObject({
       src: "/images/composers/detail/loic_laporte.webp",
       width: 450,
@@ -29,13 +29,13 @@ describe("canonical composer registry", () => {
       .filter((profile) => profile.bio.fr === null && profile.bio.en === null)
       .map((profile) => profile.name);
     expect(withoutBio).toEqual([]);
-    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(56);
+    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(61);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.source === "local-editorial")).toBe(true);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.biographyFile === "site-biographies.user-provided.json")).toBe(true);
   });
 
   it("publishes the supplied biographies verbatim and records local portraits", () => {
-    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(56);
+    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(61);
     for (const [slug, biography] of Object.entries(suppliedBiographies.profiles)) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.bio).toEqual({
         fr: biography.fr,
@@ -43,6 +43,7 @@ describe("canonical composer registry", () => {
       });
     }
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "forever-pavot")?.provenance.portraitFile).toBe("forever_pavot.jpg");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "dj-troubl")?.provenance.portraitFile).toBe("dj_troubl.jpg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "vincent-bouhelier")?.provenance.portraitFile).toBe("public/images/composers/detail/vincent_bouhelier.webp");
   });
 
@@ -135,6 +136,90 @@ describe("canonical composer registry", () => {
     });
   });
 
+  it("maps Tcheep, Chicho Cortez, Blanka and Gerz to their exact Harvest credits", () => {
+    expect(getCanonicalComposerProfileForCredit("Tcheep (NS)")?.slug).toBe("tcheep");
+    expect(getCanonicalComposerProfileForCredit("Chicho Cortez (SACEM)")?.slug).toBe("chicho-cortez");
+    expect(getCanonicalComposerProfileForCredit("Blanka")?.slug).toBe("blanka");
+    expect(getCanonicalComposerProfileForCredit("Blankalfe (NS)")?.slug).toBe("blanka");
+    expect(getCanonicalComposerProfileForCredit("Gerz Marcellino (SACEM)")?.slug).toBe("gerz");
+    expect(getCanonicalComposerProfileForCredit("NSDOS")?.slug).toBe("nsdos");
+    expect(getCanonicalComposerProfileForCredit("Brice Torres (SACEM)")?.slug).toBe("nsdos");
+    expect(getCanonicalComposerProfileForCredit("Kirikoo Des")).toBeUndefined();
+
+    const summaries = collectCanonicalComposerSummaries([
+      {
+        id: "arcade-mode-main",
+        albumId: "2513d961b12a4144",
+        albumCode: "PGO0032",
+        albumTitle: "Diggin Hip-Hop Vol.2",
+        composers: ["Tcheep (NS)"],
+      },
+      {
+        id: "dark-knight-main",
+        albumId: "a115a18d4db049ea",
+        albumCode: "PGO0024",
+        albumTitle: "Caught In The Trap",
+        composers: ["Bonetrips (SACEM)", "Liqid (SACEM)", "Chicho Cortez (SACEM)"],
+      },
+      {
+        id: "adriatic-sunrise-main",
+        albumId: "fad15b61a412b1a7",
+        albumCode: "PGO0051",
+        albumTitle: "Lofi Hip Hop",
+        composers: ["Bonetrips", "Chicho Cortez", "Tcheep"],
+      },
+      {
+        id: "where-u-ah-main",
+        albumId: "2513d961b12a4144",
+        albumCode: "PGO0032",
+        albumTitle: "Diggin Hip-Hop Vol.2",
+        composers: ["Blankalfe (NS)"],
+      },
+      {
+        id: "hey-boy-main",
+        albumId: "a115a18d4db049ea",
+        albumCode: "PGO0024",
+        albumTitle: "Caught In The Trap",
+        composers: ["Ugly Mac Beer (SACEM)", "Gerz Marcellino (SACEM)"],
+      },
+      {
+        id: "take-off-nsdos-rework-main",
+        albumId: "5b425421282dc96d",
+        albumCode: "PGO0049",
+        albumTitle: "Odyssey Suites And Remixes",
+        composers: ["Sebastien Blanchon (SACEM)", "Brice Torres (SACEM)"],
+      },
+    ]);
+
+    expect(summaries.find((profile) => profile.slug === "tcheep")).toMatchObject({
+      trackCount: 2,
+      albumCodes: ["PGO0032", "PGO0051"],
+      albumTitles: ["Diggin Hip-Hop Vol.2", "Lofi Hip Hop"],
+    });
+    expect(summaries.find((profile) => profile.slug === "chicho-cortez")).toMatchObject({
+      trackCount: 2,
+      albumCodes: ["PGO0024", "PGO0051"],
+      albumTitles: ["Caught In The Trap", "Lofi Hip Hop"],
+    });
+    expect(summaries.find((profile) => profile.slug === "blanka")).toMatchObject({
+      trackCount: 1,
+      albumCodes: ["PGO0032"],
+      albumTitles: ["Diggin Hip-Hop Vol.2"],
+    });
+    expect(summaries.find((profile) => profile.slug === "gerz")).toMatchObject({
+      name: "Gerz",
+      trackCount: 1,
+      albumCodes: ["PGO0024"],
+      albumTitles: ["Caught In The Trap"],
+    });
+    expect(summaries.find((profile) => profile.slug === "nsdos")).toMatchObject({
+      name: "NSDOS",
+      trackCount: 1,
+      albumCodes: ["PGO0049"],
+      albumTitles: ["Odyssey Suites And Remixes"],
+    });
+  });
+
   it("uses the requested public spelling and casing for composer names", () => {
     expect(Object.fromEntries(canonicalComposerProfiles.map((profile) => [profile.slug, profile.name]))).toMatchObject({
       aiwa: "Aïwa",
@@ -143,7 +228,9 @@ describe("canonical composer registry", () => {
       "daniel-amozig": "Dan Amozig",
       "dj-hertz": "DJ Hertz",
       "dj-troubl": "DJ Troubl",
+      gerz: "Gerz",
       "loic-laporte": "Loïc Laporte",
+      nsdos: "NSDOS",
       "of-ivory-and-horn": "Of Ivory & Horn",
       "sebastien-blanchon-n-zeng": "Sébastien Blanchon",
       "senior-ortegon": "Sr Ortegon",
@@ -164,14 +251,14 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfile("the-real-fake-mc")?.provenance.portraitFile).toBe("the_real_fake_mc.jpg");
   });
 
-  it("keeps Mutant Ninja contributors as unlinked credits when they have no public profile", () => {
+  it("keeps remaining Mutant Ninja contributors as unlinked credits when they have no public profile", () => {
     expect(getCanonicalComposerProfile("mutant-ninja")).toBeUndefined();
     expect(getCanonicalComposerProfileForCredit("Liqid")?.slug).toBe("liqid");
     expect(getCanonicalComposerProfileForCredit("Bonetrips")?.slug).toBe("bonetrips");
     expect(getCanonicalComposerProfileForCredit("Amaury Messelier")?.slug).toBe("arom");
     expect(getCanonicalComposerProfileForCredit("Charlotte Duran")?.slug).toBe("coeur");
-    expect(getCanonicalComposerProfileForCredit("Tcheep")).toBeUndefined();
-    expect(getCanonicalComposerProfileForCredit("Chicho Cortez")).toBeUndefined();
+    expect(getCanonicalComposerProfileForCredit("Tcheep")?.slug).toBe("tcheep");
+    expect(getCanonicalComposerProfileForCredit("Chicho Cortez")?.slug).toBe("chicho-cortez");
   });
 
   it("exposes the preferred Harvest identity without merging distinct credited names", () => {
