@@ -295,8 +295,8 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
 
         <section data-testid="home-sync-section" className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
-            <SectionReveal className="mb-12 grid w-full min-w-0 gap-8 md:grid-cols-12"><div className="min-w-0 md:col-span-7"><SignedTitle as="h2" className="break-words text-[clamp(2.2rem,5vw,5.5rem)] leading-[.92]">{t("home.syncTitle")}</SignedTitle></div><p className="min-w-0 max-w-md break-words self-end text-[var(--inverse-muted)] md:col-span-4 md:col-start-9">{t("home.syncCopy")}</p></SectionReveal>
-            <HorizontalRail wide inverse tone="inverse" label={locale === "fr" ? "Nos synchronisations" : "Our synchronisations"}>
+            <SectionReveal className="mb-12 w-full min-w-0"><SignedTitle as="h2" className="max-w-[12ch] break-words text-[clamp(2.2rem,5vw,5.5rem)] leading-[.92]">{t("home.syncTitle")}</SignedTitle></SectionReveal>
+            <HorizontalRail wide inverse tone="inverse" label={locale === "fr" ? "Nos synchros" : "Our syncs"}>
               {syncs.map((sync) => (
                 <SynchronisationCard
                   key={sync.slug}

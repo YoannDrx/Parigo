@@ -173,15 +173,6 @@ body {
   transition: background-color var(--motion-medium) ease, color var(--motion-medium) ease;
 }
 
-body:has(.matching-admin-shell) #parigo-consent-banner {
-  display: none;
-}
-
-.matching-long-item {
-  content-visibility: auto;
-  contain-intrinsic-size: 0 128px;
-}
-
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
   font-weight: 620;

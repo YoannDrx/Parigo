@@ -52,7 +52,7 @@ export function PartnerMarquee() {
       <div className="relative mx-auto max-w-[1580px] px-4 md:px-8">
         <div className="grid gap-7 md:grid-cols-12 md:items-end">
           <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.8rem,5.5vw,6.2rem)] leading-[.9] tracking-[-.06em] text-white md:col-span-8">
-            {locale === "fr" ? "Ils nous ont fait confiance." : "They trust us."}
+            {locale === "fr" ? "Ils nous font confiance." : "They trust us."}
           </SignedTitle>
           <p className="max-w-sm border-t border-white/22 pt-4 text-sm leading-6 text-white/62 md:col-span-3 md:col-start-10">
             {locale === "fr"

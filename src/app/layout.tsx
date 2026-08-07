@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Archivo, Manrope, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { isLocale } from "@/lib/locale";
 import { siteConfig } from "@/lib/seo";
 import { CONSENT_UNSET } from "@/lib/consent";
 import { ClientCookieConsentBanner } from "@/components/privacy/ClientCookieConsentBanner";
+import type { Theme } from "@/components/providers/ThemeProvider";
 
 const archivo = Archivo({
   variable: "--font-heading",
@@ -61,18 +62,20 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const headerStore = await headers();
+  const [headerStore, cookieStore] = await Promise.all([headers(), cookies()]);
   const localeHeader = headerStore.get("x-parigo-locale");
   const locale = isLocale(localeHeader) ? localeHeader : "fr";
+  const storedTheme = cookieStore.get("parigo-theme")?.value;
+  const initialTheme: Theme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} data-theme={initialTheme} style={{ colorScheme: initialTheme }} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://d3vy0pmxxxelni.cloudfront.net" crossOrigin="" />
         <link rel="dns-prefetch" href="https://d3vy0pmxxxelni.cloudfront.net" />
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('parigo-theme');var v=t==='dark'||t==='light'?t:(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');document.documentElement.dataset.theme=v;document.documentElement.style.colorScheme=v}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('parigo-theme');var v=t==='dark'||t==='light'?t:(document.documentElement.dataset.theme||'dark');document.documentElement.dataset.theme=v;document.documentElement.style.colorScheme=v}catch(e){}})()`,
           }}
         />
       </head>
@@ -80,7 +83,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} antialiased`}
       >
-        <QueryProvider initialLocale={locale} initialConsentSnapshot={CONSENT_UNSET}>
+        <QueryProvider initialLocale={locale} initialConsentSnapshot={CONSENT_UNSET} initialTheme={initialTheme}>
           {children}
         </QueryProvider>
         <ClientCookieConsentBanner locale={locale} />
