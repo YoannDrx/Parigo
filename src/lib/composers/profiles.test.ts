@@ -11,12 +11,12 @@ import {
 } from "./profiles";
 
 describe("canonical composer registry", () => {
-  it("contains exactly the 55 unique public profiles", () => {
-    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(55);
-    expect(canonicalComposerProfiles).toHaveLength(55);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(55);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(55);
-    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(55);
+  it("contains exactly the 56 unique public profiles", () => {
+    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(56);
+    expect(canonicalComposerProfiles).toHaveLength(56);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(56);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(56);
+    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(56);
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toMatchObject({
       src: "/images/composers/detail/loic_laporte.webp",
       width: 450,
@@ -29,13 +29,13 @@ describe("canonical composer registry", () => {
       .filter((profile) => profile.bio.fr === null && profile.bio.en === null)
       .map((profile) => profile.name);
     expect(withoutBio).toEqual([]);
-    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(55);
+    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(56);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.source === "local-editorial")).toBe(true);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.biographyFile === "site-biographies.user-provided.json")).toBe(true);
   });
 
   it("publishes the supplied biographies verbatim and records local portraits", () => {
-    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(55);
+    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(56);
     for (const [slug, biography] of Object.entries(suppliedBiographies.profiles)) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.bio).toEqual({
         fr: biography.fr,
@@ -116,6 +116,23 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfile("jb-hanak")?.name).toBe("JB Hanak");
     expect(getCanonicalComposerProfileForCredit("Jean-Baptiste HANAK")?.name).toBe("JB Hanak");
     expect(getCanonicalComposerProfile("cedric-hanak")?.name).toBe("Cédric Hanak");
+  });
+
+  it("maps Nicolas Pisani to his Harvest credit and Parigo album", () => {
+    expect(getCanonicalComposerProfile("nicolas-pisani")?.name).toBe("Nicolas Pisani");
+    expect(getCanonicalComposerProfileForCredit("Nicolas Pisani")?.slug).toBe("nicolas-pisani");
+    expect(collectCanonicalComposerSummaries([{
+      id: "brand-content-main",
+      albumId: "25044b5c93c08771",
+      albumCode: "PGO0043",
+      albumTitle: "Brand Content",
+      composers: ["Franck SINNASSAMY", "Nicolas Pisani"],
+    }]).find((profile) => profile.slug === "nicolas-pisani")).toMatchObject({
+      trackCount: 1,
+      albumIds: ["25044b5c93c08771"],
+      albumCodes: ["PGO0043"],
+      albumTitles: ["Brand Content"],
+    });
   });
 
   it("uses the requested public spelling and casing for composer names", () => {
