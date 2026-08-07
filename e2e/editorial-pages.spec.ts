@@ -32,7 +32,7 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
 test("les titres signés et les grilles catalogue restent lisibles sur mobile", async ({ page }) => {
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
-    for (const path of ["/compositeurs", "/synchronisations", "/privacy"]) {
+    for (const path of ["/talents", "/synchronisations", "/privacy"]) {
       await page.goto(path);
       const frame = page.locator(".page-hero__frame");
       const title = frame.getByRole("heading", { level: 1 });
@@ -52,7 +52,7 @@ test("les titres signés et les grilles catalogue restent lisibles sur mobile", 
   }
 
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/compositeurs");
+  await page.goto("/talents");
   const composerCards = page.locator("[data-testid='composer-directory-results'] .composer-card");
   await expect(composerCards.nth(1)).toBeVisible();
   const [firstComposer, secondComposer] = await Promise.all([
@@ -109,7 +109,7 @@ test("la home expose une section Clips reliée à la vidéothèque", async ({ pa
 });
 
 test("la recherche compositeurs reste limitée aux profils publics canoniques", async ({ page }) => {
-  await page.goto("/compositeurs");
+  await page.goto("/talents");
   const search = page.getByPlaceholder("Rechercher par nom…");
   await expect(search).toBeVisible();
   const searchFrame = page.locator(".composer-directory-search");
@@ -263,6 +263,7 @@ test("le héros desktop conserve ses ondes autonomes sans forme organique", asyn
 });
 
 test("les ondes du héros gagnent du contraste uniquement en thème clair", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");
   const signal = page.getByTestId("home-hero").locator(".hero-signal-field");
   await expect(signal).toBeVisible();
@@ -381,7 +382,7 @@ test("la page des labels adopte l’intitulé Labels", async ({ page }) => {
 test("la page Clips porte l’introduction éditoriale complète", async ({ page }) => {
   await page.goto("/clips");
   await expect(page.locator("main")).toContainText("Clips officiels, making-of, performances et archives issus de la playlist YouTube Parigo.");
-  await expect(page.locator("main")).toContainText("Les créations audiovisuelles du label sont reliées aux compositeurs et aux albums.");
+  await expect(page.locator("main")).toContainText("Les relations avec les compositeurs sont validées éditorialement.");
 });
 
 test("le détail label privilégie le logo et ne renvoie plus vers son site", async ({ page }) => {
@@ -397,7 +398,7 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
 });
 
 test("le détail compositeur aligne le nom en bas du portrait sans arc décoratif", async ({ page }, testInfo) => {
-  await page.goto("/compositeurs/harvest-minimatic-ns-1w2ynwe");
+  await page.goto("/talents/harvest-minimatic-ns-1w2ynwe");
   const hero = page.locator(".editorial-detail-hero");
   await expect(hero).toBeVisible();
   expect(await hero.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
@@ -419,7 +420,7 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
     ["/playlists", "Catalogue / Sélections"],
     ["/licensing", "Licensing"],
     ["/label-parigo", "Parigo / Discographie"],
-    ["/compositeurs", "Talents Parigo"],
+    ["/talents", "Talents Parigo"],
     ["/clips", "Images en musique"],
     ["/labels", "Catalogue / Labels"],
     ["/about", "Parigo / Maison indépendante"],
