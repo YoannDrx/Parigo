@@ -31,7 +31,7 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
         <div className="mx-auto max-w-[1440px]">
           <ContextualBackLink href={localizedPath("/synchronisations")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
-            {locale === "fr" ? "Toutes les synchronisations" : "All syncs"}
+            {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
 
           <div className="mt-9 grid gap-7 lg:grid-cols-12 lg:items-start">

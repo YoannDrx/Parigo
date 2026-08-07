@@ -104,7 +104,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
             className="inline-flex items-center gap-2 text-[var(--text-muted)] transition-colors hover:text-[var(--foreground)]"
           >
             <ArrowLeft size={18} />
-            {t("common.back")} · {t("common.albums")}
+            {t("common.back")}
           </ContextualBackLink>
         </div>
 

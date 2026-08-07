@@ -10,8 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         "/api/",
         "/account/",
         "/en/account/",
-        "/admin/",
-        "/design-system",
         "/change-password/",
         "/reset-password/",
         "/engage-playlist/",

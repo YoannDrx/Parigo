@@ -14,6 +14,7 @@ import { ShowreelAudioProvider } from "./ShowreelAudioProvider";
 import { PlaybackCoordinatorProvider, usePlaybackCoordinator } from "./PlaybackCoordinatorProvider";
 import { ClipPlaybackProvider } from "./ClipPlaybackProvider";
 import { NavigationHistoryProvider } from "@/components/navigation/ContextualBackLink";
+import type { Theme } from "./ThemeProvider";
 
 function GlobalOverlays() {
   const authOpen = useAuthModalStore((state) => state.isOpen);
@@ -60,9 +61,9 @@ function GlobalOverlays() {
   );
 }
 
-export function QueryProvider({ children, initialLocale, initialConsentSnapshot }: { children: ReactNode; initialLocale: Locale; initialConsentSnapshot: string }) {
+export function QueryProvider({ children, initialLocale, initialConsentSnapshot, initialTheme }: { children: ReactNode; initialLocale: Locale; initialConsentSnapshot: string; initialTheme: Theme }) {
   return (
-    <ThemeProvider>
+    <ThemeProvider initialTheme={initialTheme}>
       <I18nProvider initialLocale={initialLocale}>
         <NavigationHistoryProvider>
           <PlaybackCoordinatorProvider>

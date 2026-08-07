@@ -47,15 +47,14 @@ export function NavigationHistoryProvider({ children }: { children: ReactNode })
 export function useContextualBack(href: string) {
   const previousPathname = useContext(NavigationHistoryContext);
   const router = useRouter();
-  const targetPathname = routePathname(href);
 
   return useCallback(() => {
-    if (previousPathname === targetPathname) {
+    if (previousPathname) {
       router.back();
       return;
     }
     router.push(href);
-  }, [href, previousPathname, router, targetPathname]);
+  }, [href, previousPathname, router]);
 }
 
 type ContextualBackLinkProps = Omit<ComponentProps<typeof Link>, "href" | "onNavigate"> & { href: string };
@@ -63,10 +62,9 @@ type ContextualBackLinkProps = Omit<ComponentProps<typeof Link>, "href" | "onNav
 export function ContextualBackLink({ href, ...props }: ContextualBackLinkProps) {
   const previousPathname = useContext(NavigationHistoryContext);
   const router = useRouter();
-  const targetPathname = routePathname(href);
 
   const handleNavigate: LinkProps["onNavigate"] = (event) => {
-    if (previousPathname !== targetPathname) return;
+    if (!previousPathname) return;
 
     event.preventDefault();
     router.back();

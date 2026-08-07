@@ -17,7 +17,7 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
   const Heading = `h${headingLevel}` as "h2" | "h3" | "h4";
   const albumCover = resizeArtworkSource(album.cover, priority ? 320 : 384);
   return (
-    <article data-album-card={album.id} className="album-card parigo-frame group/card relative min-w-0 border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
+    <article data-album-card={album.id} data-release-date={album.releaseDate || album.year || undefined} className="album-card parigo-frame group/card relative min-w-0 border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
         <Link href={localizedPath(`/albums/${album.id}`)} prefetch={false} className="block min-w-0 focus-visible:outline-none">
           <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
             <Image

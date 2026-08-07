@@ -17,7 +17,6 @@ import {
   Search,
   Tags,
   ChevronDown,
-  Shield,
 } from "lucide-react";
 import { useSession, signOut } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
@@ -114,7 +113,6 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
 
   // Logged in - show dropdown
   const user = session.user;
-  const isAdmin = (user as { role?: string }).role === "ADMIN";
   const initials = user.name
     ? user.name
         .split(" ")
@@ -208,16 +206,6 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
                 </Link>
               );})}
 
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  onClick={() => setIsOpen(false)}
-                  className="flex min-h-12 items-center gap-3 border-b border-[var(--line)] px-5 text-[var(--signal-strong)] transition-colors hover:bg-[var(--signal-soft)]"
-                >
-                  <Shield size={18} />
-                  <span className="text-sm font-medium">{locale === "fr" ? "Administration" : "Admin"}</span>
-                </Link>
-              )}
             </div>
 
             <div className="grid grid-cols-[1fr_auto] items-center gap-4 bg-[var(--surface-soft)] px-5 py-4">
