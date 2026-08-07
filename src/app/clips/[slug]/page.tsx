@@ -24,13 +24,12 @@ async function loadClip(slug: string) {
 export async function generateMetadata({ params }: ClipPageProps): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
   const clip = await loadClip(slug);
+  const title = clip.title[locale];
   return buildMetadata({
     locale,
     path: `/clips/${slug}`,
-    title: clip.title[locale],
-    description: clip.description?.[locale] || clip.subtitle?.[locale] || (locale === "fr"
-      ? `Découvrez le clip ${clip.title.fr}.`
-      : `Watch ${clip.title.en}.`),
+    title,
+    description: locale === "fr" ? `Découvrez le clip ${title}.` : `Watch ${title}.`,
     image: clip.cover,
   });
 }
@@ -39,13 +38,12 @@ export default async function ClipPage({ params }: ClipPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
   const clip = await loadClip(slug);
   const title = clip.title[locale];
-  const subtitle = clip.subtitle?.[locale];
-  const description = clip.description?.[locale];
+  const summary = locale === "fr" ? `Découvrez le clip ${title}.` : `Watch ${title}.`;
   const structuredData = clip.youtubeId ? {
     "@context": "https://schema.org",
     "@type": "VideoObject",
     name: title,
-    description: description || subtitle || title,
+    description: summary,
     thumbnailUrl: absoluteUrl(clip.cover),
     embedUrl: `https://www.youtube-nocookie.com/embed/${clip.youtubeId}`,
     contentUrl: `https://www.youtube.com/watch?v=${clip.youtubeId}`,
@@ -59,7 +57,7 @@ export default async function ClipPage({ params }: ClipPageProps) {
         <div className="mx-auto max-w-[1440px]">
           <ContextualBackLink href={localizedPath(locale, "/clips")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
-            {locale === "fr" ? "Tous les clips" : "All clips"}
+            {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
           <div className="editorial-detail-hero relative mt-9 grid gap-7 overflow-hidden pb-8 lg:grid-cols-12 lg:items-start">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
@@ -79,16 +77,14 @@ export default async function ClipPage({ params }: ClipPageProps) {
                 />
               </div>
             </div>
-            <aside className="flex min-h-full flex-col rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 lg:col-span-4 lg:p-8">
-              <SignedTitle className="text-[clamp(2.8rem,5.2vw,5.3rem)] font-semibold leading-[.88] tracking-[-.06em]">{title}</SignedTitle>
-              {subtitle && <p className="mt-5 font-semibold">{subtitle}</p>}
-              {description && <p className="mt-6 whitespace-pre-line text-base leading-7 text-[var(--text-muted)]">{description}</p>}
-              <p className="mt-6 border-l-2 border-[var(--signal)] pl-4 text-sm leading-6 text-[var(--text-muted)]">
-                {locale === "fr"
-                  ? "Vidéo et métadonnées issues de la playlist YouTube officielle. Aucun crédit compositeur n’est déduit localement."
-                  : "Video and metadata from the official YouTube playlist. No composer credit is inferred locally."}
-              </p>
-              <div className="mt-8 grid gap-3">
+            <aside data-testid="clip-detail-panel" className="flex min-h-full min-w-0 flex-col rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 lg:col-span-4 lg:p-8">
+              <SignedTitle
+                data-testid="clip-detail-title"
+                className="max-w-full [overflow-wrap:anywhere] text-[clamp(2.25rem,9vw,4.5rem)] font-semibold leading-[.9] tracking-[-.06em] sm:text-[clamp(2.75rem,7vw,5rem)] lg:text-[clamp(2.2rem,3.65vw,4.35rem)] [&_.parigo-signed-title__tail]:max-w-full [&_.parigo-signed-title__tail]:whitespace-normal [&_.parigo-signed-title__tail]:[overflow-wrap:anywhere]"
+              >
+                {title}
+              </SignedTitle>
+              <div className="mt-auto grid gap-3 pt-8">
                 {clip.youtubeId && (
                   <a href={`https://www.youtube.com/watch?v=${clip.youtubeId}`} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-between border border-[var(--line-strong)] px-4 text-sm font-semibold">
                     <span>YouTube</span>

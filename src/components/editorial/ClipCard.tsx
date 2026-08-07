@@ -6,9 +6,11 @@ import { ParigoVideoCard } from "./ParigoVideoCard";
 export function ClipCard({
   clip,
   locale,
+  headingLevel = "h2",
 }: {
   clip: EditorialVideo;
   locale: Locale;
+  headingLevel?: "h2" | "h3";
 }) {
   const title = clip.title[locale];
   const href = localizedPath(locale, `/clips/${clip.slug}`);
@@ -26,6 +28,7 @@ export function ClipCard({
       title={title}
       eyebrow={videoTypeLabels[clip.videoType][locale]}
       detail={clip.channelTitle || clip.subtitle?.[locale]}
+      headingLevel={headingLevel}
     />
   );
 }

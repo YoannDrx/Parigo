@@ -1,4 +1,18 @@
-import type { EditorialReviewState, VideoType } from "./contracts";
+export type VideoType =
+  | "official-video"
+  | "teaser"
+  | "making-of"
+  | "live"
+  | "performance"
+  | "award"
+  | "announcement"
+  | "archive"
+  | "other";
+
+export type EditorialReviewState = "verified" | "needs-review" | "rejected";
+
+export const CLIPS_PLAYLIST_ID = "PLOmwWioa-7rw";
+export const CLIPS_PLAYLIST_URL = `https://www.youtube.com/playlist?list=${CLIPS_PLAYLIST_ID}`;
 
 export interface EditorialVideo {
   slug: string;

@@ -1,38 +1,42 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
+import { getVideoComposerSlugs } from "./video-composer-relations";
 import { classifyVideoTitle } from "./video-classification";
-import type { EditorialVideo } from "./video-types";
+import { dedupeEditorialVideos, selectFeaturedEditorialVideos } from "./video-selection";
+import { CLIPS_PLAYLIST_ID, type EditorialVideo } from "./video-types";
 import { fetchYouTubePlaylist } from "@/lib/youtube/playlists";
 
-export const CLIPS_PLAYLIST_ID = "PLIqrBBZKnwyWMkXainshLgavNlTmx9AhG";
-export const CLIPS_PLAYLIST_URL = `https://www.youtube.com/playlist?list=${CLIPS_PLAYLIST_ID}`;
+export { CLIPS_PLAYLIST_ID, CLIPS_PLAYLIST_URL } from "./video-types";
 
 async function loadEditorialVideos(): Promise<EditorialVideo[]> {
-  const playlistId = process.env.YOUTUBE_CLIPS_PLAYLIST_ID || CLIPS_PLAYLIST_ID;
-  return (await fetchYouTubePlaylist(playlistId)).map((video): EditorialVideo => ({
-    slug: `yt-${video.youtubeId}`,
-    title: { fr: video.title, en: video.title },
-    description: video.description
-      ? { fr: video.description, en: video.description }
-      : undefined,
-    cover: video.thumbnail,
-    youtubeId: video.youtubeId,
-    composerSlugs: [],
-    videoType: classifyVideoTitle(video.title),
-    source: "youtube",
-    reviewState: "needs-review",
-    channelTitle: video.channelTitle,
-    publishedAt: video.publishedAt,
-    order: video.position,
-    published: true,
+  return dedupeEditorialVideos((await fetchYouTubePlaylist(CLIPS_PLAYLIST_ID)).map((video): EditorialVideo => {
+    const composerSlugs = getVideoComposerSlugs(video.youtubeId);
+    return {
+      slug: `yt-${video.youtubeId}`,
+      title: { fr: video.title, en: video.title },
+      description: video.description
+        ? { fr: video.description, en: video.description }
+        : undefined,
+      cover: video.thumbnail,
+      youtubeId: video.youtubeId,
+      composerSlugs,
+      videoType: classifyVideoTitle(video.title),
+      source: "youtube",
+      reviewState: "needs-review",
+      composerRelationSource: composerSlugs.length > 0 ? "manual" : undefined,
+      channelTitle: video.channelTitle,
+      publishedAt: video.publishedAt,
+      order: video.position,
+      published: true,
+    };
   }));
 }
 
 export const getEditorialVideos = unstable_cache(
   loadEditorialVideos,
-  ["youtube-clips-v1"],
-  { revalidate: 86400, tags: ["youtube", "clips", "editorial"] },
+  ["youtube-clips-v3", CLIPS_PLAYLIST_ID],
+  { revalidate: 3600, tags: ["youtube", "clips", "editorial"] },
 );
 
 export async function getEditorialVideo(slug: string): Promise<EditorialVideo | undefined> {
@@ -40,8 +44,9 @@ export async function getEditorialVideo(slug: string): Promise<EditorialVideo | 
 }
 
 export async function getFeaturedEditorialVideos(limit = 8): Promise<EditorialVideo[]> {
-  const videos = await getEditorialVideos();
-  const preferred = videos.filter((video) => video.videoType === "official-video" && video.youtubeId);
-  const fallback = videos.filter((video) => video.youtubeId && !preferred.includes(video));
-  return [...preferred, ...fallback].slice(0, limit);
+  return selectFeaturedEditorialVideos(await getEditorialVideos(), limit);
+}
+
+export async function getEditorialVideosForComposer(composerSlug: string): Promise<EditorialVideo[]> {
+  return (await getEditorialVideos()).filter((video) => video.composerSlugs.includes(composerSlug));
 }
