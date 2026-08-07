@@ -112,16 +112,17 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("l’annuaire publie exactement les 55 profils canoniques", async ({ page }) => {
+test("l’annuaire publie exactement les 56 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/talents");
   await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
   const directory = page.getByTestId("composer-directory-results");
-  await expect(directory.locator("a")).toHaveCount(55);
+  await expect(directory.locator("a")).toHaveCount(56);
   await expect(directory.locator('a[href="/talents/pierre-millet"]')).toHaveCount(0);
   await expect(directory.locator('a[href="/talents/mutant-ninja"]')).toHaveCount(0);
   await expect(directory.getByText("Schérazade", { exact: true })).toBeVisible();
   await expect(directory.getByText("Schérazade Aissahine", { exact: true })).toHaveCount(0);
+  await expect(directory.locator('a[href="/talents/nicolas-pisani"]')).toHaveCount(1);
   const minimatic = directory.locator('a[href="/talents/minimatic"]');
   await expect(minimatic).toHaveCount(1);
   await minimatic.click();
@@ -161,6 +162,20 @@ test("les nouveaux profils publient leurs noms de scène et le contenu disponibl
   expect(Math.abs(1 - patriceRatios.rendered)).toBeLessThan(0.02);
   expect(patriceRatios.objectFit).toBe("cover");
   await expect(page.getByText(/Patrice Dambrine est un musicien, compositeur et producteur français/)).toBeVisible();
+});
+
+test("Nicolas Pisani publie sa biographie, son portrait et son album Harvest", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/talents/nicolas-pisani");
+  await expect(page.getByRole("heading", { level: 1, name: "Nicolas Pisani" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute(
+    "src",
+    /\/images\/composers\/detail\/nicolas_pisani/,
+  );
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Nicolas Pisani est un compositeur, producteur, ingénieur du son et sound designer français",
+  );
+  await expect(page.getByRole("link").filter({ hasText: "Brand Content" }).first()).toBeVisible();
 });
 
 test("les quatre profils rematchés utilisent leurs noms, portraits et bios éditoriaux", async ({ page, request }) => {

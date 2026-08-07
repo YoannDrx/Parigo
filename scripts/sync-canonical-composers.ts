@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-const CANONICAL_PROFILE_COUNT = 55;
+const CANONICAL_PROFILE_COUNT = 56;
 
 type ProfileSource = {
   slug: string;
@@ -98,6 +98,7 @@ const profiles: ProfileSource[] = [
     memberAliases: ["Jean-Michel Vallet", "Claire Michael", "Patrick Chartol"],
   },
   { slug: "thierry-los", name: "Thierry Los", kind: "person", localImageFile: "thierry_los.jpg", cardImageTransform: { inset: 0.06, background: "#eee6ad" }, aliases: ["Thierry Loshouarn", "Thierry Los"] },
+  { slug: "nicolas-pisani", name: "Nicolas Pisani", kind: "person", localImageFile: "nicolas_pisani.jpg", aliases: ["Nicolas Pisani"] },
   { slug: "nicodrum", name: "Nicodrum", kind: "person", aliases: ["Nicodrum", "Nicodrums", "Nicodrums & Friends", "Nicodrums Friends"], legacySlugs: ["nicodrums-friends"] },
   { slug: "2080", name: "2080", kind: "person", aliases: ["2080", "208"] },
   { slug: "jb-hanak", name: "JB Hanak", kind: "person", localImageFile: "jb_hanak.jpg", aliases: ["Jean-Baptiste Hanak", "Jean Baptiste Hanak", "JB HANAK"] },
