@@ -24,7 +24,7 @@
         "2080"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "arandel",
@@ -49,7 +49,7 @@
         "Arandel"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "arom",
@@ -72,7 +72,7 @@
       "kind": "person",
       "harvestAliases": [],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "bonetrips",
@@ -97,7 +97,7 @@
         "Bonetrips"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "bruno-hovart",
@@ -118,7 +118,7 @@
         "Bruno Hovart"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "cally-reed",
@@ -139,7 +139,7 @@
         "Cally Reed"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "cedric-hanak",
@@ -164,7 +164,7 @@
         "Cédric Hanak"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "chicho-cortez",
@@ -185,7 +185,7 @@
         "Chicho Cortez"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "chris-kemp",
@@ -206,7 +206,7 @@
         "Chris Kemp"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "cory-tate",
@@ -228,7 +228,7 @@
         "Cory Tate"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "dan-amozig",
@@ -247,7 +247,7 @@
       "kind": "person",
       "harvestAliases": [],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "dj-hertz",
@@ -270,7 +270,7 @@
       "kind": "person",
       "harvestAliases": [],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "dj-troubl",
@@ -295,7 +295,7 @@
         "DJ Troubl"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "drixxxe",
@@ -321,7 +321,7 @@
         "Drixxxé"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "ducer",
@@ -342,7 +342,7 @@
         "Ducer"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "emmanuel-maree",
@@ -367,7 +367,7 @@
         "Emmanuel Marée"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "f-stokes",
@@ -386,7 +386,7 @@
       "kind": "person",
       "harvestAliases": [],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "fabien-girard",
@@ -407,7 +407,7 @@
         "Fabien Girard"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "frederic-hanak",
@@ -429,7 +429,7 @@
         "Frédéric Hanak"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "gerz-marcellino",
@@ -450,7 +450,7 @@
         "Gerz Marcellino"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "grand-david",
@@ -471,7 +471,7 @@
         "Grand David"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "jb-hanak",
@@ -490,7 +490,7 @@
       "kind": "person",
       "harvestAliases": [],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "jean-pierre-menager",
@@ -511,7 +511,7 @@
         "Jean-Pierre Ménager"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "laurent-dury",
@@ -537,7 +537,7 @@
         "Laurent Dury"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "liqid",
@@ -562,7 +562,7 @@
         "Liqid"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "madben",
@@ -588,7 +588,7 @@
         "Madben"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "minimatic",
@@ -621,7 +621,7 @@
         }
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "mister-modo",
@@ -642,7 +642,7 @@
         "Mister Modo"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "modulhater",
@@ -667,7 +667,7 @@
         "Modulhater"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "mutant-ninja-records",
@@ -709,7 +709,7 @@
       "kind": "group",
       "harvestAliases": [],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "n-zeng",
@@ -728,7 +728,7 @@
         "N’ZENG"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "nicolas-pisani",
@@ -753,7 +753,7 @@
         "Nicolas Pisani"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "of-ivory-horn",
@@ -774,7 +774,7 @@
         "Of Ivory & Horn"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "pierre-millet",
@@ -795,7 +795,7 @@
         "Pierre Millet"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "rebecca-meyer",
@@ -815,7 +815,7 @@
         "Rebecca Meyer"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "sebastien-blanchon",
@@ -840,7 +840,7 @@
         "Sébastien Blanchon"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "sr-ortegon",
@@ -861,7 +861,7 @@
         "Sr Ortegon"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "tcheep",
@@ -886,7 +886,7 @@
         "Tcheep"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "the-architect",
@@ -912,7 +912,7 @@
         "The Architect"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "the-real-fake-mc",
@@ -931,7 +931,7 @@
         "The Real Fake MC"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "ugly-mac-beer",
@@ -962,7 +962,7 @@
         "Ugly Mac Beer"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "yann-jankielewicz",
@@ -983,7 +983,7 @@
         "Yann Jankielewicz"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     },
     {
       "slug": "yann-kornowicz",
@@ -1009,7 +1009,7 @@
         "Yann Kornowicz"
       ],
       "published": true,
-      "source": "portfolio-caro"
+      "source": "local-editorial"
     }
   ],
   "clips": [
@@ -1030,7 +1030,7 @@
       ],
       "relatedAlbumCode": "PGO0025",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
       "composerRelationSource": "manual",
       "albumRelationSource": "manual",
@@ -1055,10 +1055,10 @@
       ],
       "relatedAlbumCode": "PGO0035",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 32,
       "published": true
     },
@@ -1080,10 +1080,10 @@
       ],
       "relatedAlbumCode": "PGO0049",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 33,
       "published": true
     },
@@ -1106,10 +1106,10 @@
       ],
       "relatedAlbumCode": "PGO0044",
       "videoType": "making-of",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 39,
       "published": true
     },
@@ -1132,10 +1132,10 @@
       ],
       "relatedAlbumCode": "PGO0044",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 40,
       "published": true
     },
@@ -1154,7 +1154,7 @@
       "youtubeId": "10LSc8MjTmM",
       "composerSlugs": [],
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
       "order": 42,
       "published": true
@@ -1174,7 +1174,7 @@
       "youtubeId": "6JYSP7NekGo",
       "composerSlugs": [],
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
       "order": 45,
       "published": true
@@ -1197,10 +1197,10 @@
       ],
       "relatedAlbumCode": "PGO0043",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 47,
       "published": true
     },
@@ -1220,9 +1220,9 @@
       "composerSlugs": [],
       "relatedAlbumCode": "PGO0025",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "albumRelationSource": "portfolio-caro",
+      "albumRelationSource": "local-editorial",
       "order": 49,
       "published": true
     },
@@ -1244,10 +1244,10 @@
       ],
       "relatedAlbumCode": "PGO0051",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 59,
       "published": true
     },
@@ -1269,9 +1269,9 @@
         "ugly-mac-beer"
       ],
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
       "order": 61,
       "published": true
     },
@@ -1293,10 +1293,10 @@
       ],
       "relatedAlbumCode": "PGO0045",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 64,
       "published": true
     },
@@ -1318,10 +1318,10 @@
       ],
       "relatedAlbumCode": "PGO0050",
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
-      "albumRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
+      "albumRelationSource": "local-editorial",
       "order": 65,
       "published": true
     },
@@ -1343,9 +1343,9 @@
         "cedric-hanak"
       ],
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
       "order": 71,
       "published": true
     },
@@ -1367,9 +1367,9 @@
         "yann-kornowicz"
       ],
       "videoType": "official-video",
-      "source": "portfolio-caro",
+      "source": "local-editorial",
       "reviewState": "verified",
-      "composerRelationSource": "portfolio-caro",
+      "composerRelationSource": "local-editorial",
       "order": 73,
       "published": true
     }

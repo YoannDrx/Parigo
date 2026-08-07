@@ -342,6 +342,36 @@ test("About adopte les nouveaux textes et Licensing ouvre sur une grille replié
   await expect(page.getByRole("link", { name: /Parler d.un projet/i })).toHaveCount(0);
 });
 
+test("About laisse le récit poursuivre sa lecture sous l’image sans colonne étriquée", async ({ page }) => {
+  await page.setViewportSize({ width: 1100, height: 900 });
+  await page.goto("/about");
+
+  const story = page.locator(".about-story");
+  const flow = await story.evaluate((element) => {
+    const image = element.querySelector("img")?.getBoundingClientRect();
+    const lastParagraph = element.querySelector("p:last-child");
+    if (!image || !lastParagraph) return null;
+    const range = document.createRange();
+    range.selectNodeContents(lastParagraph);
+    return {
+      image: { left: image.left, right: image.right, bottom: image.bottom },
+      lines: [...range.getClientRects()].map((rect) => ({ left: rect.left, right: rect.right, top: rect.top })),
+    };
+  });
+
+  expect(flow).not.toBeNull();
+  expect(flow!.lines.some((line) => line.top >= flow!.image.bottom - 1 && line.left < flow!.image.right)).toBe(true);
+
+  await page.setViewportSize({ width: 800, height: 900 });
+  await page.reload();
+  const imageBox = await page.getByRole("img", { name: "Le Monde de demain — Parigo" }).boundingBox();
+  const headingBox = await page.getByRole("heading", { level: 1, name: "Une librairie avant tout" }).boundingBox();
+  expect(imageBox).not.toBeNull();
+  expect(headingBox).not.toBeNull();
+  expect(headingBox!.y).toBeGreaterThan(imageBox!.y + imageBox!.height);
+  expect(headingBox!.width).toBeGreaterThan(650);
+});
+
 test("la page des labels adopte l’intitulé Labels", async ({ page }) => {
   await page.goto("/labels");
   await expect(page.getByRole("heading", { level: 1, name: "Labels" })).toBeVisible();

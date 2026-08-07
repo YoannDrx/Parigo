@@ -10,10 +10,10 @@ export interface EditorialVideo {
   composerSlugs: string[];
   relatedAlbumCode?: string;
   videoType: VideoType;
-  source: "portfolio-caro" | "youtube" | "harvest";
+  source: "local-editorial" | "youtube" | "harvest";
   reviewState: EditorialReviewState;
-  composerRelationSource?: "portfolio-caro" | "harvest" | "manual";
-  albumRelationSource?: "portfolio-caro" | "harvest" | "manual";
+  composerRelationSource?: "local-editorial" | "harvest" | "manual";
+  albumRelationSource?: "local-editorial" | "harvest" | "manual";
   channelTitle?: string;
   publishedAt?: string;
   order: number;

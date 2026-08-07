@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-06T20:59:09.031Z",
+  "generatedAt": "2026-08-07T09:03:12.000Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -44,15 +44,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aïwa.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "aiwa"
-        }
+        "portraitFile": "portraits/aiwa.webp"
       }
     },
     {
@@ -93,15 +89,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arat Kilo.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "arat-kilo"
-        }
+        "portraitFile": "portraits/arat_kilo.webp"
       }
     },
     {
@@ -128,15 +120,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Fabien Girard.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "fabien-girard"
-        }
+        "portraitFile": "portraits/fabien_girard.webp"
       }
     },
     {
@@ -163,19 +151,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Xavier Sibre.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": null
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "xavier_sibre.jpg"
-        }
+        "portraitFile": "xavier_sibre.jpg"
       }
     },
     {
@@ -202,19 +182,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Ugly Mac Beer.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "ugly-mac-beer"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "ugly_mac_beer.jpg"
-        }
+        "portraitFile": "ugly_mac_beer.jpg"
       }
     },
     {
@@ -241,15 +213,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Kornowicz.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "yann-kornowicz"
-        }
+        "portraitFile": "portraits/yann_kornowicz.webp"
       }
     },
     {
@@ -280,15 +248,11 @@
         "franck-sinnassamy"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ HERTZ (Franck Sinnassamy).docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "dj-hertz"
-        }
+        "portraitFile": "portraits/dj_hertz.webp"
       }
     },
     {
@@ -315,19 +279,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Laurent Dury.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "laurent-dury"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "laurent_dury.png"
-        }
+        "portraitFile": "laurent_dury.png"
       }
     },
     {
@@ -354,15 +310,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Liqid.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "liqid"
-        }
+        "portraitFile": "portraits/liqid.webp"
       }
     },
     {
@@ -389,15 +341,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bonetrips.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "bonetrips"
-        }
+        "portraitFile": "portraits/bonetrips.webp"
       }
     },
     {
@@ -424,19 +372,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Cœur.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "coeur"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "coeur.jpg"
-        }
+        "portraitFile": "coeur.jpg"
       }
     },
     {
@@ -467,19 +407,11 @@
         "amaury-messelier"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "AROM.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "arom"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "arom.jpg"
-        }
+        "portraitFile": "arom.jpg"
       }
     },
     {
@@ -506,19 +438,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Minimatic.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "minimatic"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "minimatic.jpg"
-        }
+        "portraitFile": "minimatic.jpg"
       }
     },
     {
@@ -569,22 +493,11 @@
         "n-zeng"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Sébastien Blanchon.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "sebastien-blanchon"
-        },
-        "imageOverride": {
-          "source": "portfolio-caro-git",
-          "repository": "portfolio-caro",
-          "commit": "03a28ab9431751a42cd5d4d1a7a8bb3b8dd821e3",
-          "path": "public/images/projets/photoscompo/sebastienblanchon.jpg",
-          "file": "sebastien_blanchon.jpg"
-        }
+        "portraitFile": "sebastien_blanchon.jpg"
       }
     },
     {
@@ -612,19 +525,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Drixxxé.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "drixxxe"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "drixxxe.jpg"
-        }
+        "portraitFile": "drixxxe.jpg"
       }
     },
     {
@@ -651,15 +556,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Emmanuel Marée.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "emmanuel-maree"
-        }
+        "portraitFile": "portraits/emmanuel_maree.webp"
       }
     },
     {
@@ -686,15 +587,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "F. Stokes.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "f-stokes"
-        }
+        "portraitFile": "portraits/f_stokes.webp"
       }
     },
     {
@@ -708,8 +605,8 @@
       "image": "/images/composers/canonical/forever_pavot.webp",
       "detailImage": {
         "src": "/images/composers/detail/forever_pavot.webp",
-        "width": 1080,
-        "height": 1080
+        "width": 1275,
+        "height": 1600
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -722,15 +619,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Forever Pavot.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "emile-sornin-forever-pavot"
-        }
+        "portraitFile": "forever_pavot.jpg"
       }
     },
     {
@@ -758,15 +651,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "frederic-hanak.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "frederic-hanak"
-        }
+        "portraitFile": "portraits/frederic_hanak.webp"
       }
     },
     {
@@ -793,15 +682,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Madben.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "madben"
-        }
+        "portraitFile": "portraits/madben.webp"
       }
     },
     {
@@ -828,19 +713,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arandel.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "arandel"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "arandel.jpg"
-        }
+        "portraitFile": "arandel.jpg"
       }
     },
     {
@@ -867,19 +744,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "The Architect.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "the-architect"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "the_architect.jpg"
-        }
+        "portraitFile": "the_architect.jpg"
       }
     },
     {
@@ -910,19 +779,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "After in Paris.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "after-in-paris"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "after_in_paris.jpg"
-        }
+        "portraitFile": "after_in_paris.jpg"
       }
     },
     {
@@ -950,19 +811,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Thierry Los.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": null
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "thierry_los.jpg"
-        }
+        "portraitFile": "thierry_los.jpg"
       }
     },
     {
@@ -994,15 +847,11 @@
         "nicodrums-friends"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Nicodrum.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "nicodrums-friends"
-        }
+        "portraitFile": "portraits/nicodrum.webp"
       }
     },
     {
@@ -1030,15 +879,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "2080.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "2080"
-        }
+        "portraitFile": "portraits/2080.webp"
       }
     },
     {
@@ -1067,19 +912,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "JB Hanak.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "jb-hanak"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "jb_hanak.jpg"
-        }
+        "portraitFile": "jb_hanak.jpg"
       }
     },
     {
@@ -1107,19 +944,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aeon Seven.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "aeon-seven"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "aeon_seven.png"
-        }
+        "portraitFile": "aeon_seven.png"
       }
     },
     {
@@ -1149,19 +978,11 @@
         "dan-amozig"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Dan Amozig.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "dan-amozig"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "dan_amozig.jpg"
-        }
+        "portraitFile": "dan_amozig.jpg"
       }
     },
     {
@@ -1188,15 +1009,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Jankielewicz.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "yann-jankielewicz"
-        }
+        "portraitFile": "portraits/yann_jankielewicz.webp"
       }
     },
     {
@@ -1223,19 +1040,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Victor Baillet.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "mr-viktor"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "victor_baillet.jpg"
-        }
+        "portraitFile": "victor_baillet.jpg"
       }
     },
     {
@@ -1262,15 +1071,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Vincent Bouhelier.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "aociz"
-        }
+        "portraitFile": "portraits/vincent_bouhelier.webp"
       }
     },
     {
@@ -1303,19 +1108,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "ANA KAP.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "ana-kap"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "ana_kap.jpg"
-        }
+        "portraitFile": "ana_kap.jpg"
       }
     },
     {
@@ -1345,15 +1142,11 @@
         "alexis-molenat-les-cavaliers"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "ALEXIS MOLENAT.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "alexis-molenat-les-cavaliers"
-        }
+        "portraitFile": "portraits/alexis_molenat.webp"
       }
     },
     {
@@ -1383,15 +1176,11 @@
         "maxime-raynier-les-arondes"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Maxime Raynier.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "maxime-raynier-les-arondes"
-        }
+        "portraitFile": "portraits/maxime_raynier.webp"
       }
     },
     {
@@ -1421,19 +1210,11 @@
         "patrice-dambrine-viro-major-records"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Patrice Dambrine.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "patrice-dambrine-viro-major-records"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "patrice_dambrine.jpg"
-        }
+        "portraitFile": "patrice_dambrine.jpg"
       }
     },
     {
@@ -1460,19 +1241,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bruno Hovart.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "bruno-hovart"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "bruno_hovart.jpg"
-        }
+        "portraitFile": "bruno_hovart.jpg"
       }
     },
     {
@@ -1503,15 +1276,11 @@
         "sr-ortegon"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Sr Ortegon.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "sr-ortegon"
-        }
+        "portraitFile": "portraits/senior_ortegon.webp"
       }
     },
     {
@@ -1540,19 +1309,11 @@
         "stan-galouo-palma-coco-reccords"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Stan Galouo.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "stan-galouo-palma-coco-reccords"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "stan_galouo.png"
-        }
+        "portraitFile": "stan_galouo.png"
       }
     },
     {
@@ -1579,19 +1340,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Modulhater.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "modulhater"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "modulhater.jpg"
-        }
+        "portraitFile": "modulhater.jpg"
       }
     },
     {
@@ -1618,15 +1371,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Ducer.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "ducer"
-        }
+        "portraitFile": "portraits/ducer.webp"
       }
     },
     {
@@ -1654,15 +1403,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ TROUBL.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "dj-troubl"
-        }
+        "portraitFile": "portraits/dj_troubl.webp"
       }
     },
     {
@@ -1692,19 +1437,11 @@
         "of-ivory-horn"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Of Ivory & Horn (Dorian Chamoin).docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "of-ivory-horn"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "of_ivory_and_horn.jpg"
-        }
+        "portraitFile": "of_ivory_and_horn.jpg"
       }
     },
     {
@@ -1731,19 +1468,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Mister Modo.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "mister-modo"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "mister_modo.jpg"
-        }
+        "portraitFile": "mister_modo.jpg"
       }
     },
     {
@@ -1771,19 +1500,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Le Grand David.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "grand-david"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "grand_david.jpeg"
-        }
+        "portraitFile": "grand_david.jpeg"
       }
     },
     {
@@ -1812,15 +1533,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Jean-Pierre Ménager.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "jean-pierre-menager"
-        }
+        "portraitFile": "portraits/jean_pierre_menager.webp"
       }
     },
     {
@@ -1848,19 +1565,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Loic Laporte.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": null
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "loic_laporte.webp"
-        }
+        "portraitFile": "loic_laporte.webp"
       }
     },
     {
@@ -1887,15 +1596,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Cyril laurent.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "cyril-laurent"
-        }
+        "portraitFile": "portraits/cyril_laurent.webp"
       }
     },
     {
@@ -1922,15 +1627,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Charlotte Savary.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "charlotte-savary"
-        }
+        "portraitFile": "portraits/charlotte_savary.webp"
       }
     },
     {
@@ -1960,15 +1661,11 @@
         "scherazade"
       ],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Schérazade.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "scherazade"
-        }
+        "portraitFile": "portraits/scherazade_aissahine.webp"
       }
     },
     {
@@ -1995,15 +1692,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Roma Luca.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "roma-luca"
-        }
+        "portraitFile": "portraits/roma_luca.webp"
       }
     },
     {
@@ -2030,22 +1723,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "The Real Fake MC.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "the-real-fake-mc"
-        },
-        "imageOverride": {
-          "source": "portfolio-caro-git",
-          "repository": "portfolio-caro",
-          "commit": "03a28ab9431751a42cd5d4d1a7a8bb3b8dd821e3",
-          "path": "public/images/projets/photoscompo/therealfakemc.jpg",
-          "file": "the_real_fake_mc.jpg"
-        }
+        "portraitFile": "the_real_fake_mc.jpg"
       }
     },
     {
@@ -2074,19 +1756,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Well Quartet.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "well-quartet"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "the_well_quartet.jpeg"
-        }
+        "portraitFile": "the_well_quartet.jpeg"
       }
     },
     {
@@ -2125,15 +1799,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Flore.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "flore"
-        }
+        "portraitFile": "portraits/flore.webp"
       }
     },
     {
@@ -2162,19 +1832,11 @@
       },
       "legacySlugs": [],
       "provenance": {
-        "source": "user-provided",
+        "source": "local-editorial",
         "capturedAt": "2026-08-06T10:09:44.000Z",
-        "bioFile": "site-biographies.user-provided.json",
+        "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "nouvelle bio latest CEDRIC HANAK.docx",
-        "imageSource": {
-          "repository": "portfolio-caro",
-          "commit": "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2",
-          "imageSlug": "cedric-hanak"
-        },
-        "imageOverride": {
-          "source": "user-provided",
-          "file": "cedric_hanak.jpg"
-        }
+        "portraitFile": "cedric_hanak.jpg"
       }
     }
   ]

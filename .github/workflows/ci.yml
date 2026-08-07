@@ -2,13 +2,17 @@ name: Quality, Preview and promotion
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
   push:
     branches: [main]
   workflow_dispatch:
 
 concurrency:
-  group: parigo-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 env:
   NODE_VERSION: "22"
@@ -17,33 +21,86 @@ env:
 
 jobs:
   quality:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      trusted_merge: ${{ steps.provenance.outputs.trusted }}
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
       - uses: actions/checkout@v6
+
+      - name: Check whether main already passed the protected PR gate
+        id: provenance
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if pull_requests="$(gh api "/repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/pulls" 2>/dev/null)"; then
+            merged_count="$(jq --arg sha "$GITHUB_SHA" '[
+              .[]
+              | select(
+                  .merged_at != null
+                  and .base.ref == "main"
+                  and .merge_commit_sha == $sha
+                )
+            ] | length' <<< "$pull_requests")"
+          else
+            merged_count=0
+          fi
+
+          if [ "$merged_count" -gt 0 ]; then
+            echo "trusted=true" >> "$GITHUB_OUTPUT"
+            echo "This commit reached protected main through a merged pull request." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "trusted=false" >> "$GITHUB_OUTPUT"
+            echo "No merged pull request was found; the complete quality suite will run." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - uses: pnpm/action-setup@v6
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
         with:
           version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v6
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm audit --prod --audit-level=high
-      - run: pnpm validate:assets
+      - name: Install dependencies
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
+        run: pnpm lint
+      - name: Typecheck
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
+        run: pnpm typecheck
+      - name: Unit and contract tests
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
+        run: pnpm test
+      - name: Production dependency audit
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
+        run: pnpm audit --prod --audit-level=high
+      - name: Public asset contracts
+        if: github.event_name != 'push' || steps.provenance.outputs.trusted != 'true'
+        run: pnpm validate:assets
 
   preview:
     # Dependabot pull requests only receive Dependabot secrets, not the Vercel
     # Actions secrets used below. They still run the complete quality job.
-    if: github.event_name != 'pull_request' || github.actor != 'dependabot[bot]'
+    if: >-
+      always()
+      && needs.quality.result == 'success'
+      && (github.event_name != 'pull_request' || github.actor != 'dependabot[bot]')
+      && (github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main')
     needs: quality
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    timeout-minutes: 15
     outputs:
-      url: ${{ steps.deploy.outputs.url }}
+      url: ${{ steps.result.outputs.url }}
+      reused: ${{ steps.result.outputs.reused }}
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -53,26 +110,93 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm dlx vercel@${VERCEL_CLI_VERSION} pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Find the exact pull request Preview for main
+        id: reuse
+        if: github.event_name == 'push' && needs.quality.outputs.trusted_merge == 'true'
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        run: |
+          tree_sha="$(git rev-parse 'HEAD^{tree}')"
+          deployments="$(pnpm dlx vercel@${VERCEL_CLI_VERSION} list parigo \
+            --scope "$VERCEL_ORG_ID" \
+            --status READY \
+            --limit 20 \
+            --meta "parigoGitTreeSha=$tree_sha" \
+            --meta "parigoCiSource=pull-request" \
+            --format=json \
+            --token=${{ secrets.VERCEL_TOKEN }})"
+          url="$(jq -r '[.deployments[] | select(.target == null)][0].url // empty' <<< "$deployments")"
+
+          if [ -n "$url" ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "url=https://$url" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install dependencies for a new Preview
+        if: github.event_name == 'pull_request' || steps.reuse.outputs.found != 'true'
+        run: pnpm install --frozen-lockfile
+      - name: Pull Preview environment
+        if: github.event_name == 'pull_request' || steps.reuse.outputs.found != 'true'
+        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-      - run: pnpm dlx vercel@${VERCEL_CLI_VERSION} build --token=${{ secrets.VERCEL_TOKEN }}
+      - name: Build Preview artifact
+        if: github.event_name == 'pull_request' || steps.reuse.outputs.found != 'true'
+        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} build --token=${{ secrets.VERCEL_TOKEN }}
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-      - run: pnpm validate:budgets
-      - id: deploy
-        run: echo "url=$(pnpm dlx vercel@${VERCEL_CLI_VERSION} deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})" >> "$GITHUB_OUTPUT"
+      - name: Build budgets
+        if: github.event_name == 'pull_request' || steps.reuse.outputs.found != 'true'
+        run: pnpm validate:budgets
+      - name: Deploy Preview artifact
+        id: deploy
+        if: github.event_name == 'pull_request' || steps.reuse.outputs.found != 'true'
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          tree_sha="$(git rev-parse 'HEAD^{tree}')"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            source="pull-request"
+          else
+            source="main-fallback"
+          fi
+          url="$(pnpm dlx vercel@${VERCEL_CLI_VERSION} deploy --prebuilt --yes \
+            --meta "parigoGitTreeSha=$tree_sha" \
+            --meta "parigoCiSource=$source" \
+            --meta "parigoCiRunId=${GITHUB_RUN_ID}" \
+            --token=${{ secrets.VERCEL_TOKEN }})"
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve verified Preview
+        id: result
+        env:
+          REUSED_URL: ${{ steps.reuse.outputs.url }}
+          DEPLOYED_URL: ${{ steps.deploy.outputs.url }}
+        run: |
+          if [ -n "$REUSED_URL" ]; then
+            echo "url=$REUSED_URL" >> "$GITHUB_OUTPUT"
+            echo "reused=true" >> "$GITHUB_OUTPUT"
+            echo "Reused the pull request Preview with the same Git tree: $REUSED_URL" >> "$GITHUB_STEP_SUMMARY"
+          elif [ -n "$DEPLOYED_URL" ]; then
+            echo "url=$DEPLOYED_URL" >> "$GITHUB_OUTPUT"
+            echo "reused=false" >> "$GITHUB_OUTPUT"
+            echo "Created a new Preview: $DEPLOYED_URL" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No Preview URL was produced." >&2
+            exit 1
+          fi
 
   preview-tests:
     needs: preview
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -91,7 +215,7 @@ jobs:
           HARVEST_SESSION_SECRET: ${{ secrets.HARVEST_SESSION_SECRET }}
           PLAYWRIGHT_BASE_URL: ${{ needs.preview.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      - name: Full browser suite on main
+      - name: Full browser suite before promotion
         if: github.event_name != 'pull_request'
         run: pnpm test:e2e
         env:
@@ -100,7 +224,8 @@ jobs:
           HARVEST_SESSION_SECRET: ${{ secrets.HARVEST_SESSION_SECRET }}
           PLAYWRIGHT_BASE_URL: ${{ needs.preview.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
-      - run: pnpm test:seo
+      - name: SEO contracts on the Preview
+        run: pnpm test:seo
         env:
           SEO_BASE_URL: ${{ needs.preview.outputs.url }}
           VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
@@ -114,9 +239,10 @@ jobs:
             test-results
 
   preview-lighthouse:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: preview
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
@@ -145,9 +271,10 @@ jobs:
           include-hidden-files: true
 
   promote:
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: [preview, preview-tests, preview-lighthouse]
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6

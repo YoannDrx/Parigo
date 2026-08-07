@@ -1,14 +1,8 @@
 {
   "schemaVersion": 1,
   "source": {
-    "repository": "portfolio-caro",
     "commitSha": "6e88259a2634d82c7fc7cc723fbd3537da9371af",
-    "capturedAt": "2026-07-30T21:30:08.929Z",
-    "files": [
-      "seed-data/artists.json",
-      "seed-data/works.json",
-      "lib/workRelations.ts"
-    ]
+    "capturedAt": "2026-07-30T21:30:08.929Z"
   },
   "metrics": {
     "artists": 69,

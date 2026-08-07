@@ -26,7 +26,7 @@ test("le dashboard est public par URL mais exclu des moteurs", async ({ page, re
   await expect(page.getByText(/L’API Harvest décrit le catalogue actuel/)).toBeVisible();
 });
 
-test("les inventaires Portfolio et Sheet restent exhaustifs", async ({ page }) => {
+test("les inventaires éditoriaux locaux restent exhaustifs", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/admin/matching");
 
@@ -36,7 +36,7 @@ test("les inventaires Portfolio et Sheet restent exhaustifs", async ({ page }) =
   await expect(page.getByRole("button", { name: /Non détectés dans Harvest/ })).toBeVisible();
 
   await page.getByText("Sources & diagnostic").click();
-  await page.getByRole("button", { name: "Sheet Caroline" }).click();
+  await page.getByRole("button", { name: "Tableau éditorial" }).click();
   await expect(page.getByTestId("matching-sheet-row")).toHaveCount(96);
   await expect(page.getByText("À vérifier", { exact: true }).first()).toBeVisible();
 });
@@ -53,7 +53,7 @@ test("une décision reste locale et peut être préparée dans le panneau", asyn
   await expect.poll(() => page.evaluate(() => window.localStorage.getItem("parigo-matching-review-v1"))).not.toBeNull();
 });
 
-test("les liens Portfolio et les corrections rapides restent opérationnels", async ({ page }) => {
+test("les corrections rapides restent locales et aucun lien vers une source externe n’est exposé", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/admin/matching");
 
@@ -65,7 +65,8 @@ test("les liens Portfolio et les corrections rapides restent opérationnels", as
 
   await page.getByRole("button", { name: "Compositeurs", exact: true }).click();
   await expect(page.locator('a[href^="/compositeurs/"]').first()).toBeVisible();
-  await expect(page.locator('a[href^="https://synck-psi.vercel.app/fr/artistes/"]').first()).toBeVisible();
+  await expect(page.locator('a[href*="synck-psi.vercel.app"]')).toHaveCount(0);
+  await expect(page.getByText("Copie locale Parigo").first()).toBeVisible();
 });
 
 test("les tableaux gardent leur en-tête et le sélecteur multiple reste lisible", async ({ page }) => {

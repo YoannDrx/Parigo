@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import suppliedBiographies from "@/content/composer-sources/site-biographies.user-provided.json";
 import {
-  CANONICAL_COMPOSER_SOURCE_COMMIT,
   CANONICAL_COMPOSER_PROFILE_COUNT,
   canonicalComposerProfiles,
   collectCanonicalComposerSummaries,
@@ -25,18 +24,17 @@ describe("canonical composer registry", () => {
     });
   });
 
-  it("keeps pinned, dated or user-provided provenance and leaves only unattested bios empty", () => {
-    expect(CANONICAL_COMPOSER_SOURCE_COMMIT).toBe("02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2");
+  it("keeps every biography and portrait as a dated local editorial source", () => {
     const withoutBio = canonicalComposerProfiles
       .filter((profile) => profile.bio.fr === null && profile.bio.en === null)
       .map((profile) => profile.name);
     expect(withoutBio).toEqual([]);
     expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(55);
-    expect(canonicalComposerProfiles.find((profile) => profile.slug === "thierry-los")?.provenance.source).toBe("user-provided");
-    expect(canonicalComposerProfiles.find((profile) => profile.slug === "frederic-hanak")?.provenance.source).toBe("user-provided");
+    expect(canonicalComposerProfiles.every((profile) => profile.provenance.source === "local-editorial")).toBe(true);
+    expect(canonicalComposerProfiles.every((profile) => profile.provenance.biographyFile === "site-biographies.user-provided.json")).toBe(true);
   });
 
-  it("publishes the supplied biographies verbatim and records portrait overrides", () => {
+  it("publishes the supplied biographies verbatim and records local portraits", () => {
     expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(55);
     for (const [slug, biography] of Object.entries(suppliedBiographies.profiles)) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.bio).toEqual({
@@ -44,12 +42,8 @@ describe("canonical composer registry", () => {
         en: biography.en,
       });
     }
-    for (const slug of ["aeon-seven", "after-in-paris", "ana-kap", "arandel", "arom", "bruno-hovart", "cedric-hanak", "coeur", "daniel-amozig", "drixxxe", "grand-david", "jb-hanak", "laurent-dury", "loic-laporte", "minimatic", "mister-modo", "modulhater", "of-ivory-and-horn", "patrice-dambrine", "stan-galouo", "the-architect", "the-well-quartet", "thierry-los", "ugly-mac-beer", "xavier-sibre"]) {
-      expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.provenance).toMatchObject({
-        source: "user-provided",
-        imageOverride: { source: "user-provided" },
-      });
-    }
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "forever-pavot")?.provenance.portraitFile).toBe("forever_pavot.jpg");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "vincent-bouhelier")?.provenance.portraitFile).toBe("portraits/vincent_bouhelier.webp");
   });
 
   it("maps the four editorial profiles without leaking stage names into Harvest aliases", () => {
@@ -148,23 +142,9 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Schérazade Aissahine")?.slug).toBe("scherazade-aissahine");
   });
 
-  it("records the exact high-resolution historical portraits restored from the portfolio", () => {
-    expect(getCanonicalComposerProfile("sebastien-blanchon-n-zeng")?.provenance).toMatchObject({
-      imageOverride: {
-        source: "portfolio-caro-git",
-        repository: "portfolio-caro",
-        commit: "03a28ab9431751a42cd5d4d1a7a8bb3b8dd821e3",
-        path: "public/images/projets/photoscompo/sebastienblanchon.jpg",
-      },
-    });
-    expect(getCanonicalComposerProfile("the-real-fake-mc")?.provenance).toMatchObject({
-      imageOverride: {
-        source: "portfolio-caro-git",
-        repository: "portfolio-caro",
-        commit: "03a28ab9431751a42cd5d4d1a7a8bb3b8dd821e3",
-        path: "public/images/projets/photoscompo/therealfakemc.jpg",
-      },
-    });
+  it("keeps restored high-resolution portraits as Parigo-owned files", () => {
+    expect(getCanonicalComposerProfile("sebastien-blanchon-n-zeng")?.provenance.portraitFile).toBe("sebastien_blanchon.jpg");
+    expect(getCanonicalComposerProfile("the-real-fake-mc")?.provenance.portraitFile).toBe("the_real_fake_mc.jpg");
   });
 
   it("keeps Mutant Ninja contributors as unlinked credits when they have no public profile", () => {
