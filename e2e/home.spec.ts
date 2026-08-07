@@ -174,7 +174,11 @@ test("la connexion traduit l’erreur d’un compte non vérifié", async ({ pag
 });
 
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
-  await page.goto("/");
+  for (const colorScheme of ["light", "dark"] as const) {
+    await page.emulateMedia({ colorScheme });
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  }
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   }
@@ -192,7 +196,19 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   const themeControls = testInfo.project.name === "mobile"
     ? page.locator("#global-menu")
     : page.locator("body");
-  await themeControls.getByRole("button", { name: "Switch to dark theme" }).click();
+  await themeControls.getByRole("button", { name: "Switch to light theme" }).click();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await page.reload();
+  await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
+  await waitForHeaderHydration(page);
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(page.locator("#global-menu")).toBeVisible();
+  }
+  const restoredThemeControls = testInfo.project.name === "mobile"
+    ? page.locator("#global-menu")
+    : page.locator("body");
+  await restoredThemeControls.getByRole("button", { name: "Switch to dark theme" }).click();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
@@ -274,7 +290,7 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
     "/playlists",
     "/licensing",
     "/clips",
-    "/compositeurs",
+    "/talents",
   ]);
   if (testInfo.project.name === "mobile") {
     await expect(menu.getByText("Compte", { exact: true })).toBeVisible();
@@ -320,7 +336,7 @@ test("le footer reprend l’ordre du menu et sépare le compte des réseaux soci
     "/playlists",
     "/licensing",
     "/clips",
-    "/compositeurs",
+    "/talents",
   ]);
 
   const account = footer.getByRole("button", { name: /Créer un compte Parigo/ });
@@ -415,7 +431,7 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     expect(inverseColors.control).not.toBe(inverseColors.section);
   }
   await expect(featured.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
-  const dedicatedSyncSection = page.getByRole("heading", { name: "Nos synchronisations" }).locator("xpath=ancestor::section");
+  const dedicatedSyncSection = page.getByRole("heading", { name: "Nos synchros" }).locator("xpath=ancestor::section");
   const firstSync = dedicatedSyncSection.locator('a[href^="/synchronisations/"]').first();
   const firstSyncCard = firstSync.locator("xpath=ancestor::article");
   await expect(firstSync).toBeVisible();
@@ -681,14 +697,14 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   }
   await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
   const cta = section.getByRole("link", { name: "Découvrez nos talents" });
-  await expect(cta).toHaveAttribute("href", "/compositeurs");
+  await expect(cta).toHaveAttribute("href", "/talents");
   await expect(cta).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
   await expect(cta.locator("span")).toHaveCSS("text-decoration-line", "underline");
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
-  const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]');
+  const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/talents/"]');
   await expect(primaryCards).toHaveCount(55);
   await expect(primaryCards.locator("svg")).toHaveCount(0);
-  await expect(section.locator('.composer-cloud__duplicate a[href^="/compositeurs/"]')).toHaveCount(55);
+  await expect(section.locator('.composer-cloud__duplicate a[href^="/talents/"]')).toHaveCount(55);
   await expect(section.locator("img")).toHaveCount(110);
   await expect(primaryCards.locator("img").first()).toHaveAttribute("src", /\/images\/composers\/detail\//);
   await expect(primaryCards.locator("img").first()).toHaveCSS("object-fit", "cover");
@@ -846,9 +862,26 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   await page.mouse.move(box!.x + box!.width * .8, box!.y + box!.height * .75);
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
   const composers = page.getByTestId("home-composers");
-  await expect(composers.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" })).toBeVisible();
+  const composerTitle = composers.getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" });
+  await composerTitle.scrollIntoViewIfNeeded();
+  await expect(composerTitle).toBeVisible();
+  const composerIntro = composers.getByText(/^Une musique ne naît jamais seule/);
+  await expect(composerIntro).toHaveCSS("opacity", "1");
+  await expect(composerIntro).toHaveCSS("transform", "none");
+  await expect(composerTitle.locator(".reveal-segment")).toHaveCount(0);
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
-  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/compositeurs/"]')).toHaveCount(55);
+  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/talents/"]')).toHaveCount(55);
+  const cta = composers.getByRole("link", { name: "Découvrez nos talents" });
+  await cta.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(900);
+  const [cloudBox, ctaBox] = await Promise.all([
+    composers.locator(".composer-cloud").boundingBox(),
+    cta.boundingBox(),
+  ]);
+  expect(cloudBox).not.toBeNull();
+  expect(ctaBox).not.toBeNull();
+  expect(ctaBox!.y - (cloudBox!.y + cloudBox!.height)).toBeGreaterThanOrEqual(0);
+  expect(ctaBox!.y - (cloudBox!.y + cloudBox!.height)).toBeLessThanOrEqual(12);
 });
 
 test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }) => {
@@ -858,7 +891,7 @@ test("les logos clients défilent en bandeau entre les synchronisations et le fi
   const social = page.getByTestId("social-follow-section");
   await expect(sync).toBeVisible();
   await expect(social).toBeVisible();
-  await expect(partners.getByRole("heading", { name: "Ils nous ont fait confiance" })).toBeVisible();
+  await expect(partners.getByRole("heading", { name: "Ils nous font confiance" })).toBeVisible();
   await expect(partners).toHaveCSS("background-color", "rgb(11, 17, 13)");
   await expect(partners.locator(".partner-marquee__group:not(.partner-marquee__duplicate) img")).toHaveCount(12);
   await expect(partners.locator(".partner-marquee__duplicate img")).toHaveCount(12);
@@ -887,6 +920,12 @@ test("le showreel respecte la réduction des animations", async ({ page }) => {
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
   await expect(section.getByRole("heading", { name: /Une musique juste/i })).toBeVisible();
   await expect(section.getByRole("button", { name: /Activer le son|Couper le son/ })).toHaveCount(0);
+  const composerTitle = page.getByTestId("home-composers").getByRole("heading", { name: "Les talents qui donnent vie à notre catalogue" });
+  await composerTitle.scrollIntoViewIfNeeded();
+  await expect(composerTitle.locator(".reveal-segment")).toHaveCount(0);
+  const composerIntro = page.getByTestId("home-composers").getByText(/^Une musique ne naît jamais seule/);
+  await expect(composerIntro).toHaveCSS("opacity", "1");
+  await expect(composerIntro).toHaveCSS("transform", "none");
 });
 
 test("la page albums propose une vue liste réellement compacte", async ({ page }, testInfo) => {

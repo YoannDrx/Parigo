@@ -84,14 +84,23 @@ test("les anciennes routes Sorties Parigo redirigent définitivement", async ({ 
   await expect(page).toHaveURL(/\/en\/label-parigo$/);
 });
 
+test("les anciennes routes Compositeurs redirigent vers Talents", async ({ page }) => {
+  await page.goto("/compositeurs");
+  await expect(page).toHaveURL(/\/talents$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
+
+  await page.goto("/en/compositeurs/ugly-mac-beer");
+  await expect(page).toHaveURL(/\/en\/talents\/ugly-mac-beer$/);
+});
+
 test("un ancien slug Harvest redirige vers le profil public stable et ses albums Harvest", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
-  await page.goto("/compositeurs/harvest-ugly-mac-beer-1u58k7l");
-  await expect(page).toHaveURL(/\/compositeurs\/ugly-mac-beer$/);
+  await page.goto("/talents/harvest-ugly-mac-beer-1u58k7l");
+  await expect(page).toHaveURL(/\/talents\/ugly-mac-beer$/);
   await expect(page.getByRole("heading", { level: 1, name: "Ugly Mac Beer" })).toBeVisible();
   await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/ugly_mac_beer/);
   await expect(page.getByRole("heading", { name: "Albums Parigo" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Clips" })).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Clips" })).toBeVisible();
   const album = page.getByRole("link").filter({ hasText: "Dark Beats" }).first();
   await expect(album).toBeVisible();
   await album.click();
@@ -105,42 +114,43 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
 
 test("l’annuaire publie exactement les 55 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
-  await page.goto("/compositeurs");
+  await page.goto("/talents");
+  await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
   const directory = page.getByTestId("composer-directory-results");
   await expect(directory.locator("a")).toHaveCount(55);
-  await expect(directory.locator('a[href="/compositeurs/pierre-millet"]')).toHaveCount(0);
-  await expect(directory.locator('a[href="/compositeurs/mutant-ninja"]')).toHaveCount(0);
+  await expect(directory.locator('a[href="/talents/pierre-millet"]')).toHaveCount(0);
+  await expect(directory.locator('a[href="/talents/mutant-ninja"]')).toHaveCount(0);
   await expect(directory.getByText("Schérazade", { exact: true })).toBeVisible();
   await expect(directory.getByText("Schérazade Aissahine", { exact: true })).toHaveCount(0);
-  const minimatic = directory.locator('a[href="/compositeurs/minimatic"]');
+  const minimatic = directory.locator('a[href="/talents/minimatic"]');
   await expect(minimatic).toHaveCount(1);
   await minimatic.click();
-  await expect(page).toHaveURL(/\/compositeurs\/minimatic$/);
+  await expect(page).toHaveURL(/\/talents\/minimatic$/);
   await expect(page.getByRole("heading", { level: 1, name: "Minimatic" })).toBeVisible();
   await expect(page.getByText(/Crédits Harvest associés/)).toHaveCount(0);
 });
 
 test("les nouveaux profils publient leurs noms de scène et le contenu disponible", async ({ page }) => {
-  await page.goto("/compositeurs/forever-pavot");
+  await page.goto("/talents/forever-pavot");
   await expect(page.getByRole("heading", { level: 1, name: "Forever Pavot" })).toBeVisible();
   await expect(page.locator('img[src*="forever_pavot"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
   await expect(page.getByTestId("composer-biography")).toHaveClass(/w-full/);
 
-  await page.goto("/en/compositeurs/frederic-hanak");
+  await page.goto("/en/talents/frederic-hanak");
   await expect(page.getByRole("heading", { level: 1, name: "Frédéric Hanak" })).toBeVisible();
   await expect(page.getByText(/widely regarded as one of the leading figures/)).toBeVisible();
 
-  await page.goto("/compositeurs/the-real-fake-mc");
+  await page.goto("/talents/the-real-fake-mc");
   await expect(page.getByRole("heading", { level: 1, name: "The Real Fake MC" })).toBeVisible();
   await expect(page.locator('img[src*="the_real_fake_mc"]')).toBeVisible();
   await expect(page.getByText(/de son vrai nom Clyde Kingrap/)).toBeVisible();
 
-  await page.goto("/compositeurs/stan-galouo");
+  await page.goto("/talents/stan-galouo");
   await expect(page.getByRole("heading", { level: 1, name: "Stan Galouo" })).toBeVisible();
   await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/stan_galouo/);
 
-  await page.goto("/compositeurs/patrice-dambrine");
+  await page.goto("/talents/patrice-dambrine");
   await expect(page.getByRole("heading", { level: 1, name: "Patrice Dambrine" })).toBeVisible();
   const patriceImage = page.getByTestId("composer-detail-image");
   await expect(patriceImage).toHaveAttribute("src", /\/images\/composers\/detail\/patrice_dambrine/);
@@ -155,38 +165,38 @@ test("les nouveaux profils publient leurs noms de scène et le contenu disponibl
 
 test("les quatre profils rematchés utilisent leurs noms, portraits et bios éditoriaux", async ({ page, request }) => {
   test.setTimeout(120_000);
-  await page.goto("/compositeurs/aeon-seven");
+  await page.goto("/talents/aeon-seven");
   await expect(page.getByRole("heading", { level: 1, name: "Aeon Seven" })).toBeVisible();
   await expect(page.locator('img[src*="aeon_seven"]')).toBeVisible();
   await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
   await expect(page.locator("main")).not.toContainText("Stéphane Delplanque");
-  expect((await request.get("/compositeurs/stephane-delplanque")).status()).toBe(404);
+  expect((await request.get("/talents/stephane-delplanque")).status()).toBe(404);
 
-  await page.goto("/compositeurs/victor-baillet");
+  await page.goto("/talents/victor-baillet");
   await expect(page.getByRole("heading", { level: 1, name: "Victor Baillet" })).toBeVisible();
   await expect(page.getByText(/Mr Viktor \(Victor Baillet\) est un DJ/)).toBeVisible();
 
-  await page.goto("/compositeurs/vincent-bouhelier");
+  await page.goto("/talents/vincent-bouhelier");
   await expect(page.getByRole("heading", { level: 1, name: "Vincent Bouhelier" })).toBeVisible();
   await expect(page.getByText(/Aociz est un DJ, producteur et turntablist français/)).toBeVisible();
 
-  await page.goto("/en/compositeurs/thierry-los");
+  await page.goto("/en/talents/thierry-los");
   await expect(page.getByRole("heading", { level: 1, name: "Thierry Los" })).toBeVisible();
   await expect(page.getByText(/distinctive figure on the independent music scene/)).toBeVisible();
 });
 
 test("les fiches compositeur n’affichent plus de libellé de rôle", async ({ page }) => {
-  await page.goto("/compositeurs/flore");
+  await page.goto("/talents/flore");
   await expect(page.getByRole("heading", { level: 1, name: "Flore" })).toBeVisible();
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
-  await page.goto("/compositeurs/charlotte-savary");
+  await page.goto("/talents/charlotte-savary");
   await expect(page.getByRole("heading", { level: 1, name: "Charlotte Savary" })).toBeVisible();
   await expect(page.getByText("Compositeur", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
 });
 
 test("les biographies éditoriales nouvellement fournies sont publiées", async ({ page }) => {
-  await page.goto("/compositeurs/xavier-sibre");
+  await page.goto("/talents/xavier-sibre");
   await expect(page.getByRole("heading", { level: 1, name: "Xavier Sibre" })).toBeVisible();
   await expect(page.getByRole("img", { name: "Xavier Sibre" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Biographie" })).toHaveCount(0);
@@ -194,16 +204,21 @@ test("les biographies éditoriales nouvellement fournies sont publiées", async 
 });
 
 test("After In Paris publie les cinq albums attestés par Harvest", async ({ page }) => {
-  await page.goto("/compositeurs/after-in-paris");
+  await page.goto("/talents/after-in-paris");
   const albums = page.locator("section").filter({ has: page.getByRole("heading", { name: "Albums Parigo" }) });
   await expect(albums.locator('a[href^="/albums/"]')).toHaveCount(5);
   for (const title of ["Paris Postcards", "A French Romance", "The Projectionist", "Solo Piano", "Solo Piano Vol.2"]) {
     await expect(albums.getByText(title, { exact: true })).toBeVisible();
   }
+  const releases = await albums.locator("[data-album-card][data-release-date]").evaluateAll((cards) => (
+    cards.map((card) => card.getAttribute("data-release-date")!)
+  ));
+  expect(releases.length).toBeGreaterThan(1);
+  expect(releases).toEqual([...releases].sort((left, right) => Date.parse(right) - Date.parse(left)));
 });
 
-test("les clips YouTube n’infèrent aucun crédit musical local", async ({ page }) => {
-  await page.goto("/clips/yt-jfTecY6qM2Q");
+test("le détail clip masque les descriptions, conserve YouTube et contient son titre", async ({ page }) => {
+  await page.goto("/clips/yt-6JYSP7NekGo");
   await expect(page.locator("iframe")).toHaveCount(0);
   await expect(page.getByText(/nécessite votre autorisation/)).toBeVisible();
   await page.evaluate((value) => {
@@ -213,20 +228,39 @@ test("les clips YouTube n’infèrent aucun crédit musical local", async ({ pag
   await expect(page.locator('iframe[src*="youtube-nocookie.com"]')).toHaveCount(0);
   await page.getByRole("button", { name: /^Lire / }).click();
   await expect(page.getByTestId("persistent-clip-iframe")).toBeVisible();
-  await expect(page.getByText("Aucun crédit compositeur n’est déduit localement.")).toBeVisible();
-  await expect(page.locator("main").getByRole("link", { name: "Ugly Mac Beer", exact: true })).toHaveCount(0);
+  const panel = page.getByTestId("clip-detail-panel");
+  const title = page.getByTestId("clip-detail-title");
+  await expect(title).toBeVisible();
+  await expect(panel.locator("p")).toHaveCount(0);
+  await expect(panel.getByRole("link", { name: "YouTube" })).toHaveAttribute(
+    "href",
+    "https://www.youtube.com/watch?v=6JYSP7NekGo",
+  );
+  expect(await panel.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+  expect(await title.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+});
+
+test("les relations manuelles publient les clips sur chaque profil compositeur concerné", async ({ page }) => {
+  await page.goto("/talents/charlotte-savary");
+  const clips = page.getByTestId("composer-clips-section");
+  await expect(clips.getByRole("heading", { level: 2, name: "Clips" })).toBeVisible();
+  await expect(clips.locator('a[href="/clips/yt-NDDGIB9_0qo"]')).not.toHaveCount(0);
+  await expect(clips.locator('a[href="/clips/yt-6JYSP7NekGo"]')).not.toHaveCount(0);
+
+  await page.goto("/talents/aiwa");
+  await expect(page.getByTestId("composer-clips-section")).toHaveCount(0);
 });
 
 test("les slugs éditoriaux inconnus sont de vraies 404", async ({ request }) => {
-  expect((await request.get("/compositeurs/profil-inconnu")).status()).toBe(404);
+  expect((await request.get("/talents/profil-inconnu")).status()).toBe(404);
   expect((await request.get("/clips/clip-inconnu")).status()).toBe(404);
 });
 
 test("les pages anglaises exposent canoniques et hreflang", async ({ page }) => {
-  await page.goto("/en/compositeurs");
-  await expect(page.getByRole("heading", { level: 1, name: "Composers" })).toBeVisible();
-  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/en\/compositeurs$/);
-  await expect(page.locator('link[rel="alternate"][hreflang="fr"]')).toHaveAttribute("href", /\/compositeurs$/);
+  await page.goto("/en/talents");
+  await expect(page.getByRole("heading", { level: 1, name: "Our talent" })).toBeVisible();
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/en\/talents$/);
+  await expect(page.locator('link[rel="alternate"][hreflang="fr"]')).toHaveAttribute("href", /\/talents$/);
 
   await page.goto("/en/label-parigo");
   await expect(page.getByRole("heading", { level: 1, name: "Parigo Label" })).toBeVisible();

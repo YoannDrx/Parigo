@@ -59,8 +59,8 @@ test.beforeEach(async ({ page }) => {
 
 test("un clip se lit dans sa carte, se détache et se réattache au détail sans recréer l’iframe", async ({ page }, testInfo) => {
   await page.goto("/clips");
-  const play = page.getByRole("button", { name: /Lire Garden Of Eden/i });
-  const card = page.locator(".parigo-video-card").filter({ has: play });
+  const card = page.locator(".parigo-video-card").filter({ hasText: /Garden Of Eden/i }).first();
+  const play = card.getByRole("button", { name: /Lire Garden Of Eden/i });
   const anchor = card.locator("[data-clip-anchor]");
   await card.hover();
   await anchor.evaluate((element) => element.scrollIntoView({ block: "center" }));
@@ -71,6 +71,9 @@ test("un clip se lit dans sa carte, se détache et se réattache au détail sans
   const player = page.getByTestId("persistent-clip-player");
   const iframe = page.getByTestId("persistent-clip-iframe");
   await expect(player).toBeVisible();
+  // The larger canonical playlist can finish loading thumbnails above the card
+  // after the click; restore the intended visible anchor before asserting it.
+  await anchor.evaluate((element) => element.scrollIntoView({ block: "center", behavior: "instant" }));
   await expect(player).toHaveAttribute("data-attached", "true");
   await expect(player).toHaveAttribute("data-status", "playing");
   await iframe.evaluate((element) => {
@@ -151,6 +154,7 @@ test("une track prend la main sur le clip sans perdre son iframe", async ({ page
     element.dataset.persistenceMarker = "paused-not-destroyed";
   });
 
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
   await page.getByRole("link", { name: "Recherche", exact: true }).first().click();
   const playTrack = page.getByRole("button", { name: /^Écouter / }).first();
   await expect(playTrack).toBeVisible({ timeout: 30_000 });

@@ -111,7 +111,45 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   }
   await expect(filterScope.getByLabel("BPM minimum")).toBeVisible();
   await expect(filterScope.getByLabel("Durée minimum")).toBeVisible();
+  await expect(filterScope.getByText("Compositeurs", { exact: true })).toBeVisible();
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
+});
+
+test("Albums et Label Parigo filtrent par un compositeur unique sans perdre le label fixe", async ({ page }, testInfo) => {
+  test.setTimeout(120_000);
+  await page.route("**/api/search/composers?**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { items: [{ id: "Minimatic", name: "Minimatic", count: 12 }] },
+        meta: { matchedTracks: 12, inspectedTracks: 12, incomplete: false },
+      }),
+    });
+  });
+
+  for (const path of ["/albums", "/label-parigo"]) {
+    await page.goto(path);
+    if (testInfo.project.name === "mobile") {
+      await page.getByRole("button", { name: "Tous les filtres" }).click();
+    }
+    const scope = testInfo.project.name === "mobile"
+      ? page.getByRole("dialog", { name: "Filtres du catalogue" })
+      : page.locator("aside");
+    const composerGroup = scope.locator("details").filter({ hasText: "Compositeurs" });
+    await composerGroup.locator("summary").click();
+    await composerGroup.getByPlaceholder("Rechercher un compositeur…").fill("Minimatic");
+    await expect(composerGroup.getByRole("button", { name: "Inclure Minimatic" })).toBeVisible();
+    await composerGroup.getByRole("button", { name: "Inclure Minimatic" }).click();
+    if (testInfo.project.name === "mobile") {
+      await scope.getByRole("button", { name: /Afficher \d+ résultats/ }).click();
+    }
+    await expect.poll(() => new URL(page.url()).searchParams.get("composer")).toBe("Minimatic");
+    await expect(page.getByRole("button", { name: "Retirer Minimatic" })).toBeVisible();
+    if (path === "/label-parigo") {
+      const cardLabels = await page.locator("main a[href^='/albums/'] p").allTextContents();
+      expect(cardLabels.filter(Boolean).every((value) => value === "Parigo")).toBe(true);
+    }
+  }
 });
 
 test("les playlists proposent une ligne compacte de facettes et uniquement le tri alphabétique", async ({ page }, testInfo) => {
