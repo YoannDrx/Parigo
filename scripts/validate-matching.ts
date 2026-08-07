@@ -3,7 +3,7 @@ import path from "node:path";
 import { normalizeHarvestCredit } from "../src/lib/editorial/contracts";
 import { MatchingReviewDraftSchema, validateMatchingDraft } from "../src/lib/matching/contracts";
 
-type PortfolioSnapshot = {
+type EditorialArchiveSnapshot = {
   metrics: {
     artists: number;
     works: number;
@@ -30,7 +30,7 @@ type Registry = {
   decisions: Array<Record<string, unknown>>;
 };
 
-type SheetSnapshot = {
+type EditorialSheetSnapshot = {
   tabs: Array<{ rows: Array<{ id: string; status: string }> }>;
 };
 
@@ -43,27 +43,27 @@ function assert(condition: unknown, message: string): asserts condition {
 }
 
 async function main() {
-  const [portfolio, registry, sheet] = await Promise.all([
-    json<PortfolioSnapshot>("src/content/matching/portfolio.snapshot.json"),
+  const [archive, registry, sheet] = await Promise.all([
+    json<EditorialArchiveSnapshot>("src/content/matching/editorial-archive.snapshot.json"),
     json<Registry>("src/content/matching/registry.json"),
-    json<SheetSnapshot>("src/content/matching/google-sheet.snapshot.json"),
+    json<EditorialSheetSnapshot>("src/content/matching/google-sheet.snapshot.json"),
   ]);
-  const artistSlugs = new Set(portfolio.artists.map((artist) => artist.slug));
-  const workSlugs = new Set(portfolio.works.map((work) => work.slug));
-  assert(portfolio.metrics.artists === portfolio.artists.length, "Le total d’artistes Portfolio est incohérent.");
-  assert(portfolio.metrics.works === portfolio.works.length, "Le total d’œuvres Portfolio est incohérent.");
-  assert(portfolio.metrics.contributions === portfolio.contributions.length, "Le total de contributions Portfolio est incohérent.");
-  assert(portfolio.metrics.clipProjectRelations === portfolio.clipProjectRelations.length, "Le total de liens clip/projet est incohérent.");
+  const artistSlugs = new Set(archive.artists.map((artist) => artist.slug));
+  const workSlugs = new Set(archive.works.map((work) => work.slug));
+  assert(archive.metrics.artists === archive.artists.length, "Le total d’artistes de l’archive éditoriale est incohérent.");
+  assert(archive.metrics.works === archive.works.length, "Le total d’œuvres de l’archive éditoriale est incohérent.");
+  assert(archive.metrics.contributions === archive.contributions.length, "Le total de contributions de l’archive éditoriale est incohérent.");
+  assert(archive.metrics.clipProjectRelations === archive.clipProjectRelations.length, "Le total de liens clip/projet est incohérent.");
   assert(
-    portfolio.metrics.albumContributions + portfolio.metrics.vinylContributions + portfolio.metrics.clipContributions
-      === portfolio.metrics.contributions,
-    "Certaines contributions Portfolio sortent du périmètre album/vinyle/clip.",
+    archive.metrics.albumContributions + archive.metrics.vinylContributions + archive.metrics.clipContributions
+      === archive.metrics.contributions,
+    "Certaines contributions de l’archive éditoriale sortent du périmètre album/vinyle/clip.",
   );
-  for (const contribution of portfolio.contributions) {
+  for (const contribution of archive.contributions) {
     assert(artistSlugs.has(contribution.artistSlug), `Artiste inconnu dans ${contribution.id}.`);
     assert(workSlugs.has(contribution.workSlug), `Œuvre inconnue dans ${contribution.id}.`);
   }
-  for (const relation of portfolio.clipProjectRelations) {
+  for (const relation of archive.clipProjectRelations) {
     assert(workSlugs.has(relation.clipSlug), `Clip inconnu dans ${relation.id}.`);
     assert(workSlugs.has(relation.projectSlug), `Projet inconnu dans ${relation.id}.`);
     assert(relation.provenanceIds.length > 0, `Provenance absente dans ${relation.id}.`);
@@ -72,7 +72,7 @@ async function main() {
   assert(registrySlugs.size === registry.identities.length, "Le registre contient des slugs d’identité en double.");
   assert(
     registrySlugs.size === artistSlugs.size && [...artistSlugs].every((slug) => registrySlugs.has(slug)),
-    "Le registre doit contenir exactement toutes les identités du snapshot Portfolio.",
+    "Le registre doit contenir exactement toutes les identités du snapshot archive éditoriale.",
   );
   const aliases = new Map<string, string>();
   for (const identity of registry.identities) {
@@ -89,8 +89,8 @@ async function main() {
     );
   }
   const sheetRows = sheet.tabs.flatMap((tab) => tab.rows);
-  assert(new Set(sheetRows.map((row) => row.id)).size === sheetRows.length, "Le snapshot Sheet contient des IDs en double.");
-  assert(sheetRows.every((row) => row.status === "Validé" || row.status === "À vérifier"), "Statut Sheet inconnu.");
+  assert(new Set(sheetRows.map((row) => row.id)).size === sheetRows.length, "Le snapshot tableau éditorial contient des IDs en double.");
+  assert(sheetRows.every((row) => row.status === "Validé" || row.status === "À vérifier"), "Statut tableau éditorial inconnu.");
   for (const decision of registry.decisions) {
     const parsed = MatchingReviewDraftSchema.parse({
       ...decision,
@@ -100,8 +100,8 @@ async function main() {
     assert(errors.length === 0, `Décision invalide ${parsed.itemId} : ${errors.join(" ")}`);
   }
   console.log(
-    `Matching valide : ${registry.identities.length} identités, ${portfolio.works.length} œuvres, `
-      + `${portfolio.contributions.length} contributions, ${sheetRows.length} lignes Sheet.`,
+    `Matching valide : ${registry.identities.length} identités, ${archive.works.length} œuvres, `
+      + `${archive.contributions.length} contributions, ${sheetRows.length} lignes tableau éditorial.`,
   );
 }
 

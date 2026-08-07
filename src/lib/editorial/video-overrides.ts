@@ -7,7 +7,7 @@ export interface PlaylistVideoOverride {
   videoType?: VideoType;
   composerSlugs?: string[];
   reviewState?: EditorialReviewState;
-  composerRelationSource?: "portfolio-caro" | "harvest" | "manual";
+  composerRelationSource?: "local-editorial" | "harvest" | "manual";
 }
 
 // Historical review evidence used only by audit scripts and /admin/matching.

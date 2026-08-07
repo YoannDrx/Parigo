@@ -32,7 +32,7 @@ export const ComposerProfileSchema = z.object({
     source: z.literal("client-confirmed"),
   })).optional(),
   published: z.boolean(),
-  source: z.literal("portfolio-caro"),
+  source: z.literal("local-editorial"),
 });
 
 export const ClipSchema = z.object({
@@ -55,10 +55,10 @@ export const ClipSchema = z.object({
     "archive",
     "other",
   ]).default("official-video"),
-  source: z.enum(["portfolio-caro", "youtube", "harvest"]).default("portfolio-caro"),
+  source: z.enum(["local-editorial", "youtube", "harvest"]).default("local-editorial"),
   reviewState: z.enum(["verified", "needs-review", "rejected"]).default("verified"),
-  composerRelationSource: z.enum(["portfolio-caro", "harvest", "manual"]).optional(),
-  albumRelationSource: z.enum(["portfolio-caro", "harvest", "manual"]).optional(),
+  composerRelationSource: z.enum(["local-editorial", "harvest", "manual"]).optional(),
+  albumRelationSource: z.enum(["local-editorial", "harvest", "manual"]).optional(),
   order: z.number().int(),
   published: z.boolean(),
 });

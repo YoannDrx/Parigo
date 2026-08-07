@@ -14,20 +14,6 @@ const scopedRelationSchema = z.object({
   aliases: z.array(z.string().min(1)).min(1),
 });
 
-const imageOverrideSchema = z.discriminatedUnion("source", [
-  z.object({
-    source: z.literal("user-provided"),
-    file: z.string().regex(/^[a-z0-9_]+\.(?:jpe?g|png|webp)$/),
-  }),
-  z.object({
-    source: z.literal("portfolio-caro-git"),
-    repository: z.literal("portfolio-caro"),
-    commit: z.string().regex(/^[a-f0-9]{40}$/),
-    path: z.string().min(1),
-    file: z.string().regex(/^[a-z0-9_]+\.(?:jpe?g|png|webp)$/),
-  }),
-]);
-
 const detailImageSchema = z.object({
   src: z.string().regex(/^\/images\/composers\/detail\/[a-z0-9_]+\.webp$/),
   width: z.number().int().positive(),
@@ -58,41 +44,13 @@ const composerProfileSchema = z.object({
     creditIdentities: z.array(harvestCreditIdentitySchema).optional(),
   }),
   legacySlugs: z.array(z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)),
-  provenance: z.discriminatedUnion("source", [
-    z.object({
-      source: z.literal("portfolio-caro-git"),
-      repository: z.literal("portfolio-caro"),
-      commit: z.string().regex(/^[a-f0-9]{40}$/),
-      bioSlug: z.string().nullable(),
-      imageSlug: z.string().nullable(),
-      editorialArtistSlug: z.string().nullable(),
-      imageOverride: imageOverrideSchema.optional(),
-    }),
-    z.object({
-      source: z.literal("portfolio-caro-api"),
-      urls: z.object({ fr: z.string().url(), en: z.string().url() }),
-      capturedAt: z.string().datetime(),
-      artistSlug: z.string().min(1),
-      imageUrl: z.string().url(),
-      imageFallback: z.object({
-        repository: z.literal("portfolio-caro"),
-        ref: z.string().min(1),
-        path: z.string().min(1),
-      }).optional(),
-    }),
-    z.object({
-      source: z.literal("user-provided"),
-      capturedAt: z.string().datetime(),
-      bioFile: z.string().min(1),
-      sourceDocument: z.string().min(1).optional(),
-      imageSource: z.object({
-        repository: z.literal("portfolio-caro"),
-        commit: z.string().regex(/^[a-f0-9]{40}$/),
-        imageSlug: z.string().nullable(),
-      }),
-      imageOverride: imageOverrideSchema.optional(),
-    }),
-  ]),
+  provenance: z.object({
+    source: z.literal("local-editorial"),
+    capturedAt: z.string().datetime(),
+    biographyFile: z.literal("site-biographies.user-provided.json"),
+    sourceDocument: z.string().min(1),
+    portraitFile: z.string().regex(/^(?:portraits\/)?[a-z0-9_-]+\.(?:jpe?g|png|webp)$/),
+  }),
 });
 
 export const CANONICAL_COMPOSER_PROFILE_COUNT = 55;
@@ -135,7 +93,6 @@ export type CanonicalHarvestCreditIdentity = z.infer<typeof harvestCreditIdentit
 
 const parsedRegistry = registrySchema.parse(registry);
 
-export const CANONICAL_COMPOSER_SOURCE_COMMIT = "02e173bb95e0481e0dee29c3b2d6b3a8ca01e8e2";
 export const canonicalComposerProfiles: CanonicalComposerProfile[] = [...parsedRegistry.profiles]
   .sort((left, right) => left.name.localeCompare(right.name, "fr", { sensitivity: "base" }));
 

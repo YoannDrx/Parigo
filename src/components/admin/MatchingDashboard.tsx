@@ -67,8 +67,8 @@ const diagnosticTabs: Array<{ id: TabId; label: string; icon: typeof ListChecks 
   { id: "queue", label: "File technique", icon: ListChecks },
   { id: "compare", label: "Comparateur des sources", icon: GitCompareArrows },
   { id: "harvest", label: "Crédits Harvest", icon: Network },
-  { id: "portfolio", label: "Portfolio", icon: FileJson },
-  { id: "sheet", label: "Sheet Caroline", icon: ClipboardCheck },
+  { id: "portfolio", label: "Archive éditoriale", icon: FileJson },
+  { id: "sheet", label: "Tableau éditorial", icon: ClipboardCheck },
 ];
 
 const tabs = [...primaryTabs, ...diagnosticTabs];
@@ -129,7 +129,7 @@ const agreementStyles: Record<AgreementState, string> = {
 
 const sourceLabels: Record<MatchingSourceId, string> = {
   harvest: "Harvest",
-  portfolio: "Portfolio",
+  portfolio: "Archive locale",
   youtube: "YouTube",
   sheet: "Sheet",
   parigo: "Parigo",
@@ -259,44 +259,27 @@ function MetricCard({
   );
 }
 
-function EntityLink({
-  href,
-  sourceHref,
-  children,
-  className,
-}: {
+function EntityLink(props: {
   href?: string;
   sourceHref?: string;
   children: ReactNode;
   className?: string;
 }) {
-  const primaryHref = href || sourceHref;
-  if (!primaryHref) return <span className={className}>{children}</span>;
-  const external = primaryHref.startsWith("http");
+  const { href, children, className } = props;
+  if (!href) return <span className={className}>{children}</span>;
+  const external = href.startsWith("http");
   return (
     <span className="inline-flex min-w-0 items-center gap-1.5">
       {external ? (
-        <a href={primaryHref} target="_blank" rel="noreferrer" className={cn("underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]", className)}>
+        <a href={href} target="_blank" rel="noreferrer" className={cn("underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]", className)}>
           {children}
         </a>
       ) : (
-        <Link href={primaryHref} className={cn("underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]", className)}>
+        <Link href={href} className={cn("underline decoration-[var(--line-strong)] underline-offset-3 hover:text-[var(--signal-strong)]", className)}>
           {children}
         </Link>
       )}
       <ExternalLink size={12} className="shrink-0 text-[var(--text-muted)]" aria-hidden="true" />
-      {href && sourceHref && (
-        <a
-          href={sourceHref}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="Voir aussi dans le Portfolio Caroline"
-          title="Voir aussi dans le Portfolio Caroline"
-          className="shrink-0 border-l border-[var(--line)] pl-1.5 font-mono text-[.52rem] uppercase text-[var(--text-muted)] hover:text-[var(--signal-strong)]"
-        >
-          Caro
-        </a>
-      )}
     </span>
   );
 }
@@ -498,7 +481,7 @@ function RelationSources({ item }: { item: MatchingItem }) {
   return (
     <span className="inline-flex flex-wrap gap-1">
       {hasHarvest ? <span className="rounded-full bg-[#176b3a] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Catalogue actuel</span> : null}
-      {hasPortfolio ? <span className="rounded-full bg-[#2457a7] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Caro</span> : null}
+      {hasPortfolio ? <span className="rounded-full bg-[#2457a7] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Archive</span> : null}
       {hasHistory ? <span className="rounded-full bg-[#555d57] px-2 py-0.5 font-mono text-[.52rem] font-semibold uppercase text-white">Historique</span> : null}
     </span>
   );
@@ -1038,7 +1021,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
             <div>
               <p className="text-sm font-semibold">Outil interne accessible par URL, sans authentification</p>
               <p className="mt-1 max-w-3xl text-xs leading-5 text-[var(--inverse-muted)]">
-                L’API Harvest décrit le catalogue actuel. Portfolio, Sheet et anciens mappings servent uniquement à repérer les corrections à faire dans le CMS.
+                L’API Harvest décrit le catalogue actuel. Les archives éditoriales locales et anciens mappings servent uniquement à repérer les corrections à faire dans le CMS.
                 Vos notes restent dans ce navigateur jusqu’à leur export.
               </p>
             </div>
@@ -1108,7 +1091,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
           <summary className="flex min-h-12 cursor-pointer items-center justify-between gap-4 px-4 text-sm font-semibold">
             <span>Vérité actuelle et sources de delta</span>
             <span className="font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">
-              Harvest · Portfolio · YouTube · Sheet · Parigo
+              Harvest · archives locales · YouTube · Parigo
             </span>
           </summary>
         <div className="grid gap-3 border-t border-[var(--line)] p-3 sm:grid-cols-2 xl:grid-cols-5">
@@ -1306,7 +1289,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                   ["conflict", "Conflits"],
                   ["inferred", "Indirects"],
                   ["composer-orphan", "Sans relation"],
-                  ["portfolio-orphan", "Sans lien Portfolio"],
+                  ["portfolio-orphan", "Sans lien archive"],
                   ["work-orphan", "Albums sans crédit API"],
                   ["clip-orphan", "Clips à documenter"],
                   ["unmatched-harvest", "Crédits non résolus"],
@@ -1348,8 +1331,8 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                   <tr className="font-mono text-[.6rem] uppercase tracking-[.09em] text-white">
                     <th className="w-[17%] border-b border-r border-white/20 px-4 py-3">Relation / élément</th>
                     <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Harvest</th>
-                    <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Portfolio</th>
-                    <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Google Sheet</th>
+                    <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Archive locale</th>
+                    <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Tableau éditorial</th>
                     <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">Historique Parigo</th>
                     <th className="w-[10%] border-b border-r border-white/20 px-3 py-3">État</th>
                     <th className="w-[33%] border-b border-white/20 px-3 py-3">Correction rapide · autosauvegardée</th>
@@ -1566,9 +1549,9 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                   <tr>
                     <th className="w-[12%] border-r border-white/15 p-3">Compositeur</th>
                     <th className="w-[15%] border-r border-white/15 p-3">Présence API Harvest ?</th>
-                    <th className="w-[10%] border-r border-white/15 p-3">Portfolio Caroline</th>
+                    <th className="w-[10%] border-r border-white/15 p-3">Source éditoriale</th>
                     <th className="w-[10%] border-r border-white/15 p-3">Site Parigo</th>
-                    <th className="w-[15%] border-r border-white/15 p-3">Albums Caro</th>
+                    <th className="w-[15%] border-r border-white/15 p-3">Albums attendus dans l’archive</th>
                     <th className="w-[15%] border-r border-white/15 p-3">Albums du catalogue actuel</th>
                     <th className="w-[9%] border-r border-white/15 p-3">Delta</th>
                     <th className="w-[24%] p-3">Action CMS à préparer</th>
@@ -1623,11 +1606,9 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                         )}
                       </td>
                       <td className="border-l border-[var(--line)] p-3">
-                        {composer.sourceHref ? (
-                          <a href={composer.sourceHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 border border-[#2457a7] bg-[#edf3ff] px-2.5 py-2 text-xs font-semibold text-[#173b83] hover:bg-[#2457a7] hover:text-white">
-                            Ouvrir chez Caro <ExternalLink size={12} />
-                          </a>
-                        ) : <span className="text-xs text-[var(--text-muted)]">Lien absent</span>}
+                        <span className="inline-flex border border-[#2457a7] bg-[#edf3ff] px-2.5 py-2 text-xs font-semibold text-[#173b83]">
+                          Copie locale Parigo
+                        </span>
                       </td>
                       <td className="border-l border-[var(--line)] p-3">
                         {composer.href ? (
@@ -1645,9 +1626,9 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                           {portfolioRelations.length ? portfolioRelations.map((relation) => (
                             <span key={relation.id} className="inline-flex items-center gap-2 border border-[#2457a7] bg-[#edf3ff] px-2.5 py-1.5 text-xs text-[#173b83]">
                               <EntityLink sourceHref={relation.work?.sourceHref}>{relation.work?.code ? `${relation.work.code} · ` : ""}{relation.work?.title}</EntityLink>
-                              <span className="rounded-full bg-[#2457a7] px-1.5 py-0.5 font-mono text-[.48rem] uppercase text-white">Caro</span>
+                              <span className="rounded-full bg-[#2457a7] px-1.5 py-0.5 font-mono text-[.48rem] uppercase text-white">Archive</span>
                             </span>
-                          )) : <span className="text-xs text-[var(--text-muted)]">Aucun album Portfolio</span>}
+                          )) : <span className="text-xs text-[var(--text-muted)]">Aucun album dans l’archive</span>}
                         </div>
                       </td>
                       <td className="border-l border-[var(--line)] p-3">
@@ -1680,7 +1661,7 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
                             fixedValue={composer.slug}
                             reviewer={reviewerName}
                             suggestedValues={missingInCatalog.length || extraInCatalog.length ? portfolioValues : undefined}
-                            suggestedLabel="Reprendre les albums Caro"
+                            suggestedLabel="Reprendre les albums de l’archive"
                             options={albumPickerOptions}
                             onChange={(patch) => updateDraft(reviewItem, patch)}
                             onOpen={() => setSelectedId(reviewItem.id)}
@@ -1697,10 +1678,10 @@ export function MatchingDashboard({ data }: { data: MatchingDashboardData }) {
 
         {(tab === "clips" || tab === "portfolio") && (
           <InventorySection
-            title={tab === "clips" ? "Tous les clips" : "Inventaire Portfolio complet"}
+            title={tab === "clips" ? "Tous les clips" : "Archive éditoriale locale"}
             description={tab === "portfolio"
-              ? `${data.portfolioInventory.works} œuvres au commit ${data.portfolioInventory.commitSha.slice(0, 12)}.`
-              : "YouTube fournit l’inventaire public. Les anciens crédits et liens Portfolio restent visibles uniquement comme pistes de recherche ; aucun compositeur n’est déduit automatiquement."}
+              ? `${data.portfolioInventory.works} œuvres conservées dans le snapshot local ${data.portfolioInventory.commitSha.slice(0, 12)}.`
+              : "YouTube fournit l’inventaire public. Les anciens crédits conservés localement restent visibles uniquement comme pistes de recherche ; aucun compositeur n’est déduit automatiquement."}
             query={query}
             setQuery={setQuery}
           >

@@ -1,7 +1,7 @@
 import "server-only";
 
 import { unstable_cache } from "next/cache";
-import portfolioSnapshotJson from "@/content/matching/portfolio.snapshot.json";
+import portfolioSnapshotJson from "@/content/matching/editorial-archive.snapshot.json";
 import sheetSnapshotJson from "@/content/matching/google-sheet.snapshot.json";
 import registryJson from "@/content/matching/registry.json";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
@@ -28,7 +28,7 @@ import type {
   ReviewStatus,
 } from "./contracts";
 
-type PortfolioSnapshot = {
+type EditorialArchiveSnapshot = {
   source: { commitSha: string; capturedAt: string };
   metrics: {
     artists: number;
@@ -116,10 +116,9 @@ type HarvestInventory = {
   creditCount: number;
 };
 
-const portfolioSnapshot = portfolioSnapshotJson as unknown as PortfolioSnapshot;
+const portfolioSnapshot = portfolioSnapshotJson as unknown as EditorialArchiveSnapshot;
 const sheetSnapshot = sheetSnapshotJson as unknown as SheetSnapshot;
 const registry = registryJson as unknown as Registry;
-const PORTFOLIO_PUBLIC_URL = "https://synck-psi.vercel.app";
 const MAX_HARVEST_TRACKS = 10_000;
 
 const getMatchingYouTubeInventory = unstable_cache(
@@ -312,7 +311,6 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       composerNames: [],
       relatedProjects: work.relatedProjectSlugs,
       relationCount: 0,
-      sourceHref: `${PORTFOLIO_PUBLIC_URL}/fr/projets/${work.slug}`,
     });
   }
   for (const album of harvest.inventory) {
@@ -380,7 +378,6 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
           name: composerName,
           aliases: identity?.aliases ?? [],
           visibility: identity?.visibility,
-          sourceHref: identity ? `${PORTFOLIO_PUBLIC_URL}/fr/artistes/${identity.slug}` : undefined,
         },
         work: {
           key: target.key,
@@ -417,8 +414,7 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       "portfolio-contribution",
       "direct",
       `${identity.name} est relié à ${target.title}`,
-      `Rôle Portfolio : ${contribution.role}`,
-      `${PORTFOLIO_PUBLIC_URL}/fr/projets/${portfolioWork.slug}`,
+      `Rôle dans l’archive locale : ${contribution.role}`,
     ));
   }
 
@@ -673,7 +669,6 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       contributionCount: portfolioSnapshot.contributions.filter((item) => item.artistSlug === identity.slug).length,
       hasAnyEvidence: counts.total > 0,
       href: harvestCredits[0] ? `/compositeurs/${harvestComposerCreditId(harvestCredits[0].display)}` : undefined,
-      sourceHref: `${PORTFOLIO_PUBLIC_URL}/fr/artistes/${identity.slug}`,
     };
   }).sort((left, right) => left.name.localeCompare(right.name, "fr"));
 
@@ -686,7 +681,7 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
       title: composer.name,
       subtitle: isGlobalOrphan
         ? "Sans relation dans aucune source"
-        : `Sans contribution Portfolio · ${composer.albumCount} album(s), ${composer.clipCount} clip(s) dans les autres sources`,
+        : `Sans contribution dans l’archive · ${composer.albumCount} album(s), ${composer.clipCount} clip(s) dans les autres sources`,
       composer: {
         slug: composer.slug,
         name: composer.name,
@@ -805,7 +800,7 @@ export async function getMatchingDashboardData(): Promise<MatchingDashboardData>
     },
     {
       id: "portfolio",
-      label: "Portfolio Caro",
+      label: "Archive éditoriale locale",
       state: "stale",
       count: portfolioSnapshot.metrics.works,
       capturedAt: portfolioSnapshot.source.capturedAt,

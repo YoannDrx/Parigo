@@ -1,6 +1,6 @@
 # Audit éditorial compositeurs et clips
 
-Ce rapport est généré par `pnpm migrate:editorial` depuis les données suivies par Git de Portfolio Caro.
+Ce rapport historique accompagne désormais l’archive éditoriale copiée et versionnée directement dans Parigo. Il ne dépend d’aucun dépôt ni service externe.
 
 ## Résumé
 
