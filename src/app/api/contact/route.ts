@@ -21,7 +21,7 @@ export const runtime = "nodejs";
 
 const CONTACT_EMAIL = "info@parigomusic.com";
 const CONTACT_REPLY_EMAIL = "info@parigomusic.com";
-const DEFAULT_FROM_EMAIL = "Parigo Music <contact@do-not-reply.app>";
+const DEFAULT_FROM_EMAIL = "Parigo Music <parigo@yodev.fr>";
 const EMAIL_LOGO_CONTENT_ID = "parigo-logo";
 
 function responseError(status: number, code: string, message: string, requestId: string) {
