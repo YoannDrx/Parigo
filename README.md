@@ -26,7 +26,7 @@ Variables obligatoires pour le catalogue public :
 Pour activer les comptes Parigo, ajouter `HARVEST_SESSION_SECRET`, un secret indépendant généré par exemple avec `openssl rand -base64 48`. Son absence désactive uniquement la surface membre ; elle ne fait pas tomber le catalogue public.
 
 Le formulaire de contact utilise `RESEND_API_KEY`, envoie depuis
-`Parigo Music <contact@do-not-reply.app>` et transmet les demandes à
+`Parigo Music <parigo@yodev.fr>` et transmet les demandes à
 `info@parigomusic.com`. Les accusés envoyés aux visiteurs utilisent
 `CONTACT_REPLY_EMAIL` (`info@parigomusic.com` par défaut), tandis que les notifications
 internes répondent directement à l’adresse du visiteur. Le formulaire accepte une pièce jointe
