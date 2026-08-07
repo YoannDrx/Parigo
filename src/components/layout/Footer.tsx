@@ -22,7 +22,7 @@ export function Footer() {
         { name: t("common.playlists"), href: "/playlists" },
         { name: t("common.licensing"), href: "/licensing" },
         { name: "Clips", href: "/clips" },
-        { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs" },
+        { name: locale === "fr" ? "Talents" : "Talent", href: "/talents" },
       ],
     },
     { title: t("footer.studio"), links: [{ name: t("common.about"), href: "/about" }, { name: t("common.licensing"), href: "/licensing" }, { name: t("common.contact"), href: "/contact" }] },

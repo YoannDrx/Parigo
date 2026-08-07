@@ -7,7 +7,7 @@ import { getSynchronisations } from "@/lib/youtube/synchronisations";
 
 const staticPaths = [
   "", "/albums", "/labels", "/playlists", "/synchronisations",
-  "/label-parigo", "/compositeurs", "/clips",
+  "/label-parigo", "/talents", "/clips",
   "/licensing", "/contact", "/about", "/legal", "/privacy", "/terms", "/rights",
 ];
 
@@ -35,7 +35,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ kin
     if (kind === "editorial") {
       const videos = await getEditorialVideos();
       return xmlResponse(renderUrlSet([
-        ...canonicalComposerProfiles.map(({ slug }) => ({ fr: `/compositeurs/${slug}`, en: `/en/compositeurs/${slug}`, priority: 0.7 })),
+        ...canonicalComposerProfiles.map(({ slug }) => ({ fr: `/talents/${slug}`, en: `/en/talents/${slug}`, priority: 0.7 })),
         ...videos.map(({ slug, publishedAt }) => ({ fr: `/clips/${slug}`, en: `/en/clips/${slug}`, lastModified: publishedAt, priority: 0.65 })),
       ]));
     }

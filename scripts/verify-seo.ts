@@ -28,13 +28,13 @@ async function main() {
   ]);
   await check("/label-parigo", [/Label Parigo/i, /hreflang="en"/i]);
   await check("/en/label-parigo", [/Parigo Label/i, /hreflang="fr"/i]);
-  await check("/compositeurs", [/Compositeurs/i, /rel="canonical"/i]);
-  await check("/compositeurs?q=ugly", [
+  await check("/talents", [/Nos talents/i, /rel="canonical"/i]);
+  await check("/talents?q=ugly", [
     /name="robots" content="noindex, follow"/i,
-    new RegExp(`rel="canonical" href="${escapedOrigin}/compositeurs"`, "i"),
+    new RegExp(`rel="canonical" href="${escapedOrigin}/talents"`, "i"),
   ]);
   await check("/clips", [/Clips/i, /rel="canonical"/i]);
-  await check("/compositeurs/__parigo_seo_missing_profile__", [/404/i], 404);
+  await check("/talents/__parigo_seo_missing_profile__", [/404/i], 404);
   await check("/clips/__parigo_seo_missing_clip__", [/404/i], 404);
   await check("/fr/albums", [], 308);
   await check("/albums/__parigo_seo_missing_album__", [
@@ -43,10 +43,10 @@ async function main() {
   ], 404);
   await check("/sitemap.xml", [/<sitemapindex/i]);
   const editorialSitemap = await check("/sitemaps/editorial.xml", [
-    /\/compositeurs\/ugly-mac-beer/i,
+    /\/talents\/ugly-mac-beer/i,
     /\/clips\/yt-[a-z0-9_-]+/i,
   ]);
-  if (/\/compositeurs\/harvest-[a-z0-9-]+/i.test(editorialSitemap)) {
+  if (/\/talents\/harvest-[a-z0-9-]+/i.test(editorialSitemap)) {
     throw new Error("/sitemaps/editorial.xml: un ancien slug Harvest est encore indexé.");
   }
   await check("/robots.txt", [new RegExp(`sitemap: ${escapedOrigin}/sitemap\\.xml`, "i")]);

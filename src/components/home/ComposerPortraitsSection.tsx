@@ -6,15 +6,15 @@ import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScro
 import { ArrowUpRight } from "lucide-react";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
-import type { ComposerProfile } from "@/lib/editorial/contracts";
+import type { CanonicalComposerProfile } from "@/lib/composers/profiles";
 import { localizedPath } from "@/lib/locale";
 
 export type HomeComposerProfile = Pick<
-  ComposerProfile,
-  "slug" | "name" | "image" | "bio" | "kind" | "grammaticalGender"
+  CanonicalComposerProfile,
+  "slug" | "name" | "image" | "bio"
 >;
 
-function excerpt(value: string | undefined, locale: "fr" | "en") {
+function excerpt(value: string | null | undefined, locale: "fr" | "en") {
   if (!value) return locale === "fr"
     ? "Une écriture singulière, façonnée au contact des images et des récits."
     : "A singular musical voice shaped through images and stories.";
@@ -161,7 +161,7 @@ export function ComposerPortraitsSection({
                   {profiles.map((profile, index) => (
                     <Link
                       key={profile.slug}
-                      href={localizedPath(locale, `/compositeurs/${profile.slug}`)}
+                      href={localizedPath(locale, `/talents/${profile.slug}`)}
                       onMouseEnter={() => setActiveIndex(index)}
                       onFocus={() => setActiveIndex(index)}
                       aria-current={index === activeIndex ? "true" : undefined}

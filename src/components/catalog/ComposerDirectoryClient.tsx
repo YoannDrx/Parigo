@@ -84,7 +84,7 @@ export function ComposerDirectoryClient({
           {visibleCredits.map((profile) => (
             <Link
               key={profile.slug}
-              href={localizedPath(locale, `/compositeurs/${profile.slug}`)}
+              href={localizedPath(locale, `/talents/${profile.slug}`)}
               className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
             >
               <Image
