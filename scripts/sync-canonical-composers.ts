@@ -1,4 +1,4 @@
-import { copyFile, mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
@@ -247,20 +247,17 @@ async function writePortraitAssets(
   };
 }
 
-async function copyStoredPortraitAssets(
+async function readStoredPortraitAssets(
   profile: ProfileSource,
   outputAssets: string,
   outputDetailAssets: string,
 ) {
   const filename = composerPortraitFilename(profile.slug);
-  const cardSource = path.join(root, "src/content/composer-sources/portrait-cards", filename);
-  const detailSource = path.join(root, "src/content/composer-sources/portraits", filename);
+  const cardSource = path.join(outputAssets, filename);
+  const detailSource = path.join(outputDetailAssets, filename);
+  await sharp(cardSource).metadata();
   const detailInfo = await sharp(detailSource).metadata();
   if (!detailInfo.width || !detailInfo.height) throw new Error(`Dimensions du portrait local introuvables : ${profile.slug}`);
-  await Promise.all([
-    copyFile(cardSource, path.join(outputAssets, filename)),
-    copyFile(detailSource, path.join(outputDetailAssets, filename)),
-  ]);
   return {
     image: `/images/composers/canonical/${filename}`,
     detailImage: {
@@ -290,7 +287,8 @@ async function main() {
     if (!providedBio) throw new Error(`Bio locale absente pour ${profile.slug}`);
     const fr = providedBio.fr.trim();
     const en = providedBio.en.trim();
-    const portraitFile = profile.localImageFile ?? path.join("portraits", composerPortraitFilename(profile.slug));
+    const portraitFile = profile.localImageFile
+      ?? path.join("public/images/composers/detail", composerPortraitFilename(profile.slug));
     const { image, detailImage } = profile.localImageFile
       ? await writePortraitAssets(
           path.join(root, "src/content/composer-sources", portraitFile),
@@ -299,7 +297,7 @@ async function main() {
           outputDetailAssets,
           82,
         )
-      : await copyStoredPortraitAssets(profile, outputAssets, outputDetailAssets);
+      : await readStoredPortraitAssets(profile, outputAssets, outputDetailAssets);
 
     output.push({
       slug: profile.slug,

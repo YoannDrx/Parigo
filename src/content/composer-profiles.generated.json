@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T09:03:12.000Z",
+  "generatedAt": "2026-08-07T18:35:12.858Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -48,7 +48,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aïwa.docx",
-        "portraitFile": "portraits/aiwa.webp"
+        "portraitFile": "public/images/composers/detail/aiwa.webp"
       }
     },
     {
@@ -93,7 +93,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arat Kilo.docx",
-        "portraitFile": "portraits/arat_kilo.webp"
+        "portraitFile": "public/images/composers/detail/arat_kilo.webp"
       }
     },
     {
@@ -124,7 +124,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Fabien Girard.docx",
-        "portraitFile": "portraits/fabien_girard.webp"
+        "portraitFile": "public/images/composers/detail/fabien_girard.webp"
       }
     },
     {
@@ -217,7 +217,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Kornowicz.docx",
-        "portraitFile": "portraits/yann_kornowicz.webp"
+        "portraitFile": "public/images/composers/detail/yann_kornowicz.webp"
       }
     },
     {
@@ -252,7 +252,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ HERTZ (Franck Sinnassamy).docx",
-        "portraitFile": "portraits/dj_hertz.webp"
+        "portraitFile": "public/images/composers/detail/dj_hertz.webp"
       }
     },
     {
@@ -314,7 +314,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Liqid.docx",
-        "portraitFile": "portraits/liqid.webp"
+        "portraitFile": "public/images/composers/detail/liqid.webp"
       }
     },
     {
@@ -345,7 +345,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bonetrips.docx",
-        "portraitFile": "portraits/bonetrips.webp"
+        "portraitFile": "public/images/composers/detail/bonetrips.webp"
       }
     },
     {
@@ -560,7 +560,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Emmanuel Marée.docx",
-        "portraitFile": "portraits/emmanuel_maree.webp"
+        "portraitFile": "public/images/composers/detail/emmanuel_maree.webp"
       }
     },
     {
@@ -591,7 +591,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "F. Stokes.docx",
-        "portraitFile": "portraits/f_stokes.webp"
+        "portraitFile": "public/images/composers/detail/f_stokes.webp"
       }
     },
     {
@@ -655,7 +655,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "frederic-hanak.docx",
-        "portraitFile": "portraits/frederic_hanak.webp"
+        "portraitFile": "public/images/composers/detail/frederic_hanak.webp"
       }
     },
     {
@@ -686,7 +686,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Madben.docx",
-        "portraitFile": "portraits/madben.webp"
+        "portraitFile": "public/images/composers/detail/madben.webp"
       }
     },
     {
@@ -851,7 +851,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Nicodrum.docx",
-        "portraitFile": "portraits/nicodrum.webp"
+        "portraitFile": "public/images/composers/detail/nicodrum.webp"
       }
     },
     {
@@ -883,7 +883,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "2080.docx",
-        "portraitFile": "portraits/2080.webp"
+        "portraitFile": "public/images/composers/detail/2080.webp"
       }
     },
     {
@@ -1013,7 +1013,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Jankielewicz.docx",
-        "portraitFile": "portraits/yann_jankielewicz.webp"
+        "portraitFile": "public/images/composers/detail/yann_jankielewicz.webp"
       }
     },
     {
@@ -1075,7 +1075,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Vincent Bouhelier.docx",
-        "portraitFile": "portraits/vincent_bouhelier.webp"
+        "portraitFile": "public/images/composers/detail/vincent_bouhelier.webp"
       }
     },
     {
@@ -1146,7 +1146,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "ALEXIS MOLENAT.docx",
-        "portraitFile": "portraits/alexis_molenat.webp"
+        "portraitFile": "public/images/composers/detail/alexis_molenat.webp"
       }
     },
     {
@@ -1180,7 +1180,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Maxime Raynier.docx",
-        "portraitFile": "portraits/maxime_raynier.webp"
+        "portraitFile": "public/images/composers/detail/maxime_raynier.webp"
       }
     },
     {
@@ -1280,7 +1280,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Sr Ortegon.docx",
-        "portraitFile": "portraits/senior_ortegon.webp"
+        "portraitFile": "public/images/composers/detail/senior_ortegon.webp"
       }
     },
     {
@@ -1375,7 +1375,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Ducer.docx",
-        "portraitFile": "portraits/ducer.webp"
+        "portraitFile": "public/images/composers/detail/ducer.webp"
       }
     },
     {
@@ -1407,7 +1407,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ TROUBL.docx",
-        "portraitFile": "portraits/dj_troubl.webp"
+        "portraitFile": "public/images/composers/detail/dj_troubl.webp"
       }
     },
     {
@@ -1537,7 +1537,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Jean-Pierre Ménager.docx",
-        "portraitFile": "portraits/jean_pierre_menager.webp"
+        "portraitFile": "public/images/composers/detail/jean_pierre_menager.webp"
       }
     },
     {
@@ -1600,7 +1600,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Cyril laurent.docx",
-        "portraitFile": "portraits/cyril_laurent.webp"
+        "portraitFile": "public/images/composers/detail/cyril_laurent.webp"
       }
     },
     {
@@ -1631,7 +1631,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Charlotte Savary.docx",
-        "portraitFile": "portraits/charlotte_savary.webp"
+        "portraitFile": "public/images/composers/detail/charlotte_savary.webp"
       }
     },
     {
@@ -1665,7 +1665,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Schérazade.docx",
-        "portraitFile": "portraits/scherazade_aissahine.webp"
+        "portraitFile": "public/images/composers/detail/scherazade_aissahine.webp"
       }
     },
     {
@@ -1696,7 +1696,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Roma Luca.docx",
-        "portraitFile": "portraits/roma_luca.webp"
+        "portraitFile": "public/images/composers/detail/roma_luca.webp"
       }
     },
     {
@@ -1803,7 +1803,7 @@
         "capturedAt": "2026-08-06T10:09:44.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Flore.docx",
-        "portraitFile": "portraits/flore.webp"
+        "portraitFile": "public/images/composers/detail/flore.webp"
       }
     },
     {

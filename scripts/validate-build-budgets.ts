@@ -12,9 +12,6 @@ const CSS_BUDGET = 133 * 1024;
 // runtime while keeping a narrow margin over the current 204.7 KiB maximum.
 const DEFAULT_JS_BUDGET = 208 * 1024;
 const HOME_JS_BUDGET = 220 * 1024;
-// The internal matching workspace ships dense comparison and editing controls
-// in one route while keeping a narrow margin over the current 265.0 KiB.
-const ADMIN_MATCHING_JS_BUDGET = 272 * 1024;
 
 async function walk(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -52,11 +49,7 @@ for (const chunk of [...new Set(publicRoutes.flatMap((route) => route.firstLoadC
 for (const routeStat of publicRoutes) {
   const chunks = [...new Set(routeStat.firstLoadChunkPaths.filter((file) => file.endsWith(".js")))];
   const bytes = chunks.reduce((sum, chunk) => sum + (compressedSizes.get(chunk) ?? 0), 0);
-  const budget = routeStat.route === "/"
-    ? HOME_JS_BUDGET
-    : routeStat.route === "/admin/matching"
-      ? ADMIN_MATCHING_JS_BUDGET
-      : DEFAULT_JS_BUDGET;
+  const budget = routeStat.route === "/" ? HOME_JS_BUDGET : DEFAULT_JS_BUDGET;
   if (bytes > budget) failures.push(`${routeStat.route}: ${(bytes / 1024).toFixed(1)} Kio Brotli > ${budget / 1024} Kio`);
 }
 

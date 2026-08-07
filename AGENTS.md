@@ -31,7 +31,7 @@ pnpm test:harvest # Contrats Harvest live (avec HARVEST_LIVE_TESTS=1)
 - **Styling** : TailwindCSS v4
 - **Données** : Public API Harvest via un BFF Next.js, sans base de données
 - **Authentification** : comptes Harvest et cookie de session chiffré côté serveur
-- **Audio** : Howler.js + WaveSurfer.js
+- **Audio** : WaveSurfer.js et APIs audio natives du navigateur
 - **Animations** : Framer Motion
 - **Package Manager** : pnpm
 

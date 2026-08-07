@@ -1,8 +1,10 @@
 # Parigo
 
-Site catalogue et lecteur audio de Parigo Music. Harvest est l’unique source de vérité des albums, pistes, crédits bruts, ayants droit et discographies publiques. L’annuaire `/compositeurs` est limité à un registre éditorial contrôlé de 55 noms publics ; ses bios, portraits sources et rendus WebP sont tous versionnés directement dans ce dépôt, tandis que toutes ses relations musicales restent calculées depuis les pistes Harvest. Les inventaires Clips et Synchronisations proviennent exclusivement des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
+Site catalogue et lecteur audio de Parigo Music. Harvest est l’unique source de vérité des albums, pistes, crédits bruts, ayants droit et discographies publiques. L’annuaire `/talents` est limité à un registre éditorial contrôlé de 55 noms publics ; ses bios, portraits sources et rendus WebP sont tous versionnés directement dans ce dépôt, tandis que toutes ses relations musicales restent calculées depuis les pistes Harvest. Les inventaires Clips et Synchronisations proviennent exclusivement des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
 
 ## Installation
+
+Le projet utilise Node.js 24 LTS et pnpm 9.15.0.
 
 ```bash
 pnpm install
