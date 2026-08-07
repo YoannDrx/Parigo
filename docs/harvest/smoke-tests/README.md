@@ -47,22 +47,3 @@ pnpm audit:harvest:public-read
 
 Elle ne supprime aucun compte, ne déclenche aucun paiement ni e-mail et ne lance
 aucun import ou export de catalogue.
-
-## Rapprochement compositeurs
-
-Avec le serveur Parigo lancé localement, le smoke test suivant vérifie le filtre du label,
-la couverture des recherches par alias, les crédits réels des pistes et la stabilité
-des identifiants renvoyés par `/getrightholders` :
-
-```bash
-HARVEST_LIVE_TESTS=1 pnpm test:harvest:composers
-```
-
-La base BFF peut être remplacée avec `PARIGO_SMOKE_BASE_URL`.
-
-Pour rafraîchir l’instantané versionné des variantes de crédits sans aucune
-mutation distante :
-
-```bash
-pnpm audit:harvest:composers
-```

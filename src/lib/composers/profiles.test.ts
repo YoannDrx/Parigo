@@ -43,7 +43,7 @@ describe("canonical composer registry", () => {
       });
     }
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "forever-pavot")?.provenance.portraitFile).toBe("forever_pavot.jpg");
-    expect(canonicalComposerProfiles.find((profile) => profile.slug === "vincent-bouhelier")?.provenance.portraitFile).toBe("portraits/vincent_bouhelier.webp");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "vincent-bouhelier")?.provenance.portraitFile).toBe("public/images/composers/detail/vincent_bouhelier.webp");
   });
 
   it("maps the four editorial profiles without leaking stage names into Harvest aliases", () => {

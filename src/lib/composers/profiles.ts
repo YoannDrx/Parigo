@@ -49,7 +49,7 @@ const composerProfileSchema = z.object({
     capturedAt: z.string().datetime(),
     biographyFile: z.literal("site-biographies.user-provided.json"),
     sourceDocument: z.string().min(1),
-    portraitFile: z.string().regex(/^(?:portraits\/)?[a-z0-9_-]+\.(?:jpe?g|png|webp)$/),
+    portraitFile: z.string().regex(/^(?:(?:public\/images\/composers\/detail|portraits)\/)?[a-z0-9_-]+\.(?:jpe?g|png|webp)$/),
   }),
 });
 
