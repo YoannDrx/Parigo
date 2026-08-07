@@ -1,52 +1,41 @@
-import { clips } from "../src/lib/editorial/contracts";
+import { CLIPS_PLAYLIST_ID } from "../src/lib/editorial/video-types";
+import { VIDEO_COMPOSER_RELATIONS } from "../src/lib/editorial/video-composer-relations";
 import { classifyVideoTitle } from "../src/lib/editorial/video-classification";
-import { playlistVideoOverrides } from "../src/lib/editorial/video-overrides";
 import { fetchYouTubePlaylist } from "../src/lib/youtube/playlists";
 
-const CLIPS_PLAYLIST_ID = "PLIqrBBZKnwyWMkXainshLgavNlTmx9AhG";
-
 async function main() {
-  const playlistId = process.env.YOUTUBE_CLIPS_PLAYLIST_ID || CLIPS_PLAYLIST_ID;
-  const videos = await fetchYouTubePlaylist(playlistId);
-  const localById = new Map(clips.filter((clip) => clip.youtubeId).map((clip) => [clip.youtubeId!, clip]));
-  const localBySlug = new Map(clips.map((clip) => [clip.slug, clip]));
-  const resolvedLocal = (youtubeId: string) => {
-    const override = playlistVideoOverrides[youtubeId];
-    return localById.get(youtubeId)
-      || (override?.localSlug ? localBySlug.get(override.localSlug) : undefined);
-  };
-  const matched = videos.filter((video) => Boolean(resolvedLocal(video.youtubeId)));
-  const newVideos = videos.filter((video) => (
-    !resolvedLocal(video.youtubeId) && !playlistVideoOverrides[video.youtubeId]?.duplicateOf
-  ));
-  const matchedSlugs = new Set(matched.map((video) => resolvedLocal(video.youtubeId)?.slug).filter(Boolean));
-  const missingFromPlaylist = clips.filter((clip) => !matchedSlugs.has(clip.slug));
+  const videos = await fetchYouTubePlaylist(CLIPS_PLAYLIST_ID);
+  const duplicateIds = videos
+    .filter((video, index) => videos.findIndex((candidate) => candidate.youtubeId === video.youtubeId) !== index)
+    .map((video) => video.youtubeId);
   const typeCounts = new Map<string, number>();
+  const publicVideoIds = new Set(videos.map((video) => video.youtubeId));
+  const missingRelatedVideoIds = Object.keys(VIDEO_COMPOSER_RELATIONS)
+    .filter((youtubeId) => !publicVideoIds.has(youtubeId));
   videos.forEach((video) => {
-    const type = playlistVideoOverrides[video.youtubeId]?.videoType
-      || resolvedLocal(video.youtubeId)?.videoType
-      || classifyVideoTitle(video.title);
+    const type = classifyVideoTitle(video.title);
     typeCounts.set(type, (typeCounts.get(type) || 0) + 1);
   });
 
+  if (!videos.length) throw new Error(`La playlist ${CLIPS_PLAYLIST_ID} ne contient aucune vidéo publique.`);
+  if (duplicateIds.length) throw new Error(`Identifiants YouTube dupliqués : ${[...new Set(duplicateIds)].join(", ")}`);
+  if (missingRelatedVideoIds.length) {
+    throw new Error(`Clips liés à des compositeurs absents de la playlist publique : ${missingRelatedVideoIds.join(", ")}`);
+  }
+
   process.stdout.write(`${JSON.stringify({
     auditedAt: new Date().toISOString(),
-    playlistId,
+    playlistId: CLIPS_PLAYLIST_ID,
     publicVideos: videos.length,
-    matchedEditorialVideos: matched.length,
-    newVideos: newVideos.length,
-    duplicates: Object.entries(playlistVideoOverrides)
-      .filter(([, override]) => override.duplicateOf)
-      .map(([youtubeId, override]) => ({ youtubeId, duplicateOf: override.duplicateOf })),
-    localVideosMissingFromPlaylist: missingFromPlaylist.map((video) => ({
-      slug: video.slug,
-      youtubeId: video.youtubeId,
-    })),
+    uniqueVideos: new Set(videos.map((video) => video.youtubeId)).size,
+    relatedVideos: Object.keys(VIDEO_COMPOSER_RELATIONS).length,
+    composerAssociations: Object.values(VIDEO_COMPOSER_RELATIONS)
+      .reduce((total, composerSlugs) => total + composerSlugs.length, 0),
     types: Object.fromEntries([...typeCounts].sort()),
-    needsEditorialReview: newVideos.map((video) => ({
+    videos: videos.map((video) => ({
       youtubeId: video.youtubeId,
       title: video.title,
-      proposedType: classifyVideoTitle(video.title),
+      type: classifyVideoTitle(video.title),
       position: video.position,
     })),
   }, null, 2)}\n`);

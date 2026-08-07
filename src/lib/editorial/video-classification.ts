@@ -1,4 +1,4 @@
-import type { VideoType } from "./contracts";
+import type { VideoType } from "./video-types";
 
 export function classifyVideoTitle(title: string): VideoType {
   const normalized = title.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
