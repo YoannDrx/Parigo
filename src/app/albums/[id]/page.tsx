@@ -62,7 +62,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
         credit,
         name: profile.name,
         slug: profile.slug,
-        href: `/compositeurs/${profile.slug}`,
+        href: `/talents/${profile.slug}`,
       });
     }
   }

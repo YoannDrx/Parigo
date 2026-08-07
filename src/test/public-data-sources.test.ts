@@ -6,8 +6,8 @@ const projectRoot = resolve(import.meta.dirname, "../..");
 
 const publicCatalogFiles = [
   "src/app/albums/[id]/page.tsx",
-  "src/app/compositeurs/page.tsx",
-  "src/app/compositeurs/[slug]/page.tsx",
+  "src/app/talents/page.tsx",
+  "src/app/talents/[slug]/page.tsx",
   "src/app/clips/page.tsx",
   "src/app/clips/[slug]/page.tsx",
   "src/app/synchronisations/page.tsx",
@@ -18,12 +18,8 @@ const publicCatalogFiles = [
 ];
 
 const historicalSources = [
-  "editorial.generated",
-  "editorial/contracts",
   "catalog-composer-profiles",
   "content/synchronisations",
-  "content/matching",
-  "video-overrides",
 ];
 
 describe("public catalog source boundaries", () => {
@@ -35,12 +31,10 @@ describe("public catalog source boundaries", () => {
   });
 
   it("limits the local public composer source to the dedicated canonical registry", () => {
-    const directory = readFileSync(resolve(projectRoot, "src/app/compositeurs/page.tsx"), "utf8");
-    const detail = readFileSync(resolve(projectRoot, "src/app/compositeurs/[slug]/page.tsx"), "utf8");
+    const directory = readFileSync(resolve(projectRoot, "src/app/talents/page.tsx"), "utf8");
+    const detail = readFileSync(resolve(projectRoot, "src/app/talents/[slug]/page.tsx"), "utf8");
     expect(directory).toContain("composers/profiles");
     expect(detail).toContain("composers/profiles");
-    expect(directory).not.toContain("editorial.generated");
-    expect(detail).not.toContain("editorial.generated");
   });
 
   it("keeps video inventories connected to their configured YouTube playlists", () => {

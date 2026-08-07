@@ -1,61 +1,20 @@
-import type { Metadata } from "next";
-import { CatalogHero } from "@/components/catalog/CatalogHero";
-import { ComposerDirectoryClient } from "@/components/catalog/ComposerDirectoryClient";
-import { Footer, Header } from "@/components/layout";
-import { getParigoHarvestComposerInventory } from "@/lib/harvest/composer-inventory";
-import { CANONICAL_COMPOSER_PROFILE_COUNT, emptyCanonicalComposerSummaries } from "@/lib/composers/profiles";
+import { permanentRedirect } from "next/navigation";
+import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
-import { buildMetadata, type PageSearchParams } from "@/lib/seo";
+import type { PageSearchParams } from "@/lib/seo";
 
-interface ComposersPageProps {
+export default async function LegacyComposersPage({
+  searchParams,
+}: {
   searchParams: PageSearchParams;
-}
-
-export async function generateMetadata({ searchParams }: ComposersPageProps): Promise<Metadata> {
+}) {
   const [locale, params] = await Promise.all([getRequestLocale(), searchParams]);
-  return buildMetadata({
-    locale,
-    path: "/compositeurs",
-    title: locale === "fr" ? "Compositeurs" : "Composers",
-    description: locale === "fr"
-      ? `Découvrez les ${CANONICAL_COMPOSER_PROFILE_COUNT} compositeurs et collectifs Parigo, leurs biographies et leurs albums.`
-      : `Discover Parigo's ${CANONICAL_COMPOSER_PROFILE_COUNT} composers and collectives, their biographies and albums.`,
-    index: !params.q,
-  });
-}
-
-export default async function ComposersPage({ searchParams }: ComposersPageProps) {
-  const [locale, params, directory] = await Promise.all([
-    getRequestLocale(),
-    searchParams,
-    getParigoHarvestComposerInventory()
-      .then((inventory) => ({ state: "ready" as const, profiles: inventory.profiles }))
-      .catch(() => ({ state: "unavailable" as const, profiles: emptyCanonicalComposerSummaries() })),
-  ]);
-  const query = (Array.isArray(params.q) ? params.q[0] : params.q)?.trim() ?? "";
-  return (
-    <div className="page-shell min-h-screen">
-      <Header />
-      <main>
-        <CatalogHero
-          title={locale === "fr" ? "Compositeurs" : "Composers"}
-          intro={locale === "fr"
-            ? "Découvrez les compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."
-            : "Meet the composers, artists and collectives who give Parigo’s original catalogue its unique character."}
-        />
-        <section className="mx-auto max-w-[1700px] px-4 py-14 sm:px-6 lg:px-8 md:py-20">
-          {directory.state === "unavailable" && <p role="alert" className="mb-6 border-l-2 border-[var(--danger)] pl-4 text-sm text-[var(--danger)]">
-            {locale === "fr" ? "Les profils restent disponibles, mais les discographies n’ont pas pu être chargées." : "Profiles remain available, but discographies could not be loaded."}
-          </p>}
-          <ComposerDirectoryClient
-            profiles={directory.profiles}
-            initialQuery={query}
-            locale={locale}
-            pathname={locale === "en" ? "/en/compositeurs" : "/compositeurs"}
-          />
-        </section>
-      </main>
-      <Footer />
-    </div>
-  );
+  const query = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    for (const item of Array.isArray(value) ? value : [value]) {
+      if (item !== undefined) query.append(key, item);
+    }
+  }
+  const serializedQuery = query.toString();
+  permanentRedirect(`${localizedPath(locale, "/talents")}${serializedQuery ? `?${serializedQuery}` : ""}`);
 }

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import type { CSSProperties } from "react";
-import { RevealText } from "@/components/motion/RevealText";
+import { SignedTitle } from "@/components/ui/SignedTitle";
 import { localizedPath } from "@/lib/locale";
 
 export type ComposerStreamProfile = {
@@ -51,7 +51,7 @@ function ComposerStreamGroup({ profiles, duplicate = false, locale }: { profiles
             } as CSSProperties}
           >
             <Link
-              href={localizedPath(locale, `/compositeurs/${composer.slug}`)}
+              href={localizedPath(locale, `/talents/${composer.slug}`)}
               prefetch={false}
               tabIndex={duplicate ? -1 : undefined}
               className={`composer-cloud__card group relative block overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)] ${presentation.aspect}`}
@@ -87,22 +87,12 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
     <section data-testid="home-composers" className="composer-relationship overflow-hidden border-b border-[var(--line)] px-4 py-24 md:px-8 md:py-36">
       <div className="mx-auto max-w-[1580px]">
         <header className="mx-auto max-w-[1180px] text-center">
-          <RevealText
-            as="h2"
-            signature
-            className="text-[clamp(3rem,6.5vw,7rem)] font-semibold leading-[.88] tracking-[-.065em]"
-          >
+          <SignedTitle as="h2" className="text-[clamp(3rem,6.5vw,7rem)] font-semibold leading-[.88] tracking-[-.065em]">
             {locale === "fr" ? "Les talents qui donnent vie à notre catalogue." : "The talents who bring our catalogue to life."}
-          </RevealText>
-          <motion.p
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: .5 }}
-            transition={{ duration: .7, delay: .18, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto mt-8 max-w-5xl text-base leading-7 text-[var(--text-muted)] md:text-lg md:leading-8"
-          >
+          </SignedTitle>
+          <p className="mx-auto mt-8 max-w-5xl text-base leading-7 text-[var(--text-muted)] md:text-lg md:leading-8">
             {description}
-          </motion.p>
+          </p>
         </header>
 
         <div
@@ -128,9 +118,9 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: .7 }}
           transition={{ duration: .65, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-4 flex justify-center text-center md:mt-6"
+          className="mt-0 flex justify-center text-center md:mt-2"
         >
-          <Link href={localizedPath(locale, "/compositeurs")} className="group inline-flex max-w-4xl items-end justify-center gap-2 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)] md:text-base">
+          <Link href={localizedPath(locale, "/talents")} className="group inline-flex max-w-4xl items-end justify-center gap-2 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)] md:text-base">
             <span className="underline decoration-2 decoration-[var(--signal-strong)] underline-offset-[7px]">{cta}</span>
             <ArrowUpRight size={17} className="mb-0.5 shrink-0 text-[var(--signal-strong)] transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </Link>

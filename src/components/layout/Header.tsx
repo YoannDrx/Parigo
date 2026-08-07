@@ -57,7 +57,7 @@ export function Header({ variant = "default" }: HeaderProps) {
     playlists: { name: t("common.playlists"), href: "/playlists", note: locale === "fr" ? "Sélections éditoriales" : "Editorial selections" },
     licensing: { name: t("common.licensing"), href: "/licensing", note: locale === "fr" ? "Comprendre les droits" : "Understand the rights" },
     parigoLabel: { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo", note: locale === "fr" ? "Les productions du label" : "Releases from the label" },
-    composers: { name: locale === "fr" ? "Compositeurs" : "Composers", href: "/compositeurs", note: locale === "fr" ? "Les talents du label" : "The label’s talent" },
+    composers: { name: locale === "fr" ? "Talents" : "Talent", href: "/talents", note: locale === "fr" ? "Compositeurs, artistes et collectifs" : "Composers, artists and collectives" },
     clips: { name: "Clips", href: "/clips", note: locale === "fr" ? "Créations audiovisuelles" : "Audiovisual work" },
     labels: { name: "Labels", href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
   };
