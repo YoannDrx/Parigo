@@ -77,15 +77,12 @@ test("Notre label impose le label et conserve les fonctions du catalogue", async
   expect(cardLabels.filter(Boolean).every((value) => value === "Parigo")).toBe(true);
 });
 
-test("les anciennes routes Label Parigo et Sorties Parigo redirigent définitivement", async ({ page }) => {
-  await page.goto("/label-parigo");
-  await expect(page).toHaveURL(/\/notre-label$/);
-  await page.goto("/en/label-parigo");
-  await expect(page).toHaveURL(/\/en\/notre-label$/);
-  await page.goto("/sorties-parigo");
-  await expect(page).toHaveURL(/\/notre-label$/);
-  await page.goto("/en/sorties-parigo");
-  await expect(page).toHaveURL(/\/en\/notre-label$/);
+test("les anciennes routes Label Parigo et Sorties Parigo n’existent plus", async ({ page }) => {
+  for (const path of ["/label-parigo", "/en/label-parigo", "/sorties-parigo", "/en/sorties-parigo"]) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    await expect(page).toHaveURL(new RegExp(`${path}$`));
+  }
 });
 
 test("les anciennes routes Compositeurs redirigent vers Talents", async ({ page }) => {
