@@ -75,7 +75,7 @@ test("les titres signés et les grilles catalogue restent lisibles sur mobile", 
 test("les headers catalogue, synchronisations et légaux partagent la même composition", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "La comparaison typographique desktop suffit ; la version mobile est couverte séparément.");
   const fontSizes: string[] = [];
-  for (const path of ["/labels", "/label-parigo", "/playlists", "/synchronisations", "/legal"]) {
+  for (const path of ["/labels", "/notre-label", "/playlists", "/synchronisations", "/legal"]) {
     await page.goto(path);
     const hero = page.locator(".page-hero__frame");
     const title = hero.getByRole("heading", { level: 1 });
@@ -84,6 +84,26 @@ test("les headers catalogue, synchronisations et légaux partagent la même comp
     fontSizes.push(await title.evaluate((node) => getComputedStyle(node).fontSize));
   }
   expect(new Set(fontSizes).size).toBe(1);
+});
+
+test("les héros éditoriaux publient les titres et introductions validés", async ({ page }) => {
+  test.setTimeout(120_000);
+  const cases = [
+    ["/synchronisations", "Nos Synchros", "Du cinéma à la publicité, nos musiques trouvent leur place à l’image."],
+    ["/playlists", "Nos playlists", "Des sélections pour explorer le catalogue autrement."],
+    ["/licensing", "Une musique trouvée, une licence maîtrisée", "Chaque projet a ses usages, chaque usage ses droits. Parigo vous accompagne pour obtenir les autorisations adaptées et sécuriser votre licence, en France comme à l’international."],
+    ["/labels", "Labels", "Les catalogues que nous avons choisis de représenter"],
+    ["/notre-label", "Notre label", "Nos productions originales, au cœur de l’identité musicale de Parigo."],
+    ["/clips", "Clips", "Le catalogue Parigo en images, entre clips, teasers et performances live."],
+    ["/talents", "Nos talents", "Les compositrices, compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."],
+  ] as const;
+
+  for (const [path, title, intro] of cases) {
+    await page.goto(path);
+    const hero = page.locator(".page-hero__frame");
+    await expect(hero.getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
+    await expect(hero.getByText(intro, { exact: true })).toBeVisible();
+  }
 });
 
 test("la bordure et les corners des synchronisations restent visibles au survol", async ({ page }, testInfo) => {
@@ -381,8 +401,7 @@ test("la page des labels adopte l’intitulé Labels", async ({ page }) => {
 
 test("la page Clips porte l’introduction éditoriale complète", async ({ page }) => {
   await page.goto("/clips");
-  await expect(page.locator("main")).toContainText("Clips officiels, making-of, performances et archives issus de la playlist YouTube Parigo.");
-  await expect(page.locator("main")).toContainText("Les relations avec les compositeurs sont validées éditorialement.");
+  await expect(page.locator("main")).toContainText("Le catalogue Parigo en images, entre clips, teasers et performances live.");
 });
 
 test("le détail label privilégie le logo et ne renvoie plus vers son site", async ({ page }) => {
@@ -419,7 +438,7 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
     ["/synchronisations", "Music for images"],
     ["/playlists", "Catalogue / Sélections"],
     ["/licensing", "Licensing"],
-    ["/label-parigo", "Parigo / Discographie"],
+    ["/notre-label", "Parigo / Discographie"],
     ["/talents", "Talents Parigo"],
     ["/clips", "Images en musique"],
     ["/labels", "Catalogue / Labels"],
@@ -441,7 +460,7 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
   await expect(page.locator("main")).not.toContainText("Donnez le ton à vos images");
 });
 
-test("le formulaire Contact conserve sa composition d’origine et laisse respirer le champ Entreprise", async ({ page }) => {
+test("le formulaire Contact conserve sa composition d’origine sans pièce jointe", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.goto("/contact");
   await expect(page.getByText("Racontez-nous votre projet.", { exact: true })).toHaveCount(0);
@@ -449,13 +468,8 @@ test("le formulaire Contact conserve sa composition d’origine et laisse respir
   const companyField = page.locator('input[name="company"]').locator("..");
   const paddingLeft = await companyField.evaluate((node) => Number.parseFloat(getComputedStyle(node).paddingLeft));
   expect(paddingLeft).toBeGreaterThanOrEqual(20);
-  await expect(page.getByText("Pièce jointe", { exact: false })).toBeVisible();
-  await page.locator('input[name="attachment"]').setInputFiles({
-    name: "brief.pdf",
-    mimeType: "application/pdf",
-    buffer: Buffer.from("%PDF-1.7 test"),
-  });
-  await expect(page.getByText("brief.pdf", { exact: true })).toBeVisible();
+  await expect(page.getByText("Pièce jointe", { exact: false })).toHaveCount(0);
+  await expect(page.locator('input[type="file"]')).toHaveCount(0);
 });
 
 test("la page Contact présente uniquement l’équipe Parigo demandée", async ({ page }) => {

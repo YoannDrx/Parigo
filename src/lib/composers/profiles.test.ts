@@ -44,6 +44,8 @@ describe("canonical composer registry", () => {
     }
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "forever-pavot")?.provenance.portraitFile).toBe("forever_pavot.jpg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "dj-troubl")?.provenance.portraitFile).toBe("dj_troubl.jpg");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "aiwa")?.provenance.portraitFile).toBe("aiwa.jpg");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "arat-kilo")?.provenance.portraitFile).toBe("arat_kilo.jpeg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "vincent-bouhelier")?.provenance.portraitFile).toBe("public/images/composers/detail/vincent_bouhelier.webp");
   });
 

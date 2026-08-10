@@ -41,8 +41,8 @@ export default async function ClipsPage({ searchParams }: ClipsPageProps) {
         <CatalogHero
           title="Clips"
           intro={locale === "fr"
-            ? "Clips officiels, making-of, performances et archives issus de la playlist YouTube Parigo. Les relations avec les compositeurs sont validées éditorialement."
-            : "Official videos, behind-the-scenes films, performances and archives from the Parigo YouTube playlist. Composer relationships are editorially verified."}
+            ? "Le catalogue Parigo en images, entre clips, teasers et performances live."
+            : "The Parigo catalogue in motion, through music videos, teasers and live performances."}
           meta={`${videos.length} ${locale === "fr" ? "vidéos publiques" : "public videos"}`}
         />
         <section className="mx-auto max-w-[1500px] px-4 py-14 sm:px-6 lg:px-8 md:py-20">

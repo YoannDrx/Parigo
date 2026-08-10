@@ -45,6 +45,8 @@ const profiles: ProfileSource[] = [
     slug: "aiwa",
     name: "Aïwa",
     kind: "group",
+    localImageFile: "aiwa.jpg",
+    cardImageTransform: { position: "center" },
     aliases: ["Naufalle Al Wahab", "Al Wahab Naufalle", "Wamid Al Wahab", "Al Wahab Wamid"],
     rightHolderIds: ["3bde53a3c62b348c", "d627af62f0ace5b6"],
     creditIdentities: [
@@ -56,6 +58,8 @@ const profiles: ProfileSource[] = [
     slug: "arat-kilo",
     name: "Arat Kilo",
     kind: "group",
+    localImageFile: "arat_kilo.jpeg",
+    cardImageTransform: { position: "center" },
     aliases: ["Arat Kilo"],
     scopedRelations: [
       {

@@ -24,7 +24,9 @@ function redact(value: string): string {
 function normalizePath(pathname: string): string {
   return pathname
     .replace(/\/engage-playlist\/[^/]+/i, "/engage-playlist/[token]")
+    .replace(/\/shared-playlistcategory\/[^/]+/i, "/shared-playlistcategory/[token]")
     .replace(/\/verify-member\/[^/]+/i, "/verify-member/[token]")
+    .replace(/\/change-password\/[^/]+/i, "/change-password/[token]")
     .replace(/\/reset-password\/[^/]+/i, "/reset-password/[token]")
     .slice(0, 500);
 }

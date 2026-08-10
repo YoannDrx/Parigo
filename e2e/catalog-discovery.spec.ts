@@ -115,7 +115,7 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
 });
 
-test("Albums et Label Parigo filtrent par un compositeur unique sans perdre le label fixe", async ({ page }, testInfo) => {
+test("Albums et Notre label filtrent par un compositeur unique sans perdre le label fixe", async ({ page }, testInfo) => {
   test.setTimeout(120_000);
   await page.route("**/api/search/composers?**", async (route) => {
     await route.fulfill({
@@ -127,7 +127,7 @@ test("Albums et Label Parigo filtrent par un compositeur unique sans perdre le l
     });
   });
 
-  for (const path of ["/albums", "/label-parigo"]) {
+  for (const path of ["/albums", "/notre-label"]) {
     await page.goto(path);
     if (testInfo.project.name === "mobile") {
       await page.getByRole("button", { name: "Tous les filtres" }).click();
@@ -145,7 +145,7 @@ test("Albums et Label Parigo filtrent par un compositeur unique sans perdre le l
     }
     await expect.poll(() => new URL(page.url()).searchParams.get("composer")).toBe("Minimatic");
     await expect(page.getByRole("button", { name: "Retirer Minimatic" })).toBeVisible();
-    if (path === "/label-parigo") {
+    if (path === "/notre-label") {
       const cardLabels = await page.locator("main a[href^='/albums/'] p").allTextContents();
       expect(cardLabels.filter(Boolean).every((value) => value === "Parigo")).toBe(true);
     }

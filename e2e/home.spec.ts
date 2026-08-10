@@ -268,7 +268,20 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await expect(menu).not.toContainText("Catalogue, images et compositeurs");
   expect(await menu.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toContain("repeating-linear-gradient");
   await expect(menu.locator('a[href="/labels"]')).toContainText("Labels");
-  await expect(menu.getByRole("link", { name: "Label Parigo" })).toBeVisible();
+  await expect(menu.getByRole("link", { name: "Notre label" })).toBeVisible();
+  for (const note of [
+    "Par humeur, instrument ou usage",
+    "Nos catalogues partenaires",
+    "Le catalogue original Parigo",
+    "Explorez tous nos albums",
+    "Nos musiques à l’image",
+    "Nos sélections éditoriales",
+    "Comprendre et gérer les droits",
+    "Le catalogue en images",
+    "Celles et ceux qui créent",
+  ]) {
+    await expect(menu.getByText(note, { exact: true })).toBeVisible();
+  }
   if (testInfo.project.name === "desktop") {
     const labelsCard = menu.locator('a[href="/labels"]');
     await labelsCard.hover({ force: true });
@@ -284,7 +297,7 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   expect(await menu.getByTestId("drawer-navigation").getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
     "/search",
     "/labels",
-    "/label-parigo",
+    "/notre-label",
     "/albums",
     "/synchronisations",
     "/playlists",
@@ -330,14 +343,14 @@ test("le footer reprend l’ordre du menu et sépare le compte des réseaux soci
   expect(await explore.getByRole("link").evaluateAll((links) => links.map((link) => link.getAttribute("href")))).toEqual([
     "/search",
     "/labels",
-    "/label-parigo",
+    "/notre-label",
     "/albums",
     "/synchronisations",
     "/playlists",
-    "/licensing",
     "/clips",
     "/talents",
   ]);
+  await expect(footer.getByRole("link", { name: "Licensing", exact: true })).toHaveCount(1);
 
   const account = footer.getByRole("button", { name: /Créer un compte Parigo/ });
   const instagram = footer.getByRole("link", { name: "Instagram" });
@@ -840,7 +853,7 @@ test("les cartes À écouter maintenant séparent lecture et navigation", async 
   await playlistCard.locator(".home-release-play").click();
   await expect(playlistCard.locator(".home-release-play")).toHaveAttribute("aria-label", /^Mettre en pause /);
 
-  await featured.getByRole("tab", { name: "Label Parigo" }).click();
+  await featured.getByRole("tab", { name: "Notre label" }).click();
   const parigoCard = featured.locator(".home-audio-card").first();
   const parigoCardLink = parigoCard.locator(".home-audio-card__card-link");
   const parigoHref = await parigoCardLink.getAttribute("href");
@@ -1087,7 +1100,7 @@ test("les suggestions et les tags enrichis restent lisibles", async ({ page }, t
 
 test("les héros playlists et synchronisations conservent leurs contenus", async ({ page }) => {
   await page.goto("/playlists");
-  const playlistsTitle = page.getByRole("heading", { level: 1, name: "Les playlists" });
+  const playlistsTitle = page.getByRole("heading", { level: 1, name: "Nos playlists" });
   const titleBox = await playlistsTitle.boundingBox();
   const heroBox = await playlistsTitle.locator("xpath=ancestor::header").boundingBox();
   expect(titleBox).not.toBeNull();

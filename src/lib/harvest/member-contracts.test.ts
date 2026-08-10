@@ -15,6 +15,7 @@ import {
   buildSavedSearch,
   buildSavedSearchQuery,
   buildCreateTrackComment,
+  buildDirectMusicDelivery,
   buildUpdateTrackComment,
   buildMemberRegistration,
   buildMemberRemoval,
@@ -214,15 +215,21 @@ describe("Harvest member request contracts", () => {
 
   it("keeps advanced playlist sharing permissions explicit", () => {
     expect(buildPlaylistShare({
-      fromMemberToken: "sender", username: "member@example.invalid", recipientType: "MemberAccount", playlistId: "playlist-1",
-      allowDownload: true, allowFollow: false, allowSave: true, allowShare: false,
+      fromMemberToken: "sender", username: "member@example.invalid", recipientType: "MemberAccount", objectIdentifier: "playlist-1", objectType: "Playlist",
+      allowDownload: true, allowFollow: false, allowSave: true, allowShare: false, allowCollaboration: true,
     })).toEqual({
       FromMemberToken: "sender", ObjectIdentifier: "playlist-1", ObjectType: "Playlist",
-      Users: [{ Username: "member@example.invalid", Type: "MemberAccount", ShareType: "Sync", AllowDownload: true, AllowFollow: false, AllowSave: true, AllowShare: false, AllowCollaboration: false, AllowEdit: false }],
+      Users: [{ Username: "member@example.invalid", Type: "MemberAccount", ShareType: "Sync", AllowDownload: true, AllowFollow: false, AllowSave: true, AllowShare: false, AllowCollaboration: true, AllowEdit: false }],
     });
     expect(buildPlaylistShare({
-      fromMemberToken: "sender", username: "guest@example.invalid", recipientType: "GuestMemberAccount", playlistId: "playlist-1",
-      allowDownload: false, allowFollow: false, allowSave: false, allowShare: false,
+      fromMemberToken: "sender", username: "guest@example.invalid", recipientType: "GuestMemberAccount", objectIdentifier: "folder-1", objectType: "PlaylistCategory",
+      allowDownload: false, allowFollow: false, allowSave: false, allowShare: false, allowCollaboration: false,
     }).Users[0]).toMatchObject({ Username: "", Type: "GuestMemberAccount", ShareType: "Sync" });
+    expect(buildDirectMusicDelivery({
+      objectIdentifier: "playlist-1", objectType: "Playlist", username: "member@example.invalid", message: "Join me",
+    })).toEqual({
+      ObjectIdentifier: "playlist-1", ObjectType: "Playlist",
+      Users: [{ Username: "member@example.invalid", ShareType: "Sync", AllowEdit: false, AllowCollaboration: true, NotifyUser: false, Message: "Join me" }],
+    });
   });
 });

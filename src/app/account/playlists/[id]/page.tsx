@@ -12,6 +12,7 @@ import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useContextualBack } from "@/components/navigation/ContextualBackLink";
 
 interface MemberPlaylist { id: string; title: string; description?: string; categoryId?: string; tracks: Track[]; }
+type ShareMode = "view" | "collaborate" | "deliver";
 
 function albumFor(track: Track): Album {
   return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", code: track.albumCode || track.cdCode, cover: track.albumCover || "/images/placeholder-album.svg", label: track.albumLabel || "", genres: track.genres, moods: track.moods, trackCount: 0 };
@@ -34,12 +35,14 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
   const [shareEnabled, setShareEnabled] = useState(false);
   const [shareEmail, setShareEmail] = useState("");
   const [shareMessage, setShareMessage] = useState("");
+  const [shareMode, setShareMode] = useState<ShareMode>("view");
   const [allowDownload, setAllowDownload] = useState(false);
   const [allowSave, setAllowSave] = useState(true);
   const [allowShare, setAllowShare] = useState(false);
   const [shareSending, setShareSending] = useState(false);
   const [shareUrl, setShareUrl] = useState("");
   const [shareError, setShareError] = useState("");
+  const [shareSuccess, setShareSuccess] = useState("");
   const [copied, setCopied] = useState(false);
   const [renameOpen, setRenameOpen] = useState(false);
   const [renameTitle, setRenameTitle] = useState("");
@@ -212,14 +215,22 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
     if (!playlist || !shareEmail.trim()) return;
     setShareSending(true);
     setShareError("");
+    setShareSuccess("");
     setShareUrl("");
     const response = await fetch(`/api/user/playlists/${encodeURIComponent(id)}/share`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ playlistTitle: playlist.title, toEmail: shareEmail.trim(), message: shareMessage, allowDownload, allowFollow: false, allowSave, allowShare, sendEmail: true }),
+      body: JSON.stringify({ playlistTitle: playlist.title, toEmail: shareEmail.trim(), message: shareMessage, mode: shareMode, allowDownload, allowFollow: false, allowSave, allowShare, sendEmail: shareMode !== "deliver" }),
     });
     const payload = await response.json();
-    if (response.ok) setShareUrl(payload.data?.share?.url || "");
+    if (response.ok) {
+      setShareUrl(payload.data?.share?.url || "");
+      setShareSuccess(payload.data?.share?.delivered
+        ? (locale === "fr" ? "La playlist a été ajoutée directement au compte du destinataire." : "The playlist was added directly to the recipient’s account.")
+        : (shareMode === "collaborate"
+          ? (locale === "fr" ? "L’invitation à collaborer a été créée et envoyée." : "The collaboration invitation was created and sent.")
+          : (locale === "fr" ? "Le lien de consultation a été créé et envoyé." : "The viewing link was created and sent.")));
+    }
     else setShareError(payload.error?.message || (locale === "fr" ? "Le partage n’a pas pu être créé." : "The share could not be created."));
     setShareSending(false);
   };
@@ -265,8 +276,22 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
           <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "E-mail du destinataire" : "Recipient email"}</span><input type="email" value={shareEmail} onChange={(event) => setShareEmail(event.target.value)} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 outline-none focus:border-[var(--foreground)]" placeholder="nom@studio.com" /></label>
           <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Message" : "Message"}</span><textarea value={shareMessage} onChange={(event) => setShareMessage(event.target.value)} rows={3} maxLength={1200} className="w-full resize-y border border-[var(--line)] bg-[var(--background)] p-3 outline-none focus:border-[var(--foreground)]" placeholder={locale === "fr" ? "Quelques mots sur cette sélection…" : "A few words about this selection…"} /></label>
         </div>
-        <div className="mt-5 flex flex-wrap gap-3">{[[allowDownload, setAllowDownload, locale === "fr" ? "Autoriser le téléchargement" : "Allow downloads"], [allowSave, setAllowSave, locale === "fr" ? "Autoriser l’enregistrement" : "Allow saving"], [allowShare, setAllowShare, locale === "fr" ? "Autoriser le repartage" : "Allow resharing"]].map(([checked, setter, label]) => <label key={String(label)} className="parigo-choice inline-flex min-h-10 cursor-pointer items-center gap-2 border border-[var(--line)] px-3 text-xs"><input type="checkbox" checked={checked as boolean} onChange={(event) => (setter as (value: boolean) => void)(event.target.checked)} className="accent-[var(--signal-strong)]" />{String(label)}</label>)}</div>
-        <div className="mt-6 flex flex-wrap items-center gap-3"><Button onClick={() => void createShare()} disabled={shareSending || !shareEmail.trim()}>{shareSending ? <ParigoLoader size="icon" label={locale === "fr" ? "Création du lien" : "Creating link"} /> : <Mail size={16} />}{locale === "fr" ? "Créer le lien et envoyer" : "Create link and send"}</Button>{shareUrl && <button type="button" onClick={() => void copyShare()} className="inline-flex min-h-11 max-w-full items-center gap-2 border border-[var(--signal-strong)] px-4 text-xs font-semibold text-[var(--signal-strong)]"><span className="max-w-[28rem] truncate">{shareUrl}</span>{copied ? <Check size={15} /> : <Copy size={15} />}</button>}</div>
+        <fieldset className="mt-5 grid gap-3 md:grid-cols-3">
+          <legend className="mb-3 text-xs font-semibold">{locale === "fr" ? "Mode de partage" : "Sharing mode"}</legend>
+          {([
+            ["view", locale === "fr" ? "Lien de consultation" : "Viewing link", locale === "fr" ? "Le destinataire consulte une sélection synchronisée." : "The recipient views a synced selection."],
+            ["collaborate", locale === "fr" ? "Inviter à collaborer" : "Invite to collaborate", locale === "fr" ? "Un membre Parigo choisit ensuite collaboration ou copie." : "A Parigo member then chooses collaboration or copy."],
+            ["deliver", locale === "fr" ? "Ajouter directement" : "Add directly", locale === "fr" ? "Ajout immédiat dans un compte membre, sans approbation ni e-mail." : "Immediate member-account delivery, without approval or email."],
+          ] as const).map(([value, label, description]) => (
+            <label key={value} className="parigo-choice cursor-pointer border border-[var(--line)] p-3 text-xs" data-active={shareMode === value ? "true" : undefined}>
+              <span className="flex items-center gap-2 font-semibold"><input type="radio" name="share-mode" value={value} checked={shareMode === value} onChange={() => setShareMode(value)} className="accent-[var(--signal-strong)]" />{label}</span>
+              <span className="mt-2 block leading-5 text-[var(--text-muted)]">{description}</span>
+            </label>
+          ))}
+        </fieldset>
+        {shareMode !== "deliver" ? <div className="mt-5 flex flex-wrap gap-3">{[[allowDownload, setAllowDownload, locale === "fr" ? "Autoriser le téléchargement" : "Allow downloads"], [allowSave, setAllowSave, locale === "fr" ? "Autoriser l’enregistrement" : "Allow saving"], [allowShare, setAllowShare, locale === "fr" ? "Autoriser le repartage" : "Allow resharing"]].map(([checked, setter, label]) => <label key={String(label)} className="parigo-choice inline-flex min-h-10 cursor-pointer items-center gap-2 border border-[var(--line)] px-3 text-xs"><input type="checkbox" checked={checked as boolean} onChange={(event) => (setter as (value: boolean) => void)(event.target.checked)} className="accent-[var(--signal-strong)]" />{String(label)}</label>)}</div> : null}
+        <div className="mt-6 flex flex-wrap items-center gap-3"><Button onClick={() => void createShare()} disabled={shareSending || !shareEmail.trim()}>{shareSending ? <ParigoLoader size="icon" label={locale === "fr" ? "Partage en cours" : "Sharing"} /> : <Mail size={16} />}{shareMode === "deliver" ? (locale === "fr" ? "Ajouter au compte" : "Add to account") : shareMode === "collaborate" ? (locale === "fr" ? "Envoyer l’invitation" : "Send invitation") : (locale === "fr" ? "Créer le lien et envoyer" : "Create link and send")}</Button>{shareUrl && <button type="button" onClick={() => void copyShare()} className="inline-flex min-h-11 max-w-full items-center gap-2 border border-[var(--signal-strong)] px-4 text-xs font-semibold text-[var(--signal-strong)]"><span className="max-w-[28rem] truncate">{shareUrl}</span>{copied ? <Check size={15} /> : <Copy size={15} />}</button>}</div>
+        {shareSuccess && <p role="status" className="mt-4 border-l-2 border-[var(--signal-strong)] pl-3 text-sm text-[var(--text-muted)]">{shareSuccess}</p>}
         {shareError && <p className="mt-4 text-sm text-[var(--danger)]">{shareError}</p>}
       </section>
     )}

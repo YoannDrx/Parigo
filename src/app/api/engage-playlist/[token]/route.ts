@@ -9,13 +9,14 @@ export async function GET(_request: Request, context: { params: Promise<{ token:
   const id = requestId();
   try {
     const token = tokenSchema.parse((await context.params).token);
-    const playlists = await getSharedMusic(token);
+    const shared = await getSharedMusic(token);
     return NextResponse.json({
       data: {
-        playlists: playlists.map((playlist) => ({
+        playlists: shared.playlists.map((playlist) => ({
           ...apiPlaylist(playlist),
           tracks: playlist.tracks?.map(apiTrack) || [],
         })),
+        allowCollaboration: shared.allowCollaboration,
       },
       meta: { requestId: id },
     }, { headers: { "Cache-Control": "private, no-store", "X-Request-ID": id } });

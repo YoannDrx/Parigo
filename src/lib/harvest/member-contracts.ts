@@ -310,22 +310,26 @@ export function buildPlaylistSuggestions(limit = 12) {
   return { Skip: 0, Limit: Math.min(100, limit), MainOnly: true, SeedDetermination: "Random", SeedLimit: 5, SeedMin: "" };
 }
 
+export type MusicShareObjectType = "Playlist" | "PlaylistCategory";
+
 export interface PlaylistShareContractInput {
   fromMemberToken: string;
-  playlistId: string;
+  objectIdentifier: string;
+  objectType: MusicShareObjectType;
   username: string;
   recipientType: "MemberAccount" | "GuestMemberAccount";
   allowDownload: boolean;
   allowFollow: boolean;
   allowSave: boolean;
   allowShare: boolean;
+  allowCollaboration: boolean;
 }
 
 export function buildPlaylistShare(input: PlaylistShareContractInput) {
   return {
     FromMemberToken: input.fromMemberToken,
-    ObjectIdentifier: input.playlistId,
-    ObjectType: "Playlist",
+    ObjectIdentifier: input.objectIdentifier,
+    ObjectType: input.objectType,
     Users: [{
       Username: input.recipientType === "MemberAccount" ? input.username : "",
       Type: input.recipientType,
@@ -334,8 +338,28 @@ export function buildPlaylistShare(input: PlaylistShareContractInput) {
       AllowFollow: input.allowFollow,
       AllowSave: input.allowSave,
       AllowShare: input.allowShare,
-      AllowCollaboration: false,
+      AllowCollaboration: input.allowCollaboration,
       AllowEdit: false,
+    }],
+  };
+}
+
+export function buildDirectMusicDelivery(input: {
+  objectIdentifier: string;
+  objectType: MusicShareObjectType;
+  username: string;
+  message?: string;
+}) {
+  return {
+    ObjectIdentifier: input.objectIdentifier,
+    ObjectType: input.objectType,
+    Users: [{
+      Username: input.username,
+      ShareType: "Sync",
+      AllowEdit: false,
+      AllowCollaboration: true,
+      NotifyUser: false,
+      Message: input.message || "",
     }],
   };
 }

@@ -7,7 +7,7 @@ import { getSynchronisations } from "@/lib/youtube/synchronisations";
 
 const staticPaths = [
   "", "/albums", "/labels", "/playlists", "/synchronisations",
-  "/label-parigo", "/talents", "/clips",
+  "/notre-label", "/talents", "/clips",
   "/licensing", "/contact", "/about", "/legal", "/privacy", "/terms", "/rights",
 ];
 

@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Folder, FolderInput, FolderOpen, FolderPlus, Folders, Grid3X3, List, ListMusic, Plus, Search, Trash2, X } from "lucide-react";
+import { Check, Copy, Folder, FolderInput, FolderOpen, FolderPlus, Folders, Grid3X3, List, ListMusic, Mail, Plus, Search, Share2, Trash2, X } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 import { Button, Input, Select } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -28,6 +28,7 @@ interface UserPlaylist {
 
 type Sort = "recent" | "title" | "tracks";
 type PlaylistView = "grid" | "list";
+type ShareMode = "view" | "collaborate" | "deliver";
 
 function configurePlaylistDrag(event: DragEvent<HTMLElement>, playlist: UserPlaylist) {
   event.dataTransfer.effectAllowed = "move";
@@ -69,6 +70,16 @@ export default function PlaylistsPage() {
   const [dropTarget, setDropTarget] = useState<string | null>(null);
   const [movingPlaylistId, setMovingPlaylistId] = useState<string | null>(null);
   const [folderMessage, setFolderMessage] = useState("");
+  const [sharingEnabled, setSharingEnabled] = useState(false);
+  const [sharedCategory, setSharedCategory] = useState<MemberPlaylistCategory | null>(null);
+  const [shareEmail, setShareEmail] = useState("");
+  const [shareMessage, setShareMessage] = useState("");
+  const [shareMode, setShareMode] = useState<ShareMode>("view");
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareUrl, setShareUrl] = useState("");
+  const [shareStatus, setShareStatus] = useState("");
+  const [shareError, setShareError] = useState("");
+  const [shareCopied, setShareCopied] = useState(false);
 
   const loadPlaylists = async () => {
     setIsLoading(true);
@@ -103,7 +114,10 @@ export default function PlaylistsPage() {
     if (!userId) return;
     void fetch("/api/user/playlist-categories", { cache: "no-store" })
       .then(async (response) => response.ok ? response.json() : null)
-      .then((payload) => setCategories(payload?.data?.categories ?? []))
+      .then((payload) => {
+        setCategories(payload?.data?.categories ?? []);
+        setSharingEnabled(Boolean(payload?.data?.capabilities?.playlistSharing));
+      })
       .catch(() => undefined);
   }, [userId]);
 
@@ -216,6 +230,39 @@ export default function PlaylistsPage() {
     setCategoryBusy(false);
   };
 
+  const shareCategory = async () => {
+    if (!sharedCategory || !shareEmail.trim()) return;
+    setShareBusy(true);
+    setShareUrl("");
+    setShareStatus("");
+    setShareError("");
+    const response = await fetch(`/api/user/playlist-categories/${encodeURIComponent(sharedCategory.id)}/share`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        categoryTitle: sharedCategory.name,
+        toEmail: shareEmail.trim(),
+        message: shareMessage,
+        mode: shareMode,
+        allowDownload: false,
+        allowFollow: false,
+        allowSave: true,
+        allowShare: false,
+        sendEmail: shareMode !== "deliver",
+      }),
+    });
+    const payload = await response.json().catch(() => null);
+    if (response.ok) {
+      setShareUrl(payload?.data?.share?.url || "");
+      setShareStatus(payload?.data?.share?.delivered
+        ? (locale === "fr" ? "Le dossier a été ajouté directement au compte du destinataire." : "The folder was added directly to the recipient’s account.")
+        : (locale === "fr" ? "Le partage du dossier a été créé et envoyé." : "The folder share was created and sent."));
+    } else {
+      setShareError(payload?.error?.message || (locale === "fr" ? "Le dossier n’a pas pu être partagé." : "The folder could not be shared."));
+    }
+    setShareBusy(false);
+  };
+
   const openCreate = () => {
     setCreateError("");
     setCreateOpen(true);
@@ -319,6 +366,7 @@ export default function PlaylistsPage() {
                   <span className="mt-auto max-w-full truncate pt-3 text-xs font-semibold sm:text-sm">{category.name}</span>
                   <span className="mt-1 font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]">{categoryCount} {categoryCount === 1 ? "playlist" : "playlists"}</span>
                 </button>
+                {category.id !== "root" && category.id !== "all" && sharingEnabled ? <button type="button" onClick={() => { setSharedCategory(categories.find((item) => item.id === category.id) || null); setShareUrl(""); setShareStatus(""); setShareError(""); }} className="parigo-soft-action absolute right-10 top-1.5 flex h-8 w-8 items-center justify-center text-[var(--text-muted)]" aria-label={`${locale === "fr" ? "Partager le dossier" : "Share folder"} ${category.name}`}><Share2 size={13} /></button> : null}
                 {category.id !== "root" && category.id !== "all" && <button type="button" disabled={categoryBusy} onClick={() => void removeCategory(category.id)} className="parigo-soft-action absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center text-[var(--text-muted)]" aria-label={`${locale === "fr" ? "Supprimer le dossier" : "Delete folder"} ${category.name}`}><Trash2 size={13} /></button>}
               </article>
             );
@@ -326,6 +374,27 @@ export default function PlaylistsPage() {
         </div>
         {folderMessage && <p role="status" className="mt-4 border-l-2 border-[var(--signal-strong)] pl-3 text-xs text-[var(--text-muted)]">{folderMessage}</p>}
       </section>
+
+      {sharedCategory ? (
+        <section className="parigo-frame border border-[var(--line-strong)] bg-[var(--surface)] p-5 md:p-6" aria-labelledby="share-folder-title">
+          <div className="flex items-start justify-between gap-4">
+            <div><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Dossier synchronisé" : "Synced folder"}</p><h2 id="share-folder-title" className="mt-2 font-[var(--font-editorial)] text-3xl">{locale === "fr" ? `Partager « ${sharedCategory.name} ».` : `Share “${sharedCategory.name}”.`}</h2></div>
+            <button type="button" onClick={() => setSharedCategory(null)} className="flex h-10 w-10 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer le partage" : "Close sharing"}><X size={16} /></button>
+          </div>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "E-mail du destinataire" : "Recipient email"}</span><input type="email" value={shareEmail} onChange={(event) => setShareEmail(event.target.value)} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3" placeholder="nom@studio.com" /></label>
+            <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Message" : "Message"}</span><input value={shareMessage} onChange={(event) => setShareMessage(event.target.value)} maxLength={1200} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3" /></label>
+          </div>
+          <fieldset className="mt-5 flex flex-wrap gap-3"><legend className="sr-only">{locale === "fr" ? "Mode de partage" : "Sharing mode"}</legend>{([
+            ["view", locale === "fr" ? "Lien de consultation" : "Viewing link"],
+            ["collaborate", locale === "fr" ? "Inviter à collaborer" : "Invite to collaborate"],
+            ["deliver", locale === "fr" ? "Ajouter directement" : "Add directly"],
+          ] as const).map(([value, label]) => <label key={value} className="parigo-choice inline-flex min-h-10 cursor-pointer items-center gap-2 border border-[var(--line)] px-3 text-xs"><input type="radio" name="folder-share-mode" checked={shareMode === value} onChange={() => setShareMode(value)} className="accent-[var(--signal-strong)]" />{label}</label>)}</fieldset>
+          <div className="mt-6 flex flex-wrap items-center gap-3"><Button onClick={() => void shareCategory()} disabled={shareBusy || !shareEmail.trim()}>{shareBusy ? <ParigoLoader size="icon" label={locale === "fr" ? "Partage en cours" : "Sharing"} /> : <Mail size={16} />}{shareMode === "deliver" ? (locale === "fr" ? "Ajouter au compte" : "Add to account") : (locale === "fr" ? "Partager le dossier" : "Share folder")}</Button>{shareUrl ? <button type="button" onClick={() => { void navigator.clipboard.writeText(shareUrl); setShareCopied(true); window.setTimeout(() => setShareCopied(false), 1500); }} className="inline-flex min-h-11 max-w-full items-center gap-2 border border-[var(--signal-strong)] px-4 text-xs font-semibold text-[var(--signal-strong)]"><span className="max-w-[28rem] truncate">{shareUrl}</span>{shareCopied ? <Check size={15} /> : <Copy size={15} />}</button> : null}</div>
+          {shareStatus ? <p role="status" className="mt-4 border-l-2 border-[var(--signal-strong)] pl-3 text-sm text-[var(--text-muted)]">{shareStatus}</p> : null}
+          {shareError ? <p role="alert" className="mt-4 text-sm text-[var(--danger)]">{shareError}</p> : null}
+        </section>
+      ) : null}
 
       {!isLoading && playlists.length > 0 && (
         <section aria-label={locale === "fr" ? "Rechercher et trier les playlists" : "Search and sort playlists"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(15rem,1fr)_12rem_auto] md:items-center">

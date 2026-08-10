@@ -56,32 +56,36 @@ test("le CTA Licensing reste lisible dans ses états et les deux thèmes", async
   }
 });
 
-test("le catalogue général s’intitule Albums et la home relie le Label Parigo", async ({ page }) => {
+test("le catalogue général s’intitule Albums et la home relie Notre label", async ({ page }) => {
   await page.goto("/albums");
   await expect(page.getByRole("heading", { level: 1, name: "Albums", exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { level: 1, name: "Nos albums", exact: true })).toHaveCount(0);
 
   await page.goto("/");
-  await page.getByRole("tab", { name: "Label Parigo" }).click();
-  const section = page.locator("section").filter({ has: page.getByRole("tab", { name: "Label Parigo" }) });
-  await expect(section.getByRole("link", { name: "Tout voir" })).toHaveAttribute("href", "/label-parigo");
+  await page.getByRole("tab", { name: "Notre label" }).click();
+  const section = page.locator("section").filter({ has: page.getByRole("tab", { name: "Notre label" }) });
+  await expect(section.getByRole("link", { name: "Tout voir" })).toHaveAttribute("href", "/notre-label");
 });
 
-test("le Label Parigo impose le label et conserve les fonctions du catalogue", async ({ page }) => {
-  await page.goto("/label-parigo");
-  await expect(page.getByRole("heading", { level: 1, name: "Label Parigo" })).toBeVisible();
-  await expect(page.getByPlaceholder("Rechercher dans le label Parigo")).toBeVisible();
+test("Notre label impose le label et conserve les fonctions du catalogue", async ({ page }) => {
+  await page.goto("/notre-label");
+  await expect(page.getByRole("heading", { level: 1, name: "Notre label" })).toBeVisible();
+  await expect(page.getByPlaceholder("Rechercher dans notre label")).toBeVisible();
   await expect(page.getByRole("button", { name: "Vue liste" })).toBeVisible();
   await expect(page.getByText("Label", { exact: true })).toHaveCount(0);
   const cardLabels = await page.locator("main a[href^='/albums/'] p").allTextContents();
   expect(cardLabels.filter(Boolean).every((value) => value === "Parigo")).toBe(true);
 });
 
-test("les anciennes routes Sorties Parigo redirigent définitivement", async ({ page }) => {
+test("les anciennes routes Label Parigo et Sorties Parigo redirigent définitivement", async ({ page }) => {
+  await page.goto("/label-parigo");
+  await expect(page).toHaveURL(/\/notre-label$/);
+  await page.goto("/en/label-parigo");
+  await expect(page).toHaveURL(/\/en\/notre-label$/);
   await page.goto("/sorties-parigo");
-  await expect(page).toHaveURL(/\/label-parigo$/);
+  await expect(page).toHaveURL(/\/notre-label$/);
   await page.goto("/en/sorties-parigo");
-  await expect(page).toHaveURL(/\/en\/label-parigo$/);
+  await expect(page).toHaveURL(/\/en\/notre-label$/);
 });
 
 test("les anciennes routes Compositeurs redirigent vers Talents", async ({ page }) => {
@@ -356,6 +360,6 @@ test("les pages anglaises exposent canoniques et hreflang", async ({ page }) => 
   await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/en\/talents$/);
   await expect(page.locator('link[rel="alternate"][hreflang="fr"]')).toHaveAttribute("href", /\/talents$/);
 
-  await page.goto("/en/label-parigo");
-  await expect(page.getByRole("heading", { level: 1, name: "Parigo Label" })).toBeVisible();
+  await page.goto("/en/notre-label");
+  await expect(page.getByRole("heading", { level: 1, name: "Our label" })).toBeVisible();
 });

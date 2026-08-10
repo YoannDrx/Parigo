@@ -39,7 +39,9 @@ import {
   buildSearchMemberPlaylistTracks,
   buildCommunicationHistory,
   buildCreateTrackComment,
+  buildDirectMusicDelivery,
   buildUpdateTrackComment,
+  type MusicShareObjectType,
 } from "./member-contracts";
 import {
   WRITE_VERIFICATION_OFFSETS_MS,
@@ -616,23 +618,14 @@ export async function suggestPlaylistTracks(memberToken: string, playlistId: str
   return recordArray(payload, "Tracks").map((track) => mapTrack(track, templates, undefined, "member-playlist-suggestion"));
 }
 
-export async function createPlaylistShare(memberToken: string, input: {
-  playlistId: string;
-  playlistTitle: string;
-  fromEmail: string;
-  toEmail: string;
-  message?: string;
-  allowDownload: boolean;
-  allowFollow: boolean;
-  allowSave: boolean;
-  allowShare: boolean;
-  sendEmail: boolean;
-}) {
+export type MusicShareMode = "view" | "collaborate" | "deliver";
+
+async function recipientTypeForEmail(toEmail: string) {
   let recipientType: "MemberAccount" | "GuestMemberAccount" = "GuestMemberAccount";
   try {
     await serviceRequest<HarvestRecord>((token) => `/validatememberemail/${token}`, {
       method: "POST",
-      body: JSON.stringify({ Email: input.toEmail }),
+      body: JSON.stringify({ Email: toEmail }),
     });
   } catch (error) {
     if (error instanceof HarvestError && error.upstreamCode === "17") {
@@ -641,20 +634,72 @@ export async function createPlaylistShare(memberToken: string, input: {
       throw error;
     }
   }
+  return recipientType;
+}
+
+export async function createMusicShare(memberToken: string, input: {
+  objectIdentifier: string;
+  objectType: MusicShareObjectType;
+  contentTitle: string;
+  fromEmail: string;
+  toEmail: string;
+  message?: string;
+  mode: MusicShareMode;
+  allowDownload: boolean;
+  allowFollow: boolean;
+  allowSave: boolean;
+  allowShare: boolean;
+  sendEmail: boolean;
+}) {
+  const recipientType = await recipientTypeForEmail(input.toEmail);
+  if (input.mode !== "view" && recipientType !== "MemberAccount") {
+    throw new HarvestError(
+      "Collaboration requires an existing Parigo member account",
+      "VALIDATION_FAILED",
+      400,
+      false,
+      "RECIPIENT_NOT_MEMBER",
+    );
+  }
+
+  if (input.mode === "deliver") {
+    const delivery = await memberRequest<HarvestRecord>(memberToken, (token) => `/deliversharemusic/${token}`, {
+      method: "POST",
+      body: JSON.stringify(buildDirectMusicDelivery({
+        objectIdentifier: input.objectIdentifier,
+        objectType: input.objectType,
+        username: input.toEmail,
+        message: input.message,
+      })),
+    });
+    return {
+      url: null,
+      emailed: false,
+      delivered: true,
+      recipientType,
+      shareType: "Sync" as const,
+      mode: input.mode,
+      status: asString(delivery.Status, "success"),
+    };
+  }
+
   const share = await serviceRequest<HarvestRecord>((token) => `/getsharemusicurl/${token}`, {
     method: "POST",
     body: JSON.stringify(buildPlaylistShare({
       fromMemberToken: memberToken,
-      playlistId: input.playlistId,
+      objectIdentifier: input.objectIdentifier,
+      objectType: input.objectType,
       username: input.toEmail,
       recipientType,
       allowDownload: input.allowDownload,
       allowFollow: input.allowFollow,
       allowSave: input.allowSave,
       allowShare: input.allowShare,
+      allowCollaboration: input.mode === "collaborate",
     })),
   });
-  const url = asString(share.Url || share.URL);
+  const shareResult = recordArray(share, "ShareMusic")[0] || share;
+  const url = asString(shareResult.Url || shareResult.URL);
   if (!url) throw new HarvestError("Parigo did not return a playlist share URL", "HARVEST_INVALID_RESPONSE");
   if (input.sendEmail) {
     await memberRequest(memberToken, (token) => `/sendsharemusiclinkemail/${token}`, {
@@ -664,18 +709,36 @@ export async function createPlaylistShare(memberToken: string, input: {
         ToEmail: input.toEmail,
         Message: input.message || "",
         Link: url,
-        ContentType: "Playlist",
-        ContentTitle: input.playlistTitle,
-        SelectEmailTemplateByMemberRegion: true,
+        ContentType: input.objectType,
+        ContentTitle: input.contentTitle,
+        SelectEmailTemplateByMemberRegion: false,
       }),
     });
   }
   return {
     url,
     emailed: input.sendEmail,
+    delivered: false,
     recipientType,
     shareType: "Sync" as const,
-    status: asString(share.Status, "success"),
+    mode: input.mode,
+    status: asString(shareResult.Status, "success"),
+  };
+}
+
+export async function acceptSharedMusic(
+  memberToken: string,
+  accessToken: string,
+  acceptType: "AsCollaboration" | "AsCopy",
+) {
+  const payload = await memberRequest<HarvestRecord>(
+    memberToken,
+    (token) => `/acceptsharemusic/${token}/${encodeURIComponent(accessToken)}?accepttype=${acceptType}`,
+  );
+  return {
+    accepted: true,
+    acceptType,
+    status: asString(payload.Status, "success"),
   };
 }
 
@@ -1358,10 +1421,38 @@ export async function getSharedMusic(accessToken: string) {
     getAssetTemplates(),
   ]);
   const referred = isRecord(payload.ReferredPlaylistObject) ? payload.ReferredPlaylistObject : payload;
-  return recordArray(referred, "Playlists").map((item) => ({
-    ...mapPlaylist(item, templates),
-    tracks: recordArray(item, "Tracks").map((track) => mapTrack(track, templates, undefined, "shared-playlist")),
-  }));
+  const nestedPlaylists = recordArray(referred, "Playlists");
+  const objectType = asString(referred.ObjectType).toLowerCase();
+  const playlistRecords = nestedPlaylists.length
+    ? nestedPlaylists
+    : objectType.includes("playlist") && !objectType.includes("category") && asString(referred.ID)
+      ? [referred]
+      : [];
+  const playlists = playlistRecords.map((item) => ({
+      ...mapPlaylist(item, templates),
+      tracks: recordArray(item, "Tracks").map((track) => mapTrack(track, templates, undefined, "shared-playlist")),
+    }));
+  return {
+    playlists,
+    allowCollaboration: findBooleanProperty(payload, "AllowCollaboration"),
+  };
+}
+
+function findBooleanProperty(value: unknown, expectedKey: string): boolean | undefined {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findBooleanProperty(item, expectedKey);
+      if (found !== undefined) return found;
+    }
+    return undefined;
+  }
+  if (!isRecord(value)) return undefined;
+  for (const [key, nested] of Object.entries(value)) {
+    if (key.toLowerCase() === expectedKey.toLowerCase()) return asBoolean(nested);
+    const found = findBooleanProperty(nested, expectedKey);
+    if (found !== undefined) return found;
+  }
+  return undefined;
 }
 
 export async function createCueSheet(memberToken: string, filename: string, trackIds: string[]): Promise<string> {

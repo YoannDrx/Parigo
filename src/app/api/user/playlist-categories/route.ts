@@ -6,6 +6,7 @@ import {
 } from "@/lib/harvest/activity";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { assertSameOrigin, requireHarvestSession } from "@/lib/harvest/session";
+import { isHarvestPlaylistSharingEnabled } from "@/lib/harvest/config";
 
 const createSchema = z.object({
   name: z.string().trim().min(1).max(160),
@@ -20,7 +21,7 @@ export async function GET() {
     const session = await requireHarvestSession();
     const categories = await getMemberPlaylistCategories(session.memberToken);
     return NextResponse.json(
-      { data: { categories }, meta: { total: categories.length, requestId: requestID } },
+      { data: { categories, capabilities: { playlistSharing: isHarvestPlaylistSharingEnabled() } }, meta: { total: categories.length, requestId: requestID } },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch (error) {

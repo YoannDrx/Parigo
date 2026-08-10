@@ -16,11 +16,10 @@ export function Footer() {
       links: [
         { name: t("common.search"), href: "/search" },
         { name: "Labels", href: "/labels" },
-        { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo" },
+        { name: locale === "fr" ? "Notre label" : "Our label", href: "/notre-label" },
         { name: t("common.albums"), href: "/albums" },
         { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations" },
         { name: t("common.playlists"), href: "/playlists" },
-        { name: t("common.licensing"), href: "/licensing" },
         { name: "Clips", href: "/clips" },
         { name: locale === "fr" ? "Talents" : "Talent", href: "/talents" },
       ],

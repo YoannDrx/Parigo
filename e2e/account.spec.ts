@@ -226,13 +226,18 @@ test("les dossiers de playlists acceptent un glisser-déposer Harvest et gardent
   await page.route("**/api/user/playlist-categories", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",
-    body: JSON.stringify({ data: { categories: [{ id: "folder-test", name: "Test", playlistCount: persistedCategoryId ? 1 : 0 }] } }),
+    body: JSON.stringify({ data: { categories: [{ id: "folder-test", name: "Test", playlistCount: persistedCategoryId ? 1 : 0 }], capabilities: { playlistSharing: true } } }),
   }));
   let placement: Record<string, unknown> | null = null;
   await page.route("**/api/user/playlists/playlist-drag/placement", async (route) => {
     placement = route.request().postDataJSON() as Record<string, unknown>;
     persistedCategoryId = String(placement.categoryId || "");
     return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { updated: true } }) });
+  });
+  let folderSharePayload: Record<string, unknown> | null = null;
+  await page.route("**/api/user/playlist-categories/folder-test/share", async (route) => {
+    folderSharePayload = route.request().postDataJSON() as Record<string, unknown>;
+    return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ data: { share: { url: "https://share.parigo.test/folder", emailed: true } } }) });
   });
 
   await page.goto("/account/playlists");
@@ -260,6 +265,12 @@ test("les dossiers de playlists acceptent un glisser-déposer Harvest et gardent
 
   const moveSelector = page.getByRole("combobox", { name: "Déplacer dans : Montage campagne" });
   await expect(moveSelector).toContainText("Test");
+  await page.getByRole("button", { name: "Partager le dossier Test" }).click();
+  await page.getByLabel("E-mail du destinataire", { exact: true }).fill("client@studio.test");
+  await page.getByRole("radio", { name: /Inviter à collaborer/ }).check();
+  await page.getByRole("button", { name: "Partager le dossier", exact: true }).click();
+  await expect(page.getByText("https://share.parigo.test/folder", { exact: true })).toBeVisible();
+  expect(folderSharePayload).toMatchObject({ categoryTitle: "Test", toEmail: "client@studio.test", mode: "collaborate", sendEmail: true });
 });
 
 test("les tags personnels ramènent vers la piste précise et vers son album", async ({ page }, testInfo) => {
@@ -775,11 +786,61 @@ test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   await expect(page.getByText("Piano parallèle", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Partager", exact: true }).click();
   await page.getByPlaceholder("nom@studio.com").fill("client@studio.test");
+  await page.getByRole("radio", { name: /Lien de consultation/ }).check();
   await page.getByText("Autoriser le téléchargement", { exact: true }).click();
   await page.getByRole("button", { name: "Créer le lien et envoyer" }).click();
   await expect(page.getByText("https://share.parigo.test/selection", { exact: true })).toBeVisible();
-  expect(sharePayload).toMatchObject({ toEmail: "client@studio.test", allowDownload: true, sendEmail: true });
+  expect(sharePayload).toMatchObject({ toEmail: "client@studio.test", mode: "view", allowDownload: true, sendEmail: true });
   expect(sharePayload).not.toHaveProperty("shareType");
+});
+
+test("un partage collaboratif peut être accepté comme collaboration", async ({ page }) => {
+  await mockSession(page);
+  await page.route("**/api/shared-music/share-token-1234", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      playlists: [{ id: "playlist-shared", title: "Sélection partagée", tracks: [track] }],
+      allowCollaboration: true,
+    } }),
+  }));
+  let acceptance: Record<string, unknown> | null = null;
+  await page.route("**/api/shared-music/share-token-1234/accept", async (route) => {
+    acceptance = route.request().postDataJSON() as Record<string, unknown>;
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: { acceptance: { accepted: true, acceptType: acceptance.acceptType } } }),
+    });
+  });
+  await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
+  await page.route("**/api/shared-music/folder-token-1234", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      playlists: [{ id: "playlist-folder", title: "Sélection du dossier", tracks: [] }],
+      allowCollaboration: false,
+    } }),
+  }));
+
+  await page.goto("/engage-playlist/share-token-1234");
+  await expect(page.getByRole("heading", { name: "Sélection partagée" })).toBeVisible();
+  await page.getByRole("button", { name: "Accepter la collaboration" }).click();
+  await expect(page.getByRole("status")).toContainText("Collaboration acceptée");
+  expect(acceptance).toEqual({ acceptType: "AsCollaboration" });
+  await expect(page.getByRole("link", { name: "Voir mes playlists" })).toHaveAttribute("href", "/account/playlists");
+
+  await page.goto("/shared-playlistcategory/folder-token-1234");
+  await expect(page.getByRole("heading", { name: "Sélection du dossier" })).toBeVisible();
+  await expect(page.getByText("Cette playlist ne contient encore aucune piste.")).toBeVisible();
+
+  await page.route("**/api/shared-music/empty-folder-token", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { playlists: [], allowCollaboration: false } }),
+  }));
+  await page.goto("/shared-playlistcategory/empty-folder-token");
+  await expect(page.getByText("Ce dossier ne contient encore aucune playlist.")).toBeVisible();
 });
 
 test("les actions non configurées restent absentes", async ({ page }) => {

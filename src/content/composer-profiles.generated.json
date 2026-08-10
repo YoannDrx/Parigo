@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T19:32:50.469Z",
+  "generatedAt": "2026-08-10T20:52:31.330Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -12,8 +12,8 @@
       "image": "/images/composers/canonical/aiwa.webp",
       "detailImage": {
         "src": "/images/composers/detail/aiwa.webp",
-        "width": 400,
-        "height": 400
+        "width": 1440,
+        "height": 1440
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -52,7 +52,7 @@
         "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aïwa.docx",
-        "portraitFile": "public/images/composers/detail/aiwa.webp"
+        "portraitFile": "aiwa.jpg"
       }
     },
     {
@@ -66,8 +66,8 @@
       "image": "/images/composers/canonical/arat_kilo.webp",
       "detailImage": {
         "src": "/images/composers/detail/arat_kilo.webp",
-        "width": 1080,
-        "height": 1080
+        "width": 640,
+        "height": 640
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -106,7 +106,7 @@
         "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arat Kilo.docx",
-        "portraitFile": "public/images/composers/detail/arat_kilo.webp"
+        "portraitFile": "arat_kilo.jpeg"
       }
     },
     {

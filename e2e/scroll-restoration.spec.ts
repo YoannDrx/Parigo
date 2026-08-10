@@ -54,13 +54,13 @@ test("le retour d’un album conserve le contexte compositeur", async ({ page })
   await expect(page).toHaveURL(/\/talents\/ugly-mac-beer$/);
 });
 
-test("le retour d’un album conserve le contexte Label Parigo", async ({ page }) => {
+test("le retour d’un album conserve le contexte Notre label", async ({ page }) => {
   test.setTimeout(120_000);
-  await page.goto("/label-parigo");
+  await page.goto("/notre-label");
   const album = page.locator('main a[href^="/albums/"]').first();
   await expect(album).toBeVisible({ timeout: 30_000 });
   await album.click();
   await expect(page).toHaveURL(/\/albums\//);
   await page.getByRole("link", { name: /Retour|Back/ }).first().click();
-  await expect(page).toHaveURL(/\/label-parigo$/);
+  await expect(page).toHaveURL(/\/notre-label$/);
 });
