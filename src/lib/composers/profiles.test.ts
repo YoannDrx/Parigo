@@ -105,7 +105,9 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfileForCredit("Samuel HIRSCH (NS)", "PGO0030")?.slug).toBe("arat-kilo");
     expect(getCanonicalComposerProfileForCredit("Samuel HIRSCH (NS)", "PGO0048")?.slug).toBe("arat-kilo");
     expect(getCanonicalComposerProfileForCredit("Fabien GIRARD (NS)")?.slug).toBe("fabien-girard");
-    expect(resolveCanonicalComposerCredits("Fabien GIRARD (NS)").map(({ profile }) => profile.slug)).toEqual(["fabien-girard", "arat-kilo"]);
+    expect(resolveCanonicalComposerCredits("Fabien GIRARD (NS)").map(({ profile }) => profile.slug)).toEqual(["fabien-girard"]);
+    expect(resolveCanonicalComposerCredits("Fabien GIRARD (NS)", "PGO0030").map(({ profile }) => profile.slug)).toEqual(["fabien-girard", "arat-kilo"]);
+    expect(resolveCanonicalComposerCredits("Fabien GIRARD", "PGO0055").map(({ profile }) => profile.slug)).toEqual(["fabien-girard"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0040").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(getCanonicalComposerProfileForCredit("The Well Quartet", "PGO0060")?.slug).toBe("the-well-quartet");
@@ -288,16 +290,35 @@ describe("canonical composer registry", () => {
     expect(resolveCanonicalComposerCredit("Jean-Michel Vallet", "PGO0031")?.identity.preferredName).toBe("Jean-Michel Vallet");
   });
 
-  it("aggregates collective members on every album without creating individual profiles", () => {
+  it("limits collective members to validated albums without hiding individual profiles", () => {
     const profiles = collectCanonicalComposerSummaries([
-      { id: "a", albumId: "1", albumCode: "PGO0031", albumTitle: "After", composers: ["Jean-Michel Vallet"] },
-      { id: "b", albumId: "2", albumCode: "PGO0099", albumTitle: "Solo", composers: ["Jean-Michel Vallet"] },
-      { id: "c", albumId: "3", albumCode: "PGO0034", albumTitle: "Ana", composers: ["Pierre Millet"] },
-      { id: "d", albumId: "4", albumCode: "PGO0046", albumTitle: "Other", composers: ["Pierre Millet"] },
+      { id: "a", albumId: "1", albumCode: "PGO0030", albumTitle: "Afrobeat", composers: ["Fabien Girard"] },
+      { id: "b", albumId: "2", albumCode: "PGO0055", albumTitle: "The World Wedding March", composers: ["Fabien Girard"] },
     ]);
-    expect(profiles.find((profile) => profile.slug === "after-in-paris")?.trackCount).toBe(2);
-    expect(profiles.find((profile) => profile.slug === "ana-kap")?.trackCount).toBe(2);
-    expect(profiles.find((profile) => profile.slug === "pierre-millet")).toBeUndefined();
+    expect(profiles.find((profile) => profile.slug === "arat-kilo")).toMatchObject({
+      trackCount: 1,
+      albumCodes: ["PGO0030"],
+    });
+    expect(profiles.find((profile) => profile.slug === "fabien-girard")).toMatchObject({
+      trackCount: 2,
+      albumCodes: ["PGO0030", "PGO0055"],
+    });
+  });
+
+  it("matches a talent from a stable Harvest right-holder ID when free text is absent", () => {
+    const scherazade = canonicalComposerProfiles.find((profile) => profile.slug === "scherazade-aissahine");
+    expect(scherazade?.harvest.rightHolderIds).toContain("d906147cf941b552");
+    expect(collectCanonicalComposerSummaries([{
+      id: "synthwave-vocal",
+      albumId: "48b4b95fe1f09019",
+      albumCode: "PGO0053",
+      albumTitle: "Synthwave Retrowave",
+      composers: ["Franck SINNASSAMY"],
+      rightHolderIds: ["d906147cf941b552"],
+    }]).find((profile) => profile.slug === "scherazade-aissahine")).toMatchObject({
+      trackCount: 1,
+      albumCodes: ["PGO0053"],
+    });
   });
 
   it("collects the five After In Paris albums attested by the Harvest member credits", () => {

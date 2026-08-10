@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T15:25:45.782Z",
+  "generatedAt": "2026-08-10T19:32:50.469Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -22,6 +22,10 @@
           "Al Wahab Naufalle",
           "Wamid Al Wahab",
           "Al Wahab Wamid"
+        ],
+        "rightHolderIds": [
+          "3bde53a3c62b348c",
+          "d627af62f0ace5b6"
         ],
         "memberAliases": [],
         "scopedRelations": [],
@@ -70,22 +74,31 @@
         "aliases": [
           "Arat Kilo"
         ],
-        "memberAliases": [
-          "Samuel Hirsch",
-          "Florent Berteau",
-          "Fabien Girard",
-          "Gerald Bonnegrace",
-          "Michael Havard",
-          "Aristide Goncalves",
-          "Arnold Turpin",
-          "Camille Floriot",
-          "Assitan Keita",
-          "Mike Ladd",
-          "Nardos Tesfaw",
-          "ROCE",
-          "Bruck Tesfaye"
-        ],
-        "scopedRelations": []
+        "rightHolderIds": [],
+        "memberAliases": [],
+        "scopedRelations": [
+          {
+            "albumCodes": [
+              "PGO0030",
+              "PGO0048"
+            ],
+            "aliases": [
+              "Samuel Hirsch",
+              "Florent Berteau",
+              "Fabien Girard",
+              "Gerald Bonnegrace",
+              "Michael Havard",
+              "Aristide Goncalves",
+              "Arnold Turpin",
+              "Camille Floriot",
+              "Assitan Keita",
+              "Mike Ladd",
+              "Nardos Tesfaw",
+              "ROCE",
+              "Bruck Tesfaye"
+            ]
+          }
+        ]
       },
       "legacySlugs": [],
       "provenance": {
@@ -114,6 +127,9 @@
       "harvest": {
         "aliases": [
           "Fabien Girard"
+        ],
+        "rightHolderIds": [
+          "9cd9b5f9fed61c62"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -146,6 +162,9 @@
         "aliases": [
           "Xavier Sibre"
         ],
+        "rightHolderIds": [
+          "b6ef7028fd9846a2"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -177,6 +196,9 @@
         "aliases": [
           "Ugly Mac Beer"
         ],
+        "rightHolderIds": [
+          "bd89d72841bc2914"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -207,6 +229,9 @@
       "harvest": {
         "aliases": [
           "Yann Kornowicz"
+        ],
+        "rightHolderIds": [
+          "1c2e6355b810b690"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -241,6 +266,9 @@
           "DJ HERTZ",
           "DJ Hertz"
         ],
+        "rightHolderIds": [
+          "40d39a7f5724a8d2"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -274,6 +302,9 @@
         "aliases": [
           "Laurent Dury"
         ],
+        "rightHolderIds": [
+          "57738dbd2a803c69"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -304,6 +335,10 @@
       "harvest": {
         "aliases": [
           "Liqid"
+        ],
+        "rightHolderIds": [
+          "74aba06df4c9fb73",
+          "4eff7c3cb76fc472"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -336,6 +371,9 @@
         "aliases": [
           "Tcheep"
         ],
+        "rightHolderIds": [
+          "afed957795abda41"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -366,6 +404,9 @@
       "harvest": {
         "aliases": [
           "Chicho Cortez"
+        ],
+        "rightHolderIds": [
+          "c8119ac64f97a450"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -398,6 +439,9 @@
         "aliases": [
           "Bonetrips"
         ],
+        "rightHolderIds": [
+          "5e18d5f74721f750"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -428,6 +472,9 @@
       "harvest": {
         "aliases": [
           "Charlotte Duran"
+        ],
+        "rightHolderIds": [
+          "6719063c46c082fa"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -462,6 +509,9 @@
           "AROM",
           "Arom"
         ],
+        "rightHolderIds": [
+          "a31fdb8e79777800"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -494,6 +544,9 @@
       "harvest": {
         "aliases": [
           "Minimatic"
+        ],
+        "rightHolderIds": [
+          "9a8ac0f443626409"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -529,6 +582,10 @@
           "N Zeng",
           "N’Zeng",
           "N'Zeng"
+        ],
+        "rightHolderIds": [
+          "783e86b6dc54e5a8",
+          "6f6bb2431eeb3047"
         ],
         "memberAliases": [],
         "scopedRelations": [],
@@ -582,6 +639,10 @@
           "Drixxxé",
           "Drixxxe"
         ],
+        "rightHolderIds": [
+          "5c7d0368733d473c",
+          "34660a4e92befa5b"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -613,6 +674,9 @@
         "aliases": [
           "Emmanuel Marée"
         ],
+        "rightHolderIds": [
+          "030b4a35611e67c2"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -643,6 +707,9 @@
       "harvest": {
         "aliases": [
           "Rodney Lucas"
+        ],
+        "rightHolderIds": [
+          "5c86f49760d58a14"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -676,6 +743,9 @@
           "Emile Sornin",
           "Sornin Emile"
         ],
+        "rightHolderIds": [
+          "2c9abf81ca6d6610"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -708,6 +778,9 @@
           "Frédéric Hanak",
           "Frederic Hanak"
         ],
+        "rightHolderIds": [
+          "93b83e1fc96c3482"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -738,6 +811,9 @@
       "harvest": {
         "aliases": [
           "Madben"
+        ],
+        "rightHolderIds": [
+          "2296bfd36f47d52e"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -771,6 +847,7 @@
           "Yann Lean",
           "Yannick Le Léannec"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -801,6 +878,9 @@
       "harvest": {
         "aliases": [
           "Arandel"
+        ],
+        "rightHolderIds": [
+          "230f274fefcff717"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -833,6 +913,9 @@
         "aliases": [
           "The Architect"
         ],
+        "rightHolderIds": [
+          "ee1128626da067a3"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -864,6 +947,7 @@
         "aliases": [
           "After In Paris"
         ],
+        "rightHolderIds": [],
         "memberAliases": [
           "Jean-Michel Vallet",
           "Claire Michael",
@@ -900,6 +984,9 @@
           "Thierry Loshouarn",
           "Thierry Los"
         ],
+        "rightHolderIds": [
+          "03583bf3ad7eb3fa"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -930,6 +1017,9 @@
       "harvest": {
         "aliases": [
           "Nicolas Pisani"
+        ],
+        "rightHolderIds": [
+          "676423316c421740"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -963,6 +1053,9 @@
           "Blankalfe",
           "Blanka"
         ],
+        "rightHolderIds": [
+          "0792531a25bf9b87"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -994,6 +1087,9 @@
         "aliases": [
           "Gerz Marcellino",
           "Marcellino Gerz"
+        ],
+        "rightHolderIds": [
+          "a595070710de1b88"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1027,6 +1123,9 @@
           "Brice Torres",
           "Torres Brice",
           "NSDOS"
+        ],
+        "rightHolderIds": [
+          "c1b1226224708ecc"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1062,6 +1161,9 @@
           "Nicodrums & Friends",
           "Nicodrums Friends"
         ],
+        "rightHolderIds": [
+          "3143a5ecb8bf5efb"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1096,6 +1198,9 @@
           "2080",
           "208"
         ],
+        "rightHolderIds": [
+          "a7794c511e6c3769"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1129,6 +1234,9 @@
           "Jean Baptiste Hanak",
           "JB HANAK"
         ],
+        "rightHolderIds": [
+          "5650745df4674916"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1161,6 +1269,9 @@
           "Stéphane Delplanque",
           "Stephane Delplanque"
         ],
+        "rightHolderIds": [
+          "bf5a545f55df4aa0"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1192,6 +1303,9 @@
         "aliases": [
           "Daniel Amozig",
           "Dan Amozig"
+        ],
+        "rightHolderIds": [
+          "13bebdeaa8a1e9b1"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1226,6 +1340,9 @@
         "aliases": [
           "Yann Jankielewicz"
         ],
+        "rightHolderIds": [
+          "c1080371763717ef"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1257,6 +1374,9 @@
         "aliases": [
           "Victor Baillet"
         ],
+        "rightHolderIds": [
+          "9fd641c2fb85df5b"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1287,6 +1407,9 @@
       "harvest": {
         "aliases": [
           "Vincent Bouhelier"
+        ],
+        "rightHolderIds": [
+          "ab871589454d86c9"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1320,6 +1443,7 @@
           "ANA KAP",
           "Ana Kap"
         ],
+        "rightHolderIds": [],
         "memberAliases": [
           "Emin Dzijan",
           "Manuel Decocq",
@@ -1357,6 +1481,9 @@
           "Alexis Molenat",
           "Molenat Alexis"
         ],
+        "rightHolderIds": [
+          "efd02076c813d4b1"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1390,6 +1517,9 @@
         "aliases": [
           "Maxime Raynier",
           "Raynier Maxime"
+        ],
+        "rightHolderIds": [
+          "7a3a5a68ed7d6c4c"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1425,6 +1555,9 @@
           "Patrice Dambrine",
           "Dambrine Patrice"
         ],
+        "rightHolderIds": [
+          "c091d19912bb082f"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1457,6 +1590,9 @@
       "harvest": {
         "aliases": [
           "Bruno Hovart"
+        ],
+        "rightHolderIds": [
+          "075dc45334638454"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1491,6 +1627,9 @@
           "SR Ortegon",
           "Sr Ortegon"
         ],
+        "rightHolderIds": [
+          "068d664750d31831"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1523,6 +1662,9 @@
       "harvest": {
         "aliases": [
           "Stan Galouo"
+        ],
+        "rightHolderIds": [
+          "754f7c9c042885a0"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1557,6 +1699,9 @@
         "aliases": [
           "Modulhater"
         ],
+        "rightHolderIds": [
+          "4d521c544c9a18b8"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1587,6 +1732,9 @@
       "harvest": {
         "aliases": [
           "Ducer"
+        ],
+        "rightHolderIds": [
+          "f2caac67f1fd30a9"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1620,6 +1768,9 @@
           "DJ TRoubl",
           "DJ Troubl"
         ],
+        "rightHolderIds": [
+          "f37ab7dc5d2f166d"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1651,6 +1802,9 @@
         "aliases": [
           "Of Ivory And Horn",
           "Of Ivory & Horn"
+        ],
+        "rightHolderIds": [
+          "11b8a4a0e2cfbb2e"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1685,6 +1839,9 @@
         "aliases": [
           "Mister Modo"
         ],
+        "rightHolderIds": [
+          "64975cc9240b0bba"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1716,6 +1873,9 @@
         "aliases": [
           "Grand David",
           "Le Grand David"
+        ],
+        "rightHolderIds": [
+          "6e0581b39d281fa1"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1750,6 +1910,10 @@
           "Jean-Pierre Ménager",
           "Jean Pierre Menager"
         ],
+        "rightHolderIds": [
+          "56ddedc79cd2dac8",
+          "ce55666d0aaac79e"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1782,6 +1946,7 @@
           "Loic Laporte",
           "Loïc Laporte"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1813,6 +1978,7 @@
         "aliases": [
           "Cyril Laurent"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1844,6 +2010,7 @@
         "aliases": [
           "Charlotte Savary"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1875,6 +2042,9 @@
         "aliases": [
           "Scherazade Aissahine",
           "Schérazade Aissahine"
+        ],
+        "rightHolderIds": [
+          "d906147cf941b552"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1909,6 +2079,9 @@
         "aliases": [
           "Camille Luca"
         ],
+        "rightHolderIds": [
+          "b2e712a1cd089c19"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1939,6 +2112,9 @@
       "harvest": {
         "aliases": [
           "The Real Fake MC"
+        ],
+        "rightHolderIds": [
+          "8ca9e6e56c2a892c"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1973,6 +2149,7 @@
           "Well Quartet",
           "Le Well Quartet"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -2005,6 +2182,9 @@
           "Flore",
           "Flore Morfin",
           "Flore Morchin"
+        ],
+        "rightHolderIds": [
+          "010c469082f496ea"
         ],
         "memberAliases": [],
         "scopedRelations": [],
@@ -2048,6 +2228,9 @@
           "Cédric Hanak",
           "Cedric Hanak",
           "Cédric HANAK"
+        ],
+        "rightHolderIds": [
+          "0662f703a27363e2"
         ],
         "memberAliases": [],
         "scopedRelations": []

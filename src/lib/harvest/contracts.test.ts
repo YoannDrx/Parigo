@@ -40,6 +40,14 @@ describe("endpoint-specific Harvest contracts", () => {
     expect(payload.Tracks[0].RightHolders[0]).toMatchObject({ ID: "holder-1", FirstName: "Janet", LastName: "Preston" });
   });
 
+  it("normalizes the structured RightHolderIDs returned by Cloud Search", () => {
+    const track = HarvestTrackSchema.parse({
+      ID: "track-with-holder-ids",
+      RightHolderIDs: [{ ID: "holder-1" }, { ID: 42 }],
+    });
+    expect(track.RightHolderIDs).toEqual(["holder-1", "42"]);
+  });
+
   it("normalizes the BPM ranges returned by featured playlists", () => {
     const track = HarvestTrackSchema.parse({ ID: "track-variable-tempo", Bpm: "116-127" });
     expect(track.Bpm).toBe(122);

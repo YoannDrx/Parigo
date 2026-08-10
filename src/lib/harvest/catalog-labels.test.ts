@@ -55,6 +55,16 @@ describe("Harvest album references", () => {
 });
 
 describe("Harvest track author credits", () => {
+  it("keeps stable Harvest right-holder IDs even when detailed credits are absent", () => {
+    expect(mapTrack({
+      ID: "track-with-holder-ids",
+      DisplayTitle: "An indexed song",
+      RightHolderIDs: [{ ID: "composer-1" }, { ID: "author-1" }],
+    }, templates)).toMatchObject({
+      rightHolderIds: ["composer-1", "author-1"],
+    });
+  });
+
   it("derives authors from the structured Harvest right-holder capacity", () => {
     expect(mapTrack({
       ID: "track-1",

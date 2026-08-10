@@ -157,6 +157,7 @@ export function mapTrack(
     artists: mapCredits(parsed),
     composers,
     authors,
+    rightHolderIds: parsed.RightHolderIDs,
     publishers,
     version: parsed.Version || undefined,
     // Some Cloud Search payloads flag the main version as alternate. Harvest's

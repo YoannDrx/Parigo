@@ -75,7 +75,7 @@ async function loadParigoHarvestComposerInventory(): Promise<ParigoHarvestCompos
 
 const getCachedInventory = unstable_cache(
   loadParigoHarvestComposerInventory,
-  ["parigo-harvest-composer-inventory-v10"],
+  ["parigo-harvest-composer-inventory-v11-right-holder-ids"],
   { revalidate: 300, tags: ["catalog", "tracks", "composers", "filters"] },
 );
 
