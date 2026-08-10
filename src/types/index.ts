@@ -58,6 +58,13 @@ export interface ComposerCreditLink {
   href?: string;
 }
 
+export type AlbumContributorRole = "composer" | "author" | "composer-author" | "arranger" | "credit";
+
+export interface AlbumContributorGroup {
+  role: AlbumContributorRole;
+  credits: ComposerCreditLink[];
+}
+
 export interface Album {
   id: string;
   slug?: string;

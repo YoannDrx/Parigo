@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { PlaylistDetailClient } from "@/components/catalog/PlaylistDetailClient";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getCachedPlaylist } from "@/lib/harvest/catalog-cache";
+import { getCachedPlaylist, getCachedPlaylistDiscovery } from "@/lib/harvest/catalog-cache";
+import { buildDetailNavigation } from "@/lib/navigation/detail-navigation";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
@@ -38,7 +39,22 @@ export async function generateMetadata({ params }: PlaylistPageProps): Promise<M
 
 export default async function PlaylistPage({ params }: PlaylistPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
-  const playlist = await loadPlaylist(slug);
+  const [playlist, playlists] = await Promise.all([
+    loadPlaylist(slug),
+    getCachedPlaylistDiscovery(),
+  ]);
+  const navigation = buildDetailNavigation(
+    playlists,
+    playlist.id,
+    (item) => item.id,
+    (item) => ({
+      href: `/playlists/${item.slug || item.id}`,
+      title: item.title,
+      image: item.cover,
+      imageFit: "contain",
+      eyebrow: item.category,
+    }),
+  );
   return (
     <>
       <JsonLd data={{
@@ -55,7 +71,7 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
           item: { "@type": "MusicRecording", name: track.title },
         })),
       }} />
-      <PlaylistDetailClient playlist={playlist} />
+      <PlaylistDetailClient playlist={playlist} navigation={navigation} />
     </>
   );
 }

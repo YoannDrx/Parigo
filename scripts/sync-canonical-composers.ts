@@ -78,7 +78,7 @@ const profiles: ProfileSource[] = [
   { slug: "yann-kornowicz", name: "Yann Kornowicz", kind: "person", aliases: ["Yann Kornowicz"], rightHolderIds: ["1c2e6355b810b690"] },
   { slug: "dj-hertz", name: "DJ Hertz", kind: "person", aliases: ["Franck Sinnassamy", "DJ HERTZ", "DJ Hertz"], rightHolderIds: ["40d39a7f5724a8d2"], legacySlugs: ["franck-sinnassamy"] },
   { slug: "laurent-dury", name: "Laurent Dury", kind: "person", localImageFile: "laurent_dury.png", cardImageTransform: { extract: { left: 430, top: 250, width: 760, height: 760 }, position: "center" }, aliases: ["Laurent Dury"], rightHolderIds: ["57738dbd2a803c69"] },
-  { slug: "liqid", name: "Liqid", kind: "person", aliases: ["Liqid"], rightHolderIds: ["74aba06df4c9fb73", "4eff7c3cb76fc472"] },
+  { slug: "liqid", name: "Liqid", kind: "person", aliases: ["Liqid", "Jacques Sahloul"], rightHolderIds: ["74aba06df4c9fb73", "4eff7c3cb76fc472", "2e1b4b899c780e8b"] },
   { slug: "tcheep", name: "Tcheep", kind: "person", localImageFile: "tcheep.jpg", cardImageTransform: { extract: { left: 160, top: 120, width: 540, height: 540 }, position: "center" }, detailImageTransform: { extract: { left: 160, top: 120, width: 540, height: 540 } }, aliases: ["Tcheep"], rightHolderIds: ["afed957795abda41"] },
   { slug: "chicho-cortez", name: "Chicho Cortez", kind: "person", localImageFile: "chicho_cortez.png", cardImageTransform: { position: "center" }, aliases: ["Chicho Cortez"], rightHolderIds: ["c8119ac64f97a450"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", aliases: ["Bonetrips"], rightHolderIds: ["5e18d5f74721f750"] },

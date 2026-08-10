@@ -40,7 +40,7 @@ export default async function TalentsPage({ searchParams }: TalentsPageProps) {
         <CatalogHero
           title={locale === "fr" ? "Nos talents" : "Our talent"}
           intro={locale === "fr"
-            ? "Les compositrices, compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."
+            ? "Les compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."
             : "The composers, artists and collectives who give Parigo’s original catalogue its unique character."}
         />
         <section className="mx-auto max-w-[1700px] px-4 py-14 sm:px-6 lg:px-8 md:py-20">

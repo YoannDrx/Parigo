@@ -182,6 +182,10 @@ export function getCanonicalComposerProfileByLegacySlug(slug: string): Canonical
   return profileByLegacySlug.get(slug);
 }
 
+export function getCanonicalComposerProfilesForRightHolderId(id: string): CanonicalComposerProfile[] {
+  return profilesByRightHolderId.get(id) ?? [];
+}
+
 export function resolveCanonicalComposerCredit(
   credit: string,
   albumCode?: string,
