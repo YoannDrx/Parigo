@@ -112,12 +112,12 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("l’annuaire publie exactement les 61 profils canoniques", async ({ page }) => {
+test("l’annuaire publie exactement les 62 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/talents");
   await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
   const directory = page.getByTestId("composer-directory-results");
-  await expect(directory.locator("a")).toHaveCount(61);
+  await expect(directory.locator("a")).toHaveCount(62);
   await expect(directory.locator('a[href="/talents/pierre-millet"]')).toHaveCount(0);
   await expect(directory.locator('a[href="/talents/mutant-ninja"]')).toHaveCount(0);
   await expect(directory.getByText("Schérazade", { exact: true })).toBeVisible();
@@ -127,6 +127,7 @@ test("l’annuaire publie exactement les 61 profils canoniques", async ({ page }
   await expect(directory.locator('a[href="/talents/blanka"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/chicho-cortez"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/gerz"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/yann-lean"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/nsdos"]')).toHaveCount(1);
   const minimatic = directory.locator('a[href="/talents/minimatic"]');
   await expect(minimatic).toHaveCount(1);
@@ -169,18 +170,44 @@ test("les nouveaux profils publient leurs noms de scène et le contenu disponibl
   await expect(page.getByText(/Patrice Dambrine est un musicien, compositeur et producteur français/)).toBeVisible();
 });
 
-test("Nicolas Pisani publie sa biographie, son portrait et son album Harvest", async ({ page }) => {
+test("Offset Prod publie sa biographie, son portrait et son album Harvest", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/talents/nicolas-pisani");
-  await expect(page.getByRole("heading", { level: 1, name: "Nicolas Pisani" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Offset Prod" })).toBeVisible();
   await expect(page.getByTestId("composer-detail-image")).toHaveAttribute(
     "src",
     /\/images\/composers\/detail\/nicolas_pisani/,
   );
   await expect(page.getByTestId("composer-biography")).toContainText(
-    "Nicolas Pisani est un compositeur, producteur, ingénieur du son et sound designer français",
+    "OFFSET PROD, de son vrai nom Nicolas Pisani, est un compositeur, producteur, ingénieur du son et sound designer français",
   );
   await expect(page.getByRole("link").filter({ hasText: "Brand Content" }).first()).toBeVisible();
+});
+
+test("Yann Lean publie sa photo et ses biographies française et anglaise", async ({ page }) => {
+  await page.goto("/talents/yann-lean");
+  await expect(page.getByRole("heading", { level: 1, name: "Yann Lean" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/yann_lean/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Yann Lean, de son vrai nom Yannick Le Léannec, est un DJ, compositeur, sound designer et ingénieur du son français",
+  );
+
+  await page.goto("/en/talents/yann-lean");
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Yann Lean, real name Yannick Le Léannec, is a French DJ, composer, sound designer and sound engineer",
+  );
+});
+
+test("Synthwave Retrowave crédite Schérazade comme autrice de ses chansons", async ({ page }) => {
+  await page.goto("/albums/48b4b95fe1f09019");
+  const song = page.locator('[data-track-id="23b92c9b02375642f77e44705437fccb"]');
+  await song.getByRole("button", { name: /^Informations sur la piste/ }).click();
+  const details = song.locator(".track-detail-panel");
+  await expect(details.getByText("Autrice", { exact: true })).toBeVisible();
+  await expect(details.getByRole("link", { name: "Schérazade", exact: true })).toHaveAttribute(
+    "href",
+    "/talents/scherazade-aissahine",
+  );
 });
 
 test("Tcheep, Blanka, Chicho Cortez, Gerz et NSDOS publient leurs portraits, bios et discographies exactes", async ({ page }) => {
@@ -214,7 +241,7 @@ test("Tcheep, Blanka, Chicho Cortez, Gerz et NSDOS publient leurs portraits, bio
   await expect(page.getByRole("link").filter({ hasText: "Diggin Hip-Hop Vol.2" }).first()).toBeVisible();
 
   await page.goto("/talents/gerz");
-  await expect(page.getByRole("heading", { level: 1, name: "Gerz" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Gerz Marcellino" })).toBeVisible();
   await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/gerz/);
   await expect(page.getByTestId("composer-biography")).toContainText(
     "Gerz Marcellino est un DJ, producteur, turntablist et artiste visuel français",

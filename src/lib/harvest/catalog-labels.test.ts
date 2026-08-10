@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapAlbum, mapLibraryDescriptions } from "./catalog";
+import { mapAlbum, mapLibraryDescriptions, mapTrack } from "./catalog";
 
 const templates = {
   trackStream: "",
@@ -50,6 +50,34 @@ describe("Harvest album references", () => {
     }, templates)).toMatchObject({
       title: "Between Light and Void",
       code: "PRTM 0212",
+    });
+  });
+});
+
+describe("Harvest track author credits", () => {
+  it("derives authors from the structured Harvest right-holder capacity", () => {
+    expect(mapTrack({
+      ID: "track-1",
+      DisplayTitle: "A vocal song",
+      RightHolders: [
+        { ID: "composer-1", Name: "A Composer", Capacity: "Composer" },
+        { ID: "author-1", FirstName: "An", LastName: "Author", Capacity: "Author" },
+        { ID: "publisher-1", Name: "A Publisher", Capacity: "Original Publisher" },
+      ],
+    }, templates)).toMatchObject({
+      authors: ["An Author"],
+    });
+  });
+
+  it("does not invent an author when Harvest only returns composers", () => {
+    expect(mapTrack({
+      ID: "track-2",
+      DisplayTitle: "An instrumental",
+      RightHolders: [
+        { ID: "composer-1", Name: "A Composer", Capacity: "Composer" },
+      ],
+    }, templates)).toMatchObject({
+      authors: [],
     });
   });
 });

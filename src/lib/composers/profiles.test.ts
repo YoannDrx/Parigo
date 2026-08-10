@@ -11,12 +11,12 @@ import {
 } from "./profiles";
 
 describe("canonical composer registry", () => {
-  it("contains exactly the 61 unique public profiles", () => {
-    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(61);
-    expect(canonicalComposerProfiles).toHaveLength(61);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(61);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(61);
-    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(61);
+  it("contains exactly the 62 unique public profiles", () => {
+    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(62);
+    expect(canonicalComposerProfiles).toHaveLength(62);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(62);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(62);
+    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(62);
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toMatchObject({
       src: "/images/composers/detail/loic_laporte.webp",
       width: 450,
@@ -29,13 +29,13 @@ describe("canonical composer registry", () => {
       .filter((profile) => profile.bio.fr === null && profile.bio.en === null)
       .map((profile) => profile.name);
     expect(withoutBio).toEqual([]);
-    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(61);
+    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(62);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.source === "local-editorial")).toBe(true);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.biographyFile === "site-biographies.user-provided.json")).toBe(true);
   });
 
   it("publishes the supplied biographies verbatim and records local portraits", () => {
-    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(61);
+    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(62);
     for (const [slug, biography] of Object.entries(suppliedBiographies.profiles)) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.bio).toEqual({
         fr: biography.fr,
@@ -119,8 +119,8 @@ describe("canonical composer registry", () => {
     expect(getCanonicalComposerProfile("cedric-hanak")?.name).toBe("Cédric Hanak");
   });
 
-  it("maps Nicolas Pisani to his Harvest credit and Parigo album", () => {
-    expect(getCanonicalComposerProfile("nicolas-pisani")?.name).toBe("Nicolas Pisani");
+  it("publishes Offset Prod while mapping Nicolas Pisani to his Harvest credit", () => {
+    expect(getCanonicalComposerProfile("nicolas-pisani")?.name).toBe("Offset Prod");
     expect(getCanonicalComposerProfileForCredit("Nicolas Pisani")?.slug).toBe("nicolas-pisani");
     expect(collectCanonicalComposerSummaries([{
       id: "brand-content-main",
@@ -207,7 +207,7 @@ describe("canonical composer registry", () => {
       albumTitles: ["Diggin Hip-Hop Vol.2"],
     });
     expect(summaries.find((profile) => profile.slug === "gerz")).toMatchObject({
-      name: "Gerz",
+      name: "Gerz Marcellino",
       trackCount: 1,
       albumCodes: ["PGO0024"],
       albumTitles: ["Caught In The Trap"],
@@ -228,7 +228,9 @@ describe("canonical composer registry", () => {
       "daniel-amozig": "Dan Amozig",
       "dj-hertz": "DJ Hertz",
       "dj-troubl": "DJ Troubl",
-      gerz: "Gerz",
+      gerz: "Gerz Marcellino",
+      "nicolas-pisani": "Offset Prod",
+      "yann-lean": "Yann Lean",
       "loic-laporte": "Loïc Laporte",
       nsdos: "NSDOS",
       "of-ivory-and-horn": "Of Ivory & Horn",
@@ -236,14 +238,30 @@ describe("canonical composer registry", () => {
       "senior-ortegon": "Sr Ortegon",
       "the-well-quartet": "Le Well Quartet",
     });
-    expect(getCanonicalComposerProfile("dj-troubl")?.bio.fr).not.toContain("Troubl'");
-    expect(getCanonicalComposerProfile("dj-troubl")?.bio.en).not.toContain("Troubl'");
+    expect(getCanonicalComposerProfile("dj-troubl")?.bio.fr).toContain("DJ Troubl'");
+    expect(getCanonicalComposerProfile("dj-troubl")?.bio.en).toContain("DJ Troubl'");
   });
 
   it("publishes Schérazade without her surname while preserving full-name credits", () => {
     expect(getCanonicalComposerProfile("scherazade-aissahine")?.name).toBe("Schérazade");
     expect(getCanonicalComposerProfileForCredit("Scherazade Aissahine")?.name).toBe("Schérazade");
     expect(getCanonicalComposerProfileForCredit("Schérazade Aissahine")?.slug).toBe("scherazade-aissahine");
+  });
+
+  it("rattache les crédits d’autrice de Schérazade à sa discographie", () => {
+    expect(collectCanonicalComposerSummaries([{
+      id: "synthwave-song",
+      albumId: "48b4b95fe1f09019",
+      albumCode: "PGO0053",
+      albumTitle: "Synthwave Retrowave",
+      composers: ["Franck SINNASSAMY"],
+      authors: ["Scherazade Aissahine"],
+    }]).find((profile) => profile.slug === "scherazade-aissahine")).toMatchObject({
+      trackCount: 1,
+      albumIds: ["48b4b95fe1f09019"],
+      albumCodes: ["PGO0053"],
+      albumTitles: ["Synthwave Retrowave"],
+    });
   });
 
   it("keeps restored high-resolution portraits as Parigo-owned files", () => {

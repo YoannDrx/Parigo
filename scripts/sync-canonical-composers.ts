@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-const CANONICAL_PROFILE_COUNT = 61;
+const CANONICAL_PROFILE_COUNT = 62;
 
 type ProfileSource = {
   slug: string;
@@ -15,6 +15,9 @@ type ProfileSource = {
     background?: string;
     inset?: number;
     extract?: { left: number; top: number; width: number; height: number };
+  };
+  detailImageTransform?: {
+    extract: { left: number; top: number; width: number; height: number };
   };
   aliases: string[];
   memberAliases?: string[];
@@ -65,8 +68,8 @@ const profiles: ProfileSource[] = [
   { slug: "dj-hertz", name: "DJ Hertz", kind: "person", aliases: ["Franck Sinnassamy", "DJ HERTZ", "DJ Hertz"], legacySlugs: ["franck-sinnassamy"] },
   { slug: "laurent-dury", name: "Laurent Dury", kind: "person", localImageFile: "laurent_dury.png", cardImageTransform: { extract: { left: 430, top: 250, width: 760, height: 760 }, position: "center" }, aliases: ["Laurent Dury"] },
   { slug: "liqid", name: "Liqid", kind: "person", aliases: ["Liqid"] },
-  { slug: "tcheep", name: "Tcheep", kind: "person", localImageFile: "tcheep.jpg", aliases: ["Tcheep"] },
-  { slug: "chicho-cortez", name: "Chicho Cortez", kind: "person", localImageFile: "chicho_cortez.jpeg", cardImageTransform: { fit: "contain", position: "center", background: "#000000" }, aliases: ["Chicho Cortez"] },
+  { slug: "tcheep", name: "Tcheep", kind: "person", localImageFile: "tcheep.jpg", cardImageTransform: { extract: { left: 160, top: 120, width: 540, height: 540 }, position: "center" }, detailImageTransform: { extract: { left: 160, top: 120, width: 540, height: 540 } }, aliases: ["Tcheep"] },
+  { slug: "chicho-cortez", name: "Chicho Cortez", kind: "person", localImageFile: "chicho_cortez.png", cardImageTransform: { position: "center" }, aliases: ["Chicho Cortez"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", aliases: ["Bonetrips"] },
   { slug: "coeur", name: "Cœur", kind: "person", localImageFile: "coeur.jpg", aliases: ["Charlotte Duran"] },
   { slug: "arom", name: "Arom", kind: "person", localImageFile: "arom.jpg", aliases: ["Amaury Messelier", "AROM", "Arom"], legacySlugs: ["amaury-messelier"] },
@@ -89,6 +92,7 @@ const profiles: ProfileSource[] = [
   { slug: "forever-pavot", name: "Forever Pavot", kind: "person", localImageFile: "forever_pavot.jpg", aliases: ["Emile Sornin", "Sornin Emile"] },
   { slug: "frederic-hanak", name: "Frédéric Hanak", kind: "person", aliases: ["Frédéric Hanak", "Frederic Hanak"] },
   { slug: "madben", name: "Madben", kind: "person", cardImageTransform: { inset: 0.05, background: "#f0f0ee" }, aliases: ["Madben"] },
+  { slug: "yann-lean", name: "Yann Lean", kind: "person", localImageFile: "yann_lean.jpeg", cardImageTransform: { position: "center" }, aliases: ["Yann Lean", "Yannick Le Léannec"] },
   { slug: "arandel", name: "Arandel", kind: "person", localImageFile: "arandel.jpg", aliases: ["Arandel"] },
   { slug: "the-architect", name: "The Architect", kind: "person", localImageFile: "the_architect.jpg", aliases: ["The Architect"] },
   {
@@ -100,9 +104,9 @@ const profiles: ProfileSource[] = [
     memberAliases: ["Jean-Michel Vallet", "Claire Michael", "Patrick Chartol"],
   },
   { slug: "thierry-los", name: "Thierry Los", kind: "person", localImageFile: "thierry_los.jpg", cardImageTransform: { inset: 0.06, background: "#eee6ad" }, aliases: ["Thierry Loshouarn", "Thierry Los"] },
-  { slug: "nicolas-pisani", name: "Nicolas Pisani", kind: "person", localImageFile: "nicolas_pisani.jpg", aliases: ["Nicolas Pisani"] },
+  { slug: "nicolas-pisani", name: "Offset Prod", kind: "person", localImageFile: "nicolas_pisani.jpg", aliases: ["Nicolas Pisani"] },
   { slug: "blanka", name: "Blanka", kind: "person", localImageFile: "blanka.jpg", cardImageTransform: { position: "center" }, aliases: ["Blankalfe", "Blanka"] },
-  { slug: "gerz", name: "Gerz", kind: "person", localImageFile: "gerz.jpg", cardImageTransform: { position: "attention" }, aliases: ["Gerz Marcellino", "Marcellino Gerz"] },
+  { slug: "gerz", name: "Gerz Marcellino", kind: "person", localImageFile: "gerz.jpg", cardImageTransform: { position: "attention" }, aliases: ["Gerz Marcellino", "Marcellino Gerz"] },
   { slug: "nsdos", name: "NSDOS", kind: "person", localImageFile: "nsdos.jpg", cardImageTransform: { position: "north" }, aliases: ["Brice Torres", "Torres Brice", "NSDOS"] },
   { slug: "nicodrum", name: "Nicodrum", kind: "person", aliases: ["Nicodrum", "Nicodrums", "Nicodrums & Friends", "Nicodrums Friends"], legacySlugs: ["nicodrums-friends"] },
   { slug: "2080", name: "2080", kind: "person", aliases: ["2080", "208"] },
@@ -237,8 +241,9 @@ async function writePortraitAssets(
     .webp({ quality, effort: 6 })
     .toFile(path.join(outputAssets, filename));
 
-  const detailInfo = await sharp(input)
-    .rotate()
+  let detail = sharp(input).rotate();
+  if (profile.detailImageTransform?.extract) detail = detail.extract(profile.detailImageTransform.extract);
+  const detailInfo = await detail
     .resize({ width: 1600, height: 1600, fit: "inside", withoutEnlargement: true })
     .webp({ quality: 84, effort: 6 })
     .toFile(path.join(outputDetailAssets, filename));

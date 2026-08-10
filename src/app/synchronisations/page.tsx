@@ -8,7 +8,7 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
   return buildMetadata({
     locale,
     path: "/synchronisations",
-    title: locale === "fr" ? "Nos synchronisations" : "Our sync placements",
+    title: locale === "fr" ? "Nos Synchros" : "Our sync placements",
     description: locale === "fr"
       ? "Découvrez une sélection de films, séries et campagnes mis en musique avec le catalogue Parigo."
       : "Discover films, series and campaigns featuring music from the Parigo catalogue.",

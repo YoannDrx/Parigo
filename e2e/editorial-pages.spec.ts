@@ -16,7 +16,7 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/synchronisations");
 
-  await expect(page.getByRole("heading", { level: 1, name: "Nos synchronisations" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Nos Synchros" })).toBeVisible();
   await expect(page.locator(".home-sync-card").first()).toBeVisible();
   await expect.poll(() => page.evaluate(() => ({
     clientWidth: document.documentElement.clientWidth,
@@ -337,7 +337,7 @@ test("About adopte les nouveaux textes et Licensing ouvre sur une grille replié
   await expect(page.getByRole("img", { name: "Le Monde de demain — Parigo" })).toHaveAttribute("loading", "eager");
   await expect(page.locator("main").getByText("À propos", { exact: true })).toHaveCount(0);
   await expect(page.locator("main").getByText("La musique, une affaire humaine", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("Fondée en 2010, Parigo est une librairie musicale indépendante", { exact: false })).toBeVisible();
+  await expect(page.getByText("Fondée en 2004, Parigo est une librairie musicale indépendante", { exact: false })).toBeVisible();
   await expect(page.getByText("Éditer moins", { exact: false })).toHaveCount(0);
   await expect(page.getByText("Indépendante depuis Paris", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: /Parler d.un projet/i })).toHaveCount(0);

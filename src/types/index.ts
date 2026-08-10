@@ -22,6 +22,7 @@ export interface Track {
   trackNumber?: number;
   artists?: Array<{ name: string; slug: string }>;
   composers?: string[];
+  authors?: string[];
   publishers?: string[];
   version?: string;
   isAlternate?: boolean;

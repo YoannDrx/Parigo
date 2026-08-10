@@ -53,7 +53,7 @@ const composerProfileSchema = z.object({
   }),
 });
 
-export const CANONICAL_COMPOSER_PROFILE_COUNT = 61;
+export const CANONICAL_COMPOSER_PROFILE_COUNT = 62;
 
 const registrySchema = z.object({
   generatedAt: z.string(),
@@ -221,7 +221,7 @@ export interface CanonicalComposerSummary extends CanonicalComposerProfile {
   harvestCredits: CanonicalComposerCreditSummary[];
 }
 
-type ComposerTrack = Pick<Track, "id" | "albumId" | "albumCode" | "albumTitle" | "composers" | "artists" | "mainTrackId" | "isAlternate">;
+type ComposerTrack = Pick<Track, "id" | "albumId" | "albumCode" | "albumTitle" | "composers" | "authors" | "artists" | "mainTrackId" | "isAlternate">;
 
 export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): CanonicalComposerSummary[] {
   const aggregate = new Map<string, {
@@ -245,7 +245,7 @@ export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): Cano
   }
 
   for (const track of tracks) {
-    for (const rawCredit of new Set(track.composers ?? [])) {
+    for (const rawCredit of new Set([...(track.composers ?? []), ...(track.authors ?? [])])) {
       const name = rawCredit.trim();
       if (!name) continue;
       for (const { profile } of resolveCanonicalComposerCredits(name, track.albumCode)) {
