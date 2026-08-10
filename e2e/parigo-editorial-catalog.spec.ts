@@ -113,12 +113,12 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("l’annuaire publie exactement les 62 profils canoniques", async ({ page }) => {
+test("l’annuaire publie exactement les 63 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/talents");
   await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
   const directory = page.getByTestId("composer-directory-results");
-  await expect(directory.locator("a")).toHaveCount(62);
+  await expect(directory.locator("a")).toHaveCount(63);
   await expect(directory.locator('a[href="/talents/pierre-millet"]')).toHaveCount(0);
   await expect(directory.locator('a[href="/talents/mutant-ninja"]')).toHaveCount(0);
   await expect(directory.getByText("Schérazade", { exact: true })).toBeVisible();
@@ -130,12 +130,28 @@ test("l’annuaire publie exactement les 62 profils canoniques", async ({ page }
   await expect(directory.locator('a[href="/talents/gerz"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/yann-lean"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/nsdos"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/kokane"]')).toHaveCount(1);
   const minimatic = directory.locator('a[href="/talents/minimatic"]');
   await expect(minimatic).toHaveCount(1);
   await minimatic.click();
   await expect(page).toHaveURL(/\/talents\/minimatic$/);
   await expect(page.getByRole("heading", { level: 1, name: "Minimatic" })).toBeVisible();
   await expect(page.getByText(/Crédits Harvest associés/)).toHaveCount(0);
+});
+
+test("Kokane publie son portrait, ses biographies et sa discographie Parigo", async ({ page }) => {
+  await page.goto("/talents/kokane");
+  await expect(page.getByRole("heading", { level: 1, name: "Kokane" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/kokane/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Kokane, de son vrai nom Jerry B. Long Jr., est un rappeur, chanteur, auteur et producteur américain",
+  );
+  await expect(page.getByRole("link").filter({ hasText: "Diggin Hip-Hop Vol.2" }).first()).toBeVisible();
+
+  await page.goto("/en/talents/kokane");
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Kokane, real name Jerry B. Long Jr., is an American rapper, singer, songwriter and producer",
+  );
 });
 
 test("les nouveaux profils publient leurs noms de scène et le contenu disponible", async ({ page }) => {
