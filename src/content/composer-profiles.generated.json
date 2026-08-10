@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T20:52:31.330Z",
+  "generatedAt": "2026-08-10T22:07:08.966Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -452,6 +452,38 @@
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bonetrips.docx",
         "portraitFile": "public/images/composers/detail/bonetrips.webp"
+      }
+    },
+    {
+      "slug": "kokane",
+      "name": "Kokane",
+      "kind": "person",
+      "bio": {
+        "fr": "Kokane, de son vrai nom Jerry B. Long Jr., est un rappeur, chanteur, auteur et producteur américain, figure emblématique du hip-hop West Coast et du G-funk. Élevé à Pomona, en Californie, dans une famille profondément liée à la musique, il est le fils du compositeur Motown Jerry B. Long Sr. et développe très tôt une culture musicale nourrie par le funk, la soul et le hip-hop.\n\nÀ la fin des années 1980, il rejoint Ruthless Records, le label fondé par Eazy-E, et participe à l’effervescence créative qui façonne alors le son de la côte Ouest, notamment aux côtés d’Above the Law. Après un premier album publié sous le nom Who Am I?, il affirme pleinement son identité avec Funk Upon a Rhyme en 1994, où rap, chant et héritage P-Funk se rencontrent dans un style immédiatement reconnaissable.\n\nSa voix singulière, capable de passer avec une grande liberté du rap au chant, devient l’une de ses signatures. Au fil de sa carrière, Kokane multiplie les collaborations avec des figures majeures du hip-hop et du funk américain, parmi lesquelles Dr. Dre, Snoop Dogg, Ice Cube, George Clinton, Bootsy Collins, Cypress Hill et Xzibit. Sa participation à 2001 de Dr. Dre puis sa présence sur plusieurs titres de Tha Last Meal de Snoop Dogg contribuent à inscrire durablement sa voix dans l’histoire du hip-hop West Coast.\n\nParallèlement à ces nombreuses collaborations, Kokane développe une discographie solo prolifique et poursuit au fil des décennies son exploration du G-funk, du hip-hop, du funk et de la soul. Pour PARIGO, il prête sa voix et son écriture à Warp Zone feat. Kokane, aux côtés de Liqid et Bonetrips, sur l’album Diggin Hip Hop Vol. 2 (Parigo No. 32). Le titre est nommé en 2020 aux Mark Awards dans la catégorie Best Hip Hop Track, une reconnaissance qui vient distinguer cette collaboration au sein du catalogue original Parigo.\n\nÀ travers ses projets personnels comme ses nombreuses collaborations, Kokane cultive une identité immédiatement reconnaissable, portée par le groove, l’héritage du funk et une interprétation vocale singulière qui brouille avec naturel les frontières entre rap et chant.",
+        "en": "Kokane, real name Jerry B. Long Jr., is an American rapper, singer, songwriter and producer, and an iconic figure of West Coast hip-hop and G-funk. Raised in Pomona, California, in a family deeply connected to music, he is the son of Motown composer Jerry B. Long Sr. and developed an early musical foundation shaped by funk, soul and hip-hop.\n\nIn the late 1980s, he joined Ruthless Records, the label founded by Eazy-E, becoming part of the creative movement that was shaping the sound of the West Coast, notably alongside Above the Law. After releasing his debut album under the name Who Am I?, he fully established his artistic identity with Funk Upon a Rhyme in 1994, blending rap, singing and P-Funk influences into an instantly recognizable style.\n\nHis distinctive voice, moving effortlessly between rapping and singing, became one of his defining signatures. Throughout his career, Kokane has collaborated with major figures in American hip-hop and funk, including Dr. Dre, Snoop Dogg, Ice Cube, George Clinton, Bootsy Collins, Cypress Hill and Xzibit. His appearance on Dr. Dre’s 2001, followed by his contributions to several tracks on Snoop Dogg’s Tha Last Meal, helped establish his voice as an enduring presence in West Coast hip-hop.\n\nAlongside his numerous collaborations, Kokane has built a prolific solo discography, continuing to explore G-funk, hip-hop, funk and soul throughout the decades. For PARIGO, he contributed his voice and songwriting to Warp Zone feat. Kokane, alongside Liqid and Bonetrips, featured on the album Diggin Hip Hop Vol. 2 (Parigo No. 32). The track was nominated for Best Hip Hop Track at the 2020 Mark Awards, bringing further recognition to this collaboration within PARIGO’s original catalogue.\n\nAcross both his solo work and numerous collaborations, Kokane has cultivated an instantly recognizable identity, driven by groove, a deep-rooted funk heritage and a distinctive vocal style that effortlessly blurs the boundaries between rapping and singing."
+      },
+      "image": "/images/composers/canonical/kokane.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/kokane.webp",
+        "width": 480,
+        "height": 720
+      },
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Kokane"
+        ],
+        "rightHolderIds": [],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "Kokane.docx",
+        "portraitFile": "kokane.jpg"
       }
     },
     {

@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-const CANONICAL_PROFILE_COUNT = 62;
+const CANONICAL_PROFILE_COUNT = 63;
 
 type ProfileSource = {
   slug: string;
@@ -82,6 +82,7 @@ const profiles: ProfileSource[] = [
   { slug: "tcheep", name: "Tcheep", kind: "person", localImageFile: "tcheep.jpg", cardImageTransform: { extract: { left: 160, top: 120, width: 540, height: 540 }, position: "center" }, detailImageTransform: { extract: { left: 160, top: 120, width: 540, height: 540 } }, aliases: ["Tcheep"], rightHolderIds: ["afed957795abda41"] },
   { slug: "chicho-cortez", name: "Chicho Cortez", kind: "person", localImageFile: "chicho_cortez.png", cardImageTransform: { position: "center" }, aliases: ["Chicho Cortez"], rightHolderIds: ["c8119ac64f97a450"] },
   { slug: "bonetrips", name: "Bonetrips", kind: "person", aliases: ["Bonetrips"], rightHolderIds: ["5e18d5f74721f750"] },
+  { slug: "kokane", name: "Kokane", kind: "person", localImageFile: "kokane.jpg", cardImageTransform: { position: "center" }, aliases: ["Kokane"] },
   { slug: "coeur", name: "Cœur", kind: "person", localImageFile: "coeur.jpg", aliases: ["Charlotte Duran"], rightHolderIds: ["6719063c46c082fa"] },
   { slug: "arom", name: "Arom", kind: "person", localImageFile: "arom.jpg", aliases: ["Amaury Messelier", "AROM", "Arom"], rightHolderIds: ["a31fdb8e79777800"], legacySlugs: ["amaury-messelier"] },
   { slug: "minimatic", name: "Minimatic", kind: "person", localImageFile: "minimatic.jpg", aliases: ["Minimatic"], rightHolderIds: ["9a8ac0f443626409"] },
