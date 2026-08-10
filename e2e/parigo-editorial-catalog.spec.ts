@@ -202,9 +202,12 @@ test("Yann Lean publie sa photo et ses biographies française et anglaise", asyn
   );
 });
 
-test("Synthwave Retrowave crédite Schérazade comme autrice de ses chansons", async ({ page }) => {
+test("Synthwave Retrowave crédite Schérazade comme autrice de ses chansons", async ({ page }, testInfo) => {
   await page.goto("/albums/48b4b95fe1f09019");
   const song = page.locator('[data-track-id="23b92c9b02375642f77e44705437fccb"]');
+  if (testInfo.project.name === "mobile") {
+    await song.getByRole("button", { name: /^Plus d’actions :/ }).click();
+  }
   await song.getByRole("button", { name: /^Informations sur la piste/ }).click();
   const details = song.locator(".track-detail-panel");
   await expect(details.getByText("Autrice", { exact: true })).toBeVisible();
