@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T22:07:08.966Z",
+  "generatedAt": "2026-08-10T22:26:09.267Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -465,8 +465,8 @@
       "image": "/images/composers/canonical/kokane.webp",
       "detailImage": {
         "src": "/images/composers/detail/kokane.webp",
-        "width": 480,
-        "height": 720
+        "width": 474,
+        "height": 714
       },
       "imageStatus": "portrait",
       "harvest": {
