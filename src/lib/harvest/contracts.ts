@@ -36,6 +36,15 @@ const harvestBoolean = z.union([z.boolean(), z.number(), z.string()]).transform(
   return ["true", "1", "yes"].includes(value.toLowerCase());
 });
 const stringList = z.union([z.array(z.string()), z.string(), z.null()]).optional();
+const rightHolderIdList = z.union([
+  z.array(z.union([harvestId, z.looseObject({ ID: harvestId })])),
+  z.string(),
+  z.null(),
+]).optional().transform((value) => {
+  if (!value) return [];
+  if (typeof value === "string") return value.split(/[;,]/).map((item) => item.trim()).filter(Boolean);
+  return value.map((item) => typeof item === "string" ? item : item.ID);
+});
 
 export const HarvestRightHolderSchema = z.looseObject({
   ID: harvestId,
@@ -64,6 +73,7 @@ export const HarvestTrackSchema = z.looseObject({
   Composer: stringList,
   Artist: stringList,
   Publisher: stringList,
+  RightHolderIDs: rightHolderIdList,
   AlbumID: harvestId.optional().nullable(),
   AlbumName: z.string().optional().nullable(),
   AlbumTitle: z.string().optional().nullable(),

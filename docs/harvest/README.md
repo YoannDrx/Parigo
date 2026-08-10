@@ -28,6 +28,12 @@ La cle API Postman personnelle n'est pas stockee dans le repo et n'a pas ete nec
 | [documentation-conformance-audit-2026-08-03.md](./documentation-conformance-audit-2026-08-03.md) | Audit complet de conformité de la documentation `latest` et des contrats live sûrs |
 | [code-documentation-conformance-matrix-2026-08-03.csv](./code-documentation-conformance-matrix-2026-08-03.csv) | Comparaison ligne par ligne des 257 contrats officiels avec les 87 endpoints documentés utilisés par le code Parigo, plus l'appel non documenté de suppression de compte |
 | [email-draft-api-documentation-feedback-2026-08-03.md](./email-draft-api-documentation-feedback-2026-08-03.md) | Brouillon de réponse à Roland et Peter avec les erreurs reproductibles |
+| [implementation-verification-2026-08-10.md](./implementation-verification-2026-08-10.md) | Vérification API, e-mail et navigateur après activation des routes de partage/reset |
+| [email-draft-peter-2026-08-10.md](./email-draft-peter-2026-08-10.md) | Mail groupé à Peter avec les demandes de configuration encore actives et les questions de localisation |
+| [internationalization-audit-2026-08-10.md](./internationalization-audit-2026-08-10.md) | Audit live et navigateur des descriptions albums/labels, langues membre et templates d’e-mail |
+| [open-questions-audit-2026-08-10.md](./open-questions-audit-2026-08-10.md) | Relecture consolidée des réponses Harvest, retests live et classement des seules questions encore ouvertes |
+| [gaps-and-requests.md](./gaps-and-requests.md) | Registre simplifié des écarts actifs et formulation exacte des demandes à Harvest |
+| [email-template-live-test-2026-08-10.md](./email-template-live-test-2026-08-10.md) | Test réel d’un template HTML/CSS, contrôle Gmail et preuve de restauration |
 | [runtime-route-matrix.csv](./runtime-route-matrix.csv) | Matrice UI → BFF → Harvest et preuves de persistance |
 | [last-audit-run.json](./last-audit-run.json) | Synthèse expurgée du dernier run |
 | [rapport-harvest-api.md](./rapport-harvest-api.md) | Rapport Markdown lisible directement dans le repo |
@@ -51,6 +57,15 @@ La campagne de conformité en lecture peut être rejouée avec :
 ```bash
 pnpm audit:harvest:public-read
 ```
+
+Les écarts encore ouverts — tags, catégorie playlist, replay de recherche et opérateurs de titre — peuvent être retestés en lecture seule avec :
+
+```bash
+pnpm audit:harvest:open-gaps
+```
+
+Les trois déclenchements d’e-mails restent désactivés par défaut dans ce script et nécessitent chacun un flag explicite.
+Le compteur non nul peut être vérifié avec `HARVEST_TAG_COUNT_MUTATION_TEST=1`; le script crée alors un tag temporaire, lui associe une piste et le supprime systématiquement.
 
 L'inventaire officiel `latest`, les classifications et la matrice code ↔ documentation
 peuvent être régénérés ensemble avec :

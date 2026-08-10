@@ -46,7 +46,10 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   const result = await loadAlbum(id);
   const album = result.album;
   const composerCreditsByKey = new Map<string, ComposerCreditLink>();
-  for (const credit of new Set(album.tracks.flatMap((track) => track.composers ?? []))) {
+  for (const credit of new Set(album.tracks.flatMap((track) => [
+    ...(track.composers ?? []),
+    ...(track.authors ?? []),
+  ]))) {
     const resolutions = album.labelSlug === PARIGO_LABEL_ID
       ? resolveCanonicalComposerCredits(credit, album.code)
       : [];

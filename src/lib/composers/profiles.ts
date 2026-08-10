@@ -39,6 +39,7 @@ const composerProfileSchema = z.object({
   imageStatus: z.enum(["portrait", "placeholder"]),
   harvest: z.object({
     aliases: z.array(z.string().min(1)),
+    rightHolderIds: z.array(z.string().min(1)),
     memberAliases: z.array(z.string().min(1)),
     scopedRelations: z.array(scopedRelationSchema),
     creditIdentities: z.array(harvestCreditIdentitySchema).optional(),
@@ -53,7 +54,7 @@ const composerProfileSchema = z.object({
   }),
 });
 
-export const CANONICAL_COMPOSER_PROFILE_COUNT = 61;
+export const CANONICAL_COMPOSER_PROFILE_COUNT = 62;
 
 const registrySchema = z.object({
   generatedAt: z.string(),
@@ -62,6 +63,7 @@ const registrySchema = z.object({
   const slugs = new Set<string>();
   const names = new Set<string>();
   const globalAliases = new Map<string, string>();
+  const rightHolderIdOwners = new Map<string, string>();
   for (const profile of value.profiles) {
     if (slugs.has(profile.slug)) context.addIssue({ code: "custom", message: `Slug compositeur dupliqué : ${profile.slug}` });
     if (names.has(profile.name)) context.addIssue({ code: "custom", message: `Nom compositeur dupliqué : ${profile.name}` });
@@ -75,6 +77,13 @@ const registrySchema = z.object({
     }
     if (profile.harvest.memberAliases.length && profile.kind !== "group") {
       context.addIssue({ code: "custom", message: `Seul un collectif peut déclarer des membres Harvest : ${profile.slug}` });
+    }
+    for (const rightHolderId of profile.harvest.rightHolderIds) {
+      const owner = rightHolderIdOwners.get(rightHolderId);
+      if (owner && owner !== profile.slug) {
+        context.addIssue({ code: "custom", message: `ID ayant droit Harvest partagé : ${rightHolderId} (${owner}, ${profile.slug})` });
+      }
+      rightHolderIdOwners.set(rightHolderId, profile.slug);
     }
     for (const alias of profile.harvest.aliases) {
       for (const lookupKey of harvestComposerCreditLookupKeys(alias)) {
@@ -131,6 +140,7 @@ type CreditIdentityEntry = {
 const globalCreditIdentitiesByAlias = new Map<string, CreditIdentityEntry[]>();
 const globalMemberIdentitiesByAlias = new Map<string, CreditIdentityEntry[]>();
 const scopedCreditIdentities: CreditIdentityEntry[] = [];
+const profilesByRightHolderId = new Map<string, CanonicalComposerProfile[]>();
 
 function addGlobalIdentity(map: Map<string, CreditIdentityEntry[]>, lookupKey: string, entry: CreditIdentityEntry) {
   const entries = map.get(lookupKey) ?? [];
@@ -139,6 +149,11 @@ function addGlobalIdentity(map: Map<string, CreditIdentityEntry[]>, lookupKey: s
 }
 
 for (const profile of canonicalComposerProfiles) {
+  for (const rightHolderId of profile.harvest.rightHolderIds) {
+    const matches = profilesByRightHolderId.get(rightHolderId) ?? [];
+    matches.push(profile);
+    profilesByRightHolderId.set(rightHolderId, matches);
+  }
   for (const identity of canonicalHarvestCreditIdentities(profile)) {
     const entry = { profile, identity };
     if (identity.albumCodes?.length) {
@@ -221,7 +236,7 @@ export interface CanonicalComposerSummary extends CanonicalComposerProfile {
   harvestCredits: CanonicalComposerCreditSummary[];
 }
 
-type ComposerTrack = Pick<Track, "id" | "albumId" | "albumCode" | "albumTitle" | "composers" | "artists" | "mainTrackId" | "isAlternate">;
+type ComposerTrack = Pick<Track, "id" | "albumId" | "albumCode" | "albumTitle" | "composers" | "authors" | "rightHolderIds" | "artists" | "mainTrackId" | "isAlternate">;
 
 export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): CanonicalComposerSummary[] {
   const aggregate = new Map<string, {
@@ -245,19 +260,34 @@ export function collectCanonicalComposerSummaries(tracks: ComposerTrack[]): Cano
   }
 
   for (const track of tracks) {
-    for (const rawCredit of new Set(track.composers ?? [])) {
+    const matchedProfiles = new Map<string, { profile: CanonicalComposerProfile; credits: Set<string> }>();
+    for (const rightHolderId of new Set(track.rightHolderIds ?? [])) {
+      for (const profile of profilesByRightHolderId.get(rightHolderId) ?? []) {
+        const match = matchedProfiles.get(profile.slug) ?? { profile, credits: new Set<string>() };
+        match.credits.add(profile.harvest.aliases[0] ?? profile.name);
+        matchedProfiles.set(profile.slug, match);
+      }
+    }
+    for (const rawCredit of new Set([...(track.composers ?? []), ...(track.authors ?? [])])) {
       const name = rawCredit.trim();
       if (!name) continue;
       for (const { profile } of resolveCanonicalComposerCredits(name, track.albumCode)) {
-        const item = aggregate.get(profile.slug)!;
-        item.variantIds.add(track.id);
-        const workId = harvestMainWorkId(track);
-        if (workId) {
-          item.workIds.add(workId);
-          if (track.albumId) item.albumIds.add(track.albumId);
-          if (track.albumCode) item.albumCodes.add(track.albumCode);
-          if (track.albumTitle) item.albumTitles.add(track.albumTitle);
-        }
+        const match = matchedProfiles.get(profile.slug) ?? { profile, credits: new Set<string>() };
+        match.credits.add(name);
+        matchedProfiles.set(profile.slug, match);
+      }
+    }
+    for (const { profile, credits } of matchedProfiles.values()) {
+      const item = aggregate.get(profile.slug)!;
+      item.variantIds.add(track.id);
+      const workId = harvestMainWorkId(track);
+      if (workId) {
+        item.workIds.add(workId);
+        if (track.albumId) item.albumIds.add(track.albumId);
+        if (track.albumCode) item.albumCodes.add(track.albumCode);
+        if (track.albumTitle) item.albumTitles.add(track.albumTitle);
+      }
+      for (const name of credits) {
         const ids = item.creditTracks.get(name) ?? new Set<string>();
         if (workId) ids.add(workId);
         item.creditTracks.set(name, ids);

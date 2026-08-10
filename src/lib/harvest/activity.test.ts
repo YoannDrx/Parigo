@@ -17,8 +17,9 @@ vi.mock("./assets", async (importOriginal) => {
 });
 
 import { getAssetTemplates, type HarvestAssetTemplates } from "./assets";
-import { getCommentedTracks, getDownloadHistory, getMemberPlaylistCategories, getMemberPlaylists, getMemberTags, getMemberTagsWithTrackCounts, isReservedMemberTagName, mapDownloadHistoryResponse } from "./activity";
-import { memberRequest } from "./client";
+import { acceptSharedMusic, createMusicShare, getCommentedTracks, getDownloadHistory, getMemberPlaylistCategories, getMemberPlaylists, getMemberTags, getMemberTagsWithTrackCounts, getSharedMusic, isReservedMemberTagName, mapDownloadHistoryResponse } from "./activity";
+import { guestRequest, memberRequest, serviceRequest } from "./client";
+import { HarvestError } from "./errors";
 
 const templates: HarvestAssetTemplates = {
   trackStream: "",
@@ -208,5 +209,138 @@ describe("Harvest member playlist hierarchy", () => {
     await expect(getMemberPlaylistCategories("member-token")).resolves.toEqual([
       expect.objectContaining({ id: "folder-test", name: "Test", playlistCount: 3 }),
     ]);
+  });
+});
+
+describe("Harvest collaborative sharing", () => {
+  beforeEach(() => {
+    vi.mocked(guestRequest).mockReset();
+    vi.mocked(memberRequest).mockReset();
+    vi.mocked(serviceRequest).mockReset();
+  });
+
+  it("maps a directly referred playlist as well as a shared folder", async () => {
+    vi.mocked(guestRequest)
+      .mockResolvedValueOnce({
+        ReferredPlaylistObject: {
+          ID: "playlist-1",
+          Name: "Sélection vide",
+          ObjectType: "Playlist",
+          Tracks: [],
+        },
+        ReferredPermission: { AllowCollaboration: true },
+      })
+      .mockResolvedValueOnce({
+        ReferredPlaylistObject: {
+          ID: "folder-1",
+          Name: "Campagne",
+          ObjectType: "PlaylistCategory",
+          Playlists: [{ ID: "playlist-2", Name: "Film", Tracks: [] }],
+        },
+      });
+
+    await expect(getSharedMusic("playlist-share-token")).resolves.toMatchObject({
+      playlists: [{ id: "playlist-1", title: "Sélection vide", tracks: [] }],
+      allowCollaboration: true,
+    });
+    await expect(getSharedMusic("folder-share-token")).resolves.toMatchObject({
+      playlists: [{ id: "playlist-2", title: "Film", tracks: [] }],
+    });
+  });
+
+  it("creates a collaboration link with the confirmed contract and global email template", async () => {
+    vi.mocked(serviceRequest).mockImplementation(async (pathBuilder) => {
+      const path = pathBuilder("service-token");
+      if (path.startsWith("/validatememberemail/")) {
+        throw new HarvestError("Email already belongs to a member", "VALIDATION_FAILED", 409, false, "17");
+      }
+      if (path.startsWith("/getsharemusicurl/")) {
+        return {
+          ShareMusic: [{
+            Status: "Success",
+            Url: "https://parigo.test/engage-playlist/share-token",
+          }],
+        };
+      }
+      throw new Error(`Unexpected service path: ${path}`);
+    });
+    vi.mocked(memberRequest).mockResolvedValue({});
+
+    await expect(createMusicShare("member-token", {
+      objectIdentifier: "playlist-1",
+      objectType: "Playlist",
+      contentTitle: "Film été",
+      fromEmail: "sender@example.com",
+      toEmail: "recipient@example.com",
+      message: "À écouter",
+      mode: "collaborate",
+      allowDownload: false,
+      allowFollow: false,
+      allowSave: true,
+      allowShare: false,
+      sendEmail: true,
+    })).resolves.toMatchObject({
+      url: "https://parigo.test/engage-playlist/share-token",
+      emailed: true,
+      delivered: false,
+      recipientType: "MemberAccount",
+      mode: "collaborate",
+      status: "Success",
+    });
+
+    const shareInit = vi.mocked(serviceRequest).mock.calls[1][1];
+    expect(JSON.parse(String(shareInit?.body))).toMatchObject({
+      FromMemberToken: "member-token",
+      ObjectIdentifier: "playlist-1",
+      ObjectType: "Playlist",
+      Users: [{ Username: "recipient@example.com", Type: "MemberAccount", ShareType: "Sync", AllowCollaboration: true, AllowEdit: false }],
+    });
+    const emailInit = vi.mocked(memberRequest).mock.calls[0][2];
+    expect(JSON.parse(String(emailInit?.body))).toMatchObject({
+      ContentType: "Playlist",
+      ContentTitle: "Film été",
+      SelectEmailTemplateByMemberRegion: false,
+    });
+  });
+
+  it("delivers directly to a known member without notification or approval", async () => {
+    vi.mocked(serviceRequest).mockRejectedValue(
+      new HarvestError("Email already belongs to a member", "VALIDATION_FAILED", 409, false, "17"),
+    );
+    vi.mocked(memberRequest).mockResolvedValue({ Status: "Delivered" });
+
+    await expect(createMusicShare("member-token", {
+      objectIdentifier: "playlist-1",
+      objectType: "Playlist",
+      contentTitle: "Film été",
+      fromEmail: "sender@example.com",
+      toEmail: "recipient@example.com",
+      message: "À écouter",
+      mode: "deliver",
+      allowDownload: false,
+      allowFollow: false,
+      allowSave: true,
+      allowShare: false,
+      sendEmail: false,
+    })).resolves.toMatchObject({ delivered: true, emailed: false, url: null, status: "Delivered" });
+
+    const deliveryPath = vi.mocked(memberRequest).mock.calls[0][1]("member-token");
+    const deliveryInit = vi.mocked(memberRequest).mock.calls[0][2];
+    expect(deliveryPath).toBe("/deliversharemusic/member-token");
+    expect(JSON.parse(String(deliveryInit?.body))).toMatchObject({
+      ObjectIdentifier: "playlist-1",
+      Users: [{ Username: "recipient@example.com", ShareType: "Sync", AllowCollaboration: true, AllowEdit: false, NotifyUser: false }],
+    });
+  });
+
+  it("accepts a share explicitly as collaboration or copy", async () => {
+    vi.mocked(memberRequest).mockResolvedValue({ Status: "Accepted" });
+    await expect(acceptSharedMusic("recipient-token", "share-token", "AsCopy")).resolves.toEqual({
+      accepted: true,
+      acceptType: "AsCopy",
+      status: "Accepted",
+    });
+    expect(vi.mocked(memberRequest).mock.calls[0][1]("recipient-token"))
+      .toBe("/acceptsharemusic/recipient-token/share-token?accepttype=AsCopy");
   });
 });

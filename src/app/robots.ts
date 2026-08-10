@@ -13,6 +13,7 @@ export default function robots(): MetadataRoute.Robots {
         "/change-password/",
         "/reset-password/",
         "/engage-playlist/",
+        "/shared-playlistcategory/",
         "/verify-member/",
       ],
     },

@@ -253,6 +253,19 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
                   </div>
                 </div>
               ) : null}
+              {displayed.authors?.length ? (
+                <div className="mt-5 border-t border-[var(--line)] pt-4">
+                  <p className="mb-3 font-mono text-[.58rem] uppercase tracking-[.1em] text-[var(--text-muted)]">{locale === "fr" ? "Autrice" : "Songwriter"}</p>
+                  <div className="flex min-w-0 flex-wrap gap-2">
+                    {displayed.authors.map((credit) => {
+                      const profile = composerCredits?.find((item) => item.credit === credit && item.href);
+                      return profile?.href
+                        ? <Link key={credit} href={localizedPath(profile.href)} className="track-detail-term px-2.5 py-1.5 text-xs font-semibold transition hover:text-[var(--signal-strong)]">{profile.name}</Link>
+                        : <span key={credit} className="track-detail-term px-2.5 py-1.5 text-xs font-semibold">{credit}</span>;
+                    })}
+                  </div>
+                </div>
+              ) : null}
             </section>
 
             <section className="min-w-0 border-t border-[var(--line)] pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">

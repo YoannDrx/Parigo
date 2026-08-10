@@ -50,15 +50,10 @@ export function PartnerMarquee() {
     <section data-testid="home-partners-section" className="partner-section relative overflow-hidden border-y border-white/12 bg-[#0b110d] py-16 text-white md:py-24">
       <div className="partner-section__glow" aria-hidden="true" />
       <div className="relative mx-auto max-w-[1580px] px-4 md:px-8">
-        <div className="grid gap-7 md:grid-cols-12 md:items-end">
-          <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.8rem,5.5vw,6.2rem)] leading-[.9] tracking-[-.06em] text-white md:col-span-8">
+        <div>
+          <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.8rem,5.5vw,6.2rem)] leading-[.9] tracking-[-.06em] text-white">
             {locale === "fr" ? "Ils nous font confiance." : "They trust us."}
           </SignedTitle>
-          <p className="max-w-sm border-t border-white/22 pt-4 text-sm leading-6 text-white/62 md:col-span-3 md:col-start-10">
-            {locale === "fr"
-              ? "Du streaming au cinéma, du jeu vidéo à la télévision : notre musique accompagne leurs images."
-              : "From streaming and cinema to gaming and television, our music brings their images to life."}
-          </p>
         </div>
       </div>
       <div className="partner-marquee relative mt-10 border-y border-white/12 py-3 md:mt-14 md:py-4" aria-label={locale === "fr" ? "Clients Parigo" : "Parigo clients"}>

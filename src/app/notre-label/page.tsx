@@ -11,17 +11,17 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
   const [locale, filtered] = await Promise.all([getRequestLocale(), hasSearchParams(searchParams)]);
   return buildMetadata({
     locale,
-    path: "/label-parigo",
-    title: locale === "fr" ? "Label Parigo" : "Parigo Label",
+    path: "/notre-label",
+    title: locale === "fr" ? "Notre label" : "Our label",
     description: locale === "fr"
-      ? "Découvrez exclusivement les albums produits et publiés par le label Parigo."
-      : "Discover albums produced and released by the Parigo label.",
+      ? "Découvrez les productions originales au cœur de l’identité musicale de Parigo."
+      : "Discover the original productions at the heart of Parigo’s musical identity.",
     index: !filtered,
     follow: true,
   });
 }
 
-export default async function ParigoLabelPage() {
+export default async function OurLabelPage() {
   const [albums, locale] = await Promise.all([
     getCachedAlbumDiscovery({ label: PARIGO_LABEL_ID, limit: 20, sort: "recent" }),
     getRequestLocale(),
@@ -42,10 +42,10 @@ export default async function ParigoLabelPage() {
       <Header />
       <main className="flex-1">
         <CatalogHero
-          title={locale === "fr" ? "Label Parigo" : "Parigo Label"}
+          title={locale === "fr" ? "Notre label" : "Our label"}
           intro={locale === "fr"
-            ? "Les productions originales du label Parigo, de la toute première référence aux dernières nouveautés."
-            : "Original Parigo label productions, from the first catalogue release to the latest arrivals."}
+            ? "Nos productions originales, au cœur de l’identité musicale de Parigo."
+            : "Our original productions, at the heart of Parigo’s musical identity."}
           meta={`${albums.total} albums`}
         />
         <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
@@ -54,8 +54,8 @@ export default async function ParigoLabelPage() {
               initialData={initialData}
               fixedLabel={PARIGO_LABEL_ID}
               queryPlaceholder={{
-                fr: "Rechercher dans le label Parigo",
-                en: "Search the Parigo label",
+                fr: "Rechercher dans notre label",
+                en: "Search our label",
               }}
             />
           </ReactQueryProvider>

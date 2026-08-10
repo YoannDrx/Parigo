@@ -1,14 +1,6 @@
 import { z } from "zod";
 
-export {
-  CONTACT_ACCEPT,
-  CONTACT_MAX_BODY_BYTES,
-  CONTACT_MAX_FILE_BYTES,
-  contactAttachmentExtension,
-  sanitizeContactAttachmentName,
-  validateContactAttachmentBytes,
-  validateContactAttachmentMetadata,
-} from "./contact-attachment";
+export const CONTACT_MAX_BODY_BYTES = 16 * 1024;
 
 export const contactInputSchema = z.object({
   name: z.string().trim().min(2).max(120),

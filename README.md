@@ -1,6 +1,6 @@
 # Parigo
 
-Site catalogue et lecteur audio de Parigo Music. Harvest est l’unique source de vérité des albums, pistes, crédits bruts, ayants droit et discographies publiques. L’annuaire `/talents` est limité à un registre éditorial contrôlé de 61 noms publics ; ses bios, portraits sources et rendus WebP sont tous versionnés directement dans ce dépôt, tandis que toutes ses relations musicales restent calculées depuis les pistes Harvest. Les inventaires Clips et Synchronisations proviennent exclusivement des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
+Site catalogue et lecteur audio de Parigo Music. Harvest est l’unique source de vérité des albums, pistes, crédits bruts, ayants droit et discographies publiques. L’annuaire `/talents` est limité à un registre éditorial contrôlé de 62 noms publics ; ses bios, portraits sources et rendus WebP sont tous versionnés directement dans ce dépôt, tandis que toutes ses relations musicales restent calculées depuis les pistes Harvest. Les inventaires Clips et Synchronisations proviennent exclusivement des playlists YouTube officielles. Le navigateur appelle uniquement les routes et composants Next.js du projet ; les identifiants et jetons Harvest restent côté serveur. Le projet n’utilise ni base PostgreSQL, ni Prisma, ni couche d’authentification locale.
 
 ## Installation
 
@@ -25,14 +25,10 @@ Variables obligatoires pour le catalogue public :
 
 Pour activer les comptes Parigo, ajouter `HARVEST_SESSION_SECRET`, un secret indépendant généré par exemple avec `openssl rand -base64 48`. Son absence désactive uniquement la surface membre ; elle ne fait pas tomber le catalogue public.
 
-Le formulaire de contact utilise `RESEND_API_KEY`, envoie depuis
-`Parigo Music <parigo@yodev.fr>` et transmet les demandes à
-`info@parigomusic.com`. Les accusés envoyés aux visiteurs utilisent
-`CONTACT_REPLY_EMAIL` (`info@parigomusic.com` par défaut), tandis que les notifications
-internes répondent directement à l’adresse du visiteur. Le formulaire accepte une pièce jointe
-de 3 Mo maximum (PDF, image, Word, Excel, PowerPoint, texte ou RTF), contrôlée côté navigateur
-et côté serveur puis transmise directement par e-mail ; elle n’est pas enregistrée dans une
-base de données applicative. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
+Le formulaire de contact utilise l’endpoint Harvest `sendcontactusemail`. Harvest transmet
+la demande à l’administrateur du compte et en adresse une copie à l’expéditeur. Cet endpoint
+ne prenant pas en charge les pièces jointes, le formulaire accepte uniquement les champs
+texte et le contexte éventuel d’une piste. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
 public réellement accessible. Tant que le domaine Parigo n’est pas raccordé,
 la valeur de référence est `https://parigo-ten.vercel.app`.
 
@@ -51,11 +47,12 @@ pnpm test:e2e
 pnpm email:dev
 HARVEST_LIVE_TESTS=1 pnpm test:harvest
 HARVEST_MEMBER_MUTATION_TESTS=1 pnpm test:harvest:member
+HARVEST_SHARING_MUTATION_TESTS=1 pnpm test:harvest:sharing
 pnpm audit:youtube:clips
 pnpm audit:harvest:gaps
 ```
 
-La suite Harvest live standard est strictement en lecture. La suite membre exige en plus `HARVEST_TEST_MEMBER_EMAIL` et `HARVEST_TEST_MEMBER_PASSWORD`, ne s’exécute jamais en CI standard et nettoie les ressources qu’elle crée. L’inscription et le reset par e-mail nécessitent une boîte Gmail de test réauthentifiée et restent une validation Preview explicite.
+La suite Harvest live standard est strictement en lecture. La suite membre exige `HARVEST_TEST_MEMBER_EMAIL` et `HARVEST_TEST_MEMBER_PASSWORD`; les collaborations utilisent en plus `HARVEST_TEST_RECIPIENT_EMAIL` et `HARVEST_TEST_RECIPIENT_PASSWORD`. Ces suites ne s’exécutent jamais en CI standard et nettoient les ressources qu’elles créent. L’inscription et le reset par e-mail nécessitent une boîte Gmail de test réauthentifiée et restent une validation Preview explicite.
 
 ## Architecture
 

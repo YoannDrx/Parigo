@@ -111,6 +111,22 @@ export function mapTrack(
   const libraryName = parsed.LibraryName || album?.label || "";
   const composers = asList(parsed.Composer);
   const publishers = asList(parsed.Publisher);
+  const rightHolders = parsed.RightHolders.map((holder) => ({
+    id: holder.ID,
+    name: holder.Name || [holder.FirstName, holder.MiddleName, holder.LastName].filter(Boolean).join(" "),
+    firstName: holder.FirstName || undefined,
+    middleName: holder.MiddleName || undefined,
+    lastName: holder.LastName || undefined,
+    collectingSociety: holder.CollectingSociety || undefined,
+    share: holder.Share ?? undefined,
+    shareType: holder.ShareType || undefined,
+    ipi: holder.IPI || undefined,
+    capacity: holder.Capacity || undefined,
+    capacityGroup: holder.CapacityGroup || undefined,
+  })).filter((holder) => holder.name);
+  const authors = rightHolders
+    .filter((holder) => holder.capacity?.trim().toLocaleLowerCase("en") === "author")
+    .map((holder) => holder.name);
   const normalizedVersion = parsed.Version?.trim().toLowerCase();
   const isMainVersion = normalizedVersion === "main" || normalizedVersion === "main version";
   const track: Track = {
@@ -140,6 +156,8 @@ export function mapTrack(
     trackNumber: parsed.TrackNumber || undefined,
     artists: mapCredits(parsed),
     composers,
+    authors,
+    rightHolderIds: parsed.RightHolderIDs,
     publishers,
     version: parsed.Version || undefined,
     // Some Cloud Search payloads flag the main version as alternate. Harvest's
@@ -156,19 +174,7 @@ export function mapTrack(
     tags: asList(parsed.Tags),
     keywords: asList(parsed.Keywords),
     musicFor: asList(parsed.MusicFor),
-    rightHolders: parsed.RightHolders.map((holder) => ({
-      id: holder.ID,
-      name: holder.Name || [holder.FirstName, holder.MiddleName, holder.LastName].filter(Boolean).join(" "),
-      firstName: holder.FirstName || undefined,
-      middleName: holder.MiddleName || undefined,
-      lastName: holder.LastName || undefined,
-      collectingSociety: holder.CollectingSociety || undefined,
-      share: holder.Share ?? undefined,
-      shareType: holder.ShareType || undefined,
-      ipi: holder.IPI || undefined,
-      capacity: holder.Capacity || undefined,
-      capacityGroup: holder.CapacityGroup || undefined,
-    })).filter((holder) => holder.name),
+    rightHolders,
     stems: parsed.Stems.filter(isRecord).map((stem) => ({ id: asString(stem.ID), title: asString(stem.DisplayTitle || stem.Name) || undefined })).filter((stem) => stem.id),
     rate: parsed.TrackRate || null,
     isExplicit: parsed.IsExplicit || false,

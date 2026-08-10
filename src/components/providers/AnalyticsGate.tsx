@@ -37,7 +37,10 @@ function sanitizeUrl(url: string): string {
     .replace(/\/albums\/[^/]+/, "/albums/[id]")
     .replace(/\/labels\/[^/]+/, "/labels/[slug]")
     .replace(/\/playlists\/[^/]+/, "/playlists/[slug]")
-    .replace(/\/engage-playlist\/[^/]+/, "/engage-playlist/[token]");
+    .replace(/\/engage-playlist\/[^/]+/, "/engage-playlist/[token]")
+    .replace(/\/shared-playlistcategory\/[^/]+/, "/shared-playlistcategory/[token]")
+    .replace(/\/verify-member\/[^/]+/, "/verify-member/[token]")
+    .replace(/\/(?:change-password|reset-password)\/[^/]+/, "/reset-password/[token]");
   return `${parsed.origin}${parsed.pathname}`;
 }
 

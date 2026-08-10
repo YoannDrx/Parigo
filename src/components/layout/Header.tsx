@@ -52,14 +52,14 @@ export function Header({ variant = "default" }: HeaderProps) {
 
   const navigationItems = {
     search: { name: t("common.search"), href: "/search", note: locale === "fr" ? "Par humeur, instrument ou usage" : "By mood, instrument or use" },
-    albums: { name: t("common.albums"), href: "/albums", note: locale === "fr" ? "Explorer le catalogue" : "Explore the catalogue" },
-    synchronisations: { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations", note: locale === "fr" ? "La musique en images" : "Music in motion" },
-    playlists: { name: t("common.playlists"), href: "/playlists", note: locale === "fr" ? "Sélections éditoriales" : "Editorial selections" },
-    licensing: { name: t("common.licensing"), href: "/licensing", note: locale === "fr" ? "Comprendre les droits" : "Understand the rights" },
-    parigoLabel: { name: locale === "fr" ? "Label Parigo" : "Parigo Label", href: "/label-parigo", note: locale === "fr" ? "Les productions du label" : "Releases from the label" },
-    composers: { name: locale === "fr" ? "Talents" : "Talent", href: "/talents", note: locale === "fr" ? "Compositeurs, artistes et collectifs" : "Composers, artists and collectives" },
-    clips: { name: "Clips", href: "/clips", note: locale === "fr" ? "Créations audiovisuelles" : "Audiovisual work" },
-    labels: { name: "Labels", href: "/labels", note: locale === "fr" ? "Nos maisons partenaires" : "Our label partners" },
+    albums: { name: t("common.albums"), href: "/albums", note: locale === "fr" ? "Explorez tous nos albums" : "Explore all our albums" },
+    synchronisations: { name: locale === "fr" ? "Synchronisations" : "Syncs", href: "/synchronisations", note: locale === "fr" ? "Nos musiques à l’image" : "Our music for moving images" },
+    playlists: { name: t("common.playlists"), href: "/playlists", note: locale === "fr" ? "Nos sélections éditoriales" : "Our editorial selections" },
+    licensing: { name: t("common.licensing"), href: "/licensing", note: locale === "fr" ? "Comprendre et gérer les droits" : "Understand and manage rights" },
+    parigoLabel: { name: locale === "fr" ? "Notre label" : "Our label", href: "/notre-label", note: locale === "fr" ? "Le catalogue original Parigo" : "Parigo’s original catalogue" },
+    composers: { name: locale === "fr" ? "Talents" : "Talent", href: "/talents", note: locale === "fr" ? "Celles et ceux qui créent" : "The people behind the music" },
+    clips: { name: "Clips", href: "/clips", note: locale === "fr" ? "Le catalogue en images" : "The catalogue in motion" },
+    labels: { name: "Labels", href: "/labels", note: locale === "fr" ? "Nos catalogues partenaires" : "Our partner catalogues" },
   };
   const primaryNav = [
     navigationItems.search,

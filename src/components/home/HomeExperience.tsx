@@ -193,7 +193,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                 {([
                   ["releases", locale === "fr" ? "Nouveautés" : "New releases"],
                   ["playlists", "Playlists"],
-                  ["parigo", "Label Parigo"],
+                  ["parigo", locale === "fr" ? "Notre label" : "Our label"],
                 ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => { setTabError(null); setAudioPlaybackError(null); setFeaturedTab(id); }} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
               </div>
             </SectionReveal>
@@ -248,7 +248,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
             </HorizontalRail>
             )}
             {audioPlaybackError && <p role="alert" className="mt-4 text-sm text-[var(--danger)]">{audioPlaybackError}</p>}
-            <div className="mt-8 text-right"><HomeSeeAllLink href={localizedPath(featuredTab === "playlists" ? "/playlists" : featuredTab === "parigo" ? "/label-parigo" : "/albums")}>{t("common.seeAll")}</HomeSeeAllLink></div>
+            <div className="mt-8 text-right"><HomeSeeAllLink href={localizedPath(featuredTab === "playlists" ? "/playlists" : featuredTab === "parigo" ? "/notre-label" : "/albums")}>{t("common.seeAll")}</HomeSeeAllLink></div>
           </div>
         </section>
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-07T21:49:32.446Z",
+  "generatedAt": "2026-08-10T20:52:31.330Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -12,8 +12,8 @@
       "image": "/images/composers/canonical/aiwa.webp",
       "detailImage": {
         "src": "/images/composers/detail/aiwa.webp",
-        "width": 400,
-        "height": 400
+        "width": 1440,
+        "height": 1440
       },
       "imageStatus": "portrait",
       "harvest": {
@@ -22,6 +22,10 @@
           "Al Wahab Naufalle",
           "Wamid Al Wahab",
           "Al Wahab Wamid"
+        ],
+        "rightHolderIds": [
+          "3bde53a3c62b348c",
+          "d627af62f0ace5b6"
         ],
         "memberAliases": [],
         "scopedRelations": [],
@@ -48,7 +52,7 @@
         "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aïwa.docx",
-        "portraitFile": "public/images/composers/detail/aiwa.webp"
+        "portraitFile": "aiwa.jpg"
       }
     },
     {
@@ -62,30 +66,39 @@
       "image": "/images/composers/canonical/arat_kilo.webp",
       "detailImage": {
         "src": "/images/composers/detail/arat_kilo.webp",
-        "width": 1080,
-        "height": 1080
+        "width": 640,
+        "height": 640
       },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Arat Kilo"
         ],
-        "memberAliases": [
-          "Samuel Hirsch",
-          "Florent Berteau",
-          "Fabien Girard",
-          "Gerald Bonnegrace",
-          "Michael Havard",
-          "Aristide Goncalves",
-          "Arnold Turpin",
-          "Camille Floriot",
-          "Assitan Keita",
-          "Mike Ladd",
-          "Nardos Tesfaw",
-          "ROCE",
-          "Bruck Tesfaye"
-        ],
-        "scopedRelations": []
+        "rightHolderIds": [],
+        "memberAliases": [],
+        "scopedRelations": [
+          {
+            "albumCodes": [
+              "PGO0030",
+              "PGO0048"
+            ],
+            "aliases": [
+              "Samuel Hirsch",
+              "Florent Berteau",
+              "Fabien Girard",
+              "Gerald Bonnegrace",
+              "Michael Havard",
+              "Aristide Goncalves",
+              "Arnold Turpin",
+              "Camille Floriot",
+              "Assitan Keita",
+              "Mike Ladd",
+              "Nardos Tesfaw",
+              "ROCE",
+              "Bruck Tesfaye"
+            ]
+          }
+        ]
       },
       "legacySlugs": [],
       "provenance": {
@@ -93,7 +106,7 @@
         "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arat Kilo.docx",
-        "portraitFile": "public/images/composers/detail/arat_kilo.webp"
+        "portraitFile": "arat_kilo.jpeg"
       }
     },
     {
@@ -114,6 +127,9 @@
       "harvest": {
         "aliases": [
           "Fabien Girard"
+        ],
+        "rightHolderIds": [
+          "9cd9b5f9fed61c62"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -146,6 +162,9 @@
         "aliases": [
           "Xavier Sibre"
         ],
+        "rightHolderIds": [
+          "b6ef7028fd9846a2"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -177,6 +196,9 @@
         "aliases": [
           "Ugly Mac Beer"
         ],
+        "rightHolderIds": [
+          "bd89d72841bc2914"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -207,6 +229,9 @@
       "harvest": {
         "aliases": [
           "Yann Kornowicz"
+        ],
+        "rightHolderIds": [
+          "1c2e6355b810b690"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -241,6 +266,9 @@
           "DJ HERTZ",
           "DJ Hertz"
         ],
+        "rightHolderIds": [
+          "40d39a7f5724a8d2"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -274,6 +302,9 @@
         "aliases": [
           "Laurent Dury"
         ],
+        "rightHolderIds": [
+          "57738dbd2a803c69"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -305,6 +336,10 @@
         "aliases": [
           "Liqid"
         ],
+        "rightHolderIds": [
+          "74aba06df4c9fb73",
+          "4eff7c3cb76fc472"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -328,13 +363,16 @@
       "image": "/images/composers/canonical/tcheep.webp",
       "detailImage": {
         "src": "/images/composers/detail/tcheep.webp",
-        "width": 860,
-        "height": 860
+        "width": 540,
+        "height": 540
       },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Tcheep"
+        ],
+        "rightHolderIds": [
+          "afed957795abda41"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -359,13 +397,16 @@
       "image": "/images/composers/canonical/chicho_cortez.webp",
       "detailImage": {
         "src": "/images/composers/detail/chicho_cortez.webp",
-        "width": 176,
-        "height": 176
+        "width": 1200,
+        "height": 1200
       },
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
           "Chicho Cortez"
+        ],
+        "rightHolderIds": [
+          "c8119ac64f97a450"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -376,7 +417,7 @@
         "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Chicho Cortez.docx",
-        "portraitFile": "chicho_cortez.jpeg"
+        "portraitFile": "chicho_cortez.png"
       }
     },
     {
@@ -397,6 +438,9 @@
       "harvest": {
         "aliases": [
           "Bonetrips"
+        ],
+        "rightHolderIds": [
+          "5e18d5f74721f750"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -428,6 +472,9 @@
       "harvest": {
         "aliases": [
           "Charlotte Duran"
+        ],
+        "rightHolderIds": [
+          "6719063c46c082fa"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -462,6 +509,9 @@
           "AROM",
           "Arom"
         ],
+        "rightHolderIds": [
+          "a31fdb8e79777800"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -494,6 +544,9 @@
       "harvest": {
         "aliases": [
           "Minimatic"
+        ],
+        "rightHolderIds": [
+          "9a8ac0f443626409"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -529,6 +582,10 @@
           "N Zeng",
           "N’Zeng",
           "N'Zeng"
+        ],
+        "rightHolderIds": [
+          "783e86b6dc54e5a8",
+          "6f6bb2431eeb3047"
         ],
         "memberAliases": [],
         "scopedRelations": [],
@@ -582,6 +639,10 @@
           "Drixxxé",
           "Drixxxe"
         ],
+        "rightHolderIds": [
+          "5c7d0368733d473c",
+          "34660a4e92befa5b"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -613,6 +674,9 @@
         "aliases": [
           "Emmanuel Marée"
         ],
+        "rightHolderIds": [
+          "030b4a35611e67c2"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -643,6 +707,9 @@
       "harvest": {
         "aliases": [
           "Rodney Lucas"
+        ],
+        "rightHolderIds": [
+          "5c86f49760d58a14"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -676,6 +743,9 @@
           "Emile Sornin",
           "Sornin Emile"
         ],
+        "rightHolderIds": [
+          "2c9abf81ca6d6610"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -708,6 +778,9 @@
           "Frédéric Hanak",
           "Frederic Hanak"
         ],
+        "rightHolderIds": [
+          "93b83e1fc96c3482"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -739,6 +812,9 @@
         "aliases": [
           "Madben"
         ],
+        "rightHolderIds": [
+          "2296bfd36f47d52e"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -749,6 +825,39 @@
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Madben.docx",
         "portraitFile": "public/images/composers/detail/madben.webp"
+      }
+    },
+    {
+      "slug": "yann-lean",
+      "name": "Yann Lean",
+      "kind": "person",
+      "bio": {
+        "fr": "Yann Lean, de son vrai nom Yannick Le Léannec, est un DJ, compositeur, sound designer et ingénieur du son français dont l'univers se construit à la croisée de la techno, de la culture club et de la recherche sonore. Influencé par les scènes de Chicago, Detroit et Londres, il place le groove au cœur de son approche musicale, développant une écriture où énergie rythmique, textures électroniques et travail du son se rencontrent.\n\nEn solo, ses productions lui permettent de rejoindre des labels reconnus de la scène électronique internationale tels que KMS Records et COD3 QR. Des projets comme Yosakoï, The Quest, Hope ou Autumn 2023 témoignent d'une techno à la fois physique et immersive, soutenue au fil des années par des figures majeures de la scène électronique telles que Laurent Garnier, Derrick May, Dave Clarke, John Digweed ou KiNK.\n\nYann Lean développe également avec Madben le projet Trunkline, autour d'une techno brute et analogique fondée sur le groove, les textures et l'improvisation. Sur scène, le duo privilégie un dispositif entièrement hardware, sans ordinateur, qui lui permet de construire et transformer ses morceaux en direct avec une spontanéité proche de celle d'un groupe live. Cette approche se prolonge à travers plusieurs EP et productions, jusqu'à des sorties plus récentes comme Work It en 2024.\n\nParallèlement à son activité artistique, Yann Lean met son expertise d'ingénieur du son au service d'autres artistes et de projets audiovisuels. Pour PARIGO, il assure notamment le mixage de l'album The Trip de N'Zeng, sorti en 2024, et collabore avec N'Zeng et Charlotte Savary sur le titre One Day.\n\nEntre composition, production, performance live et ingénierie sonore, Yann Lean développe ainsi une approche complète de la création électronique, où maîtrise technique et expérimentation restent constamment au service du mouvement, du groove et de la matière sonore.",
+        "en": "Yann Lean, real name Yannick Le Léannec, is a French DJ, composer, sound designer and sound engineer whose musical universe lies at the crossroads of techno, club culture and sonic exploration. Influenced by the scenes of Chicago, Detroit and London, he places groove at the heart of his musical approach, developing a style where rhythmic energy, electronic textures and meticulous sound design come together.\n\nAs a solo artist, his productions have led him to release music on internationally renowned electronic labels such as KMS Records and COD3 QR. Projects including Yosakoï, The Quest, Hope and Autumn 2023 showcase a techno sound that is both physical and immersive, earning support over the years from major figures of the electronic music scene such as Laurent Garnier, Derrick May, Dave Clarke, John Digweed and KiNK.\n\nYann Lean also develops the Trunkline project with Madben, exploring a raw, analogue approach to techno built around groove, texture and improvisation. On stage, the duo favours an entirely hardware-based setup, without computers, allowing them to build and transform their tracks live with a spontaneity reminiscent of a live band. This approach has resulted in several EPs and productions, including more recent releases such as Work It in 2024.\n\nAlongside his artistic career, Yann Lean brings his expertise as a sound engineer to other artists and audiovisual projects. For PARIGO, he notably mixed N'Zeng's album The Trip, released in 2024, and collaborated with N'Zeng and Charlotte Savary on the track One Day.\n\nMoving between composition, production, live performance and sound engineering, Yann Lean has developed a comprehensive approach to electronic music creation, where technical expertise and experimentation constantly serve movement, groove and sonic texture."
+      },
+      "image": "/images/composers/canonical/yann_lean.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/yann_lean.webp",
+        "width": 448,
+        "height": 446
+      },
+      "imageStatus": "portrait",
+      "harvest": {
+        "aliases": [
+          "Yann Lean",
+          "Yannick Le Léannec"
+        ],
+        "rightHolderIds": [],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "YANN LEAN.docx",
+        "portraitFile": "yann_lean.jpeg"
       }
     },
     {
@@ -769,6 +878,9 @@
       "harvest": {
         "aliases": [
           "Arandel"
+        ],
+        "rightHolderIds": [
+          "230f274fefcff717"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -801,6 +913,9 @@
         "aliases": [
           "The Architect"
         ],
+        "rightHolderIds": [
+          "ee1128626da067a3"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -832,6 +947,7 @@
         "aliases": [
           "After In Paris"
         ],
+        "rightHolderIds": [],
         "memberAliases": [
           "Jean-Michel Vallet",
           "Claire Michael",
@@ -868,6 +984,9 @@
           "Thierry Loshouarn",
           "Thierry Los"
         ],
+        "rightHolderIds": [
+          "03583bf3ad7eb3fa"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -882,11 +1001,11 @@
     },
     {
       "slug": "nicolas-pisani",
-      "name": "Nicolas Pisani",
+      "name": "Offset Prod",
       "kind": "person",
       "bio": {
-        "fr": "Nicolas Pisani est un compositeur, producteur, ingénieur du son et sound designer français dont le parcours prend racine dans la culture hip-hop et les musiques électroniques. Originaire de la région de Toulon, il découvre le scratch à l'adolescence, influencé notamment par Q-Bert, Cut Chemist et D-Styles, avant de se tourner vers le beatmaking et la production musicale.\n\nSous le nom Offset Prod, il développe un univers à la croisée du hip-hop, du glitch, de l'électronique abstraite, du garage et de la drum'n'bass. En 2012, il publie The Interlude EP sur Nostomania Records, le label de DJ Brace, un projet mêlant rythmiques électroniques, textures expérimentales et atmosphères cinématographiques.\n\nParallèlement à son travail de compositeur et producteur, Nicolas Pisani développe une expertise en ingénierie sonore, sound design, mixage et mastering, notamment dans le domaine des musiques électroniques. Cette maîtrise technique du studio nourrit directement son approche de la composition, fondée sur un travail précis des textures, des rythmes et de la matière sonore.\n\nSon parcours l'amène également vers la musique à l'image et la production music. Pour PARIGO, il collabore notamment avec Franck Sinnassamy (DJ Hertz) sur plusieurs compositions de l'album Synthwave Retrowave, explorant les codes de la synthwave et de la retrowave à travers des productions électroniques évocatrices et cinématographiques.\n\nEntre culture du beat, recherche sonore et maîtrise technique du studio, Nicolas Pisani développe une approche polyvalente de la création, où composition, production et travail du son participent d'un même langage musical.",
-        "en": "Nicolas Pisani is a French composer, producer, sound engineer and sound designer whose musical journey is rooted in hip-hop culture and electronic music. Raised in the Toulon area, he discovered scratching as a teenager, drawing inspiration from artists such as Q-Bert, Cut Chemist and D-Styles, before moving into beatmaking and music production.\n\nUnder the name Offset Prod, he has developed a distinctive sound at the crossroads of hip-hop, glitch, abstract electronic music, garage and drum & bass. In 2012, he released The Interlude EP on DJ Brace’s label Nostomania Records, a project blending electronic rhythms, experimental textures and cinematic atmospheres.\n\nAlongside his work as a composer and producer, Nicolas Pisani has developed extensive expertise in sound engineering, sound design, mixing and mastering, particularly within electronic music. His technical command of the studio directly informs his approach to composition, with a strong focus on texture, rhythm and the sculpting of sound.\n\nHis career has also led him into production music and composition for visual media. For PARIGO, he has collaborated with Franck Sinnassamy (DJ Hertz) on several tracks from the album Synthwave Retrowave, exploring the aesthetics of synthwave and retrowave through evocative, cinematic electronic productions.\n\nCombining beat culture, sonic experimentation and technical studio expertise, Nicolas Pisani has developed a versatile creative approach in which composition, production and sound design come together as part of a single musical language."
+        "fr": "OFFSET PROD, de son vrai nom Nicolas Pisani, est un compositeur, producteur, ingénieur du son et sound designer français dont le parcours prend racine dans la culture hip-hop et les musiques électroniques. Originaire de la région de Toulon, il découvre le scratch à l'adolescence, influencé notamment par Q-Bert, Cut Chemist et D-Styles, avant de se tourner vers le beatmaking et la production musicale.\n\nSous le nom OFFSET PROD, il développe un univers à la croisée du hip-hop, du glitch, de l'électronique abstraite, du garage et de la drum'n'bass. En 2012, il publie The Interlude EP sur Nostomania Records, le label de DJ Brace, un projet mêlant rythmiques électroniques, textures expérimentales et atmosphères immersives.\n\nParallèlement à son travail de compositeur et producteur, OFFSET PROD développe une expertise en ingénierie sonore, sound design, mixage et mastering, notamment dans le domaine des musiques électroniques. Cette maîtrise technique du studio nourrit directement son approche de la composition, fondée sur un travail précis des textures, des rythmes et de la matière sonore.\n\nSon parcours l'amène également vers la musique à l'image et la production music. Pour PARIGO, il collabore notamment avec DJ Hertz sur plusieurs compositions de l'album Synthwave Retrowave, explorant les codes de la synthwave et de la retrowave à travers des productions électroniques évocatrices et cinématographiques.\n\nEntre culture du beat, recherche sonore et maîtrise technique du studio, OFFSET PROD développe une approche polyvalente de la création, où composition, production et travail du son participent d'un même langage musical.",
+        "en": "OFFSET PROD, real name Nicolas Pisani, is a French composer, producer, sound engineer and sound designer whose musical journey is rooted in hip-hop culture and electronic music. Raised in the Toulon area, he discovered scratching as a teenager, drawing inspiration from artists such as Q-Bert, Cut Chemist and D-Styles, before moving into beatmaking and music production.\n\nUnder the name OFFSET PROD, he has developed a distinctive sound at the crossroads of hip-hop, glitch, abstract electronic music, garage and drum & bass. In 2012, he released The Interlude EP on DJ Brace’s label Nostomania Records, a project blending electronic rhythms, experimental textures and immersive atmospheres.\n\nAlongside his work as a composer and producer, OFFSET PROD has developed extensive expertise in sound engineering, sound design, mixing and mastering, particularly within electronic music. His technical command of the studio directly informs his approach to composition, with a strong focus on texture, rhythm and the sculpting of sound.\n\nHis career has also led him into production music and composition for visual media. For PARIGO, he has notably collaborated with DJ Hertz on several tracks from the album Synthwave Retrowave, exploring the aesthetics of synthwave and retrowave through evocative, cinematic electronic productions.\n\nCombining beat culture, sonic experimentation and technical studio expertise, OFFSET PROD has developed a versatile creative approach in which composition, production and sound design come together as part of a single musical language."
       },
       "image": "/images/composers/canonical/nicolas_pisani.webp",
       "detailImage": {
@@ -899,6 +1018,9 @@
         "aliases": [
           "Nicolas Pisani"
         ],
+        "rightHolderIds": [
+          "676423316c421740"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -907,7 +1029,7 @@
         "source": "local-editorial",
         "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
-        "sourceDocument": "Nicolas Pisani.docx",
+        "sourceDocument": "Nicolas Pisani (1).docx",
         "portraitFile": "nicolas_pisani.jpg"
       }
     },
@@ -916,8 +1038,8 @@
       "name": "Blanka",
       "kind": "person",
       "bio": {
-        "fr": "Blanka est un beatmaker, producteur et ingénieur du son français dont le parcours se construit depuis plus de vingt ans autour du hip-hop, de la culture du sample et de la recherche sonore. Né à Marseille, il est membre fondateur de La Fine Équipe aux côtés de oOgo, Mr Gib et Chomsky, avec lesquels il développe une musique nourrie par le hip-hop instrumental et les musiques électroniques. Des premiers volumes de La Boulangerie à Fantastic Planet, 5th Season et Cycles, le collectif s'est progressivement imposé sur la scène électronique française et internationale.\n\nEn parallèle, Blanka développe depuis 2006 Kasablanka Mastering, son propre studio de mastering. Formé à l'ingénierie du son au SAE Institute, il y façonne le son de plusieurs centaines de disques pour des artistes tels qu'Onra, Chinese Man, Kool Keith, Guts, Wax Tailor, Fakear ou Lomepal. Cette double expertise de beatmaker et d'ingénieur du son occupe une place centrale dans son approche de la production, du mixage et des arrangements.\n\nSon travail en solo lui permet d'explorer une facette plus personnelle de son univers. Après des projets comme Kasablanka, Hypnotic et Flares, il dévoile en 2024 Birds, un album à la croisée du lo-fi et du hip-hop instrumental, inspiré par son installation dans la campagne du sud de la France. Composé dans le studio qu'il y a construit, le disque transforme les sons et les rythmes de la nature environnante en matière musicale et accueille notamment Onra, Sara Lugo, King Krab, De Phase et Papa Rua.\n\nToujours très actif, Blanka poursuit en 2026 ses explorations en solo avec Faune et Me and You, en collaboration avec Moka Only, tout en retrouvant oOgo pour Confiseries & Bain-Marie, un projet qui fait dialoguer leurs racines hip-hop et skate avec des influences house et UK garage. Entre beatmaking, production, arrangements et maîtrise du son, Blanka développe ainsi une approche où culture du sample, sens du groove et exigence sonore se nourrissent en permanence.",
-        "en": "Blanka is a French beatmaker, producer and sound engineer whose career has been shaped for over two decades by hip-hop, sample culture and sonic exploration. Born in Marseille, he is a founding member of La Fine Équipe alongside oOgo, Mr Gib and Chomsky, with whom he has developed a sound rooted in instrumental hip-hop and electronic music. From the early La Boulangerie releases to Fantastic Planet, 5th Season and Cycles, the collective has gradually established itself on the French and international electronic music scenes.\n\nAlongside his work with the group, Blanka has been running his own mastering studio, Kasablanka Mastering, since 2006. Trained in sound engineering at SAE Institute, he has shaped the sound of several hundred records for artists including Onra, Chinese Man, Kool Keith, Guts, Wax Tailor, Fakear and Lomepal. This dual expertise as both a beatmaker and sound engineer plays a central role in his approach to production, mixing and arrangements.\n\nHis solo work allows him to explore a more personal side of his musical universe. Following projects such as Kasablanka, Hypnotic and Flares, he released Birds in 2024, an album at the crossroads of lo-fi and instrumental hip-hop, inspired by his move to the countryside in the south of France. Composed in the studio he built there, the album transforms the sounds and rhythms of the surrounding natural environment into musical material, and features collaborations with Onra, Sara Lugo, King Krab, De Phase and Papa Rua.\n\nStill highly active, Blanka continued his solo explorations in 2026 with Faune and Me and You, featuring Moka Only, while reuniting with oOgo for Confiseries & Bain-Marie, a project blending their hip-hop and skate culture roots with house and UK garage influences. Moving between beatmaking, production, arrangements and sound engineering, Blanka has developed an approach in which sample culture, a strong sense of groove and meticulous attention to sound constantly feed into one another."
+        "fr": "Blanka est un beatmaker, producteur et ingénieur du son français dont le parcours se construit depuis plus de vingt ans autour du hip-hop, de la culture du sample et de la recherche sonore. Né à Marseille, il est membre fondateur de La Fine Équipe aux côtés de oOgo, Mr Gib et Chomsky, avec lesquels il développe une musique nourrie par le hip-hop instrumental et les musiques électroniques. Des premiers volumes de La Boulangerie à Fantastic Planet, 5th Season et Cycles, le collectif s'est progressivement imposé sur la scène électronique française et internationale.\n\nEn parallèle, Blanka développe depuis 2006 Kasablanka Mastering, son propre studio de mastering. Formé à l'ingénierie du son au SAE Institute, il y façonne le son de plusieurs centaines de disques pour des artistes tels qu'Onra, Chinese Man, Kool Keith, Guts, Wax Tailor, Fakear ou Lomepal. Pour PARIGO, il assure également le mixage et le mastering de l'intégralité de l'album Video Club, composé par Yann Kornowicz et Dan Amozig. Cette double expertise de beatmaker et d'ingénieur du son occupe une place centrale dans son approche de la production, du mixage et des arrangements.\n\nSon travail en solo lui permet d'explorer une facette plus personnelle de son univers. Après des projets comme Kasablanka, Hypnotic et Flares, il dévoile en 2024 Birds, un album à la croisée du lo-fi et du hip-hop instrumental, inspiré par son installation dans la campagne du sud de la France. Composé dans le studio qu'il y a construit, le disque transforme les sons et les rythmes de la nature environnante en matière musicale et accueille notamment Onra, Sara Lugo, King Krab, De Phase et Papa Rua.\n\nToujours très actif, Blanka poursuit en 2026 ses explorations en solo avec Faune et Me and You, en collaboration avec Moka Only, tout en retrouvant oOgo pour Confiseries & Bain-Marie, un projet qui fait dialoguer leurs racines hip-hop et skate avec des influences house et UK garage. Entre beatmaking, production, arrangements et maîtrise du son, Blanka développe ainsi une approche où culture du sample, sens du groove et exigence sonore se nourrissent en permanence.",
+        "en": "Blanka is a French beatmaker, producer and sound engineer whose career has been shaped for over two decades by hip-hop, sample culture and sonic exploration. Born in Marseille, he is a founding member of La Fine Équipe alongside oOgo, Mr Gib and Chomsky, with whom he has developed a sound rooted in instrumental hip-hop and electronic music. From the early La Boulangerie releases to Fantastic Planet, 5th Season and Cycles, the collective has gradually established itself on the French and international electronic music scenes.\n\nAlongside his work with the group, Blanka has been running his own mastering studio, Kasablanka Mastering, since 2006. Trained in sound engineering at SAE Institute, he has shaped the sound of several hundred records for artists including Onra, Chinese Man, Kool Keith, Guts, Wax Tailor, Fakear and Lomepal. For PARIGO, he also mixed and mastered the entire album Video Club, composed by Yann Kornowicz and Dan Amozig. This dual expertise as both a beatmaker and sound engineer plays a central role in his approach to production, mixing and arrangements.\n\nHis solo work allows him to explore a more personal side of his musical universe. Following projects such as Kasablanka, Hypnotic and Flares, he released Birds in 2024, an album at the crossroads of lo-fi and instrumental hip-hop, inspired by his move to the countryside in the south of France. Composed in the studio he built there, the album transforms the sounds and rhythms of the surrounding natural environment into musical material, and features collaborations with Onra, Sara Lugo, King Krab, De Phase and Papa Rua.\n\nStill highly active, Blanka continued his solo explorations in 2026 with Faune and Me and You, featuring Moka Only, while reuniting with oOgo for Confiseries & Bain-Marie, a project blending their hip-hop and skate culture roots with house and UK garage influences. Moving between beatmaking, production, arrangements and sound engineering, Blanka has developed an approach in which sample culture, a strong sense of groove and meticulous attention to sound constantly feed into one another."
       },
       "image": "/images/composers/canonical/blanka.webp",
       "detailImage": {
@@ -931,6 +1053,9 @@
           "Blankalfe",
           "Blanka"
         ],
+        "rightHolderIds": [
+          "0792531a25bf9b87"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -939,13 +1064,13 @@
         "source": "local-editorial",
         "capturedAt": "2026-08-07T21:41:26.000Z",
         "biographyFile": "site-biographies.user-provided.json",
-        "sourceDocument": "BLANKA.docx",
+        "sourceDocument": "BLANKA (1).docx",
         "portraitFile": "blanka.jpg"
       }
     },
     {
       "slug": "gerz",
-      "name": "Gerz",
+      "name": "Gerz Marcellino",
       "kind": "person",
       "bio": {
         "fr": "Gerz Marcellino est un DJ, producteur, turntablist et artiste visuel français originaire de Maisons-Alfort. Issu de la culture hip-hop et du scratch, il se fait connaître au début des années 2000 sur le circuit des championnats DMC, avant de devenir champion de France en 2003 puis en 2004 et de représenter la France lors des finales mondiales à Londres.\n\nDerrière les platines, il développe rapidement une approche décloisonnée du DJing, faisant dialoguer hip-hop, électronique et club music. Son parcours l'amène à se produire en France comme à l'international et à partager l'affiche avec des artistes tels que J Dilla, Kid Koala, Daedelus ou La Caution. Il accompagne également sur scène de nombreuses figures de la scène rap et alternative française, parmi lesquelles Orelsan, Svinkels, Grems, Triptik, Kohndo ou Gravité Zéro.\n\nParallèlement au turntablism, Gerz Marcellino développe dès le milieu des années 2000 son travail de producteur à travers de nombreux mixes et projets, parmi lesquels Welcome, Welcome 2, Sport Elek Trop Beat ou 7 3/8. Avec Dabaaz, il participe également à la création de l'univers Poyz & Pirlz, projet à la croisée du hip-hop, de la culture club, du graphisme et de la mode. Pour PARIGO, il collabore notamment avec Ugly Mac Beer sur le titre Hey Boy, issu de l'album Caught In The Trap.\n\nArtiste visuel et graffeur sous le nom Gerz, il prolonge cette même culture underground à travers le dessin et le graffiti, participant à différents collectifs et projets artistiques. Entre platines, production musicale et création graphique, Gerz Marcellino développe ainsi un univers où hip-hop, culture électronique et arts visuels se nourrissent mutuellement, dans une démarche profondément ancrée dans l'esprit indépendant et la culture urbaine.",
@@ -962,6 +1087,9 @@
         "aliases": [
           "Gerz Marcellino",
           "Marcellino Gerz"
+        ],
+        "rightHolderIds": [
+          "a595070710de1b88"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -995,6 +1123,9 @@
           "Brice Torres",
           "Torres Brice",
           "NSDOS"
+        ],
+        "rightHolderIds": [
+          "c1b1226224708ecc"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1030,6 +1161,9 @@
           "Nicodrums & Friends",
           "Nicodrums Friends"
         ],
+        "rightHolderIds": [
+          "3143a5ecb8bf5efb"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1064,6 +1198,9 @@
           "2080",
           "208"
         ],
+        "rightHolderIds": [
+          "a7794c511e6c3769"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1097,6 +1234,9 @@
           "Jean Baptiste Hanak",
           "JB HANAK"
         ],
+        "rightHolderIds": [
+          "5650745df4674916"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1129,6 +1269,9 @@
           "Stéphane Delplanque",
           "Stephane Delplanque"
         ],
+        "rightHolderIds": [
+          "bf5a545f55df4aa0"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1160,6 +1303,9 @@
         "aliases": [
           "Daniel Amozig",
           "Dan Amozig"
+        ],
+        "rightHolderIds": [
+          "13bebdeaa8a1e9b1"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1194,6 +1340,9 @@
         "aliases": [
           "Yann Jankielewicz"
         ],
+        "rightHolderIds": [
+          "c1080371763717ef"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1225,6 +1374,9 @@
         "aliases": [
           "Victor Baillet"
         ],
+        "rightHolderIds": [
+          "9fd641c2fb85df5b"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1255,6 +1407,9 @@
       "harvest": {
         "aliases": [
           "Vincent Bouhelier"
+        ],
+        "rightHolderIds": [
+          "ab871589454d86c9"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1288,6 +1443,7 @@
           "ANA KAP",
           "Ana Kap"
         ],
+        "rightHolderIds": [],
         "memberAliases": [
           "Emin Dzijan",
           "Manuel Decocq",
@@ -1325,6 +1481,9 @@
           "Alexis Molenat",
           "Molenat Alexis"
         ],
+        "rightHolderIds": [
+          "efd02076c813d4b1"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1358,6 +1517,9 @@
         "aliases": [
           "Maxime Raynier",
           "Raynier Maxime"
+        ],
+        "rightHolderIds": [
+          "7a3a5a68ed7d6c4c"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1393,6 +1555,9 @@
           "Patrice Dambrine",
           "Dambrine Patrice"
         ],
+        "rightHolderIds": [
+          "c091d19912bb082f"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1425,6 +1590,9 @@
       "harvest": {
         "aliases": [
           "Bruno Hovart"
+        ],
+        "rightHolderIds": [
+          "075dc45334638454"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1459,6 +1627,9 @@
           "SR Ortegon",
           "Sr Ortegon"
         ],
+        "rightHolderIds": [
+          "068d664750d31831"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1491,6 +1662,9 @@
       "harvest": {
         "aliases": [
           "Stan Galouo"
+        ],
+        "rightHolderIds": [
+          "754f7c9c042885a0"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1525,6 +1699,9 @@
         "aliases": [
           "Modulhater"
         ],
+        "rightHolderIds": [
+          "4d521c544c9a18b8"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1556,6 +1733,9 @@
         "aliases": [
           "Ducer"
         ],
+        "rightHolderIds": [
+          "f2caac67f1fd30a9"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1573,8 +1753,8 @@
       "name": "DJ Troubl",
       "kind": "person",
       "bio": {
-        "fr": "DJ Troubl est un DJ, producteur et turntablist français originaire de Poitiers. Double vice-champion du monde DMC et multiple champion de France, il s'impose depuis de nombreuses années comme l'une des figures majeures du turntablism, reconnu pour sa maîtrise du scratch, du beat juggling et de la performance live.\n\nPassionné par la culture hip-hop, il développe un univers où funk, rap américain, bass music et musiques électroniques se rencontrent avec une grande liberté. Derrière les platines, DJ Troubl alterne techniques virtuoses, sélections exigeantes et sens du groove, faisant de chacun de ses sets une véritable démonstration musicale.\n\nIl est également le créateur du projet anonyme UZ, devenu une référence internationale de la scène trap électronique. À travers ses productions comme ses performances, DJ Troubl explore sans cesse de nouveaux territoires sonores, mêlant précision technique, puissance rythmique et créativité.\n\nToujours animé par une même exigence artistique, DJ Troubl continue de repousser les frontières du turntablism et de la production musicale, affirmant une identité où innovation, énergie et culture hip-hop demeurent au cœur de son travail.",
-        "en": "DJ Troubl is a French DJ, producer and turntablist from Poitiers. A two-time DMC World Vice Champion and multiple French DMC Champion, he has established himself as one of the leading figures in contemporary turntablism, renowned for his mastery of scratching, beat juggling and live performance.\n\nDeeply rooted in hip-hop culture, DJ Troubl has developed a musical universe where funk, American hip-hop, bass music and electronic sounds converge. Behind the turntables, he combines technical virtuosity, carefully crafted selections and an instinctive sense of groove, turning every performance into a true musical experience.\n\nHe is also the artist behind the anonymous project UZ, which became an internationally acclaimed name in the electronic trap scene. Through both his productions and live performances, DJ Troubl continues to explore new sonic territories, blending technical precision, rhythmic intensity and creative innovation.\n\nDriven by a constant pursuit of artistic excellence, DJ Troubl continues to push the boundaries of turntablism and music production, creating a body of work where innovation, energy and hip-hop culture remain at the heart of his musical identity."
+        "fr": "DJ Troubl' est un DJ, producteur et turntablist français originaire de Poitiers, dont le parcours se déploie depuis plus de vingt ans entre hip-hop, scratch et musiques électroniques. Figure majeure de la scène turntablism, il se distingue dès le début des années 2000 dans les compétitions DMC, où sa maîtrise du scratch et du beat juggling lui permet de s'imposer parmi les turntablists français les plus reconnus de sa génération.\n\nPassionné par la culture hip-hop, DJ Troubl' développe derrière les platines une approche où virtuosité technique, sélection musicale et sens du groove occupent une place centrale. Son parcours de producteur l'amène parallèlement à explorer le hip-hop, la bass music et les musiques électroniques, tout en collaborant avec de nombreux artistes et en développant différents projets sous plusieurs identités.\n\nEn 2012, il lance anonymement UZ, projet qui devient rapidement l'une des références de la trap électronique internationale. Sa série Trap Shit contribue à définir les codes du genre, avant une discographie de près de 200 sorties et des collaborations avec des artistes tels que T-Pain, Ice Cube, DJ Shadow, Zeds Dead, Flosstradamus ou Elliphant. Après plusieurs années derrière le masque, il révèle en 2017 son identité à l'occasion de la sortie de l'album Layers. Fondateur de Quality Goods Records, il poursuit avec UZ une carrière internationale qui l'amène notamment sur les scènes de Coachella, Sónar, EDC Las Vegas et Ultra Music Festival.\n\nToujours en quête de nouveaux territoires sonores, il développe également Rose Noir, un projet plus organique à la croisée du jazz-funk, du hip-hop et de la musique cinématographique, nourri par les bandes originales des années 1970 et les grandes heures du hip-hop. Cette nouvelle facette révèle une écriture plus instrumentale et texturée, prolongeant son goût pour l'expérimentation au-delà du turntablism et de la musique électronique.\n\nSon parcours croise également celui de PARIGO à travers plusieurs projets de production music, notamment les albums Dubstep Anthems et Caught In The Trap. Du scratch à la trap, du hip-hop aux explorations jazz-funk de Rose Noir, DJ Troubl' construit ainsi une trajectoire en constante évolution, guidée par une même exigence : repousser les possibilités du son tout en restant profondément attaché à la culture qui a façonné ses débuts.",
+        "en": "DJ Troubl' is a French DJ, producer and turntablist from Poitiers, whose career has spanned more than two decades across hip-hop, scratching and electronic music. A prominent figure in the turntablism scene, he first gained recognition through DMC competitions in the early 2000s, where his mastery of scratching and beat juggling established him as one of the most accomplished French turntablists of his generation.\n\nDeeply rooted in hip-hop culture, DJ Troubl' has developed an approach to DJing in which technical virtuosity, musical selection and a strong sense of groove take centre stage. In parallel, his work as a producer has led him to explore hip-hop, bass music and electronic music, while collaborating with numerous artists and developing several projects under different identities.\n\nIn 2012, he anonymously launched UZ, a project that quickly became a major reference on the international electronic trap scene. His Trap Shit series helped shape the sound and codes of the genre, leading to a discography of nearly 200 releases and collaborations with artists including T-Pain, Ice Cube, DJ Shadow, Zeds Dead, Flosstradamus and Elliphant. After several years behind the mask, he revealed his identity in 2017 with the release of the album Layers. As the founder of Quality Goods Records, he has continued to develop UZ internationally, performing at major festivals including Coachella, Sónar, EDC Las Vegas and Ultra Music Festival.\n\nConstantly exploring new musical territories, he also developed Rose Noir, a more organic project at the crossroads of jazz-funk, hip-hop and cinematic music, drawing inspiration from 1970s film scores and the foundations of hip-hop. This new facet of his work reveals a more instrumental and textural approach, extending his taste for experimentation beyond turntablism and electronic music.\n\nHis career has also crossed paths with PARIGO through several production music projects, including the albums Dubstep Anthems and Caught In The Trap. From scratching to trap, and from hip-hop to the jazz-funk explorations of Rose Noir, DJ Troubl' has built a constantly evolving career driven by the same ambition: to push the possibilities of sound while remaining deeply connected to the culture that shaped his beginnings."
       },
       "image": "/images/composers/canonical/dj_troubl.webp",
       "detailImage": {
@@ -1587,6 +1767,9 @@
         "aliases": [
           "DJ TRoubl",
           "DJ Troubl"
+        ],
+        "rightHolderIds": [
+          "f37ab7dc5d2f166d"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1619,6 +1802,9 @@
         "aliases": [
           "Of Ivory And Horn",
           "Of Ivory & Horn"
+        ],
+        "rightHolderIds": [
+          "11b8a4a0e2cfbb2e"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1653,6 +1839,9 @@
         "aliases": [
           "Mister Modo"
         ],
+        "rightHolderIds": [
+          "64975cc9240b0bba"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1684,6 +1873,9 @@
         "aliases": [
           "Grand David",
           "Le Grand David"
+        ],
+        "rightHolderIds": [
+          "6e0581b39d281fa1"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1718,6 +1910,10 @@
           "Jean-Pierre Ménager",
           "Jean Pierre Menager"
         ],
+        "rightHolderIds": [
+          "56ddedc79cd2dac8",
+          "ce55666d0aaac79e"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1750,6 +1946,7 @@
           "Loic Laporte",
           "Loïc Laporte"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1781,6 +1978,7 @@
         "aliases": [
           "Cyril Laurent"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1812,6 +2010,7 @@
         "aliases": [
           "Charlotte Savary"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1843,6 +2042,9 @@
         "aliases": [
           "Scherazade Aissahine",
           "Schérazade Aissahine"
+        ],
+        "rightHolderIds": [
+          "d906147cf941b552"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1877,6 +2079,9 @@
         "aliases": [
           "Camille Luca"
         ],
+        "rightHolderIds": [
+          "b2e712a1cd089c19"
+        ],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1907,6 +2112,9 @@
       "harvest": {
         "aliases": [
           "The Real Fake MC"
+        ],
+        "rightHolderIds": [
+          "8ca9e6e56c2a892c"
         ],
         "memberAliases": [],
         "scopedRelations": []
@@ -1941,6 +2149,7 @@
           "Well Quartet",
           "Le Well Quartet"
         ],
+        "rightHolderIds": [],
         "memberAliases": [],
         "scopedRelations": []
       },
@@ -1973,6 +2182,9 @@
           "Flore",
           "Flore Morfin",
           "Flore Morchin"
+        ],
+        "rightHolderIds": [
+          "010c469082f496ea"
         ],
         "memberAliases": [],
         "scopedRelations": [],
@@ -2016,6 +2228,9 @@
           "Cédric Hanak",
           "Cedric Hanak",
           "Cédric HANAK"
+        ],
+        "rightHolderIds": [
+          "0662f703a27363e2"
         ],
         "memberAliases": [],
         "scopedRelations": []

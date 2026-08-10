@@ -22,6 +22,9 @@ export interface Track {
   trackNumber?: number;
   artists?: Array<{ name: string; slug: string }>;
   composers?: string[];
+  authors?: string[];
+  /** Stable Harvest right-holder identifiers returned by Cloud Search. */
+  rightHolderIds?: string[];
   publishers?: string[];
   version?: string;
   isAlternate?: boolean;

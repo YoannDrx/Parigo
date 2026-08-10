@@ -26,8 +26,10 @@ async function main() {
     /name="robots" content="noindex, follow"/i,
     new RegExp(`rel="canonical" href="${escapedOrigin}/search"`, "i"),
   ]);
-  await check("/label-parigo", [/Label Parigo/i, /hreflang="en"/i]);
-  await check("/en/label-parigo", [/Parigo Label/i, /hreflang="fr"/i]);
+  await check("/notre-label", [/Notre label/i, /hreflang="en"/i]);
+  await check("/en/notre-label", [/Our label/i, /hreflang="fr"/i]);
+  await check("/label-parigo", [], 308);
+  await check("/en/label-parigo", [], 308);
   await check("/talents", [/Nos talents/i, /rel="canonical"/i]);
   await check("/talents?q=ugly", [
     /name="robots" content="noindex, follow"/i,
@@ -42,6 +44,13 @@ async function main() {
     /404/i,
   ], 404);
   await check("/sitemap.xml", [/<sitemapindex/i]);
+  const staticSitemap = await check("/sitemaps/static.xml", [
+    /\/notre-label/i,
+    /\/en\/notre-label/i,
+  ]);
+  if (/\/label-parigo/i.test(staticSitemap)) {
+    throw new Error("/sitemaps/static.xml: l’ancienne route Label Parigo est encore indexée.");
+  }
   const editorialSitemap = await check("/sitemaps/editorial.xml", [
     /\/talents\/ugly-mac-beer/i,
     /\/clips\/yt-[a-z0-9_-]+/i,

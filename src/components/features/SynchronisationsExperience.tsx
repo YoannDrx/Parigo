@@ -31,8 +31,8 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
     <Header />
     <main className="overflow-x-clip pb-24 md:pb-36">
       <PageHero
-        title={locale === "fr" ? "Nos synchronisations" : "Our synchronisations"}
-        intro={locale === "fr" ? "Des placements Parigo à l’image, du cinéma aux campagnes et aux séries." : "Parigo placements across film, campaigns and series."}
+        title={locale === "fr" ? "Nos Synchros" : "Our synchronisations"}
+        intro={locale === "fr" ? "Du cinéma à la publicité, nos musiques trouvent leur place à l’image." : "From cinema to advertising, our music finds its place on screen."}
         meta={`${synchronisations.length} ${locale === "fr" ? "placements" : "placements"}`}
         action={<a href={SYNCHRONISATIONS_PLAYLIST_URL} target="_blank" rel="noreferrer" className="parigo-button group inline-flex min-h-11 max-w-full items-center gap-3 border border-[var(--line-strong)] bg-[var(--surface)] px-4 text-xs font-semibold text-[var(--foreground)] transition hover:!border-[var(--signal-strong)] hover:!bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))] hover:!text-[var(--signal-strong)]"><Youtube size={16} className="shrink-0 text-[var(--signal-strong)]" /><span className="min-w-0">{locale === "fr" ? "Playlist YouTube" : "YouTube playlist"}</span><ArrowUpRight size={15} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></a>}
       />

@@ -42,7 +42,7 @@ test("les routes principales ne débordent sur aucun viewport cible", async ({ p
     "/labels/0f9769346759ee5a",
     "/playlists",
     "/synchronisations",
-    "/label-parigo",
+    "/notre-label",
     "/talents",
     "/talents/harvest-ugly-mac-beer-1u58k7l",
     "/clips",
