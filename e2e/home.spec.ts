@@ -718,7 +718,7 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   await expect(primaryCards).toHaveCount(62);
   await expect(primaryCards.locator("svg")).toHaveCount(0);
   await expect(section.locator('.composer-cloud__duplicate a[href^="/talents/"]')).toHaveCount(62);
-  await expect(section.locator("img")).toHaveCount(122);
+  await expect(section.locator("img")).toHaveCount(124);
   await expect(primaryCards.locator("img").first()).toHaveAttribute("src", /\/images\/composers\/detail\//);
   await expect(primaryCards.locator("img").first()).toHaveCSS("object-fit", "cover");
   const verticalOffsets = await section.locator('.composer-cloud__group:not([aria-hidden="true"]) .composer-cloud__item').evaluateAll((items) => (
