@@ -5,11 +5,11 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { getCachedAlbum } from "@/lib/harvest/catalog-cache";
 import { resolveAlbumDescription } from "@/lib/harvest/album-descriptions";
-import { resolveCanonicalComposerCredits } from "@/lib/composers/profiles";
+import { buildAlbumContributorGroups, buildTrackCreditLinks } from "@/lib/composers/album-credits";
+import { getAlbumDetailNavigation } from "@/lib/navigation/album-detail-navigation";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
-import type { ComposerCreditLink } from "@/types";
 
 interface AlbumPageProps {
   params: Promise<{ id: string }>;
@@ -45,31 +45,13 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   const [{ id }, locale, resolvedSearchParams] = await Promise.all([params, getRequestLocale(), searchParams]);
   const result = await loadAlbum(id);
   const album = result.album;
-  const composerCreditsByKey = new Map<string, ComposerCreditLink>();
-  for (const credit of new Set(album.tracks.flatMap((track) => [
-    ...(track.composers ?? []),
-    ...(track.authors ?? []),
-  ]))) {
-    const resolutions = album.labelSlug === PARIGO_LABEL_ID
-      ? resolveCanonicalComposerCredits(credit, album.code)
-      : [];
-    if (!resolutions.length) {
-      composerCreditsByKey.set(`credit:${credit}`, {
-        credit,
-        name: credit,
-      });
-      continue;
-    }
-    for (const { profile } of resolutions) {
-      composerCreditsByKey.set(`profile:${profile.slug}`, {
-        credit,
-        name: profile.name,
-        slug: profile.slug,
-        href: `/talents/${profile.slug}`,
-      });
-    }
-  }
-  const composerCredits: ComposerCreditLink[] = [...composerCreditsByKey.values()];
+  const creditOptions = {
+    albumCode: album.code,
+    linkProfiles: album.labelSlug === PARIGO_LABEL_ID,
+  };
+  const composerCredits = buildTrackCreditLinks(album.tracks, creditOptions);
+  const contributorGroups = buildAlbumContributorGroups(album.tracks, creditOptions);
+  const navigation = await getAlbumDetailNavigation(album);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "MusicAlbum",
@@ -88,7 +70,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
     <>
       <JsonLd data={structuredData} />
       <AlbumDetailClient
-        data={{ album, similarAlbums: result.similar, composerCredits }}
+        data={{ album, similarAlbums: result.similar, composerCredits, contributorGroups, navigation }}
         initialTrackId={typeof resolvedSearchParams.track === "string" ? resolvedSearchParams.track : undefined}
       />
     </>

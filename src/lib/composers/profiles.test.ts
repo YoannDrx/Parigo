@@ -114,6 +114,8 @@ describe("canonical composer registry", () => {
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0040").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(getCanonicalComposerProfileForCredit("Kokane (NS)")?.slug).toBe("kokane");
+    expect(getCanonicalComposerProfileForCredit("Jacques Sahloul (NS)", "PGO0007")?.slug).toBe("liqid");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "liqid")?.harvest.rightHolderIds).toContain("2e1b4b899c780e8b");
     expect(getCanonicalComposerProfileForCredit("The Well Quartet", "PGO0060")?.slug).toBe("the-well-quartet");
   });
 

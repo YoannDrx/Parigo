@@ -6,6 +6,5 @@ export function composerRoleLabel(
   locale: Locale,
 ): string {
   if (profile.kind === "group") return locale === "fr" ? "Collectif" : "Collective";
-  if (locale === "fr" && profile.slug === "flore") return "Compositrice";
   return locale === "fr" ? "Compositeur" : "Composer";
 }

@@ -4,12 +4,14 @@ import { notFound } from "next/navigation";
 import { Footer, Header } from "@/components/layout";
 import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getEditorialVideo } from "@/lib/editorial/videos";
+import { getEditorialVideo, getEditorialVideos } from "@/lib/editorial/videos";
 import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
+import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
+import { buildDetailNavigation } from "@/lib/navigation/detail-navigation";
 
 interface ClipPageProps {
   params: Promise<{ slug: string }>;
@@ -36,7 +38,18 @@ export async function generateMetadata({ params }: ClipPageProps): Promise<Metad
 
 export default async function ClipPage({ params }: ClipPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
-  const clip = await loadClip(slug);
+  const [clip, clips] = await Promise.all([loadClip(slug), getEditorialVideos()]);
+  const navigation = buildDetailNavigation(
+    clips,
+    clip.slug,
+    (item) => item.slug,
+    (item) => ({
+      href: `/clips/${item.slug}`,
+      title: item.title[locale],
+      image: item.cover,
+      eyebrow: locale === "fr" ? "Vidéo" : "Video",
+    }),
+  );
   const title = clip.title[locale];
   const summary = locale === "fr" ? `Découvrez le clip ${title}.` : `Watch ${title}.`;
   const structuredData = clip.youtubeId ? {
@@ -96,6 +109,7 @@ export default async function ClipPage({ params }: ClipPageProps) {
           </div>
         </div>
       </main>
+      <DetailPageNavigation navigation={navigation} locale={locale} />
       <Footer />
     </div>
   );

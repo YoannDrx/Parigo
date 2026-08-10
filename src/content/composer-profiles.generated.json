@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T22:26:09.267Z",
+  "generatedAt": "2026-08-10T23:21:40.738Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -334,11 +334,13 @@
       "imageStatus": "portrait",
       "harvest": {
         "aliases": [
-          "Liqid"
+          "Liqid",
+          "Jacques Sahloul"
         ],
         "rightHolderIds": [
           "74aba06df4c9fb73",
-          "4eff7c3cb76fc472"
+          "4eff7c3cb76fc472",
+          "2e1b4b899c780e8b"
         ],
         "memberAliases": [],
         "scopedRelations": []

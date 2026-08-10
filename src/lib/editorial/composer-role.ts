@@ -9,5 +9,5 @@ export function composerRoleLabel(
 ): string {
   if (profile.kind === "group") return locale === "fr" ? "Collectif" : "Group";
   if (locale === "en") return "Composer";
-  return profile.grammaticalGender === "feminine" ? "Compositrice" : "Compositeur";
+  return "Compositeur";
 }

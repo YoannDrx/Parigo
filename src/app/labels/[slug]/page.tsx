@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { LabelDetailClient } from "@/components/catalog/LabelDetailClient";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getCachedAlbumDiscovery, getCachedLabel } from "@/lib/harvest/catalog-cache";
+import { getCachedAlbumDiscovery, getCachedLabel, getCachedLabels } from "@/lib/harvest/catalog-cache";
+import { buildDetailNavigation } from "@/lib/navigation/detail-navigation";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
 
@@ -55,7 +56,22 @@ export async function generateMetadata({ params, searchParams }: LabelPageProps)
 
 export default async function LabelPage({ params }: LabelPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
-  const label = await loadLabel(slug, locale);
+  const [label, labels] = await Promise.all([
+    loadLabel(slug, locale),
+    getCachedLabels(),
+  ]);
+  const navigation = buildDetailNavigation(
+    labels,
+    label.id,
+    (item) => item.id,
+    (item) => ({
+      href: `/labels/${item.slug || item.id}`,
+      title: item.name,
+      image: item.logo,
+      imageFit: "contain",
+      eyebrow: "Label",
+    }),
+  );
   return (
     <>
       <JsonLd data={{
@@ -65,7 +81,7 @@ export default async function LabelPage({ params }: LabelPageProps) {
         url: absoluteUrl(`${locale === "en" ? "/en" : ""}/labels/${slug}`),
         description: label.description || undefined,
       }} />
-      <ReactQueryProvider><LabelDetailClient label={label} /></ReactQueryProvider>
+      <ReactQueryProvider><LabelDetailClient label={label} navigation={navigation} /></ReactQueryProvider>
     </>
   );
 }

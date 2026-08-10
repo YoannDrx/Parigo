@@ -16,7 +16,7 @@ import {
 } from "./catalog";
 
 export const getCachedAlbum = cache(
-  unstable_cache(getAlbum, ["catalog-album-v3"], { revalidate: 300, tags: ["catalog", "albums"] }),
+  unstable_cache(getAlbum, ["catalog-album-v4-right-holders"], { revalidate: 300, tags: ["catalog", "albums"] }),
 );
 export const getCachedAlbums = cache(
   unstable_cache(getAlbums, ["catalog-albums-v2"], { revalidate: 300, tags: ["catalog", "albums"] }),

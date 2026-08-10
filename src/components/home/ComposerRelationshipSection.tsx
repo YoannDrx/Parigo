@@ -77,7 +77,7 @@ function ComposerStreamGroup({ profiles, duplicate = false, locale }: { profiles
 
 export function ComposerRelationshipSection({ profiles, locale }: { profiles: ComposerStreamProfile[]; locale: "fr" | "en" }) {
   const description = locale === "fr"
-    ? "Une musique ne naît jamais seule. Elle est le fruit d'une rencontre, d'une sensibilité et d'un dialogue entre celles et ceux qui la composent et celles et ceux qui la font vivre. Chez Parigo, nous plaçons cette relation au cœur de notre métier. Nous développons notre catalogue original aux côtés d'autrices, d'auteurs, de compositrices, de compositeurs et d'artistes de talent, dont nous accompagnons les parcours avec passion, convaincus que les plus belles collaborations s'inscrivent dans la durée."
+    ? "Une musique ne naît jamais seule. Elle est le fruit d'une rencontre, d'une sensibilité et d'un dialogue entre ceux qui la composent et ceux qui la font vivre. Chez Parigo, nous plaçons cette relation au cœur de notre métier. Nous développons notre catalogue original aux côtés d'auteurs, de compositeurs et d'artistes de talent, dont nous accompagnons les parcours avec passion, convaincus que les plus belles collaborations s'inscrivent dans la durée."
     : "Music is never born alone. It grows from an encounter, a sensibility and a dialogue between those who compose it and those who bring it to life. At Parigo, we place this relationship at the heart of our work. We develop our original catalogue alongside talented writers, composers and artists, supporting their journeys with passion and the conviction that the finest collaborations are built to last.";
   const cta = locale === "fr"
     ? "Découvrez nos talents"
