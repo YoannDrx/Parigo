@@ -215,7 +215,7 @@ test("Yann Lean publie sa photo et ses biographies française et anglaise", asyn
   );
 });
 
-test("Synthwave Retrowave crédite Schérazade comme autrice de ses chansons", async ({ page }, testInfo) => {
+test("Synthwave Retrowave crédite Schérazade comme auteur de ses chansons", async ({ page }, testInfo) => {
   await page.goto("/albums/48b4b95fe1f09019");
   const song = page.locator('[data-track-id="23b92c9b02375642f77e44705437fccb"]');
   if (testInfo.project.name === "mobile") {
@@ -223,7 +223,7 @@ test("Synthwave Retrowave crédite Schérazade comme autrice de ses chansons", a
   }
   await song.getByRole("button", { name: /^Informations sur la piste/ }).click();
   const details = song.locator(".track-detail-panel");
-  await expect(details.getByText("Autrice", { exact: true })).toBeVisible();
+  await expect(details.getByText("Auteur", { exact: true })).toBeVisible();
   await expect(details.getByRole("link", { name: "Schérazade", exact: true })).toHaveAttribute(
     "href",
     "/talents/scherazade-aissahine",
@@ -299,13 +299,14 @@ test("les quatre profils rematchés utilisent leurs noms, portraits et bios édi
   await expect(page.getByText(/distinctive figure on the independent music scene/)).toBeVisible();
 });
 
-test("les fiches compositeur n’affichent plus de libellé de rôle", async ({ page }) => {
+test("les fiches talent affichent les rôles au masculin", async ({ page }) => {
   await page.goto("/talents/flore");
   await expect(page.getByRole("heading", { level: 1, name: "Flore" })).toBeVisible();
+  await expect(page.getByText("Compositeur", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
   await page.goto("/talents/charlotte-savary");
   await expect(page.getByRole("heading", { level: 1, name: "Charlotte Savary" })).toBeVisible();
-  await expect(page.getByText("Compositeur", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Compositeur", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
 });
 
