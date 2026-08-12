@@ -28,8 +28,10 @@ async function main() {
   ]);
   await check("/notre-label", [/Notre label/i, /hreflang="en"/i]);
   await check("/en/notre-label", [/Our label/i, /hreflang="fr"/i]);
-  await check("/label-parigo", [], 308);
-  await check("/en/label-parigo", [], 308);
+  await check("/label-parigo", [/404/i], 404);
+  await check("/en/label-parigo", [/404/i], 404);
+  await check("/sorties-parigo", [/404/i], 404);
+  await check("/en/sorties-parigo", [/404/i], 404);
   await check("/talents", [/Nos talents/i, /rel="canonical"/i]);
   await check("/talents?q=ugly", [
     /name="robots" content="noindex, follow"/i,
@@ -48,8 +50,8 @@ async function main() {
     /\/notre-label/i,
     /\/en\/notre-label/i,
   ]);
-  if (/\/label-parigo/i.test(staticSitemap)) {
-    throw new Error("/sitemaps/static.xml: l’ancienne route Label Parigo est encore indexée.");
+  if (/\/(?:label-parigo|sorties-parigo)/i.test(staticSitemap)) {
+    throw new Error("/sitemaps/static.xml: une ancienne route du label Parigo est encore indexée.");
   }
   const editorialSitemap = await check("/sitemaps/editorial.xml", [
     /\/talents\/ugly-mac-beer/i,

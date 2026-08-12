@@ -438,11 +438,11 @@ export async function getAlbum(
   const [tracksPayload, templates] = secondary.value;
   const base = mapAlbum(rawAlbum, templates);
   const mainTracks = recordArray(tracksPayload, "Tracks").map((item) => mapTrack(item, templates, base, "album"));
-  const tracksNeedingVersions = mainTracks.filter(
-    (track) => (track.alternateCount ?? 0) > 0 && (track.alternateTracks?.length ?? 0) === 0,
-  );
+  // `getalbumtracks` exposes the free-text Composer field but not the complete
+  // structured Right Holders contract. Enrich every album track in one batch so
+  // the album page can display precise writer roles without issuing N+1 calls.
   const enrichedTracks = await getTracksByIds(
-    tracksNeedingVersions.map((track) => track.id),
+    mainTracks.map((track) => track.id),
     authenticatedMemberToken,
     base,
     "album-detail",

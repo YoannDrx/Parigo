@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { composerRoleLabel } from "./presentation";
 
 describe("composer role labels", () => {
-  it("uses Compositrice only for Flore in French", () => {
-    expect(composerRoleLabel({ slug: "flore", kind: "person" }, "fr")).toBe("Compositrice");
+  it("uses the masculine Composer label for every person in French", () => {
+    expect(composerRoleLabel({ slug: "flore", kind: "person" }, "fr")).toBe("Compositeur");
     expect(composerRoleLabel({ slug: "charlotte-savary", kind: "person" }, "fr")).toBe("Compositeur");
   });
 

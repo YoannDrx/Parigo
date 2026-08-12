@@ -8,6 +8,8 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import type { Album, SearchFacets } from "@/types";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
+import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
+import type { DetailNavigation } from "@/lib/navigation/detail-navigation";
 
 export interface LabelDetail {
   id: string;
@@ -25,7 +27,7 @@ export interface LabelDetail {
   };
 }
 
-export function LabelDetailClient({ label }: { label: LabelDetail }) {
+export function LabelDetailClient({ label, navigation }: { label: LabelDetail; navigation: DetailNavigation }) {
   const { locale, t, localizedPath } = useI18n();
 
   return (
@@ -50,6 +52,7 @@ export function LabelDetailClient({ label }: { label: LabelDetail }) {
           />
         </section>
       </main>
+      <DetailPageNavigation navigation={navigation} locale={locale} />
       <Footer />
     </div>
   );

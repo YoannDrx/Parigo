@@ -13,7 +13,7 @@ import { AlbumCard } from "@/components/features/AlbumCard";
 import { CueSheetButton } from "@/components/features/CueSheetButton";
 import { formatDuration } from "@/lib/utils";
 import { usePlayerStore } from "@/stores/player-store";
-import type { Album, ComposerCreditLink, Track } from "@/types";
+import type { Album, AlbumContributorGroup, AlbumContributorRole, ComposerCreditLink, Track } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { formatParigoDate } from "@/lib/date-time";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
@@ -22,14 +22,26 @@ import { resolveAlbumDescription } from "@/lib/harvest/album-descriptions";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
+import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
+import type { DetailNavigation } from "@/lib/navigation/detail-navigation";
 
 interface AlbumDetailClientProps {
   data: {
     album: Album & { tracks: NonNullable<Album["tracks"]> };
     similarAlbums: Album[];
     composerCredits: ComposerCreditLink[];
+    contributorGroups: AlbumContributorGroup[];
+    navigation: DetailNavigation;
   };
 }
+
+const CONTRIBUTOR_LABELS: Record<AlbumContributorRole, { fr: string; en: string }> = {
+  composer: { fr: "Compositeurs", en: "Composers" },
+  author: { fr: "Auteurs", en: "Songwriters" },
+  "composer-author": { fr: "Auteurs-compositeurs", en: "Songwriters and composers" },
+  arranger: { fr: "Arrangeurs", en: "Arrangers" },
+  credit: { fr: "Autres crédits", en: "Other credits" },
+};
 
 export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientProps & { initialTrackId?: string }) {
   const { locale, t, localizedPath } = useI18n();
@@ -211,29 +223,33 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
           </div>
         </section>
 
-        {data.composerCredits.length > 0 && (
-          <section className="mx-auto max-w-[1500px] px-4 pb-4 sm:px-6 lg:px-8">
-            <div className="border-y border-[var(--line)] py-8">
-              <p className="eyebrow mb-4 text-[var(--text-muted)]">
-                {locale === "fr" ? "Compositeur" : "Composer"}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {data.composerCredits.map((composer) => (
-                  composer.href ? (
-                    <Link
-                      key={composer.slug ?? composer.credit}
-                      href={localizedPath(composer.href)}
-                      className="border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold transition hover:bg-[var(--surface-soft)]"
-                    >
-                      {composer.name}
-                    </Link>
-                  ) : (
-                    <span key={composer.slug ?? composer.credit} className="border border-[var(--line)] px-3 py-2 text-sm text-[var(--text-muted)]">
-                      {composer.credit}
-                    </span>
-                  )
-                ))}
-              </div>
+        {data.contributorGroups.length > 0 && (
+          <section data-testid="album-contributor-groups" className="mx-auto max-w-[1500px] px-4 pb-4 sm:px-6 lg:px-8">
+            <div className="grid gap-6 border-y border-[var(--line)] py-8 md:grid-cols-2">
+              {data.contributorGroups.map((group) => (
+                <div key={group.role} data-contributor-role={group.role}>
+                  <p className="eyebrow mb-3 text-[var(--text-muted)]">
+                    {CONTRIBUTOR_LABELS[group.role][locale]}
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {group.credits.map((contributor) => (
+                      contributor.href ? (
+                        <Link
+                          key={contributor.slug ?? contributor.credit}
+                          href={localizedPath(contributor.href)}
+                          className="border border-[var(--line-strong)] px-3 py-2 text-sm font-semibold transition hover:bg-[var(--surface-soft)]"
+                        >
+                          {contributor.name}
+                        </Link>
+                      ) : (
+                        <span key={contributor.slug ?? contributor.credit} className="border border-[var(--line)] px-3 py-2 text-sm text-[var(--text-muted)]">
+                          {contributor.name}
+                        </span>
+                      )
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
         )}
@@ -315,6 +331,7 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
         )}
       </main>
 
+      <DetailPageNavigation navigation={data.navigation} locale={locale} />
       <Footer />
     </div>
   );

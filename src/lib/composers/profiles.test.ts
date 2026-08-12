@@ -11,12 +11,12 @@ import {
 } from "./profiles";
 
 describe("canonical composer registry", () => {
-  it("contains exactly the 62 unique public profiles", () => {
-    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(62);
-    expect(canonicalComposerProfiles).toHaveLength(62);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(62);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(62);
-    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(62);
+  it("contains exactly the 63 unique public profiles", () => {
+    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(63);
+    expect(canonicalComposerProfiles).toHaveLength(63);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(63);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(63);
+    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(63);
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toMatchObject({
       src: "/images/composers/detail/loic_laporte.webp",
       width: 450,
@@ -29,13 +29,13 @@ describe("canonical composer registry", () => {
       .filter((profile) => profile.bio.fr === null && profile.bio.en === null)
       .map((profile) => profile.name);
     expect(withoutBio).toEqual([]);
-    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(62);
+    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(63);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.source === "local-editorial")).toBe(true);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.biographyFile === "site-biographies.user-provided.json")).toBe(true);
   });
 
   it("publishes the supplied biographies verbatim and records local portraits", () => {
-    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(62);
+    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(63);
     for (const [slug, biography] of Object.entries(suppliedBiographies.profiles)) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.bio).toEqual({
         fr: biography.fr,
@@ -46,6 +46,7 @@ describe("canonical composer registry", () => {
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "dj-troubl")?.provenance.portraitFile).toBe("dj_troubl.jpg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "aiwa")?.provenance.portraitFile).toBe("aiwa.jpg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "arat-kilo")?.provenance.portraitFile).toBe("arat_kilo.jpeg");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "kokane")?.provenance.portraitFile).toBe("kokane.jpg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "vincent-bouhelier")?.provenance.portraitFile).toBe("public/images/composers/detail/vincent_bouhelier.webp");
   });
 
@@ -112,6 +113,9 @@ describe("canonical composer registry", () => {
     expect(resolveCanonicalComposerCredits("Fabien GIRARD", "PGO0055").map(({ profile }) => profile.slug)).toEqual(["fabien-girard"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0035").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
     expect(resolveCanonicalComposerCredits("Liqid", "PGO0040").map(({ profile }) => profile.slug)).toEqual(["liqid"]);
+    expect(getCanonicalComposerProfileForCredit("Kokane (NS)")?.slug).toBe("kokane");
+    expect(getCanonicalComposerProfileForCredit("Jacques Sahloul (NS)", "PGO0007")?.slug).toBe("liqid");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "liqid")?.harvest.rightHolderIds).toContain("2e1b4b899c780e8b");
     expect(getCanonicalComposerProfileForCredit("The Well Quartet", "PGO0060")?.slug).toBe("the-well-quartet");
   });
 

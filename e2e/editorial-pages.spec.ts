@@ -95,7 +95,7 @@ test("les héros éditoriaux publient les titres et introductions validés", asy
     ["/labels", "Labels", "Les catalogues que nous avons choisis de représenter"],
     ["/notre-label", "Notre label", "Nos productions originales, au cœur de l’identité musicale de Parigo."],
     ["/clips", "Clips", "Le catalogue Parigo en images, entre clips, teasers et performances live."],
-    ["/talents", "Nos talents", "Les compositrices, compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."],
+    ["/talents", "Nos talents", "Les compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."],
   ] as const;
 
   for (const [path, title, intro] of cases) {

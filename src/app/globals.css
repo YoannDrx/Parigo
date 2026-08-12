@@ -3404,6 +3404,132 @@ textarea {
   .parigo-logo__go { transition-duration: 1ms; }
 }
 
+.detail-nav-card {
+  --detail-nav-large-turn: 1.75rem;
+  --detail-nav-small-turn: 1.15rem;
+}
+.detail-nav-card--previous {
+  border-radius: 0 var(--detail-nav-large-turn) 0 var(--detail-nav-small-turn);
+}
+.detail-nav-card--next {
+  border-radius: var(--detail-nav-large-turn) 0 var(--detail-nav-small-turn) 0;
+}
+.detail-nav-card::before,
+.detail-nav-card::after,
+.detail-nav-image::before,
+.detail-nav-image::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  box-sizing: border-box;
+  width: 2.7rem;
+  height: 2.7rem;
+  pointer-events: none;
+  transition: width 620ms var(--ease-out), height 620ms var(--ease-out), border-color 300ms ease;
+}
+.detail-nav-card--previous::before {
+  top: 0;
+  right: 0;
+  border-top: 2.5px solid color-mix(in srgb, currentColor 76%, transparent);
+  border-right: 2.5px solid color-mix(in srgb, currentColor 76%, transparent);
+  border-top-right-radius: var(--detail-nav-large-turn);
+}
+.detail-nav-card--previous::after {
+  bottom: 0;
+  left: 0;
+  border-bottom: 2.5px solid var(--signal-strong);
+  border-left: 2.5px solid var(--signal-strong);
+  border-bottom-left-radius: var(--detail-nav-small-turn);
+}
+.detail-nav-card--next::before {
+  top: 0;
+  left: 0;
+  border-top: 2.5px solid color-mix(in srgb, currentColor 76%, transparent);
+  border-left: 2.5px solid color-mix(in srgb, currentColor 76%, transparent);
+  border-top-left-radius: var(--detail-nav-large-turn);
+}
+.detail-nav-card--next::after {
+  right: 0;
+  bottom: 0;
+  border-right: 2.5px solid var(--signal-strong);
+  border-bottom: 2.5px solid var(--signal-strong);
+  border-bottom-right-radius: var(--detail-nav-small-turn);
+}
+.detail-nav-card:is(:hover, :focus-visible)::before,
+.detail-nav-card:is(:hover, :focus-visible)::after {
+  width: 68%;
+  height: 58%;
+}
+.detail-nav-image {
+  --detail-image-large-turn: 1.1rem;
+  --detail-image-small-turn: .72rem;
+}
+.detail-nav-image--previous {
+  border-radius: 0 var(--detail-image-large-turn) 0 var(--detail-image-small-turn);
+}
+.detail-nav-image--next {
+  border-radius: var(--detail-image-large-turn) 0 var(--detail-image-small-turn) 0;
+}
+.detail-nav-image::before,
+.detail-nav-image::after {
+  z-index: 2;
+  width: 1.45rem;
+  height: 1.45rem;
+  border-color: color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-width: 0;
+}
+.detail-nav-image--previous::before {
+  top: 0;
+  right: 0;
+  border-top: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-right: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-top-right-radius: var(--detail-image-large-turn);
+}
+.detail-nav-image--previous::after {
+  bottom: 0;
+  left: 0;
+  border-bottom: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-bottom-left-radius: var(--detail-image-small-turn);
+}
+.detail-nav-image--next::before {
+  top: 0;
+  left: 0;
+  border-top: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-left: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-top-left-radius: var(--detail-image-large-turn);
+}
+.detail-nav-image--next::after {
+  right: 0;
+  bottom: 0;
+  border-right: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-bottom: 2px solid color-mix(in srgb, var(--signal-strong) 75%, transparent);
+  border-bottom-right-radius: var(--detail-image-small-turn);
+}
+.detail-nav-card:is(:hover, :focus-visible) .detail-nav-image::before,
+.detail-nav-card:is(:hover, :focus-visible) .detail-nav-image::after {
+  width: 64%;
+  height: 64%;
+}
+.detail-nav-arrow {
+  transition: transform 420ms var(--ease-out);
+}
+.detail-nav-card--previous:is(:hover, :focus-visible) .detail-nav-arrow {
+  transform: translateX(-.28rem);
+}
+.detail-nav-card--next:is(:hover, :focus-visible) .detail-nav-arrow {
+  transform: translateX(.28rem);
+}
+@media (prefers-reduced-motion: reduce) {
+  .detail-nav-card::before,
+  .detail-nav-card::after,
+  .detail-nav-image::before,
+  .detail-nav-image::after,
+  .detail-nav-arrow {
+    transition-duration: 1ms;
+  }
+}
+
 .home-rail-card {
   position: relative;
   min-width: 0;

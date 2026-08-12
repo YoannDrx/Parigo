@@ -54,7 +54,7 @@ const composerProfileSchema = z.object({
   }),
 });
 
-export const CANONICAL_COMPOSER_PROFILE_COUNT = 62;
+export const CANONICAL_COMPOSER_PROFILE_COUNT = 63;
 
 const registrySchema = z.object({
   generatedAt: z.string(),
@@ -180,6 +180,10 @@ export function getCanonicalComposerProfile(slug: string): CanonicalComposerProf
 
 export function getCanonicalComposerProfileByLegacySlug(slug: string): CanonicalComposerProfile | undefined {
   return profileByLegacySlug.get(slug);
+}
+
+export function getCanonicalComposerProfilesForRightHolderId(id: string): CanonicalComposerProfile[] {
+  return profilesByRightHolderId.get(id) ?? [];
 }
 
 export function resolveCanonicalComposerCredit(

@@ -77,15 +77,12 @@ test("Notre label impose le label et conserve les fonctions du catalogue", async
   expect(cardLabels.filter(Boolean).every((value) => value === "Parigo")).toBe(true);
 });
 
-test("les anciennes routes Label Parigo et Sorties Parigo redirigent définitivement", async ({ page }) => {
-  await page.goto("/label-parigo");
-  await expect(page).toHaveURL(/\/notre-label$/);
-  await page.goto("/en/label-parigo");
-  await expect(page).toHaveURL(/\/en\/notre-label$/);
-  await page.goto("/sorties-parigo");
-  await expect(page).toHaveURL(/\/notre-label$/);
-  await page.goto("/en/sorties-parigo");
-  await expect(page).toHaveURL(/\/en\/notre-label$/);
+test("les anciennes routes Label Parigo et Sorties Parigo n’existent plus", async ({ page }) => {
+  for (const path of ["/label-parigo", "/en/label-parigo", "/sorties-parigo", "/en/sorties-parigo"]) {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
+    await expect(page).toHaveURL(new RegExp(`${path}$`));
+  }
 });
 
 test("les anciennes routes Compositeurs redirigent vers Talents", async ({ page }) => {
@@ -116,12 +113,12 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("l’annuaire publie exactement les 62 profils canoniques", async ({ page }) => {
+test("l’annuaire publie exactement les 63 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/talents");
   await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
   const directory = page.getByTestId("composer-directory-results");
-  await expect(directory.locator("a")).toHaveCount(62);
+  await expect(directory.locator("a")).toHaveCount(63);
   await expect(directory.locator('a[href="/talents/pierre-millet"]')).toHaveCount(0);
   await expect(directory.locator('a[href="/talents/mutant-ninja"]')).toHaveCount(0);
   await expect(directory.getByText("Schérazade", { exact: true })).toBeVisible();
@@ -133,12 +130,28 @@ test("l’annuaire publie exactement les 62 profils canoniques", async ({ page }
   await expect(directory.locator('a[href="/talents/gerz"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/yann-lean"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/nsdos"]')).toHaveCount(1);
+  await expect(directory.locator('a[href="/talents/kokane"]')).toHaveCount(1);
   const minimatic = directory.locator('a[href="/talents/minimatic"]');
   await expect(minimatic).toHaveCount(1);
   await minimatic.click();
   await expect(page).toHaveURL(/\/talents\/minimatic$/);
   await expect(page.getByRole("heading", { level: 1, name: "Minimatic" })).toBeVisible();
   await expect(page.getByText(/Crédits Harvest associés/)).toHaveCount(0);
+});
+
+test("Kokane publie son portrait, ses biographies et sa discographie Parigo", async ({ page }) => {
+  await page.goto("/talents/kokane");
+  await expect(page.getByRole("heading", { level: 1, name: "Kokane" })).toBeVisible();
+  await expect(page.getByTestId("composer-detail-image")).toHaveAttribute("src", /\/images\/composers\/detail\/kokane/);
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Kokane, de son vrai nom Jerry B. Long Jr., est un rappeur, chanteur, auteur et producteur américain",
+  );
+  await expect(page.getByRole("link").filter({ hasText: "Diggin Hip-Hop Vol.2" }).first()).toBeVisible();
+
+  await page.goto("/en/talents/kokane");
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Kokane, real name Jerry B. Long Jr., is an American rapper, singer, songwriter and producer",
+  );
 });
 
 test("les nouveaux profils publient leurs noms de scène et le contenu disponible", async ({ page }) => {
@@ -202,12 +215,15 @@ test("Yann Lean publie sa photo et ses biographies française et anglaise", asyn
   );
 });
 
-test("Synthwave Retrowave crédite Schérazade comme autrice de ses chansons", async ({ page }) => {
+test("Synthwave Retrowave crédite Schérazade comme auteur de ses chansons", async ({ page }, testInfo) => {
   await page.goto("/albums/48b4b95fe1f09019");
   const song = page.locator('[data-track-id="23b92c9b02375642f77e44705437fccb"]');
+  if (testInfo.project.name === "mobile") {
+    await song.getByRole("button", { name: /^Plus d’actions :/ }).click();
+  }
   await song.getByRole("button", { name: /^Informations sur la piste/ }).click();
   const details = song.locator(".track-detail-panel");
-  await expect(details.getByText("Autrice", { exact: true })).toBeVisible();
+  await expect(details.getByText("Auteur", { exact: true })).toBeVisible();
   await expect(details.getByRole("link", { name: "Schérazade", exact: true })).toHaveAttribute(
     "href",
     "/talents/scherazade-aissahine",
@@ -283,13 +299,14 @@ test("les quatre profils rematchés utilisent leurs noms, portraits et bios édi
   await expect(page.getByText(/distinctive figure on the independent music scene/)).toBeVisible();
 });
 
-test("les fiches compositeur n’affichent plus de libellé de rôle", async ({ page }) => {
+test("les fiches talent affichent les rôles au masculin", async ({ page }) => {
   await page.goto("/talents/flore");
   await expect(page.getByRole("heading", { level: 1, name: "Flore" })).toBeVisible();
+  await expect(page.getByText("Compositeur", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
   await page.goto("/talents/charlotte-savary");
   await expect(page.getByRole("heading", { level: 1, name: "Charlotte Savary" })).toBeVisible();
-  await expect(page.getByText("Compositeur", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Compositeur", { exact: true }).first()).toBeVisible();
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
 });
 
