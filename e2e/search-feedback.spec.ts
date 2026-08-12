@@ -260,23 +260,85 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(page.getByRole("combobox", { name: "Niveau de détail des pistes" })).toHaveCount(0);
 });
 
-test("la saisie ne déclenche plus de fenêtre d’autocomplétion", async ({ page }) => {
+test("la saisie déclenche une autocomplétion groupée et accessible", async ({ page }) => {
   let autocompleteRequests = 0;
+  const autocompleteScopes: Array<string | null> = [];
   await page.route("**/api/autocomplete?**", async (route) => {
     autocompleteRequests += 1;
-    await route.abort();
+    autocompleteScopes.push(new URL(route.request().url()).searchParams.get("view"));
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { groups: [
+        { key: "tracks", count: 1, items: [{ id: "track-1", kind: "track", label: "Crime Scene", subtitle: "Main · PAR001", image: "/images/placeholder-album.svg", href: "/albums/album-1?track=track-1" }] },
+        { key: "albums", count: 1, items: [{ id: "album-1", kind: "album", label: "Crime Stories", subtitle: "PAR001", trackCount: 12, image: "/images/placeholder-album.svg", href: "/albums/album-1" }] },
+        { key: "playlists", count: 1, items: [{ id: "playlist-1", kind: "playlist", label: "Crime Investigation", subtitle: "Sélection éditoriale", trackCount: 24, image: "/images/placeholder-playlist.svg", href: "/playlists/playlist-1" }] },
+        { key: "words", count: 1, items: [{ id: "keyword-1", kind: "keyword", label: "crime" }] },
+        { key: "composers", count: 1, items: [{ id: "composer-1", kind: "composer", label: "Jane Doe" }] },
+        { key: "labels", count: 1, items: [{ id: "label-1", kind: "label", label: "Parigo" }] },
+        { key: "lyrics", count: 1, items: [{ id: "track-lyrics", kind: "lyrics", label: "Crime Song", subtitle: "Trouvé dans les paroles", image: "/images/placeholder-album.svg", href: "/albums/album-2?track=track-lyrics" }] },
+      ] } }),
+    });
   });
 
   await page.goto("/search");
-  const input = page.getByRole("searchbox", { name: "Rechercher dans les titres de pistes" });
+  const command = page.getByTestId("catalog-search-command");
+  await expect(command.getByRole("button", { name: "Pistes", exact: true })).toHaveCount(0);
+  await expect(command.getByRole("button", { name: "Albums", exact: true })).toHaveCount(0);
+  const resultType = page.getByRole("combobox", { name: "Type de résultats" });
+  await expect(resultType).toBeVisible();
+  await command.getByRole("button", { name: "Mode de recherche : Mots-clés" }).click();
+  await command.getByRole("option", { name: /Brief IA/ }).click();
+  const aiInput = command.getByLabel("Décrire un brief musical assisté par IA");
+  await expect(aiInput).toBeVisible();
+  await expect(command.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
+  await aiInput.fill("Une scène nocturne suspendue");
+  await page.waitForTimeout(500);
+  expect(new URL(page.url()).searchParams.has("q")).toBe(false);
+  await command.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
+  await command.getByRole("option", { name: /Mots-clés/ }).click();
+  const input = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
   await input.fill("crime");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("crime");
-  await expect(page.getByRole("region", { name: "Suggestions de recherche" })).toHaveCount(0);
-  expect(autocompleteRequests).toBe(0);
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
+  await expect(page.getByRole("option", { name: "Crime Scene" })).toBeVisible();
+  await expect(page.getByRole("option", { name: /Crime Stories/ })).toBeVisible();
+  await expect(page.getByRole("option", { name: /Crime Investigation/ })).toBeVisible();
+  await expect(page.getByRole("option", { name: /Crime Song/ })).toBeVisible();
+  await expect(page.locator(".search-autocomplete-panel img").first()).toBeVisible();
+  const [commandBox, panelBox] = await Promise.all([command.boundingBox(), page.locator(".search-autocomplete-panel").boundingBox()]);
+  expect(commandBox).not.toBeNull();
+  expect(panelBox).not.toBeNull();
+  expect(Math.abs(panelBox!.width - commandBox!.width)).toBeLessThanOrEqual(2);
+  await input.press("ArrowDown");
+  await expect(input).toHaveAttribute("aria-activedescendant", /catalog-search-suggestions-option-0/);
+  expect(autocompleteRequests).toBeGreaterThan(0);
+  expect(autocompleteScopes.every((scope) => scope === null)).toBe(true);
 
-  await page.getByRole("button", { name: "Albums" }).click();
-  await expect(page.getByRole("searchbox", { name: "Rechercher dans les titres ou références d’albums" })).toBeVisible();
-  expect(autocompleteRequests).toBe(0);
+  await input.press("Escape");
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
+  await resultType.click();
+  await page.getByRole("option", { name: "Albums", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("view")).toBe("albums");
+  await expect(input).toBeVisible();
+});
+
+test("l’autocomplétion conserve un état vide global sans afficher de sections à zéro", async ({ page }) => {
+  await page.route("**/api/autocomplete?**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { groups: [] } }),
+    });
+  });
+
+  await page.goto("/search");
+  const input = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
+  await input.fill("introuvable");
+  const suggestions = page.getByRole("listbox", { name: "Suggestions de recherche" });
+  await expect(suggestions).toBeVisible();
+  await expect(suggestions).toContainText("Aucun résultat pour « introuvable ».");
+  await expect(suggestions.getByRole("heading", { name: "Pistes" })).toHaveCount(0);
+  await expect(suggestions.getByRole("heading", { name: "Albums" })).toHaveCount(0);
+  await expect(suggestions.getByRole("heading", { name: "Playlists" })).toHaveCount(0);
 });
 
 test("la référence Harvest reste recherchable mais séparée du titre éditorial", async ({ page }) => {
@@ -306,7 +368,7 @@ test("le listing se met à jour automatiquement pendant la saisie", async ({ pag
     });
   });
   await page.goto("/search");
-  const input = page.getByRole("searchbox", { name: "Rechercher dans les titres de pistes" });
+  const input = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
   await input.fill("wedding");
   await expect.poll(() => searchedTerms.includes("wedding"), { timeout: 10_000 }).toBe(true);
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("wedding");
@@ -382,7 +444,7 @@ test("le filtre compositeur préfère la fiche Harvest fraîche à son index enc
   await expect(page.locator("main")).not.toContainText("Sosth�ne Fanou");
 });
 
-test("les anciennes URL sont canonicalisées sans disposition, match, Style ni anciens tris", async ({ page }) => {
+test("les anciennes URL sont canonicalisées en préservant le filtre Styles", async ({ page }) => {
   await page.goto('/search?keyword=%22crime%22&view=tracks&page=1&layout=grid&match=exact&styles=obsolete&sort=bpm-asc');
   await expect.poll(() => {
     const url = new URL(page.url());
@@ -391,7 +453,7 @@ test("les anciennes URL sont canonicalisées sans disposition, match, Style ni a
       match: url.searchParams.has("match"),
       layout: url.searchParams.has("layout"),
       keyword: url.searchParams.has("keyword"),
-      styles: url.searchParams.has("styles"),
+      styles: url.searchParams.get("styles"),
       sort: url.searchParams.has("sort"),
     };
   }, { timeout: 30_000 }).toEqual({
@@ -399,7 +461,7 @@ test("les anciennes URL sont canonicalisées sans disposition, match, Style ni a
     match: false,
     layout: false,
     keyword: false,
-    styles: false,
+    styles: "obsolete",
     sort: false,
   });
 });
@@ -410,52 +472,64 @@ test("une URL q normale ne devient pas exacte sans action utilisateur", async ({
   expect(new URL(page.url()).searchParams.get("match")).toBeNull();
 });
 
-test("le fallback bilingue est expliqué et peut être désactivé", async ({ page }) => {
+test("la traduction bilingue remplace le champ puis ouvre l’autocomplétion", async ({ page }) => {
   await page.route("**/api/search?**", async (route) => {
     const url = new URL(route.request().url());
-    const translated = url.searchParams.get("translate") !== "0";
+    const translation = url.searchParams.get("translation") ?? "offer";
+    const query = url.searchParams.get("q");
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({
-        data: { items: [], view: "tracks", facets: { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 300 }, categories: [], labels: [] } },
+        data: { items: [], view: "tracks", facets: { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 300 }, categories: [], labels: [], styles: [] } },
         meta: {
           page: 1,
           pageSize: 30,
           total: 0,
           requestId: "translation-e2e",
-          ...(translated ? { queryResolution: { original: "forêt sombre", effective: "dark forest", source: "machine-translation" } } : {}),
+          searchMode: "keyword",
+          fieldProfile: "editorial",
+          providerDurationMs: 10,
+          ...(translation === "offer" && query === "mariage" ? { translationSuggestion: { original: "mariage", effective: "wedding", source: "machine-translation" } } : {}),
         },
       }),
     });
   });
+  await page.route("**/api/autocomplete?**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { groups: [
+        { key: "words", count: 1, items: [{ id: "translated-keyword", kind: "keyword", label: "wedding" }] },
+      ] } }),
+    });
+  });
 
-  await page.goto("/search?q=for%C3%AAt%20sombre&view=tracks");
-  await expect(page.getByText(/Recherche interprétée comme/)).toBeVisible();
-  await page.getByRole("link", { name: /Chercher « forêt sombre » littéralement/ }).click();
-  await expect.poll(() => new URL(page.url()).searchParams.get("translate")).toBe("0");
-  await expect(page.getByText(/Recherche interprétée comme/)).toHaveCount(0);
+  await page.goto("/search?q=mariage&view=tracks");
+  await expect(page.getByText(/Rechercher aussi « wedding »/)).toBeVisible();
+  await page.getByRole("button", { name: "Rechercher en anglais" }).click();
+  const search = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
+  await expect(search).toHaveValue("wedding");
+  await expect(search).toBeFocused();
+  await expect.poll(() => ({
+    query: new URL(page.url()).searchParams.get("q"),
+    translation: new URL(page.url()).searchParams.get("translation"),
+  })).toEqual({ query: "wedding", translation: "off" });
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
+  await expect(page.getByRole("option", { name: "wedding" })).toBeVisible();
+  await expect(page.getByText(/Rechercher aussi « wedding »/)).toHaveCount(0);
 });
 
-test("le mode intention applique Music For et refuse les briefs non compris", async ({ page }) => {
-  test.setTimeout(60_000);
-  await page.goto("/search?brief=mariage&resolve=1&view=tracks");
-  await expect(page.getByRole("button", { name: "Par intention" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page.getByTestId("search-detected-criteria").getByText("Mariage", { exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
-  expect(new URL(page.url()).searchParams.has("categories")).toBe(false);
-  expect(new URL(page.url()).searchParams.has("q")).toBe(false);
-
-  const input = page.getByRole("searchbox", { name: "Décrivez votre intention musicale" });
-  await input.fill("Une musique rapide pour un film d'horreur");
-  await expect(page.getByTestId("search-detected-criteria").getByText("Horror Film", { exact: true })).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByTestId("search-detected-criteria").getByText("Hip-hop", { exact: true })).toHaveCount(0);
-  await expect(page.getByTestId("search-detected-criteria")).toContainText("120–180 BPM");
-
-  await input.fill("Armand Dupont");
-  await expect(page.getByRole("heading", { name: "Cette intention n’est pas encore comprise." })).toBeVisible();
-  expect(new URL(page.url()).searchParams.has("q")).toBe(false);
-
-  await page.getByRole("button", { name: "Par titre", exact: true }).click();
-  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("Armand Dupont");
-  await expect(page.getByRole("heading", { name: "Cette intention n’est pas encore comprise." })).toHaveCount(0);
+test("un ancien brief devient un mot-clé littéral et AIMS reste désactivé", async ({ page }) => {
+  await page.goto("/search?brief=mariage&resolve=1&view=tracks&translate=0");
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("mariage");
+  const url = new URL(page.url());
+  expect(url.searchParams.has("brief")).toBe(false);
+  expect(url.searchParams.has("resolve")).toBe(false);
+  expect(url.searchParams.get("translation")).toBe("off");
+  const modeSelect = page.getByRole("button", { name: "Mode de recherche : Mots-clés" });
+  await expect(modeSelect).toBeEnabled();
+  await modeSelect.click();
+  await page.getByRole("option", { name: /Brief IA/ }).click();
+  await expect(page.getByRole("button", { name: "Mode de recherche : Brief IA" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
+  await expect(page.getByTestId("search-detected-criteria")).toHaveCount(0);
 });
