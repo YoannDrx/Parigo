@@ -27,7 +27,7 @@ async function revealTrackAction(page: Page, actionName: string | RegExp, trigge
   return action;
 }
 
-test("la recherche connectée se sauvegarde sans ajouter un troisième focus vert", async ({ page }) => {
+test("la recherche connectée se sauvegarde avec le double contour porté par le formulaire", async ({ page }) => {
   await mockMemberSearch(page);
   let savedPayload: Record<string, unknown> | null = null;
   await page.route("**/api/user/searches", async (route) => {
@@ -40,7 +40,12 @@ test("la recherche connectée se sauvegarde sans ajouter un troisième focus ver
   const before = await searchForm.evaluate((node) => ({ boxShadow: getComputedStyle(node).boxShadow, borderColor: getComputedStyle(node).borderColor }));
   await input.focus();
   const after = await searchForm.evaluate((node) => ({ boxShadow: getComputedStyle(node).boxShadow, borderColor: getComputedStyle(node).borderColor }));
-  expect(after).toEqual(before);
+  expect(after.boxShadow).not.toBe(before.boxShadow);
+  expect(after.boxShadow).toContain("inset");
+  expect(after.borderColor).not.toBe(before.borderColor);
+  await expect(input).toHaveCSS("outline-style", "none");
+  await input.press("Escape");
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
   await page.getByRole("button", { name: "Sauvegarder" }).click();
   await page.getByLabel("Nom de la recherche").fill("Piano intime pour documentaire");
   await page.getByRole("button", { name: "Enregistrer" }).click();
@@ -151,7 +156,7 @@ test("les actions et tooltips de recherche suivent la langue active", async ({ p
   await page.setViewportSize({ width: 1800, height: 900 });
   await page.goto("/search?q=piano&view=tracks&type=main");
   await page.getByRole("link", { name: /English version/ }).click();
-  await expect(page.getByRole("searchbox", { name: "Search track titles" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Search a title, keyword, mood or instrument" })).toBeVisible();
   const favourite = page.getByRole("button", { name: "Add to favourites" }).first();
   await expect(favourite).toBeVisible();
   await favourite.hover();

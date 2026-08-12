@@ -122,8 +122,8 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(page.getByText("Interprétation", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Les critères compris apparaîtront ici avant la recherche", { exact: true })).toHaveCount(0);
   await expect(page.getByTestId("search-detected-criteria")).toHaveCount(0);
-  await expect(page.getByText("Résultats", { exact: true })).toHaveCount(0);
-  await expect(page.getByRole("group", { name: "Type de résultats" })).toBeVisible();
+  await expect(page.getByText("Résultats", { exact: true })).toHaveCount(1);
+  await expect(page.getByRole("combobox", { name: "Type de résultats" })).toBeVisible();
   await expect(page.getByRole("group", { name: "Mode d’affichage des résultats" })).toHaveCount(0);
   await expect(page.getByTestId("search-track-grid")).toHaveCount(0);
   expect(new URL(page.url()).searchParams.has("layout")).toBe(false);
@@ -148,7 +148,7 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
 
     const [filterBox, resultTypeBox, versionBox, densityBox] = await Promise.all([
       page.getByRole("button", { name: /^Filtres$/ }).boundingBox(),
-      page.getByRole("group", { name: "Type de résultats" }).boundingBox(),
+      page.getByRole("combobox", { name: "Type de résultats" }).boundingBox(),
       page.getByRole("combobox", { name: "Versions des pistes" }).boundingBox(),
       page.getByRole("combobox", { name: "Niveau de détail des pistes" }).boundingBox(),
     ]);
@@ -255,7 +255,8 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await trackTitle.click();
   await expect(page.locator(".track-detail-panel")).toHaveCount(0);
 
-  await page.getByRole("button", { name: "Albums" }).click();
+  await page.getByRole("combobox", { name: "Type de résultats" }).click();
+  await page.getByRole("option", { name: "Albums", exact: true }).click();
   await expect(page.getByTestId("search-album-grid")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("combobox", { name: "Niveau de détail des pistes" })).toHaveCount(0);
 });
@@ -297,6 +298,7 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
   await command.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
   await command.getByRole("option", { name: /Mots-clés/ }).click();
   const input = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
+  await input.hover();
   await input.fill("crime");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("crime");
   await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
