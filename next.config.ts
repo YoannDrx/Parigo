@@ -89,6 +89,20 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/moods-photos/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, noimageindex" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
+        source: "/en/moods-photos/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, noimageindex" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
         source: "/(.*)",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
@@ -112,6 +126,8 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      { source: "/presentation-parigo", destination: "/moods-photos", permanent: true },
+      { source: "/en/presentation-parigo", destination: "/en/moods-photos", permanent: true },
       { source: "/labels/page/all/1/a-z", destination: "/labels", permanent: true },
       { source: "/labels/profile/uncategorised/parigo", destination: "/labels/b9d701733704e2d7", permanent: true },
       { source: "/licensing/licensing", destination: "/licensing", permanent: true },
