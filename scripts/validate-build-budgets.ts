@@ -5,9 +5,9 @@ import path from "node:path";
 const root = process.cwd();
 const nextRoot = path.join(root, ".next");
 const staticRoot = path.join(nextRoot, "static");
-// Detail-page navigation adds the shared responsive corner treatments while
-// keeping a narrow margin over the current 135.9 KiB of source CSS.
-const CSS_BUDGET = 137 * 1024;
+// Search v2 adds the shared command bar, autocomplete and responsive interaction
+// states while keeping a narrow margin over the current 143.9 KiB of source CSS.
+const CSS_BUDGET = 145 * 1024;
 // Persistent showreel and clip coordination adds 3.9 KiB Brotli to the shared
 // runtime while keeping a narrow margin over the current 204.7 KiB maximum.
 const DEFAULT_JS_BUDGET = 208 * 1024;
