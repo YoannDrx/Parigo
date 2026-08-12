@@ -3,8 +3,19 @@ import type {
   SearchFilterGroupKey,
   SearchFilterItem,
   SearchIntent,
-  SearchIntentResolution,
+  QueryResolution,
 } from "@/types";
+
+/** @deprecated Historical local parser kept only for regression tests and URL audits. */
+export interface SearchIntentResolution {
+  original: string;
+  categoryIds: string[];
+  criteria: Array<{ id: string; group: SearchFilterGroupKey; name: string }>;
+  bpmRange?: [number, number];
+  translation?: QueryResolution;
+  supported: boolean;
+  source: "parigo-taxonomy";
+}
 
 const dictionaries = {
   genres: {

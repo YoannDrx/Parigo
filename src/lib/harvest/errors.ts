@@ -9,6 +9,7 @@ export type HarvestErrorCode =
 
 export type PublicApiErrorCode =
   | Exclude<HarvestErrorCode, "HARVEST_UNAVAILABLE" | "HARVEST_INVALID_RESPONSE">
+  | "FEATURE_UNAVAILABLE"
   | "CATALOG_UNAVAILABLE"
   | "ACCOUNT_UNAVAILABLE"
   | "INVALID_UPSTREAM_RESPONSE";

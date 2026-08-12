@@ -212,6 +212,7 @@ export interface SearchFacets {
   duration: { min: number; max: number };
   labels: SearchFacetItem[];
   categories: SearchFacetItem[];
+  styles: SearchFacetItem[];
 }
 
 export interface QueryResolution {
@@ -220,23 +221,14 @@ export interface QueryResolution {
   source: "machine-translation";
 }
 
-export interface SearchIntentResolution {
-  original: string;
-  categoryIds: string[];
-  criteria: Array<{
-    id: string;
-    group: SearchFilterGroupKey;
-    name: string;
-  }>;
-  bpmRange?: [number, number];
-  translation?: QueryResolution;
-  supported: boolean;
-  source: "parigo-taxonomy";
-}
+export type SearchMode = "keyword" | "ai";
+export type SearchFieldProfile = "title" | "editorial";
+export type SearchTranslationMode = "offer" | "apply" | "off";
 
 export type SearchFilterGroupKey =
   | "labels"
   | "composers"
+  | "styles"
   | "genre"
   | "moods"
   | "musicFor"
@@ -259,11 +251,12 @@ export interface AutocompleteItem {
   label: string;
   subtitle?: string;
   image?: string;
+  trackCount?: number;
   href?: string;
 }
 
 export interface AutocompleteGroup {
-  key: "tracks" | "albums" | "playlists" | "labels" | "composers" | "words";
+  key: "tracks" | "albums" | "playlists" | "labels" | "composers" | "words" | "lyrics";
   count: number;
   items: AutocompleteItem[];
 }
@@ -350,6 +343,7 @@ export interface ApiError {
     | "FORBIDDEN"
     | "NOT_FOUND"
     | "RATE_LIMITED"
+    | "FEATURE_UNAVAILABLE"
     | "CATALOG_UNAVAILABLE"
     | "ACCOUNT_UNAVAILABLE"
     | "INVALID_UPSTREAM_RESPONSE";

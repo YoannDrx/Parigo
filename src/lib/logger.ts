@@ -10,6 +10,12 @@ interface LogEvent {
   status?: number;
   durationMs?: number;
   code?: string;
+  searchMode?: string;
+  provider?: string;
+  fieldProfile?: string;
+  total?: number;
+  translationOffered?: boolean;
+  translationApplied?: boolean;
 }
 
 export function logEvent(event: LogEvent): void {

@@ -58,6 +58,15 @@ describe("generic French title translation", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
+  it.each(["PAR-001", "12345", "ALBUM_2026"])('does not send catalog identifier "%s" to DeepL', async (query) => {
+    const fetchImpl = vi.fn();
+    await expect(translateFrenchSearchQuery(query, {
+      authKey: "test:fx",
+      fetchImpl,
+    })).resolves.toBeUndefined();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
   it("caches successful translations", async () => {
     const fetchImpl = vi.fn(async () => deeplResponse("FR", "dark forest"));
     const options = { authKey: "test:fx", fetchImpl, now: () => 1_000 };

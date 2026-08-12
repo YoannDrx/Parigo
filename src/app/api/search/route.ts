@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
-import { cloudSearch, getTracksByIds } from "@/lib/harvest/catalog";
+import { getTracksByIds } from "@/lib/harvest/catalog";
 import {
   findStaleIndexedComposerQuery,
   refreshInvalidComposerTracks,
 } from "@/lib/harvest/composer-search";
-import { getSearchFilterGroups } from "@/lib/harvest/search-filters";
+import { configuredSearchFieldProfile } from "@/lib/harvest/search";
 import { readHarvestSession } from "@/lib/harvest/session";
-import { resolveSearchBrief } from "@/lib/search-intent";
+import { logEvent } from "@/lib/logger";
+import { isCatalogIdentifier, stripLegacySearchQuotes } from "@/lib/search-query";
 import { translateFrenchSearchQuery } from "@/lib/search-translation";
-import type { QueryResolution, SearchIntentResolution } from "@/types";
+import {
+  getSearchCapabilities,
+  harvestKeywordProvider,
+} from "@/lib/search/providers";
+import type { QueryResolution, SearchTranslationMode } from "@/types";
 
 const sortMap = {
   relevance: "RankExpression",
@@ -22,15 +27,15 @@ const sortMap = {
 
 const querySchema = z.object({
   q: z.string().max(500).default("%"),
-  brief: z.string().max(500).default(""),
-  resolve: z.enum(["0", "1"]).default("0"),
+  mode: z.enum(["keyword", "ai"]).default("keyword"),
+  translation: z.enum(["offer", "apply", "off"]).default("offer"),
   view: z.enum(["tracks", "albums"]).default("tracks"),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(30),
   sort: z.enum(["relevance", "recent", "oldest", "title", "title-desc"]).catch("relevance").default("relevance"),
-  translate: z.enum(["0", "1"]).default("1"),
   type: z.enum(["main", "alternate", "all"]).default("main"),
   labels: z.string().optional(),
+  styles: z.string().optional(),
   categories: z.string().optional(),
   composer: z.string().trim().min(1).max(200).optional(),
   bpmMin: z.coerce.number().min(1).max(300).optional(),
@@ -38,6 +43,7 @@ const querySchema = z.object({
   durationMin: z.coerce.number().min(0).optional(),
   durationMax: z.coerce.number().min(1).max(7200).optional(),
   language: z.enum(["fr", "en"]).default("fr"),
+  probe: z.enum(["0", "1"]).default("0").transform((value) => value === "1"),
 });
 
 function list(value?: string): string[] | undefined {
@@ -51,35 +57,63 @@ function legacyCategoryValues(request: NextRequest): string[] {
   ).map((value) => value.trim()).filter(Boolean);
 }
 
+function canonicalQuery(request: NextRequest): string {
+  const value = request.nextUrl.searchParams.get("q")
+    ?? request.nextUrl.searchParams.get("keyword")
+    ?? request.nextUrl.searchParams.get("brief")
+    ?? "%";
+  return value === "%" ? value : stripLegacySearchQuotes(value);
+}
+
+function translationMode(request: NextRequest): SearchTranslationMode {
+  const current = request.nextUrl.searchParams.get("translation");
+  if (current === "offer" || current === "apply" || current === "off") return current;
+  const legacy = request.nextUrl.searchParams.get("translate");
+  if (legacy === "1") return "apply";
+  if (legacy === "0") return "off";
+  return "offer";
+}
+
 export async function GET(request: NextRequest) {
   const id = requestId();
+  const startedAt = Date.now();
   try {
     const rawParams = Object.fromEntries(request.nextUrl.searchParams);
     const input = querySchema.parse({
       ...rawParams,
-      q: request.nextUrl.searchParams.get("q") ?? request.nextUrl.searchParams.get("keyword") ?? "%",
+      q: canonicalQuery(request),
+      translation: translationMode(request),
     });
-    const session = await readHarvestSession();
-    const explicitCategories = [...(list(input.categories) || []), ...legacyCategoryValues(request)];
-    let intentResolution: SearchIntentResolution | undefined;
-    if (input.brief && input.resolve === "1") {
-      const [filterGroups, translatedBrief] = await Promise.all([
-        getSearchFilterGroups(input.language),
-        input.language === "fr" && input.translate !== "0"
-          ? translateFrenchSearchQuery(input.brief)
-          : Promise.resolve(undefined),
-      ]);
-      intentResolution = resolveSearchBrief(input.brief, filterGroups, translatedBrief);
+    const capabilities = getSearchCapabilities();
+    if (input.mode === "ai") {
+      return NextResponse.json({
+        error: {
+          code: "FEATURE_UNAVAILABLE",
+          message: "AIMS prompt search is not available yet",
+          retryable: false,
+          requestId: id,
+        },
+        meta: { capabilities, requestId: id },
+      }, { status: 503, headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
     }
+
+    const session = await readHarvestSession();
     const categories = [
-      ...explicitCategories,
-      ...(intentResolution?.categoryIds || []),
+      ...(list(input.categories) || []),
+      ...legacyCategoryValues(request),
     ];
+    // Harvest exposes catalogue references through its title index even though
+    // those codes are not part of the public display title. Keep this narrow
+    // compatibility path separate from the editorial keyword allowlist.
+    const fieldProfile = isCatalogIdentifier(input.q)
+      ? "title"
+      : configuredSearchFieldProfile();
     const skip = (input.page - 1) * input.limit;
+    const saveSearchHistory = Boolean(session) && !input.probe;
     const searchInput = {
-      query: intentResolution ? "%" : input.q.trim() || "%",
+      query: input.q.trim() || "%",
       view: input.view === "albums" ? "Album" : "Track",
-      textScope: "title",
+      textScope: fieldProfile,
       skip,
       limit: input.limit,
       sort: sortMap[input.sort],
@@ -87,50 +121,43 @@ export async function GET(request: NextRequest) {
       // alternate versions are enriched and nested below it after the search.
       type: input.view === "tracks" && input.type === "all" ? "main" : input.type,
       labels: list(input.labels),
+      styles: list(input.styles),
       categories: categories.length ? [...new Set(categories)] : undefined,
       composerQuery: input.composer,
-      minBpm: input.bpmMin ?? intentResolution?.bpmRange?.[0],
-      maxBpm: input.bpmMax ?? intentResolution?.bpmRange?.[1],
+      minBpm: input.bpmMin,
+      maxBpm: input.bpmMax,
       minDuration: input.durationMin,
       maxDuration: input.durationMax,
       language: input.language,
-      saveSearchHistory: Boolean(session),
+      saveSearchHistory,
+      includeStyleFacets: true,
     } as const;
-    const result = intentResolution && !intentResolution.supported
-      ? {
-          tracks: [],
-          albums: [],
-          total: 0,
-          facets: {
-            bpm: { min: 1, max: 300 },
-            duration: { min: 1, max: 2029 },
-            labels: [],
-            categories: [],
-            styles: [],
-          },
-          searchHistoryId: undefined,
-        }
-      : await cloudSearch(searchInput, session?.memberToken);
+    const result = await harvestKeywordProvider.search(searchInput, session?.memberToken);
+    let translationSuggestion: QueryResolution | undefined;
     let appliedQueryResolution: QueryResolution | undefined;
     let appliedResult = result;
-    if (!intentResolution && result.total === 0 && input.q !== "%" && input.translate !== "0") {
-      const queryResolution = await translateFrenchSearchQuery(input.q);
-      if (queryResolution) {
-        appliedResult = await cloudSearch({
+
+    if (result.total === 0 && input.q !== "%" && input.translation !== "off") {
+      const resolution = await translateFrenchSearchQuery(input.q);
+      if (resolution && input.translation === "offer") {
+        translationSuggestion = resolution;
+      } else if (resolution && input.translation === "apply") {
+        appliedQueryResolution = resolution;
+        appliedResult = await harvestKeywordProvider.search({
           ...searchInput,
-          query: queryResolution.effective,
-          saveSearchHistory: Boolean(session),
+          query: resolution.effective,
+          saveSearchHistory,
         }, session?.memberToken);
-        if (appliedResult.total > 0) appliedQueryResolution = queryResolution;
       }
     }
-    if (!intentResolution && appliedResult.total === 0 && input.view === "tracks" && input.composer) {
+
+    if (appliedResult.total === 0 && input.view === "tracks" && input.composer) {
       const staleComposerQuery = await findStaleIndexedComposerQuery(input.composer, session?.memberToken);
       if (staleComposerQuery && staleComposerQuery !== input.composer) {
-        appliedResult = await cloudSearch({
+        appliedResult = await harvestKeywordProvider.search({
           ...searchInput,
           composerQuery: staleComposerQuery,
-          saveSearchHistory: Boolean(session),
+          saveSearchHistory,
         }, session?.memberToken);
       }
     }
@@ -161,17 +188,25 @@ export async function GET(request: NextRequest) {
       };
     }
     const items = input.view === "albums" ? appliedResult.albums : appliedResult.tracks;
-    const publicFacets = {
-      bpm: appliedResult.facets.bpm,
-      duration: appliedResult.facets.duration,
-      labels: appliedResult.facets.labels,
-      categories: appliedResult.facets.categories,
-    };
+    const providerDurationMs = Date.now() - startedAt;
+    logEvent({
+      level: "info",
+      message: "catalog_search",
+      route: "search",
+      durationMs: providerDurationMs,
+      requestId: id,
+      searchMode: input.mode,
+      provider: harvestKeywordProvider.id,
+      fieldProfile,
+      total: appliedResult.total,
+      translationOffered: Boolean(translationSuggestion),
+      translationApplied: Boolean(appliedQueryResolution),
+    });
     return NextResponse.json({
       data: {
         items,
         view: input.view,
-        facets: publicFacets,
+        facets: appliedResult.facets,
         appliedSearch: { ...input, q: input.q === "%" ? "" : input.q },
       },
       meta: {
@@ -179,7 +214,12 @@ export async function GET(request: NextRequest) {
         pageSize: input.limit,
         total: appliedResult.total,
         searchHistoryId: appliedResult.searchHistoryId,
-        ...(intentResolution ? { intentResolution } : {}),
+        searchMode: input.mode,
+        fieldProfile,
+        provider: harvestKeywordProvider.id,
+        providerDurationMs,
+        capabilities,
+        ...(translationSuggestion ? { translationSuggestion } : {}),
         ...(appliedQueryResolution ? { queryResolution: appliedQueryResolution } : {}),
         requestId: id,
       },

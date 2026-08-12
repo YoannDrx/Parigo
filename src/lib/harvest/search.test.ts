@@ -1,5 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { buildCloudSearch, harvestCategoryId, mapSearchFacets, searchHistoryIdFromResponse, splitSignedValues } from "./search";
+import {
+  ALBUM_EDITORIAL_SEARCH_FIELDS,
+  buildCloudSearch,
+  harvestCategoryId,
+  harvestEditorialKeywordExpression,
+  LYRICS_SEARCH_FIELDS,
+  mapSearchFacets,
+  searchHistoryIdFromResponse,
+  splitSignedValues,
+  TRACK_EDITORIAL_SEARCH_FIELDS,
+} from "./search";
 
 describe("Harvest Cloud Search", () => {
   it("serializes supported filters and clamps BPM", () => {
@@ -67,6 +77,48 @@ describe("Harvest Cloud Search", () => {
 
     expect(titleBundle.St_Keyword.Fields).toBe("AlbumDisplayTitle");
     expect(aggregateBundle.St_Keyword_Aggregated.Keywords).toBe("crime");
+  });
+
+  it("uses an explicit editorial allowlist for public track and album searches", () => {
+    const trackPayload = buildCloudSearch({ query: "crime", view: "Track", textScope: "editorial" });
+    const albumPayload = buildCloudSearch({ query: "crime", view: "Album", textScope: "editorial" });
+    const trackKeyword = ((trackPayload.SearchFilters as Record<string, unknown>).SearchTermBundle as Record<string, Record<string, unknown>>).St_Keyword;
+    const albumKeyword = ((albumPayload.SearchFilters as Record<string, unknown>).SearchTermBundle as Record<string, Record<string, unknown>>).St_Keyword;
+
+    expect(trackKeyword).toMatchObject({
+      Fields: TRACK_EDITORIAL_SEARCH_FIELDS.join(","),
+      DisableKeywordGroup: true,
+      OrOperation: false,
+      Wildcard: true,
+    });
+    expect(albumKeyword.Fields).toBe(ALBUM_EDITORIAL_SEARCH_FIELDS.join(","));
+    for (const forbidden of ["TrackLyrics", "TrackDescription", "TrackCategories", "TrackComposer", "LibraryName"]) {
+      expect(trackKeyword.Fields).not.toContain(forbidden);
+      expect(albumKeyword.Fields).not.toContain(forbidden);
+    }
+  });
+
+  it("keeps lyrics in an explicit isolated search scope", () => {
+    const payload = buildCloudSearch({ query: "this is the end", view: "Track", textScope: "lyrics" });
+    const keyword = ((payload.SearchFilters as Record<string, unknown>).SearchTermBundle as Record<string, Record<string, unknown>>).St_Keyword;
+
+    expect(keyword).toMatchObject({
+      Fields: LYRICS_SEARCH_FIELDS.join(","),
+      Keywords: "this,is,the,end",
+      DisableKeywordGroup: true,
+      OrOperation: false,
+      Wildcard: true,
+    });
+    expect(TRACK_EDITORIAL_SEARCH_FIELDS).not.toContain("TrackLyrics");
+  });
+
+  it("serializes multiple literal words with Harvest's AND delimiter", () => {
+    const payload = buildCloudSearch({ query: "dark  piano", view: "Track", textScope: "editorial" });
+    const keyword = ((payload.SearchFilters as Record<string, unknown>).SearchTermBundle as Record<string, Record<string, unknown>>).St_Keyword;
+
+    expect(keyword.Keywords).toBe("dark,piano");
+    expect(keyword.OrOperation).toBe(false);
+    expect(harvestEditorialKeywordExpression("crime, investigation")).toBe("crime,investigation");
   });
 
   it("combines a title search with an exact composer term", () => {
@@ -138,10 +190,12 @@ describe("Harvest Cloud Search", () => {
         Duration: { Min: "2", Max: "1200" },
         Libraries: { Items: [{ ID: "a", Name: "Parigo", Count: "42" }] },
         Categories: { Items: [{ ID: "b", ParentID: "root", Name: "Piano", Count: "8" }] },
+        Styles: { Items: [{ ID: "style-1", Name: "Cinematic", Count: "12" }] },
       },
     });
     expect(facets.bpm).toEqual({ min: 1, max: 300 });
     expect(facets.labels[0]).toEqual({ id: "a", name: "Parigo", count: 42, parentId: undefined });
     expect(facets.categories[0].parentId).toBe("root");
+    expect(facets.styles[0]).toEqual({ id: "style-1", name: "Cinematic", count: 12, parentId: undefined });
   });
 });
