@@ -41,19 +41,123 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     await expect(heroSignature).toHaveCSS("animation-name", "parigo-title-signature-spin");
   }
   await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveCount(0);
-  await expect(hero.getByText("Interprétation", { exact: true })).toHaveCount(0);
-  const search = page.getByLabel("Décrivez la musique que vous imaginez");
-  await search.fill("Un piano intime pour un documentaire");
-  await expect(hero.getByText("Interprétation", { exact: true })).toBeVisible();
-  await expect(hero.getByText("Piano", { exact: true })).toBeVisible();
+  const modeSelect = hero.getByRole("button", { name: "Mode de recherche : Mots-clés" });
+  await expect(modeSelect).toBeEnabled();
+  await modeSelect.click();
+  await hero.getByRole("option", { name: /Brief IA/ }).click();
+  await expect(hero.getByRole("button", { name: "Mode de recherche : Brief IA" })).toBeVisible();
+  await expect(hero.getByLabel("Décrire un brief musical assisté par IA")).toBeVisible();
+  await expect(hero.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
+  await hero.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
+  await hero.getByRole("option", { name: /Mots-clés/ }).click();
+  await expect(hero.getByRole("button", { name: "Pistes", exact: true })).toHaveCount(0);
+  await expect(hero.getByRole("button", { name: "Albums", exact: true })).toHaveCount(0);
+  const searchBar = hero.locator(".search-command__form");
+  const search = page.getByLabel("Rechercher dans le catalogue Parigo");
+  const submitSearch = hero.getByRole("button", { name: "Rechercher", exact: true });
+  await expect(submitSearch).toBeDisabled();
+  await search.evaluate((node) => node.blur());
+  await expect.poll(() => searchBar.evaluate((node) => Number.parseFloat(getComputedStyle(node).borderTopLeftRadius))).toBeGreaterThan(5);
+  const restingRadius = await searchBar.evaluate((node) => ({
+    topLeft: Number.parseFloat(getComputedStyle(node).borderTopLeftRadius),
+    topRight: Number.parseFloat(getComputedStyle(node).borderTopRightRadius),
+  }));
+  expect(restingRadius.topRight).toBeGreaterThan(restingRadius.topLeft);
+  await search.focus();
+  await expect(submitSearch).toBeDisabled();
+  expect(Number.parseFloat(await submitSearch.evaluate((node) => getComputedStyle(node).opacity))).toBeLessThan(0.5);
+  await expect.poll(() => searchBar.evaluate((node) => ({
+    topLeft: Number.parseFloat(getComputedStyle(node).borderTopLeftRadius),
+    topRight: Number.parseFloat(getComputedStyle(node).borderTopRightRadius),
+    bottomRight: Number.parseFloat(getComputedStyle(node).borderBottomRightRadius),
+    bottomLeft: Number.parseFloat(getComputedStyle(node).borderBottomLeftRadius),
+  }))).toEqual({ topLeft: 0, topRight: 16, bottomRight: 0, bottomLeft: 16 });
+  const focusedFrame = await searchBar.evaluate((node) => ({
+    boxShadow: getComputedStyle(node).boxShadow,
+    topCornerBottom: getComputedStyle(node, "::before").borderBottomWidth,
+    topCornerLeft: getComputedStyle(node, "::before").borderLeftWidth,
+    bottomCornerTop: getComputedStyle(node, "::after").borderTopWidth,
+    bottomCornerRight: getComputedStyle(node, "::after").borderRightWidth,
+  }));
+  expect(focusedFrame.boxShadow).toContain("inset");
+  expect(focusedFrame.topCornerBottom).toBe("0px");
+  expect(focusedFrame.topCornerLeft).toBe("0px");
+  expect(focusedFrame.bottomCornerTop).toBe("0px");
+  expect(focusedFrame.bottomCornerRight).toBe("0px");
+  await search.fill("piano");
+  await expect(submitSearch).toBeEnabled();
+  await expect(searchBar).toHaveAttribute("data-has-value", "true");
+  const activeCorners = await searchBar.evaluate((node) => ({
+    topAnimation: getComputedStyle(node, "::before").animationName,
+    bottomAnimation: getComputedStyle(node, "::after").animationName,
+  }));
+  expect(activeCorners.topAnimation).toBe("search-corner-breathe");
+  expect(activeCorners.bottomAnimation).toBe("search-corner-breathe");
+  await expect.poll(() => searchBar.evaluate((node) => ({
+    top: getComputedStyle(node, "::before").borderTopWidth,
+    bottom: getComputedStyle(node, "::after").borderBottomWidth,
+  }))).toEqual({ top: "3px", bottom: "3px" });
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
   await expect(page.getByTestId("search-workspace")).toBeVisible();
-  await expect(page.getByTestId("search-detected-criteria").getByText("Piano", { exact: true })).toBeVisible();
   const resolvedUrl = new URL(page.url());
-  expect(resolvedUrl.searchParams.get("brief")).toBe("Un piano intime pour un documentaire");
-  expect(resolvedUrl.searchParams.has("q")).toBe(false);
+  expect(resolvedUrl.searchParams.get("q")).toBe("piano");
+  expect(resolvedUrl.searchParams.has("brief")).toBe(false);
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
+});
+
+test("la home propose DeepL après une autocomplétion vide", async ({ page }) => {
+  let translationProbes = 0;
+  await page.route("**/api/autocomplete?**", async (route) => {
+    const query = new URL(route.request().url()).searchParams.get("q");
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { groups: query === "wedding" ? [
+        { key: "words", count: 1, items: [{ id: "translated-home-keyword", kind: "keyword", label: "wedding" }] },
+      ] : [] } }),
+    });
+  });
+  await page.route("**/api/search?**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("q") !== "mariage") {
+      await route.continue();
+      return;
+    }
+    translationProbes += 1;
+    expect(url.searchParams.get("probe")).toBe("1");
+    expect(url.searchParams.get("limit")).toBe("1");
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { items: [], view: "tracks", facets: { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 300 }, categories: [], labels: [], styles: [] } },
+        meta: {
+          page: 1,
+          pageSize: 1,
+          total: 0,
+          requestId: "home-translation-e2e",
+          searchMode: "keyword",
+          fieldProfile: "editorial",
+          providerDurationMs: 10,
+          translationSuggestion: { original: "mariage", effective: "wedding", source: "machine-translation" },
+        },
+      }),
+    });
+  });
+
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const search = hero.getByLabel("Rechercher dans le catalogue Parigo");
+  const submitSearch = hero.getByRole("button", { name: "Rechercher", exact: true });
+  await expect(submitSearch).toBeDisabled();
+  await search.fill("mariage");
+  await expect(submitSearch).toBeEnabled();
+  await expect(hero.getByText(/Rechercher aussi.*wedding.*en anglais/)).toBeVisible();
+  expect(translationProbes).toBe(1);
+  await hero.getByRole("button", { name: "Rechercher « wedding »" }).click();
+  await expect(search).toHaveValue("wedding");
+  await expect(search).toBeFocused();
+  await expect(hero.getByRole("option", { name: "wedding" })).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test("le CTA Qui sommes-nous conserve un contraste lisible dans les deux thèmes", async ({ page }, testInfo) => {
@@ -975,14 +1079,14 @@ test("une playlist Harvest avec une plage de BPM ouvre son détail", async ({ pa
   expect(await page.getByRole("button", { name: /^Écouter / }).count()).toBeGreaterThan(5);
 });
 
-test("la recherche depuis l’accueil interprète l’intention et alimente le lecteur persistant", async ({ page }, testInfo) => {
+test("la recherche par mots-clés depuis l’accueil alimente le lecteur persistant", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   test.skip(testInfo.project.name === "mobile", "Le parcours mobile du menu est couvert séparément.");
   await page.goto("/");
-  await page.getByLabel("Décrivez la musique que vous imaginez").fill("piano");
+  await page.getByLabel("Rechercher dans le catalogue Parigo").fill("piano");
   await page.getByRole("button", { name: "Recherche", exact: true }).click();
-  await expect(page).toHaveURL(/brief=piano/);
-  await expect(page.getByTestId("search-detected-criteria").getByText("Piano", { exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/q=piano/);
+  expect(new URL(page.url()).searchParams.has("brief")).toBe(false);
   expect(new URL(page.url()).searchParams.has("categories")).toBe(false);
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
   const firstTrack = page.getByRole("button", { name: /^Écouter / }).first();
@@ -1039,44 +1143,25 @@ test("la shortlist expose son état sans contenu prédictif persistant à vide",
   await expect(remove).toHaveAttribute("aria-pressed", "true");
 });
 
-test("la recherche assistée résout Techno dans le bon groupe sans double contrainte", async ({ page }, testInfo) => {
-  test.setTimeout(60_000);
-  test.skip(testInfo.project.name === "mobile", "La résolution de taxonomie est identique sur la feuille mobile.");
+test("le Brief IA AIMS est visible mais indisponible", async ({ page }) => {
   await page.goto("/search");
-  await page.getByRole("button", { name: "Par intention" }).click();
-  const input = page.getByRole("searchbox", { name: "Décrivez votre intention musicale" });
-  await input.fill("Une techno magnétique avec voix");
-  const interpretation = page.getByTestId("search-detected-criteria");
-  await expect(interpretation).toContainText("Techno");
-  await expect(interpretation).not.toContainText("bientôt disponible");
-
-  await input.fill("Une techno qui tabasse.");
-  await expect(interpretation).toContainText("Techno");
-  await expect(interpretation).toContainText("Énergique");
-  await expect.poll(() => new URL(page.url()).searchParams.get("brief"), {
-    timeout: 30_000,
-  }).toBe("Une techno qui tabasse.");
-  const contractResponse = await page.request.get(
-    "/api/search?brief=Une%20techno%20qui%20tabasse.&resolve=1&view=tracks&limit=1",
-  );
-  expect(contractResponse.ok()).toBe(true);
-  const contract = await contractResponse.json();
-  expect(contract.meta.intentResolution.categoryIds).toEqual([
-    "ATT_8c1be9ece2483e34",
-    "ATT_b242dfd7a2cf175e",
-  ]);
-
-  const url = new URL(page.url());
-  expect(url.searchParams.has("q")).toBe(false);
-  expect(url.searchParams.get("brief")).toBe("Une techno qui tabasse.");
-  expect(url.searchParams.has("categories")).toBe(false);
-  await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
+  const modeSelect = page.getByRole("button", { name: "Mode de recherche : Mots-clés" });
+  await expect(modeSelect).toBeEnabled();
+  await modeSelect.click();
+  await page.getByRole("option", { name: /Brief IA/ }).click();
+  await expect(page.getByRole("button", { name: "Mode de recherche : Brief IA" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
+  const response = await page.request.get("/api/search?mode=ai&q=techno&view=tracks&limit=1");
+  expect(response.status()).toBe(503);
+  const contract = await response.json();
+  expect(contract.error.code).toBe("FEATURE_UNAVAILABLE");
+  expect(contract.meta.capabilities.aiPromptSearchAvailable).toBe(false);
 });
 
 test("la recherche exacte reste accessible depuis le champ unifié", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/search");
-  const input = page.getByRole("searchbox", { name: "Rechercher dans les titres de pistes" });
+  const input = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
   await input.fill("piano");
   await input.press("Enter");
   await expect(page).toHaveURL(/q=piano/, { timeout: 30_000 });
@@ -1176,7 +1261,12 @@ test("une piste expose ses informations, versions et paroles", async ({ page }, 
   await expect(detailTabs.getByRole("tab", { name: "Informations" })).toBeVisible();
   await expect(detailTabs.getByText(/^(01|02|03|04)$/)).toHaveCount(0);
   await page.getByRole("tab", { name: "Versions" }).click();
-  await expect(page.locator("span").filter({ hasText: /^underscore$/ })).toBeVisible({ timeout: 15_000 });
+  const versionsPanel = page.getByRole("tabpanel");
+  await expect(versionsPanel).toBeVisible();
+  await expect.poll(async () =>
+    await versionsPanel.locator(".track-detail-version").count()
+      + await versionsPanel.getByText("Aucune version alternative disponible.").count(),
+  ).toBeGreaterThan(0);
   await page.getByRole("tab", { name: "Paroles" }).click();
   await expect(page.getByText("Paroles non disponibles.")).toBeVisible();
 });

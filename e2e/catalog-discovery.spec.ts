@@ -112,7 +112,7 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await expect(filterScope.getByLabel("BPM minimum")).toBeVisible();
   await expect(filterScope.getByLabel("Durée minimum")).toBeVisible();
   await expect(filterScope.getByText("Compositeurs", { exact: true })).toBeVisible();
-  await expect(filterScope.getByText("Style", { exact: true })).toHaveCount(0);
+  await expect(filterScope.getByText("Styles", { exact: true })).toBeVisible();
 });
 
 test("Albums et Notre label filtrent par un compositeur unique sans perdre le label fixe", async ({ page }, testInfo) => {
