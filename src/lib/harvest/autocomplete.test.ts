@@ -1,29 +1,32 @@
 import { describe, expect, it } from "vitest";
-import { buildAutocompletePayload, mapAutocompleteResponse } from "./autocomplete";
+import { buildAutocompletePayload, mapAutocompleteResponse, shouldSearchLyrics } from "./autocomplete";
 
 describe("Harvest autocomplete", () => {
-  it("requests only strict track-title suggestions for the active view", () => {
+  it("requests grouped editorial suggestions with playlists but without raw lyric terms", () => {
     const payload = buildAutocompletePayload("crime", "tracks");
     expect(payload).toMatchObject({
       Keyword: "crime",
       ReturnTracks: true,
       ReturnTracks_MainOnly: true,
-      ReturnTracks_Fields: "DisplayTitle",
+      ReturnTracks_Fields: "DisplayTitle,AlternateTitle,Version",
       ReturnTracks_DisableKeywordGroup: true,
       ReturnTracks_Limit: 10,
-      ReturnAlbums: false,
-      ReturnLibraries: false,
-      ReturnRightHolders: false,
-      ReturnFeaturedPlaylists: false,
+      ReturnAlbums: true,
+      ReturnLibraries: true,
+      ReturnRightHolders: true,
+      ReturnKeywords: true,
+      ReturnKeywordsForMatch: false,
+      ReturnFeaturedPlaylists: true,
       ReturnStyles: false,
+      ReturnLyrics: false,
     });
   });
 
-  it("switches the strict autocomplete field to albums", () => {
+  it("keeps both entity groups when albums are the active view", () => {
     expect(buildAutocompletePayload("crime", "albums")).toMatchObject({
-      ReturnTracks: false,
+      ReturnTracks: true,
       ReturnAlbums: true,
-      ReturnAlbums_Fields: "DisplayTitle",
+      ReturnAlbums_Fields: "DisplayTitle,Description,Keywords",
       ReturnAlbums_DisableKeywordGroup: true,
     });
   });
@@ -47,22 +50,39 @@ describe("Harvest autocomplete", () => {
       Keywords: ["crime"],
       StylesFound: 1,
       Styles: [{ StyleID: "style-1", Name: "Crime" }],
-    });
+    }, "tracks", (albumId) => `https://cdn.example.test/albums/${albumId}/160`, (playlistId) => `https://cdn.example.test/playlists/${playlistId}/160`);
 
     expect(groups.map((group) => group.key)).toEqual(["tracks", "albums", "playlists", "labels", "composers", "words"]);
     expect(groups.find((group) => group.key === "tracks")?.items).toHaveLength(1);
     expect(groups.find((group) => group.key === "tracks")?.items[0]).toMatchObject({
       id: "track-main",
       href: "/albums/album-1?track=track-main",
+      image: "https://cdn.example.test/albums/album-1/160",
+    });
+    expect(groups.find((group) => group.key === "albums")?.items[0]).toMatchObject({
+      image: "https://cdn.example.test/albums/album-1/160",
+    });
+    expect(groups.find((group) => group.key === "playlists")?.items[0]).toMatchObject({
+      image: "https://cdn.example.test/playlists/playlist-1/160",
     });
     expect(groups.find((group) => group.key === "composers")?.items[0]).toMatchObject({
       label: "Jane Doe",
       href: "/search?view=tracks&type=main&composer=Jane%20Doe",
     });
+    expect(groups.find((group) => group.key === "labels")?.items[0]?.href).toBe("/search?view=tracks&type=main&labels=label-1");
+    expect(groups.find((group) => group.key === "words")?.items.every((item) => item.kind === "keyword")).toBe(true);
     expect(groups.some((group) => (group.key as string) === "styles")).toBe(false);
   });
 
   it("returns stable empty groups for an invalid response", () => {
     expect(mapAutocompleteResponse(null).every((group) => group.count === 0 && group.items.length === 0)).toBe(true);
+  });
+
+  it("only extends autocomplete to lyrics for precise or sparse searches", () => {
+    expect(shouldSearchLyrics('"this is the end"')).toBe(true);
+    expect(shouldSearchLyrics("warm acoustic documentary")).toBe(true);
+    expect(shouldSearchLyrics("acide", 2)).toBe(true);
+    expect(shouldSearchLyrics("acide", 3)).toBe(false);
+    expect(shouldSearchLyrics(" ", 0)).toBe(false);
   });
 });
