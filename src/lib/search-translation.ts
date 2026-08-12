@@ -1,6 +1,6 @@
 import "server-only";
 import type { QueryResolution } from "@/types";
-import { normalizeSearchQuery } from "./search-query";
+import { isTranslatableSearchQuery, normalizeSearchQuery } from "./search-query";
 
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 const TRANSLATION_TIMEOUT_MS = 3_000;
@@ -34,7 +34,7 @@ export async function translateFrenchSearchQuery(
   options: TranslationOptions = {},
 ): Promise<QueryResolution | undefined> {
   const original = query.trim();
-  if (!original) return undefined;
+  if (!isTranslatableSearchQuery(original)) return undefined;
 
   const authKey = options.authKey ?? process.env.DEEPL_AUTH_KEY?.trim();
   if (!authKey) return undefined;

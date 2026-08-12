@@ -1,11 +1,11 @@
-import type { SearchFacets } from "@/types";
+import type { SearchFacets, SearchFieldProfile } from "@/types";
 import { isRecord } from "./errors";
 import { asNumber, asString, recordArray } from "./values";
 
 export interface HarvestSearchInput {
   query?: string;
   view?: "Track" | "Album";
-  textScope?: "aggregate" | "title";
+  textScope?: "aggregate" | "title" | "editorial" | "lyrics";
   skip?: number;
   limit?: number;
   sort?: string;
@@ -25,6 +25,57 @@ export interface HarvestSearchInput {
   returnRates?: boolean;
   match?: "normal" | "exact";
   includeStyleFacets?: boolean;
+}
+
+export const TRACK_EDITORIAL_SEARCH_FIELDS = [
+  "TrackDisplayTitle",
+  "TrackComment",
+  "TrackKeywords",
+  "TrackMood",
+  "TrackMusicFor",
+  "TrackInstrumentation",
+  "TrackGenre",
+  "AlbumDisplayTitle",
+  "AlbumKeywords",
+  "AlbumDescription",
+] as const;
+
+export const ALBUM_EDITORIAL_SEARCH_FIELDS = [
+  "AlbumDisplayTitle",
+  "AlbumKeywords",
+  "AlbumDescription",
+  "TrackDisplayTitle",
+  "TrackComment",
+  "TrackKeywords",
+  "TrackMood",
+  "TrackMusicFor",
+  "TrackInstrumentation",
+  "TrackGenre",
+] as const;
+
+export const LYRICS_SEARCH_FIELDS = ["TrackLyrics"] as const;
+
+export function configuredSearchFieldProfile(): SearchFieldProfile {
+  return process.env.HARVEST_SEARCH_FIELD_PROFILE?.trim().toLocaleLowerCase("en") === "title"
+    ? "title"
+    : "editorial";
+}
+
+export function keywordSearchFields(
+  view: "Track" | "Album",
+  profile: SearchFieldProfile | "lyrics",
+): string {
+  if (profile === "lyrics") return LYRICS_SEARCH_FIELDS.join(",");
+  if (profile === "title") return view === "Album" ? "AlbumDisplayTitle" : "TrackDisplayTitle";
+  return (view === "Album" ? ALBUM_EDITORIAL_SEARCH_FIELDS : TRACK_EDITORIAL_SEARCH_FIELDS).join(",");
+}
+
+export function harvestEditorialKeywordExpression(keyword: string): string {
+  if (keyword === "%") return keyword;
+  return keyword
+    .trim()
+    .replace(/\s+/g, ",")
+    .replace(/,+/g, ",");
 }
 
 export interface SignedSearchValues {
@@ -75,16 +126,22 @@ export function splitSignedValues(
 export function buildCloudSearch(input: HarvestSearchInput): Record<string, unknown> {
   const type = input.type ?? "main";
   const keyword = input.query?.trim() || "%";
-  const titleSearch = input.textScope === "title";
-  const keywordTerm = titleSearch
+  const explicitSearch = input.textScope === "title" || input.textScope === "editorial" || input.textScope === "lyrics";
+  const providerKeyword = input.textScope === "editorial" || input.textScope === "lyrics"
+    ? harvestEditorialKeywordExpression(keyword)
+    : keyword;
+  const keywordTerm = explicitSearch
     ? {
         St_Keyword: {
-          Fields: input.view === "Album" ? "AlbumDisplayTitle" : "TrackDisplayTitle",
+          Fields: keywordSearchFields(
+            input.view ?? "Track",
+            input.textScope === "title" ? "title" : input.textScope === "lyrics" ? "lyrics" : "editorial",
+          ),
           ExactPhrase: false,
           Wildcard: true,
           DisableKeywordGroup: true,
           OrOperation: false,
-          Keywords: keyword,
+          Keywords: providerKeyword,
           Negative: false,
         },
       }
@@ -179,9 +236,7 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
   };
 }
 
-export interface HarvestSearchFacets extends SearchFacets {
-  styles: SearchFacets["categories"];
-}
+export type HarvestSearchFacets = SearchFacets;
 
 export function mapSearchFacets(payload: unknown): HarvestSearchFacets {
   const source = isRecord(payload) && isRecord(payload.Facets) ? payload.Facets : {};

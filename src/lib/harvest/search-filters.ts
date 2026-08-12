@@ -6,7 +6,7 @@ import type {
   SearchFilterGroupKey,
   SearchFilterItem,
 } from "@/types";
-import { getCategories, getLabels } from "./catalog";
+import { getCategories, getLabels, getStyles } from "./catalog";
 
 const groupKeys: Record<string, SearchFilterGroupKey> = {
   genre: "genre",
@@ -35,9 +35,10 @@ function itemCount(items: SearchFilterItem[]): number {
 export async function getSearchFilterGroups(
   language: "fr" | "en",
 ): Promise<SearchFilterGroup[]> {
-  const [categoryGroups, labels] = await Promise.all([
+  const [categoryGroups, labels, styles] = await Promise.all([
     getCategories(language),
     getLabels(),
+    getStyles(),
   ]);
   return [
     {
@@ -58,6 +59,21 @@ export async function getSearchFilterGroups(
       source: "catalog",
       state: "available",
       remote: "harvest-track-composers",
+    },
+    {
+      key: "styles",
+      label: language === "fr" ? "Styles" : "Styles",
+      selection: "include-exclude",
+      total: styles.length,
+      available: styles.length,
+      items: styles.map((style) => ({
+        id: style.id,
+        name: style.name,
+        count: style.trackCount,
+      })),
+      description: language === "fr"
+        ? "Les compteurs correspondent à des occurrences de catalogue, pas à des albums distincts."
+        : "Counts represent catalog occurrences, not distinct albums.",
     },
     ...categoryGroups.flatMap((group): SearchFilterGroup[] => {
       const key = groupKeys[group.name.toLocaleLowerCase("en")];

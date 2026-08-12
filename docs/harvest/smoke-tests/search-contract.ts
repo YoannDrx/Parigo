@@ -16,10 +16,6 @@ function records(value: unknown, key: string): RecordValue[] {
     : [];
 }
 
-function normalize(value: string): string {
-  return value.toLocaleLowerCase("fr").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
 function titles(payload: RecordValue): string[] {
   return records(record(payload.data), "items")
     .map((item) => String(item.title ?? ""))
@@ -32,83 +28,102 @@ async function fetchPreview(path: string): Promise<RecordValue> {
   return record(await response.json());
 }
 
-async function checkTitleSearch(query: string, view: SearchView) {
+async function checkEditorialSearch(query: string, view: SearchView, titleBaseline: number) {
   const payload = await fetchPreview(
-    `/api/search?q=${encodeURIComponent(query)}&view=${view}&page=1&limit=30&type=main&sort=relevance&language=fr`,
+    `/api/search?q=${encodeURIComponent(query)}&view=${view}&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off`,
   );
+  const meta = record(payload.meta);
   const resultTitles = titles(payload);
-  const total = Number(record(payload.meta).total ?? 0);
+  const total = Number(meta.total ?? 0);
   if (!resultTitles.length || total < resultTitles.length) {
-    throw new Error(`Strict ${view} search returned an invalid result set for "${query}"`);
+    throw new Error(`Editorial ${view} search returned an invalid result set for "${query}"`);
   }
-  const invalid = resultTitles.filter((title) => !normalize(title).includes(normalize(query)));
-  if (invalid.length) {
-    throw new Error(`Strict ${view} search leaked titles without "${query}": ${invalid.slice(0, 3).join(", ")}`);
+  if (meta.fieldProfile !== "editorial" || meta.searchMode !== "keyword") {
+    throw new Error(`Editorial ${view} search did not expose the expected public contract`);
   }
-  console.log(JSON.stringify({ check: `strict-${view}`, query, total, examples: resultTitles.slice(0, 5) }, null, 2));
-  return { total, titles: resultTitles };
+  if (total <= titleBaseline) {
+    throw new Error(`Editorial ${view} search did not expand the title baseline for "${query}"`);
+  }
+  if (meta.intentResolution) throw new Error("Keyword search unexpectedly exposed an intent resolution");
+  console.log(JSON.stringify({ check: `editorial-${view}`, query, total, examples: resultTitles.slice(0, 5) }, null, 2));
 }
 
-async function checkPrefixExpansion() {
-  const crime = await checkTitleSearch("crime", "tracks");
-  const crim = await checkTitleSearch("crim", "tracks");
-  if (crim.total < crime.total) throw new Error('"crim" unexpectedly returns fewer tracks than "crime"');
-  if (!crim.titles.some((title) => normalize(title).includes("crimson"))) {
-    throw new Error('"crim" did not expose a title containing "crimson" on the first page');
-  }
-}
-
-async function checkBilingualFallback() {
+async function checkBilingualSuggestion() {
   if (!process.env.DEEPL_AUTH_KEY?.trim()) {
     console.log("Generic translation contract skipped because DEEPL_AUTH_KEY is not configured.");
     return;
   }
-  const payload = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr");
-  const meta = record(payload.meta);
-  const resolution = record(meta.queryResolution);
-  if (resolution.original !== "mariage" || !resolution.effective || resolution.source !== "machine-translation") {
-    throw new Error("The generic French → English resolution metadata is missing or invalid");
+  const offered = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=offer");
+  const offeredMeta = record(offered.meta);
+  const suggestion = record(offeredMeta.translationSuggestion);
+  if (suggestion.original !== "mariage" || !suggestion.effective || suggestion.source !== "machine-translation") {
+    throw new Error("The French → English suggestion metadata is missing or invalid");
   }
-  const effective = normalize(String(resolution.effective));
-  const invalid = titles(payload).filter((title) => !normalize(title).includes(effective));
-  if (invalid.length) throw new Error(`Translated title search leaked invalid tracks: ${invalid.slice(0, 3).join(", ")}`);
+  if (offeredMeta.queryResolution || Number(offeredMeta.total ?? 0) !== 0) {
+    throw new Error("The translation suggestion was applied without explicit consent");
+  }
 
-  const literal = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translate=0");
-  if (record(literal.meta).queryResolution) throw new Error("Literal search unexpectedly exposed translation metadata");
+  const applied = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=apply");
+  const appliedMeta = record(applied.meta);
+  const resolution = record(appliedMeta.queryResolution);
+  if (resolution.original !== "mariage" || resolution.effective !== suggestion.effective) {
+    throw new Error("The accepted translation was not applied consistently");
+  }
+  if (Number(appliedMeta.total ?? 0) < 1 || titles(applied).length < 1) {
+    throw new Error("The accepted English query returned no tracks");
+  }
+
+  const literal = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off");
+  if (record(literal.meta).queryResolution || record(literal.meta).translationSuggestion) {
+    throw new Error("Translation-off search unexpectedly exposed translation metadata");
+  }
 }
 
-async function checkServerIntentResolution() {
+async function checkLegacyBriefCompatibility() {
   const payload = await fetchPreview(
-    "/api/search?q=mariage&brief=mariage&resolve=1&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translate=0",
+    "/api/search?brief=crime&resolve=1&view=tracks&page=1&limit=5&type=main&sort=relevance&language=fr&translate=0",
   );
   const meta = record(payload.meta);
-  const resolution = record(meta.intentResolution);
-  const categoryIds = Array.isArray(resolution.categoryIds) ? resolution.categoryIds : [];
-  if (
-    resolution.original !== "mariage" ||
-    resolution.source !== "parigo-taxonomy" ||
-    resolution.supported !== true ||
-    categoryIds.length === 0
-  ) {
-    throw new Error("The BFF did not return a verifiable server-side intent resolution for mariage");
+  if (meta.intentResolution || meta.queryResolution || meta.translationSuggestion) {
+    throw new Error("A legacy brief unexpectedly re-enabled intent or translation resolution");
   }
-  if (Number(meta.total ?? 0) < 1 || titles(payload).length < 1) {
-    throw new Error("The server-side wedding category resolution returned no tracks");
+  if (meta.searchMode !== "keyword" || Number(meta.total ?? 0) < 1) {
+    throw new Error("A legacy brief was not treated as a literal keyword search");
+  }
+}
+
+async function checkLiteralCompatibility() {
+  const title = await fetchPreview(
+    "/api/search?q=Piano%20On%20My%20Mind&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off",
+  );
+  if (!titles(title).includes("Piano On My Mind")) {
+    throw new Error("The editorial profile lost a known exact title result");
   }
 
-  const literal = await fetchPreview(
-    "/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translate=0",
+  const multiWord = await fetchPreview(
+    "/api/search?q=dark%20piano&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off",
   );
-  if (record(literal.meta).intentResolution) {
-    throw new Error("Literal search unexpectedly exposed intent resolution metadata");
+  if (Number(record(multiWord.meta).total ?? 0) < 1) {
+    throw new Error("Harvest's multi-word AND serialization returned no tracks");
   }
-  console.log(JSON.stringify({
-    check: "server-intent-resolution",
-    original: resolution.original,
-    categoryIds,
-    total: Number(meta.total ?? 0),
-    examples: titles(payload).slice(0, 5),
-  }, null, 2));
+
+  const reference = await fetchPreview(
+    "/api/search?q=PRTM%200212&view=albums&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off",
+  );
+  if (!titles(reference).includes("Between Light and Void") || record(reference.meta).fieldProfile !== "title") {
+    throw new Error("The narrow Harvest catalogue-reference compatibility path failed");
+  }
+}
+
+async function checkAiCapability() {
+  const response = await fetch(`${previewBaseUrl}/api/search?mode=ai&q=cinematic&view=tracks`);
+  if (response.status !== 503) throw new Error(`AI search unexpectedly returned HTTP ${response.status}`);
+  const payload = record(await response.json());
+  const error = record(payload.error);
+  const capabilities = record(record(payload.meta).capabilities);
+  if (error.code !== "FEATURE_UNAVAILABLE" || capabilities.aiPromptSearchAvailable !== false) {
+    throw new Error("Disabled AIMS capability contract is invalid");
+  }
 }
 
 async function main() {
@@ -116,11 +131,13 @@ async function main() {
     console.log("Search contract skipped. Set HARVEST_LIVE_TESTS=1 to exercise the live Harvest catalogue.");
     return;
   }
-  await checkTitleSearch("crime", "albums");
-  await checkPrefixExpansion();
-  await checkTitleSearch("wedding", "tracks");
-  await checkServerIntentResolution();
-  await checkBilingualFallback();
+  await checkEditorialSearch("crime", "albums", 47);
+  await checkEditorialSearch("crime", "tracks", 174);
+  await checkEditorialSearch("wedding", "tracks", 171);
+  await checkLiteralCompatibility();
+  await checkLegacyBriefCompatibility();
+  await checkBilingualSuggestion();
+  await checkAiCapability();
 }
 
 main().catch((error) => {
