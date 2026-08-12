@@ -1084,7 +1084,7 @@ test("la recherche par mots-clés depuis l’accueil alimente le lecteur persist
   test.skip(testInfo.project.name === "mobile", "Le parcours mobile du menu est couvert séparément.");
   await page.goto("/");
   await page.getByLabel("Rechercher dans le catalogue Parigo").fill("piano");
-  await page.getByRole("button", { name: "Recherche", exact: true }).click();
+  await page.getByRole("button", { name: "Rechercher", exact: true }).click();
   await expect(page).toHaveURL(/q=piano/);
   expect(new URL(page.url()).searchParams.has("brief")).toBe(false);
   expect(new URL(page.url()).searchParams.has("categories")).toBe(false);
@@ -1119,7 +1119,8 @@ test("la shortlist expose son état sans contenu prédictif persistant à vide",
   const focusedForm = searchInput.locator("xpath=ancestor::form");
   const restingShadow = await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow);
   await searchInput.focus();
-  expect(await focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).toBe(restingShadow);
+  await expect.poll(() => focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe(restingShadow);
+  await expect.poll(() => focusedForm.evaluate((node) => getComputedStyle(node).boxShadow)).toContain("inset");
   await expect(searchInput).toHaveCSS("outline-style", "none");
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
   await expect(page.locator("[data-shortlist-trigger]")).toHaveCount(0);
@@ -1223,7 +1224,8 @@ test("la recherche expose des vues, tris et filtres partageables", async ({ page
     return;
   }
 
-  await page.getByRole("button", { name: "Albums", exact: true }).click();
+  await page.getByRole("combobox", { name: "Type de résultats" }).click();
+  await page.getByRole("option", { name: "Albums", exact: true }).click();
   await expect(page).toHaveURL(/view=albums/);
   await expect(page.locator('main a[href^="/albums/"] h2').first()).toBeVisible({ timeout: 30_000 });
   await page.getByRole("combobox", { name: "Trier les résultats" }).click();
