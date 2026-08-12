@@ -1,27 +1,38 @@
 import type { AutocompleteGroup, AutocompleteItem, AutocompleteKind } from "@/types";
+import { albumIdentity } from "./album-identity";
 import { isRecord } from "./errors";
 import { asNumber, asString, pick } from "./values";
 
 const GROUP_LIMIT = 10;
+const QUOTED_EXPRESSION = /^(["'])[\s\S]+\1$/;
+
+type ArtworkForAlbum = (albumId: string) => string | undefined;
+type ArtworkForPlaylist = (playlistId: string) => string | undefined;
+
+export function shouldSearchLyrics(query: string, editorialResultCount = Number.POSITIVE_INFINITY): boolean {
+  const normalized = query.trim();
+  if (!normalized) return false;
+  if (QUOTED_EXPRESSION.test(normalized)) return true;
+  const meaningfulWords = normalized.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) ?? [];
+  return meaningfulWords.length >= 3 || editorialResultCount <= 2;
+}
 
 export function buildAutocompletePayload(query: string, view: "tracks" | "albums" = "tracks"): Record<string, unknown> {
-  const tracks = view === "tracks";
-  const albums = view === "albums";
   return {
     Keyword: query.trim(),
     LibraryType: "",
-    ReturnTracks: tracks,
+    ReturnTracks: true,
     ReturnTracks_MainOnly: true,
-    ReturnTracks_Fields: "DisplayTitle",
-    ReturnTracks_Limit: GROUP_LIMIT,
+    ReturnTracks_Fields: "DisplayTitle,AlternateTitle,Version",
+    ReturnTracks_Limit: view === "tracks" ? GROUP_LIMIT : 6,
     ReturnTracks_Order: "date_descent",
     ReturnTracks_DisableKeywordGroup: true,
-    ReturnAlbums: albums,
-    ReturnAlbums_Fields: "DisplayTitle",
-    ReturnAlbums_Limit: GROUP_LIMIT,
+    ReturnAlbums: true,
+    ReturnAlbums_Fields: "DisplayTitle,Description,Keywords",
+    ReturnAlbums_Limit: view === "albums" ? GROUP_LIMIT : 6,
     ReturnAlbums_Order: "date_descent",
     ReturnAlbums_DisableKeywordGroup: true,
-    ReturnLibraries: false,
+    ReturnLibraries: true,
     ReturnLibraries_Fields: "Name,Prefix,Description",
     ReturnLibraries_Limit: GROUP_LIMIT,
     ReturnLibraries_DisableKeywordGroup: false,
@@ -32,7 +43,7 @@ export function buildAutocompletePayload(query: string, view: "tracks" | "albums
     ReturnCategoryAttributes_IncludeCategory: false,
     ReturnCategoryAttributes_Order: "AllAlphabetic",
     ReturnCategoryAttributes_DisableKeywordGroup: false,
-    ReturnRightHolders: false,
+    ReturnRightHolders: true,
     ReturnRightHolders_Fields: "firstname, lastname",
     ReturnRightHolders_Limit: GROUP_LIMIT,
     ReturnRightHolders_DisableKeywordGroup: false,
@@ -41,13 +52,13 @@ export function buildAutocompletePayload(query: string, view: "tracks" | "albums
     ReturnLyrics_Limit: GROUP_LIMIT,
     ReturnLyrics_MainOnly: false,
     ReturnLyrics_DisableKeywordGroup: false,
-    ReturnKeywords: false,
+    ReturnKeywords: true,
     ReturnKeywordsMaxSize: GROUP_LIMIT,
     ReturnKeywordsForMatch: false,
-    ReturnKeywordsForMatch_Fields: "TrackKeywords, TrackInstrumentation, TrackGenre, TrackCategories",
+    ReturnKeywordsForMatch_Fields: "TrackKeywords, TrackInstrumentation, TrackGenre, TrackMood, TrackMusicFor",
     ReturnKeywordsForMatch_HideWhenSearchTerm: false,
     ReturnKeywordsDisableKeywordGroup: false,
-    ReturnFeaturedPlaylists: false,
+    ReturnFeaturedPlaylists: true,
     ReturnFeaturedPlaylist_Fields: "ProjectTitle,Description",
     ReturnFeaturedPlaylists_Limit: GROUP_LIMIT,
     ReturnFeaturedPlaylist_Order: "Alphabetic_Ascent",
@@ -96,14 +107,18 @@ function mapWords(source: unknown[], kind: "lyrics" | "keyword"): AutocompleteIt
   }).slice(0, GROUP_LIMIT);
 }
 
-export function mapAutocompleteResponse(payload: unknown): AutocompleteGroup[] {
+export function mapAutocompleteResponse(
+  payload: unknown,
+  view: "tracks" | "albums" = "tracks",
+  artworkForAlbum?: ArtworkForAlbum,
+  artworkForPlaylist?: ArtworkForPlaylist,
+): AutocompleteGroup[] {
   const source = isRecord(payload) ? payload : {};
   const trackSource = values(source, "Tracks", "tracks");
   const albumSource = values(source, "Albums", "albums");
   const playlistSource = values(source, "FeaturedPlaylists", "Playlists", "featuredPlaylists");
   const labelSource = values(source, "Libraries", "libraries");
   const composerSource = values(source, "rightHolders", "RightHolders", "Composers", "composers");
-  const lyricsSource = values(source, "Lyrics", "lyrics");
   const keywordsSource = values(source, "Keywords", "keywords", "Tags", "tags", "CategoryAttributes");
 
   const distinctTrackSource = trackSource.filter((value, index, items) => {
@@ -135,16 +150,23 @@ export function mapAutocompleteResponse(payload: unknown): AutocompleteGroup[] {
       id,
       label: title,
       subtitle: [version, code].filter(Boolean).join(" · ") || undefined,
+      image: albumId ? artworkForAlbum?.(albumId) : undefined,
       href: albumId ? `/albums/${albumId}?track=${encodeURIComponent(id)}` : undefined,
     };
   }).slice(0, GROUP_LIMIT);
   const albums = mapRecords(albumSource, "album", (item, index) => {
     const id = asString(pick(item, "AlbumID", "ID"), `album-${index}`);
+    const code = asString(pick(item, "CDCode"));
+    const identity = albumIdentity(asString(pick(item, "DisplayTitle", "Name", "Title")), code);
     return {
       id,
-      label: asString(pick(item, "DisplayTitle", "Name", "Title")),
-      subtitle: asString(pick(item, "CDCode", "LibraryName")) || undefined,
-      image: asString(pick(item, "ArtworkUrl", "ImageUrl", "CoverUrl")) || undefined,
+      label: identity.title,
+      subtitle: [
+        asString(pick(item, "LibraryName")),
+        identity.code,
+      ].filter(Boolean).join(" · ") || undefined,
+      image: artworkForAlbum?.(id) || asString(pick(item, "ArtworkUrl", "ImageUrl", "CoverUrl")) || undefined,
+      trackCount: asNumber(pick(item, "TrackCount")) || undefined,
       href: `/albums/${id}`,
     };
   }).slice(0, GROUP_LIMIT);
@@ -154,6 +176,8 @@ export function mapAutocompleteResponse(payload: unknown): AutocompleteGroup[] {
       id,
       label: asString(pick(item, "DisplayTitle", "ProjectTitle", "Name", "Title")),
       subtitle: asString(pick(item, "Description")) || undefined,
+      image: artworkForPlaylist?.(id) || asString(pick(item, "ArtworkUrl", "ImageUrl", "CoverUrl")) || undefined,
+      trackCount: asNumber(pick(item, "TrackCount", "TracksCount")) || undefined,
       href: `/playlists/${id}`,
     };
   }).slice(0, GROUP_LIMIT);
@@ -162,7 +186,7 @@ export function mapAutocompleteResponse(payload: unknown): AutocompleteGroup[] {
     return {
       id,
       label: asString(pick(item, "Name", "DisplayTitle")),
-      href: `/labels/${id}`,
+      href: `/search?view=${view}&type=main&labels=${encodeURIComponent(id)}`,
     };
   }).slice(0, GROUP_LIMIT);
   const composers = mapRecords(composerSource, "composer", (item, index) => {
@@ -178,9 +202,8 @@ export function mapAutocompleteResponse(payload: unknown): AutocompleteGroup[] {
       href: `/search?view=tracks&type=main&composer=${encodeURIComponent(label)}`,
     };
   }).slice(0, GROUP_LIMIT);
-  const lyrics = mapWords(lyricsSource, "lyrics");
   const keywords = mapWords(keywordsSource, "keyword");
-  const words = [...lyrics, ...keywords]
+  const words = keywords
     .filter((item, index, items) => items.findIndex((candidate) => candidate.label.toLocaleLowerCase() === item.label.toLocaleLowerCase()) === index)
     .slice(0, GROUP_LIMIT);
 
