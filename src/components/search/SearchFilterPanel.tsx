@@ -11,14 +11,17 @@ interface SearchFilterPanelProps {
   groups: SearchFilterGroup[];
   categories: string[];
   labels: string[];
+  styles: string[];
   composers?: string[];
   bpmRange: [number, number];
   durationRange: [number, number];
   categoryFacets: SearchFacetItem[];
   labelFacets: SearchFacetItem[];
+  styleFacets: SearchFacetItem[];
   locale: "fr" | "en";
   onCategoriesChange: (values: string[]) => void;
   onLabelsChange: (values: string[]) => void;
+  onStylesChange: (values: string[]) => void;
   onComposersChange?: (values: string[]) => void;
   onBpmChange: (value: [number, number]) => void;
   onDurationChange: (value: [number, number]) => void;
@@ -28,6 +31,7 @@ interface SearchFilterPanelProps {
 const labelsByKey: Record<string, { fr: string; en: string }> = {
   labels: { fr: "Labels", en: "Labels" },
   composers: { fr: "Compositeurs", en: "Composers" },
+  styles: { fr: "Styles", en: "Styles" },
   genre: { fr: "Genre", en: "Genre" },
   moods: { fr: "Ambiances", en: "Moods" },
   musicFor: { fr: "Musique pour", en: "Music for" },
@@ -407,20 +411,23 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
     groups,
     categories,
     labels,
+    styles,
     composers = [],
     bpmRange,
     durationRange,
     categoryFacets,
     labelFacets,
+    styleFacets,
     locale,
     onCategoriesChange,
     onLabelsChange,
+    onStylesChange,
     onComposersChange = () => undefined,
     onBpmChange,
     onDurationChange,
     onReset,
   } = props;
-  const activeCount = categories.length + labels.length + composers.length
+  const activeCount = categories.length + labels.length + styles.length + composers.length
     + (bpmRange[0] !== 50 || bpmRange[1] !== 200 ? 1 : 0)
     + (durationRange[0] !== 0 || durationRange[1] !== 300 ? 1 : 0);
   return (
@@ -437,10 +444,10 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
           key={group.key}
           group={group}
           index={index}
-          values={group.key === "labels" ? labels : group.key === "composers" ? composers : categories}
-          facets={group.key === "labels" ? labelFacets : group.key === "composers" ? [] : categoryFacets}
+          values={group.key === "labels" ? labels : group.key === "styles" ? styles : group.key === "composers" ? composers : categories}
+          facets={group.key === "labels" ? labelFacets : group.key === "styles" ? styleFacets : group.key === "composers" ? [] : categoryFacets}
           locale={locale}
-          onChange={group.key === "labels" ? onLabelsChange : group.key === "composers" ? onComposersChange : onCategoriesChange}
+          onChange={group.key === "labels" ? onLabelsChange : group.key === "styles" ? onStylesChange : group.key === "composers" ? onComposersChange : onCategoriesChange}
         />
       ))}
       <RangeControl label="BPM" value={bpmRange} min={50} max={200} locale={locale} format={(value) => String(value)} onChange={onBpmChange} />

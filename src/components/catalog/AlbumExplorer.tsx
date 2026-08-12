@@ -67,6 +67,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   const [page, setPage] = useState(Math.max(1, Number(searchParams.get("page")) || 1));
   const [categories, setCategories] = useState(csv(searchParams.get("categories")));
   const [labels, setLabels] = useState(csv(searchParams.get("labels")));
+  const [styles, setStyles] = useState(csv(searchParams.get("styles")));
   const [composers, setComposers] = useState<string[]>(searchParams.get("composer") ? [searchParams.get("composer")!] : []);
   const [bpmRange, setBpmRange] = useState<[number, number]>([
     Number(searchParams.get("bpmMin")) || DEFAULT_BPM[0],
@@ -96,6 +97,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     offset: (page - 1) * pageSize,
     query: debouncedQuery || undefined,
     labels: [...labels, ...(fixedLabel ? [fixedLabel] : [])],
+    styles,
     composers,
     categories,
     minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
@@ -104,8 +106,8 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
     language: locale,
     sort,
-  }), [bpmRange, categories, composers, debouncedQuery, durationRange, fixedLabel, labels, locale, page, pageSize, sort]);
-  const isInitialState = !query && page === 1 && sort === "recent" && !categories.length && !labels.length && !composers.length
+  }), [bpmRange, categories, composers, debouncedQuery, durationRange, fixedLabel, labels, locale, page, pageSize, sort, styles]);
+  const isInitialState = !query && page === 1 && sort === "recent" && !categories.length && !labels.length && !styles.length && !composers.length
     && bpmRange[0] === DEFAULT_BPM[0] && bpmRange[1] === DEFAULT_BPM[1]
     && durationRange[0] === DEFAULT_DURATION[0] && durationRange[1] === DEFAULT_DURATION[1];
   const albumsQuery = useAlbums(requestParams, true, isInitialState ? initialData : undefined);
@@ -133,6 +135,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     if (view !== "grid") params.set("view", view);
     if (page > 1) params.set("page", String(page));
     if (labels.length) params.set("labels", labels.join(","));
+    if (styles.length) params.set("styles", styles.join(","));
     if (composers[0]) params.set("composer", composers[0]);
     if (categories.length) params.set("categories", categories.join(","));
     if (bpmRange[0] !== DEFAULT_BPM[0]) params.set("bpmMin", String(bpmRange[0]));
@@ -141,7 +144,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
-  }, [bpmRange, categories, composers, durationRange, labels, mobileFiltersOpen, page, pathname, query, router, searchParams, sort, view]);
+  }, [bpmRange, categories, composers, durationRange, labels, mobileFiltersOpen, page, pathname, query, router, searchParams, sort, styles, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -175,6 +178,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   const reset = useCallback(() => {
     setCategories([]);
     setLabels([]);
+    setStyles([]);
     setComposers([]);
     setBpmRange(DEFAULT_BPM);
     setDurationRange(DEFAULT_DURATION);
@@ -201,6 +205,13 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
       group: "Label",
       state: value.startsWith("-") ? "exclude" as const : "include" as const,
       onRemove: () => removeSignedValue(setLabels, value),
+    })),
+    ...styles.map((value) => ({
+      id: `style-${value}`,
+      label: names.get(value.replace(/^-/, "")) ?? value.replace(/^-/, ""),
+      group: "Style",
+      state: value.startsWith("-") ? "exclude" as const : "include" as const,
+      onRemove: () => removeSignedValue(setStyles, value),
     })),
     ...composers.map((value) => ({
       id: `composer-${value}`,
@@ -229,14 +240,17 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
       groups={filterGroups}
       categories={categories}
       labels={labels}
+      styles={styles}
       composers={composers}
       bpmRange={bpmRange}
       durationRange={durationRange}
       categoryFacets={facets?.categories ?? []}
       labelFacets={facets?.labels ?? []}
+      styleFacets={facets?.styles ?? []}
       locale={locale}
       onCategoriesChange={(value) => update(setCategories, value)}
       onLabelsChange={(value) => update(setLabels, value)}
+      onStylesChange={(value) => update(setStyles, value)}
       onComposersChange={(value) => update(setComposers, value.slice(-1))}
       onBpmChange={(value) => update(setBpmRange, value)}
       onDurationChange={(value) => update(setDurationRange, value)}
@@ -253,7 +267,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             locale={locale}
             query={query}
             onQueryChange={(value) => { setQuery(value); setPage(1); }}
-            queryPlaceholder={queryPlaceholder?.[locale] ?? (locale === "fr" ? "Rechercher un album, un artiste ou un mot-clé" : "Search an album, artist or keyword")}
+            queryPlaceholder={queryPlaceholder?.[locale] ?? (locale === "fr" ? "Rechercher un titre d’album ou un mot-clé" : "Search an album title or keyword")}
             sort={sort}
             onSortChange={(value) => { setSort(value); setPage(1); }}
             sortOptions={[

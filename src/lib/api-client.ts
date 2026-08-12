@@ -9,9 +9,11 @@ import type {
   Label,
   Playlist,
   QueryResolution,
+  SearchFieldProfile,
   SearchFacets,
   SearchFilterGroup,
-  SearchIntentResolution,
+  SearchMode,
+  SearchTranslationMode,
   SortMode,
   Track,
 } from "@/types";
@@ -63,7 +65,10 @@ interface SearchApiResponse<T extends Track | Album> {
     requestId: string;
     searchHistoryId?: string;
     queryResolution?: QueryResolution;
-    intentResolution?: SearchIntentResolution;
+    translationSuggestion?: QueryResolution;
+    searchMode: SearchMode;
+    fieldProfile: SearchFieldProfile;
+    providerDurationMs: number;
   };
 }
 
@@ -78,23 +83,22 @@ export async function fetchAlbums(params?: {
   moods?: string[];
   instruments?: string[];
   query?: string;
-  brief?: string;
-  resolveBrief?: boolean;
   featured?: boolean;
   sort?: "order" | "releaseDate" | SortMode;
   forceSearch?: boolean;
   categories?: string[];
   labels?: string[];
+  styles?: string[];
   composers?: string[];
   type?: "main" | "alternate" | "all";
   language?: "fr" | "en";
-  translate?: boolean;
+  translation?: SearchTranslationMode;
   minBpm?: number;
   maxBpm?: number;
   minDuration?: number;
   maxDuration?: number;
-}, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution; intentResolution?: SearchIntentResolution } & PaginatedResponse> {
-  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.brief || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.categories?.length || params?.labels?.length || params?.composers?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
+}, signal?: AbortSignal): Promise<{ albums: ApiAlbum[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution; translationSuggestion?: QueryResolution; fieldProfile?: SearchFieldProfile } & PaginatedResponse> {
+  const usesSearch = Boolean(params?.forceSearch || params?.query || params?.genres?.length || params?.moods?.length || params?.instruments?.length || params?.categories?.length || params?.labels?.length || params?.styles?.length || params?.composers?.length || params?.minBpm || params?.maxBpm || params?.minDuration || params?.maxDuration);
   if (usesSearch) {
     const searchParams = new URLSearchParams({
       view: "albums",
@@ -103,16 +107,15 @@ export async function fetchAlbums(params?: {
       sort: params?.sort && !["order", "releaseDate"].includes(params.sort) ? params.sort : "recent",
     });
     if (params?.query) searchParams.set("q", params.query);
-    if (params?.brief) searchParams.set("brief", params.brief);
-    if (params?.brief && params.resolveBrief !== false) searchParams.set("resolve", "1");
     const labels = [...(params?.labels || []), ...(params?.label ? [params.label] : [])];
     if (labels.length) searchParams.set("labels", [...new Set(labels)].join(","));
+    if (params?.styles?.length) searchParams.set("styles", params.styles.join(","));
     if (params?.composers?.[0]) searchParams.set("composer", params.composers[0]);
     const categories = [...(params?.genres || []), ...(params?.moods || []), ...(params?.instruments || []), ...(params?.categories || [])];
     if (categories.length) searchParams.set("categories", categories.join(","));
     if (params?.type) searchParams.set("type", params.type);
     if (params?.language) searchParams.set("language", params.language);
-    if (params?.translate === false) searchParams.set("translate", "0");
+    if (params?.translation) searchParams.set("translation", params.translation);
     if (params?.minBpm !== undefined) searchParams.set("bpmMin", String(params.minBpm));
     if (params?.maxBpm !== undefined) searchParams.set("bpmMax", String(params.maxBpm));
     if (params?.minDuration !== undefined) searchParams.set("durationMin", String(params.minDuration));
@@ -125,7 +128,8 @@ export async function fetchAlbums(params?: {
       facets: payload.data.facets,
       searchHistoryId: payload.meta.searchHistoryId,
       queryResolution: payload.meta.queryResolution,
-      intentResolution: payload.meta.intentResolution,
+      translationSuggestion: payload.meta.translationSuggestion,
+      fieldProfile: payload.meta.fieldProfile,
       pagination: { total: payload.meta.total, limit: payload.meta.pageSize, offset: (payload.meta.page - 1) * payload.meta.pageSize, hasMore: payload.meta.page * payload.meta.pageSize < payload.meta.total },
     };
   }
@@ -162,8 +166,6 @@ export async function fetchTracks(params?: {
   offset?: number;
   albumId?: string;
   query?: string;
-  brief?: string;
-  resolveBrief?: boolean;
   genre?: string;
   genres?: string[];
   mood?: string;
@@ -177,13 +179,14 @@ export async function fetchTracks(params?: {
   isVocal?: boolean;
   label?: string;
   labels?: string[];
+  styles?: string[];
   composers?: string[];
   categories?: string[];
   type?: "main" | "alternate" | "all";
   language?: "fr" | "en";
   sort?: SortMode;
-  translate?: boolean;
-}, signal?: AbortSignal): Promise<{ tracks: ApiTrack[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution; intentResolution?: SearchIntentResolution } & PaginatedResponse> {
+  translation?: SearchTranslationMode;
+}, signal?: AbortSignal): Promise<{ tracks: ApiTrack[]; facets?: SearchFacets; searchHistoryId?: string; queryResolution?: QueryResolution; translationSuggestion?: QueryResolution; fieldProfile?: SearchFieldProfile } & PaginatedResponse> {
   const searchParams = new URLSearchParams();
   if (params?.limit) searchParams.set("limit", params.limit.toString());
   if (params?.offset) searchParams.set("offset", params.offset.toString());
@@ -196,19 +199,18 @@ export async function fetchTracks(params?: {
   searchParams.set("view", "tracks");
   searchParams.set("page", String(Math.floor((params?.offset || 0) / (params?.limit || 30)) + 1));
   if (params?.query) searchParams.set("q", params.query);
-  if (params?.brief) searchParams.set("brief", params.brief);
-  if (params?.brief && params.resolveBrief !== false) searchParams.set("resolve", "1");
   const categories = [params?.genre, params?.mood, params?.instrument, ...(params?.genres || []), ...(params?.moods || []), ...(params?.instruments || []), ...(params?.categories || [])].filter(Boolean) as string[];
   if (categories.length) searchParams.set("categories", [...new Set(categories)].join(","));
-  if (params?.minBpm) searchParams.set("bpmMin", params.minBpm.toString());
-  if (params?.maxBpm) searchParams.set("bpmMax", params.maxBpm.toString());
-  if (params?.minDuration) searchParams.set("durationMin", params.minDuration.toString());
-  if (params?.maxDuration) searchParams.set("durationMax", params.maxDuration.toString());
+  if (params?.minBpm !== undefined) searchParams.set("bpmMin", params.minBpm.toString());
+  if (params?.maxBpm !== undefined) searchParams.set("bpmMax", params.maxBpm.toString());
+  if (params?.minDuration !== undefined) searchParams.set("durationMin", params.minDuration.toString());
+  if (params?.maxDuration !== undefined) searchParams.set("durationMax", params.maxDuration.toString());
   const labels = [...(params?.labels || []), ...(params?.label ? [params.label] : [])];
   if (labels.length) searchParams.set("labels", [...new Set(labels)].join(","));
+  if (params?.styles?.length) searchParams.set("styles", params.styles.join(","));
   if (params?.composers?.[0]) searchParams.set("composer", params.composers[0]);
   if (params?.sort) searchParams.set("sort", params.sort);
-  if (params?.translate === false) searchParams.set("translate", "0");
+  if (params?.translation) searchParams.set("translation", params.translation);
   if (params?.type) searchParams.set("type", params.type);
   if (params?.language) searchParams.set("language", params.language);
 
@@ -220,9 +222,31 @@ export async function fetchTracks(params?: {
     facets: payload.data.facets,
     searchHistoryId: payload.meta.searchHistoryId,
     queryResolution: payload.meta.queryResolution,
-    intentResolution: payload.meta.intentResolution,
+    translationSuggestion: payload.meta.translationSuggestion,
+    fieldProfile: payload.meta.fieldProfile,
     pagination: { total: payload.meta.total, limit: payload.meta.pageSize, offset: (payload.meta.page - 1) * payload.meta.pageSize, hasMore: payload.meta.page * payload.meta.pageSize < payload.meta.total },
   };
+}
+
+export async function fetchSearchTranslationSuggestion(
+  query: string,
+  language: "fr" | "en",
+  signal?: AbortSignal,
+): Promise<QueryResolution | undefined> {
+  const searchParams = new URLSearchParams({
+    q: query,
+    view: "tracks",
+    page: "1",
+    limit: "1",
+    type: "main",
+    translation: "offer",
+    language,
+    probe: "1",
+  });
+  const response = await fetch(`${API_BASE}/search?${searchParams}`, { signal });
+  if (!response.ok) throw new Error("Failed to resolve search translation suggestion");
+  const payload = await response.json() as SearchApiResponse<Track>;
+  return payload.meta.total === 0 ? payload.meta.translationSuggestion : undefined;
 }
 
 export async function searchAll(query: string, type?: "all" | "albums" | "tracks"): Promise<{
@@ -316,8 +340,8 @@ export async function fetchSearchFilters(language: "fr" | "en", signal?: AbortSi
   return payload.data.groups;
 }
 
-export async function fetchAutocomplete(query: string, language: "fr" | "en", view: "tracks" | "albums", signal?: AbortSignal): Promise<AutocompleteGroup[]> {
-  const params = new URLSearchParams({ q: query, language, view });
+export async function fetchAutocomplete(query: string, language: "fr" | "en", signal?: AbortSignal): Promise<AutocompleteGroup[]> {
+  const params = new URLSearchParams({ q: query, language });
   const response = await fetch(`${API_BASE}/autocomplete?${params}`, { signal });
   if (!response.ok) throw new Error("Failed to fetch autocomplete suggestions");
   const payload = await response.json() as { data: { groups: AutocompleteGroup[] } };

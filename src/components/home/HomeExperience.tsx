@@ -64,7 +64,7 @@ export function HomeHero() {
   const { locale } = useI18n();
 
   return (
-    <section data-testid="home-hero" className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-hidden bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
+    <section data-testid="home-hero" className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-x-clip bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
       <DeferredOrganicHeroBackdrop />
       <div className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center">
         <SignedTitle className="pointer-events-auto relative z-10 mx-auto max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
@@ -73,7 +73,7 @@ export function HomeHero() {
         <p className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
           {locale === "fr" ? <>Des compositions originales pensées pour raconter vos images<br className="hidden sm:block" />Explorez, écoutez, comparez et licenciez en quelques clics.</> : <>Original compositions created to tell the story of your images<br className="hidden sm:block" />Explore, listen, compare and license in just a few clicks.</>}
         </p>
-        <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch mode="assisted" /></div>
+        <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch /></div>
       </div>
     </section>
   );
