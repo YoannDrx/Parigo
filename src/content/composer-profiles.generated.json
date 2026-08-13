@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T23:21:40.738Z",
+  "generatedAt": "2026-08-13T11:57:51.727Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -605,8 +605,8 @@
       "image": "/images/composers/canonical/sebastien_blanchon_n_zeng.webp",
       "detailImage": {
         "src": "/images/composers/detail/sebastien_blanchon_n_zeng.webp",
-        "width": 1200,
-        "height": 800
+        "width": 960,
+        "height": 960
       },
       "imageStatus": "portrait",
       "harvest": {
