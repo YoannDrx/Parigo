@@ -49,6 +49,7 @@ export interface Track {
   isExplicit?: boolean;
   libraryType?: string;
   highlighted?: boolean;
+  matchEvidence?: SearchMatchEvidence[];
 }
 
 export interface ComposerCreditLink {
@@ -88,6 +89,7 @@ export interface Album {
   keywords?: string[];
   styles?: Array<{ id: string; name: string }>;
   updatedAt?: string;
+  matchEvidence?: SearchMatchEvidence[];
 }
 
 export interface Playlist {
@@ -188,9 +190,12 @@ export interface Label {
 export interface CatalogCategory {
   id: string;
   name: string;
+  canonicalName?: string;
+  localizedName?: string;
   slug: string;
   trackCount?: number;
   parentId?: string;
+  path?: string[];
   children?: CatalogCategory[];
 }
 
@@ -225,6 +230,29 @@ export type SearchMode = "keyword" | "ai";
 export type SearchFieldProfile = "title" | "editorial";
 export type SearchTranslationMode = "offer" | "apply" | "off";
 
+export type SearchMatchField =
+  | "trackTitle"
+  | "albumTitle"
+  | "description"
+  | "keyword"
+  | "genre"
+  | "mood"
+  | "musicFor"
+  | "instrument"
+  | "albumKeyword"
+  | "albumDescription"
+  | "catalogReference"
+  | "playlistTitle"
+  | "labelName"
+  | "composerName"
+  | "lyrics";
+
+export interface SearchMatchEvidence {
+  field: SearchMatchField;
+  value: string;
+  matchedTerms: string[];
+}
+
 export type SearchFilterGroupKey =
   | "labels"
   | "composers"
@@ -237,6 +265,7 @@ export type SearchFilterGroupKey =
   | "area";
 
 export type AutocompleteKind =
+  | "filter"
   | "track"
   | "album"
   | "playlist"
@@ -253,17 +282,38 @@ export interface AutocompleteItem {
   image?: string;
   trackCount?: number;
   href?: string;
+  filterGroup?: SearchFilterGroupKey;
+  canonicalName?: string;
+  localizedName?: string;
+  matchedTerm?: string;
+  matchEvidence?: SearchMatchEvidence[];
 }
 
 export interface AutocompleteGroup {
-  key: "tracks" | "albums" | "playlists" | "labels" | "composers" | "words" | "lyrics";
+  key: "filters" | "titles" | "tracks" | "albums" | "playlists" | "labels" | "composers" | "words" | "lyrics";
   count: number;
   items: AutocompleteItem[];
+}
+
+export interface AutocompleteSearchContext {
+  categories?: string[];
+  styles?: string[];
+  labels?: string[];
+  composer?: string;
+  minBpm?: number;
+  maxBpm?: number;
+  minDuration?: number;
+  maxDuration?: number;
+  type?: "main" | "alternate" | "all";
+  sort?: SortMode;
 }
 
 export interface SearchFilterItem {
   id: string;
   name: string;
+  canonicalName?: string;
+  localizedName?: string;
+  path?: string[];
   count?: number;
   parentId?: string;
   children?: SearchFilterItem[];

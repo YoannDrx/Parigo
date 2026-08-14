@@ -49,6 +49,18 @@ describe("generic French title translation", () => {
     })).resolves.toBeUndefined();
   });
 
+  it("removes a leading English article from the search-ready suggestion", async () => {
+    const fetchImpl = vi.fn(async () => deeplResponse("FR", "A dark forest"));
+    await expect(translateFrenchSearchQuery("une forêt sombre", {
+      authKey: "test:fx",
+      fetchImpl,
+    })).resolves.toEqual({
+      original: "une forêt sombre",
+      effective: "dark forest",
+      source: "machine-translation",
+    });
+  });
+
   it("stays unavailable without a server key", async () => {
     const fetchImpl = vi.fn();
     await expect(translateFrenchSearchQuery("forêt", {

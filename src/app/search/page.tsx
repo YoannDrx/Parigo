@@ -28,6 +28,8 @@ import { Select } from "@/components/ui/Select";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId } from "@/lib/search-intent";
+import { canonicalSearchFilterLabel, canonicalSearchFilterName } from "@/lib/search-filter-labels";
+import { normalizeSearchText } from "@/lib/search-normalization";
 import { cn, formatDuration } from "@/lib/utils";
 import type { Album, AutocompleteItem, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchTranslationMode, SortMode, Track } from "@/types";
 import { useSession } from "@/lib/auth-client";
@@ -157,7 +159,26 @@ function SearchContent() {
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
   const allFilterItems = useMemo(() => filterGroups.flatMap((group) => flatten(group.items)), [filterGroups]);
-  const itemNames = useMemo(() => new Map(allFilterItems.map((item) => [item.id, item.name])), [allFilterItems]);
+  const itemNames = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => (
+    [item.id, canonicalSearchFilterLabel(group.key, item, locale)] as const
+  )))), [filterGroups, locale]);
+  const filterItemsById = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => [item.id, { group, item }] as const))), [filterGroups]);
+  const selectedAutocompleteFilters = useMemo(() => [...categories, ...styles]
+    .filter((value) => !value.startsWith("-"))
+    .flatMap((value) => {
+      const resolved = filterItemsById.get(value);
+      if (!resolved) return [];
+      const localized = resolved.item.localizedName || resolved.item.name;
+      const canonical = canonicalSearchFilterName(resolved.item);
+      return [{
+        id: value,
+        kind: "filter" as const,
+        label: canonicalSearchFilterLabel(resolved.group.key, resolved.item, locale),
+        filterGroup: resolved.group.key,
+        canonicalName: canonical,
+        localizedName: localized,
+      }];
+    }), [categories, filterItemsById, locale, styles]);
 
   useEffect(() => {
     if (!filterGroups.length) return;
@@ -172,8 +193,10 @@ function SearchContent() {
     if (!allFilterItems.length) return;
     const names = new Map<string, string>();
     allFilterItems.forEach((item) => {
-      const key = item.name.toLocaleLowerCase(locale);
-      if (!names.has(key)) names.set(key, item.id);
+      [item.name, item.canonicalName, item.localizedName].forEach((name) => {
+        const key = normalizeSearchText(name ?? "");
+        if (key && !names.has(key)) names.set(key, item.id);
+      });
     });
     const resolved = legacyEntries.flatMap(({ value, group }) => {
       const canonical = categoryId(value);
@@ -181,13 +204,13 @@ function SearchContent() {
       const unsigned = value.replace(/^-/, "");
       const id = group
         ? findSearchFilterId(filterGroups, group as SearchFilterGroupKey, unsigned)
-        : names.get(unsigned.toLocaleLowerCase(locale));
+        : names.get(normalizeSearchText(unsigned));
       return id ? [`${value.startsWith("-") ? "-" : ""}${id}`] : [];
     });
     if (!resolved.length) return;
     const frame = window.requestAnimationFrame(() => setCategories((current) => sorted([...current, ...resolved])));
     return () => window.cancelAnimationFrame(frame);
-  }, [allFilterItems, filterGroups, legacyEntries, locale]);
+  }, [allFilterItems, filterGroups, legacyEntries]);
 
   const updateCategories = useCallback((values: string[]) => {
     setCategories(sorted(values));
@@ -229,7 +252,7 @@ function SearchContent() {
     const next = params.toString();
     if (next !== searchParams.toString()) {
       const replaceUrl = () => {
-        window.history.replaceState(window.history.state, "", `/search${next ? `?${next}` : ""}`);
+        window.history.replaceState(window.history.state, "", `${localizedPath("/search")}${next ? `?${next}` : ""}`);
       };
       // Replacing the URL while the initial document is still loading can
       // cancel browser automation navigations and, more importantly, confuse
@@ -241,7 +264,7 @@ function SearchContent() {
         return () => window.removeEventListener("load", replaceUrl);
       }
     }
-  }, [bpmRange, categories, composers, density, durationRange, labels, mobileFiltersOpen, page, query, searchParams, sort, styles, translation, type, view]);
+  }, [bpmRange, categories, composers, density, durationRange, labels, localizedPath, mobileFiltersOpen, page, query, searchParams, sort, styles, translation, type, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -328,8 +351,8 @@ function SearchContent() {
     params.set("translation", "off");
     params.delete("translate");
     params.delete("page");
-    return `/search?${params.toString()}`;
-  }, [searchParams]);
+    return `${localizedPath("/search")}?${params.toString()}`;
+  }, [localizedPath, searchParams]);
   const commitSearchDraft = useCallback((rawValue: string) => {
     const value = rawValue.trim();
     if (!value) {
@@ -347,11 +370,6 @@ function SearchContent() {
       setPage(1);
     }
   }, [query]);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => commitSearchDraft(queryDraft), 400);
-    return () => window.clearTimeout(timeout);
-  }, [commitSearchDraft, queryDraft]);
 
   const applyUnifiedSearch = (value = queryDraft) => {
     commitSearchDraft(value);
@@ -373,7 +391,18 @@ function SearchContent() {
     const values = source === "categories" ? categories : source === "labels" ? labels : source === "styles" ? styles : composers;
     setter(values.filter((item) => item !== value));
   };
-  const selectSuggestion = (item: AutocompleteItem) => {
+  const selectSuggestion = (item: AutocompleteItem, remainingQuery?: string) => {
+    if (item.kind === "filter" && item.filterGroup) {
+      if (remainingQuery !== undefined) {
+        setQueryDraft(remainingQuery);
+        setQuery(remainingQuery);
+        setTranslation("offer");
+        setPage(1);
+      }
+      if (item.filterGroup === "styles") updateStyles([...styles, item.id]);
+      else updateCategories([...categories, item.id]);
+      return;
+    }
     if (item.kind === "label") {
       updateLabels([...labels, item.id]);
       return;
@@ -501,6 +530,25 @@ function SearchContent() {
                 onSubmit={applyUnifiedSearch}
                 onSelect={selectSuggestion}
                 onClear={clearUnifiedSearch}
+                stagedFilters={selectedAutocompleteFilters}
+                filterSelectionState="applied"
+                autocompleteEnabled={!(translation === "offer" && Boolean(translationSuggestion))}
+                autocompleteContext={{
+                  categories,
+                  styles,
+                  labels,
+                  composer: composers[0],
+                  minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
+                  maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
+                  minDuration: durationRange[0] !== DEFAULT_DURATION[0] ? durationRange[0] : undefined,
+                  maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
+                  type,
+                  sort,
+                }}
+                onRemoveStagedFilter={(item) => {
+                  if (item.filterGroup === "styles") updateStyles(styles.filter((value) => value.replace(/^-/, "") !== item.id));
+                  else updateCategories(categories.filter((value) => value.replace(/^-/, "") !== item.id));
+                }}
               />
 
               <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
@@ -564,9 +612,9 @@ function SearchContent() {
               </div>
             ) : null}
 
-            <div className="mb-4 flex items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
-              <div className="flex items-center gap-3"><span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>{session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 border-l border-[var(--line)] pl-3 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}</div>
-              {query && <span>{locale === "fr" ? "Résultats pour" : "Results for"} « {query} »</span>}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
+              <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
+              {session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}
             </div>
 
             {saveSearchOpen && <div className="mb-4 grid gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nom de la recherche" : "Search name"}</span><input autoFocus value={saveSearchName} onChange={(event) => { setSaveSearchName(event.target.value); setSaveSearchState("idle"); setSaveSearchError(""); setSaveSearchRequestId(""); }} maxLength={160} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--foreground)]" /></label><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setSaveSearchOpen(false)}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button size="sm" disabled={!saveSearchName.trim() || !searchHistoryId || saveSearchState === "saving"} onClick={() => void saveCurrentSearch()}>{saveSearchState === "saving" ? <ParigoLoader size="icon" label={locale === "fr" ? "Enregistrement" : "Saving"} /> : <BookmarkPlus size={14} />}{saveSearchState === "saved" ? (locale === "fr" ? "Sauvegardée" : "Saved") : (locale === "fr" ? "Enregistrer" : "Save")}</Button></div>{saveSearchState === "error" && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--danger)] sm:col-span-2"><div><p>{saveSearchError}</p>{saveSearchRequestId && <p className="mt-1 font-mono text-[.62rem] opacity-65">Référence : {saveSearchRequestId}</p>}</div><Button variant="outline" size="sm" onClick={() => void verifySavedSearch()}>{locale === "fr" ? "Réessayer la vérification" : "Check again"}</Button></div>}</div>}
@@ -619,7 +667,19 @@ function SearchContent() {
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             ) : albums.length ? (
-                <div data-testid="search-album-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{albums.map((album, index) => <article key={album.id} style={{ animationDelay: `${index * 18}ms` }} className="parigo-card animate-[fade-in_.25s_ease-out_both] border border-[var(--line)] bg-[var(--surface)] p-2.5"><Link href={localizedPath(`/albums/${album.slug || album.id}`)} className="group block"><div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div><div className="py-3"><h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2><div className="mt-2 flex min-w-0 flex-wrap items-center gap-2"><p className="min-w-0 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p>{album.code && <span className="album-reference-tag shrink-0">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}</div></div></Link></article>)}</div>
+                <div data-testid="search-album-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  {albums.map((album, index) => (
+                    <article key={album.id} style={{ animationDelay: `${index * 18}ms` }} className="parigo-card animate-[fade-in_.25s_ease-out_both] border border-[var(--line)] bg-[var(--surface)] p-2.5">
+                      <Link href={localizedPath(`/albums/${album.slug || album.id}`)} className="group block">
+                        <div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div>
+                        <div className="py-3">
+                          <h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2>
+                          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2"><p className="min-w-0 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p>{album.code && <span className="album-reference-tag shrink-0">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}</div>
+                        </div>
+                      </Link>
+                    </article>
+                  ))}
+                </div>
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             )}

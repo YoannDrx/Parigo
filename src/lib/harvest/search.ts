@@ -25,6 +25,7 @@ export interface HarvestSearchInput {
   returnRates?: boolean;
   match?: "normal" | "exact";
   includeStyleFacets?: boolean;
+  excludeTitleQuery?: string;
 }
 
 export const TRACK_EDITORIAL_SEARCH_FIELDS = [
@@ -199,6 +200,19 @@ export function buildCloudSearch(input: HarvestSearchInput): Record<string, unkn
         OrOperation: false,
         Keywords: input.composerQuery.trim(),
         Negative: false,
+      },
+    });
+  }
+  if (input.excludeTitleQuery?.trim()) {
+    previousBundles.push({
+      St_Keyword: {
+        Fields: keywordSearchFields(input.view ?? "Track", "title"),
+        ExactPhrase: false,
+        Wildcard: true,
+        DisableKeywordGroup: true,
+        OrOperation: false,
+        Keywords: input.excludeTitleQuery.trim(),
+        Negative: true,
       },
     });
   }

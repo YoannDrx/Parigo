@@ -3,27 +3,31 @@
 import Image from "next/image";
 import {
   ArrowRight,
+  Check,
   Disc3,
   Library,
   ListMusic,
   Music2,
   Quote,
   Search,
-  Sparkles,
+  SlidersHorizontal,
   UserRound,
+  X,
 } from "lucide-react";
-import type { AutocompleteGroup, AutocompleteItem, QueryResolution } from "@/types";
+import type { AutocompleteGroup, AutocompleteItem } from "@/types";
 import { autocompleteItemIndex } from "@/hooks/use-search-autocomplete";
 import { resizeArtworkSource } from "@/lib/image-loader";
 import { cn } from "@/lib/utils";
 
 const groupLabels = {
+  filters: { fr: "Filtres trouvés", en: "Matching filters" },
+  titles: { fr: "Dans les titres", en: "In titles" },
   tracks: { fr: "Pistes", en: "Tracks" },
   albums: { fr: "Albums", en: "Albums" },
   playlists: { fr: "Playlists", en: "Playlists" },
   labels: { fr: "Labels", en: "Labels" },
   composers: { fr: "Compositeurs", en: "Composers" },
-  words: { fr: "Mots-clés", en: "Keywords" },
+  words: { fr: "Affiner avec", en: "Refine with" },
   lyrics: { fr: "Dans les paroles", en: "In lyrics" },
 } as const;
 
@@ -35,11 +39,11 @@ interface SearchAutocompleteMenuProps {
   error: boolean;
   locale: "fr" | "en";
   query: string;
-  translationSuggestion?: QueryResolution;
-  translationLoading?: boolean;
   onActiveIndexChange: (index: number) => void;
   onSelect: (item: AutocompleteItem) => void;
-  onApplyTranslation?: () => void;
+  stagedFilters?: AutocompleteItem[];
+  onRemoveStagedFilter?: (item: AutocompleteItem) => void;
+  filterSelectionState?: "pending" | "applied";
   onViewAll: () => void;
 }
 
@@ -73,12 +77,6 @@ function SuggestionArtwork({ item, compact = false }: { item: AutocompleteItem; 
   );
 }
 
-function entityKind(item: AutocompleteItem, locale: "fr" | "en"): string {
-  if (item.kind === "album") return "Album";
-  if (item.kind === "playlist") return "Playlist";
-  return locale === "fr" ? "Piste" : "Track";
-}
-
 function EntityGroup({
   id,
   group,
@@ -98,52 +96,134 @@ function EntityGroup({
   onActiveIndexChange: (index: number) => void;
   onSelect: (item: AutocompleteItem) => void;
 }) {
+  const sections = group.key === "titles"
+    ? ([
+        { key: "track", label: locale === "fr" ? "Pistes" : "Tracks" },
+        { key: "album", label: "Albums" },
+        { key: "playlist", label: "Playlists" },
+      ] as const).flatMap((section) => {
+        const items = group.items.filter((item) => item.kind === section.key);
+        return items.length ? [{ ...section, items }] : [];
+      })
+    : [{ key: group.key, label: "", items: group.items }];
   return (
     <section role="group" aria-labelledby={`${id}-${group.key}`} className={cn(separated && "mt-4 border-t border-[var(--line)] pt-4")}>
       <div className="mb-2 flex items-center justify-between gap-3 px-1">
         <h3 id={`${id}-${group.key}`} className="flex items-center gap-2 text-sm font-semibold">
-          {group.key === "playlists" ? <ListMusic size={15} aria-hidden="true" /> : group.key === "albums" ? <Library size={15} aria-hidden="true" /> : <Disc3 size={15} aria-hidden="true" />}
+          {group.key === "titles" ? <Search size={15} aria-hidden="true" /> : group.key === "playlists" ? <ListMusic size={15} aria-hidden="true" /> : group.key === "albums" ? <Library size={15} aria-hidden="true" /> : <Disc3 size={15} aria-hidden="true" />}
           {groupLabels[group.key][locale]}
         </h3>
         <span className="font-mono text-[.62rem] uppercase tracking-[.08em] text-[var(--text-muted)]">
-          {group.items.length} {locale === "fr" ? "suggestion" : "suggestion"}{group.items.length > 1 ? "s" : ""}
+          {group.items.length < group.count ? `${group.items.length}/${group.count}` : group.items.length} {locale === "fr" ? "suggestion" : "suggestion"}{group.count > 1 ? "s" : ""}
         </span>
       </div>
-      <div className="grid gap-1">
+      <div className={cn("grid", group.key === "titles" ? "gap-5" : "gap-1")}>
+        {sections.map((section) => (
+          <div key={section.key} role={group.key === "titles" ? "group" : undefined} aria-labelledby={group.key === "titles" ? `${id}-${group.key}-${section.key}` : undefined}>
+            {group.key === "titles" ? (
+              <div className="sticky top-0 z-10 mb-1.5 flex items-center justify-between border-b border-[var(--line)] bg-[var(--surface)] px-1 py-2">
+                <h4 id={`${id}-${group.key}-${section.key}`} className="font-mono text-[.6rem] font-semibold uppercase tracking-[.11em] text-[var(--text-muted)]">{section.label}</h4>
+                <span className="font-mono text-[.58rem] text-[var(--text-muted)]">{section.items.length}</span>
+              </div>
+            ) : null}
+            <div className="grid gap-1">
+              {section.items.map((item) => {
+                const index = autocompleteItemIndex(groups, item);
+                const trackCount = item.trackCount
+                  ? `${item.trackCount} ${locale === "fr" ? "pistes" : "tracks"}`
+                  : "";
+                return (
+                  <button
+                    key={`${item.kind}-${item.id}`}
+                    id={`${id}-option-${index}`}
+                    type="button"
+                    role="option"
+                    aria-selected={index === activeIndex}
+                    onMouseEnter={() => onActiveIndexChange(index)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => onSelect(item)}
+                    className={cn(
+                      "group/suggestion grid min-h-16 w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-xl p-2 text-left transition",
+                      index === activeIndex
+                        ? "bg-[var(--foreground)] text-[var(--background)]"
+                        : "hover:bg-[var(--surface-soft)]",
+                    )}
+                  >
+                    <SuggestionArtwork item={item} />
+                    <span className="min-w-0">
+                      <span className="block truncate text-sm font-semibold">{item.label}</span>
+                      {(item.subtitle || trackCount) ? (
+                        <span className="mt-1 block truncate font-mono text-[.62rem] opacity-65">
+                          {[item.subtitle, trackCount].filter(Boolean).join(" · ")}
+                        </span>
+                      ) : null}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function FilterGroup({
+  id,
+  group,
+  groups,
+  activeIndex,
+  locale,
+  onActiveIndexChange,
+  onSelect,
+  stagedFilters = [],
+  onRemoveStagedFilter,
+}: {
+  id: string;
+  group: AutocompleteGroup;
+  groups: AutocompleteGroup[];
+  activeIndex: number;
+  locale: "fr" | "en";
+  onActiveIndexChange: (index: number) => void;
+  onSelect: (item: AutocompleteItem) => void;
+  stagedFilters?: AutocompleteItem[];
+  onRemoveStagedFilter?: (item: AutocompleteItem) => void;
+}) {
+  return (
+    <section role="group" aria-labelledby={`${id}-filters`} className="border-b border-[var(--line)] bg-[var(--color-primary-light)] p-3 sm:p-4 lg:col-span-2">
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div>
+          <h3 id={`${id}-filters`} className="flex items-center gap-2 text-sm font-semibold"><SlidersHorizontal size={15} aria-hidden="true" />{groupLabels.filters[locale]}</h3>
+          <p className="mt-1 text-[.68rem] leading-4 text-[var(--text-muted)]">{locale === "fr" ? "Ces filtres sont proposés, jamais appliqués automatiquement." : "These filters are suggested, never applied automatically."}</p>
+        </div>
+        <span className="shrink-0 font-mono text-[.62rem] text-[var(--text-muted)]">{group.items.length}</span>
+      </div>
+      <div className="grid gap-1 sm:grid-cols-2">
         {group.items.map((item) => {
           const index = autocompleteItemIndex(groups, item);
-          const trackCount = item.trackCount
-            ? `${item.trackCount} ${locale === "fr" ? "pistes" : "tracks"}`
-            : "";
+          const selected = stagedFilters.some((candidate) => candidate.id === item.id && candidate.filterGroup === item.filterGroup);
           return (
             <button
-              key={`${item.kind}-${item.id}`}
+              key={`${item.kind}-${item.filterGroup}-${item.id}`}
               id={`${id}-option-${index}`}
               type="button"
               role="option"
-              aria-selected={index === activeIndex}
+              aria-selected={selected || index === activeIndex}
               onMouseEnter={() => onActiveIndexChange(index)}
               onMouseDown={(event) => event.preventDefault()}
-              onClick={() => onSelect(item)}
+              onClick={() => selected && onRemoveStagedFilter ? onRemoveStagedFilter(item) : onSelect(item)}
               className={cn(
-                "group/suggestion grid min-h-16 w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl p-2 text-left transition",
-                index === activeIndex
-                  ? "bg-[var(--foreground)] text-[var(--background)]"
-                  : "hover:bg-[var(--surface-soft)]",
+                "flex min-h-12 items-center justify-between gap-3 border px-3 py-2 text-left transition",
+                selected
+                  ? "border-[var(--signal-strong)] bg-[var(--surface)] text-[var(--signal-strong)]"
+                  : index === activeIndex
+                  ? "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]"
+                  : "border-[var(--line)] bg-[var(--surface)] hover:border-[var(--signal-strong)]",
               )}
             >
-              <SuggestionArtwork item={item} />
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-semibold">{item.label}</span>
-                {(item.subtitle || trackCount) ? (
-                  <span className="mt-1 block truncate font-mono text-[.62rem] opacity-65">
-                    {[item.subtitle, trackCount].filter(Boolean).join(" · ")}
-                  </span>
-                ) : null}
-              </span>
-              <span className="hidden text-[.65rem] font-semibold uppercase tracking-[.08em] opacity-55 sm:block">
-                {entityKind(item, locale)}
-              </span>
+              <span className="min-w-0"><span className="block whitespace-normal break-words text-sm font-semibold leading-5">{item.label}</span><span className="mt-0.5 block text-[.62rem] opacity-60">{item.subtitle}</span></span>
+              <span className="shrink-0" aria-hidden="true">{selected ? <Check size={15} /> : "+"}</span>
             </button>
           );
         })}
@@ -293,14 +373,16 @@ export function SearchAutocompleteMenu({
   error,
   locale,
   query,
-  translationSuggestion,
-  translationLoading = false,
   onActiveIndexChange,
   onSelect,
-  onApplyTranslation,
   onViewAll,
+  stagedFilters = [],
+  onRemoveStagedFilter,
+  filterSelectionState = "pending",
 }: SearchAutocompleteMenuProps) {
-  const mainGroups = ["tracks", "albums", "playlists"].flatMap((key) => {
+  const titleGroup = groups.find((candidate) => candidate.key === "titles");
+  const mainGroupKeys = ["tracks", "albums", "playlists"];
+  const mainGroups = mainGroupKeys.flatMap((key) => {
     const group = groups.find((candidate) => candidate.key === key);
     return group ? [group] : [];
   });
@@ -309,6 +391,7 @@ export function SearchAutocompleteMenu({
     return group ? [group] : [];
   });
   const lyrics = groups.find((group) => group.key === "lyrics");
+  const filters = groups.find((group) => group.key === "filters");
   const resultCount = groups.reduce((total, group) => total + group.items.length, 0);
   const hasResults = resultCount > 0;
 
@@ -325,20 +408,26 @@ export function SearchAutocompleteMenu({
           {[0, 1, 2].map((item) => <span key={item} aria-hidden="true" className="h-16 animate-pulse rounded-xl bg-[var(--surface-soft)]" />)}
         </div>
       ) : hasResults ? (
-        <div id={id} role="listbox" aria-label={locale === "fr" ? "Suggestions de recherche" : "Search suggestions"} className="grid max-h-[min(34rem,68vh)] overflow-y-auto lg:grid-cols-[minmax(0,1.35fr)_minmax(16rem,.65fr)]">
-          {mainGroups.length ? (
+        <div id={id} role="listbox" aria-label={locale === "fr" ? "Suggestions de recherche" : "Search suggestions"} className="max-h-[min(34rem,68vh)] overflow-y-auto">
+          {titleGroup ? (
             <div className="min-w-0 p-3 sm:p-4">
+              <EntityGroup id={id} group={titleGroup} groups={groups} activeIndex={activeIndex} locale={locale} separated={false} onActiveIndexChange={onActiveIndexChange} onSelect={onSelect} />
+            </div>
+          ) : null}
+          {filters ? <FilterGroup id={id} group={filters} groups={groups} activeIndex={activeIndex} locale={locale} onActiveIndexChange={onActiveIndexChange} onSelect={onSelect} stagedFilters={stagedFilters} onRemoveStagedFilter={onRemoveStagedFilter} /> : null}
+          {mainGroups.length ? (
+            <div className="min-w-0 border-t border-[var(--line)] p-3 sm:p-4">
               {mainGroups.map((group, index) => <EntityGroup key={group.key} id={id} group={group} groups={groups} activeIndex={activeIndex} locale={locale} separated={index > 0} onActiveIndexChange={onActiveIndexChange} onSelect={onSelect} />)}
             </div>
           ) : null}
           {sideGroups.length || lyrics ? (
-            <div className={cn("min-w-0 bg-[var(--surface-soft)] p-4", mainGroups.length ? "border-t border-[var(--line)] lg:border-l lg:border-t-0" : "lg:col-span-2")}>
+            <div className="min-w-0 border-t border-[var(--line)] bg-[var(--surface-soft)] p-4">
               {sideGroups.map((group) => <SideGroup key={group.key} id={id} group={group} groups={groups} activeIndex={activeIndex} locale={locale} onActiveIndexChange={onActiveIndexChange} onSelect={onSelect} />)}
               {lyrics ? <LyricsGroup id={id} group={lyrics} groups={groups} activeIndex={activeIndex} locale={locale} onActiveIndexChange={onActiveIndexChange} onSelect={onSelect} /> : null}
             </div>
           ) : null}
         </div>
-      ) : (
+      ) : query.length >= 2 || stagedFilters.length === 0 ? (
         <div id={id} role="listbox" aria-label={locale === "fr" ? "Suggestions de recherche" : "Search suggestions"} className="px-5 py-8 text-center">
           <Search className="mx-auto text-[var(--text-muted)]" size={22} aria-hidden="true" />
           <p className="mt-3 text-sm font-semibold">
@@ -350,42 +439,35 @@ export function SearchAutocompleteMenu({
             {locale === "fr" ? "Essayez un titre, une ambiance, un instrument ou une expression différente." : "Try a title, mood, instrument or a different phrase."}
           </p>
         </div>
-      )}
-      {!loading && !hasResults && !error && translationLoading ? (
-        <div className="flex items-center justify-center gap-2 border-t border-[var(--line)] bg-[var(--surface-soft)] px-4 py-3 text-xs text-[var(--text-muted)]" role="status">
-          <Sparkles size={13} className="animate-pulse text-[var(--signal-strong)]" aria-hidden="true" />
-          {locale === "fr" ? "Recherche d’une alternative en anglais…" : "Looking for an English alternative…"}
-        </div>
-      ) : null}
-      {!loading && !hasResults && !error && translationSuggestion && onApplyTranslation ? (
-        <div className="search-autocomplete-translation flex flex-col gap-3 border-t border-[var(--signal-strong)] bg-[var(--color-primary-light)] px-4 py-4 sm:flex-row sm:items-center sm:justify-between" aria-live="polite">
-          <div className="flex min-w-0 items-center gap-3">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[var(--parigo-corner-md)_var(--parigo-turn-md)] bg-[var(--surface)] text-[var(--signal-strong)]" aria-hidden="true"><Sparkles size={16} /></span>
-            <p className="min-w-0 text-sm leading-5">
-              {locale === "fr" ? "Rechercher aussi" : "Also search for"}{" "}
-              <strong>« {translationSuggestion.effective} »</strong>{" "}
-              {locale === "fr" ? "en anglais ?" : "in English?"}
-            </p>
+      ) : <div id={id} role="listbox" aria-label={locale === "fr" ? "Suggestions de recherche" : "Search suggestions"} />}
+      {stagedFilters.length > 0 ? (
+        <div className="border-t border-[var(--line)] bg-[var(--color-primary-light)] px-4 py-3" aria-live="polite">
+          <p className="text-[.68rem] font-semibold">{filterSelectionState === "applied"
+            ? locale === "fr" ? "Filtres appliqués" : "Applied filters"
+            : locale === "fr" ? "Filtres à appliquer au lancement" : "Filters to apply when searching"}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {stagedFilters.map((item) => (
+              <button key={`${item.filterGroup}-${item.id}`} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => onRemoveStagedFilter?.(item)} className="inline-flex min-h-8 items-center gap-1.5 border border-[var(--signal-strong)] bg-[var(--surface)] px-2.5 text-xs font-semibold text-[var(--signal-strong)]">
+                {item.label}<X size={12} aria-hidden="true" />
+              </button>
+            ))}
           </div>
-          <button
-            type="button"
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={onApplyTranslation}
-            className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-[var(--parigo-corner-md)_var(--parigo-turn-md)] border border-[var(--signal-strong)] bg-[var(--signal-strong)] px-4 text-xs font-semibold text-[var(--signal-contrast)] transition hover:bg-[var(--foreground)] hover:text-[var(--background)]"
-          >
-            {locale === "fr" ? `Rechercher « ${translationSuggestion.effective} »` : `Search for “${translationSuggestion.effective}”`}
-            <ArrowRight size={14} aria-hidden="true" />
-          </button>
         </div>
       ) : null}
       <div className="flex flex-col gap-2 border-t border-[var(--line)] bg-[var(--background)] px-4 py-3 text-xs sm:flex-row sm:items-center sm:justify-between">
         <span className="text-[var(--text-muted)]">
           {hasResults
             ? `↑↓ ${locale === "fr" ? "naviguer · Entrée sélectionner · Échap fermer" : "navigate · Enter select · Escape close"}`
-            : locale === "fr" ? "Pistes, albums, playlists et métadonnées parcourus" : "Tracks, albums, playlists and metadata searched"}
+            : stagedFilters.length > 0
+              ? locale === "fr" ? "Recherche prête avec les filtres sélectionnés" : "Search ready with selected filters"
+              : locale === "fr" ? "Pistes, albums, playlists, paroles et métadonnées parcourus" : "Tracks, albums, playlists, lyrics and metadata searched"}
         </span>
         <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onViewAll} className="inline-flex min-h-9 items-center gap-2 self-start font-semibold transition hover:text-[var(--signal-strong)] sm:self-auto">
-          {locale === "fr" ? `Voir tous les résultats pour « ${query} »` : `View all results for “${query}”`}
+          {stagedFilters.length > 0 && filterSelectionState === "pending"
+            ? locale === "fr" ? `Voir les résultats · ${stagedFilters.length} filtre${stagedFilters.length > 1 ? "s" : ""}` : `View results · ${stagedFilters.length} filter${stagedFilters.length > 1 ? "s" : ""}`
+            : query
+              ? locale === "fr" ? `Voir tous les résultats pour « ${query} »` : `View all results for “${query}”`
+              : locale === "fr" ? "Voir les résultats filtrés" : "View filtered results"}
           <ArrowRight size={14} aria-hidden="true" />
         </button>
       </div>

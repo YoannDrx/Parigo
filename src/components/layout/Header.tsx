@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { UserMenu } from "@/components/features/UserMenu";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useTheme } from "@/components/providers/ThemeProvider";
@@ -14,6 +14,19 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 
 interface HeaderProps { variant?: "default" | "overlay"; }
+
+function LanguageLink({ className, children }: { className: string; children: ReactNode }) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { locale, t } = useI18n();
+  const query = searchParams.toString();
+  const href = `${alternateLocalePath(pathname, locale)}${query ? `?${query}` : ""}`;
+  return (
+    <a href={href} hrefLang={locale === "fr" ? "en" : "fr"} className={className} aria-label={`${t("common.language")} — ${locale === "fr" ? "English" : "Français"}`}>
+      {children}
+    </a>
+  );
+}
 
 export function Header({ variant = "default" }: HeaderProps) {
   const pathname = usePathname();
@@ -80,7 +93,6 @@ export function Header({ variant = "default" }: HeaderProps) {
     navigationItems.composers,
   ];
   const currentPath = stripLocalePrefix(pathname);
-  const languageHref = alternateLocalePath(pathname, locale);
   const hrefFor = (href: string) => localizedPath(locale, href);
 
   return (
@@ -106,7 +118,7 @@ export function Header({ variant = "default" }: HeaderProps) {
 
         <div className="flex h-full items-center justify-end gap-1">
           <div className="hidden items-center lg:flex">
-            <Tooltip label={locale === "fr" ? "Passer en anglais" : "Switch to French"} side="bottom"><a href={languageHref} hrefLang={locale === "fr" ? "en" : "fr"} className="nav-control grid h-11 w-11 place-items-center rounded-full font-mono text-[.64rem] font-semibold tracking-[.12em]" aria-label={`${t("common.language")} — ${locale === "fr" ? "English" : "Français"}`}>{locale === "fr" ? "EN" : "FR"}</a></Tooltip>
+            <Tooltip label={locale === "fr" ? "Passer en anglais" : "Switch to French"} side="bottom"><Suspense fallback={<span className="nav-control grid h-11 w-11 place-items-center rounded-full font-mono text-[.64rem] font-semibold tracking-[.12em]">{locale === "fr" ? "EN" : "FR"}</span>}><LanguageLink className="nav-control grid h-11 w-11 place-items-center rounded-full font-mono text-[.64rem] font-semibold tracking-[.12em]">{locale === "fr" ? "EN" : "FR"}</LanguageLink></Suspense></Tooltip>
             <Tooltip label={theme === "light" ? t("common.themeDark") : t("common.themeLight")} side="bottom"><button type="button" onClick={toggleTheme} className="nav-control h-11 w-11 rounded-full" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button></Tooltip>
           </div>
           <div className="hidden xl:block"><UserMenu compact /></div>
@@ -162,7 +174,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                 <div className="lg:hidden">
                   <p className="eyebrow mb-4 text-[var(--text-muted)]">{locale === "fr" ? "Préférences" : "Preferences"}</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <a href={languageHref} hrefLang={locale === "fr" ? "en" : "fr"} className="flex min-h-14 items-center justify-between border border-[var(--line)] px-4 text-left text-xs font-semibold transition hover:border-[var(--signal)] hover:bg-[var(--signal-soft)]" aria-label={`${t("common.language")} — ${locale === "fr" ? "English" : "Français"}`}><span>{locale === "fr" ? "Langue" : "Language"}</span><span className="font-mono text-[.65rem] text-[var(--signal-strong)]">{locale === "fr" ? "EN" : "FR"}</span></a>
+                    <Suspense fallback={<span className="flex min-h-14 items-center justify-between border border-[var(--line)] px-4 text-left text-xs font-semibold"><span>{locale === "fr" ? "Langue" : "Language"}</span><span className="font-mono text-[.65rem] text-[var(--signal-strong)]">{locale === "fr" ? "EN" : "FR"}</span></span>}><LanguageLink className="flex min-h-14 items-center justify-between border border-[var(--line)] px-4 text-left text-xs font-semibold transition hover:border-[var(--signal)] hover:bg-[var(--signal-soft)]"><span>{locale === "fr" ? "Langue" : "Language"}</span><span className="font-mono text-[.65rem] text-[var(--signal-strong)]">{locale === "fr" ? "EN" : "FR"}</span></LanguageLink></Suspense>
                     <button onClick={toggleTheme} className="flex min-h-14 items-center justify-between border border-[var(--line)] px-4 text-left text-xs font-semibold transition hover:border-[var(--signal)] hover:bg-[var(--signal-soft)]" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}><span>{locale === "fr" ? "Thème" : "Theme"}</span>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button>
                   </div>
                 </div>

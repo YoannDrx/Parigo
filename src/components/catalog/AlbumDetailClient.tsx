@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { Tag } from "@/components/ui/Tag";
 import { TrackRow } from "@/components/features/TrackRow";
+import type { TrackDetailsTab } from "@/components/features/TrackDetailsPanel";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { CueSheetButton } from "@/components/features/CueSheetButton";
 import { formatDuration } from "@/lib/utils";
@@ -43,7 +44,16 @@ const CONTRIBUTOR_LABELS: Record<AlbumContributorRole, { fr: string; en: string 
   credit: { fr: "Autres crédits", en: "Other credits" },
 };
 
-export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientProps & { initialTrackId?: string }) {
+export function AlbumDetailClient({
+  data,
+  initialTrackId,
+  initialTrackTab,
+  initialHighlight,
+}: AlbumDetailClientProps & {
+  initialTrackId?: string;
+  initialTrackTab?: TrackDetailsTab;
+  initialHighlight?: string;
+}) {
   const { locale, t, localizedPath } = useI18n();
   const { setQueue, play } = usePlayerStore();
   const initialMainTrack = data.album.tracks.find((track) => track.id === initialTrackId);
@@ -305,6 +315,8 @@ export function AlbumDetailClient({ data, initialTrackId }: AlbumDetailClientPro
                     density={isAlternate ? "mid" : "full"}
                     composerCredits={data.composerCredits}
                     initialDetailsOpen={track.id === resolvedInitialTrackId}
+                    initialDetailsTab={track.id === resolvedInitialTrackId ? initialTrackTab : undefined}
+                    initialHighlight={track.id === resolvedInitialTrackId ? initialHighlight : undefined}
                   />
                 </div>
               ))}

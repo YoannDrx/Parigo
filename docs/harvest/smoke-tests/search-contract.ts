@@ -22,6 +22,12 @@ function titles(payload: RecordValue): string[] {
     .filter(Boolean);
 }
 
+function ids(payload: RecordValue): string[] {
+  return records(record(payload.data), "items")
+    .map((item) => String(item.id ?? ""))
+    .filter(Boolean);
+}
+
 async function fetchPreview(path: string): Promise<RecordValue> {
   const response = await fetch(`${previewBaseUrl}${path}`);
   if (!response.ok) throw new Error(`Preview BFF returned HTTP ${response.status} for ${path}`);
@@ -53,29 +59,122 @@ async function checkBilingualSuggestion() {
     console.log("Generic translation contract skipped because DEEPL_AUTH_KEY is not configured.");
     return;
   }
-  const offered = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=offer");
+  const originalQuery = "coucher de soleil";
+  const encodedQuery = encodeURIComponent(originalQuery);
+  const offered = await fetchPreview(`/api/search?q=${encodedQuery}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=offer`);
   const offeredMeta = record(offered.meta);
   const suggestion = record(offeredMeta.translationSuggestion);
-  if (suggestion.original !== "mariage" || !suggestion.effective || suggestion.source !== "machine-translation") {
+  if (suggestion.original !== originalQuery || !suggestion.effective || suggestion.source !== "machine-translation") {
     throw new Error("The French → English suggestion metadata is missing or invalid");
   }
   if (offeredMeta.queryResolution || Number(offeredMeta.total ?? 0) !== 0) {
     throw new Error("The translation suggestion was applied without explicit consent");
   }
 
-  const applied = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=apply");
+  const applied = await fetchPreview(`/api/search?q=${encodedQuery}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=apply`);
   const appliedMeta = record(applied.meta);
   const resolution = record(appliedMeta.queryResolution);
-  if (resolution.original !== "mariage" || resolution.effective !== suggestion.effective) {
+  if (resolution.original !== originalQuery || resolution.effective !== suggestion.effective) {
     throw new Error("The accepted translation was not applied consistently");
   }
   if (Number(appliedMeta.total ?? 0) < 1 || titles(applied).length < 1) {
     throw new Error("The accepted English query returned no tracks");
   }
 
-  const literal = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off");
+  const literal = await fetchPreview(`/api/search?q=${encodedQuery}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off`);
   if (record(literal.meta).queryResolution || record(literal.meta).translationSuggestion) {
     throw new Error("Translation-off search unexpectedly exposed translation metadata");
+  }
+}
+
+async function checkOfficialTaxonomySuppressesMachineTranslation() {
+  const search = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=1&type=main&sort=relevance&language=fr&translation=offer&probe=1");
+  const meta = record(search.meta);
+  if (meta.translationSuggestion || meta.queryResolution) {
+    throw new Error("An official French taxonomy match unexpectedly triggered machine translation");
+  }
+
+  const autocomplete = await fetchPreview("/api/autocomplete?q=mariage&language=fr");
+  const filters = records(record(autocomplete.data), "groups")
+    .find((group) => group.key === "filters");
+  const wedding = filters
+    ? records(filters, "items").find((item) => item.id === "ATT_6f5d841140fc2123")
+    : undefined;
+  if (wedding?.canonicalName !== "Wedding" || wedding.localizedName !== "Mariage") {
+    throw new Error("The official Wedding → Mariage filter contract is missing");
+  }
+}
+
+async function checkPartialTaxonomyAllowsMachineTranslation() {
+  if (!process.env.DEEPL_AUTH_KEY) return;
+  const search = await fetchPreview("/api/search?q=une%20for%C3%AAt%20sombre&view=tracks&page=1&limit=1&type=main&sort=relevance&language=fr&translation=offer&probe=1");
+  const suggestion = record(record(search.meta).translationSuggestion);
+  if (String(suggestion.effective ?? "").toLocaleLowerCase("en") !== "dark forest") {
+    throw new Error(`A partial mood match incorrectly suppressed the full-query translation (received ${String(suggestion.effective)})`);
+  }
+}
+
+function findFilterItem(items: RecordValue[], id: string): RecordValue | undefined {
+  for (const item of items) {
+    if (String(item.id ?? "") === id) return item;
+    const nested = findFilterItem(records(item, "children"), id);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+async function checkFrenchTaxonomyTranslation() {
+  const payload = await fetchPreview("/api/search/filters?language=fr");
+  const groups = records(record(payload.data), "groups");
+  const mood = groups.find((group) => group.key === "moods");
+  const sad = mood ? findFilterItem(records(mood, "items"), "ATT_b71182fbd44d6ef6") : undefined;
+  if (!sad) throw new Error("Harvest's stable Sad mood identifier is missing from the French taxonomy");
+  if (sad.canonicalName !== "Sad" || sad.localizedName !== "Triste") {
+    throw new Error(`Harvest has not honored the French Sad translation contract (received canonical=${String(sad.canonicalName)}, localized=${String(sad.localizedName)})`);
+  }
+}
+
+async function checkAutocompleteTitlePriority() {
+  const payload = await fetchPreview("/api/autocomplete?q=crime&language=fr");
+  const groups = records(record(payload.data), "groups");
+  const titlesIndex = groups.findIndex((candidate) => candidate.key === "titles");
+  const firstEntityIndex = groups.findIndex((candidate) => ["titles", "tracks", "albums", "playlists"].includes(String(candidate.key ?? "")));
+  const titles = titlesIndex >= 0 ? records(groups[titlesIndex], "items") : [];
+  if (!titles.length || titlesIndex !== firstEntityIndex) {
+    throw new Error("Autocomplete did not place the shared literal-title group before other entities for crime");
+  }
+  if (titles.some((item) => !records(item, "matchEvidence").some((evidence) => ["trackTitle", "albumTitle", "playlistTitle"].includes(String(evidence.field ?? ""))))) {
+    throw new Error("Autocomplete's literal-title group contains an item without title evidence");
+  }
+  const firstTrackTitle = titles.find((item) => item.kind === "track");
+  if (firstTrackTitle?.label !== "Echoes Of Crime (Full Mix)") {
+    throw new Error(`Autocomplete's dedicated title lane lost the known top crime result (received ${String(firstTrackTitle?.label)})`);
+  }
+}
+
+async function checkAutocompleteSearchPrefix() {
+  const query = "crime";
+  const [autocomplete, search] = await Promise.all([
+    fetchPreview(`/api/autocomplete?q=${encodeURIComponent(query)}&language=fr`),
+    fetchPreview(`/api/search?q=${encodeURIComponent(query)}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off`),
+  ]);
+  const groups = records(record(autocomplete.data), "groups");
+  const titleTracks = records(groups.find((group) => group.key === "titles"), "items")
+    .filter((item) => item.kind === "track");
+  const otherTracks = records(groups.find((group) => group.key === "tracks"), "items");
+  const suggestedIds = [...titleTracks, ...otherTracks].map((item) => String(item.id ?? "")).filter(Boolean);
+  const resultIds = ids(search);
+  if (!suggestedIds.length || !suggestedIds.every((id, index) => resultIds[index] === id)) {
+    throw new Error(`Autocomplete tracks are not the title-priority prefix of the full search for "${query}"`);
+  }
+  const searchItems = records(record(search.data), "items");
+  if (String(searchItems[0]?.title ?? "") !== "Echoes Of Crime (Full Mix)") {
+    throw new Error("The complete crime search did not preserve the known first literal-title result");
+  }
+  if (!searchItems.slice(0, Math.min(30, searchItems.length)).every((item) => (
+    records(item, "matchEvidence").some((evidence) => evidence.field === "trackTitle")
+  ))) {
+    throw new Error("The first crime page placed an editorial match before a verified title match");
   }
 }
 
@@ -135,6 +234,11 @@ async function main() {
   await checkEditorialSearch("crime", "tracks", 174);
   await checkEditorialSearch("wedding", "tracks", 171);
   await checkLiteralCompatibility();
+  await checkAutocompleteTitlePriority();
+  await checkAutocompleteSearchPrefix();
+  await checkFrenchTaxonomyTranslation();
+  await checkOfficialTaxonomySuppressesMachineTranslation();
+  await checkPartialTaxonomyAllowsMachineTranslation();
   await checkLegacyBriefCompatibility();
   await checkBilingualSuggestion();
   await checkAiCapability();

@@ -140,6 +140,29 @@ describe("Harvest Cloud Search", () => {
     });
   });
 
+  it("can exclude literal title matches from an editorial result lane", () => {
+    const payload = buildCloudSearch({
+      query: "crime",
+      view: "Track",
+      textScope: "editorial",
+      excludeTitleQuery: "crime",
+    });
+    const filters = payload.SearchFilters as Record<string, unknown>;
+    const previousBundles = filters.PreviousSearchTermBundles as Array<Record<string, Record<string, unknown>>>;
+
+    expect(previousBundles).toContainEqual({
+      St_Keyword: {
+        Fields: "TrackDisplayTitle",
+        ExactPhrase: false,
+        Wildcard: true,
+        DisableKeywordGroup: true,
+        OrOperation: false,
+        Keywords: "crime",
+        Negative: true,
+      },
+    });
+  });
+
   it("can search the global catalogue for raw composer labels by substring", () => {
     const payload = buildCloudSearch({
       query: "%",

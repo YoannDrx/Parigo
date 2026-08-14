@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, Minus, RotateCcw, Search } from "lucide-react";
+import { displaySearchFilterName, searchFilterGroupLabel } from "@/lib/search-filter-labels";
+import { normalizeSearchText } from "@/lib/search-normalization";
 import { cn, formatDuration } from "@/lib/utils";
 import type { SearchFacetItem, SearchFilterGroup, SearchFilterItem } from "@/types";
 
@@ -28,18 +30,6 @@ interface SearchFilterPanelProps {
   onReset: () => void;
 }
 
-const labelsByKey: Record<string, { fr: string; en: string }> = {
-  labels: { fr: "Labels", en: "Labels" },
-  composers: { fr: "Compositeurs", en: "Composers" },
-  styles: { fr: "Styles", en: "Styles" },
-  genre: { fr: "Genre", en: "Genre" },
-  moods: { fr: "Ambiances", en: "Moods" },
-  musicFor: { fr: "Musique pour", en: "Music for" },
-  period: { fr: "Période", en: "Period" },
-  instruments: { fr: "Instruments", en: "Instruments" },
-  area: { fr: "Zone", en: "Area" },
-};
-
 const EMPTY_FILTER_ITEMS: SearchFilterItem[] = [];
 
 function unsigned(value: string): string {
@@ -58,12 +48,14 @@ function nextValues(values: string[], id: string, state: Exclude<FilterState, "n
   return [...cleaned, state === "exclude" ? `-${id}` : id].sort((a, b) => unsigned(a).localeCompare(unsigned(b)));
 }
 
-function filterTree(items: SearchFilterItem[], query: string, locale: "fr" | "en"): SearchFilterItem[] {
-  const normalized = query.trim().toLocaleLowerCase(locale);
+function filterTree(items: SearchFilterItem[], query: string): SearchFilterItem[] {
+  const normalized = normalizeSearchText(query);
   if (!normalized) return items;
   return items.flatMap((item) => {
-    const children = filterTree(item.children ?? [], query, locale);
-    return item.name.toLocaleLowerCase(locale).includes(normalized) || children.length
+    const children = filterTree(item.children ?? [], query);
+    const names = [item.canonicalName, item.localizedName, item.name]
+      .filter((name): name is string => Boolean(name));
+    return names.some((name) => normalizeSearchText(name).includes(normalized)) || children.length
       ? [{ ...item, children }]
       : [];
   });
@@ -91,6 +83,7 @@ function FilterItemRow({
   selection,
   counts,
   locale,
+  groupKey,
   depth = 0,
   onChange,
 }: {
@@ -99,6 +92,7 @@ function FilterItemRow({
   selection: SearchFilterGroup["selection"];
   counts: Map<string, number>;
   locale: "fr" | "en";
+  groupKey: SearchFilterGroup["key"];
   depth?: number;
   onChange: (values: string[]) => void;
 }) {
@@ -108,7 +102,7 @@ function FilterItemRow({
   const descendants = descendantStates(children, values);
   const descendantCount = descendants.included + descendants.excluded;
   const count = counts.get(item.id.replace(/^ATT_/i, "")) ?? item.count;
-  const name = item.name;
+  const name = displaySearchFilterName(groupKey, item, locale);
   return (
     <li>
       <div
@@ -130,7 +124,7 @@ function FilterItemRow({
             <ChevronDown size={13} className={cn("transition", !open && "-rotate-90")} />
           </button>
         ) : <span className="w-7 shrink-0" />}
-        <span className={cn("min-w-0 flex-1 truncate", state === "exclude" && "line-through decoration-[var(--danger)]/65")}>{name}</span>
+        <span title={name} className={cn("min-w-0 flex-1 truncate py-2 leading-4", state === "exclude" && "line-through decoration-[var(--danger)]/65")}>{name}</span>
         {!open && descendantCount > 0 && <span className="mr-2 flex min-w-6 items-center justify-center gap-1 border border-[var(--line-strong)] bg-[var(--background)] px-1.5 py-0.5 font-mono text-[.52rem]" aria-label={locale === "fr" ? `${descendants.included} sous-filtres inclus et ${descendants.excluded} exclus` : `${descendants.included} included and ${descendants.excluded} excluded subfilters`}>{descendantCount}</span>}
         {count !== undefined && <span className="min-w-7 text-right font-mono text-[.6rem] opacity-45">{count}</span>}
         <button
@@ -174,6 +168,7 @@ function FilterItemRow({
               selection={selection}
               counts={counts}
               locale={locale}
+              groupKey={groupKey}
               depth={depth + 1}
               onChange={onChange}
             />
@@ -217,7 +212,7 @@ function FilterGroupSection({
         const response = await fetch(`/api/search/composers?q=${encodeURIComponent(normalizedRemoteQuery)}`, {
           signal: controller.signal,
         });
-        if (!response.ok) throw new Error("Harvest composer search failed");
+        if (!response.ok) throw new Error("Composer search failed");
         const payload = await response.json() as {
           data?: { items?: SearchFilterItem[] };
           meta?: { incomplete?: boolean };
@@ -257,8 +252,8 @@ function FilterGroupSection({
     return [...byId.values()];
   }, [displayedRemoteItems, group.items, isRemote, values]);
   const visibleItems = useMemo(
-    () => isRemote ? items : filterTree(items, query, locale),
-    [isRemote, items, locale, query],
+    () => isRemote ? items : filterTree(items, query),
+    [isRemote, items, query],
   );
   const counts = useMemo(() => facetMap(facets), [facets]);
   const groupIds = useMemo(() => new Set(flatFilterIds(items)), [items]);
@@ -274,7 +269,7 @@ function FilterGroupSection({
     >
       <summary className="search-filter-group__summary flex min-h-14 cursor-pointer list-none items-center py-3 [&::-webkit-details-marker]:hidden">
         <span className="search-filter-group__index font-mono text-[.55rem] tracking-[.08em]">{String(index + 1).padStart(2, "0")}</span>
-        <span className="min-w-0 flex-1 truncate font-semibold tracking-[-.025em]">{labelsByKey[group.key]?.[locale] ?? group.label}</span>
+        <span className="min-w-0 flex-1 truncate font-semibold tracking-[-.025em]">{searchFilterGroupLabel(group.key, locale, "plural")}</span>
         <span className="ml-5 flex items-center gap-3">
           {isRemote ? (
             <span
@@ -317,7 +312,7 @@ function FilterGroupSection({
             onChange={(event) => setQuery(event.target.value)}
             placeholder={isRemote
               ? (locale === "fr" ? "Rechercher un compositeur…" : "Search for a composer…")
-              : (locale === "fr" ? `Filtrer ${labelsByKey[group.key]?.fr.toLocaleLowerCase("fr") ?? ""}` : `Filter ${labelsByKey[group.key]?.en.toLocaleLowerCase("en") ?? ""}`)}
+              : (locale === "fr" ? `Filtrer ${searchFilterGroupLabel(group.key, "fr", "plural").toLocaleLowerCase("fr")}` : `Filter ${searchFilterGroupLabel(group.key, "en", "plural").toLocaleLowerCase("en")}`)}
             className="h-10 w-full border border-[var(--line)] bg-[var(--surface)] pl-9 pr-3 text-xs outline-none focus:border-[var(--signal-strong)]"
           />
         </div>
@@ -328,7 +323,7 @@ function FilterGroupSection({
         )}
         <ul className="max-h-72 space-y-0.5 overflow-y-auto overscroll-contain pr-1">
           {visibleItems.map((item) => (
-            <FilterItemRow key={item.id} item={item} values={values} selection={group.selection} counts={counts} locale={locale} onChange={onChange} />
+            <FilterItemRow key={item.id} item={item} values={values} selection={group.selection} counts={counts} locale={locale} groupKey={group.key} onChange={onChange} />
           ))}
         </ul>
         {isRemote && displayedRemoteState === "idle" && values.length === 0 && (

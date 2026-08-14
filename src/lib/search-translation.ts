@@ -29,6 +29,10 @@ function deeplApiUrl(authKey: string): string {
     : "https://api.deepl.com/v2/translate";
 }
 
+function searchReadyTranslation(value: string): string {
+  return value.trim().replace(/^(?:a|an|the)\s+/i, "").trim();
+}
+
 export async function translateFrenchSearchQuery(
   query: string,
   options: TranslationOptions = {},
@@ -65,7 +69,7 @@ export async function translateFrenchSearchQuery(
 
     const payload = await response.json() as DeepLResponse;
     const translation = payload.translations?.[0];
-    const effective = translation?.text?.trim();
+    const effective = translation?.text ? searchReadyTranslation(translation.text) : "";
     const resolution = translation?.detected_source_language?.toUpperCase() === "FR"
       && effective
       && normalizeSearchQuery(effective) !== cacheKey

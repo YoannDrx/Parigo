@@ -5,6 +5,7 @@
 import type {
   Album,
   AutocompleteGroup,
+  AutocompleteSearchContext,
   CatalogCategory,
   Label,
   Playlist,
@@ -69,6 +70,7 @@ interface SearchApiResponse<T extends Track | Album> {
     searchMode: SearchMode;
     fieldProfile: SearchFieldProfile;
     providerDurationMs: number;
+    titleMatchTotal?: number;
   };
 }
 
@@ -228,27 +230,6 @@ export async function fetchTracks(params?: {
   };
 }
 
-export async function fetchSearchTranslationSuggestion(
-  query: string,
-  language: "fr" | "en",
-  signal?: AbortSignal,
-): Promise<QueryResolution | undefined> {
-  const searchParams = new URLSearchParams({
-    q: query,
-    view: "tracks",
-    page: "1",
-    limit: "1",
-    type: "main",
-    translation: "offer",
-    language,
-    probe: "1",
-  });
-  const response = await fetch(`${API_BASE}/search?${searchParams}`, { signal });
-  if (!response.ok) throw new Error("Failed to resolve search translation suggestion");
-  const payload = await response.json() as SearchApiResponse<Track>;
-  return payload.meta.total === 0 ? payload.meta.translationSuggestion : undefined;
-}
-
 export async function searchAll(query: string, type?: "all" | "albums" | "tracks"): Promise<{
   albums: ApiAlbum[];
   tracks: ApiTrack[];
@@ -340,8 +321,18 @@ export async function fetchSearchFilters(language: "fr" | "en", signal?: AbortSi
   return payload.data.groups;
 }
 
-export async function fetchAutocomplete(query: string, language: "fr" | "en", signal?: AbortSignal): Promise<AutocompleteGroup[]> {
+export async function fetchAutocomplete(query: string, language: "fr" | "en", context: AutocompleteSearchContext = {}, signal?: AbortSignal): Promise<AutocompleteGroup[]> {
   const params = new URLSearchParams({ q: query, language });
+  if (context.categories?.length) params.set("categories", context.categories.join(","));
+  if (context.styles?.length) params.set("styles", context.styles.join(","));
+  if (context.labels?.length) params.set("labels", context.labels.join(","));
+  if (context.composer) params.set("composer", context.composer);
+  if (context.minBpm !== undefined) params.set("bpmMin", String(context.minBpm));
+  if (context.maxBpm !== undefined) params.set("bpmMax", String(context.maxBpm));
+  if (context.minDuration !== undefined) params.set("durationMin", String(context.minDuration));
+  if (context.maxDuration !== undefined) params.set("durationMax", String(context.maxDuration));
+  if (context.type) params.set("type", context.type);
+  if (context.sort) params.set("sort", context.sort);
   const response = await fetch(`${API_BASE}/autocomplete?${params}`, { signal });
   if (!response.ok) throw new Error("Failed to fetch autocomplete suggestions");
   const payload = await response.json() as { data: { groups: AutocompleteGroup[] } };

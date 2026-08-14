@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/Button";
 import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
 import { useAlbums, useSearchFilters } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { displaySearchFilterName } from "@/lib/search-filter-labels";
 import { cn } from "@/lib/utils";
 import type { Album, SearchFacets, SearchFilterItem, ViewMode } from "@/types";
 import { CatalogActiveFilters, type CatalogActiveFilter } from "./CatalogActiveFilters";
@@ -87,8 +88,9 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     () => (filtersQuery.data ?? []).filter((group) => !(fixedLabel && group.key === "labels")),
     [filtersQuery.data, fixedLabel],
   );
-  const allItems = useMemo(() => filterGroups.flatMap((group) => flatten(group.items)), [filterGroups]);
-  const names = useMemo(() => new Map(allItems.map((item) => [item.id.replace(/^-/, ""), item.name])), [allItems]);
+  const names = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => (
+    [item.id.replace(/^-/, ""), displaySearchFilterName(group.key, item, locale)] as const
+  )))), [filterGroups, locale]);
   const debouncedQuery = useDebounced(query);
 
   const requestParams = useMemo(() => ({
