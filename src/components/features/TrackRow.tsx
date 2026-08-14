@@ -20,6 +20,7 @@ import { useShortlistStore } from "@/stores/shortlist-store";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { useSession } from "@/lib/auth-client";
+import { SearchMatchEvidence } from "@/components/search/SearchMatchEvidence";
 
 interface TrackRowProps {
   track: Track;
@@ -296,6 +297,8 @@ export function TrackRow({
             )}
           </div>
         )}
+
+        <SearchMatchEvidence items={track.matchEvidence} locale={locale} />
 
         {/* Waveform */}
         {showWaveform && density !== "light" && (

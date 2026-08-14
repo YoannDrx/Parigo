@@ -217,7 +217,7 @@ function FilterGroupSection({
         const response = await fetch(`/api/search/composers?q=${encodeURIComponent(normalizedRemoteQuery)}`, {
           signal: controller.signal,
         });
-        if (!response.ok) throw new Error("Harvest composer search failed");
+        if (!response.ok) throw new Error("Composer search failed");
         const payload = await response.json() as {
           data?: { items?: SearchFilterItem[] };
           meta?: { incomplete?: boolean };

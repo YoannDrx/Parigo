@@ -21,6 +21,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { SearchCommand, type SearchResultView } from "@/components/search/SearchCommand";
+import { SearchMatchEvidence } from "@/components/search/SearchMatchEvidence";
 import { Button } from "@/components/ui/Button";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
@@ -157,7 +158,32 @@ function SearchContent() {
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
   const allFilterItems = useMemo(() => filterGroups.flatMap((group) => flatten(group.items)), [filterGroups]);
-  const itemNames = useMemo(() => new Map(allFilterItems.map((item) => [item.id, item.name])), [allFilterItems]);
+  const itemNames = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => {
+    const localized = item.localizedName || item.name;
+    const canonical = item.canonicalName || item.name;
+    const name = localized.toLocaleLowerCase("en") === canonical.toLocaleLowerCase("en")
+      ? localized
+      : `${localized} (${canonical})`;
+    return [item.id, `${group.label} · ${name}`] as const;
+  }))), [filterGroups]);
+  const filterItemsById = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => [item.id, { group, item }] as const))), [filterGroups]);
+  const selectedAutocompleteFilters = useMemo(() => [...categories, ...styles]
+    .filter((value) => !value.startsWith("-"))
+    .flatMap((value) => {
+      const resolved = filterItemsById.get(value);
+      if (!resolved) return [];
+      const localized = resolved.item.localizedName || resolved.item.name;
+      const canonical = resolved.item.canonicalName || resolved.item.name;
+      const name = localized.toLocaleLowerCase("en") === canonical.toLocaleLowerCase("en") ? localized : `${localized} (${canonical})`;
+      return [{
+        id: value,
+        kind: "filter" as const,
+        label: `${resolved.group.label} · ${name}`,
+        filterGroup: resolved.group.key,
+        canonicalName: canonical,
+        localizedName: localized,
+      }];
+    }), [categories, filterItemsById, styles]);
 
   useEffect(() => {
     if (!filterGroups.length) return;
@@ -374,6 +400,11 @@ function SearchContent() {
     setter(values.filter((item) => item !== value));
   };
   const selectSuggestion = (item: AutocompleteItem) => {
+    if (item.kind === "filter" && item.filterGroup) {
+      if (item.filterGroup === "styles") updateStyles([...styles, item.id]);
+      else updateCategories([...categories, item.id]);
+      return;
+    }
     if (item.kind === "label") {
       updateLabels([...labels, item.id]);
       return;
@@ -501,6 +532,12 @@ function SearchContent() {
                 onSubmit={applyUnifiedSearch}
                 onSelect={selectSuggestion}
                 onClear={clearUnifiedSearch}
+                stagedFilters={selectedAutocompleteFilters}
+                filterSelectionState="applied"
+                onRemoveStagedFilter={(item) => {
+                  if (item.filterGroup === "styles") updateStyles(styles.filter((value) => value.replace(/^-/, "") !== item.id));
+                  else updateCategories(categories.filter((value) => value.replace(/^-/, "") !== item.id));
+                }}
               />
 
               <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
@@ -564,9 +601,9 @@ function SearchContent() {
               </div>
             ) : null}
 
-            <div className="mb-4 flex items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
-              <div className="flex items-center gap-3"><span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>{session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 border-l border-[var(--line)] pl-3 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}</div>
-              {query && <span>{locale === "fr" ? "Résultats pour" : "Results for"} « {query} »</span>}
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
+              <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
+              {session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}
             </div>
 
             {saveSearchOpen && <div className="mb-4 grid gap-3 border border-[var(--line-strong)] bg-[var(--surface)] p-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end"><label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nom de la recherche" : "Search name"}</span><input autoFocus value={saveSearchName} onChange={(event) => { setSaveSearchName(event.target.value); setSaveSearchState("idle"); setSaveSearchError(""); setSaveSearchRequestId(""); }} maxLength={160} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 text-sm outline-none focus:border-[var(--foreground)]" /></label><div className="flex gap-2"><Button variant="ghost" size="sm" onClick={() => setSaveSearchOpen(false)}>{locale === "fr" ? "Annuler" : "Cancel"}</Button><Button size="sm" disabled={!saveSearchName.trim() || !searchHistoryId || saveSearchState === "saving"} onClick={() => void saveCurrentSearch()}>{saveSearchState === "saving" ? <ParigoLoader size="icon" label={locale === "fr" ? "Enregistrement" : "Saving"} /> : <BookmarkPlus size={14} />}{saveSearchState === "saved" ? (locale === "fr" ? "Sauvegardée" : "Saved") : (locale === "fr" ? "Enregistrer" : "Save")}</Button></div>{saveSearchState === "error" && <div role="alert" className="flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--danger)] sm:col-span-2"><div><p>{saveSearchError}</p>{saveSearchRequestId && <p className="mt-1 font-mono text-[.62rem] opacity-65">Référence : {saveSearchRequestId}</p>}</div><Button variant="outline" size="sm" onClick={() => void verifySavedSearch()}>{locale === "fr" ? "Réessayer la vérification" : "Check again"}</Button></div>}</div>}
@@ -619,7 +656,20 @@ function SearchContent() {
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             ) : albums.length ? (
-                <div data-testid="search-album-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">{albums.map((album, index) => <article key={album.id} style={{ animationDelay: `${index * 18}ms` }} className="parigo-card animate-[fade-in_.25s_ease-out_both] border border-[var(--line)] bg-[var(--surface)] p-2.5"><Link href={localizedPath(`/albums/${album.slug || album.id}`)} className="group block"><div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div><div className="py-3"><h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2><div className="mt-2 flex min-w-0 flex-wrap items-center gap-2"><p className="min-w-0 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p>{album.code && <span className="album-reference-tag shrink-0">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}</div></div></Link></article>)}</div>
+                <div data-testid="search-album-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                  {albums.map((album, index) => (
+                    <article key={album.id} style={{ animationDelay: `${index * 18}ms` }} className="parigo-card animate-[fade-in_.25s_ease-out_both] border border-[var(--line)] bg-[var(--surface)] p-2.5">
+                      <Link href={localizedPath(`/albums/${album.slug || album.id}`)} className="group block">
+                        <div className="media-frame relative aspect-square overflow-hidden bg-[var(--surface-soft)]"><Image src={album.cover} alt={album.title} fill sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 20vw" className="object-contain transition duration-700 group-hover:scale-[1.025]" /></div>
+                        <div className="py-3">
+                          <h2 className="truncate text-base tracking-[-.025em]">{album.title}</h2>
+                          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2"><p className="min-w-0 truncate text-[.68rem] text-[var(--text-muted)]">{album.label}</p>{album.code && <span className="album-reference-tag shrink-0">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}</div>
+                          <SearchMatchEvidence items={album.matchEvidence} locale={locale} className="mt-2" expandable={false} />
+                        </div>
+                      </Link>
+                    </article>
+                  ))}
+                </div>
             ) : (
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
             )}

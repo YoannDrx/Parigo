@@ -331,6 +331,22 @@ export async function getTracksByIds(
   return recordArray(payload, "Tracks").map((item) => mapTrack(item, templates, album, source));
 }
 
+export async function getAlbumsByIds(
+  ids: string[],
+  authenticatedMemberToken?: string,
+): Promise<Album[]> {
+  const distinctIds = [...new Set(ids.filter(Boolean))];
+  if (!distinctIds.length) return [];
+  const body = JSON.stringify({ albumid: distinctIds.map((id) => ({ id })) });
+  const [payload, templates] = await Promise.all([
+    authenticatedMemberToken
+      ? memberRequest<HarvestRecord>(authenticatedMemberToken, (token) => `/getalbumsbyids/${token}`, { method: "POST", body })
+      : guestRequest<HarvestRecord>((token) => `/getalbumsbyids/${token}`, { method: "POST", body }),
+    getAssetTemplates(authenticatedMemberToken),
+  ]);
+  return recordArray(payload, "Albums").map((item) => mapAlbum(item, templates));
+}
+
 export async function getTrack(id: string, authenticatedMemberToken?: string): Promise<Track> {
   const item = (await getTracksByIds([id], authenticatedMemberToken))[0];
   if (!item) throw new HarvestError("Track not found", "NOT_FOUND", 404);
@@ -642,10 +658,12 @@ export async function getCategories(language: "fr" | "en" = "en"): Promise<Catal
   return recordArray(payload, "Categories").map((item) => mapNode(item));
 }
 
-export async function getStyles(): Promise<CatalogCategory[]> {
+export async function getStyles(language?: "fr" | "en"): Promise<CatalogCategory[]> {
   const [payload, styleTrackFacets] = await Promise.all([
     guestRequest<HarvestRecord>((token) =>
-      `/getstyles/${token}?allowEmptyStyle=false`,
+      language
+        ? `/getstyles/${token}/${language}?groupID=`
+        : `/getstyles/${token}?allowEmptyStyle=false`,
     ),
     cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc", includeStyleFacets: true })
       .then((result) => new Map((result.facets.styles ?? []).map((item) => [item.id, item.count]))),

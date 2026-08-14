@@ -79,6 +79,39 @@ async function checkBilingualSuggestion() {
   }
 }
 
+function findFilterItem(items: RecordValue[], id: string): RecordValue | undefined {
+  for (const item of items) {
+    if (String(item.id ?? "") === id) return item;
+    const nested = findFilterItem(records(item, "children"), id);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+
+async function checkFrenchTaxonomyTranslation() {
+  const payload = await fetchPreview("/api/search/filters?language=fr");
+  const groups = records(record(payload.data), "groups");
+  const mood = groups.find((group) => group.key === "moods");
+  const sad = mood ? findFilterItem(records(mood, "items"), "ATT_b71182fbd44d6ef6") : undefined;
+  if (!sad) throw new Error("Harvest's stable Sad mood identifier is missing from the French taxonomy");
+  if (sad.canonicalName !== "Sad" || sad.localizedName !== "Triste") {
+    throw new Error(`Harvest has not honored the French Sad translation contract (received canonical=${String(sad.canonicalName)}, localized=${String(sad.localizedName)})`);
+  }
+}
+
+async function checkAutocompleteTitlePriority() {
+  const payload = await fetchPreview("/api/autocomplete?q=crime&language=fr");
+  const groups = records(record(payload.data), "groups");
+  for (const [key, field] of [["tracks", "trackTitle"], ["albums", "albumTitle"], ["playlists", "playlistTitle"]] as const) {
+    const group = groups.find((candidate) => candidate.key === key);
+    const first = group ? records(group, "items")[0] : undefined;
+    if (!first) continue;
+    if (!records(first, "matchEvidence").some((evidence) => evidence.field === field)) {
+      throw new Error(`Autocomplete ${key} did not prioritize a literal title match for crime`);
+    }
+  }
+}
+
 async function checkLegacyBriefCompatibility() {
   const payload = await fetchPreview(
     "/api/search?brief=crime&resolve=1&view=tracks&page=1&limit=5&type=main&sort=relevance&language=fr&translate=0",
@@ -135,6 +168,8 @@ async function main() {
   await checkEditorialSearch("crime", "tracks", 174);
   await checkEditorialSearch("wedding", "tracks", 171);
   await checkLiteralCompatibility();
+  await checkAutocompleteTitlePriority();
+  await checkFrenchTaxonomyTranslation();
   await checkLegacyBriefCompatibility();
   await checkBilingualSuggestion();
   await checkAiCapability();

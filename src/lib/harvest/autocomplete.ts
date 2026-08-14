@@ -1,7 +1,8 @@
 import type { AutocompleteGroup, AutocompleteItem, AutocompleteKind } from "@/types";
 import { albumIdentity } from "./album-identity";
 import { isRecord } from "./errors";
-import { asNumber, asString, pick } from "./values";
+import { entitySearchEvidence } from "../search-match-evidence";
+import { asList, asNumber, asString, pick } from "./values";
 
 const GROUP_LIMIT = 10;
 const QUOTED_EXPRESSION = /^(["'])[\s\S]+\1$/;
@@ -23,7 +24,7 @@ export function buildAutocompletePayload(query: string, view: "tracks" | "albums
     LibraryType: "",
     ReturnTracks: true,
     ReturnTracks_MainOnly: true,
-    ReturnTracks_Fields: "DisplayTitle,AlternateTitle,Version",
+    ReturnTracks_Fields: "DisplayTitle,AlternateTitle,Version,AlbumDisplayTitle,Comment,Keywords,Genre,Mood,MusicFor,Instrumentation,CDCode",
     ReturnTracks_Limit: view === "tracks" ? GROUP_LIMIT : 6,
     ReturnTracks_Order: "date_descent",
     ReturnTracks_DisableKeywordGroup: true,
@@ -35,34 +36,34 @@ export function buildAutocompletePayload(query: string, view: "tracks" | "albums
     ReturnLibraries: true,
     ReturnLibraries_Fields: "Name,Prefix,Description",
     ReturnLibraries_Limit: GROUP_LIMIT,
-    ReturnLibraries_DisableKeywordGroup: false,
+    ReturnLibraries_DisableKeywordGroup: true,
     ReturnStyles: false,
     ReturnCategoryAttributes: false,
     ReturnCategoryAttributes_Limit: GROUP_LIMIT,
     ReturnCategoryAttributes_ShowOnPlayerOnly: false,
     ReturnCategoryAttributes_IncludeCategory: false,
     ReturnCategoryAttributes_Order: "AllAlphabetic",
-    ReturnCategoryAttributes_DisableKeywordGroup: false,
+    ReturnCategoryAttributes_DisableKeywordGroup: true,
     ReturnRightHolders: true,
     ReturnRightHolders_Fields: "firstname, lastname",
     ReturnRightHolders_Limit: GROUP_LIMIT,
-    ReturnRightHolders_DisableKeywordGroup: false,
+    ReturnRightHolders_DisableKeywordGroup: true,
     RightHolderTypes: "",
     ReturnLyrics: false,
     ReturnLyrics_Limit: GROUP_LIMIT,
     ReturnLyrics_MainOnly: false,
-    ReturnLyrics_DisableKeywordGroup: false,
+    ReturnLyrics_DisableKeywordGroup: true,
     ReturnKeywords: true,
     ReturnKeywordsMaxSize: GROUP_LIMIT,
     ReturnKeywordsForMatch: false,
     ReturnKeywordsForMatch_Fields: "TrackKeywords, TrackInstrumentation, TrackGenre, TrackMood, TrackMusicFor",
     ReturnKeywordsForMatch_HideWhenSearchTerm: false,
-    ReturnKeywordsDisableKeywordGroup: false,
+    ReturnKeywordsDisableKeywordGroup: true,
     ReturnFeaturedPlaylists: true,
     ReturnFeaturedPlaylist_Fields: "ProjectTitle,Description",
     ReturnFeaturedPlaylists_Limit: GROUP_LIMIT,
     ReturnFeaturedPlaylist_Order: "Alphabetic_Ascent",
-    ReturnFeaturedPlaylists_DisableKeywordGroup: false,
+    ReturnFeaturedPlaylists_DisableKeywordGroup: true,
   };
 }
 
@@ -112,6 +113,7 @@ export function mapAutocompleteResponse(
   view: "tracks" | "albums" = "tracks",
   artworkForAlbum?: ArtworkForAlbum,
   artworkForPlaylist?: ArtworkForPlaylist,
+  query = "",
 ): AutocompleteGroup[] {
   const source = isRecord(payload) ? payload : {};
   const trackSource = values(source, "Tracks", "tracks");
@@ -146,18 +148,36 @@ export function mapAutocompleteResponse(
     const title = asString(pick(item, "DisplayTitle", "Name", "Title"));
     const version = asString(pick(item, "Version", "AlternateTitle"));
     const code = asString(pick(item, "CDCode"));
+    const evidence = entitySearchEvidence(query, [
+      { field: "trackTitle", values: [title] },
+      { field: "albumTitle", values: [asString(pick(item, "AlbumDisplayTitle", "AlbumName", "AlbumTitle"))] },
+      { field: "description", values: [asString(pick(item, "Comment", "Description"))] },
+      { field: "keyword", values: asList(pick(item, "Keywords")) },
+      { field: "genre", values: asList(pick(item, "Genre")) },
+      { field: "mood", values: asList(pick(item, "Mood")) },
+      { field: "musicFor", values: asList(pick(item, "MusicFor")) },
+      { field: "instrument", values: asList(pick(item, "Instrumentation")) },
+      { field: "catalogReference", values: [code] },
+    ]);
     return {
       id,
       label: title,
       subtitle: [version, code].filter(Boolean).join(" · ") || undefined,
       image: albumId ? artworkForAlbum?.(albumId) : undefined,
       href: albumId ? `/albums/${albumId}?track=${encodeURIComponent(id)}` : undefined,
+      ...(evidence.length ? { matchEvidence: evidence } : {}),
     };
   }).slice(0, GROUP_LIMIT);
   const albums = mapRecords(albumSource, "album", (item, index) => {
     const id = asString(pick(item, "AlbumID", "ID"), `album-${index}`);
     const code = asString(pick(item, "CDCode"));
     const identity = albumIdentity(asString(pick(item, "DisplayTitle", "Name", "Title")), code);
+    const evidence = entitySearchEvidence(query, [
+      { field: "albumTitle", values: [identity.title] },
+      { field: "albumDescription", values: [asString(pick(item, "Description", "Detail"))] },
+      { field: "albumKeyword", values: asList(pick(item, "Keywords")) },
+      { field: "catalogReference", values: [identity.code] },
+    ]);
     return {
       id,
       label: identity.title,
@@ -168,25 +188,36 @@ export function mapAutocompleteResponse(
       image: artworkForAlbum?.(id) || asString(pick(item, "ArtworkUrl", "ImageUrl", "CoverUrl")) || undefined,
       trackCount: asNumber(pick(item, "TrackCount")) || undefined,
       href: `/albums/${id}`,
+      ...(evidence.length ? { matchEvidence: evidence } : {}),
     };
   }).slice(0, GROUP_LIMIT);
   const playlists = mapRecords(playlistSource, "playlist", (item, index) => {
     const id = asString(pick(item, "FeaturedPlaylistID", "PlaylistID", "ID"), `playlist-${index}`);
+    const label = asString(pick(item, "DisplayTitle", "ProjectTitle", "Name", "Title"));
+    const description = asString(pick(item, "Description"));
+    const evidence = entitySearchEvidence(query, [
+      { field: "playlistTitle", values: [label] },
+      { field: "description", values: [description] },
+    ]);
     return {
       id,
-      label: asString(pick(item, "DisplayTitle", "ProjectTitle", "Name", "Title")),
-      subtitle: asString(pick(item, "Description")) || undefined,
+      label,
+      subtitle: description || undefined,
       image: artworkForPlaylist?.(id) || asString(pick(item, "ArtworkUrl", "ImageUrl", "CoverUrl")) || undefined,
       trackCount: asNumber(pick(item, "TrackCount", "TracksCount")) || undefined,
       href: `/playlists/${id}`,
+      ...(evidence.length ? { matchEvidence: evidence } : {}),
     };
   }).slice(0, GROUP_LIMIT);
   const labels = mapRecords(labelSource, "label", (item, index) => {
     const id = asString(pick(item, "LibraryID", "ID"), `label-${index}`);
+    const label = asString(pick(item, "Name", "DisplayTitle"));
+    const evidence = entitySearchEvidence(query, [{ field: "labelName", values: [label] }]);
     return {
       id,
-      label: asString(pick(item, "Name", "DisplayTitle")),
+      label,
       href: `/search?view=${view}&type=main&labels=${encodeURIComponent(id)}`,
+      ...(evidence.length ? { matchEvidence: evidence } : {}),
     };
   }).slice(0, GROUP_LIMIT);
   const composers = mapRecords(composerSource, "composer", (item, index) => {
@@ -196,10 +227,12 @@ export function mapAutocompleteResponse(
         asString(pick(item, "firstname", "FirstName")),
         asString(pick(item, "lastname", "LastName")),
       ].filter(Boolean).join(" ");
+    const evidence = entitySearchEvidence(query, [{ field: "composerName", values: [label] }]);
     return {
       id,
       label,
       href: `/search?view=tracks&type=main&composer=${encodeURIComponent(label)}`,
+      ...(evidence.length ? { matchEvidence: evidence } : {}),
     };
   }).slice(0, GROUP_LIMIT);
   const keywords = mapWords(keywordsSource, "keyword");

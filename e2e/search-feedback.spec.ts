@@ -270,7 +270,8 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({ data: { groups: [
-        { key: "tracks", count: 1, items: [{ id: "track-1", kind: "track", label: "Crime Scene", subtitle: "Main · PAR001", image: "/images/placeholder-album.svg", href: "/albums/album-1?track=track-1" }] },
+        { key: "filters", count: 1, items: [{ id: "ATT_crime", kind: "filter", filterGroup: "moods", label: "Ambiance · Crime", subtitle: "Catégorie trouvée", canonicalName: "Crime", localizedName: "Crime", matchedTerm: "crime" }] },
+        { key: "tracks", count: 1, items: [{ id: "track-1", kind: "track", label: "Crime Scene", subtitle: "Main · PAR001", image: "/images/placeholder-album.svg", href: "/albums/album-1?track=track-1", matchEvidence: [{ field: "trackTitle", value: "Crime Scene", matchedTerms: ["crime"] }] }] },
         { key: "albums", count: 1, items: [{ id: "album-1", kind: "album", label: "Crime Stories", subtitle: "PAR001", trackCount: 12, image: "/images/placeholder-album.svg", href: "/albums/album-1" }] },
         { key: "playlists", count: 1, items: [{ id: "playlist-1", kind: "playlist", label: "Crime Investigation", subtitle: "Sélection éditoriale", trackCount: 24, image: "/images/placeholder-playlist.svg", href: "/playlists/playlist-1" }] },
         { key: "words", count: 1, items: [{ id: "keyword-1", kind: "keyword", label: "crime" }] },
@@ -302,6 +303,8 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
   await input.fill("crime");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("crime");
   await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Filtres trouvés" })).toBeVisible();
+  await expect(input).not.toHaveAttribute("aria-activedescendant");
   await expect(page.getByRole("option", { name: "Crime Scene" })).toBeVisible();
   await expect(page.getByRole("option", { name: /Crime Stories/ })).toBeVisible();
   await expect(page.getByRole("option", { name: /Crime Investigation/ })).toBeVisible();
@@ -313,6 +316,11 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
   expect(Math.abs(panelBox!.width - commandBox!.width)).toBeLessThanOrEqual(2);
   await input.press("ArrowDown");
   await expect(input).toHaveAttribute("aria-activedescendant", /catalog-search-suggestions-option-0/);
+  await input.press("Enter");
+  await expect(input).toBeFocused();
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get("categories")).toBe("ATT_crime");
+  await expect(page.getByText("Ambiance · Crime", { exact: true }).last()).toBeVisible();
   expect(autocompleteRequests).toBeGreaterThan(0);
   expect(autocompleteScopes.every((scope) => scope === null)).toBe(true);
 
@@ -322,6 +330,57 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
   await page.getByRole("option", { name: "Albums", exact: true }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get("view")).toBe("albums");
   await expect(input).toBeVisible();
+});
+
+test("la home accumule les filtres avant de lancer la recherche", async ({ page }) => {
+  await page.route("**/api/search/filters?**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { groups: [
+        { key: "genre", label: "Genre", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_a111111111111111", name: "Reggae" }] },
+        { key: "moods", label: "Ambiance", selection: "include-exclude", total: 1, available: 1, items: [{ id: "ATT_c333333333333333", name: "Triste", canonicalName: "Sad", localizedName: "Triste" }] },
+      ] } }),
+    });
+  });
+  await page.route("**/api/autocomplete?**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { groups: [{
+        key: "filters",
+        count: 3,
+        items: [
+          { id: "ATT_a111111111111111", kind: "filter", filterGroup: "genre", label: "Genre · Reggae", subtitle: "Catégorie trouvée" },
+          { id: "STYLE_b222222222222222", kind: "filter", filterGroup: "styles", label: "Style · Reggae", subtitle: "Style trouvé" },
+          { id: "ATT_c333333333333333", kind: "filter", filterGroup: "moods", label: "Ambiance · Triste (Sad)", subtitle: "Catégorie trouvée" },
+        ],
+      }] } }),
+    });
+  });
+
+  await page.goto("/");
+  const input = page.getByRole("combobox", { name: "Rechercher dans le catalogue Parigo" });
+  await input.fill("reggae triste");
+  const suggestions = page.getByRole("listbox", { name: "Suggestions de recherche" });
+  await expect(suggestions).toBeVisible();
+  await suggestions.getByRole("option", { name: /Genre · Reggae/ }).click();
+  await suggestions.getByRole("option", { name: /Ambiance · Triste/ }).click();
+  await expect(input).toBeFocused();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByText("Filtres à appliquer au lancement")).toBeVisible();
+  await page.getByRole("button", { name: "Voir les résultats · 2 filtres" }).click();
+  await expect.poll(() => {
+    const url = new URL(page.url());
+    return { path: url.pathname, q: url.searchParams.get("q"), categories: url.searchParams.get("categories") };
+  }).toEqual({ path: "/search", q: "reggae triste", categories: "ATT_a111111111111111,ATT_c333333333333333" });
+  const searchInput = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
+  await searchInput.focus();
+  const appliedSuggestions = page.getByRole("listbox", { name: "Suggestions de recherche" });
+  await expect(appliedSuggestions).toBeVisible();
+  await expect(page.getByText("Filtres appliqués", { exact: true })).toBeVisible();
+  await expect(appliedSuggestions.getByRole("option", { name: /Genre · Reggae/ })).toHaveAttribute("aria-selected", "true");
+  await expect(appliedSuggestions.getByRole("option", { name: /Ambiance · Triste/ })).toHaveAttribute("aria-selected", "true");
+  await appliedSuggestions.getByRole("option", { name: /Genre · Reggae/ }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("categories")).toBe("ATT_c333333333333333");
 });
 
 test("l’autocomplétion conserve un état vide global sans afficher de sections à zéro", async ({ page }) => {

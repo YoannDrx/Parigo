@@ -21,6 +21,9 @@ interface SearchCommandProps {
   onSelect: (item: AutocompleteItem) => void;
   onClear?: () => void;
   offerTranslationWhenEmpty?: boolean;
+  stagedFilters?: AutocompleteItem[];
+  onRemoveStagedFilter?: (item: AutocompleteItem) => void;
+  filterSelectionState?: "pending" | "applied";
 }
 
 export function SearchCommand({
@@ -35,6 +38,9 @@ export function SearchCommand({
   onSelect,
   onClear,
   offerTranslationWhenEmpty = false,
+  stagedFilters = [],
+  onRemoveStagedFilter,
+  filterSelectionState = "pending",
 }: SearchCommandProps) {
   const [focused, setFocused] = useState(false);
   const [mode, setMode] = useState<SearchMode>("keyword");
@@ -46,6 +52,7 @@ export function SearchCommand({
   const displayedValue = keywordMode ? value : aiDraft;
   const normalizedValue = displayedValue.trim();
   const autocomplete = useSearchAutocomplete(displayedValue, locale, focused && keywordMode);
+  const hasExplainedAutocompleteMatch = autocomplete.groups.some((group) => group.key !== "words" && group.items.length > 0);
   const emptyTranslation = useEmptySearchTranslation(
     displayedValue,
     locale,
@@ -53,7 +60,7 @@ export function SearchCommand({
       && keywordMode
       && focused
       && autocomplete.status === "success"
-      && autocomplete.groups.length === 0,
+      && !hasExplainedAutocompleteMatch,
   );
   const suggestionsId = `${id}-suggestions`;
   const panelOpen = keywordMode && focused && normalizedValue.length >= 2 && autocomplete.status !== "idle";
@@ -77,6 +84,13 @@ export function SearchCommand({
   };
 
   const selectSuggestion = (item: AutocompleteItem) => {
+    if (item.kind === "filter") {
+      const alreadyStaged = stagedFilters.some((candidate) => candidate.id === item.id && candidate.filterGroup === item.filterGroup);
+      if (alreadyStaged && onRemoveStagedFilter) onRemoveStagedFilter(item);
+      else onSelect(item);
+      window.requestAnimationFrame(() => inputRef.current?.focus());
+      return;
+    }
     autocomplete.close();
     inputRef.current?.blur();
     onSelect(item);
@@ -266,6 +280,9 @@ export function SearchCommand({
           onSelect={selectSuggestion}
           onApplyTranslation={applyTranslationSuggestion}
           onViewAll={() => submit()}
+          stagedFilters={stagedFilters}
+          onRemoveStagedFilter={onRemoveStagedFilter}
+          filterSelectionState={filterSelectionState}
         />
       ) : null}
     </section>

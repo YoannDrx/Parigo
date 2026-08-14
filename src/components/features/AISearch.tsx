@@ -18,16 +18,31 @@ interface AISearchProps {
 export function AISearch({ defaultValue = "", compact = false, showExamples = false, onSearch }: AISearchProps) {
   const { locale, localizedPath } = useI18n();
   const [query, setQuery] = useState(defaultValue);
+  const [stagedFilters, setStagedFilters] = useState<AutocompleteItem[]>([]);
   const router = useRouter();
 
   const runSearch = (value: string) => {
     const normalized = value.trim();
     if (!normalized) return;
-    if (onSearch) onSearch(normalized);
-    else router.push(localizedPath(`/search?q=${encodeURIComponent(normalized)}&view=tracks&type=main`));
+    if (onSearch && stagedFilters.length === 0) {
+      onSearch(normalized);
+      return;
+    }
+    const params = new URLSearchParams({ q: normalized, view: "tracks", type: "main" });
+    const categories = stagedFilters.filter((item) => item.filterGroup !== "styles").map((item) => item.id);
+    const styles = stagedFilters.filter((item) => item.filterGroup === "styles").map((item) => item.id);
+    if (categories.length) params.set("categories", [...new Set(categories)].join(","));
+    if (styles.length) params.set("styles", [...new Set(styles)].join(","));
+    router.push(localizedPath(`/search?${params.toString()}`));
   };
 
   const selectSuggestion = (item: AutocompleteItem) => {
+    if (item.kind === "filter") {
+      setStagedFilters((current) => current.some((candidate) => candidate.id === item.id && candidate.filterGroup === item.filterGroup)
+        ? current
+        : [...current, item]);
+      return;
+    }
     if (item.href) {
       router.push(localizedPath(item.href));
       return;
@@ -47,6 +62,9 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
         onValueChange={setQuery}
         onSubmit={runSearch}
         onSelect={selectSuggestion}
+        onClear={() => setStagedFilters([])}
+        stagedFilters={stagedFilters}
+        onRemoveStagedFilter={(item) => setStagedFilters((current) => current.filter((candidate) => candidate.id !== item.id || candidate.filterGroup !== item.filterGroup))}
         offerTranslationWhenEmpty
       />
 

@@ -33,7 +33,7 @@ export function useSearchAutocomplete(
       try {
         const nextGroups = await fetchAutocomplete(normalizedQuery, language, controller.signal);
         const limitedGroups = nextGroups.map((group) => {
-          const limit = group.key === "tracks" ? 4 : group.key === "words" ? 6 : 3;
+          const limit = group.key === "tracks" ? 4 : group.key === "words" || group.key === "filters" ? 6 : 3;
           return { ...group, items: group.items.slice(0, limit) };
         });
         setGroups(limitedGroups.filter((group) => group.items.length > 0));
@@ -82,7 +82,9 @@ export function useSearchAutocomplete(
 
 export function autocompleteItemIndex(groups: AutocompleteGroup[], item: AutocompleteItem): number {
   return groups.flatMap((group) => group.items).findIndex((candidate) =>
-    candidate.kind === item.kind && candidate.id === item.id,
+    candidate.kind === item.kind
+      && candidate.id === item.id
+      && candidate.filterGroup === item.filterGroup,
   );
 }
 

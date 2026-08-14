@@ -16,14 +16,37 @@ const groupKeys: Record<string, SearchFilterGroupKey> = {
   instruments: "instruments",
   area: "area",
 };
+const FILTER_CACHE_TTL_MS = 60 * 60 * 1000;
+const filterCache = new Map<"fr" | "en", { expiresAt: number; value: Promise<SearchFilterGroup[]> }>();
 
-function categoryItem(item: CatalogCategory, parentId?: string): SearchFilterItem {
-  const id = `ATT_${item.id.replace(/^ATT_/i, "")}`;
-  const children = item.children?.map((child) => categoryItem(child, id));
+function stableCategoryId(id: string): string {
+  return `ATT_${id.replace(/^ATT_/i, "")}`;
+}
+
+function categoryItem(
+  canonical: CatalogCategory,
+  localized?: CatalogCategory,
+  parentId?: string,
+  parentPath: string[] = [],
+): SearchFilterItem {
+  const id = stableCategoryId(canonical.id);
+  const canonicalName = canonical.name;
+  const localizedName = localized?.name || canonicalName;
+  const localizedChildren = new Map((localized?.children ?? []).map((child) => [stableCategoryId(child.id), child]));
+  const path = [...parentPath, localizedName];
+  const children = canonical.children?.map((child) => categoryItem(
+    child,
+    localizedChildren.get(stableCategoryId(child.id)),
+    id,
+    path,
+  ));
   return {
     id,
-    name: item.name,
+    name: localizedName,
+    canonicalName,
+    localizedName,
     parentId,
+    path,
     ...(children?.length ? { children } : {}),
   };
 }
@@ -32,14 +55,20 @@ function itemCount(items: SearchFilterItem[]): number {
   return items.reduce((total, item) => total + 1 + itemCount(item.children ?? []), 0);
 }
 
-export async function getSearchFilterGroups(
+async function loadSearchFilterGroups(
   language: "fr" | "en",
 ): Promise<SearchFilterGroup[]> {
-  const [categoryGroups, labels, styles] = await Promise.all([
-    getCategories(language),
+  const canonicalCategoriesPromise = getCategories("en");
+  const canonicalStylesPromise = getStyles();
+  const [canonicalCategoryGroups, localizedCategoryGroups, labels, canonicalStyles, localizedStyles] = await Promise.all([
+    canonicalCategoriesPromise,
+    language === "en" ? canonicalCategoriesPromise : getCategories(language),
     getLabels(),
-    getStyles(),
+    canonicalStylesPromise,
+    language === "en" ? canonicalStylesPromise : getStyles(language),
   ]);
+  const localizedCategoryById = new Map(localizedCategoryGroups.map((group) => [stableCategoryId(group.id), group]));
+  const localizedStyleById = new Map(localizedStyles.map((style) => [style.id, style]));
   return [
     {
       key: "labels",
@@ -64,25 +93,37 @@ export async function getSearchFilterGroups(
       key: "styles",
       label: language === "fr" ? "Styles" : "Styles",
       selection: "include-exclude",
-      total: styles.length,
-      available: styles.length,
-      items: styles.map((style) => ({
+      total: canonicalStyles.length,
+      available: canonicalStyles.length,
+      items: canonicalStyles.map((style) => {
+        const localizedName = localizedStyleById.get(style.id)?.name || style.name;
+        return ({
         id: style.id,
-        name: style.name,
+        name: localizedName,
+        canonicalName: style.name,
+        localizedName,
+        path: [localizedName],
         count: style.trackCount,
-      })),
+      }); }),
       description: language === "fr"
         ? "Les compteurs correspondent à des occurrences de catalogue, pas à des albums distincts."
         : "Counts represent catalog occurrences, not distinct albums.",
     },
-    ...categoryGroups.flatMap((group): SearchFilterGroup[] => {
+    ...canonicalCategoryGroups.flatMap((group): SearchFilterGroup[] => {
       const key = groupKeys[group.name.toLocaleLowerCase("en")];
       if (!key) return [];
-      const items = (group.children ?? []).map((item) => categoryItem(item));
+      const localizedGroup = localizedCategoryById.get(stableCategoryId(group.id));
+      const localizedChildren = new Map((localizedGroup?.children ?? []).map((child) => [stableCategoryId(child.id), child]));
+      const items = (group.children ?? []).map((item) => categoryItem(
+        item,
+        localizedChildren.get(stableCategoryId(item.id)),
+        undefined,
+        [localizedGroup?.name || group.name],
+      ));
       const total = itemCount(items);
       return [{
         key,
-        label: group.name,
+        label: localizedGroup?.name || group.name,
         selection: "include-exclude",
         total,
         available: total,
@@ -90,4 +131,15 @@ export async function getSearchFilterGroups(
       }];
     }),
   ];
+}
+
+export async function getSearchFilterGroups(language: "fr" | "en"): Promise<SearchFilterGroup[]> {
+  const cached = filterCache.get(language);
+  if (cached && cached.expiresAt > Date.now()) return cached.value;
+  const value = loadSearchFilterGroups(language).catch((error) => {
+    filterCache.delete(language);
+    throw error;
+  });
+  filterCache.set(language, { expiresAt: Date.now() + FILTER_CACHE_TTL_MS, value });
+  return value;
 }
