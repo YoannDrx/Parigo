@@ -14,14 +14,25 @@ interface LogEvent {
   provider?: string;
   fieldProfile?: string;
   total?: number;
+  titleMatchTotal?: number;
   translationOffered?: boolean;
   translationApplied?: boolean;
+  taxonomyGroup?: string;
+  canonicalCount?: number;
+  localizedCount?: number;
+  missingCount?: number;
+  emptyCount?: number;
+  conflictingCount?: number;
+  extraCount?: number;
+  hierarchyMismatchCount?: number;
+  sampleIds?: string[];
 }
 
 export function logEvent(event: LogEvent): void {
   const payload = {
     ...event,
     code: event.code?.replace(/[^A-Z0-9_-]/gi, "_").slice(0, 64),
+    sampleIds: event.sampleIds?.slice(0, 10).map((value) => value.replace(/[^A-Z0-9_-]/gi, "_").slice(0, 64)),
     environment: process.env.VERCEL_ENV || process.env.NODE_ENV || "development",
     timestamp: new Date().toISOString(),
   };

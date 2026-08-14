@@ -1,12 +1,13 @@
 {
-  "capturedAt": "2026-08-12",
+  "capturedAt": "2026-08-14",
   "notes": "Les totaux sont des observations, jamais des assertions de test. La validation humaine porte sur les 20 premiers résultats.",
   "queries": [
     { "query": "piano", "kind": "title-and-metadata", "productionTotal": 30418, "titleProfileTotal": 1489, "editorialProfileTotal": null, "review": "pending" },
     { "query": "crime", "kind": "title-and-metadata", "productionTotal": 8771, "titleProfileTotal": 174, "editorialProfileTotal": 8884, "review": "pending" },
     { "query": "crim", "kind": "partial-title", "productionTotal": null, "titleProfileTotal": 267, "editorialProfileTotal": null, "review": "pending" },
     { "query": "wedding", "kind": "music-for", "productionTotal": 1231, "titleProfileTotal": 171, "editorialProfileTotal": null, "review": "pending" },
-    { "query": "mariage", "kind": "translation-suggestion", "productionTotal": 0, "titleProfileTotal": 0, "editorialProfileTotal": null, "review": "pending" },
+    { "query": "mariage", "kind": "localized-taxonomy", "productionTotal": 0, "titleProfileTotal": 0, "editorialProfileTotal": null, "review": "pending" },
+    { "query": "coucher de soleil", "kind": "translation-suggestion", "productionTotal": 0, "titleProfileTotal": 0, "editorialProfileTotal": null, "review": "pending" },
     { "query": "investigation", "kind": "metadata", "review": "pending" },
     { "query": "documentary", "kind": "music-for", "review": "pending" },
     { "query": "tension", "kind": "mood", "review": "pending" },

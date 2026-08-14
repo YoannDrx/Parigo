@@ -13,7 +13,11 @@ import { absoluteUrl, buildMetadata } from "@/lib/seo";
 
 interface AlbumPageProps {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ track?: string | string[] }>;
+  searchParams: Promise<{
+    track?: string | string[];
+    panel?: string | string[];
+    highlight?: string | string[];
+  }>;
 }
 
 async function loadAlbum(id: string) {
@@ -72,6 +76,8 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
       <AlbumDetailClient
         data={{ album, similarAlbums: result.similar, composerCredits, contributorGroups, navigation }}
         initialTrackId={typeof resolvedSearchParams.track === "string" ? resolvedSearchParams.track : undefined}
+        initialTrackTab={resolvedSearchParams.panel === "lyrics" ? "lyrics" : undefined}
+        initialHighlight={typeof resolvedSearchParams.highlight === "string" ? resolvedSearchParams.highlight.slice(0, 200) : undefined}
       />
     </>
   );

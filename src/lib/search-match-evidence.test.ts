@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Album, Track } from "@/types";
-import { explainsSearchQuery, trackSearchEvidence } from "./search-match-evidence";
+import { explainsSearchQuery, prioritizeTitleEvidence, trackSearchEvidence } from "./search-match-evidence";
 
 const track: Track = {
   id: "track-1",
@@ -44,5 +44,15 @@ describe("search match evidence", () => {
   it("normalizes accents and casing without partial matching", () => {
     expect(trackSearchEvidence(track, "TRÍSTE", album)[0]).toEqual(expect.objectContaining({ field: "trackTitle", value: "Amour Triste" }));
     expect(trackSearchEvidence(track, "rim", album)).toEqual([]);
+  });
+
+  it("moves title evidence first without changing the relative provider order", () => {
+    const ordered = prioritizeTitleEvidence([
+      { id: "metadata-1", matchEvidence: [{ field: "keyword" as const, value: "Crime", matchedTerms: ["crime"] }] },
+      { id: "title-1", matchEvidence: [{ field: "trackTitle" as const, value: "Crime One", matchedTerms: ["crime"] }] },
+      { id: "metadata-2", matchEvidence: [{ field: "description" as const, value: "A crime cue", matchedTerms: ["crime"] }] },
+      { id: "title-2", matchEvidence: [{ field: "trackTitle" as const, value: "Crime Two", matchedTerms: ["crime"] }] },
+    ], "trackTitle");
+    expect(ordered.map((item) => item.id)).toEqual(["title-1", "title-2", "metadata-1", "metadata-2"]);
   });
 });

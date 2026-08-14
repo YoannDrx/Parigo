@@ -25,6 +25,7 @@ import {
   type HarvestTrackPayload,
 } from "./contracts";
 import { HarvestError, isRecord } from "./errors";
+import { logEvent } from "@/lib/logger";
 import { buildCloudSearch, mapSearchFacets, searchHistoryIdFromResponse, type HarvestSearchFacets, type HarvestSearchInput } from "./search";
 import {
   asBoolean,
@@ -38,6 +39,109 @@ import {
 } from "./values";
 
 type HarvestRecord = Record<string, unknown>;
+
+const TAXONOMY_DIAGNOSTIC_TTL_MS = 60 * 60 * 1000;
+let categoryDiagnosticExpiresAt = 0;
+let styleDiagnosticExpiresAt = 0;
+
+export interface TaxonomyLocalization {
+  name: string;
+  hasOfficialLocalization: boolean;
+  emptyValueCount: number;
+  conflictingValues: string[];
+}
+
+export function resolveTaxonomyLocalization(
+  item: HarvestRecord,
+  language: "fr" | "en",
+): TaxonomyLocalization {
+  const canonicalName = asString(item.Name).trim();
+  if (language === "en") {
+    return {
+      name: canonicalName,
+      hasOfficialLocalization: false,
+      emptyValueCount: 0,
+      conflictingValues: [],
+    };
+  }
+
+  const matchingItems = recordArray(item, "LanguageItems").filter((languageItem) => {
+    const languageCode = asString(pick(
+      languageItem,
+      "LanguageCode_ISO639_1",
+      "LanguageCode",
+      "Language",
+      "CultureCode",
+    )).trim().toLocaleLowerCase("en").split(/[-_]/)[0];
+    return languageCode === language;
+  });
+  const values = [...new Set(matchingItems
+    .map((languageItem) => asString(pick(languageItem, "Value", "Name", "Text")).trim())
+    .filter(Boolean))];
+
+  return {
+    name: values[0] || canonicalName,
+    hasOfficialLocalization: values.length > 0,
+    emptyValueCount: matchingItems.length - matchingItems.filter((languageItem) => (
+      Boolean(asString(pick(languageItem, "Value", "Name", "Text")).trim())
+    )).length,
+    conflictingValues: values.length > 1 ? values : [],
+  };
+}
+
+interface TaxonomyLocalizationStats {
+  total: number;
+  localized: number;
+  empty: number;
+  conflicting: number;
+  anomalyIds: string[];
+}
+
+function emptyTaxonomyLocalizationStats(): TaxonomyLocalizationStats {
+  return { total: 0, localized: 0, empty: 0, conflicting: 0, anomalyIds: [] };
+}
+
+function includeTaxonomyLocalization(
+  stats: TaxonomyLocalizationStats,
+  id: string,
+  localization: TaxonomyLocalization,
+): void {
+  stats.total += 1;
+  if (localization.hasOfficialLocalization) stats.localized += 1;
+  stats.empty += localization.emptyValueCount;
+  if (localization.conflictingValues.length) stats.conflicting += 1;
+  if ((localization.emptyValueCount || localization.conflictingValues.length) && stats.anomalyIds.length < 10) {
+    stats.anomalyIds.push(id);
+  }
+}
+
+function logTaxonomyLocalizationStats(
+  taxonomyGroup: string,
+  stats: TaxonomyLocalizationStats,
+): void {
+  logEvent({
+    level: "info",
+    message: "taxonomy_translation_coverage",
+    route: "harvest-taxonomy",
+    requestId: crypto.randomUUID(),
+    taxonomyGroup,
+    canonicalCount: stats.total,
+    localizedCount: stats.localized,
+    missingCount: stats.total - stats.localized,
+  });
+  if (stats.empty || stats.conflicting) {
+    logEvent({
+      level: "warn",
+      message: "taxonomy_translation_anomaly",
+      route: "harvest-taxonomy",
+      requestId: crypto.randomUUID(),
+      taxonomyGroup,
+      emptyCount: stats.empty,
+      conflictingCount: stats.conflicting,
+      sampleIds: stats.anomalyIds,
+    });
+  }
+}
 
 function totalFrom(payload: unknown, fallback: number, ...keys: string[]): number {
   if (!isRecord(payload)) return fallback;
@@ -645,17 +749,32 @@ export async function getCategories(language: "fr" | "en" = "en"): Promise<Catal
   const payload = await guestRequest<HarvestRecord>((token) =>
     `/getcategories/${token}/hasactivetrackonly?languagecode=${language}`,
   );
-  const mapNode = (item: HarvestRecord, parentId?: string): CatalogCategory => {
+  const shouldLogDiagnostics = language === "fr" && categoryDiagnosticExpiresAt <= Date.now();
+  const statsByGroup = new Map<string, TaxonomyLocalizationStats>();
+  const mapNode = (item: HarvestRecord, parentId?: string, rootName?: string): CatalogCategory => {
     const id = asString(item.ID);
+    const canonicalName = asString(item.Name).trim();
+    const localization = resolveTaxonomyLocalization(item, language);
+    const groupName = rootName || canonicalName;
+    if (shouldLogDiagnostics) {
+      const stats = statsByGroup.get(groupName) ?? emptyTaxonomyLocalizationStats();
+      includeTaxonomyLocalization(stats, id, localization);
+      statsByGroup.set(groupName, stats);
+    }
     return {
       id,
-      name: asString(item.Name),
+      name: localization.name,
       slug: id,
       parentId,
-      children: recordArray(item, "Attributes").map((child) => mapNode(child, id)),
+      children: recordArray(item, "Attributes").map((child) => mapNode(child, id, groupName)),
     };
   };
-  return recordArray(payload, "Categories").map((item) => mapNode(item));
+  const categories = recordArray(payload, "Categories").map((item) => mapNode(item));
+  if (shouldLogDiagnostics) {
+    categoryDiagnosticExpiresAt = Date.now() + TAXONOMY_DIAGNOSTIC_TTL_MS;
+    for (const [group, stats] of statsByGroup) logTaxonomyLocalizationStats(group, stats);
+  }
+  return categories;
 }
 
 export async function getStyles(language?: "fr" | "en"): Promise<CatalogCategory[]> {
@@ -668,12 +787,24 @@ export async function getStyles(language?: "fr" | "en"): Promise<CatalogCategory
     cloudSearch({ view: "Album", limit: 1, sort: "ReleaseDate_Desc", includeStyleFacets: true })
       .then((result) => new Map((result.facets.styles ?? []).map((item) => [item.id, item.count]))),
   ]);
-  return recordArray(payload, "Styles").map((item) => ({
-    id: asString(item.ID),
-    name: asString(item.Name),
-    slug: asString(item.ID),
-    // Harvest exposes style-facet occurrences here. Those occurrences count
-    // indexed tracks/versions, not distinct albums, even with an Album view.
-    trackCount: styleTrackFacets.get(asString(item.ID)) ?? 0,
-  }));
+  const shouldLogDiagnostics = language === "fr" && styleDiagnosticExpiresAt <= Date.now();
+  const stats = emptyTaxonomyLocalizationStats();
+  const styles = recordArray(payload, "Styles").map((item) => {
+    const id = asString(item.ID);
+    const localization = resolveTaxonomyLocalization(item, language || "en");
+    if (shouldLogDiagnostics) includeTaxonomyLocalization(stats, id, localization);
+    return {
+      id,
+      name: localization.name,
+      slug: id,
+      // Harvest exposes style-facet occurrences here. Those occurrences count
+      // indexed tracks/versions, not distinct albums, even with an Album view.
+      trackCount: styleTrackFacets.get(id) ?? 0,
+    };
+  });
+  if (shouldLogDiagnostics) {
+    styleDiagnosticExpiresAt = Date.now() + TAXONOMY_DIAGNOSTIC_TTL_MS;
+    logTaxonomyLocalizationStats("Styles", stats);
+  }
+  return styles;
 }

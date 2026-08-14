@@ -20,7 +20,6 @@ import { useShortlistStore } from "@/stores/shortlist-store";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { useSession } from "@/lib/auth-client";
-import { SearchMatchEvidence } from "@/components/search/SearchMatchEvidence";
 
 interface TrackRowProps {
   track: Track;
@@ -35,6 +34,8 @@ interface TrackRowProps {
   showCompleteActions?: boolean;
   composerCredits?: ComposerCreditLink[];
   initialDetailsOpen?: boolean;
+  initialDetailsTab?: TrackDetailsTab;
+  initialHighlight?: string;
   leadingMeta?: ReactNode;
   showTags?: boolean;
   displayNumber?: string;
@@ -60,6 +61,8 @@ export function TrackRow({
   showCompleteActions = density === "full",
   composerCredits,
   initialDetailsOpen = false,
+  initialDetailsTab = "information",
+  initialHighlight,
   leadingMeta,
   showTags = true,
   displayNumber,
@@ -74,7 +77,7 @@ export function TrackRow({
   const isCurrentTrack = currentTrack?.id === track.id;
   const isPlayingThis = isCurrentTrack && isPlaying;
   const [detailsOpen, setDetailsOpen] = useState(initialDetailsOpen);
-  const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>("information");
+  const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>(initialDetailsTab);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const mobileActionsToken = useRef(Symbol(track.id));
   const articleRef = useRef<HTMLElement>(null);
@@ -116,7 +119,7 @@ export function TrackRow({
   }, [condensedActions, mobileActionsOpen]);
 
   useEffect(() => {
-    if (!initialDetailsOpen) return;
+    if (!initialDetailsOpen || initialHighlight) return;
     const frame = window.requestAnimationFrame(() => {
       articleRef.current?.scrollIntoView({
         behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
@@ -124,7 +127,7 @@ export function TrackRow({
       });
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [initialDetailsOpen]);
+  }, [initialDetailsOpen, initialHighlight]);
 
   useEffect(() => {
     if (!mobileActionsOpen) return;
@@ -298,8 +301,6 @@ export function TrackRow({
           </div>
         )}
 
-        <SearchMatchEvidence items={track.matchEvidence} locale={locale} />
-
         {/* Waveform */}
         {showWaveform && density !== "light" && (
           <div className="w-full">
@@ -380,7 +381,7 @@ export function TrackRow({
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
       </div>}
-      {detailsOpen && <div className="mb-4 ml-3 mr-1 mt-2 sm:ml-8 lg:ml-12"><TrackDetailsPanel track={track} composerCredits={composerCredits} activeTab={detailsTab} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} /></div>}
+      {detailsOpen && <div className="mb-4 ml-3 mr-1 mt-2 sm:ml-8 lg:ml-12"><TrackDetailsPanel track={track} composerCredits={composerCredits} activeTab={detailsTab} highlight={initialHighlight} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} /></div>}
     </article>
   );
 }

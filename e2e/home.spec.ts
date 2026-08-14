@@ -41,7 +41,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     await expect(heroSignature).toHaveCSS("animation-name", "parigo-title-signature-spin");
   }
   await expect(page.getByRole("link", { name: "Entrer dans le catalogue" })).toHaveCount(0);
-  const modeSelect = hero.getByRole("button", { name: "Mode de recherche : Mots-clés" });
+  const modeSelect = hero.getByRole("button", { name: "Mode de recherche : Catalogue" });
   await expect(modeSelect).toBeEnabled();
   await modeSelect.click();
   await hero.getByRole("option", { name: /Brief IA/ }).click();
@@ -49,7 +49,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await expect(hero.getByLabel("Décrire un brief musical assisté par IA")).toBeVisible();
   await expect(hero.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
   await hero.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
-  await hero.getByRole("option", { name: /Mots-clés/ }).click();
+  await hero.getByRole("option", { name: /Catalogue/ }).click();
   await expect(hero.getByRole("button", { name: "Pistes", exact: true })).toHaveCount(0);
   await expect(hero.getByRole("button", { name: "Albums", exact: true })).toHaveCount(0);
   const searchBar = hero.locator(".search-command__form");
@@ -106,39 +106,31 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
 });
 
-test("la home propose DeepL après une autocomplétion vide", async ({ page }) => {
-  let translationProbes = 0;
+test("la home ne propose DeepL qu’après le lancement d’une recherche vide", async ({ page }) => {
+  let submittedSearches = 0;
   await page.route("**/api/autocomplete?**", async (route) => {
-    const query = new URL(route.request().url()).searchParams.get("q");
     await route.fulfill({
       contentType: "application/json",
-      body: JSON.stringify({ data: { groups: query === "wedding" ? [
-        { key: "words", count: 1, items: [{ id: "translated-home-keyword", kind: "keyword", label: "wedding" }] },
-      ] : [] } }),
+      body: JSON.stringify({ data: { groups: [] } }),
     });
   });
   await page.route("**/api/search?**", async (route) => {
     const url = new URL(route.request().url());
-    if (url.searchParams.get("q") !== "mariage") {
-      await route.continue();
-      return;
-    }
-    translationProbes += 1;
-    expect(url.searchParams.get("probe")).toBe("1");
-    expect(url.searchParams.get("limit")).toBe("1");
+    submittedSearches += 1;
+    expect(url.searchParams.get("probe")).toBeNull();
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({
         data: { items: [], view: "tracks", facets: { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 300 }, categories: [], labels: [], styles: [] } },
         meta: {
           page: 1,
-          pageSize: 1,
+          pageSize: 30,
           total: 0,
           requestId: "home-translation-e2e",
           searchMode: "keyword",
           fieldProfile: "editorial",
           providerDurationMs: 10,
-          translationSuggestion: { original: "mariage", effective: "wedding", source: "machine-translation" },
+          ...(url.searchParams.get("q") === "coucher de soleil" ? { translationSuggestion: { original: "coucher de soleil", effective: "sunset", source: "machine-translation" } } : {}),
         },
       }),
     });
@@ -149,15 +141,14 @@ test("la home propose DeepL après une autocomplétion vide", async ({ page }) =
   const search = hero.getByLabel("Rechercher dans le catalogue Parigo");
   const submitSearch = hero.getByRole("button", { name: "Rechercher", exact: true });
   await expect(submitSearch).toBeDisabled();
-  await search.fill("mariage");
+  await search.fill("coucher de soleil");
   await expect(submitSearch).toBeEnabled();
-  await expect(hero.getByText(/Rechercher aussi.*wedding.*en anglais/)).toBeVisible();
-  expect(translationProbes).toBe(1);
-  await hero.getByRole("button", { name: "Rechercher « wedding »" }).click();
-  await expect(search).toHaveValue("wedding");
-  await expect(search).toBeFocused();
-  await expect(hero.getByRole("option", { name: "wedding" })).toBeVisible();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(hero.getByText(/Rechercher aussi.*sunset.*en anglais/)).toHaveCount(0);
+  expect(submittedSearches).toBe(0);
+  await search.press("Enter");
+  await expect(page).toHaveURL(/\/search\?.*q=coucher(?:\+|%20)de(?:\+|%20)soleil/);
+  await expect(page.getByText(/Rechercher aussi « sunset »/)).toBeVisible();
+  expect(submittedSearches).toBeGreaterThan(0);
 });
 
 test("le CTA Qui sommes-nous conserve un contraste lisible dans les deux thèmes", async ({ page }, testInfo) => {
@@ -1146,7 +1137,7 @@ test("la shortlist expose son état sans contenu prédictif persistant à vide",
 
 test("le Brief IA AIMS est visible mais indisponible", async ({ page }) => {
   await page.goto("/search");
-  const modeSelect = page.getByRole("button", { name: "Mode de recherche : Mots-clés" });
+  const modeSelect = page.getByRole("button", { name: "Mode de recherche : Catalogue" });
   await expect(modeSelect).toBeEnabled();
   await modeSelect.click();
   await page.getByRole("option", { name: /Brief IA/ }).click();
@@ -1162,7 +1153,7 @@ test("le Brief IA AIMS est visible mais indisponible", async ({ page }) => {
 test("la recherche exacte reste accessible depuis le champ unifié", async ({ page }) => {
   test.setTimeout(60_000);
   await page.goto("/search");
-  const input = page.getByRole("combobox", { name: "Rechercher un titre, un mot-clé, une ambiance ou un instrument" });
+  const input = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await input.fill("piano");
   await input.press("Enter");
   await expect(page).toHaveURL(/q=piano/, { timeout: 30_000 });

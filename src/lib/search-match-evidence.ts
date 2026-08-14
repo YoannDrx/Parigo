@@ -62,3 +62,13 @@ export function explainsSearchQuery(evidence: SearchMatchEvidence[], query: stri
   const explainedTerms = new Set(evidence.flatMap((item) => item.matchedTerms));
   return expectedTerms.length > 0 && expectedTerms.every((term) => explainedTerms.has(term));
 }
+
+export function prioritizeTitleEvidence<T extends { matchEvidence?: SearchMatchEvidence[] }>(
+  items: readonly T[],
+  field: "trackTitle" | "albumTitle" | "playlistTitle",
+): T[] {
+  return items.toSorted((left, right) => (
+    Number(Boolean(right.matchEvidence?.some((evidence) => evidence.field === field)))
+    - Number(Boolean(left.matchEvidence?.some((evidence) => evidence.field === field)))
+  ));
+}

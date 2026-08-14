@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowUpRight, Check, ChevronUp, Info, ListEnd, ListPlus, Not
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { Tooltip } from "@/components/ui/Tooltip";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn, formatBPM, formatDuration } from "@/lib/utils";
 import { formatParigoDate } from "@/lib/date-time";
@@ -19,8 +19,60 @@ import { AddToPlaylistButton } from "./AddToPlaylistButton";
 import { AddTagButton } from "./AddTagButton";
 import { CueSheetButton } from "./CueSheetButton";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
+import { searchLyricsTextSegments } from "@/lib/search-normalization";
 
 export type TrackDetailsTab = "information" | "versions" | "lyrics" | "notes";
+
+function HighlightedLyrics({ text, query }: { text: string; query?: string }) {
+  const { locale } = useI18n();
+  const firstMatchRef = useRef<HTMLElement>(null);
+  const segments = searchLyricsTextSegments(text, query);
+  const matchCount = segments.filter((segment) => segment.matched).length;
+  const firstMatchIndex = segments.findIndex((segment) => segment.matched);
+
+  useEffect(() => {
+    if (!matchCount) return;
+    let scrollFrame = 0;
+    const layoutFrame = window.requestAnimationFrame(() => {
+      scrollFrame = window.requestAnimationFrame(() => {
+        const target = firstMatchRef.current;
+        if (!target) return;
+        const rect = target.getBoundingClientRect();
+        const topInset = 96;
+        const bottomInset = 96;
+        const visibleHeight = Math.max(0, window.innerHeight - topInset - bottomInset);
+        const top = window.scrollY + rect.top - topInset - Math.max(0, (visibleHeight - rect.height) / 2);
+        window.scrollTo({
+          top: Math.max(0, top),
+          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+        });
+        target.focus({ preventScroll: true });
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(layoutFrame);
+      window.cancelAnimationFrame(scrollFrame);
+    };
+  }, [matchCount, query, text]);
+
+  return (
+    <>
+      {query ? <span className="sr-only" role="status">{matchCount
+        ? locale === "fr" ? `${matchCount} occurrence${matchCount > 1 ? "s" : ""} de « ${query} » surlignée${matchCount > 1 ? "s" : ""}` : `${matchCount} occurrence${matchCount > 1 ? "s" : ""} of “${query}” highlighted`
+        : locale === "fr" ? `La correspondance « ${query} » n’a pas pu être localisée dans les paroles.` : `The match “${query}” could not be located in the lyrics.`}</span> : null}
+      {segments.map((segment, index) => segment.matched ? (
+        <mark
+          key={`${index}-${segment.text}`}
+          ref={index === firstMatchIndex ? firstMatchRef : undefined}
+          tabIndex={index === firstMatchIndex ? -1 : undefined}
+          className="scroll-mt-32 bg-[var(--signal)] px-0.5 font-semibold text-[#11120f] outline-offset-4"
+        >
+          {segment.text}
+        </mark>
+      ) : <span key={`${index}-${segment.text}`}>{segment.text}</span>)}
+    </>
+  );
+}
 
 function Terms({ title, values, localize = true }: { title: string; values?: string[]; localize?: boolean }) {
   const { locale } = useI18n();
@@ -96,7 +148,7 @@ function VersionRow({ track, onInspect }: { track: Track; onInspect: (track: Tra
   );
 }
 
-export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChange, onClose }: { track: Track; composerCredits?: ComposerCreditLink[]; activeTab: TrackDetailsTab; onTabChange: (tab: TrackDetailsTab) => void; onClose: () => void }) {
+export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight, onTabChange, onClose }: { track: Track; composerCredits?: ComposerCreditLink[]; activeTab: TrackDetailsTab; highlight?: string; onTabChange: (tab: TrackDetailsTab) => void; onClose: () => void }) {
   const { locale, localizedPath } = useI18n();
   const { data: session } = useSession();
   const [detailsById, setDetailsById] = useState<Record<string, Track>>({});
@@ -334,7 +386,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, onTabChan
           </div>
         )}
         {activeTab === "versions" && <div role="tabpanel">{rootTrackLoading ? <div className="flex min-h-28 items-center justify-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des versions" : "Loading versions"} /></div> : rootTrack.alternateTracks?.length ? <div>{rootTrack.alternateTracks.map((version) => <VersionRow key={version.id} track={version} onInspect={focusTrack} />)}</div> : <p className="py-8 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune version alternative disponible." : "No alternate version available."}</p>}</div>}
-        {activeTab === "lyrics" && <div role="tabpanel" className="max-w-3xl whitespace-pre-wrap py-5 text-sm leading-7 text-[var(--text-muted)]">{displayed.lyrics || (locale === "fr" ? "Paroles non disponibles." : "Lyrics unavailable.")}</div>}
+        {activeTab === "lyrics" && <div role="tabpanel" className="max-w-3xl whitespace-pre-wrap py-5 text-sm leading-7 text-[var(--text-muted)]">{displayed.lyrics ? <HighlightedLyrics text={displayed.lyrics} query={highlight} /> : (locale === "fr" ? "Paroles non disponibles." : "Lyrics unavailable.")}</div>}
         {activeTab === "notes" && session?.user && <div role="tabpanel" className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_.9fr]"><div><p className="mb-3 text-sm font-semibold">{locale === "fr" ? "Une note visible uniquement dans votre compte." : "A note visible only in your account."}</p><textarea value={noteDraft} onChange={(event) => setNoteDraft(event.target.value)} rows={4} maxLength={1200} placeholder={locale === "fr" ? "Intention, timecode, retour client…" : "Intent, timecode, client feedback…"} className="w-full resize-y border border-[var(--line-strong)] bg-[var(--surface)] p-3 text-sm leading-6 outline-none focus:border-[var(--foreground)]" /><div className="mt-2 flex items-center justify-between gap-3"><span className="text-[.65rem] text-[var(--text-muted)]">{noteDraft.length}/1200</span><div className="flex gap-2">{editingNoteId && <button type="button" onClick={() => { setEditingNoteId(null); setNoteDraft(""); }} className="inline-flex min-h-10 items-center gap-2 px-3 text-xs"><X size={14} />{locale === "fr" ? "Annuler" : "Cancel"}</button>}<button type="button" disabled={noteSaving || !noteDraft.trim()} onClick={() => void saveNote()} className="inline-flex min-h-10 items-center gap-2 bg-[var(--foreground)] px-4 text-xs font-semibold text-[var(--background)] disabled:opacity-40">{noteSaving ? <ParigoLoader size="icon" label={locale === "fr" ? "Enregistrement de la note" : "Saving note"} /> : <Save size={14} />}{editingNoteId ? (locale === "fr" ? "Mettre à jour" : "Update") : (locale === "fr" ? "Ajouter la note" : "Add note")}</button></div></div>{noteError && <p className="mt-3 text-xs text-[var(--danger)]">{noteError}</p>}</div><div className="border-t border-[var(--line)] lg:border-l lg:border-t-0 lg:pl-6">{notesLoading ? <div className="flex min-h-28 items-center justify-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des notes" : "Loading notes"} /></div> : notes.length ? notes.map((note) => <article key={note.id} className="border-b border-[var(--line)] py-4 first:pt-0"><p className="whitespace-pre-wrap text-sm leading-6">{note.text}</p><div className="mt-3 flex items-center justify-between gap-3"><span className="text-[.62rem] text-[var(--text-muted)]">{note.updatedAt || note.createdAt ? formatParigoDate(note.updatedAt || note.createdAt!, locale) : (locale === "fr" ? "Note privée" : "Private note")}</span><div className="flex"><button type="button" onClick={() => { setEditingNoteId(note.id); setNoteDraft(note.text); }} className="flex h-9 w-9 items-center justify-center text-[var(--text-muted)] hover:text-[var(--foreground)]" aria-label={locale === "fr" ? "Modifier la note" : "Edit note"}><Pencil size={14} /></button><button type="button" onClick={() => void removeNote(note.id)} className="flex h-9 w-9 items-center justify-center text-[var(--text-muted)] hover:text-[var(--danger)]" aria-label={locale === "fr" ? "Supprimer la note" : "Delete note"}><Trash2 size={14} /></button></div></div></article>) : <p className="py-6 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune note pour ce morceau." : "No note for this track."}</p>}</div></div>}
       </div>
     </section>

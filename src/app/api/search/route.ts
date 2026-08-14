@@ -8,20 +8,21 @@ import {
   findStaleIndexedComposerQuery,
   refreshInvalidComposerTracks,
 } from "@/lib/harvest/composer-search";
-import { configuredSearchFieldProfile } from "@/lib/harvest/search";
+import { configuredSearchFieldProfile, type HarvestSearchInput } from "@/lib/harvest/search";
 import { getSearchFilterGroups } from "@/lib/harvest/search-filters";
 import { readHarvestSession } from "@/lib/harvest/session";
+import { isTitlePrioritySearchResult, searchWithTitlePriority } from "@/lib/harvest/title-priority-search";
 import { logEvent } from "@/lib/logger";
 import { isCatalogIdentifier, stripLegacySearchQuotes } from "@/lib/search-query";
 import { translateFrenchSearchQuery } from "@/lib/search-translation";
-import { albumSearchEvidence, explainsSearchQuery, trackSearchEvidence } from "@/lib/search-match-evidence";
-import { normalizeSearchText } from "@/lib/search-normalization";
+import { albumSearchEvidence, explainsSearchQuery, prioritizeTitleEvidence, trackSearchEvidence } from "@/lib/search-match-evidence";
+import { normalizeSearchText, searchExpressionsCoverQuery } from "@/lib/search-normalization";
 import { resolveTaxonomySuggestions } from "@/lib/search-taxonomy";
 import {
   getSearchCapabilities,
   harvestKeywordProvider,
 } from "@/lib/search/providers";
-import type { QueryResolution, SearchTranslationMode } from "@/types";
+import type { Album, QueryResolution, SearchTranslationMode, Track } from "@/types";
 
 const sortMap = {
   relevance: "RankExpression",
@@ -116,7 +117,7 @@ export async function GET(request: NextRequest) {
       : configuredSearchFieldProfile();
     const skip = (input.page - 1) * input.limit;
     const saveSearchHistory = Boolean(session) && !input.probe;
-    const searchInput = {
+    const searchInput: HarvestSearchInput = {
       query: input.q.trim() || "%",
       view: input.view === "albums" ? "Album" : "Track",
       textScope: fieldProfile,
@@ -137,8 +138,16 @@ export async function GET(request: NextRequest) {
       language: input.language,
       saveSearchHistory,
       includeStyleFacets: true,
-    } as const;
-    const result = await harvestKeywordProvider.search(searchInput, session?.memberToken);
+    };
+    const executeSearch = (candidate: HarvestSearchInput) => harvestKeywordProvider.search(candidate, session?.memberToken);
+    const runSearch = (candidate: HarvestSearchInput) => (
+      candidate.textScope === "editorial"
+      && candidate.query !== "%"
+      && candidate.sort === "RankExpression"
+        ? searchWithTitlePriority(candidate, executeSearch)
+        : executeSearch(candidate)
+    );
+    const result = await runSearch(searchInput);
     let translationSuggestion: QueryResolution | undefined;
     let appliedQueryResolution: QueryResolution | undefined;
     let appliedResult = result;
@@ -150,18 +159,21 @@ export async function GET(request: NextRequest) {
           (token) => `/autocomplete/${token}`,
           { method: "POST", body: JSON.stringify(buildAutocompletePayload(input.q)) },
         ),
-      ]).then(([groups, autocompletePayload]) => ({
-        taxonomy: resolveTaxonomySuggestions(input.q, groups),
-        hasExactEntity: mapAutocompleteResponse(autocompletePayload, input.view, undefined, undefined, input.q)
-          .flatMap((group) => group.key === "words" ? [] : group.items)
-          .some((item) => normalizeSearchText(item.label) === normalizeSearchText(input.q)),
-      })).catch(() => undefined)
-      : { taxonomy: [], hasExactEntity: false };
+      ]).then(([groups, autocompletePayload]) => {
+        const taxonomy = resolveTaxonomySuggestions(input.q, groups);
+        return {
+          taxonomyFullyExplainsQuery: searchExpressionsCoverQuery(input.q, taxonomy.map((item) => item.matchedTerm)),
+          hasExactEntity: mapAutocompleteResponse(autocompletePayload, input.view, undefined, undefined, input.q)
+            .flatMap((group) => group.key === "words" ? [] : group.items)
+            .some((item) => normalizeSearchText(item.label) === normalizeSearchText(input.q)),
+        };
+      }).catch(() => undefined)
+      : { taxonomyFullyExplainsQuery: false, hasExactEntity: false };
     if (
       result.total === 0
       && input.q !== "%"
       && input.translation !== "off"
-      && fallbackResolution?.taxonomy.length === 0
+      && fallbackResolution?.taxonomyFullyExplainsQuery === false
       && fallbackResolution.hasExactEntity === false
     ) {
       const resolution = await translateFrenchSearchQuery(input.q);
@@ -169,22 +181,22 @@ export async function GET(request: NextRequest) {
         translationSuggestion = resolution;
       } else if (resolution && input.translation === "apply") {
         appliedQueryResolution = resolution;
-        appliedResult = await harvestKeywordProvider.search({
+        appliedResult = await runSearch({
           ...searchInput,
           query: resolution.effective,
           saveSearchHistory,
-        }, session?.memberToken);
+        });
       }
     }
 
     if (appliedResult.total === 0 && input.view === "tracks" && input.composer) {
       const staleComposerQuery = await findStaleIndexedComposerQuery(input.composer, session?.memberToken);
       if (staleComposerQuery && staleComposerQuery !== input.composer) {
-        appliedResult = await harvestKeywordProvider.search({
+        appliedResult = await runSearch({
           ...searchInput,
           composerQuery: staleComposerQuery,
           saveSearchHistory,
-        }, session?.memberToken);
+        });
       }
     }
     if (input.view === "tracks" && appliedResult.tracks.length) {
@@ -251,6 +263,9 @@ export async function GET(request: NextRequest) {
         fieldProfile,
       });
     }
+    const orderedItems = input.sort === "relevance"
+      ? prioritizeTitleEvidence<Album | Track>(items, input.view === "albums" ? "albumTitle" : "trackTitle")
+      : items;
     const providerDurationMs = Date.now() - startedAt;
     logEvent({
       level: "info",
@@ -262,12 +277,13 @@ export async function GET(request: NextRequest) {
       provider: harvestKeywordProvider.id,
       fieldProfile,
       total: appliedResult.total,
+      titleMatchTotal: isTitlePrioritySearchResult(appliedResult) ? appliedResult.titleTotal : undefined,
       translationOffered: Boolean(translationSuggestion),
-        translationApplied: Boolean(appliedQueryResolution),
+      translationApplied: Boolean(appliedQueryResolution),
     });
     return NextResponse.json({
       data: {
-        items,
+        items: orderedItems,
         view: input.view,
         facets: appliedResult.facets,
         appliedSearch: { ...input, q: input.q === "%" ? "" : input.q },
@@ -282,6 +298,9 @@ export async function GET(request: NextRequest) {
         provider: harvestKeywordProvider.id,
         providerDurationMs,
         capabilities,
+        ...(input.sort === "relevance" && isTitlePrioritySearchResult(appliedResult)
+          ? { titleMatchTotal: appliedResult.titleTotal }
+          : {}),
         ...(translationSuggestion ? { translationSuggestion } : {}),
         ...(appliedQueryResolution ? { queryResolution: appliedQueryResolution } : {}),
         ...(unattributedCount ? { unattributedCount } : {}),

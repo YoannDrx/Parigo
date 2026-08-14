@@ -290,9 +290,22 @@ export interface AutocompleteItem {
 }
 
 export interface AutocompleteGroup {
-  key: "filters" | "tracks" | "albums" | "playlists" | "labels" | "composers" | "words" | "lyrics";
+  key: "filters" | "titles" | "tracks" | "albums" | "playlists" | "labels" | "composers" | "words" | "lyrics";
   count: number;
   items: AutocompleteItem[];
+}
+
+export interface AutocompleteSearchContext {
+  categories?: string[];
+  styles?: string[];
+  labels?: string[];
+  composer?: string;
+  minBpm?: number;
+  maxBpm?: number;
+  minDuration?: number;
+  maxDuration?: number;
+  type?: "main" | "alternate" | "all";
+  sort?: SortMode;
 }
 
 export interface SearchFilterItem {

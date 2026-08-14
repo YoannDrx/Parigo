@@ -371,13 +371,16 @@ textarea {
   place-items: center;
   border: 0;
   border-radius: var(--parigo-corner-md) var(--parigo-turn-md);
-  background: transparent;
-  transition: color 220ms ease, background-color 220ms ease;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 11%, transparent);
+  transition: color 220ms ease, background-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
 }
 
 .search-mode-select__trigger:hover,
 .search-mode-select__trigger[aria-expanded="true"] {
-  background: color-mix(in srgb, currentColor 7%, transparent);
+  background: color-mix(in srgb, currentColor 15%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent);
+  transform: translateY(-1px);
 }
 
 .search-mode-select__trigger:focus-visible {
@@ -397,8 +400,8 @@ textarea {
 
 .search-mode-select__chevron {
   position: absolute;
-  right: .18rem;
-  bottom: .42rem;
+  right: .08rem;
+  bottom: .3rem;
   opacity: .72;
   transition: transform 280ms var(--ease-out);
 }
@@ -3505,23 +3508,28 @@ textarea {
   display: inline-flex;
   min-width: 0;
   max-width: 100%;
-  min-height: 1.45rem;
+  min-height: 1.2rem;
   align-items: center;
   overflow: hidden;
-  padding: .18rem .45rem;
-  border: 1px solid var(--line);
-  border-bottom-color: color-mix(in srgb, var(--signal-strong) 58%, var(--line));
-  border-radius: var(--parigo-corner-sm) var(--parigo-turn-sm);
+  position: relative;
+  padding-left: .65rem;
   color: var(--text-muted);
-  background: color-mix(in srgb, var(--surface-soft) 82%, transparent);
   font-family: var(--font-mono);
-  font-size: .52rem;
-  font-weight: 600;
-  letter-spacing: .075em;
+  font-size: .56rem;
+  font-weight: 500;
+  letter-spacing: .09em;
   line-height: 1;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
+}
+.album-reference-tag::before {
+  content: "";
+  position: absolute;
+  left: .2rem;
+  width: 1px;
+  height: .8rem;
+  background: color-mix(in srgb, var(--signal-strong) 62%, var(--line));
 }
 @media (max-width: 639px) {
   .search-results-ledger .album-reference-tag {

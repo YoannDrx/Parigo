@@ -42,6 +42,16 @@ describe("Harvest taxonomy resolution", () => {
       id: "ATT_b71182fbd44d6ef6",
       filterGroup: "moods",
       label: "Ambiance · Triste (Sad)",
+      matchedTerm: query,
+    }));
+  });
+
+  it("explains a localized alias without translating the filter value", () => {
+    expect(resolveTaxonomySuggestions("reggae triste", groups)).toContainEqual(expect.objectContaining({
+      label: "Ambiance · Triste (Sad)",
+      subtitle: "Correspond à « triste » · Ajouter comme filtre",
+      canonicalName: "Sad",
+      localizedName: "Triste",
     }));
   });
 

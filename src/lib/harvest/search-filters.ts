@@ -6,6 +6,7 @@ import type {
   SearchFilterGroupKey,
   SearchFilterItem,
 } from "@/types";
+import { logEvent } from "@/lib/logger";
 import { getCategories, getLabels, getStyles } from "./catalog";
 
 const groupKeys: Record<string, SearchFilterGroupKey> = {
@@ -55,6 +56,47 @@ function itemCount(items: SearchFilterItem[]): number {
   return items.reduce((total, item) => total + 1 + itemCount(item.children ?? []), 0);
 }
 
+function flattenCategories(items: CatalogCategory[]): CatalogCategory[] {
+  return items.flatMap((item) => [item, ...flattenCategories(item.children ?? [])]);
+}
+
+function normalizedParentId(item: CatalogCategory): string {
+  return item.parentId ? stableCategoryId(item.parentId) : "";
+}
+
+function logHierarchyAnomalies(
+  canonicalGroups: CatalogCategory[],
+  localizedGroups: CatalogCategory[],
+): void {
+  const canonical = flattenCategories(canonicalGroups);
+  const localized = flattenCategories(localizedGroups);
+  const canonicalById = new Map(canonical.map((item) => [stableCategoryId(item.id), item]));
+  const localizedById = new Map(localized.map((item) => [stableCategoryId(item.id), item]));
+  const missingIds = canonical
+    .map((item) => stableCategoryId(item.id))
+    .filter((id) => !localizedById.has(id));
+  const extraIds = localized
+    .map((item) => stableCategoryId(item.id))
+    .filter((id) => !canonicalById.has(id));
+  const hierarchyMismatchIds = canonical.flatMap((item) => {
+    const localizedItem = localizedById.get(stableCategoryId(item.id));
+    return localizedItem && normalizedParentId(item) !== normalizedParentId(localizedItem)
+      ? [stableCategoryId(item.id)]
+      : [];
+  });
+  if (!missingIds.length && !extraIds.length && !hierarchyMismatchIds.length) return;
+  logEvent({
+    level: "warn",
+    message: "taxonomy_hierarchy_anomaly",
+    route: "search-filters",
+    requestId: crypto.randomUUID(),
+    missingCount: missingIds.length,
+    extraCount: extraIds.length,
+    hierarchyMismatchCount: hierarchyMismatchIds.length,
+    sampleIds: [...missingIds, ...extraIds, ...hierarchyMismatchIds],
+  });
+}
+
 async function loadSearchFilterGroups(
   language: "fr" | "en",
 ): Promise<SearchFilterGroup[]> {
@@ -69,6 +111,7 @@ async function loadSearchFilterGroups(
   ]);
   const localizedCategoryById = new Map(localizedCategoryGroups.map((group) => [stableCategoryId(group.id), group]));
   const localizedStyleById = new Map(localizedStyles.map((style) => [style.id, style]));
+  if (language === "fr") logHierarchyAnomalies(canonicalCategoryGroups, localizedCategoryGroups);
   return [
     {
       key: "labels",

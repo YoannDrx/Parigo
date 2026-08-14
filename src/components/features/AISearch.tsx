@@ -23,12 +23,13 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
 
   const runSearch = (value: string) => {
     const normalized = value.trim();
-    if (!normalized) return;
+    if (!normalized && stagedFilters.length === 0) return;
     if (onSearch && stagedFilters.length === 0) {
       onSearch(normalized);
       return;
     }
-    const params = new URLSearchParams({ q: normalized, view: "tracks", type: "main" });
+    const params = new URLSearchParams({ view: "tracks", type: "main" });
+    if (normalized) params.set("q", normalized);
     const categories = stagedFilters.filter((item) => item.filterGroup !== "styles").map((item) => item.id);
     const styles = stagedFilters.filter((item) => item.filterGroup === "styles").map((item) => item.id);
     if (categories.length) params.set("categories", [...new Set(categories)].join(","));
@@ -36,8 +37,9 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
     router.push(localizedPath(`/search?${params.toString()}`));
   };
 
-  const selectSuggestion = (item: AutocompleteItem) => {
+  const selectSuggestion = (item: AutocompleteItem, remainingQuery?: string) => {
     if (item.kind === "filter") {
+      if (remainingQuery !== undefined) setQuery(remainingQuery);
       setStagedFilters((current) => current.some((candidate) => candidate.id === item.id && candidate.filterGroup === item.filterGroup)
         ? current
         : [...current, item]);
@@ -65,7 +67,6 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
         onClear={() => setStagedFilters([])}
         stagedFilters={stagedFilters}
         onRemoveStagedFilter={(item) => setStagedFilters((current) => current.filter((candidate) => candidate.id !== item.id || candidate.filterGroup !== item.filterGroup))}
-        offerTranslationWhenEmpty
       />
 
       {showExamples ? (
