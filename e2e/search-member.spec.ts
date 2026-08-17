@@ -156,7 +156,7 @@ test("les actions et tooltips de recherche suivent la langue active", async ({ p
   await page.setViewportSize({ width: 1800, height: 900 });
   await page.goto("/search?q=piano&view=tracks&type=main");
   await page.getByRole("link", { name: /English version/ }).click();
-  await expect(page.getByRole("combobox", { name: "Search a title, keyword, mood or instrument" })).toBeVisible();
+  await expect(page.getByRole("combobox", { name: "Search the catalog" })).toBeVisible();
   const favourite = page.getByRole("button", { name: "Add to favourites" }).first();
   await expect(favourite).toBeVisible();
   await favourite.hover();
