@@ -38,7 +38,7 @@
     "test:lighthouse": "pnpm dlx @lhci/cli@0.15.1 autorun"
   },
   "dependencies": {
-    "@sentry/nextjs": "10.69.0",
+    "@sentry/nextjs": "10.70.0",
     "@tanstack/react-query": "^5.101.4",
     "@vercel/analytics": "2.0.1",
     "@vercel/speed-insights": "2.0.0",
@@ -46,17 +46,17 @@
     "framer-motion": "^12.43.0",
     "jose": "^6.2.8",
     "lucide-react": "^0.577.0",
-    "next": "16.3.0",
+    "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "tailwind-merge": "^3.6.0",
     "wavesurfer.js": "^7.12.11",
     "zod": "^4.4.3",
-    "zustand": "^5.0.14"
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@axe-core/playwright": "^4.12.1",
-    "@next/bundle-analyzer": "16.3.0",
+    "@axe-core/playwright": "^4.13.0",
+    "@next/bundle-analyzer": "16.3.1",
     "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@testing-library/jest-dom": "^6.9.1",
@@ -65,11 +65,11 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.0",
+    "eslint-config-next": "16.3.1",
     "jsdom": "^29.1.1",
     "sharp": "0.35.3",
     "tailwindcss": "^4.3.3",
-    "tsx": "^4.23.11",
+    "tsx": "^4.23.12",
     "typescript": "^5",
     "vitest": "^4.1.10"
   },
