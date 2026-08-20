@@ -48,7 +48,7 @@ export function SynchronisationCard({
   const playing = active && (status === "playing" || status === "loading");
 
   return (
-    <article className={cn("home-sync-card group block min-w-0", className)}>
+    <article className={cn("home-sync-card editorial-media-card group relative block min-w-0", className)}>
       <ClipPlaybackAnchor clip={clip} className="home-sync-card__frame relative aspect-video min-w-0 overflow-hidden bg-[#0b0e0b]">
         <Image
           src={image}
@@ -62,7 +62,7 @@ export function SynchronisationCard({
           <button
             type="button"
             onClick={() => toggleClip(clip)}
-            className="grid h-11 w-11 place-items-center rounded-full border border-white/45 bg-black/55 text-white shadow-xl backdrop-blur-md transition hover:scale-105 hover:bg-[var(--signal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="media-overlay-action media-overlay-action--play grid h-11 w-11 place-items-center rounded-full border border-white/45 text-white transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={playing
               ? (locale === "fr" ? `Mettre en pause ${title}` : `Pause ${title}`)
               : (locale === "fr" ? `Lire ${title}` : `Play ${title}`)}
@@ -71,22 +71,22 @@ export function SynchronisationCard({
           </button>
           <Link
             href={href}
-            className="grid h-11 w-11 place-items-center rounded-full border border-white/45 bg-black/55 !text-white shadow-xl backdrop-blur-md transition hover:scale-105 hover:bg-white hover:!text-[#151815] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="media-overlay-action media-overlay-action--detail grid h-11 w-11 place-items-center rounded-full border border-white/45 !text-white transition hover:scale-105 hover:!text-[#151815] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={locale === "fr" ? `Voir le détail de ${title}` : `View ${title} details`}
           >
             <ArrowUpRight size={18} />
           </Link>
         </div>
-        <div className="home-sync-card__caption absolute inset-x-0 bottom-0 min-w-0 p-5 text-white transition duration-500 md:p-8">
-          <p className="truncate font-mono text-[.6rem] uppercase tracking-[.13em] opacity-70">{client}</p>
-          <Heading className="mt-2 line-clamp-2 text-2xl font-semibold md:text-4xl">
-            <Link href={href} className="relative z-[3] outline-none after:absolute after:-inset-x-1 after:-inset-y-0.5 focus-visible:after:ring-2 focus-visible:after:ring-white">
-              {title}
-            </Link>
-          </Heading>
-          {detail && <p className="mt-2 truncate text-sm text-white/72">{detail}</p>}
-        </div>
       </ClipPlaybackAnchor>
+      <div className="home-sync-card__caption editorial-media-card__caption min-w-0 p-4 transition duration-500 sm:p-5 md:p-8">
+        <p className="truncate font-mono text-[.6rem] uppercase tracking-[.13em] text-[var(--signal-strong)] md:text-white/70">{client}</p>
+        <Heading className="type-card mt-2 line-clamp-2 font-semibold md:text-4xl">
+          <Link href={href} className="relative z-[3] outline-none after:absolute after:-inset-x-1 after:-inset-y-0.5 focus-visible:after:ring-2 focus-visible:after:ring-[var(--signal)] md:focus-visible:after:ring-white">
+            {title}
+          </Link>
+        </Heading>
+        {detail && <p className="mt-2 line-clamp-2 text-sm text-[var(--text-muted)] md:truncate md:text-white/72">{detail}</p>}
+      </div>
     </article>
   );
 }

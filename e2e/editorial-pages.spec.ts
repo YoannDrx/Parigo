@@ -29,6 +29,28 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   expect(firstCard!.x + firstCard!.width).toBeLessThanOrEqual(320);
 });
 
+test("les légendes des cartes éditoriales sortent des images sur mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La séparation image/légende est spécifique au mobile.");
+  await page.setViewportSize({ width: 320, height: 740 });
+  for (const [path, cardSelector, mediaSelector, captionSelector] of [
+    ["/clips", ".parigo-video-card", ".parigo-video-card__frame", ".editorial-media-card__caption"],
+    ["/synchronisations", ".sync-gallery-card", ".home-sync-card__frame", ".editorial-media-card__caption"],
+    ["/talents", ".composer-card", ".composer-card__media", ".composer-card__caption"],
+  ] as const) {
+    await page.goto(path);
+    const card = page.locator(cardSelector).first();
+    await expect(card).toBeVisible({ timeout: 30_000 });
+    const [media, caption] = await Promise.all([
+      card.locator(mediaSelector).boundingBox(),
+      card.locator(captionSelector).boundingBox(),
+    ]);
+    expect(media, `${path} ne publie pas de média`).not.toBeNull();
+    expect(caption, `${path} ne publie pas de légende`).not.toBeNull();
+    expect(caption!.y).toBeGreaterThanOrEqual(media!.y + media!.height - 1);
+    await expect(card.locator(captionSelector)).toHaveCSS("opacity", "1");
+  }
+});
+
 test("les titres signés et les grilles catalogue restent lisibles sur mobile", async ({ page }) => {
   for (const width of [320, 390]) {
     await page.setViewportSize({ width, height: 844 });
@@ -59,7 +81,9 @@ test("les titres signés et les grilles catalogue restent lisibles sur mobile", 
     composerCards.nth(0).boundingBox(),
     composerCards.nth(1).boundingBox(),
   ]);
-  expect(Math.abs(firstComposer!.width - firstComposer!.height)).toBeLessThanOrEqual(1);
+  const firstComposerMedia = await composerCards.nth(0).locator(".composer-card__media").boundingBox();
+  expect(Math.abs(firstComposerMedia!.width - firstComposerMedia!.height)).toBeLessThanOrEqual(1);
+  expect(firstComposer!.height).toBeGreaterThan(firstComposerMedia!.height);
   expect(secondComposer!.y).toBeGreaterThan(firstComposer!.y + firstComposer!.height - 1);
 
   await page.goto("/albums");
@@ -182,6 +206,22 @@ test("le détail d’une synchronisation contient son titre et masque la descrip
   expect(await page.locator("main h1").evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
 });
 
+test("previous/next disparaît de toutes les fiches de détail", async ({ page }) => {
+  for (const path of [
+    "/talents/minimatic",
+    "/clips/yt-wrO96WV69aY",
+    "/synchronisations/ajvhKSKcas8",
+    "/albums/48b4b95fe1f09019",
+    "/playlists/22b6c3499f843b2d",
+    "/labels/0f9769346759ee5a",
+    "/selections/musique-cinematique",
+  ]) {
+    await page.goto(path);
+    await expect(page.locator("main h1")).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByTestId("detail-page-navigation")).toHaveCount(0);
+  }
+});
+
 test("les pages d’information alignent leurs corners et retirent la signature géographique", async ({ page }) => {
   await page.goto("/privacy");
   await expect(page.locator("main")).not.toContainText("Parigo Music · Paris · France");
@@ -265,6 +305,18 @@ test("les ondes du héros restent légères et animées sur mobile sans forme ci
   const reducedFallback = page.getByTestId("home-hero").locator(".signal-field-fallback");
   await expect(reducedFallback).toHaveAttribute("data-static", "true");
   await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
+});
+
+test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await expect(hero).toHaveAttribute("data-search-mode", "catalog");
+  await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "catalog");
+  await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  await page.getByRole("option", { name: /Brief IA/ }).click();
+  await expect(hero).toHaveAttribute("data-search-mode", "ai");
+  await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "ai");
 });
 
 test("le héros desktop conserve ses ondes autonomes sans forme organique", async ({ page }, testInfo) => {
@@ -488,13 +540,26 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
   await expect(details).not.toContainText("Demandes de licence, recherches musicales et accompagnement éditorial.");
   const urgentPhone = details.getByRole("link", { name: "+33 (0)6 49 39 69 22" });
   await expect(urgentPhone).toHaveCSS("white-space", "nowrap");
-  await expect(urgentPhone.locator("strong")).toHaveCount(1);
+  await expect(urgentPhone.locator("strong")).toHaveCount(0);
+  await expect(urgentPhone).toHaveCSS("font-weight", "400");
   await expect(team).not.toContainText("Mélodie");
   await expect(team).not.toContainText("Melody");
 
   await page.goto("/en/contact");
   await expect(page.getByTestId("contact-team").getByText("Head of Copyright and Music Production", { exact: true })).toBeVisible();
   await expect(page.getByTestId("contact-team")).not.toContainText("Administration");
+});
+
+test("la demande de licence mobile conserve ses guillemets français avec un titre compact", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/contact?track=c09811fbd340c24551e1c542a5591171");
+  const title = page.locator("main h1");
+  await expect(title).toContainText("Low Baller", { timeout: 30_000 });
+  expect((await title.textContent()) || "").toContain("« Low Baller »");
+  expect(Number.parseFloat(await title.evaluate((node) => getComputedStyle(node).fontSize))).toBeLessThanOrEqual(48);
+  expect(await title.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
+  const message = page.getByRole("textbox", { name: /Projet & licence/ });
+  expect(Number.parseFloat(await message.evaluate((node) => getComputedStyle(node).fontSize))).toBeLessThanOrEqual(18);
 });
 
 test("les coordonnées Contact suivent le formulaire sur desktop", async ({ page }, testInfo) => {

@@ -8,12 +8,14 @@ export function stripTerminalTitleMark(value: string): string {
 interface SignedTitleProps extends HTMLAttributes<HTMLHeadingElement> {
   as?: "h1" | "h2" | "h3";
   children: ReactNode;
+  variant?: "display" | "page" | "detail" | "section" | "compact";
 }
 
 export function SignedTitle({
   as: Heading = "h1",
   children,
   className,
+  variant,
   ...props
 }: SignedTitleProps) {
   const content = typeof children === "string" ? stripTerminalTitleMark(children) : null;
@@ -22,7 +24,11 @@ export function SignedTitle({
   const tail = content ? content.slice(lastSpace + 1) : null;
 
   return (
-    <Heading className={cn("parigo-signed-title", className)} {...props}>
+    <Heading
+      className={cn("parigo-signed-title", variant && `type-${variant}`, className)}
+      data-title-variant={variant}
+      {...props}
+    >
       {tail ? (
         <>
           {prefix}

@@ -12,6 +12,7 @@ import { alternateLocalePath, localizedPath, stripLocalePrefix } from "@/lib/loc
 import { ParigoLogo } from "./ParigoLogo";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { SignedTitle } from "@/components/ui/SignedTitle";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 interface HeaderProps { variant?: "default" | "overlay"; }
 
@@ -35,7 +36,11 @@ export function Header({ variant = "default" }: HeaderProps) {
   const [menuState, setMenuState] = useState({ pathname, open: false });
   const [headerVisible, setHeaderVisible] = useState(true);
   const previousScrollY = useRef(0);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
   const open = menuState.pathname === pathname && menuState.open;
+
+  useBodyScrollLock(open);
 
   useEffect(() => {
     const updateHeader = () => {
@@ -50,17 +55,26 @@ export function Header({ variant = "default" }: HeaderProps) {
   }, [open]);
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => { document.body.style.overflow = ""; };
-  }, [open]);
-
-  useEffect(() => {
     if (!open) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setMenuState({ pathname, open: false });
+    const focusable = () => [...(menuRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+    const frame = window.requestAnimationFrame(() => focusable()[0]?.focus());
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuState({ pathname, open: false });
+        menuTriggerRef.current?.focus();
+      }
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [open, pathname]);
 
   const navigationItems = {
@@ -122,16 +136,15 @@ export function Header({ variant = "default" }: HeaderProps) {
             <Tooltip label={theme === "light" ? t("common.themeDark") : t("common.themeLight")} side="bottom"><button type="button" onClick={toggleTheme} className="nav-control h-11 w-11 rounded-full" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button></Tooltip>
           </div>
           <div className="hidden xl:block"><UserMenu compact /></div>
-          <Tooltip label={open ? t("nav.closeMenu") : t("nav.openMenu")} side="bottom"><button type="button" onClick={() => setMenuState({ pathname, open: !open })} aria-expanded={open} aria-controls="global-menu" aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")} className="nav-control h-11 w-11">
+          <Tooltip label={open ? t("nav.closeMenu") : t("nav.openMenu")} side="bottom"><button ref={menuTriggerRef} type="button" onClick={() => setMenuState({ pathname, open: !open })} aria-expanded={open} aria-controls="global-menu" aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")} className="nav-control h-11 w-11">
             {open ? <X size={18} /> : <Menu size={18} />}
           </button></Tooltip>
         </div>
       </nav>
 
         {open && (
-          <div id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom parigo-global-menu absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain text-[var(--foreground)] backdrop-blur-2xl">
+          <div ref={menuRef} id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom parigo-global-menu absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain text-[var(--foreground)] backdrop-blur-2xl">
             <div className="relative mx-auto grid min-h-max max-w-[1760px] gap-x-8 px-4 py-7 md:grid-cols-12 md:px-8 md:py-10 xl:gap-x-12">
-              <div className="mb-9 xl:hidden md:col-span-12"><UserMenu embedded /></div>
               <div className="md:col-span-8 lg:col-span-9">
                 <div className="mb-6 border-b border-[var(--line)] pb-5 md:pb-6">
                   <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.5rem,4.6vw,5rem)] leading-[.88] text-[var(--foreground)]">
@@ -157,6 +170,10 @@ export function Header({ variant = "default" }: HeaderProps) {
                       </div>
                     );
                   })}
+                </div>
+                <div className="mt-8 xl:hidden">
+                  <p className="eyebrow mb-4 text-[var(--text-muted)]">{locale === "fr" ? "Votre espace" : "Your space"}</p>
+                  <UserMenu embedded />
                 </div>
               </div>
 

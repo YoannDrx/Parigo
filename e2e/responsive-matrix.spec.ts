@@ -5,6 +5,7 @@ const viewports = [
   { width: 320, height: 740 },
   { width: 375, height: 812 },
   { width: 390, height: 844 },
+  { width: 430, height: 932 },
   { width: 768, height: 1024 },
   { width: 1024, height: 768 },
   { width: 1440, height: 900 },
@@ -24,7 +25,7 @@ test.beforeEach(async ({ page, context, baseURL }) => {
 });
 
 test("les routes principales ne débordent sur aucun viewport cible", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "La matrice configure explicitement ses six viewports.");
+  test.skip(testInfo.project.name === "mobile", "La matrice configure explicitement ses sept viewports.");
   test.setTimeout(300_000);
 
   await page.goto("/albums");

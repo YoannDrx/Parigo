@@ -5,13 +5,14 @@ import type { MotionValue } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import type { SignalFieldProps } from "./SignalField";
 import { SignalFieldFallback } from "./SignalFieldFallback";
+import type { SearchMode } from "@/types";
 
 const DynamicSignalField = dynamic<SignalFieldProps>(
   () => import("./SignalField").then((module) => module.SignalField),
   { ssr: false }
 );
 
-export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValue<number>; pointerY: MotionValue<number> }) {
+export function SignalFieldLoader({ pointerX, pointerY, mode }: { pointerX: MotionValue<number>; pointerY: MotionValue<number>; mode: SearchMode }) {
   const [canRender, setCanRender] = useState(false);
   const [isActive, setIsActive] = useState(true);
   const [staticFallback, setStaticFallback] = useState(true);
@@ -67,8 +68,8 @@ export function SignalFieldLoader({ pointerX, pointerY }: { pointerX: MotionValu
   return (
     <div ref={containerRef} className="absolute inset-0 overflow-hidden" aria-hidden="true">
       {canRender && isActive
-        ? <DynamicSignalField pointerX={pointerX} pointerY={pointerY} />
-        : <SignalFieldFallback active={isActive && !staticFallback} staticMode={staticFallback} />}
+        ? <DynamicSignalField pointerX={pointerX} pointerY={pointerY} mode={mode} />
+        : <SignalFieldFallback active={isActive && !staticFallback} staticMode={staticFallback} mode={mode} />}
     </div>
   );
 }

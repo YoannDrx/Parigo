@@ -2,10 +2,12 @@
 
 import type { MotionValue } from "framer-motion";
 import { useEffect, useRef } from "react";
+import type { SearchMode } from "@/types";
 
 export interface SignalFieldProps {
   pointerX: MotionValue<number>;
   pointerY: MotionValue<number>;
+  mode: SearchMode;
 }
 
 interface Ribbon {
@@ -17,11 +19,48 @@ interface Ribbon {
   width: number;
 }
 
-const RIBBONS: Ribbon[] = [
+interface PaletteTransition {
+  from: Ribbon[];
+  to: Ribbon[];
+  startedAt: number;
+}
+
+const PALETTE_TRANSITION_MS = 620;
+
+const KEYWORD_RIBBONS: Ribbon[] = [
   { color: "#6cff67", amplitude: 0.19, speed: 0.56, offset: 0, opacity: 1, width: 2.2 },
   { color: "#dfffdc", amplitude: 0.13, speed: 0.4, offset: 2.1, opacity: 0.68, width: 1.35 },
   { color: "#75a995", amplitude: 0.23, speed: 0.28, offset: 4.2, opacity: 0.46, width: 1 },
 ];
+const AI_RIBBONS: Ribbon[] = [
+  { color: "#b675ff", amplitude: 0.19, speed: 0.56, offset: 0, opacity: 1, width: 2.2 },
+  { color: "#ead8ff", amplitude: 0.13, speed: 0.4, offset: 2.1, opacity: 0.72, width: 1.35 },
+  { color: "#8a62bd", amplitude: 0.23, speed: 0.28, offset: 4.2, opacity: 0.52, width: 1 },
+];
+
+function parseHex(color: string) {
+  const value = Number.parseInt(color.slice(1), 16);
+  return { red: value >> 16, green: (value >> 8) & 255, blue: value & 255 };
+}
+
+function mixColor(from: string, to: string, progress: number) {
+  const start = parseHex(from);
+  const end = parseHex(to);
+  const channel = (left: number, right: number) => Math.round(left + (right - left) * progress);
+  return `rgb(${channel(start.red, end.red)} ${channel(start.green, end.green)} ${channel(start.blue, end.blue)})`;
+}
+
+function interpolatePalette(from: Ribbon[], to: Ribbon[], progress: number): Ribbon[] {
+  return from.map((ribbon, index) => {
+    const target = to[index] ?? ribbon;
+    return {
+      ...ribbon,
+      color: mixColor(ribbon.color, target.color, progress),
+      opacity: ribbon.opacity + (target.opacity - ribbon.opacity) * progress,
+      width: ribbon.width + (target.width - ribbon.width) * progress,
+    };
+  });
+}
 
 function drawRibbon(
   context: CanvasRenderingContext2D,
@@ -53,8 +92,26 @@ function drawRibbon(
   context.stroke();
 }
 
-export function SignalField({ pointerX, pointerY }: SignalFieldProps) {
+export function SignalField({ pointerX, pointerY, mode }: SignalFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const initialPalette = mode === "ai" ? AI_RIBBONS : KEYWORD_RIBBONS;
+  const paletteTransitionRef = useRef<PaletteTransition>({
+    from: initialPalette,
+    to: initialPalette,
+    startedAt: 0,
+  });
+
+  useEffect(() => {
+    const now = performance.now();
+    const previous = paletteTransitionRef.current;
+    const previousProgress = Math.min(1, Math.max(0, (now - previous.startedAt) / PALETTE_TRANSITION_MS));
+    const currentPalette = interpolatePalette(previous.from, previous.to, previousProgress);
+    paletteTransitionRef.current = {
+      from: currentPalette,
+      to: mode === "ai" ? AI_RIBBONS : KEYWORD_RIBBONS,
+      startedAt: now,
+    };
+  }, [mode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -82,7 +139,9 @@ export function SignalField({ pointerX, pointerY }: SignalFieldProps) {
       if (!visible) return;
       context.clearRect(0, 0, width, height);
       const elapsed = (now - startedAt) / 1000;
-      for (const ribbon of RIBBONS) {
+      const transition = paletteTransitionRef.current;
+      const paletteProgress = Math.min(1, Math.max(0, (now - transition.startedAt) / PALETTE_TRANSITION_MS));
+      for (const ribbon of interpolatePalette(transition.from, transition.to, paletteProgress)) {
         drawRibbon(context, ribbon, width, height, elapsed, pointerX.get(), pointerY.get());
       }
       context.globalAlpha = 1;

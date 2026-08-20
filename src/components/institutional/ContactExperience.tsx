@@ -32,7 +32,7 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
   const isLicenceRequest = Boolean(requestedTrackId);
   const title = isLicenceRequest
     ? track
-      ? locale === "fr" ? `Licencier « ${track.title} ».` : `License “${track.title}”.`
+      ? locale === "fr" ? `Licencier « ${track.title} ».` : `License “${track.title}”.`
       : locale === "fr" ? "Demander une licence pour ce morceau." : "Request a licence for this track."
     : t("institutional.contactTitle");
   const intro = isLicenceRequest
@@ -42,8 +42,8 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
     : t("institutional.contactIntro");
 
   return (
-    <InstitutionalShell title={title} intro={intro}>
-      <section className="bg-[var(--surface-soft)] px-4 py-16 md:px-8 md:py-24">
+    <InstitutionalShell title={title} intro={intro} titleVariant={isLicenceRequest ? "compact" : "page"}>
+      <section className="bg-[var(--surface-soft)] px-4 py-[var(--space-section-y)] md:px-8">
         <div className="mx-auto grid max-w-[1500px] gap-6 md:grid-cols-12">
           <aside data-testid="contact-details" className="h-fit md:col-span-4 lg:sticky lg:top-[var(--sticky-offset)] lg:self-start">
             <div className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-6 md:p-8">
@@ -64,8 +64,8 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
               </address>
               <p className="mt-10 border-t border-[var(--line)] pt-6 text-sm leading-relaxed text-[var(--text-muted)]">
                 <span className="block">{locale === "fr" ? "Une question urgente ? Appelez-nous :" : "Need a quick answer? Call us:"}</span>
-                <a href="tel:+33649396922" className="mt-2 block w-fit whitespace-nowrap text-lg text-[var(--foreground)] underline decoration-[var(--signal-strong)]/50 underline-offset-4">
-                  <strong>+33 (0)6 49 39 69 22</strong>
+                <a href="tel:+33649396922" className="mt-2 block w-fit whitespace-nowrap text-lg font-normal text-[var(--foreground)] underline decoration-[var(--signal-strong)]/50 underline-offset-4">
+                  +33 (0)6 49 39 69 22
                 </a>
               </p>
             </div>
@@ -75,9 +75,9 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
           </div>
         </div>
 
-        <div data-testid="contact-team" className="mx-auto mt-20 max-w-[1500px] md:mt-28">
+        <div data-testid="contact-team" className="mx-auto mt-12 max-w-[1500px] md:mt-24">
           <div>
-            <SignedTitle as="h2" className="text-[clamp(2.8rem,5vw,5.8rem)] leading-[.92] tracking-[-.055em]">
+            <SignedTitle as="h2" variant="section">
               {locale === "fr" ? "Notre équipe" : "Our team"}
             </SignedTitle>
           </div>

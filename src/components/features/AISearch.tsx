@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SearchCommand } from "@/components/search/SearchCommand";
 import { useI18n } from "@/components/providers/I18nProvider";
-import type { AutocompleteItem } from "@/types";
+import type { AutocompleteItem, SearchMode } from "@/types";
 
 const SEARCH_EXAMPLES = ["piano", "documentary", "crime investigation", "orchestral tension"];
 
@@ -13,9 +13,10 @@ interface AISearchProps {
   compact?: boolean;
   showExamples?: boolean;
   onSearch?: (query: string) => void;
+  onModeChange?: (mode: SearchMode) => void;
 }
 
-export function AISearch({ defaultValue = "", compact = false, showExamples = false, onSearch }: AISearchProps) {
+export function AISearch({ defaultValue = "", compact = false, showExamples = false, onSearch, onModeChange }: AISearchProps) {
   const { locale, localizedPath } = useI18n();
   const [query, setQuery] = useState(defaultValue);
   const [stagedFilters, setStagedFilters] = useState<AutocompleteItem[]>([]);
@@ -67,6 +68,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
         onClear={() => setStagedFilters([])}
         stagedFilters={stagedFilters}
         onRemoveStagedFilter={(item) => setStagedFilters((current) => current.filter((candidate) => candidate.id !== item.id || candidate.filterGroup !== item.filterGroup))}
+        onModeChange={onModeChange}
       />
 
       {showExamples ? (

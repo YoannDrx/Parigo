@@ -222,7 +222,9 @@ test("Synthwave Retrowave crédite Schérazade comme auteur de ses chansons", as
     await song.getByRole("button", { name: /^Plus d’actions :/ }).click();
   }
   await song.getByRole("button", { name: /^Informations sur la piste/ }).click();
-  const details = song.locator(".track-detail-panel");
+  const details = testInfo.project.name === "mobile"
+    ? page.locator(".track-detail-sheet .track-detail-panel")
+    : song.locator(".track-detail-panel");
   await expect(details.getByText("Auteur", { exact: true })).toBeVisible();
   await expect(details.getByRole("link", { name: "Schérazade", exact: true })).toHaveAttribute(
     "href",
@@ -364,6 +366,20 @@ test("les relations manuelles publient les clips sur chaque profil compositeur c
 
   await page.goto("/talents/aiwa");
   await expect(page.getByTestId("composer-clips-section")).toHaveCount(0);
+});
+
+test("les relations clip sont réciproques et peuvent publier plusieurs talents", async ({ page }) => {
+  await page.goto("/clips/yt-wrO96WV69aY");
+  const minimaticRelations = page.getByTestId("clip-talents-section");
+  await expect(minimaticRelations.getByRole("link", { name: /Minimatic/ })).toHaveAttribute("href", "/talents/minimatic");
+  await expect(page.getByTestId("clip-album-section")).toContainText("PGO0050");
+
+  await page.goto("/clips/yt-lsXj6hGHM-Q");
+  const lofiRelations = page.getByTestId("clip-talents-section");
+  for (const talent of ["Bonetrips", "Tcheep", "Chicho Cortez"]) {
+    await expect(lofiRelations.getByRole("link", { name: new RegExp(talent) })).toBeVisible();
+  }
+  await expect(page.getByTestId("clip-album-section")).toContainText("PGO0051");
 });
 
 test("les slugs éditoriaux inconnus sont de vraies 404", async ({ request }) => {

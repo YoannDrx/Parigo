@@ -10,7 +10,7 @@ export const VIDEO_COMPOSER_RELATIONS = {
   "I3G64U_dj0s": ["ugly-mac-beer", "yann-kornowicz"],
   QmTmM4YUxO4: ["dj-hertz", "scherazade-aissahine"],
   l3iFO626BFw: ["modulhater"],
-  "lsXj6hGHM-Q": ["bonetrips"],
+  "lsXj6hGHM-Q": ["bonetrips", "tcheep", "chicho-cortez"],
   "10LSc8MjTmM": ["cyril-laurent", "jb-hanak"],
   wrO96WV69aY: ["minimatic"],
   dr6hxcsjjbk: ["xavier-sibre", "fabien-girard"],

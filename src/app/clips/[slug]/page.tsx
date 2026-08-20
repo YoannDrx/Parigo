@@ -1,17 +1,22 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import { ArrowLeft, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Footer, Header } from "@/components/layout";
+import { AlbumCard } from "@/components/features/AlbumCard";
 import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { JsonLd } from "@/components/seo/JsonLd";
-import { getEditorialVideo, getEditorialVideos } from "@/lib/editorial/videos";
+import { getEditorialVideo } from "@/lib/editorial/videos";
+import { emptyCanonicalComposerSummaries } from "@/lib/composers/profiles";
+import { getCachedAlbumDiscovery } from "@/lib/harvest/catalog-cache";
+import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
-import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
-import { buildDetailNavigation } from "@/lib/navigation/detail-navigation";
+import { logEvent } from "@/lib/logger";
 
 interface ClipPageProps {
   params: Promise<{ slug: string }>;
@@ -38,18 +43,23 @@ export async function generateMetadata({ params }: ClipPageProps): Promise<Metad
 
 export default async function ClipPage({ params }: ClipPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
-  const [clip, clips] = await Promise.all([loadClip(slug), getEditorialVideos()]);
-  const navigation = buildDetailNavigation(
-    clips,
-    clip.slug,
-    (item) => item.slug,
-    (item) => ({
-      href: `/clips/${item.slug}`,
-      title: item.title[locale],
-      image: item.cover,
-      eyebrow: locale === "fr" ? "Vidéo" : "Video",
-    }),
-  );
+  const clip = await loadClip(slug);
+  const relatedTalents = emptyCanonicalComposerSummaries().filter((profile) => clip.composerSlugs.includes(profile.slug));
+  const relatedAlbum = clip.relatedAlbumCode
+    ? await getCachedAlbumDiscovery({ label: PARIGO_LABEL_ID, limit: 100, sort: "recent" })
+      .then((result) => result.items.find((album) => album.code === clip.relatedAlbumCode))
+      .catch(() => undefined)
+    : undefined;
+  if (clip.relatedAlbumCode && !relatedAlbum) {
+    logEvent({
+      level: "warn",
+      message: "editorial_video_album_relation_unresolved",
+      route: "clips-detail",
+      requestId: crypto.randomUUID(),
+      code: "UNRESOLVED_RELATION",
+      sampleIds: [clip.youtubeId, clip.relatedAlbumCode].filter((value): value is string => Boolean(value)),
+    });
+  }
   const title = clip.title[locale];
   const summary = locale === "fr" ? `Découvrez le clip ${title}.` : `Watch ${title}.`;
   const structuredData = clip.youtubeId ? {
@@ -93,7 +103,8 @@ export default async function ClipPage({ params }: ClipPageProps) {
             <aside data-testid="clip-detail-panel" className="flex min-h-full min-w-0 flex-col rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 lg:col-span-4 lg:p-8">
               <SignedTitle
                 data-testid="clip-detail-title"
-                className="max-w-full [overflow-wrap:anywhere] text-[clamp(2.25rem,9vw,4.5rem)] font-semibold leading-[.9] tracking-[-.06em] sm:text-[clamp(2.75rem,7vw,5rem)] lg:text-[clamp(2.2rem,3.65vw,4.35rem)] [&_.parigo-signed-title__tail]:max-w-full [&_.parigo-signed-title__tail]:whitespace-normal [&_.parigo-signed-title__tail]:[overflow-wrap:anywhere]"
+                variant="detail"
+                className="max-w-full font-semibold lg:text-[clamp(2.2rem,3.65vw,4.35rem)] [&_.parigo-signed-title__tail]:max-w-full [&_.parigo-signed-title__tail]:whitespace-normal"
               >
                 {title}
               </SignedTitle>
@@ -107,9 +118,45 @@ export default async function ClipPage({ params }: ClipPageProps) {
               </div>
             </aside>
           </div>
+
+          {(relatedTalents.length > 0 || relatedAlbum) && (
+            <section data-testid="clip-relations" className="mt-8 border-t border-[var(--line)] pt-8 md:mt-14 md:pt-12">
+              <div className="grid gap-10 lg:grid-cols-12">
+                {relatedTalents.length > 0 && (
+                  <div data-testid="clip-talents-section" className={relatedAlbum ? "lg:col-span-8" : "lg:col-span-12"}>
+                    <SignedTitle as="h2" variant="section" className="mb-6">
+                      {locale === "fr" ? (relatedTalents.length > 1 ? "Talents" : "Talent") : (relatedTalents.length > 1 ? "Talent" : "Talent")}
+                    </SignedTitle>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {relatedTalents.map((profile) => {
+                        const portrait = profile.detailImage?.src ?? profile.image;
+                        return (
+                          <Link key={profile.slug} href={localizedPath(locale, `/talents/${profile.slug}`)} className="parigo-panel group grid min-h-24 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border border-[var(--line)] bg-[var(--surface)] p-3 transition hover:border-[var(--signal)]">
+                            <span className="relative aspect-square overflow-hidden bg-[var(--surface-soft)]">
+                              <Image src={portrait} alt="" fill sizes="80px" className="object-cover" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="eyebrow text-[var(--signal-strong)]">{profile.kind === "group" ? (locale === "fr" ? "Collectif" : "Collective") : (locale === "fr" ? "Compositeur" : "Composer")}</span>
+                              <span className="mt-2 block text-xl font-semibold leading-tight tracking-[-.035em]">{profile.name}</span>
+                            </span>
+                            <ArrowUpRight size={17} className="mr-2 text-[var(--text-muted)] transition group-hover:text-[var(--signal-strong)]" />
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                {relatedAlbum && (
+                  <div data-testid="clip-album-section" className={relatedTalents.length > 0 ? "lg:col-span-4" : "lg:col-span-12 lg:max-w-sm"}>
+                    <SignedTitle as="h2" variant="section" className="mb-6">{locale === "fr" ? "Album associé" : "Related album"}</SignedTitle>
+                    <AlbumCard album={relatedAlbum} headingLevel={3} />
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </main>
-      <DetailPageNavigation navigation={navigation} locale={locale} />
       <Footer />
     </div>
   );

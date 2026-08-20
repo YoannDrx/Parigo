@@ -8,10 +8,8 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
-import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
-import type { DetailNavigation } from "@/lib/navigation/detail-navigation";
 
-export function SynchronisationDetailView({ sync, navigation }: { sync: Synchronisation; navigation: DetailNavigation }) {
+export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   const { locale, localizedPath } = useI18n();
   const clip = useMemo(() => ({
     slug: `synchronisation-${sync.slug}`,
@@ -69,7 +67,6 @@ export function SynchronisationDetailView({ sync, navigation }: { sync: Synchron
           </div>
         </div>
       </main>
-      <DetailPageNavigation navigation={navigation} locale={locale} />
       <Footer />
     </div>
   );

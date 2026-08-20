@@ -6,7 +6,6 @@ import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { youtubeEmbedUrl } from "@/lib/youtube/synchronisation-types";
-import { buildDetailNavigation } from "@/lib/navigation/detail-navigation";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const sync = await getSynchronisation((await params).slug);
@@ -20,11 +19,5 @@ export default async function SynchronisationPage({ params }: { params: Promise<
   const synchronisations = await getSynchronisations();
   const sync = synchronisations.find((item) => item.slug === slug || item.youtubeId === slug);
   if (!sync) notFound();
-  const navigation = buildDetailNavigation(
-    synchronisations,
-    sync.slug,
-    (item) => item.slug,
-    (item) => ({ href: `/synchronisations/${item.slug}`, title: item.title, image: item.image, eyebrow: item.client }),
-  );
-  return <><JsonLd data={{ "@context": "https://schema.org", "@type": "VideoObject", name: sync.title, description: sync.descriptionFr, thumbnailUrl: sync.image, embedUrl: youtubeEmbedUrl(sync.youtubeId) }} /><SynchronisationDetailView sync={sync} navigation={navigation} /></>;
+  return <><JsonLd data={{ "@context": "https://schema.org", "@type": "VideoObject", name: sync.title, description: sync.descriptionFr, thumbnailUrl: sync.image, embedUrl: youtubeEmbedUrl(sync.youtubeId) }} /><SynchronisationDetailView sync={sync} /></>;
 }

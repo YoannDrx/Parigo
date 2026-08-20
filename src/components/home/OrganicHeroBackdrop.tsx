@@ -67,7 +67,7 @@ export function OrganicHeroBackdrop() {
         <motion.span style={{ x: glowX, y: glowY }} className="absolute left-1/2 top-1/2 h-[66%] w-[66%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--signal)_28%,transparent)] blur-[65px]" />
         <span className="absolute inset-[7%] rounded-[inherit] border border-white/18 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,.5),transparent_36%)]" />
       </motion.div>
-      <div className="hero-signal-field pointer-events-none absolute -inset-x-[12%] inset-y-[5%]"><SignalFieldLoader pointerX={sceneX} pointerY={sceneY} /></div>
+      <div className="hero-signal-field pointer-events-none absolute -inset-x-[12%] inset-y-[5%]"><SignalFieldLoader pointerX={sceneX} pointerY={sceneY} mode="keyword" /></div>
       <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent_49.9%,color-mix(in_srgb,var(--foreground)_7%,transparent)_50%,transparent_50.1%)] opacity-30" />
     </div>
   );

@@ -2,6 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { getVideoComposerSlugs } from "./video-composer-relations";
+import { getVideoAlbumCode } from "./video-album-relations";
 import { classifyVideoTitle } from "./video-classification";
 import { dedupeEditorialVideos, selectFeaturedEditorialVideos } from "./video-selection";
 import { CLIPS_PLAYLIST_ID, type EditorialVideo } from "./video-types";
@@ -12,6 +13,7 @@ export { CLIPS_PLAYLIST_ID, CLIPS_PLAYLIST_URL } from "./video-types";
 async function loadEditorialVideos(): Promise<EditorialVideo[]> {
   return dedupeEditorialVideos((await fetchYouTubePlaylist(CLIPS_PLAYLIST_ID)).map((video): EditorialVideo => {
     const composerSlugs = getVideoComposerSlugs(video.youtubeId);
+    const relatedAlbumCode = getVideoAlbumCode(video.youtubeId);
     return {
       slug: `yt-${video.youtubeId}`,
       title: { fr: video.title, en: video.title },
@@ -21,10 +23,12 @@ async function loadEditorialVideos(): Promise<EditorialVideo[]> {
       cover: video.thumbnail,
       youtubeId: video.youtubeId,
       composerSlugs,
+      relatedAlbumCode,
       videoType: classifyVideoTitle(video.title),
       source: "youtube",
       reviewState: "needs-review",
       composerRelationSource: composerSlugs.length > 0 ? "manual" : undefined,
+      albumRelationSource: relatedAlbumCode ? "manual" : undefined,
       channelTitle: video.channelTitle,
       publishedAt: video.publishedAt,
       order: video.position,

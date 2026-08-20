@@ -10,8 +10,6 @@ import { getRequestLocale } from "@/lib/locale-server";
 import { localizedPath } from "@/lib/locale";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { SignedTitle } from "@/components/ui/SignedTitle";
-import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
-import { buildDetailNavigation } from "@/lib/navigation/detail-navigation";
 
 interface SelectionPageProps { params: Promise<{ slug: string }> }
 
@@ -54,16 +52,6 @@ export default async function SelectionPage({ params }: SelectionPageProps) {
     .map((key) => SEO_SELECTIONS.find((item) => item.key === key))
     .filter(Boolean);
   const pagePath = localizedPath(locale, `/selections/${content.slug}`);
-  const navigation = buildDetailNavigation(
-    SEO_SELECTIONS,
-    selection.key,
-    (item) => item.key,
-    (item) => ({
-      href: `/selections/${item.content[locale].slug}`,
-      title: item.content[locale].title,
-      eyebrow: locale === "fr" ? "Sélection" : "Selection",
-    }),
-  );
   return (
     <div className="page-shell min-h-screen">
       <JsonLd data={{
@@ -92,7 +80,6 @@ export default async function SelectionPage({ params }: SelectionPageProps) {
         <section className="border-y border-[var(--line)] bg-[var(--surface-soft)] px-4 py-16 md:px-8"><div className="mx-auto grid max-w-[1500px] gap-12 md:grid-cols-2"><article><h2 className="text-2xl font-semibold">{locale === "fr" ? "Usages à l’image" : "Uses on screen"}</h2><p className="mt-4 leading-7 text-[var(--text-muted)]">{content.uses}</p></article><article><h2 className="text-2xl font-semibold">{locale === "fr" ? "Conseil de sélection" : "Selection advice"}</h2><p className="mt-4 leading-7 text-[var(--text-muted)]">{content.advice}</p></article></div></section>
         <section className="mx-auto max-w-[1500px] px-4 py-16 md:px-8"><SignedTitle as="h2" className="text-3xl font-semibold">{locale === "fr" ? "Sélections connexes" : "Related selections"}</SignedTitle><div className="mt-6 flex flex-wrap gap-3">{related.map((item) => item && <Link key={item.key} href={localizedPath(locale, `/selections/${item.content[locale].slug}`)} className="min-h-11 rounded-full border border-[var(--line)] px-5 py-3 text-sm font-semibold hover:border-[var(--signal-strong)]">{item.content[locale].title}</Link>)}</div><Link href={localizedPath(locale, "/contact")} className="mt-12 inline-flex min-h-12 items-center rounded-full bg-[var(--foreground)] px-6 font-semibold text-[var(--background)]">{locale === "fr" ? "Parler de votre licence" : "Discuss your licence"}</Link></section>
       </main>
-      <DetailPageNavigation navigation={navigation} locale={locale} />
       <Footer />
     </div>
   );

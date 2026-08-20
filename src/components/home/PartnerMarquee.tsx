@@ -51,7 +51,7 @@ export function PartnerMarquee() {
       <div className="partner-section__glow" aria-hidden="true" />
       <div className="relative mx-auto max-w-[1580px] px-4 md:px-8">
         <div>
-          <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.8rem,5.5vw,6.2rem)] leading-[.9] tracking-[-.06em] text-white">
+          <SignedTitle as="h2" variant="section" className="max-w-[11ch] text-white">
             {locale === "fr" ? "Ils nous font confiance." : "They trust us."}
           </SignedTitle>
         </div>

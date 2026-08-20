@@ -186,10 +186,15 @@ test("le bouton de détail conserve une flèche contrastée sur la card", async 
   await card.scrollIntoViewIfNeeded();
   await card.hover();
 
+  const play = card.getByRole("button", { name: /Lire Garden Of Eden/i });
   const detail = card.getByRole("link", { name: /Voir le détail de Garden Of Eden/i });
+  const basePlayBackground = await play.evaluate((node) => getComputedStyle(node).backgroundColor);
+  expect(basePlayBackground).toMatch(/^rgba\(/);
   await expect(detail).toBeVisible();
   await expect(detail).toHaveCSS("color", "rgb(255, 255, 255)");
 
+  await play.hover();
+  await expect(play).toHaveCSS("background-color", "rgb(104, 191, 131)");
   await detail.hover();
   await expect(detail).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(detail).toHaveCSS("color", "rgb(21, 24, 21)");

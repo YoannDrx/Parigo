@@ -6,7 +6,6 @@ import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { getCachedAlbum } from "@/lib/harvest/catalog-cache";
 import { resolveAlbumDescription } from "@/lib/harvest/album-descriptions";
 import { buildAlbumContributorGroups, buildTrackCreditLinks } from "@/lib/composers/album-credits";
-import { getAlbumDetailNavigation } from "@/lib/navigation/album-detail-navigation";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
@@ -55,7 +54,6 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   };
   const composerCredits = buildTrackCreditLinks(album.tracks, creditOptions);
   const contributorGroups = buildAlbumContributorGroups(album.tracks, creditOptions);
-  const navigation = await getAlbumDetailNavigation(album);
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "MusicAlbum",
@@ -74,7 +72,7 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
     <>
       <JsonLd data={structuredData} />
       <AlbumDetailClient
-        data={{ album, similarAlbums: result.similar, composerCredits, contributorGroups, navigation }}
+        data={{ album, similarAlbums: result.similar, composerCredits, contributorGroups }}
         initialTrackId={typeof resolvedSearchParams.track === "string" ? resolvedSearchParams.track : undefined}
         initialTrackTab={resolvedSearchParams.panel === "lyrics" ? "lyrics" : undefined}
         initialHighlight={typeof resolvedSearchParams.highlight === "string" ? resolvedSearchParams.highlight.slice(0, 200) : undefined}

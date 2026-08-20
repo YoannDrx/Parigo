@@ -86,6 +86,27 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
   await expect(page).toHaveURL(/view=list/);
 });
 
+test("le toggle des labels mobiles alterne une grille double et une liste pleine largeur", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Les vues mobiles sont contrôlées séparément.");
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/labels");
+  const grid = page.getByTestId("labels-mobile-grid");
+  await expect(grid).toBeVisible({ timeout: 30_000 });
+  const gridCards = grid.locator('a[href^="/labels/"]');
+  const [gridFirst, gridSecond] = await Promise.all([gridCards.nth(0).boundingBox(), gridCards.nth(1).boundingBox()]);
+  expect(Math.abs(gridFirst!.y - gridSecond!.y)).toBeLessThanOrEqual(1);
+  expect(gridFirst!.width).toBeGreaterThanOrEqual(140);
+
+  await page.getByRole("button", { name: "Vue liste" }).click();
+  const list = page.getByTestId("labels-mobile-list");
+  await expect(list).toBeVisible();
+  const rows = list.locator('a[href^="/labels/"]');
+  const [first, second] = await Promise.all([rows.nth(0).boundingBox(), rows.nth(1).boundingBox()]);
+  expect(first!.width).toBeGreaterThanOrEqual(280);
+  expect(second!.y).toBeGreaterThan(first!.y + first!.height - 1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
+});
+
 test("la discographie d’un label se recherche et expose les filtres complets", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/labels/0f9769346759ee5a");
