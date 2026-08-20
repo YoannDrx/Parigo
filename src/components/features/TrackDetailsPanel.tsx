@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowUpRight, Check, ChevronUp, Info, ListEnd, ListPlus, Not
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { Tooltip } from "@/components/ui/Tooltip";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn, formatBPM, formatDuration } from "@/lib/utils";
@@ -38,13 +39,22 @@ function HighlightedLyrics({ text, query }: { text: string; query?: string }) {
         const target = firstMatchRef.current;
         if (!target) return;
         const rect = target.getBoundingClientRect();
+        const panel = target.closest<HTMLElement>(".track-detail-panel");
+        const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+        if (panel && panel.scrollHeight > panel.clientHeight + 1) {
+          const panelRect = panel.getBoundingClientRect();
+          const top = panel.scrollTop + rect.top - panelRect.top - Math.max(0, (panel.clientHeight - rect.height) / 2);
+          panel.scrollTo({ top: Math.max(0, top), behavior });
+          target.focus({ preventScroll: true });
+          return;
+        }
         const topInset = 96;
         const bottomInset = 96;
         const visibleHeight = Math.max(0, window.innerHeight - topInset - bottomInset);
         const top = window.scrollY + rect.top - topInset - Math.max(0, (visibleHeight - rect.height) / 2);
         window.scrollTo({
           top: Math.max(0, top),
-          behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+          behavior,
         });
         target.focus({ preventScroll: true });
       });
@@ -161,6 +171,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
   const [noteSaving, setNoteSaving] = useState(false);
   const [noteError, setNoteError] = useState("");
   const [rightHoldersById, setRightHoldersById] = useState<Record<string, RightHolder[]>>({});
+  const panelRef = useRef<HTMLElement>(null);
   const selectedTrack = focusedTrack ?? track;
   const displayed = detailsById[selectedTrack.id] ?? selectedTrack;
   const rootTrack = detailsById[track.id] ?? track;
@@ -168,6 +179,26 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
   const rightHolders = rightHoldersById[activeTrackId] ?? displayed.rightHolders ?? [];
   const rightHoldersLoading = activeTab === "information" && !rightHoldersById[activeTrackId];
   const rootTrackLoading = selectedTrack.id === track.id && detailsLoading && !detailsById[track.id];
+
+  useEffect(() => {
+    const mobile = window.matchMedia("(max-width: 767px)");
+    if (!mobile.matches) return;
+    const focusable = () => [...(panelRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
+    const frame = window.requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>("[data-track-sheet-close]")?.focus());
+    const trapFocus = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const items = focusable();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+      if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener("keydown", trapFocus);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", trapFocus);
+    };
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -265,8 +296,18 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
     ["ISRC", displayed.isrc],
   ].filter((item): item is [string, string] => Boolean(item[1]));
   return (
-    <section className="track-detail-panel relative border-t border-[var(--line-strong)] bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Détails de la piste" : "Track details"} : ${displayed.title}`}>
-      <div className="flex items-stretch border-b border-[var(--line)]">
+    <section ref={panelRef} className="track-detail-panel relative border-t border-[var(--line-strong)] bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Détails de la piste" : "Track details"} : ${displayed.title}`}>
+      <div className="track-detail-panel__mobile-summary hidden items-center gap-3 border-b border-[var(--line)] bg-[var(--surface)] px-4 py-3">
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-[var(--parigo-corner-sm)] bg-[var(--surface-soft)]">
+          {displayed.albumCover ? <Image src={displayed.albumCover} alt="" fill sizes="48px" className="object-cover" /> : null}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="break-words text-sm font-semibold leading-5">{displayed.title}</p>
+          <p className="mt-0.5 break-words text-xs leading-5 text-[var(--text-muted)]">{displayed.artists?.map((artist) => artist.name).join(", ") || displayed.albumTitle}</p>
+        </div>
+        <button data-track-sheet-close type="button" onClick={onClose} className="track-detail-panel__close flex h-11 w-11 shrink-0 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer les informations" : "Close information"}><X size={18} /></button>
+      </div>
+      <div className="track-detail-panel__tabs-bar flex items-stretch border-b border-[var(--line)] bg-[var(--surface)]">
         <div className="no-scrollbar min-w-0 flex-1 overflow-x-auto px-4 md:px-6">
           <div className="track-detail-tabs flex min-w-max gap-6" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={activeTab === id} onClick={() => onTabChange(id)} className={cn("relative min-h-11 px-0 text-xs font-semibold transition after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-[var(--signal-strong)] after:transition-transform", activeTab === id ? "text-[var(--foreground)] after:scale-x-100" : "text-[var(--text-muted)] hover:text-[var(--foreground)] hover:after:scale-x-50")}>{label}</button>)}</div>
         </div>
@@ -351,7 +392,21 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
                   <ParigoLoader size="compact" label={locale === "fr" ? "Chargement des ayants droit" : "Loading right holders"} />
                 </div>
               ) : rightHolders.length ? (
-                <div className="mt-4 overflow-x-auto border border-[var(--line)]">
+                <>
+                  <div className="mt-4 grid gap-3 md:hidden">
+                    {rightHolders.map((holder) => (
+                      <article key={holder.id} className="border border-[var(--line)] bg-[var(--surface)] p-4">
+                        <p className="break-words text-sm font-semibold">{holder.name}</p>
+                        <dl className="mt-3 grid gap-2 text-xs">
+                          <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3"><dt className="font-mono uppercase text-[var(--text-muted)]">{locale === "fr" ? "Rôle" : "Role"}</dt><dd className="break-words">{holder.capacity || holder.capacityGroup || "—"}</dd></div>
+                          <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3"><dt className="font-mono uppercase text-[var(--text-muted)]">{locale === "fr" ? "Société" : "Society"}</dt><dd className="break-words">{holder.collectingSociety || "—"}</dd></div>
+                          <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3"><dt className="font-mono uppercase text-[var(--text-muted)]">{locale === "fr" ? "Part" : "Share"}</dt><dd className="break-words">{holder.share !== undefined ? `${holder.share}${holder.shareType ? ` ${holder.shareType}` : ""}` : "—"}</dd></div>
+                          <div className="grid grid-cols-[6rem_minmax(0,1fr)] gap-3"><dt className="font-mono uppercase text-[var(--text-muted)]">IPI</dt><dd className="break-words">{holder.ipi || "—"}</dd></div>
+                        </dl>
+                      </article>
+                    ))}
+                  </div>
+                  <div className="mt-4 hidden overflow-x-auto border border-[var(--line)] md:block">
                   <table className="w-full min-w-[42rem] text-left text-xs">
                     <thead className="bg-[var(--surface)] font-mono uppercase tracking-[.08em] text-[var(--text-muted)]">
                       <tr>
@@ -374,7 +429,8 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
                       ))}
                     </tbody>
                   </table>
-                </div>
+                  </div>
+                </>
               ) : (
                 <p className="mt-3 text-sm text-[var(--text-muted)]">
                   {locale === "fr"

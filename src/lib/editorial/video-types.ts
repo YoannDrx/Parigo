@@ -6,8 +6,7 @@ export type VideoType =
   | "performance"
   | "award"
   | "announcement"
-  | "archive"
-  | "other";
+  | "archive";
 
 export type EditorialReviewState = "verified" | "needs-review" | "rejected";
 
@@ -51,5 +50,4 @@ export const videoTypeLabels: Record<VideoType, { fr: string; en: string }> = {
   award: { fr: "Prix & nominations", en: "Awards & nominations" },
   announcement: { fr: "Actualité", en: "News" },
   archive: { fr: "Archive", en: "Archive" },
-  other: { fr: "Autre", en: "Other" },
 };

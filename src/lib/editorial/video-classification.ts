@@ -10,5 +10,5 @@ export function classifyVideoTitle(title: string): VideoType {
   if (/dmc|championship|performance|scratch|showcase/.test(normalized)) return "performance";
   if (/official|clip|music video|video officielle?/.test(normalized)) return "official-video";
   if (/vegomatic|macha|surfin|montlery/.test(normalized)) return "archive";
-  return "other";
+  return "official-video";
 }

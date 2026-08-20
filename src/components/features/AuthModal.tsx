@@ -10,6 +10,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { RegisterForm } from "@/components/features/RegisterForm";
 import { ParigoLogo } from "@/components/layout/ParigoLogo";
 import { LoginForm } from "@/components/features/LoginForm";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 export function AuthModal() {
   const { locale, t } = useI18n();
@@ -17,6 +18,8 @@ export function AuthModal() {
   const router = useRouter();
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+
+  useBodyScrollLock(isOpen);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -33,11 +36,9 @@ export function AuthModal() {
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     };
     document.addEventListener("keydown", handleKeyDown);
-    document.body.style.overflow = "hidden";
     return () => {
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
       returnFocusRef.current?.focus();
     };
   }, [isOpen, close]);
@@ -71,10 +72,10 @@ export function AuthModal() {
             </aside>
 
             <div className="relative min-h-0 overflow-hidden pt-16">
-              <div className="absolute left-5 top-5 z-20 flex w-[min(360px,calc(100%-88px))] border-b border-[var(--line)] sm:left-10">
+              <div className="absolute left-5 top-4 z-20 grid min-h-11 w-[min(420px,calc(100%-88px))] grid-cols-2 gap-1 rounded-[var(--parigo-corner-md)] border border-[var(--line)] bg-[var(--surface-soft)] p-1 sm:left-10">
                 <motion.span aria-hidden="true" animate={{ x: view === "login" ? "0%" : "100%" }} transition={{ duration: .32, ease: [.22, 1, .36, 1] }} className="absolute -bottom-px left-0 h-[2px] w-1/2 bg-[var(--signal-strong)]" />
-                <button type="button" onClick={() => setView("login")} aria-label={locale === "fr" ? "Afficher la connexion" : "Show sign in"} aria-pressed={view === "login"} className={`relative z-10 min-h-8 flex-1 whitespace-nowrap pb-2 text-left text-[.62rem] font-semibold uppercase tracking-[.07em] transition sm:text-[.66rem] ${view === "login" ? "text-[var(--foreground)]" : "text-[var(--text-muted)] hover:text-[var(--foreground)]"}`}>{t("auth.login")}</button>
-                <button type="button" onClick={() => setView("register")} aria-label={locale === "fr" ? "Afficher la création de compte" : "Show account creation"} aria-pressed={view === "register"} className={`relative z-10 min-h-8 flex-1 whitespace-nowrap pb-2 text-left text-[.62rem] font-semibold uppercase tracking-[.07em] transition sm:text-[.66rem] ${view === "register" ? "text-[var(--foreground)]" : "text-[var(--text-muted)] hover:text-[var(--foreground)]"}`}>{t("auth.register")}</button>
+                <button type="button" onClick={() => setView("login")} aria-label={locale === "fr" ? "Afficher la connexion" : "Show sign in"} aria-pressed={view === "login"} className={`relative z-10 flex min-h-10 items-center justify-center rounded-[var(--parigo-corner-sm)] px-2 text-center text-[.68rem] font-semibold uppercase leading-tight tracking-[.04em] transition ${view === "login" ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--foreground)]"}`}>{t("auth.login")}</button>
+                <button type="button" onClick={() => setView("register")} aria-label={locale === "fr" ? "Afficher la création de compte" : "Show account creation"} aria-pressed={view === "register"} className={`relative z-10 flex min-h-10 items-center justify-center rounded-[var(--parigo-corner-sm)] px-2 text-center text-[.68rem] font-semibold uppercase leading-tight tracking-[.04em] transition ${view === "register" ? "bg-[var(--surface)] text-[var(--foreground)] shadow-sm" : "text-[var(--text-muted)] hover:text-[var(--foreground)]"}`}>{t("auth.register")}</button>
               </div>
               <motion.section aria-hidden={view !== "login"} inert={view !== "login" ? true : undefined} animate={{ opacity: view === "login" ? 1 : 0, x: view === "login" ? 0 : -32 }} transition={{ duration: .34, ease: [.22, 1, .36, 1] }} className={`absolute inset-x-0 bottom-0 top-16 overflow-y-auto px-6 py-10 sm:px-10 md:px-12 ${view !== "login" ? "pointer-events-none" : ""}`}>
                 <div className="mx-auto flex min-h-full max-w-md items-center"><div className="w-full"><LoginForm headingId="auth-login-title" onRegister={() => setView("register")} onForgot={() => { close(); router.push("/forgot-password"); }} onSuccess={() => { close(); router.refresh(); }} /></div></div>

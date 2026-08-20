@@ -11,7 +11,7 @@ import { fetchAlbum, fetchAlbums, fetchPlaylist } from "@/lib/api-client";
 import { DeferredOrganicHeroBackdrop } from "./DeferredOrganicHeroBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
 import { DeferredHomeStorySections } from "./DeferredHomeStorySections";
-import type { Album, Playlist, Track } from "@/types";
+import type { Album, Playlist, SearchMode, Track } from "@/types";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { ParigoVideoCard } from "@/components/editorial/ParigoVideoCard";
 import { SynchronisationCard } from "@/components/editorial/SynchronisationCard";
@@ -62,18 +62,20 @@ function SectionReveal({ children, className = "" }: { children: ReactNode; clas
 
 export function HomeHero() {
   const { locale } = useI18n();
+  const [searchMode, setSearchMode] = useState<SearchMode>("keyword");
+  const publicSearchMode = searchMode === "keyword" ? "catalog" : "ai";
 
   return (
-    <section data-testid="home-hero" className="relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-x-clip bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
-      <DeferredOrganicHeroBackdrop />
+    <section data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-x-clip bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
+      <DeferredOrganicHeroBackdrop mode={searchMode} />
       <div className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center">
         <SignedTitle className="pointer-events-auto relative z-10 mx-auto max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
           {locale === "fr" ? "Trouvez la bonne musique" : "Find the right music"}
         </SignedTitle>
         <p className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg">
-          {locale === "fr" ? <>Des compositions originales pensées pour raconter vos images<br className="hidden sm:block" />Explorez, écoutez, comparez et licenciez en quelques clics.</> : <>Original compositions created to tell the story of your images<br className="hidden sm:block" />Explore, listen, compare and license in just a few clicks.</>}
+          {locale === "fr" ? <>Des compositions originales pensées pour raconter vos images. <br className="hidden sm:block" />Explorez, écoutez, comparez et licenciez en quelques clics.</> : <>Original compositions created to tell the story of your images. <br className="hidden sm:block" />Explore, listen, compare and license in just a few clicks.</>}
         </p>
-        <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch /></div>
+        <div className="pointer-events-auto mx-auto mt-9 max-w-4xl text-left"><AISearch onModeChange={setSearchMode} /></div>
       </div>
     </section>
   );
@@ -188,13 +190,13 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
         <section id="featured" className="border-y border-[var(--line)] bg-[var(--surface)] px-4 py-20 md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
             <SectionReveal className="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div><SignedTitle as="h2" className="max-w-[12ch] text-[clamp(2.8rem,5vw,5.6rem)] font-semibold leading-[.92] tracking-[-.055em]">{locale === "fr" ? "À écouter maintenant." : "Listen now."}</SignedTitle></div>
-              <div className="flex max-w-full gap-1 overflow-x-auto rounded-lg border border-[var(--line)] p-1" role="tablist" aria-label={locale === "fr" ? "Sélections mises en avant" : "Featured selections"}>
+              <div><SignedTitle as="h2" variant="section" className="max-w-[12ch] font-semibold">{locale === "fr" ? "À écouter maintenant." : "Listen now."}</SignedTitle></div>
+              <div className="grid w-full max-w-xl grid-cols-3 gap-1 rounded-lg border border-[var(--line)] p-1 md:w-[34rem]" role="tablist" aria-label={locale === "fr" ? "Sélections mises en avant" : "Featured selections"}>
                 {([
                   ["releases", locale === "fr" ? "Nouveautés" : "New releases"],
                   ["playlists", "Playlists"],
                   ["parigo", locale === "fr" ? "Notre label" : "Our label"],
-                ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => { setTabError(null); setAudioPlaybackError(null); setFeaturedTab(id); }} className={`min-h-10 whitespace-nowrap rounded-md px-4 text-xs font-semibold transition ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
+                ] as const).map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={featuredTab === id} onClick={() => { setTabError(null); setAudioPlaybackError(null); setFeaturedTab(id); }} className={`min-h-11 min-w-0 rounded-md px-1.5 text-[.7rem] font-semibold transition sm:px-3 sm:text-xs ${featuredTab === id ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]"}`}>{label}</button>)}
               </div>
             </SectionReveal>
             {isFeaturedTabLoading ? (
@@ -295,7 +297,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
 
         <section data-testid="home-sync-section" className="bg-[var(--surface-inverse)] px-4 py-20 text-[var(--background)] md:px-8 md:py-28">
           <div className="mx-auto max-w-[1580px]">
-            <SectionReveal className="mb-12 w-full min-w-0"><SignedTitle as="h2" className="max-w-[12ch] break-words text-[clamp(2.2rem,5vw,5.5rem)] leading-[.92]">{t("home.syncTitle")}</SignedTitle></SectionReveal>
+            <SectionReveal className="mb-12 w-full min-w-0"><SignedTitle as="h2" variant="section" className="max-w-[12ch] break-words">{t("home.syncTitle")}</SignedTitle></SectionReveal>
             <HorizontalRail wide inverse tone="inverse" label={locale === "fr" ? "Nos synchros" : "Our syncs"}>
               {syncs.map((sync) => (
                 <SynchronisationCard
@@ -319,8 +321,8 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
 
         <section data-testid="social-follow-section" className="px-4 py-20 md:px-8 md:py-28">
           <SectionReveal className="group relative mx-auto grid max-w-[1580px] overflow-hidden rounded-[1.2rem] bg-[var(--signal-strong)] p-6 text-white md:grid-cols-12 md:items-center md:p-10 lg:p-14">
-            <div className="relative md:col-span-9 md:flex md:items-center md:gap-4"><div className="relative h-28 w-full max-w-[15rem] shrink-0" role="list" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform) => <span key={platform.name} role="listitem" aria-label={platform.name} className={`absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><PlatformIcon name={platform.name} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-4 text-white md:mt-0"><SignedTitle as="h2" className="text-[clamp(2rem,4vw,4.5rem)] leading-[.94] text-white">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</SignedTitle><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/82">{locale === "fr" ? "Sorties, playlists, images et actualités du label — tous nos liens réunis au même endroit." : "Releases, playlists, images and label news — all our links in one place."}</p></div></div>
-            <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href="https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67" target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center gap-3 rounded-full border border-white/78 px-5 text-sm font-semibold !text-white transition hover:border-white hover:bg-white hover:!text-[#123f24] focus-visible:outline-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
+            <div className="relative md:col-span-9 md:flex md:items-center md:gap-4"><div className="relative h-28 w-full max-w-[15rem] shrink-0" role="list" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform, index) => <span key={platform.name} role="listitem" aria-label={platform.name} style={{ "--platform-delay": `${index * -0.42}s` } as React.CSSProperties} className={`social-platform-icon absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><PlatformIcon name={platform.name} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-4 text-white md:mt-0"><SignedTitle as="h2" variant="section" className="text-white">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</SignedTitle><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/82">{locale === "fr" ? "Sorties, playlists, images et actualités du label — tous nos liens réunis au même endroit." : "Releases, playlists, images and label news — all our links in one place."}</p></div></div>
+            <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href="https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67" target="_blank" rel="noreferrer" className="social-follow-cta inline-flex min-h-12 items-center gap-3 rounded-full border border-white/78 px-5 text-sm font-semibold !text-white transition hover:border-white hover:bg-white hover:!text-[#123f24] focus-visible:outline-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
           </SectionReveal>
         </section>
     </>

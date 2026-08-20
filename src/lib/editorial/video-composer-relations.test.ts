@@ -3,11 +3,15 @@ import { canonicalComposerProfiles } from "@/lib/composers/profiles";
 import { getVideoComposerSlugs, VIDEO_COMPOSER_RELATIONS } from "./video-composer-relations";
 
 describe("manual video-to-composer relations", () => {
-  it("contains the 30 supplied clips and 50 validated associations", () => {
+  it("contains the 30 supplied clips and 52 validated associations", () => {
     const entries = Object.entries(VIDEO_COMPOSER_RELATIONS);
 
     expect(entries).toHaveLength(30);
-    expect(entries.reduce((total, [, composerSlugs]) => total + composerSlugs.length, 0)).toBe(50);
+    expect(entries.reduce((total, [, composerSlugs]) => total + composerSlugs.length, 0)).toBe(52);
+  });
+
+  it("publishes every validated Lofi Hip Hop contributor", () => {
+    expect(getVideoComposerSlugs("lsXj6hGHM-Q")).toEqual(["bonetrips", "tcheep", "chicho-cortez"]);
   });
 
   it("only references unique canonical composer slugs", () => {

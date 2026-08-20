@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2, Ellipsis, X, NotebookPen } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import type { Track, Album, ComposerCreditLink } from "@/types";
 import { Tag } from "@/components/ui/Tag";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -20,6 +21,7 @@ import { useShortlistStore } from "@/stores/shortlist-store";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { useSession } from "@/lib/auth-client";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 interface TrackRowProps {
   track: Track;
@@ -79,6 +81,7 @@ export function TrackRow({
   const [detailsOpen, setDetailsOpen] = useState(initialDetailsOpen);
   const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>(initialDetailsTab);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const mobileActionsToken = useRef(Symbol(track.id));
   const articleRef = useRef<HTMLElement>(null);
   const actionsTriggerRef = useRef<HTMLButtonElement>(null);
@@ -94,6 +97,26 @@ export function TrackRow({
   ].filter((term) => term && !displayedTerms.some((displayed) => displayed.toLocaleLowerCase() === term.toLocaleLowerCase())))];
   const additionalTermsLabel = additionalTerms.slice(0, 12).map((term) => localizeCatalogTerm(term, locale)).join(" · ");
   const mobileActionsId = `track-actions-${track.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  useBodyScrollLock(detailsOpen && isMobile);
+
+  useEffect(() => {
+    if (!detailsOpen || !isMobile) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      setDetailsOpen(false);
+      actionsTriggerRef.current?.focus();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [detailsOpen, isMobile]);
 
   useEffect(() => {
     if (!mobileActionsOpen) return;
@@ -173,6 +196,21 @@ export function TrackRow({
       setDetailsOpen(true);
     }
   };
+  const detailsSheet = detailsOpen ? (
+    <div className="track-detail-sheet mb-4 ml-3 mr-1 mt-2 sm:ml-8 lg:ml-12">
+      <TrackDetailsPanel
+        track={track}
+        composerCredits={composerCredits}
+        activeTab={detailsTab}
+        highlight={initialHighlight}
+        onTabChange={setDetailsTab}
+        onClose={() => {
+          setDetailsOpen(false);
+          window.requestAnimationFrame(() => actionsTriggerRef.current?.focus());
+        }}
+      />
+    </div>
+  ) : null;
 
   return (
     <article
@@ -381,7 +419,7 @@ export function TrackRow({
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
       </div>}
-      {detailsOpen && <div className="mb-4 ml-3 mr-1 mt-2 sm:ml-8 lg:ml-12"><TrackDetailsPanel track={track} composerCredits={composerCredits} activeTab={detailsTab} highlight={initialHighlight} onTabChange={setDetailsTab} onClose={() => setDetailsOpen(false)} /></div>}
+      {detailsSheet && isMobile && typeof document !== "undefined" ? createPortal(detailsSheet, document.body) : detailsSheet}
     </article>
   );
 }

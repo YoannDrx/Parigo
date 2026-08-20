@@ -26,6 +26,7 @@ interface SearchCommandProps {
   filterSelectionState?: "pending" | "applied";
   autocompleteContext?: AutocompleteSearchContext;
   autocompleteEnabled?: boolean;
+  onModeChange?: (mode: SearchMode) => void;
 }
 
 export function SearchCommand({
@@ -44,6 +45,7 @@ export function SearchCommand({
   filterSelectionState = "pending",
   autocompleteContext = {},
   autocompleteEnabled = true,
+  onModeChange,
 }: SearchCommandProps) {
   const [focused, setFocused] = useState(false);
   const [mode, setMode] = useState<SearchMode>("keyword");
@@ -156,6 +158,7 @@ export function SearchCommand({
   const switchMode = (nextMode: SearchMode) => {
     if (nextMode === "ai" && !aiDraft && value) setAiDraft(value);
     setMode(nextMode);
+    onModeChange?.(nextMode);
     setModeMenuOpen(false);
     setPanelDismissed(false);
     autocomplete.close();

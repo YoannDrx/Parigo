@@ -14,8 +14,6 @@ import { formatDuration } from "@/lib/utils";
 import type { Album, Track } from "@/types";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
-import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
-import type { DetailNavigation } from "@/lib/navigation/detail-navigation";
 
 export interface PlaylistDetail { id: string; slug?: string; title: string; description?: string; cover: string; category?: string; trackCount?: number; totalDuration: number; isFeatured?: boolean; tracks: Track[]; }
 
@@ -23,7 +21,7 @@ function albumFor(track: Track): Album {
   return { id: track.albumId, slug: track.albumSlug, title: track.albumTitle || "", code: track.albumCode || track.cdCode, cover: track.albumCover || "/images/placeholder-album.svg", label: track.albumLabel || "", labelSlug: track.albumLabelSlug, genres: track.genres, moods: track.moods, trackCount: 0 };
 }
 
-export function PlaylistDetailClient({ playlist, navigation }: { playlist: PlaylistDetail; navigation: DetailNavigation }) {
+export function PlaylistDetailClient({ playlist }: { playlist: PlaylistDetail }) {
   const { locale, t, localizedPath } = useI18n();
   const [saved, setSaved] = useState(false);
   const { play, setQueue } = usePlayerStore();
@@ -47,7 +45,6 @@ export function PlaylistDetailClient({ playlist, navigation }: { playlist: Playl
         </section>
         <section className="mx-auto max-w-[1500px] px-4 py-16 lg:px-8 md:py-24"><SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-6xl font-normal tracking-[-.055em]">{t("catalog.tracks")}</SignedTitle>{playlist.tracks.length ? <div className="border-y border-[var(--line)] py-2">{playlist.tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFor(track)} index={index} />)}</div> : <p className="border-y border-[var(--line)] py-16 text-center text-[var(--text-muted)]">{locale === "fr" ? "Cette playlist ne contient pas encore de pistes." : "This playlist does not contain any tracks yet."}</p>}</section>
       </main>
-      <DetailPageNavigation navigation={navigation} locale={locale} />
       <Footer />
     </div>
   );

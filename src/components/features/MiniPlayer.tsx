@@ -32,6 +32,7 @@ import { DownloadButton } from "./DownloadButton";
 import { AddToPlaylistButton } from "./AddToPlaylistButton";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 export function MiniPlayer() {
   const playerInstanceId = useId();
@@ -65,9 +66,19 @@ export function MiniPlayer() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const addToShortlist = useShortlistStore((state) => state.add);
   const removeFromShortlist = useShortlistStore((state) => state.remove);
   const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === currentTrack?.id));
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  useBodyScrollLock(isExpanded && isMobile);
 
   // Get album info from track
   const albumCover = currentTrack?.albumCover;
@@ -245,7 +256,7 @@ export function MiniPlayer() {
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 120, opacity: 0, scale: .98 }}
         transition={{ duration: .42, ease: [.22, 1, .36, 1] }}
-        className="parigo-player fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden border border-white/18 bg-[#101410]/96 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5"
+        className={cn("parigo-player fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden border border-white/18 bg-[#101410]/96 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5", isExpanded && "parigo-player--expanded")}
       >
         <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(100deg,rgba(60,156,97,.24)_0%,rgba(16,20,16,.96)_23%,rgba(8,10,8,.99)_100%),linear-gradient(115deg,transparent_0%,rgba(255,255,255,.035)_48%,transparent_48.2%)]" />
         <div className="relative grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2 px-3 py-3 sm:px-4 md:grid-cols-[minmax(210px,.8fr)_auto_minmax(300px,1.45fr)_auto] md:gap-x-5 md:px-5">
@@ -302,7 +313,7 @@ export function MiniPlayer() {
         </div>
 
         <AnimatePresence initial={false}>
-          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: .32, ease: [.22, 1, .36, 1] }} className="parigo-player__expanded relative overflow-hidden border-t border-white/10">
+          {isExpanded && <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: .32, ease: [.22, 1, .36, 1] }} className="parigo-player__expanded relative overflow-y-auto overscroll-contain border-t border-white/10">
             <div className="grid gap-5 px-4 py-4 sm:grid-cols-[auto_1fr] md:px-6">
               <div className="flex items-center gap-1 sm:flex-col sm:items-stretch sm:border-r sm:border-white/10 sm:pr-5 lg:flex-row lg:border-r-0 lg:pr-0">
                 <div className="flex items-center gap-0.5 xl:hidden">

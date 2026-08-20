@@ -888,7 +888,7 @@ test("les nouveautés se rafraîchissent dès l’affichage initial", async ({ p
   expect(releaseRequests).toBeGreaterThan(0);
 });
 
-test("les cartes À écouter maintenant séparent lecture et navigation", async ({ page }) => {
+test("les cartes À écouter maintenant séparent lecture et navigation", async ({ page }, testInfo) => {
   const track = (id: string, albumId: string) => ({
     id,
     title: `Piste ${id}`,
@@ -933,6 +933,15 @@ test("les cartes À écouter maintenant séparent lecture et navigation", async 
   await expect(releasePlay).toHaveAttribute("aria-label", /^Lire /);
   await expect(releaseCardLink).toHaveAttribute("href", /^\/albums\//);
   await expect(releaseDetail).toHaveAttribute("href", releaseHref!);
+  const basePlayBackground = await releasePlay.evaluate((node) => getComputedStyle(node).backgroundColor);
+  expect(basePlayBackground).toMatch(/^rgba\(/);
+  if (testInfo.project.name === "desktop") {
+    await releasePlay.hover();
+    await expect(releasePlay).toHaveCSS("background-color", "rgb(104, 191, 131)");
+    await releaseDetail.hover();
+    await expect(releaseDetail).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(releaseDetail).toHaveCSS("color", "rgb(21, 24, 21)");
+  }
 
   await releasePlay.click();
   await expect(page).toHaveURL(/\/$/);
@@ -957,6 +966,46 @@ test("les cartes À écouter maintenant séparent lecture et navigation", async 
   await expect(parigoCard.getByRole("link", { name: /^Voir le détail de / })).toHaveCount(2);
   await parigoCardLink.click();
   await expect(page).toHaveURL(new RegExp(`${parigoHref}$`));
+});
+
+test("le player étendu mobile défile sans déplacer la page", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Le verrouillage demandé concerne le player mobile.");
+  await page.setViewportSize({ width: 320, height: 600 });
+  const tracks = Array.from({ length: 8 }, (_, index) => ({
+    id: `mobile-player-${index}`,
+    title: `Piste mobile ${index + 1}`,
+    duration: 90,
+    audioUrl: null,
+    albumId: "mobile-player-album",
+    albumTitle: "Sélection mobile",
+    albumCover: "/images/placeholder-album.svg",
+    genres: [],
+    moods: [],
+    isVocal: false,
+    waveform: null,
+  }));
+  await page.route(/\/api\/albums\/[^/?]+$/, (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { album: { id: "mobile-player-album", tracks }, similarAlbums: [] } }),
+  }));
+
+  await page.goto("/");
+  await page.locator("#featured").scrollIntoViewIfNeeded();
+  await page.locator("#featured .home-release-play").first().click();
+  const player = page.getByTestId("player-dock");
+  await expect(player).toBeVisible();
+  const pageScroll = await page.evaluate(() => window.scrollY);
+  await player.getByRole("button", { name: "Agrandir le lecteur" }).click();
+  await expect(player).toHaveClass(/parigo-player--expanded/);
+  await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("fixed");
+  expect((await player.boundingBox())!.y).toBeGreaterThanOrEqual(73);
+  const scrollArea = player.locator(".parigo-player__expanded");
+  await scrollArea.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+  await expect.poll(() => scrollArea.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  await player.getByRole("button", { name: "Réduire le lecteur" }).click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(pageScroll);
 });
 
 test("le showreel reste sans effet au survol et introduit la relation avec les compositeurs", async ({ page }, testInfo) => {
@@ -992,7 +1041,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   expect(ctaBox!.y - (cloudBox!.y + cloudBox!.height)).toBeLessThanOrEqual(12);
 });
 
-test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }) => {
+test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }, testInfo) => {
   await page.goto("/");
   const sync = page.getByTestId("home-sync-section");
   const partners = page.getByTestId("home-partners-section");
@@ -1017,6 +1066,39 @@ test("les logos clients défilent en bandeau entre les synchronisations et le fi
       && Boolean(partnersNode.compareDocumentPosition(socialNode) & Node.DOCUMENT_POSITION_FOLLOWING);
   }, ['[data-testid="home-sync-section"]', '[data-testid="home-partners-section"]', '[data-testid="social-follow-section"]'])).toBe(true);
   expect(await partners.evaluate((node) => getComputedStyle(node).marginLeft)).toBe("0px");
+  if (testInfo.project.name === "mobile") {
+    await page.setViewportSize({ width: 320, height: 740 });
+    const items = partners.locator(".partner-marquee__group:not(.partner-marquee__duplicate) .partner-marquee__item");
+    const [first, second] = await Promise.all([items.nth(0).boundingBox(), items.nth(1).boundingBox()]);
+    expect(first!.width + second!.width).toBeLessThanOrEqual(296);
+    const fadeWidth = await partners.locator(".partner-marquee").evaluate((node) => Number.parseFloat(getComputedStyle(node, "::before").width));
+    expect(fadeWidth).toBeLessThanOrEqual(13);
+
+    const socialIcon = social.locator(".social-platform-icon").first();
+    const linktree = social.locator(".social-follow-cta");
+    await expect(socialIcon).toHaveCSS("animation-name", "social-platform-float");
+    await expect(linktree).toHaveCSS("animation-name", "none");
+  }
+});
+
+test("les trois segments de la home restent égaux et le footer toujours sombre", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/");
+  const tabs = page.getByRole("tablist", { name: "Sélections mises en avant" });
+  await tabs.scrollIntoViewIfNeeded();
+  const widths = await tabs.getByRole("tab").evaluateAll((items) => items.map((item) => item.getBoundingClientRect().width));
+  expect(Math.max(...widths) - Math.min(...widths)).toBeLessThanOrEqual(1);
+  await tabs.getByRole("tab", { name: "Notre label" }).click();
+  await expect(tabs.getByRole("tab", { name: "Notre label" })).toHaveAttribute("aria-selected", "true");
+
+  const footer = page.locator("footer.parigo-footer");
+  await footer.scrollIntoViewIfNeeded();
+  const lightBackground = await footer.evaluate((node) => getComputedStyle(node).backgroundColor);
+  await page.evaluate(() => {
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.style.colorScheme = "dark";
+  });
+  await expect(footer).toHaveCSS("background-color", lightBackground);
 });
 
 test("le showreel respecte la réduction des animations", async ({ page }) => {
@@ -1275,7 +1357,8 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   await dialog.getByRole("button", { name: "Créer un compte" }).click();
   await expect(dialog.getByRole("heading", { name: "Créer un compte" })).toBeVisible();
   await expect(dialog.getByLabel("Prénom *")).toBeVisible();
-  await expect(dialog.getByText("1/2")).toBeVisible();
+  await expect(dialog.getByRole("heading", { name: "Profil professionnel" })).toBeVisible();
+  await expect(dialog.getByText("1/2")).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
 });
@@ -1308,7 +1391,7 @@ test("les anciens liens FLEX change-password restent compatibles", async ({ page
   await expect(page.getByPlaceholder("Confirmer")).toBeVisible();
 });
 
-test("l’inscription Parigo expose le profil complet en deux étapes", async ({ page }) => {
+test("l’inscription Parigo expose le profil complet sur un seul scroll", async ({ page }) => {
   await page.goto("/register");
   await page.getByLabel("Prénom *").fill("Test");
   await page.getByLabel("Nom *", { exact: true }).fill("Parigo");
@@ -1318,14 +1401,14 @@ test("l’inscription Parigo expose le profil complet en deux étapes", async ({
   await page.getByRole("button", { name: "Afficher le mot de passe", exact: true }).click();
   await expect(page.getByLabel("Mot de passe *", { exact: true })).toHaveAttribute("type", "text");
   await page.getByRole("button", { name: "Masquer le mot de passe", exact: true }).click();
-  await page.getByRole("button", { name: "Continuer vers le profil" }).click();
-  await expect(page.getByText("2/2")).toBeVisible();
   await expect(page.getByLabel("Pays *")).toBeVisible();
   await expect(page.getByLabel("Société")).toBeVisible();
   await expect(page.getByLabel("Format de téléchargement préféré")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByLabel(/Recevoir la newsletter/i)).toBeVisible();
   await expect(page.getByLabel(/conditions d’utilisation/i)).not.toBeChecked();
   await expect(page.getByLabel(/politique de confidentialité/i)).not.toBeChecked();
+  await expect(page.getByText(/^[12]\/2$/)).toHaveCount(0);
+  await expect(page.getByRole("button", { name: /Continuer|Retour/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Créer un compte", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Veuillez cocher les deux cases obligatoires" })).toBeVisible();
 });

@@ -411,7 +411,7 @@ test("un filtre traduit consomme son terme et les filtres appliqués restent vis
   const appliedSuggestions = page.getByRole("listbox", { name: "Suggestions de recherche" });
   await expect(appliedSuggestions).toBeVisible();
   await expect(page.getByText("Filtres appliqués", { exact: true })).toBeVisible();
-  await expect(page.locator(".search-autocomplete-panel").getByRole("button", { name: /Ambiance · Sad/ })).toBeVisible();
+  await expect(page.locator(".search-autocomplete-panel").getByRole("button", { name: /Ambiance · Triste/ })).toBeVisible();
   await expect(appliedSuggestions.getByRole("option", { name: /Genre · Reggae/ })).toHaveAttribute("aria-selected", "false");
   await appliedSuggestions.getByRole("option", { name: /Genre · Reggae/ }).click();
   await expect(searchInput).toHaveValue("");
@@ -419,7 +419,7 @@ test("un filtre traduit consomme son terme et les filtres appliqués restent vis
   await expect.poll(() => new URL(page.url()).searchParams.get("categories")).toBe("ATT_a111111111111111,ATT_c333333333333333");
   const appliedPanel = page.locator(".search-autocomplete-panel");
   await expect(appliedPanel.getByRole("button", { name: /Genre · Reggae/ })).toBeVisible();
-  await expect(appliedPanel.getByRole("button", { name: /Ambiance · Sad/ })).toBeVisible();
+  await expect(appliedPanel.getByRole("button", { name: /Ambiance · Triste/ })).toBeVisible();
   await appliedPanel.getByRole("button", { name: /Genre · Reggae/ }).click();
   await expect(searchInput).toHaveValue("");
   await expect.poll(() => new URL(page.url()).searchParams.get("categories")).toBe("ATT_c333333333333333");
@@ -433,16 +433,16 @@ test("un filtre traduit consomme son terme et les filtres appliqués restent vis
     : page.getByRole("complementary", { name: "Filtres de recherche" });
   const moodsGroup = filterScope.locator("details").filter({ hasText: "Ambiances" });
   await moodsGroup.locator("summary").click();
-  const canonicalMood = moodsGroup.getByText("Sad", { exact: true });
-  await expect(canonicalMood).toBeVisible();
-  await expect(canonicalMood).toHaveAttribute("title", "Sad");
+  const localizedMood = moodsGroup.getByText("Triste", { exact: true });
+  await expect(localizedMood).toBeVisible();
+  await expect(localizedMood).toHaveAttribute("title", "Triste");
   await expect(moodsGroup.getByText("Triste (Sad)", { exact: true })).toHaveCount(0);
   const usesGroup = filterScope.locator("details").filter({ hasText: "Usages" });
   await usesGroup.locator("summary").click();
-  await expect(usesGroup.getByText("Wedding", { exact: true })).toBeVisible();
-  await expect(usesGroup.getByText("Mariage", { exact: true })).toHaveCount(0);
+  await expect(usesGroup.getByText("Mariage", { exact: true })).toBeVisible();
+  await expect(usesGroup.getByText("Wedding", { exact: true })).toHaveCount(0);
   await usesGroup.getByPlaceholder("Filtrer usages").fill("mariage");
-  await expect(usesGroup.getByText("Wedding", { exact: true })).toBeVisible();
+  await expect(usesGroup.getByText("Mariage", { exact: true })).toBeVisible();
 });
 
 test("l’autocomplétion conserve un état vide global sans afficher de sections à zéro", async ({ page }) => {
@@ -751,6 +751,29 @@ test("une suggestion trouvée par préfixe dans les paroles ouvre, surligne et c
     const center = rect.top + rect.height / 2;
     return rect.top >= 88 && center >= window.innerHeight * 0.25 && center <= window.innerHeight * 0.75;
   })).toBe(true);
+});
+
+test("le détail de piste mobile devient une sheet scrollable et contenue", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La sheet plein écran est réservée au mobile.");
+  await page.setViewportSize({ width: 320, height: 740 });
+  await page.goto("/search?q=piano&view=tracks&type=main");
+  const row = page.locator(".parigo-track-row").first();
+  await expect(row).toBeVisible({ timeout: 30_000 });
+  await row.getByRole("button", { name: /^Plus d’actions/ }).click();
+  await row.getByRole("button", { name: /^Informations sur la piste/ }).click();
+  const sheet = page.locator(".track-detail-sheet");
+  await expect(sheet).toBeVisible();
+  await expect(page.locator(".track-detail-panel__mobile-summary")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("fixed");
+  const box = await sheet.boundingBox();
+  expect(box!.x).toBe(0);
+  expect(box!.width).toBe(320);
+  await expect(sheet.locator("table:visible")).toHaveCount(0);
+  await sheet.locator(".track-detail-panel").evaluate((node) => { node.scrollTop = node.scrollHeight; });
+  await expect.poll(() => sheet.locator(".track-detail-panel").evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  await page.getByRole("button", { name: "Fermer les informations" }).click();
+  await expect(sheet).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("");
 });
 
 test("un ancien brief devient un mot-clé littéral et AIMS reste désactivé", async ({ page }) => {

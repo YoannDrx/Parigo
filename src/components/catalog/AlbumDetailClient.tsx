@@ -23,8 +23,6 @@ import { resolveAlbumDescription } from "@/lib/harvest/album-descriptions";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
-import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
-import type { DetailNavigation } from "@/lib/navigation/detail-navigation";
 
 interface AlbumDetailClientProps {
   data: {
@@ -32,7 +30,6 @@ interface AlbumDetailClientProps {
     similarAlbums: Album[];
     composerCredits: ComposerCreditLink[];
     contributorGroups: AlbumContributorGroup[];
-    navigation: DetailNavigation;
   };
 }
 
@@ -343,7 +340,6 @@ export function AlbumDetailClient({
         )}
       </main>
 
-      <DetailPageNavigation navigation={data.navigation} locale={locale} />
       <Footer />
     </div>
   );

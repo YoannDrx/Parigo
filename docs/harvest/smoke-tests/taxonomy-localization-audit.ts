@@ -1,5 +1,7 @@
 export {};
 
+import { writeFile } from "node:fs/promises";
+
 type JsonRecord = Record<string, unknown>;
 
 interface Coverage {
@@ -79,6 +81,128 @@ function coverage(items: JsonRecord[]): Coverage {
   return { total: items.length, localized, missing: items.length - localized };
 }
 
+const frenchTaxonomyTerms: Record<string, string> = {
+  Abstract: "Abstrait",
+  "Action Adventure": "Action / aventure",
+  Africa: "Afrique",
+  African: "Africain",
+  Analog: "Analogique",
+  "Alternative Rock": "Rock alternatif",
+  "Arthouse": "Art et essai",
+  "Asian Beats": "Rythmes asiatiques",
+  "B-Movie": "Série B",
+  "Brass band": "Fanfare",
+  "Can Can": "Cancan",
+  "Chamber Music": "Musique de chambre",
+  Cinema: "Cinéma",
+  Cinematic: "Cinématographique",
+  "Classic Hip-Hop": "Hip-hop classique",
+  Classical: "Classique",
+  "Classique 20th": "Classique du XXe siècle",
+  "Comedy Film": "Comédie",
+  Comedy: "Comédie",
+  "Contemporary Classical": "Classique contemporain",
+  "Contemporary Music": "Musique contemporaine",
+  Cop: "Policier",
+  Corporate: "Institutionnel",
+  Crook: "Criminel",
+  Detective: "Policier",
+  Documentaries: "Documentaires",
+  Documentary: "Documentaire",
+  Drama: "Drame",
+  Dramedy: "Comédie dramatique",
+  "Easy Listening": "Musique d’ambiance",
+  Electro: "Électro",
+  "Electro Pop": "Électropop",
+  Electronic: "Électronique",
+  Ethnic: "Ethnique",
+  Ethiopic: "Éthiopien",
+  "Extreme Action": "Action extrême",
+  FX: "Effets sonores",
+  Fantasy: "Fantastique",
+  "Film Noir": "Film noir",
+  "French Cinema": "Cinéma français",
+  "French Pop": "Pop française",
+  "Gypsy Jazz": "Jazz manouche",
+  "Heavy Metal": "Heavy metal",
+  Historical: "Historique",
+  History: "Histoire",
+  "Human Drama": "Drame humain",
+  Instruments: "Instruments",
+  Lullabies: "Berceuses",
+  March: "Marche",
+  Minimalism: "Minimalisme",
+  Minimalist: "Minimaliste",
+  "Moden Classical": "Classique moderne",
+  "Modern Art": "Art moderne",
+  Moods: "Ambiances",
+  Movie: "Film",
+  Movies: "Films",
+  Museum: "Musée",
+  "Neo-Classical": "Néoclassique",
+  Opera: "Opéra",
+  Orchestral: "Orchestral",
+  Percussion: "Percussions",
+  Period: "Époques",
+  "Psychedelic Rock": "Rock psychédélique",
+  Receptions: "Réceptions",
+  Retro: "Rétro",
+  "Rock And Roll": "Rock’n’roll",
+  Serenade: "Sérénade",
+  "Sci-Fi Film": "Film de science-fiction",
+  "Seventies": "Années 70",
+  Score: "Musique à l’image",
+  Scores: "Musiques à l’image",
+  "Silent Movie": "Film muet",
+  "Solo Piano": "Piano solo",
+  Sonata: "Sonate",
+  Spy: "Espionnage",
+  "Steel Drums": "Steel drums",
+  "Surf Music": "Musique surf",
+  "Thanksgiving": "Action de grâce",
+  "Thriller Film": "Thriller",
+  TV: "Télévision",
+  Urban: "Urbain",
+  "War Film": "Film de guerre",
+  Washboard: "Planche à laver",
+  Waltz: "Valse",
+  "Western Film": "Western",
+  Westcoast: "Côte Ouest",
+  Woodblocks: "Blocs de bois",
+  World: "Musiques du monde",
+  "World Fusion": "Fusion du monde",
+  "World Music": "Musiques du monde",
+  "Youth Culture": "Culture jeune",
+};
+
+function proposedFrenchTranslation(canonicalName: string): string {
+  const trimmed = canonicalName.trim();
+  return frenchTaxonomyTerms[trimmed] || trimmed;
+}
+
+function missingRows(items: Array<JsonRecord & { rootName?: string }>, kind: "category" | "style") {
+  return items
+    .filter((item) => !localizedValue(item, "fr"))
+    .map((item) => ({
+      id: findString(item, ["ID", "Id"]),
+      kind,
+      group: item.rootName || findString(item, ["GroupName", "StyleGroupName"]) || kind,
+      canonicalName: findString(item, ["Name", "Value"]),
+      proposedTranslation: proposedFrenchTranslation(findString(item, ["Name", "Value"])),
+    }));
+}
+
+function snapshotRows(items: Array<JsonRecord & { rootName?: string }>, kind: "category" | "style") {
+  return items.map((item) => ({
+    id: findString(item, ["ID", "Id"]),
+    kind,
+    group: item.rootName || findString(item, ["GroupName", "StyleGroupName"]) || kind,
+    canonicalName: findString(item, ["Name", "Value"]),
+    proposedTranslation: proposedFrenchTranslation(findString(item, ["Name", "Value"])),
+    languageItems: records(item, "LanguageItems"),
+  }));
+}
+
 async function main() {
   const authUrl = process.env.HARVEST_AUTH_URL || "https://auth.harvestmedia.net/oauth2/token";
   const serviceUrl = process.env.HARVEST_SERVICE_URL || "https://service.harvestmedia.net/HMP-WS.svc";
@@ -127,16 +251,31 @@ async function main() {
   const sad = categoryRows.find((item) => String(item.ID) === "b71182fbd44d6ef6");
   const sadFrench = sad ? localizedValue(sad, "fr") : "";
 
-  console.log(JSON.stringify({
+  const report = {
     checkedAt: new Date().toISOString(),
     categories: { ...coverage(categoryRows), groups: categoryGroups },
     styles: coverage(styles),
+    missingItems: [
+      ...missingRows(categoryRows, "category"),
+      ...missingRows(styles, "style"),
+    ],
     acceptanceFixture: {
       id: sad?.ID,
       canonicalName: sad?.Name,
       localizedName: sadFrench,
     },
-  }, null, 2));
+  };
+
+  const snapshotPath = process.env.HARVEST_TAXONOMY_SNAPSHOT_PATH?.trim();
+  if (snapshotPath) {
+    await writeFile(snapshotPath, `${JSON.stringify({
+      exportedAt: report.checkedAt,
+      categories: snapshotRows(categoryRows, "category"),
+      styles: snapshotRows(styles, "style"),
+    }, null, 2)}\n`, "utf8");
+  }
+
+  console.log(JSON.stringify({ ...report, snapshotPath: snapshotPath || undefined }, null, 2));
 
   if (!sad || sad.Name !== "Sad" || sadFrench !== "Triste") {
     throw new Error(`French Sad contract failed (canonical=${String(sad?.Name)}, localized=${sadFrench})`);

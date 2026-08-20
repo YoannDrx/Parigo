@@ -20,8 +20,7 @@ import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata } from "@/lib/seo";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
-import { DetailPageNavigation } from "@/components/navigation/DetailPageNavigation";
-import { buildDetailNavigation } from "@/lib/navigation/detail-navigation";
+import { composerRoleLabel } from "@/lib/composers/presentation";
 
 interface ComposerPageProps {
   params: Promise<{ slug: string }>;
@@ -81,20 +80,6 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
   const hasUnavailableAlbums = albumResults.some((result) => result.status === "rejected");
   const bio = profile.bio[locale];
   const detailImage = profile.detailImage ?? { src: profile.image, width: 720, height: 720 };
-  const navigation = buildDetailNavigation(
-    emptyCanonicalComposerSummaries(),
-    profile.slug,
-    (item) => item.slug,
-    (item) => ({
-      href: `/talents/${item.slug}`,
-      title: item.name,
-      image: item.detailImage?.src ?? item.image,
-      eyebrow: item.kind === "group"
-        ? locale === "fr" ? "Collectif" : "Collective"
-        : locale === "fr" ? "Compositeur" : "Composer",
-    }),
-  );
-
   return (
     <div className="page-shell min-h-screen">
       <Header />
@@ -118,6 +103,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
                 />
               </div>
               <div className="min-w-0">
+                <p className="eyebrow mb-3 text-[var(--signal-strong)]">{composerRoleLabel(profile, locale)}</p>
                 <SignedTitle className="max-w-full [overflow-wrap:anywhere] font-[var(--font-editorial)] text-[clamp(3.25rem,8vw,7rem)] leading-[.88] tracking-[-.06em]">{profile.name}</SignedTitle>
               </div>
             </div>
@@ -168,7 +154,6 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
           </section>
         ) : null}
       </main>
-      <DetailPageNavigation navigation={navigation} locale={locale} />
       <Footer />
     </div>
   );

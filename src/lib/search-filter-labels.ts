@@ -30,11 +30,12 @@ export function canonicalSearchFilterName(item: SearchFilterItem): string {
 export function displaySearchFilterName(
   _key: SearchFilterGroupKey,
   item: SearchFilterItem,
-  _locale: "fr" | "en",
+  locale: "fr" | "en",
 ): string {
   void _key;
-  void _locale;
-  return canonicalSearchFilterName(item);
+  return locale === "fr"
+    ? item.localizedName?.trim() || item.name || canonicalSearchFilterName(item)
+    : canonicalSearchFilterName(item);
 }
 
 function explanatorySearchFilterName(
@@ -44,7 +45,7 @@ function explanatorySearchFilterName(
 ): string {
   const canonical = canonicalSearchFilterName(item);
   const localized = item.localizedName?.trim();
-  if (key !== "moods" || locale !== "fr" || !localized || localized.toLocaleLowerCase("fr") === canonical.toLocaleLowerCase("en")) {
+  if (locale !== "fr" || !localized || localized.toLocaleLowerCase("fr") === canonical.toLocaleLowerCase("en")) {
     return canonical;
   }
   return `${localized} (${canonical})`;
@@ -63,5 +64,5 @@ export function canonicalSearchFilterLabel(
   item: SearchFilterItem,
   locale: "fr" | "en",
 ): string {
-  return `${searchFilterGroupLabel(key, locale)} · ${canonicalSearchFilterName(item)}`;
+  return `${searchFilterGroupLabel(key, locale)} · ${displaySearchFilterName(key, item, locale)}`;
 }

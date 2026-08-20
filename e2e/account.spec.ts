@@ -71,7 +71,7 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
     const firstGeneralLinkBox = await scope.getByRole("link", { name: "Recherche", exact: true }).boundingBox();
     expect(accountBox).not.toBeNull();
     expect(firstGeneralLinkBox).not.toBeNull();
-    expect(firstGeneralLinkBox!.y).toBeGreaterThanOrEqual(accountBox!.y + accountBox!.height);
+    expect(firstGeneralLinkBox!.y + firstGeneralLinkBox!.height).toBeLessThanOrEqual(accountBox!.y);
   }
   await expect(menu.getByText("Espace personnel", { exact: true })).toBeVisible();
   await expect(menu.getByRole("link", { name: "Ouvrir mon profil" })).toHaveAttribute("href", "/account");
