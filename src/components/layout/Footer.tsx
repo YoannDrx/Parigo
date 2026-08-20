@@ -37,7 +37,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="parigo-footer relative overflow-hidden bg-[var(--footer-bg)] px-4 pb-7 pt-12 text-[var(--footer-fg)] md:px-8 md:pt-16">
+    <footer className="parigo-footer relative overflow-hidden bg-[#0b110d] px-4 pb-7 pt-12 text-[#f2f1ed] md:px-8 md:pt-16">
       <div className="relative mx-auto max-w-[1680px]">
         <div className="grid gap-12 border-b border-current/18 pb-12 lg:grid-cols-12 lg:gap-8 lg:pb-16">
           <div className="lg:col-span-4">
