@@ -29,27 +29,59 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   expect(firstCard!.x + firstCard!.width).toBeLessThanOrEqual(320);
 });
 
-test("les légendes des cartes éditoriales restent superposées aux images sur mobile", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "La superposition mobile est contrôlée dans le projet mobile.");
+test("les cartes vidéo utilisent un footer éditorial permanent sur mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Le footer éditorial est spécifique au mobile.");
   await page.setViewportSize({ width: 320, height: 740 });
   for (const [path, cardSelector, mediaSelector, captionSelector] of [
     ["/clips", ".parigo-video-card", ".parigo-video-card__frame", ".parigo-video-card__caption"],
     ["/synchronisations", ".sync-gallery-card", ".home-sync-card__frame", ".home-sync-card__caption"],
-    ["/talents", ".composer-card", null, ".composer-card__caption"],
   ] as const) {
     await page.goto(path);
     const card = page.locator(cardSelector).first();
     await expect(card).toBeVisible({ timeout: 30_000 });
-    const [media, caption] = await Promise.all([
-      mediaSelector ? card.locator(mediaSelector).boundingBox() : card.boundingBox(),
-      card.locator(captionSelector).boundingBox(),
+    const footer = card.locator(".editorial-card__mobile-footer");
+    await expect(footer).toBeVisible();
+    await expect(card.locator(captionSelector)).toBeHidden();
+    await expect(footer).not.toContainText(/Parigo Production Music/i);
+    await expect(footer.getByText(/^\d{4}$/)).toBeVisible();
+    const [media, footerBox, playBox, detailBox] = await Promise.all([
+      card.locator(mediaSelector).boundingBox(),
+      footer.boundingBox(),
+      footer.getByRole("button", { name: /^(Lire|Play)/ }).boundingBox(),
+      footer.getByRole("link", { name: /^(Voir le détail|View)/ }).boundingBox(),
     ]);
     expect(media, `${path} ne publie pas de média`).not.toBeNull();
-    expect(caption, `${path} ne publie pas de légende`).not.toBeNull();
-    expect(caption!.y).toBeGreaterThanOrEqual(media!.y - 1);
-    expect(caption!.y + caption!.height).toBeLessThanOrEqual(media!.y + media!.height + 1);
-    await expect(card.locator(captionSelector)).toHaveCSS("opacity", "1");
+    expect(footerBox, `${path} ne publie pas de footer`).not.toBeNull();
+    expect(footerBox!.y).toBeGreaterThanOrEqual(media!.y + media!.height - 1);
+    expect(footerBox!.height).toBeLessThanOrEqual(156);
+    expect(playBox!.height).toBeGreaterThanOrEqual(44);
+    expect(detailBox!.width).toBeGreaterThanOrEqual(44);
+    expect(detailBox!.height).toBeGreaterThanOrEqual(44);
+    const mobileCardStyle = () => card.evaluate((node) => {
+      const ring = node.querySelector(".parigo-video-card__ring");
+      const frame = node.querySelector(".home-sync-card__frame");
+      return {
+        borderColor: getComputedStyle(node).borderColor,
+        boxShadow: getComputedStyle(node).boxShadow,
+        transform: getComputedStyle(node).transform,
+        cornerWidth: getComputedStyle(node, "::before").width,
+        mediaRing: ring ? getComputedStyle(ring).borderColor : getComputedStyle(frame!, "::after").borderColor,
+      };
+    });
+    const restingStyle = await mobileCardStyle();
+    await footer.getByRole("button", { name: /^(Lire|Play)/ }).focus();
+    expect(await mobileCardStyle()).toEqual(restingStyle);
   }
+
+  await page.goto("/talents");
+  const talent = page.locator(".composer-card").first();
+  await expect(talent).toBeVisible({ timeout: 30_000 });
+  const [talentBox, talentCaption] = await Promise.all([
+    talent.boundingBox(),
+    talent.locator(".composer-card__caption").boundingBox(),
+  ]);
+  expect(talentCaption!.y).toBeGreaterThanOrEqual(talentBox!.y - 1);
+  expect(talentCaption!.y + talentCaption!.height).toBeLessThanOrEqual(talentBox!.y + talentBox!.height + 1);
 });
 
 test("les titres signés et les grilles catalogue restent lisibles sur mobile", async ({ page }) => {

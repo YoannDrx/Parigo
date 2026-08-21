@@ -540,7 +540,7 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   }
   await expect(featured.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
   const dedicatedSyncSection = page.getByRole("heading", { name: "Nos synchros" }).locator("xpath=ancestor::section");
-  const firstSync = dedicatedSyncSection.locator('a[href^="/synchronisations/"]').first();
+  const firstSync = dedicatedSyncSection.locator('a[href^="/synchronisations/"]:visible').first();
   const firstSyncCard = firstSync.locator("xpath=ancestor::article");
   await expect(firstSync).toBeVisible();
   await expect(firstSyncCard.locator("img")).toHaveClass(/object-contain/);
@@ -549,7 +549,11 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   expect(syncFrame!.width / syncFrame!.height).toBeGreaterThan(1.7);
   const syncCaption = firstSyncCard.locator(".home-sync-card__caption");
   if (testInfo.project.name === "mobile") {
-    await expect(syncCaption).toHaveCSS("opacity", "1");
+    await expect(syncCaption).toBeHidden();
+    const mobileFooter = firstSyncCard.locator(".editorial-card__mobile-footer");
+    await expect(mobileFooter).toBeVisible();
+    await expect(mobileFooter.getByRole("button", { name: /^Lire / })).toBeVisible();
+    await expect(mobileFooter.getByRole("link", { name: /^Voir le détail/ })).toBeVisible();
   } else {
     await expect(syncCaption).toHaveCSS("opacity", "0");
     await firstSyncCard.hover();
