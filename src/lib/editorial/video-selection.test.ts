@@ -28,7 +28,7 @@ describe("YouTube clips selection", () => {
     ]).map((item) => item.slug)).toEqual(["first"]);
   });
 
-  it("selects recent official videos first and uses playlist order when dates are missing", () => {
+  it("sorts every video type by recency and uses playlist order when dates are missing", () => {
     const videos = [
       video({ slug: "archive", youtubeId: "archive-id", videoType: "archive", publishedAt: "2026-08-07", order: 0 }),
       video({ slug: "undated-second", youtubeId: "undated-2", order: 4 }),
@@ -38,21 +38,28 @@ describe("YouTube clips selection", () => {
     ];
 
     expect(selectFeaturedEditorialVideos(videos, 4).map((item) => item.slug)).toEqual([
+      "archive",
       "newer",
       "older",
       "undated-first",
-      "undated-second",
     ]);
   });
 
-  it("does not include teasers or archives when eight official clips are available", () => {
+  it("uses playlist order to break equal dates and filters unusable videos before limiting", () => {
     const official = Array.from({ length: 8 }, (_, index) => video({
       slug: `official-${index}`,
       youtubeId: `official-${index}`,
-      order: index + 1,
+      order: index + 2,
+      publishedAt: "2026-01-01",
     }));
-    const teaser = video({ slug: "teaser", youtubeId: "teaser-id", videoType: "teaser", order: 0 });
-    expect(selectFeaturedEditorialVideos([teaser, ...official])).toHaveLength(8);
-    expect(selectFeaturedEditorialVideos([teaser, ...official]).every((item) => item.videoType === "official-video")).toBe(true);
+    const teaser = video({ slug: "teaser", youtubeId: "teaser-id", videoType: "teaser", order: 1, publishedAt: "2026-01-01" });
+    const archive = video({ slug: "archive", youtubeId: "archive-id", videoType: "archive", order: 0, publishedAt: "2026-08-08" });
+    const unusable = video({ slug: "unusable", youtubeId: "", order: -1, publishedAt: "2027-01-01" });
+    expect(selectFeaturedEditorialVideos([unusable, teaser, ...official, archive])).toHaveLength(8);
+    expect(selectFeaturedEditorialVideos([unusable, teaser, ...official, archive], 3).map((item) => item.slug)).toEqual([
+      "archive",
+      "teaser",
+      "official-0",
+    ]);
   });
 });
