@@ -47,7 +47,7 @@ export function PartnerMarquee() {
   const { locale } = useI18n();
 
   return (
-    <section data-testid="home-partners-section" className="partner-section relative overflow-hidden border-y border-white/12 bg-[#0b110d] py-16 text-white md:py-24">
+    <section data-testid="home-partners-section" className="partner-section relative overflow-hidden border-y border-white/12 bg-[#0b110d] py-[var(--space-section-y-large)] text-white">
       <div className="partner-section__glow" aria-hidden="true" />
       <div className="relative mx-auto max-w-[1580px] px-4 md:px-8">
         <div>
@@ -56,7 +56,7 @@ export function PartnerMarquee() {
           </SignedTitle>
         </div>
       </div>
-      <div className="partner-marquee relative mt-10 border-y border-white/12 py-3 md:mt-14 md:py-4" aria-label={locale === "fr" ? "Clients Parigo" : "Parigo clients"}>
+      <div className="partner-marquee relative mt-[var(--space-heading-content)] border-y border-white/12 py-3 md:py-4" aria-label={locale === "fr" ? "Clients Parigo" : "Parigo clients"}>
         <div className="partner-marquee__track">
           <ClientLogoList />
           <ClientLogoList duplicate />

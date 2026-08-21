@@ -84,7 +84,7 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
     : "Discover our talents";
 
   return (
-    <section data-testid="home-composers" className="composer-relationship overflow-hidden border-b border-[var(--line)] px-4 py-24 md:px-8 md:py-36">
+    <section data-testid="home-composers" className="composer-relationship overflow-hidden border-b border-[var(--line)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
       <div className="mx-auto max-w-[1580px]">
         <header className="mx-auto max-w-[1180px] text-center">
           <SignedTitle as="h2" className="text-[clamp(3rem,6.5vw,7rem)] font-semibold leading-[.88] tracking-[-.065em]">
@@ -96,7 +96,7 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
         </header>
 
         <div
-          className="composer-cloud relative left-1/2 mt-14 w-screen -translate-x-1/2 md:mt-20"
+          className="composer-cloud relative left-1/2 mt-[var(--space-heading-content)] w-screen -translate-x-1/2"
           style={{ "--composer-cloud-duration": `${Math.max(72, profiles.length * 5)}s` } as CSSProperties}
         >
           <motion.div

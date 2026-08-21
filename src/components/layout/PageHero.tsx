@@ -30,7 +30,7 @@ export function PageHero({
     : undefined;
 
   return (
-    <header className={cn("page-hero border-b border-[var(--line)] px-4 pb-[var(--space-page-hero-bottom)] pt-[var(--space-page-top)] md:px-8", className)}>
+    <header className={cn("page-hero border-b border-[var(--line)] px-[var(--space-page-gutter)] pb-[var(--space-page-hero-bottom)] pt-[var(--space-page-top)]", className)}>
       <div className="mx-auto max-w-[1700px]">
         <div className="page-hero__frame parigo-frame relative grid overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] md:grid-cols-12">
           <div className="page-hero__title-panel relative min-w-0 px-6 py-9 sm:px-8 sm:py-11 md:col-span-8 lg:px-12 lg:py-14">

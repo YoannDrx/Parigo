@@ -292,7 +292,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
           {albumsQuery.isFetching && !albumsQuery.data ? (
             <div className="grid min-h-72 place-items-center"><ParigoLoader size="page" label={t("common.loading")} /></div>
           ) : albums.length ? (
-            <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-4 gap-y-12 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
+            <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-[var(--space-grid-x)] gap-y-[var(--space-grid-y)] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
               {albums.map((album, index) => view === "grid"
                 ? <AlbumCard key={album.id} album={album} headingLevel={headingLevel} priority={index < 2} />
                 : <Link key={album.id} href={localizedPath(`/albums/${album.slug || album.id}`)} prefetch={false} className="catalog-list-row group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 last:border-0 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:px-4">
@@ -305,7 +305,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             <div className="border-y border-[var(--line)] py-20 text-center"><p className="text-lg">{t("catalog.noAlbums")}</p><Button variant="outline" onClick={reset} className="mt-5">{t("common.reset")}</Button></div>
           )}
           {totalPages > 1 && (
-            <nav className="mt-12 flex items-center justify-between border-t border-[var(--line)] pt-6" aria-label={locale === "fr" ? "Pagination des albums" : "Album pagination"}>
+            <nav className="mt-[var(--space-block-gap)] flex items-center justify-between border-t border-[var(--line)] pt-6" aria-label={locale === "fr" ? "Pagination des albums" : "Album pagination"}>
               <Button variant="outline" disabled={page <= 1} onClick={() => goToPage(page - 1)}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
               <span className="font-mono text-xs text-[var(--text-muted)]">{page} / {totalPages}</span>
               <Button variant="outline" disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>

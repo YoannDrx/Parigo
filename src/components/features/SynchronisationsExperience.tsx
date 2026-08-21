@@ -29,15 +29,15 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
 
   return <div className="page-shell">
     <Header />
-    <main className="overflow-x-clip pb-24 md:pb-36">
+    <main className="overflow-x-clip">
       <PageHero
         title={locale === "fr" ? "Nos Synchros" : "Our synchronisations"}
         intro={locale === "fr" ? "Du cinéma à la publicité, nos musiques trouvent leur place à l’image." : "From cinema to advertising, our music finds its place on screen."}
         meta={`${synchronisations.length} ${locale === "fr" ? "placements" : "placements"}`}
         action={<a href={SYNCHRONISATIONS_PLAYLIST_URL} target="_blank" rel="noreferrer" className="parigo-button group inline-flex min-h-11 max-w-full items-center gap-3 border border-[var(--line-strong)] bg-[var(--surface)] px-4 text-xs font-semibold text-[var(--foreground)] transition hover:!border-[var(--signal-strong)] hover:!bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))] hover:!text-[var(--signal-strong)]"><Youtube size={16} className="shrink-0 text-[var(--signal-strong)]" /><span className="min-w-0">{locale === "fr" ? "Playlist YouTube" : "YouTube playlist"}</span><ArrowUpRight size={15} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></a>}
       />
-      <div className="mx-auto min-w-0 max-w-[1580px] px-4 md:px-8">
-        <div className="my-14 flex justify-end">
+      <div className="mx-auto min-w-0 max-w-[1580px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
+        <div className="mb-[var(--space-heading-content)] flex justify-end">
           <ViewModeControl
             value={view}
             onValueChange={setView}
@@ -50,7 +50,7 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
         </div>
 
         {view === "grid" ? (
-          <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-2 lg:gap-7">
+          <div className="grid min-w-0 gap-[var(--space-grid-x)] lg:grid-cols-2">
             {synchronisations.map((sync) => (
               <SynchronisationCard
                 key={sync.youtubeId}

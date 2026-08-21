@@ -29,24 +29,25 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   expect(firstCard!.x + firstCard!.width).toBeLessThanOrEqual(320);
 });
 
-test("les légendes des cartes éditoriales sortent des images sur mobile", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "La séparation image/légende est spécifique au mobile.");
+test("les légendes des cartes éditoriales restent superposées aux images sur mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La superposition mobile est contrôlée dans le projet mobile.");
   await page.setViewportSize({ width: 320, height: 740 });
   for (const [path, cardSelector, mediaSelector, captionSelector] of [
-    ["/clips", ".parigo-video-card", ".parigo-video-card__frame", ".editorial-media-card__caption"],
-    ["/synchronisations", ".sync-gallery-card", ".home-sync-card__frame", ".editorial-media-card__caption"],
-    ["/talents", ".composer-card", ".composer-card__media", ".composer-card__caption"],
+    ["/clips", ".parigo-video-card", ".parigo-video-card__frame", ".parigo-video-card__caption"],
+    ["/synchronisations", ".sync-gallery-card", ".home-sync-card__frame", ".home-sync-card__caption"],
+    ["/talents", ".composer-card", null, ".composer-card__caption"],
   ] as const) {
     await page.goto(path);
     const card = page.locator(cardSelector).first();
     await expect(card).toBeVisible({ timeout: 30_000 });
     const [media, caption] = await Promise.all([
-      card.locator(mediaSelector).boundingBox(),
+      mediaSelector ? card.locator(mediaSelector).boundingBox() : card.boundingBox(),
       card.locator(captionSelector).boundingBox(),
     ]);
     expect(media, `${path} ne publie pas de média`).not.toBeNull();
     expect(caption, `${path} ne publie pas de légende`).not.toBeNull();
-    expect(caption!.y).toBeGreaterThanOrEqual(media!.y + media!.height - 1);
+    expect(caption!.y).toBeGreaterThanOrEqual(media!.y - 1);
+    expect(caption!.y + caption!.height).toBeLessThanOrEqual(media!.y + media!.height + 1);
     await expect(card.locator(captionSelector)).toHaveCSS("opacity", "1");
   }
 });
@@ -81,9 +82,7 @@ test("les titres signés et les grilles catalogue restent lisibles sur mobile", 
     composerCards.nth(0).boundingBox(),
     composerCards.nth(1).boundingBox(),
   ]);
-  const firstComposerMedia = await composerCards.nth(0).locator(".composer-card__media").boundingBox();
-  expect(Math.abs(firstComposerMedia!.width - firstComposerMedia!.height)).toBeLessThanOrEqual(1);
-  expect(firstComposer!.height).toBeGreaterThan(firstComposerMedia!.height);
+  expect(Math.abs(firstComposer!.width - firstComposer!.height)).toBeLessThanOrEqual(1);
   expect(secondComposer!.y).toBeGreaterThan(firstComposer!.y + firstComposer!.height - 1);
 
   await page.goto("/albums");
@@ -311,12 +310,55 @@ test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
+  const signature = hero.locator(".parigo-title-signature");
   await expect(hero).toHaveAttribute("data-search-mode", "catalog");
   await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "catalog");
+  const resolveColorToken = (token: string) => page.evaluate((name) => {
+    const probe = document.createElement("span");
+    probe.style.backgroundColor = `var(${name})`;
+    document.body.append(probe);
+    const color = getComputedStyle(probe).backgroundColor;
+    probe.remove();
+    return color;
+  }, token);
+  const catalogColor = await signature.evaluate((node) => getComputedStyle(node).backgroundColor);
+  expect(catalogColor).toBe(await resolveColorToken("--signal"));
   await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
   await page.getByRole("option", { name: /Brief IA/ }).click();
   await expect(hero).toHaveAttribute("data-search-mode", "ai");
   await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "ai");
+  await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(catalogColor);
+  await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(await resolveColorToken("--ai-search"));
+  await hero.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
+  await hero.getByRole("option", { name: /Catalogue/ }).click();
+  await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(catalogColor);
+});
+
+test("les métriques publiques compactent le contenu après séparateur sur mobile", async ({ page }) => {
+  for (const [width, expectedGap] of [[390, 24], [1024, 64]] as const) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/clips");
+    const firstCard = page.getByTestId("clips-content").locator(".parigo-video-card").first();
+    await expect(firstCard).toBeVisible({ timeout: 30_000 });
+    const [heroBox, cardBox, metrics] = await Promise.all([
+      page.locator(".page-hero").boundingBox(),
+      firstCard.boundingBox(),
+      page.evaluate(() => {
+        const styles = getComputedStyle(document.documentElement);
+        return {
+          gutter: styles.getPropertyValue("--space-page-gutter").trim(),
+          divider: styles.getPropertyValue("--space-divider-content").trim(),
+          section: styles.getPropertyValue("--space-section-y").trim(),
+        };
+      }),
+    ]);
+    expect(heroBox).not.toBeNull();
+    expect(cardBox).not.toBeNull();
+    expect(Math.abs(cardBox!.y - (heroBox!.y + heroBox!.height) - expectedGap)).toBeLessThanOrEqual(1);
+    expect(metrics).toEqual(width < 768
+      ? { gutter: "1rem", divider: "1.5rem", section: "3rem" }
+      : { gutter: "2rem", divider: "4rem", section: "6rem" });
+  }
 });
 
 test("le héros desktop conserve ses ondes autonomes sans forme organique", async ({ page }, testInfo) => {

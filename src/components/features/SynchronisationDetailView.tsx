@@ -27,14 +27,14 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   return (
     <div className="page-shell min-h-screen">
       <Header />
-      <main className="px-4 pb-24 pt-28 md:px-8 md:pb-36 md:pt-32">
+      <main className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
         <div className="mx-auto max-w-[1440px]">
           <ContextualBackLink href={localizedPath("/synchronisations")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
 
-          <div className="mt-9 grid gap-7 lg:grid-cols-12 lg:items-start">
+          <div className="mt-[var(--space-block-gap)] grid gap-[var(--space-grid-x)] lg:grid-cols-12 lg:items-start">
             <section className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8" aria-label={locale === "fr" ? "Lecteur vidéo" : "Video player"}>
               <div className="overflow-hidden rounded-[.7rem]">
                 <ConsentAwareYouTubeEmbed clip={clip} />

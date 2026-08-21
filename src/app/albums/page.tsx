@@ -108,7 +108,7 @@ export default async function AlbumsPage() {
             </Suspense>
           )}
         />
-        <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
+        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
           <Suspense fallback={<AlbumExplorerFallback loadingLabel={copy.common.loading} />}>
             <AlbumExplorerContent albumsPromise={albumsPromise} />
           </Suspense>

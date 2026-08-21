@@ -48,7 +48,7 @@ export default async function OurLabelPage() {
             : "Our original productions, at the heart of Parigo’s musical identity."}
           meta={`${albums.total} albums`}
         />
-        <div className="mx-auto max-w-[1920px] px-3 py-4 sm:px-4 md:py-6">
+        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
           <ReactQueryProvider>
             <AlbumExplorer
               initialData={initialData}

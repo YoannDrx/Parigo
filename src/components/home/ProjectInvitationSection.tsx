@@ -11,7 +11,7 @@ export function ProjectInvitationSection() {
   const reduceMotion = useReducedMotion();
 
   return (
-    <section className="px-4 pb-20 md:px-8 md:pb-28">
+    <section className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)]">
       <motion.div
         initial={reduceMotion ? undefined : { opacity: 0, y: 24 }}
         whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}

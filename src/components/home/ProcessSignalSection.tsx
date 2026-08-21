@@ -35,9 +35,9 @@ export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
   ];
 
   return (
-    <section id="process" ref={sectionRef} className="relative px-4 py-16 md:px-8 md:py-32">
+    <section id="process" ref={sectionRef} className="relative px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
       <div className="mx-auto max-w-[1580px]">
-        <div className="mb-8 md:mb-10"><SignedTitle as="h2" className="max-w-5xl text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle></div>
+        <div className="mb-[var(--space-heading-content)]"><SignedTitle as="h2" className="max-w-5xl text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle></div>
         <div className="process-shell relative isolate overflow-hidden border border-white/14 bg-[#090c09] shadow-[0_34px_100px_rgba(5,10,6,.22)]">
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(145deg,rgba(72,191,103,.13),transparent_42%),linear-gradient(180deg,rgba(255,255,255,.025),transparent_70%)]" />
           <div className="relative border-b border-white/12 px-5 py-4 md:px-8 md:py-5">

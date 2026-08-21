@@ -165,7 +165,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
           aria-label={locale === "fr" ? "Showreel Garden of Eden" : "Garden of Eden showreel"}
         />
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.18),transparent_36%,rgba(0,0,0,.34))]" />
-        <div className="relative z-10 mx-auto flex h-full max-w-[1800px] items-center px-4 py-20 sm:px-6 lg:px-10">
+        <div className="relative z-10 mx-auto flex h-full max-w-[1800px] items-center px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
           <h2
             aria-label={titleLines.join(" ")}
             className="text-[clamp(2.4rem,12.5vw,4rem)] font-semibold leading-[.82] tracking-[-.07em] text-white mix-blend-difference [text-shadow:0_1px_18px_rgba(0,0,0,.14)] sm:text-[clamp(4rem,7.8vw,10rem)]"
