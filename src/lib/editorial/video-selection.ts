@@ -19,9 +19,8 @@ export function dedupeEditorialVideos(videos: EditorialVideo[]): EditorialVideo[
 }
 
 export function selectFeaturedEditorialVideos(videos: EditorialVideo[], limit = 8): EditorialVideo[] {
-  const uniqueVideos = dedupeEditorialVideos(videos).filter((video) => video.youtubeId);
-  const preferred = uniqueVideos.filter((video) => video.videoType === "official-video").sort(compareByRecency);
-  const preferredIds = new Set(preferred.map((video) => video.youtubeId));
-  const fallback = uniqueVideos.filter((video) => !preferredIds.has(video.youtubeId)).sort(compareByRecency);
-  return [...preferred, ...fallback].slice(0, limit);
+  return dedupeEditorialVideos(videos)
+    .filter((video) => video.youtubeId)
+    .sort(compareByRecency)
+    .slice(0, limit);
 }
