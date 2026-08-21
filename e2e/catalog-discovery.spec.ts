@@ -86,24 +86,20 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
   await expect(page).toHaveURL(/view=list/);
 });
 
-test("le toggle des labels mobiles alterne une grille double et une liste pleine largeur", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "Les vues mobiles sont contrôlées séparément.");
+test("les labels mobiles utilisent une liste logo-first unique", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La liste logo-first est spécifique au mobile.");
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/labels");
-  const grid = page.getByTestId("labels-mobile-grid");
-  await expect(grid).toBeVisible({ timeout: 30_000 });
-  const gridCards = grid.locator('a[href^="/labels/"]');
-  const [gridFirst, gridSecond] = await Promise.all([gridCards.nth(0).boundingBox(), gridCards.nth(1).boundingBox()]);
-  expect(Math.abs(gridFirst!.y - gridSecond!.y)).toBeLessThanOrEqual(1);
-  expect(gridFirst!.width).toBeGreaterThanOrEqual(140);
-
-  await page.getByRole("button", { name: "Vue liste" }).click();
   const list = page.getByTestId("labels-mobile-list");
-  await expect(list).toBeVisible();
+  await expect(list).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("button", { name: "Vue grille" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Vue liste" })).toHaveCount(0);
   const rows = list.locator('a[href^="/labels/"]');
   const [first, second] = await Promise.all([rows.nth(0).boundingBox(), rows.nth(1).boundingBox()]);
   expect(first!.width).toBeGreaterThanOrEqual(280);
+  expect(first!.height).toBeGreaterThanOrEqual(96);
   expect(second!.y).toBeGreaterThan(first!.y + first!.height - 1);
+  await expect(rows.first().locator("img, [data-testid='label-logo-fallback']")).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
 });
 
