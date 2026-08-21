@@ -133,7 +133,7 @@ export function ConsentAwareYouTubeEmbed(props: ConsentAwareYouTubeEmbedProps) {
           <button
             type="button"
             onClick={() => toggleClip(clip)}
-            className="media-overlay-action media-overlay-action--play grid h-16 w-16 place-items-center rounded-full border border-white/55 text-white transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="grid h-16 w-16 place-items-center rounded-full border border-white/55 bg-black/62 text-white shadow-[0_18px_55px_rgba(0,0,0,.4)] backdrop-blur-md transition hover:scale-105 hover:bg-[var(--signal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={playing
               ? (locale === "fr" ? `Mettre en pause ${title}` : `Pause ${title}`)
               : (locale === "fr" ? `Lire ${title}` : `Play ${title}`)}

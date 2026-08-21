@@ -934,7 +934,8 @@ test("les cartes À écouter maintenant séparent lecture et navigation", async 
   await expect(releaseCardLink).toHaveAttribute("href", /^\/albums\//);
   await expect(releaseDetail).toHaveAttribute("href", releaseHref!);
   const basePlayBackground = await releasePlay.evaluate((node) => getComputedStyle(node).backgroundColor);
-  expect(basePlayBackground).toMatch(/^rgba\(/);
+  expect(basePlayBackground).not.toBe("rgba(0, 0, 0, 0)");
+  expect(basePlayBackground).not.toBe("transparent");
   if (testInfo.project.name === "desktop") {
     await releasePlay.hover();
     await expect(releasePlay).toHaveCSS("background-color", "rgb(104, 191, 131)");
