@@ -92,7 +92,7 @@ export function SharedMusicExperience({ token, kind }: { token: string; kind: "p
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto w-full max-w-[1500px] flex-1 px-4 pb-28 pt-32 lg:px-8">
+      <main className="mx-auto w-full max-w-[1500px] flex-1 px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
         {loading ? (
           <div className="flex min-h-80 items-center justify-center">
             <ParigoLoader size="page" label={locale === "fr" ? "Chargement du partage" : "Loading shared music"} />
@@ -107,7 +107,7 @@ export function SharedMusicExperience({ token, kind }: { token: string; kind: "p
           </div>
         ) : (
           <>
-            <section className="parigo-frame mb-12 border border-[var(--line-strong)] bg-[var(--surface)] p-5 md:p-7" aria-labelledby="shared-music-actions">
+            <section className="parigo-frame mb-[var(--space-block-gap)] border border-[var(--line-strong)] bg-[var(--surface)] p-5 md:p-7" aria-labelledby="shared-music-actions">
               <p className="eyebrow text-[var(--signal-strong)]">{sharedLabel}</p>
               <h1 id="shared-music-actions" className="mt-3 font-[var(--font-editorial)] text-4xl tracking-[-.04em] md:text-5xl">
                 {locale === "fr" ? "Ajoutez cette sélection à votre espace." : "Add this selection to your workspace."}

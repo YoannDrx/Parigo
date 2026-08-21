@@ -43,7 +43,7 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
 
   return (
     <InstitutionalShell title={title} intro={intro} titleVariant={isLicenceRequest ? "compact" : "page"}>
-      <section className="bg-[var(--surface-soft)] px-4 py-[var(--space-section-y)] md:px-8">
+      <section className="bg-[var(--surface-soft)] px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
         <div className="mx-auto grid max-w-[1500px] gap-6 md:grid-cols-12">
           <aside data-testid="contact-details" className="h-fit md:col-span-4 lg:sticky lg:top-[var(--sticky-offset)] lg:self-start">
             <div className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-6 md:p-8">
@@ -75,13 +75,13 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
           </div>
         </div>
 
-        <div data-testid="contact-team" className="mx-auto mt-12 max-w-[1500px] md:mt-24">
+        <div data-testid="contact-team" className="mx-auto mt-[var(--space-block-gap)] max-w-[1500px]">
           <div>
             <SignedTitle as="h2" variant="section">
               {locale === "fr" ? "Notre équipe" : "Our team"}
             </SignedTitle>
           </div>
-          <div className="mt-10 grid gap-4 md:grid-cols-3">
+          <div className="mt-[var(--space-heading-content)] grid gap-[var(--space-grid-x)] md:grid-cols-3">
             {TEAM.map((member) => (
               <article key={member.email} className="parigo-frame group flex min-h-56 flex-col border border-[var(--line-strong)] bg-[var(--surface)] p-6 transition duration-300 hover:-translate-y-1 hover:border-[var(--signal-strong)] hover:shadow-[0_20px_55px_rgba(17,32,20,.09)] focus-within:-translate-y-1 focus-within:border-[var(--signal-strong)] md:p-8">
                 <h3 className="text-2xl font-semibold tracking-[-.04em]">{member.name}</h3>

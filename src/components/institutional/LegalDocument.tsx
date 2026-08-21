@@ -73,7 +73,7 @@ export function LegalDocument({ sections, updated = "13 juillet 2026" }: { secti
   );
 
   return (
-    <section className="bg-[var(--surface-soft)] px-4 py-16 md:px-8 md:py-24">
+    <section className="bg-[var(--surface-soft)] px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
       <div className="mx-auto grid max-w-[1500px] gap-8 lg:grid-cols-12 lg:gap-12">
         <details ref={mobileContentsRef} className="legal-toc-mobile parigo-frame border border-[var(--line)] bg-[var(--surface)] lg:hidden">
           <summary className="grid min-h-14 cursor-pointer list-none grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-5 py-3">

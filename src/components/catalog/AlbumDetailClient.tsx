@@ -117,7 +117,7 @@ export function AlbumDetailClient({
 
       <main className="flex-1 pb-24 pt-[70px]">
         {/* Back Link */}
-        <div className="mx-auto max-w-[1700px] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1700px] px-[var(--space-page-gutter)] pt-[var(--space-divider-content)]">
           <ContextualBackLink
             href={localizedPath("/albums")}
             className="inline-flex items-center gap-2 text-[var(--text-muted)] transition-colors hover:text-[var(--foreground)]"
@@ -128,7 +128,7 @@ export function AlbumDetailClient({
         </div>
 
         {/* Album Header */}
-        <section className="editorial-detail-hero relative mx-auto max-w-[1700px] overflow-hidden px-4 py-8 sm:px-6 lg:px-8 md:py-16">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1700px] overflow-hidden px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
           <div className="grid gap-10 md:grid-cols-12 md:items-start md:gap-12">
             {/* Cover */}
             <div className="w-full max-w-[520px] md:col-span-4">
@@ -231,7 +231,7 @@ export function AlbumDetailClient({
         </section>
 
         {data.contributorGroups.length > 0 && (
-          <section data-testid="album-contributor-groups" className="mx-auto max-w-[1500px] px-4 pb-4 sm:px-6 lg:px-8">
+          <section data-testid="album-contributor-groups" className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] pb-[var(--space-block-gap)]">
             <div className="grid gap-6 border-y border-[var(--line)] py-8 md:grid-cols-2">
               {data.contributorGroups.map((group) => (
                 <div key={group.role} data-contributor-role={group.role}>
@@ -262,8 +262,8 @@ export function AlbumDetailClient({
         )}
 
         {/* Tracks */}
-        <section className="mx-auto max-w-[1500px] px-4 py-16 sm:px-6 lg:px-8 md:py-24">
-          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <section className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
+          <div className="mb-[var(--space-heading-content)] flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="eyebrow text-[var(--signal-strong)]">{album.label}</p>
               <SignedTitle as="h2" className="mt-3 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.tracks")}</SignedTitle>
@@ -325,8 +325,8 @@ export function AlbumDetailClient({
 
         {/* Similar Albums */}
         {similarAlbums.length > 0 && (
-          <section className="mx-auto max-w-[1700px] px-4 py-16 sm:px-6 lg:px-8 md:py-28">
-            <SignedTitle as="h2" className="mb-10 font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
+          <section className="mx-auto max-w-[1700px] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
+            <SignedTitle as="h2" className="mb-[var(--space-heading-content)] font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
               {locale === "fr" ? "Dans le même univers" : "In the same universe"}
             </SignedTitle>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 md:gap-6">

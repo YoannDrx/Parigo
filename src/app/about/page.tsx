@@ -21,7 +21,7 @@ export default function AboutPage() {
 
   return (
     <InstitutionalShell title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")} showHero={false}>
-      <section className="px-4 pb-20 pt-28 md:px-8 md:pb-32 md:pt-40">
+      <section className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
         <div className="about-story mx-auto max-w-[1540px] after:block after:clear-both after:content-['']">
           <div className="parigo-frame relative mb-8 aspect-[4/3] overflow-hidden border border-[var(--line-strong)] lg:float-left lg:mb-5 lg:mr-8 lg:w-[55%] xl:mr-10 xl:w-[58%]">
             <Image
