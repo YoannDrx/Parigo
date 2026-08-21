@@ -31,6 +31,13 @@ interface YouTubePlaylistResponse {
   items?: YouTubePlaylistItem[];
 }
 
+interface YouTubeVideoResponse {
+  items?: Array<{
+    id?: string;
+    snippet?: { publishedAt?: string };
+  }>;
+}
+
 interface PlaylistVideoRenderer {
   videoId?: string;
   title?: YouTubeText;
@@ -68,6 +75,27 @@ function thumbnail(youtubeId: string): string {
   return `https://i.ytimg.com/vi/${youtubeId}/hqdefault.jpg`;
 }
 
+async function fetchVideoPublicationDates(apiKey: string, youtubeIds: string[]): Promise<Map<string, string>> {
+  const publishedAtById = new Map<string, string>();
+  for (let offset = 0; offset < youtubeIds.length; offset += 50) {
+    const params = new URLSearchParams({
+      part: "snippet",
+      id: youtubeIds.slice(offset, offset + 50).join(","),
+      key: apiKey,
+    });
+    const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`, {
+      headers: { Accept: "application/json" },
+      signal: AbortSignal.timeout(12_000),
+    });
+    if (!response.ok) throw new Error(`YouTube video details request failed with ${response.status}`);
+    const payload = await response.json() as YouTubeVideoResponse;
+    for (const video of payload.items ?? []) {
+      if (video.id && video.snippet?.publishedAt) publishedAtById.set(video.id, video.snippet.publishedAt);
+    }
+  }
+  return publishedAtById;
+}
+
 async function fetchWithApiKey(apiKey: string, playlistId: string): Promise<YouTubePlaylistVideo[]> {
   const items: YouTubePlaylistVideo[] = [];
   let pageToken = "";
@@ -101,13 +129,13 @@ async function fetchWithApiKey(apiKey: string, playlistId: string): Promise<YouT
           || thumbnails?.high?.url
           || thumbnails?.medium?.url
           || thumbnail(youtubeId),
-        publishedAt: snippet?.publishedAt,
         position: snippet?.position ?? items.length,
       });
     }
     pageToken = payload.nextPageToken ?? "";
   } while (pageToken);
-  return items;
+  const publicationDates = await fetchVideoPublicationDates(apiKey, items.map((item) => item.youtubeId));
+  return items.map((item) => ({ ...item, publishedAt: publicationDates.get(item.youtubeId) }));
 }
 
 function collectPlaylistVideos(value: unknown, target: PlaylistVideoRenderer[], lockups: LockupViewModel[]) {
