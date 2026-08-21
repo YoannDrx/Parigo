@@ -552,8 +552,9 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     await expect(syncCaption).toBeHidden();
     const mobileFooter = firstSyncCard.locator(".editorial-card__mobile-footer");
     await expect(mobileFooter).toBeVisible();
-    await expect(mobileFooter.getByRole("button", { name: /^Lire / })).toBeVisible();
-    await expect(mobileFooter.getByRole("link", { name: /^Voir le détail/ })).toBeVisible();
+    await expect(firstSyncCard.getByRole("button", { name: /^Lire / })).toBeVisible();
+    await expect(firstSyncCard.locator(".home-sync-card__frame").getByRole("link", { name: /^Voir le détail/ })).toBeVisible();
+    await expect(firstSyncCard.locator(".editorial-video-card__mobile-link")).toBeVisible();
   } else {
     await expect(syncCaption).toHaveCSS("opacity", "0");
     await firstSyncCard.hover();
