@@ -85,20 +85,18 @@ export function ComposerDirectoryClient({
             <Link
               key={profile.slug}
               href={localizedPath(locale, `/talents/${profile.slug}`)}
-              className="composer-card group relative flex flex-col overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
+              className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
             >
-              <div className="composer-card__media relative aspect-square overflow-hidden">
-                <Image
-                  src={profile.detailImage?.src ?? profile.image}
-                  alt=""
-                  fill
-                  sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                  className="object-cover grayscale transition duration-500 group-hover:grayscale-0"
-                />
-                <div className="composer-card__veil absolute inset-0 bg-gradient-to-t from-black/20 via-black/[.04] to-transparent" />
-              </div>
-              <div className="composer-card__caption relative p-4 sm:p-6">
-                <h2 className="type-card break-words font-semibold md:text-3xl">{profile.name}</h2>
+              <Image
+                src={profile.detailImage?.src ?? profile.image}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                className="object-cover grayscale transition duration-500 group-hover:grayscale-0"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+              <div className="composer-card__caption relative p-5 text-white sm:p-6">
+                <h2 className="break-words text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{profile.name}</h2>
               </div>
               <span aria-hidden="true" className="composer-card__corner composer-card__corner--top" />
               <span aria-hidden="true" className="composer-card__corner composer-card__corner--bottom" />

@@ -54,7 +54,7 @@ export function HomeAudioCard({
             type="button"
             onClick={onPlay}
             disabled={loading}
-            className="home-release-play home-audio-card__action media-overlay-action media-overlay-action--play grid h-11 w-11 place-items-center rounded-full border border-white/55 text-white transition hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-wait"
+            className="home-release-play grid h-11 w-11 place-items-center rounded-full border border-white/45 bg-black/55 text-white shadow-xl backdrop-blur-md transition hover:scale-105 hover:bg-[var(--signal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-wait"
             aria-label={playLabel}
           >
             {loading
@@ -66,7 +66,7 @@ export function HomeAudioCard({
           <Link
             href={href}
             prefetch={false}
-            className="home-audio-card__action media-overlay-action media-overlay-action--detail grid h-11 w-11 place-items-center rounded-full border border-white/55 !text-white transition hover:scale-105 hover:!text-[#151815] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="grid h-11 w-11 place-items-center rounded-full border border-white/45 bg-black/55 !text-white shadow-xl backdrop-blur-md transition hover:scale-105 hover:bg-white hover:!text-[#151815] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={detailLabel}
           >
             <ArrowUpRight size={18} />
