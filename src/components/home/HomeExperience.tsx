@@ -279,6 +279,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                   title={clip.title[locale]}
                   eyebrow={clip.channelTitle || (locale === "fr" ? "Clip Parigo" : "Parigo video")}
                   detail={clip.subtitle?.[locale]}
+                  mobileMeta={clip.publishedAt ? String(new Date(clip.publishedAt).getUTCFullYear()) : undefined}
                   className="snap-start"
                   headingLevel="h3"
                   sizes="(max-width:768px) 91vw, 53vw"
@@ -308,6 +309,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                   image={sync.image}
                   title={sync.title}
                   client={sync.client}
+                  detail={sync.year ? String(sync.year) : undefined}
                   className="snap-start"
                   headingLevel="h3"
                 />
