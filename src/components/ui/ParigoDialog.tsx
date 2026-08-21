@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { useParigoModalMotion } from "@/hooks/use-parigo-modal-motion";
 import { cn } from "@/lib/utils";
 
 interface ParigoDialogProps {
@@ -33,6 +34,7 @@ export function ParigoDialog({
 }: ParigoDialogProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const modalMotion = useParigoModalMotion();
 
   useEffect(() => {
     if (!open) return;
@@ -56,27 +58,24 @@ export function ParigoDialog({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="parigo-modal-backdrop fixed inset-0 z-[240] grid place-items-center overflow-y-auto bg-[#090d0a]/72 p-3 backdrop-blur-md md:p-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onPointerDown={(event) => {
-            if (event.currentTarget === event.target) onClose();
-          }}
+          className="fixed inset-0 z-[240] grid place-items-center overflow-y-auto p-3 md:p-8"
         >
+          <motion.div
+            aria-hidden="true"
+            className="parigo-modal-backdrop absolute inset-0 cursor-default bg-[#090d0a]/72 backdrop-blur-md"
+            onPointerDown={onClose}
+            {...modalMotion.backdrop}
+          />
           <motion.section
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
             data-tone={tone}
             className={cn(
-              "parigo-modal my-auto w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]",
+              "parigo-modal relative my-auto w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]",
               className,
             )}
-            initial={{ opacity: 0, y: 24, scale: .975 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 18, scale: .985 }}
-            transition={{ duration: .26, ease: [.22, 1, .36, 1] }}
+            {...modalMotion.dialog}
           >
             <header className="parigo-modal__header relative border-b border-[var(--line)] px-6 pb-5 pt-7 sm:px-8 sm:pt-8">
               <p className={cn("eyebrow", tone === "danger" ? "text-[var(--danger)]" : "text-[var(--signal-strong)]")}>{eyebrow}</p>

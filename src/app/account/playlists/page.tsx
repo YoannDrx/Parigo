@@ -12,6 +12,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { ViewModeControl } from "@/components/ui/ViewModeControl";
+import { useParigoModalMotion } from "@/hooks/use-parigo-modal-motion";
 import { formatParigoDate } from "@/lib/date-time";
 import type { MemberPlaylistCategory } from "@/types";
 
@@ -80,6 +81,7 @@ export default function PlaylistsPage() {
   const [shareStatus, setShareStatus] = useState("");
   const [shareError, setShareError] = useState("");
   const [shareCopied, setShareCopied] = useState(false);
+  const modalMotion = useParigoModalMotion();
 
   const loadPlaylists = async () => {
     setIsLoading(true);
@@ -493,8 +495,9 @@ export default function PlaylistsPage() {
 
       <AnimatePresence>
         {createOpen && (
-          <motion.div className="fixed inset-0 z-[180] flex items-center justify-center bg-[#0c110d]/68 p-4 backdrop-blur-sm" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => { if (event.currentTarget === event.target) closeCreate(); }}>
-            <motion.section role="dialog" aria-modal="true" aria-labelledby="create-playlist-title" className="parigo-modal relative w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]" initial={{ opacity: 0, y: 24, scale: .97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 18, scale: .98 }} transition={{ duration: .22 }}>
+          <motion.div className="fixed inset-0 z-[180] flex items-center justify-center p-4">
+            <motion.div aria-hidden="true" className="absolute inset-0 cursor-default bg-[#0c110d]/68 backdrop-blur-sm" onPointerDown={() => { if (!isCreating) closeCreate(); }} {...modalMotion.backdrop} />
+            <motion.section role="dialog" aria-modal="true" aria-labelledby="create-playlist-title" className="parigo-modal relative w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]" {...modalMotion.dialog}>
               <span aria-hidden="true" className="absolute left-0 top-0 h-1 w-32 bg-[var(--signal)]" />
               <button type="button" onClick={closeCreate} disabled={isCreating} aria-label={locale === "fr" ? "Fermer" : "Close"} className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-[var(--line)] transition hover:border-[var(--foreground)]"><X size={17} /></button>
               <form onSubmit={createPlaylist} className="p-6 pt-10 sm:p-9 sm:pt-11">

@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { AuthSwitcher } from "@/components/features/AuthSwitcher";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { useParigoModalMotion } from "@/hooks/use-parigo-modal-motion";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 
 export function AuthModal() {
@@ -15,6 +16,7 @@ export function AuthModal() {
   const router = useRouter();
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
+  const modalMotion = useParigoModalMotion();
 
   useBodyScrollLock(isOpen);
 
@@ -43,18 +45,15 @@ export function AuthModal() {
   return (
     <AnimatePresence>
       {isOpen ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
-          <motion.button type="button" aria-label={t("common.close")} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 cursor-default bg-black/55 backdrop-blur-md" onClick={close} />
+        <motion.div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
+          <motion.div aria-hidden="true" className="absolute inset-0 cursor-default bg-black/55 backdrop-blur-md" onPointerDown={close} {...modalMotion.backdrop} />
           <motion.div
             ref={dialogRef}
             role="dialog"
             aria-modal="true"
             aria-labelledby={view === "login" ? "auth-login-title" : "auth-register-title"}
-            initial={{ opacity: 0, scale: .96, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: .96, y: 20 }}
-            transition={{ duration: .34, ease: [.22, 1, .36, 1] }}
             className="relative h-[min(900px,96dvh)] w-full max-w-[1180px]"
+            {...modalMotion.dialog}
           >
             <button
               type="button"
