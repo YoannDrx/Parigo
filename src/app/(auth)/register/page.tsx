@@ -1,5 +1,5 @@
-import { RegisterForm } from "@/components/features/RegisterForm";
+import { AuthSwitcher } from "@/components/features/AuthSwitcher";
 
 export default function RegisterPage() {
-  return <RegisterForm />;
+  return <AuthSwitcher initialView="register" />;
 }

@@ -268,6 +268,38 @@ test("la connexion traduit l’erreur d’un compte non vérifié", async ({ pag
   await expect(alert).not.toContainText("Not activated");
 });
 
+test("les pages d’authentification partagent un panneau coulissant responsive", async ({ page }, testInfo) => {
+  await page.goto("/login");
+  const switcher = page.getByTestId("auth-switcher");
+  const hero = switcher.locator("aside");
+  const loginPanel = switcher.locator("#auth-login-panel");
+  await expect(switcher).toHaveAttribute("data-auth-view", "login");
+  await expect(hero.getByRole("heading", { name: "Entrez dans le catalogue." })).toBeVisible();
+  const [switcherBox, heroBefore, loginBox] = await Promise.all([
+    switcher.boundingBox(),
+    hero.boundingBox(),
+    loginPanel.boundingBox(),
+  ]);
+  expect(switcherBox).not.toBeNull();
+  expect(heroBefore).not.toBeNull();
+  expect(loginBox).not.toBeNull();
+  if (testInfo.project.name === "mobile") {
+    expect(heroBefore!.y + heroBefore!.height).toBeLessThanOrEqual(loginBox!.y + 1);
+  } else {
+    expect(Math.abs(heroBefore!.width - switcherBox!.width / 2)).toBeLessThanOrEqual(10);
+    expect(heroBefore!.x).toBeGreaterThan(loginBox!.x);
+  }
+
+  await hero.getByRole("button", { name: "Afficher le formulaire d’inscription" }).click();
+  await expect(switcher).toHaveAttribute("data-auth-view", "register");
+  await expect(switcher.getByRole("heading", { name: "Créer un compte" })).toBeVisible();
+  await expect(hero.getByRole("heading", { name: "Heureux de vous revoir." })).toBeVisible();
+  if (testInfo.project.name !== "mobile") {
+    await expect.poll(async () => (await hero.boundingBox())?.x ?? Number.POSITIVE_INFINITY).toBeLessThan(heroBefore!.x - switcherBox!.width / 3);
+  }
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+});
+
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
@@ -1359,8 +1391,11 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   }
   await page.getByRole("button", { name: "Ouvrir la connexion" }).click();
   const dialog = page.getByRole("dialog");
+  const switcher = dialog.getByTestId("auth-switcher");
+  await expect(switcher).toHaveAttribute("data-auth-view", "login");
   await expect(dialog.getByRole("heading", { name: "Se connecter" })).toBeVisible();
-  await dialog.getByRole("button", { name: "Créer un compte" }).click();
+  await dialog.getByRole("button", { name: "Créer un compte", exact: true }).click();
+  await expect(switcher).toHaveAttribute("data-auth-view", "register");
   await expect(dialog.getByRole("heading", { name: "Créer un compte" })).toBeVisible();
   await expect(dialog.getByLabel("Prénom *")).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "Profil professionnel" })).toBeVisible();
