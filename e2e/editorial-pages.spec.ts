@@ -29,8 +29,8 @@ test("les synchronisations restent contenues sur un écran de 320 px", async ({ 
   expect(firstCard!.x + firstCard!.width).toBeLessThanOrEqual(320);
 });
 
-test("les cartes vidéo utilisent un footer éditorial permanent sur mobile", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "Le footer éditorial est spécifique au mobile.");
+test("les cartes vidéo reprennent la DA des cartes audio sur mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La carte vidéo inspirée des cartes audio est spécifique au mobile.");
   await page.setViewportSize({ width: 320, height: 740 });
   for (const [path, cardSelector, mediaSelector, captionSelector] of [
     ["/clips", ".parigo-video-card", ".parigo-video-card__frame", ".parigo-video-card__caption"],
@@ -40,37 +40,57 @@ test("les cartes vidéo utilisent un footer éditorial permanent sur mobile", as
     const card = page.locator(cardSelector).first();
     await expect(card).toBeVisible({ timeout: 30_000 });
     const footer = card.locator(".editorial-card__mobile-footer");
+    const cardLink = card.locator(".editorial-video-card__mobile-link");
     await expect(footer).toBeVisible();
+    await expect(cardLink).toBeVisible();
     await expect(card.locator(captionSelector)).toBeHidden();
     await expect(footer).not.toContainText(/Parigo Production Music/i);
     await expect(footer.getByText(/^\d{4}$/)).toBeVisible();
-    const [media, footerBox, playBox, detailBox] = await Promise.all([
+    const [cardBox, cardLinkBox, media, footerBox, playBox, detailBox] = await Promise.all([
+      card.boundingBox(),
+      cardLink.boundingBox(),
       card.locator(mediaSelector).boundingBox(),
       footer.boundingBox(),
-      footer.getByRole("button", { name: /^(Lire|Play)/ }).boundingBox(),
-      footer.getByRole("link", { name: /^(Voir le détail|View)/ }).boundingBox(),
+      card.getByRole("button", { name: /^(Lire|Play)/ }).boundingBox(),
+      card.locator(mediaSelector).getByRole("link", { name: /^(Voir le détail|View)/ }).boundingBox(),
     ]);
+    expect(cardBox, `${path} ne publie pas de carte`).not.toBeNull();
+    expect(cardLinkBox, `${path} ne rend pas toute la carte cliquable`).not.toBeNull();
+    expect(Math.abs(cardLinkBox!.width - cardBox!.width)).toBeLessThanOrEqual(2);
+    expect(Math.abs(cardLinkBox!.height - cardBox!.height)).toBeLessThanOrEqual(2);
     expect(media, `${path} ne publie pas de média`).not.toBeNull();
     expect(footerBox, `${path} ne publie pas de footer`).not.toBeNull();
     expect(footerBox!.y).toBeGreaterThanOrEqual(media!.y + media!.height - 1);
-    expect(footerBox!.height).toBeLessThanOrEqual(156);
+    expect(footerBox!.height).toBeLessThanOrEqual(112);
     expect(playBox!.height).toBeGreaterThanOrEqual(44);
     expect(detailBox!.width).toBeGreaterThanOrEqual(44);
     expect(detailBox!.height).toBeGreaterThanOrEqual(44);
+    expect(playBox!.x).toBeGreaterThanOrEqual(media!.x);
+    expect(detailBox!.x + detailBox!.width).toBeLessThanOrEqual(media!.x + media!.width + 1);
+    expect(playBox!.y).toBeGreaterThanOrEqual(media!.y);
+    expect(playBox!.y + playBox!.height).toBeLessThanOrEqual(media!.y + media!.height + 1);
     const mobileCardStyle = () => card.evaluate((node) => {
       const ring = node.querySelector(".parigo-video-card__ring");
       const frame = node.querySelector(".home-sync-card__frame");
       return {
         borderColor: getComputedStyle(node).borderColor,
+        borderRadius: getComputedStyle(node).borderRadius,
         boxShadow: getComputedStyle(node).boxShadow,
+        padding: getComputedStyle(node).padding,
         transform: getComputedStyle(node).transform,
-        cornerWidth: getComputedStyle(node, "::before").width,
-        mediaRing: ring ? getComputedStyle(ring).borderColor : getComputedStyle(frame!, "::after").borderColor,
+        cornerDisplay: getComputedStyle(node, "::before").display,
+        mediaRingDisplay: ring ? getComputedStyle(ring).display : getComputedStyle(frame!, "::after").display,
       };
     });
     const restingStyle = await mobileCardStyle();
-    await footer.getByRole("button", { name: /^(Lire|Play)/ }).focus();
-    expect(await mobileCardStyle()).toEqual(restingStyle);
+    expect(restingStyle.boxShadow).not.toBe("none");
+    expect(restingStyle.cornerDisplay).toBe("none");
+    expect(restingStyle.mediaRingDisplay).toBe("none");
+    expect(restingStyle.padding).not.toBe("0px");
+    await cardLink.focus();
+    const interactiveStyle = await mobileCardStyle();
+    expect(interactiveStyle.transform).not.toBe(restingStyle.transform);
+    expect(interactiveStyle.boxShadow).not.toBe(restingStyle.boxShadow);
   }
 
   await page.goto("/talents");
