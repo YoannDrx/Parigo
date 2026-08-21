@@ -39,7 +39,7 @@ async function loadEditorialVideos(): Promise<EditorialVideo[]> {
 
 export const getEditorialVideos = unstable_cache(
   loadEditorialVideos,
-  ["youtube-clips-v3", CLIPS_PLAYLIST_ID],
+  ["youtube-clips-v4", CLIPS_PLAYLIST_ID],
   { revalidate: 3600, tags: ["youtube", "clips", "editorial"] },
 );
 

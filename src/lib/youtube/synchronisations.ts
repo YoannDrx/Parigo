@@ -30,7 +30,7 @@ async function loadSynchronisations(): Promise<Synchronisation[]> {
 
 export const getSynchronisations = unstable_cache(
   loadSynchronisations,
-  ["youtube-synchronisations-v3"],
+  ["youtube-synchronisations-v4"],
   { revalidate: 86400, tags: ["youtube", "synchronisations"] },
 );
 
