@@ -274,6 +274,7 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
   const hero = switcher.locator("aside");
   const loginPanel = switcher.locator("#auth-login-panel");
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
+  await expect(hero.locator('[data-auth-image="login"][data-active="true"] img')).toHaveAttribute("src", /31-login-studio-entrance/);
   await expect(hero.getByRole("heading", { name: "Entrez dans le catalogue." })).toBeVisible();
   const [switcherBox, heroBefore, loginBox] = await Promise.all([
     switcher.boundingBox(),
@@ -292,6 +293,7 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
 
   await hero.getByRole("button", { name: "Afficher le formulaire d’inscription" }).click();
   await expect(switcher).toHaveAttribute("data-auth-view", "register");
+  await expect(hero.locator('[data-auth-image="register"][data-active="true"] img')).toHaveAttribute("src", /32-register-place-waiting/);
   await expect(switcher.getByRole("heading", { name: "Créer un compte" })).toBeVisible();
   await expect(hero.getByRole("heading", { name: "Heureux de vous revoir." })).toBeVisible();
   if (testInfo.project.name !== "mobile") {

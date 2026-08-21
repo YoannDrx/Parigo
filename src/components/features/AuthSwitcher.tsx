@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, LogIn, UserPlus } from "lucide-react";
 import { LoginForm } from "@/components/features/LoginForm";
@@ -10,6 +11,19 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
 
 export type AuthSwitcherView = "login" | "register";
+
+const authHeroImages = [
+  {
+    view: "login",
+    src: "/images/editorial/parigo-spaces/31-login-studio-entrance.avif",
+    objectPosition: "center",
+  },
+  {
+    view: "register",
+    src: "/images/editorial/parigo-spaces/32-register-place-waiting.avif",
+    objectPosition: "center 42%",
+  },
+] as const;
 
 interface AuthSwitcherProps {
   initialView?: AuthSwitcherView;
@@ -87,11 +101,50 @@ export function AuthSwitcher({
     >
       <aside
         className={cn(
-          "relative z-10 flex min-h-[230px] shrink-0 flex-col overflow-hidden bg-[var(--signal-strong)] p-6 text-[var(--signal-contrast)] transition-transform duration-[650ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none sm:p-8",
+          "relative z-10 flex min-h-[230px] shrink-0 flex-col overflow-hidden bg-[var(--signal-strong)] p-6 text-white transition-transform duration-[650ms] ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none sm:p-8",
           "md:absolute md:inset-y-0 md:left-0 md:min-h-0 md:w-1/2 md:p-12",
           isLogin && "md:translate-x-full",
         )}
       >
+        {authHeroImages.map((image) => {
+          const isActive = activeView === image.view;
+          return (
+            <motion.div
+              key={image.view}
+              aria-hidden="true"
+              data-auth-image={image.view}
+              data-active={isActive}
+              className="absolute inset-0"
+              style={{ willChange: "opacity" }}
+              initial={false}
+              animate={{ opacity: isActive ? 1 : 0 }}
+              transition={{ duration: .65, ease: [.22, 1, .36, 1] }}
+            >
+              <Image
+                src={image.src}
+                alt=""
+                fill
+                priority
+                sizes="(max-width: 767px) 100vw, 50vw"
+                className="object-cover"
+                style={{ objectPosition: image.objectPosition }}
+              />
+            </motion.div>
+          );
+        })}
+        <span
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            backgroundColor: "color-mix(in srgb, var(--signal-strong) 48%, transparent)",
+            mixBlendMode: "multiply",
+          }}
+        />
+        <span
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(180deg, rgb(6 10 8 / .3), rgb(6 10 8 / .76))" }}
+        />
         <span aria-hidden="true" className="absolute -right-16 -top-16 h-52 w-52 rounded-full border border-current opacity-15" />
         <span aria-hidden="true" className="absolute bottom-6 left-6 h-16 w-16 border-b-2 border-l-2 border-current opacity-50" />
         <span aria-hidden="true" className="absolute right-6 top-6 h-16 w-16 border-r-2 border-t-2 border-current opacity-50" />
@@ -119,7 +172,7 @@ export function AuthSwitcher({
                 aria-label={hero.nextView === "login"
                   ? (locale === "fr" ? "Afficher le formulaire de connexion" : "Show the sign-in form")
                   : (locale === "fr" ? "Afficher le formulaire d’inscription" : "Show the registration form")}
-                className="group mx-auto mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-current px-7 text-sm font-semibold transition hover:bg-[var(--signal-contrast)] hover:text-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--signal-strong)]"
+                className="group mx-auto mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-current px-7 text-sm font-semibold transition hover:bg-white hover:text-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--signal-strong)]"
               >
                 {hero.action}<ArrowRight aria-hidden="true" size={15} className="transition-transform group-hover:translate-x-1" />
               </button>
