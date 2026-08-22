@@ -158,7 +158,7 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
           {visible.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center"><ListMusic size={42} className="mb-6 opacity-30" /><h2 className="font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">{t("catalog.noPlaylists")}</h2></div>
           ) : view === "grid" ? (
-            <div className="grid grid-cols-2 gap-x-[var(--space-grid-x)] gap-y-[var(--space-grid-y)] sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+            <div data-testid="playlist-grid" className="grid grid-cols-1 gap-x-[var(--space-grid-x)] gap-y-[var(--space-grid-y)] md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
               {visible.map((playlist, index) => {
                 const item: CatalogPlaylist = { ...playlist, id: playlist.slug || playlist.id, description: playlist.description ?? undefined, cover: playlist.cover || "/images/placeholder-album.svg", category: undefined };
                 return <PlaylistCard key={playlist.id} playlist={item} priority={index < 2} />;

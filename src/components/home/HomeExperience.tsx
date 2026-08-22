@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
@@ -18,12 +18,13 @@ import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { resizeArtworkSource } from "@/lib/image-loader";
-import { PartnerMarquee } from "./PartnerMarquee";
 import { HomeAudioCard } from "./HomeAudioCard";
 import { usePlayerStore } from "@/stores/player-store";
 import { HomeParallaxImage } from "./HomeParallax";
 import { HomeHeroContent, HomeReveal } from "./HomeMotion";
 import { HomeSeeAllLink } from "./HomeSeeAllLink";
+
+const PartnerMarquee = lazy(() => import("./PartnerMarquee").then((module) => ({ default: module.PartnerMarquee })));
 
 type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
 
@@ -276,8 +277,6 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                   title={clip.title[locale]}
                   eyebrow={clip.channelTitle || (locale === "fr" ? "Clip Parigo" : "Parigo video")}
                   detail={clip.subtitle?.[locale]}
-                  mobileMeta={clip.publishedAt ? String(new Date(clip.publishedAt).getUTCFullYear()) : undefined}
-                  mobileFooterVariant="title-only"
                   className="snap-start"
                   headingLevel="h3"
                   sizes="(max-width:768px) 91vw, 53vw"
@@ -310,7 +309,6 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                   title={sync.title}
                   client={sync.client}
                   detail={sync.year ? String(sync.year) : undefined}
-                  mobileFooterVariant="title-only"
                   className="snap-start"
                   headingLevel="h3"
                 />
@@ -321,7 +319,9 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
-        <PartnerMarquee />
+        <Suspense fallback={<div className="min-h-72 bg-[#0b110d]" aria-hidden="true" />}>
+          <PartnerMarquee />
+        </Suspense>
 
         <section data-testid="social-follow-section" className="px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
           <SectionReveal origin="bottom" className="group relative mx-auto grid max-w-[1580px] overflow-hidden rounded-[1.2rem] bg-[var(--signal-strong)] p-6 text-white md:grid-cols-12 md:items-center md:p-10 lg:p-14">

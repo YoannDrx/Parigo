@@ -26,8 +26,8 @@ export function HomeParallaxImage({
     target: containerRef,
     offset: ["start end", "end start"],
   });
-  const y = useTransform(scrollYProgress, [0, 1], ["-14%", "14%"]);
-  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1.055, 1, 1.055]);
+  const y = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [1.08, 1, 1.08]);
 
   return (
     <div
@@ -39,7 +39,7 @@ export function HomeParallaxImage({
       <motion.div
         data-testid="home-about-parallax-layer"
         style={reduceMotion ? { y: 0, scale: 1 } : { y, scale }}
-        className="absolute inset-x-0 -inset-y-[22%]"
+        className="absolute inset-x-0 -inset-y-[36%]"
       >
         <Image
           src={src}
