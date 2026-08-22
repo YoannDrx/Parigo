@@ -25,7 +25,9 @@ Les limites de pages et de sections utilisent les variables sémantiques de `src
 - Une frontière n’a qu’un responsable : le héros possède l’espace avant son séparateur et la section suivante possède l’espace après celui-ci.
 - Le premier enfant d’une section ne rajoute pas de marge structurelle au `padding` de son parent.
 - Dans une fiche détail, la section suivante porte l’écart : le bloc précédent ne cumule pas son propre padding inférieur.
-- Le `main` porte `--space-page-end`; le footer ne rajoute aucune marge extérieure. Une réserve de lecteur fixe n’est ajoutée que lorsque le lecteur est réellement monté.
+- Le dernier bloc du `main` porte `--space-page-end`; le footer ne rajoute aucune marge extérieure avant son séparateur.
+- Quand le lecteur fixe est monté, sa réserve appartient exclusivement au bas interne du footer. Elle ne doit jamais être ajoutée au `main`, à une liste ou à une section de contenu.
+- Sur mobile, une frontière standard de même surface ne dépasse pas `2rem`; une section éditoriale ample peut utiliser `3rem`. La dernière carte ou piste reste à `1.5rem` du footer.
 - Les grilles de médias avec texte superposé utilisent `--space-grid-x` dans les deux axes. Les catalogues avec légende sous la pochette utilisent `--space-grid-x` horizontalement et `--space-grid-y` verticalement.
 - Sous `768 px`, les sections standard restent compactes. À partir de `768 px`, la même hiérarchie respire davantage sans modifier les largeurs maximales.
 - La compacité ne réduit jamais une cible interactive sous `44 × 44 px`.

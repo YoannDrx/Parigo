@@ -1036,9 +1036,9 @@ test("les cartes À écouter maintenant séparent lecture et navigation", async 
   await expect(page).toHaveURL(new RegExp(`${parigoHref}$`));
 });
 
-test("le player étendu mobile défile sans déplacer la page", async ({ page }, testInfo) => {
+test("le player étendu mobile devient une bottom sheet ajustée au contenu", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "Le verrouillage demandé concerne le player mobile.");
-  await page.setViewportSize({ width: 320, height: 600 });
+  await page.setViewportSize({ width: 320, height: 520 });
   const tracks = Array.from({ length: 8 }, (_, index) => ({
     id: `mobile-player-${index}`,
     title: `Piste mobile ${index + 1}`,
@@ -1067,10 +1067,17 @@ test("le player étendu mobile défile sans déplacer la page", async ({ page },
   await player.getByRole("button", { name: "Agrandir le lecteur" }).click();
   await expect(player).toHaveClass(/parigo-player--expanded/);
   await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("fixed");
-  expect((await player.boundingBox())!.y).toBeGreaterThanOrEqual(73);
+  const playerBox = (await player.boundingBox())!;
+  expect(playerBox.height).toBeLessThanOrEqual(520 * .78 + 1);
+  expect(Math.abs(playerBox.y + playerBox.height - 520)).toBeLessThanOrEqual(1);
+  await expect(page.getByRole("button", { name: "Fermer le panneau du lecteur" })).toBeVisible();
   const scrollArea = player.locator(".parigo-player__expanded");
-  await scrollArea.evaluate((node) => { node.scrollTop = node.scrollHeight; });
-  await expect.poll(() => scrollArea.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  const scrollMetrics = await scrollArea.evaluate((node) => ({ clientHeight: node.clientHeight, scrollHeight: node.scrollHeight }));
+  expect(scrollMetrics.clientHeight).toBeLessThanOrEqual(scrollMetrics.scrollHeight);
+  if (scrollMetrics.scrollHeight > scrollMetrics.clientHeight) {
+    await scrollArea.evaluate((node) => { node.scrollTop = node.scrollHeight; });
+    await expect.poll(() => scrollArea.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+  }
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   await player.getByRole("button", { name: "Réduire le lecteur" }).click();
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(pageScroll);
