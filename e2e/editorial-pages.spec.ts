@@ -207,10 +207,10 @@ test("la recherche compositeurs reste limitée aux profils publics canoniques", 
   await page.goto("/talents");
   const search = page.getByPlaceholder("Rechercher par nom…");
   await expect(search).toBeVisible();
-  const searchFrame = page.locator(".composer-directory-search");
+  const searchFrame = page.locator(".search-command").filter({ has: search });
   await expect(searchFrame).toBeVisible();
   await search.focus();
-  await expect(searchFrame).toHaveCSS("box-shadow", "none");
+  await expect(searchFrame.locator(".search-command__form")).not.toHaveCSS("box-shadow", "none");
   const card = page.locator(".composer-card").first();
   await expect(card).toBeVisible();
   await expect(card.locator("img")).toHaveAttribute("src", /\/images\/composers\/detail\//);
@@ -647,7 +647,7 @@ test("la page Clips porte l’introduction éditoriale complète", async ({ page
   await expect(page.locator("main")).toContainText("Le catalogue Parigo en images, entre clips, teasers et performances live.");
 });
 
-test("le détail label privilégie le logo et ne renvoie plus vers son site", async ({ page }) => {
+test("le détail label privilégie le logo et ne renvoie plus vers son site", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/labels/0f9769346759ee5a");
   const hero = page.locator(".editorial-detail-hero").first();
@@ -656,7 +656,11 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
   const logoPanel = hero.locator("> div").first();
   const logoPanelBox = await logoPanel.boundingBox();
   expect(logoPanelBox).not.toBeNull();
-  expect(logoPanelBox!.height).toBeGreaterThanOrEqual(350);
+  if (testInfo.project.name === "mobile") {
+    expect(logoPanelBox!.width / logoPanelBox!.height).toBeCloseTo(16 / 10, 1);
+  } else {
+    expect(logoPanelBox!.height).toBeGreaterThanOrEqual(350);
+  }
 });
 
 test("le détail compositeur aligne le nom en bas du portrait sans arc décoratif", async ({ page }, testInfo) => {

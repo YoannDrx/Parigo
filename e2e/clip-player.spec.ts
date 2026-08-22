@@ -80,7 +80,7 @@ test("un clip se lit dans sa carte, se détache et se réattache au détail sans
     element.dataset.persistenceMarker = "same-clip-iframe";
   });
 
-  await page.locator("footer").scrollIntoViewIfNeeded();
+  await page.locator(".parigo-footer").scrollIntoViewIfNeeded();
   await expect(player).toHaveAttribute("data-attached", "false");
   await expect(iframe).toHaveAttribute("data-persistence-marker", "same-clip-iframe");
   if (testInfo.project.name === "mobile") {
@@ -112,7 +112,7 @@ test("une synchronisation utilise le même lecteur persistant que les clips", as
     element.dataset.persistenceMarker = "same-sync-iframe";
   });
 
-  await page.locator("footer").scrollIntoViewIfNeeded();
+  await page.locator(".parigo-footer").scrollIntoViewIfNeeded();
   await expect(player).toHaveAttribute("data-attached", "false");
   await player.getByRole("link", { name: /Voir le détail de / }).click();
   await expect(page).toHaveURL(/\/synchronisations\/[\w-]+$/);
@@ -189,7 +189,7 @@ test("le bouton de détail conserve une flèche contrastée sur la card", async 
   const play = card.getByRole("button", { name: /Lire Garden Of Eden/i });
   const detail = card.getByRole("link", { name: /Voir le détail de Garden Of Eden/i });
   const basePlayBackground = await play.evaluate((node) => getComputedStyle(node).backgroundColor);
-  expect(basePlayBackground).toMatch(/^rgba\(/);
+  expect(basePlayBackground).toMatch(/(?:rgba\(|\/ 0\.55\))/);
   await expect(detail).toBeVisible();
   await expect(detail).toHaveCSS("color", "rgb(255, 255, 255)");
 

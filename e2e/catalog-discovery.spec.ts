@@ -56,7 +56,7 @@ test("la première pochette du catalogue est prioritaire pour le LCP", async ({ 
   await expect(albumImages.nth(2)).not.toHaveAttribute("fetchpriority", "high");
 });
 
-test("les labels exposent les vrais volumes, la recherche et les deux vues", async ({ page }) => {
+test("les labels exposent les vrais volumes, la recherche et les deux vues", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
   await page.goto("/labels");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -81,9 +81,14 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
   await expect(page.getByRole("heading", { level: 2, name: "101 Music Compilations" })).toBeVisible();
   await expect(page).toHaveURL(/q=101\+Music\+Compilations/);
 
-  await page.getByRole("button", { name: "Vue liste" }).click();
-  await expect(page.getByRole("button", { name: "Vue liste" })).toHaveAttribute("aria-pressed", "true");
-  await expect(page).toHaveURL(/view=list/);
+  if (testInfo.project.name === "mobile") {
+    await expect(page.getByRole("button", { name: "Vue liste" })).toHaveCount(0);
+    await expect(page.getByTestId("labels-mobile-list")).toBeVisible();
+  } else {
+    await page.getByRole("button", { name: "Vue liste" }).click();
+    await expect(page.getByRole("button", { name: "Vue liste" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page).toHaveURL(/view=list/);
+  }
 });
 
 test("les labels mobiles utilisent une liste logo-first unique", async ({ page }, testInfo) => {
