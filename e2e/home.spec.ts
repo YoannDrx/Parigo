@@ -1402,6 +1402,15 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   await expect(dialog.getByLabel("Prénom *")).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "Profil professionnel" })).toBeVisible();
   await expect(dialog.getByText("1/2")).toHaveCount(0);
+  if (testInfo.project.name === "mobile") {
+    const switcherBox = await switcher.boundingBox();
+    expect(switcherBox).not.toBeNull();
+    await page.mouse.move(switcherBox!.x + switcherBox!.width / 2, switcherBox!.y + 120);
+    await page.mouse.wheel(0, 700);
+    await expect.poll(() => switcher.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+    await switcher.evaluate((node) => node.scrollTo({ top: node.scrollHeight, behavior: "instant" }));
+    await expect(dialog.locator("#auth-register-panel button[type=submit]")).toBeInViewport();
+  }
   await page.keyboard.press("Escape");
   await expect(dialog).toHaveCount(0);
 });

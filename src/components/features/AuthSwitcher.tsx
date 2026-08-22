@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, LogIn, UserPlus } from "lucide-react";
@@ -53,12 +53,14 @@ export function AuthSwitcher({
     login: activeView === "login",
     register: activeView === "register",
   }));
+  const switcherRef = useRef<HTMLElement>(null);
   const isLogin = activeView === "login";
 
   const selectView = (nextView: AuthSwitcherView) => {
     setMountedViews((current) => current[nextView] ? current : { ...current, [nextView]: true });
     if (view === undefined) setInternalView(nextView);
     onViewChange?.(nextView);
+    if (isModal) switcherRef.current?.scrollTo({ top: 0, behavior: "instant" });
   };
 
   const hero = isLogin
@@ -86,17 +88,20 @@ export function AuthSwitcher({
   const isModal = variant === "modal";
   const panelClassName = cn(
     "relative z-[1] w-full bg-[var(--surface)] px-5 py-8 transition-[opacity,transform,visibility] duration-500 motion-reduce:transition-none sm:px-8",
-    isModal && "min-h-0 flex-1 overflow-y-auto",
+    isModal && "shrink-0",
     "md:absolute md:inset-y-0 md:w-1/2 md:overflow-y-auto md:px-10 md:py-12",
   );
 
   return (
     <section
+      ref={switcherRef}
       data-testid="auth-switcher"
       data-auth-view={activeView}
       className={cn(
-        "relative flex w-full flex-col overflow-hidden rounded-[1.5rem] border-[8px] border-[var(--surface)] bg-[var(--surface)] shadow-[0_28px_100px_color-mix(in_srgb,var(--foreground)_12%,transparent)] ring-1 ring-[var(--line)] md:block",
-        isModal ? "h-full" : "max-w-[1180px] md:h-[min(760px,calc(100dvh-11rem))] md:min-h-[620px]",
+        "relative flex w-full flex-col rounded-[1.5rem] border-[8px] border-[var(--surface)] bg-[var(--surface)] shadow-[0_28px_100px_color-mix(in_srgb,var(--foreground)_12%,transparent)] ring-1 ring-[var(--line)] md:block",
+        isModal
+          ? "h-full touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain md:overflow-hidden"
+          : "max-w-[1180px] overflow-hidden md:h-[min(760px,calc(100dvh-11rem))] md:min-h-[620px]",
       )}
     >
       <aside
