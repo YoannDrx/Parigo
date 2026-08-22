@@ -4,8 +4,9 @@ import { apiError, requestId } from "@/lib/harvest/api";
 import { serviceRequest } from "@/lib/harvest/client";
 import { assertSameOrigin, clearHarvestSession } from "@/lib/harvest/session";
 import { buildPasswordUpdate } from "@/lib/harvest/member-contracts";
+import { meetsPasswordPolicy } from "@/lib/password-strength";
 
-const schema = z.object({ token: z.string().min(1), password: z.string().min(8) });
+const schema = z.object({ token: z.string().min(1), password: z.string().min(8).max(200).refine(meetsPasswordPolicy) });
 
 export async function GET(request: NextRequest) {
   const id = requestId();

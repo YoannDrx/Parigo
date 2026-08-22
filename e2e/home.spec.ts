@@ -1441,6 +1441,12 @@ test("les anciens liens FLEX change-password restent compatibles", async ({ page
   await expect(page).toHaveURL(/\/reset-password\?token=legacy-reset-token$/);
   await expect(page.getByText("Nouveau mot de passe", { exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("Confirmer")).toBeVisible();
+  const password = page.getByLabel("Nouveau mot de passe *");
+  await password.fill("Parigo2026");
+  await expect(page.getByRole("meter", { name: "Force du mot de passe" })).toHaveAttribute("aria-valuenow", "2");
+  await expect(page.getByText("Moyen", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Afficher le mot de passe", exact: true }).click();
+  await expect(password).toHaveAttribute("type", "text");
 });
 
 test("l’inscription Parigo expose le profil complet sur un seul scroll", async ({ page }) => {
@@ -1448,10 +1454,21 @@ test("l’inscription Parigo expose le profil complet sur un seul scroll", async
   await page.getByLabel("Prénom *").fill("Test");
   await page.getByLabel("Nom *", { exact: true }).fill("Parigo");
   await page.getByLabel(/E-mail.*utilisé comme identifiant/i).fill("test@example.invalid");
-  await page.getByLabel("Mot de passe *", { exact: true }).fill(formFixtureValue);
+  const password = page.getByLabel("Mot de passe *", { exact: true });
+  const strength = page.getByRole("meter", { name: "Force du mot de passe" });
+  await password.fill("test");
+  await expect(strength).toHaveAttribute("aria-valuenow", "1");
+  await expect(page.getByText("Faible", { exact: true })).toBeVisible();
+  await password.fill("Parigo2026");
+  await expect(strength).toHaveAttribute("aria-valuenow", "2");
+  await expect(page.getByText("Moyen", { exact: true })).toBeVisible();
+  await password.fill(formFixtureValue);
+  await expect(strength).toHaveAttribute("aria-valuenow", "3");
+  await expect(page.getByText("Fort", { exact: true })).toBeVisible();
   await page.getByLabel("Confirmer le mot de passe *").fill(formFixtureValue);
+  await expect(page.getByText("Les mots de passe correspondent.")).toBeVisible();
   await page.getByRole("button", { name: "Afficher le mot de passe", exact: true }).click();
-  await expect(page.getByLabel("Mot de passe *", { exact: true })).toHaveAttribute("type", "text");
+  await expect(password).toHaveAttribute("type", "text");
   await page.getByRole("button", { name: "Masquer le mot de passe", exact: true }).click();
   await expect(page.getByLabel("Pays *")).toBeVisible();
   await expect(page.getByLabel("Société")).toBeVisible();
