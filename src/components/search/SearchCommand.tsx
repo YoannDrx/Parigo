@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent } from "react";
 import { ArrowRight, Check, ChevronDown, Search, Sparkles, X } from "lucide-react";
 import { SearchAutocompleteMenu } from "@/components/search/SearchAutocompleteMenu";
 import { useSearchAutocomplete } from "@/hooks/use-search-autocomplete";
@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils";
 import type { AutocompleteItem, AutocompleteSearchContext, SearchMode } from "@/types";
 
 export type SearchResultView = "tracks" | "albums";
+
+const RecentSearchesController = lazy(() => import("@/components/search/RecentSearchesController").then((module) => ({ default: module.RecentSearchesController })));
 
 interface SearchCommandProps {
   id: string;
@@ -56,6 +58,7 @@ export function SearchCommand({
   const [filterAnnouncement, setFilterAnnouncement] = useState("");
   const [panelDismissed, setPanelDismissed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const commandRef = useRef<HTMLElement>(null);
   const modeSelectorRef = useRef<HTMLDivElement>(null);
   const modeMenuRef = useRef<HTMLDivElement>(null);
   const keywordMode = mode === "keyword";
@@ -71,7 +74,9 @@ export function SearchCommand({
   };
   const autocomplete = useSearchAutocomplete(displayedValue, locale, autocompleteEnabled && focused && keywordMode, resolvedAutocompleteContext);
   const suggestionsId = `${id}-suggestions`;
-  const panelOpen = autocompleteEnabled && keywordMode && focused && !panelDismissed && (
+  const historyId = `${id}-history`;
+  const historyOpen = focused && !panelDismissed && !modeMenuOpen && normalizedValue.length === 0 && stagedFilters.length === 0;
+  const panelOpen = !modeMenuOpen && autocompleteEnabled && keywordMode && focused && !panelDismissed && (
     (normalizedValue.length >= 2 && autocomplete.status !== "idle")
     || stagedFilters.length > 0
   );
@@ -116,6 +121,20 @@ export function SearchCommand({
     autocomplete.close();
     inputRef.current?.blur();
     onSubmit(normalizedValue);
+    if (normalizedValue) void import("@/components/search/RecentSearchesController").then(({ recordRecentSearch }) => recordRecentSearch("keyword", normalizedValue));
+  };
+
+  const selectRecentQuery = (query: string) => {
+    setPanelDismissed(true);
+    autocomplete.close();
+    if (keywordMode) {
+      onValueChange(query);
+      inputRef.current?.blur();
+      onSubmit(query);
+    } else {
+      setAiDraft(query);
+      window.requestAnimationFrame(() => inputRef.current?.focus());
+    }
   };
 
   const selectSuggestion = (item: AutocompleteItem) => {
@@ -207,10 +226,11 @@ export function SearchCommand({
 
   return (
     <section
+      ref={commandRef}
       data-testid={`${id}-command`}
       className={cn(
         "search-command relative overflow-visible",
-        (modeMenuOpen || panelOpen) && "z-[80]",
+        (modeMenuOpen || panelOpen || historyOpen) && "z-[80]",
         className,
       )}
       aria-label={locale === "fr" ? "Recherche dans le catalogue" : "Catalog search"}
@@ -311,9 +331,9 @@ export function SearchCommand({
               onKeyDown={handleKeyDown}
               role="combobox"
               aria-autocomplete="list"
-              aria-expanded={panelOpen}
-              aria-controls={suggestionsId}
-              aria-activedescendant={autocomplete.activeIndex >= 0 ? `${suggestionsId}-option-${autocomplete.activeIndex}` : undefined}
+              aria-expanded={panelOpen || historyOpen}
+              aria-controls={historyOpen ? historyId : panelOpen ? suggestionsId : undefined}
+              aria-activedescendant={panelOpen && autocomplete.activeIndex >= 0 ? `${suggestionsId}-option-${autocomplete.activeIndex}` : undefined}
               autoComplete="off"
               maxLength={500}
               placeholder={placeholder}
@@ -352,6 +372,21 @@ export function SearchCommand({
       </div>
 
       <p className="sr-only" aria-live="polite">{filterAnnouncement}</p>
+
+      {historyOpen ? (
+        <Suspense fallback={null}>
+        <RecentSearchesController
+          id={historyId}
+          inputId={id}
+          mode={mode}
+          locale={locale}
+          onSelectQuery={selectRecentQuery}
+          onClearAnnouncement={() => {
+            setFilterAnnouncement(locale === "fr" ? "Historique de recherche effacé" : "Search history cleared");
+          }}
+        />
+        </Suspense>
+      ) : null}
 
       {panelOpen ? (
         <SearchAutocompleteMenu

@@ -810,17 +810,24 @@ test("les pistes de recherche utilisent la grille mobile dense", async ({ page }
   const row = page.locator(".parigo-track-row").first();
   await expect(row).toBeVisible({ timeout: 30_000 });
   await expect(row).toHaveAttribute("data-mobile-layout", "dense");
-  const [rowBox, titleBox, coverBox, waveformBox, actionsBox] = await Promise.all([
+  const [rowBox, titleBox, coverBox, waveformBox, actionsBox, playBox] = await Promise.all([
     row.boundingBox(),
     row.locator(".parigo-track-row__title").boundingBox(),
     row.locator(".parigo-track-row__cover").boundingBox(),
     row.locator(".parigo-track-row__waveform").boundingBox(),
     row.locator(".parigo-track-row__actions").boundingBox(),
+    row.locator(".parigo-track-row__play").boundingBox(),
   ]);
-  expect(rowBox!.height).toBeLessThanOrEqual(152);
+  expect(rowBox!.height).toBeLessThanOrEqual(230);
+  expect(Math.abs(coverBox!.width - 72)).toBeLessThanOrEqual(1);
+  expect(Math.abs(coverBox!.height - 72)).toBeLessThanOrEqual(1);
   expect(Math.abs(titleBox!.x - coverBox!.x)).toBeLessThanOrEqual(1);
-  expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(actionsBox!.x + 1);
-  expect(waveformBox!.x + waveformBox!.width).toBeGreaterThan(actionsBox!.x + actionsBox!.width - 2);
+  expect(titleBox!.width).toBeGreaterThanOrEqual(rowBox!.width - 20);
+  expect(Math.abs(waveformBox!.x - titleBox!.x)).toBeLessThanOrEqual(1);
+  expect(waveformBox!.width).toBeGreaterThanOrEqual(rowBox!.width - 20);
+  expect(actionsBox!.y).toBeGreaterThan(waveformBox!.y);
+  expect(Math.abs(playBox!.x + playBox!.width / 2 - (coverBox!.x + coverBox!.width / 2))).toBeLessThanOrEqual(1);
+  expect(Math.abs(playBox!.y + playBox!.height / 2 - (coverBox!.y + coverBox!.height / 2))).toBeLessThanOrEqual(1);
 });
 
 test("un ancien brief devient un mot-clé littéral et AIMS reste désactivé", async ({ page }) => {
@@ -837,4 +844,46 @@ test("un ancien brief devient un mot-clé littéral et AIMS reste désactivé", 
   await expect(page.getByRole("button", { name: "Mode de recherche : Brief IA" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
   await expect(page.getByTestId("search-detected-criteria")).toHaveCount(0);
+});
+
+test("la barre mémorise et relance les recherches Catalogue", async ({ page }) => {
+  await page.goto("/search");
+  const search = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
+  await search.fill("piano intime");
+  await search.press("Enter");
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("piano intime");
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("parigo-recent-searches-v1") || "null")?.keyword?.[0]?.query)).toBe("piano intime");
+  await page.getByRole("button", { name: "Effacer la recherche" }).click();
+  await search.blur();
+  await search.focus();
+  const history = page.getByRole("listbox", { name: "Recherches récentes" });
+  const recentOption = history.getByRole("option", { name: /piano intime/i });
+  await expect(recentOption).toBeVisible();
+  await search.press("ArrowDown");
+  await expect(recentOption).toHaveAttribute("aria-selected", "true");
+  await search.press("Enter");
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("piano intime");
+});
+
+test("les historiques Catalogue et Brief IA restent séparés et s’effacent ensemble", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("parigo-recent-searches-v1", JSON.stringify({
+    version: 1,
+    keyword: [{ query: "Piano catalogue", updatedAt: Date.now() - 60_000 }],
+    ai: [{ query: "Film solaire", updatedAt: Date.now() - 120_000 }],
+  })));
+  await page.goto("/search");
+  const search = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
+  await search.focus();
+  let history = page.getByRole("listbox", { name: "Recherches récentes" });
+  await expect(history.getByRole("option", { name: /Piano catalogue/ })).toBeVisible();
+  await expect(history).not.toContainText("Film solaire");
+  await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  await page.getByRole("option", { name: /Brief IA/ }).click();
+  history = page.getByRole("listbox", { name: "Recherches récentes" });
+  await expect(history.getByRole("option", { name: /Film solaire/ })).toHaveCount(0);
+  await expect(history).not.toContainText("Piano catalogue");
+  await expect(history).toContainText("Aucune recherche récente dans ce mode.");
+  await page.getByRole("button", { name: "Tout effacer" }).click();
+  await expect(history.getByRole("option")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("parigo-recent-searches-v1") || "null"))).toEqual({ version: 1, keyword: [], ai: [] });
 });
