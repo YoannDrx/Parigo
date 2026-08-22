@@ -57,6 +57,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   const search = page.getByLabel("Rechercher dans le catalogue Parigo");
   const submitSearch = hero.getByRole("button", { name: "Rechercher", exact: true });
   await expect(submitSearch).toBeDisabled();
+  await page.mouse.move(0, 0);
   await search.evaluate((node) => node.blur());
   await expect.poll(() => searchBar.evaluate((node) => Number.parseFloat(getComputedStyle(node).borderTopLeftRadius))).toBeGreaterThan(5);
   const restingRadius = await searchBar.evaluate((node) => ({
