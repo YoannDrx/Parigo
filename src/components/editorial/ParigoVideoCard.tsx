@@ -90,7 +90,12 @@ export function ParigoVideoCard({
           </Heading>
         </div>
       </footer>
-      <Link href={href} className="editorial-video-card__mobile-link absolute inset-0 z-[2] rounded-[1.1rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] md:hidden" aria-label={detailLabel} />
+      <Link
+        href={href}
+        className="editorial-video-card__mobile-link absolute inset-0 z-[2] rounded-[1.1rem] md:hidden"
+        aria-hidden="true"
+        tabIndex={-1}
+      />
     </article>
   );
 }
