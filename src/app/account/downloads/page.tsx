@@ -58,7 +58,7 @@ export default function DownloadsPage() {
   }, [session?.user]);
 
   return (
-    <div className="account-page space-y-8">
+    <div className="account-page grid gap-[var(--space-account-flow)]">
       <AccountPageHeader
         icon={Download}
         eyebrow={locale === "fr" ? "Vos fichiers autorisés" : "Your authorised files"}

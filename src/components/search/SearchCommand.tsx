@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent, type KeyboardEvent, type MouseEvent } from "react";
 import { ArrowRight, Check, ChevronDown, Search, Sparkles, X } from "lucide-react";
 import { SearchAutocompleteMenu } from "@/components/search/SearchAutocompleteMenu";
 import { useSearchAutocomplete } from "@/hooks/use-search-autocomplete";
@@ -50,11 +50,14 @@ export function SearchCommand({
   const [focused, setFocused] = useState(false);
   const [mode, setMode] = useState<SearchMode>("keyword");
   const [modeMenuOpen, setModeMenuOpen] = useState(false);
+  const [modeMenuPlacement, setModeMenuPlacement] = useState<"top" | "bottom">("bottom");
+  const [compactViewport, setCompactViewport] = useState(false);
   const [aiDraft, setAiDraft] = useState("");
   const [filterAnnouncement, setFilterAnnouncement] = useState("");
   const [panelDismissed, setPanelDismissed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const modeSelectorRef = useRef<HTMLDivElement>(null);
+  const modeMenuRef = useRef<HTMLDivElement>(null);
   const keywordMode = mode === "keyword";
   const displayedValue = keywordMode ? value : aiDraft;
   const normalizedValue = displayedValue.trim();
@@ -74,6 +77,29 @@ export function SearchCommand({
   );
   const modeMenuId = `${id}-mode-menu`;
   const animatedAiSurface = variant === "hero" || variant === "workspace";
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 639px)");
+    const update = () => setCompactViewport(media.matches);
+    update();
+    media.addEventListener("change", update);
+    return () => media.removeEventListener("change", update);
+  }, []);
+
+  const resolveMenuPlacement = useCallback((menuHeight = 140) => {
+    const rect = modeSelectorRef.current?.getBoundingClientRect();
+    if (!rect) return "bottom" as const;
+    const safeEdge = 8;
+    const spaceBelow = window.innerHeight - rect.bottom - safeEdge;
+    const spaceAbove = rect.top - safeEdge;
+    return spaceBelow < menuHeight && spaceAbove > spaceBelow ? "top" as const : "bottom" as const;
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!modeMenuOpen) return;
+    const menuHeight = modeMenuRef.current?.getBoundingClientRect().height ?? 140;
+    setModeMenuPlacement(resolveMenuPlacement(menuHeight));
+  }, [modeMenuOpen, resolveMenuPlacement]);
 
   useEffect(() => {
     if (!modeMenuOpen) return;
@@ -165,6 +191,19 @@ export function SearchCommand({
     autocomplete.close();
     window.requestAnimationFrame(() => inputRef.current?.focus());
   };
+  const toggleModeMenu = () => {
+    setModeMenuOpen((open) => {
+      if (!open) setModeMenuPlacement(resolveMenuPlacement());
+      return !open;
+    });
+  };
+  const placeholder = compactViewport
+    ? locale === "fr"
+      ? keywordMode ? "Titre ou mots-clés…" : "Décrivez une scène…"
+      : keywordMode ? "Title or keywords…" : "Describe a scene…"
+    : locale === "fr"
+      ? keywordMode ? "Titre ou mots-clés en anglais…" : "Décrivez une scène, une émotion ou un usage…"
+      : keywordMode ? "Title or English keywords…" : "Describe a scene, emotion or use…";
 
   return (
     <section
@@ -222,10 +261,11 @@ export function SearchCommand({
                 aria-haspopup="listbox"
                 aria-expanded={modeMenuOpen}
                 aria-controls={modeMenuId}
-                onClick={() => setModeMenuOpen((open) => !open)}
+                onClick={toggleModeMenu}
                 onKeyDown={(event) => {
                   if (event.key === "ArrowDown") {
                     event.preventDefault();
+                    setModeMenuPlacement(resolveMenuPlacement());
                     setModeMenuOpen(true);
                   }
                   if (event.key === "Escape") setModeMenuOpen(false);
@@ -238,7 +278,7 @@ export function SearchCommand({
               </button>
 
               {modeMenuOpen ? (
-                <div id={modeMenuId} role="listbox" aria-label={locale === "fr" ? "Choisir le mode de recherche" : "Choose search mode"} className="search-mode-select__menu">
+                <div ref={modeMenuRef} id={modeMenuId} data-placement={modeMenuPlacement} role="listbox" aria-label={locale === "fr" ? "Choisir le mode de recherche" : "Choose search mode"} className="search-mode-select__menu">
                   <button type="button" role="option" aria-selected={keywordMode} className="search-mode-select__option" onClick={() => switchMode("keyword")}>
                     <Search size={17} aria-hidden="true" />
                     <span><strong>Catalogue</strong><small>{locale === "fr" ? "Titres, filtres et métadonnées" : "Titles, filters and metadata"}</small></span>
@@ -276,15 +316,9 @@ export function SearchCommand({
               aria-activedescendant={autocomplete.activeIndex >= 0 ? `${suggestionsId}-option-${autocomplete.activeIndex}` : undefined}
               autoComplete="off"
               maxLength={500}
-              placeholder={locale === "fr"
-                ? keywordMode
-                  ? "Titre ou mots-clés en anglais…"
-                  : "Décrivez une scène, une émotion ou un usage…"
-                : keywordMode
-                  ? "Title or English keywords…"
-                  : "Describe a scene, emotion or use…"}
+              placeholder={placeholder}
               className={cn(
-                "ai-search-input min-w-0 flex-1 bg-transparent px-2.5 text-[var(--foreground)] outline-none placeholder:text-current/42 sm:px-3",
+                "ai-search-input min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap bg-transparent px-2.5 text-[var(--foreground)] outline-none placeholder:text-current/42 sm:px-3",
                 variant === "hero" ? "h-14 text-sm sm:text-base md:h-16 md:text-lg" : "h-11 text-sm sm:text-base",
               )}
             />

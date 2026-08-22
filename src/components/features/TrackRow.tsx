@@ -42,6 +42,7 @@ interface TrackRowProps {
   showTags?: boolean;
   displayNumber?: string;
   groupedVersion?: boolean;
+  mobileLayout?: "default" | "dense";
 }
 
 const openMobileActionMenus = new Set<symbol>();
@@ -69,6 +70,7 @@ export function TrackRow({
   showTags = true,
   displayNumber,
   groupedVersion = false,
+  mobileLayout = "default",
 }: TrackRowProps) {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
@@ -217,6 +219,8 @@ export function TrackRow({
       ref={articleRef}
       data-track-id={track.id}
       data-density={density}
+      data-mobile-layout={mobileLayout}
+      data-has-cover={showAlbumCover && Boolean(album) && density !== "light" ? "true" : "false"}
       data-mobile-track-actions={mobileActionsOpen ? "open" : undefined}
       data-actions-open={mobileActionsOpen ? "true" : undefined}
       data-state={isCurrentTrack ? "playing" : "idle"}
@@ -341,7 +345,7 @@ export function TrackRow({
 
         {/* Waveform */}
         {showWaveform && density !== "light" && (
-          <div className="w-full">
+          <div className="parigo-track-row__waveform w-full">
             <TrackWaveform
               trackId={track.id}
               initialData={track.waveform}
@@ -352,7 +356,7 @@ export function TrackRow({
           </div>
         )}
         {density === "full" && track.description && <p className="parigo-track-row__description line-clamp-2 max-w-5xl text-xs leading-5 text-[var(--text-muted)]">{track.description}</p>}
-        <p className="font-mono text-[.6rem] text-[var(--text-muted)] sm:hidden">{formatDuration(track.duration)}{track.bpm ? ` · ${formatBPM(track.bpm)}` : ""}</p>
+        <p className="parigo-track-row__mobile-meta font-mono text-[.6rem] text-[var(--text-muted)] sm:hidden">{formatDuration(track.duration)}{track.bpm ? ` · ${formatBPM(track.bpm)}` : ""}</p>
       </div>
 
       {/* Tags - Hidden on small screens */}

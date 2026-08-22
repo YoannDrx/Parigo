@@ -83,7 +83,7 @@ export function ConsentAwareYouTubeEmbed(props: ConsentAwareYouTubeEmbedProps) {
       <div className="relative aspect-video overflow-hidden bg-black">
         <Image src={cover} alt={title} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover opacity-45" />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/45 p-6 text-center text-white">
-          <Play size={30} fill="currentColor" />
+          <Play size={30} fill="currentColor" className="text-[var(--signal)]" />
           <p className="max-w-lg text-sm leading-6 text-white/85">
             {locale === "fr"
               ? "Cette vidéo YouTube nécessite votre autorisation pour les médias et le marketing."
@@ -101,7 +101,7 @@ export function ConsentAwareYouTubeEmbed(props: ConsentAwareYouTubeEmbedProps) {
               href={youtubeUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 border border-white/55 px-4 text-sm font-semibold text-white"
+              className="parigo-button inline-flex min-h-11 items-center gap-2 border border-white/55 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-[12px]"
             >
               YouTube
               <ExternalLink size={15} />
@@ -133,7 +133,7 @@ export function ConsentAwareYouTubeEmbed(props: ConsentAwareYouTubeEmbedProps) {
           <button
             type="button"
             onClick={() => toggleClip(clip)}
-            className="grid h-16 w-16 place-items-center rounded-full border border-white/55 bg-black/62 text-white shadow-[0_18px_55px_rgba(0,0,0,.4)] backdrop-blur-md transition hover:scale-105 hover:bg-[var(--signal)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="grid h-16 w-16 place-items-center rounded-full border border-white/30 bg-white/10 text-[var(--signal)] shadow-[0_18px_55px_rgba(0,0,0,.28)] backdrop-blur-[12px] transition hover:scale-105 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label={playing
               ? (locale === "fr" ? `Mettre en pause ${title}` : `Pause ${title}`)
               : (locale === "fr" ? `Lire ${title}` : `Play ${title}`)}
@@ -149,7 +149,7 @@ export function ConsentAwareYouTubeEmbed(props: ConsentAwareYouTubeEmbedProps) {
     <ClipPlaybackAnchor clip={clip} className="aspect-video overflow-hidden bg-black" testId="clip-detail-player-anchor">
       <Image src={cover} alt={title} fill sizes="(max-width: 1024px) 100vw, 66vw" className="object-cover opacity-45" />
       <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/45 p-6 text-center text-white">
-        <Play size={30} fill="currentColor" />
+        <Play size={30} fill="currentColor" className="text-[var(--signal)]" />
         <p className="max-w-lg text-sm leading-6 text-white/85">
           {locale === "fr"
             ? "Cette vidéo YouTube nécessite votre autorisation pour les médias et le marketing."
@@ -167,7 +167,7 @@ export function ConsentAwareYouTubeEmbed(props: ConsentAwareYouTubeEmbedProps) {
             href={youtubeUrl}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex min-h-11 items-center gap-2 border border-white/55 px-4 text-sm font-semibold text-white"
+            className="parigo-button inline-flex min-h-11 items-center gap-2 border border-white/55 bg-white/10 px-4 text-sm font-semibold text-white backdrop-blur-[12px]"
           >
             YouTube
             <ExternalLink size={15} />

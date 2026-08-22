@@ -107,6 +107,22 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
 });
 
+test("le sélecteur du héros reste contenu sur un petit viewport", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Le placement adaptatif est contrôlé sur mobile.");
+  await page.setViewportSize({ width: 320, height: 568 });
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const input = hero.getByLabel("Rechercher dans le catalogue Parigo");
+  await expect(input).toHaveAttribute("placeholder", "Titre ou mots-clés…");
+  await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  const menu = hero.getByRole("listbox", { name: "Choisir le mode de recherche" });
+  await expect(menu).toBeVisible();
+  const box = await menu.boundingBox();
+  expect(box!.y).toBeGreaterThanOrEqual(8);
+  expect(box!.y + box!.height).toBeLessThanOrEqual(560);
+  await expect(menu).toHaveAttribute("data-placement", "top");
+});
+
 test("la home ne propose DeepL qu’après le lancement d’une recherche vide", async ({ page }) => {
   let submittedSearches = 0;
   await page.route("**/api/autocomplete?**", async (route) => {
@@ -587,6 +603,8 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     await expect(syncCaption).toBeHidden();
     const mobileFooter = firstSyncCard.locator(".editorial-card__mobile-footer");
     await expect(mobileFooter).toBeVisible();
+    await expect(mobileFooter).not.toContainText(/Synchronisation|Parigo Production Music|\b\d{4}\b/i);
+    expect((await mobileFooter.boundingBox())!.height).toBeLessThanOrEqual(64);
     await expect(firstSyncCard.getByRole("button", { name: /^Lire / })).toBeVisible();
     await expect(firstSyncCard.locator(".home-sync-card__frame").getByRole("link", { name: /^Voir le détail/ })).toBeVisible();
     await expect(firstSyncCard.locator(".editorial-video-card__mobile-link")).toBeVisible();
@@ -595,6 +613,13 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     await firstSyncCard.hover();
     await expect(syncCaption).toHaveCSS("opacity", "1");
     await expect(firstSyncCard.locator(".home-sync-card__image")).toHaveCSS("filter", "blur(5px)");
+  }
+  if (testInfo.project.name === "mobile") {
+    const clipCard = page.getByTestId("home-clips-section").locator(".parigo-video-card").first();
+    const clipFooter = clipCard.locator(".editorial-card__mobile-footer");
+    await expect(clipFooter).toBeVisible();
+    await expect(clipFooter).not.toContainText(/Clip Parigo|Parigo Production Music|\b\d{4}\b/i);
+    expect((await clipFooter.boundingBox())!.height).toBeLessThanOrEqual(64);
   }
   const syncHref = await firstSync.getAttribute("href");
   expect(syncHref).toMatch(/^\/synchronisations\/[^/]+$/);
@@ -617,14 +642,14 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await expect(page.getByTestId("persistent-clip-iframe")).toBeVisible();
 });
 
-test("les trois rails éditoriaux laissent apparaître exactement le fond de leur section", async ({ page }) => {
+test("les rails restent transparents et les cartes vidéo mobiles conservent leur surface", async ({ page }, testInfo) => {
   await page.goto("/");
   const sections = [
     page.locator("#featured"),
     page.getByTestId("home-clips-section"),
     page.getByTestId("home-sync-section"),
   ];
-  for (const section of sections) {
+  for (const [index, section] of sections.entries()) {
     await section.scrollIntoViewIfNeeded();
     const rail = section.locator(".home-rail").first();
     const card = rail.locator(".home-rail-card, .home-sync-card").first();
@@ -635,12 +660,14 @@ test("les trois rails éditoriaux laissent apparaître exactement le fond de leu
       const cardNode = node.querySelector<HTMLElement>(".home-rail-card, .home-sync-card");
       return {
         section: getComputedStyle(node).backgroundColor,
+        surface: getComputedStyle(document.querySelector<HTMLElement>("#featured")!).backgroundColor,
         rail: railNode ? getComputedStyle(railNode).backgroundColor : "",
         card: cardNode ? getComputedStyle(cardNode).backgroundColor : "",
       };
     });
     expect(colors.rail).toBe("rgba(0, 0, 0, 0)");
-    expect(colors.card).toBe(colors.section);
+    const usesMobileVideoSurface = testInfo.project.name === "mobile" && index > 0;
+    expect(colors.card).toBe(usesMobileVideoSurface ? colors.surface : colors.section);
   }
 });
 
@@ -846,8 +873,8 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
   const cta = section.getByRole("link", { name: "Découvrez nos talents" });
   await expect(cta).toHaveAttribute("href", "/talents");
+  await expect(cta).toHaveClass(/home-see-all/);
   await expect(cta).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
-  await expect(cta.locator("span")).toHaveCSS("text-decoration-line", "underline");
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
   const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/talents/"]');
   await expect(primaryCards).toHaveCount(63);
@@ -1049,6 +1076,82 @@ test("le player étendu mobile défile sans déplacer la page", async ({ page },
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(pageScroll);
 });
 
+test("le parallaxe About accompagne seul le récit de la home", async ({ page }) => {
+  await page.goto("/");
+  const about = page.getByTestId("home-about-parallax");
+  const aboutLayer = page.getByTestId("home-about-parallax-layer");
+
+  await expect(about).toHaveAttribute("data-parallax-static", "false");
+  await expect(about.getByRole("img", { name: "Studio PARIGO avec ses pochettes et sa collection de vinyles" })).toBeVisible();
+  await expect(about.locator("img")).toHaveAttribute("src", /01-home-studio-parigo-covers/);
+
+  const sampleParallax = async (section: typeof about, layer: typeof aboutLayer, minimumTravel: number) => {
+    const metrics = await section.evaluate((node) => {
+      const bounds = node.getBoundingClientRect();
+      return { top: bounds.top + window.scrollY, height: bounds.height };
+    });
+    await page.evaluate(({ top }) => window.scrollTo(0, Math.max(0, top - window.innerHeight * .78)), metrics);
+    await page.waitForTimeout(120);
+    const firstY = await layer.evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).m42);
+    await page.evaluate(({ top, height }) => window.scrollTo(0, top + height - window.innerHeight * .22), metrics);
+    await expect.poll(() => layer.evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).m42)).toBeGreaterThan(firstY + minimumTravel);
+  };
+
+  await sampleParallax(about, aboutLayer, 90);
+  await expect(page.getByTestId("home-parallax-interlude")).toHaveCount(0);
+  await expect(page.getByText("Quand la musique rencontre l’image", { exact: false })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+});
+
+test("le héros et les titres de sections partagent une chorégraphie directionnelle", async ({ page }) => {
+  await page.goto("/");
+  const heroContent = page.getByTestId("home-hero-content");
+  const heroWords = page.getByTestId("home-hero-title-word");
+  const descriptionLines = page.getByTestId("home-hero-description-line");
+  const heroSearch = page.getByTestId("home-hero-search-reveal");
+  const heroSearchMask = page.getByTestId("home-hero-search-mask");
+
+  await expect(heroContent).toHaveAttribute("data-home-hero-motion", "animated");
+  await expect(heroWords).toHaveCount(4);
+  await expect(descriptionLines).toHaveCount(2);
+  await expect(heroWords.last()).toHaveCSS("opacity", "1");
+  await expect(descriptionLines.last()).toHaveCSS("opacity", "1");
+  await expect(heroSearch).toHaveCSS("opacity", "1");
+  await expect(heroSearchMask).toHaveAttribute("data-banner-mask", "open");
+  await expect(heroSearchMask).toHaveCSS("overflow", "visible");
+
+  const heroOpacityBefore = Number.parseFloat(await heroContent.evaluate((node) => getComputedStyle(node).opacity));
+  await page.evaluate(() => window.scrollTo(0, window.innerHeight * .72));
+  await expect.poll(() => heroContent.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(heroOpacityBefore - .25);
+
+  const featuredReveal = page.locator('#featured [data-home-reveal="left"]').first();
+  await featuredReveal.scrollIntoViewIfNeeded();
+  await expect(featuredReveal).toHaveCSS("opacity", "1");
+
+  const clipsReveal = page.getByTestId("home-clips-section").locator('[data-home-reveal="right"]').first();
+  await clipsReveal.scrollIntoViewIfNeeded();
+  await expect(clipsReveal).toHaveCSS("opacity", "1");
+
+  const processReveal = page.locator('#process [data-home-reveal="top"]').first();
+  await processReveal.scrollIntoViewIfNeeded();
+  await expect(processReveal).toHaveCSS("opacity", "1");
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+});
+
+test("le parallaxe About devient statique en mouvement réduit", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const about = page.getByTestId("home-about-parallax");
+  await expect(about).toHaveAttribute("data-parallax-static", "true");
+  await expect(page.getByTestId("home-about-parallax-layer")).toHaveCSS("transform", "none");
+  await expect(page.getByTestId("home-parallax-interlude")).toHaveCount(0);
+  await expect(page.getByTestId("home-hero-content")).toHaveAttribute("data-home-hero-motion", "static");
+  await expect(page.getByTestId("home-hero-title-word").first()).toHaveCSS("transform", "none");
+  await expect(page.getByTestId("home-hero-description-line").first()).toHaveCSS("transform", "none");
+  await expect(page.getByTestId("home-hero-search-reveal")).toHaveCSS("transform", "none");
+  await expect(page.getByTestId("home-hero-search-mask")).toHaveAttribute("data-banner-mask", "open");
+});
+
 test("le showreel reste sans effet au survol et introduit la relation avec les compositeurs", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est contrôlé avec un pointeur desktop.");
   await page.goto("/");
@@ -1079,7 +1182,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   expect(cloudBox).not.toBeNull();
   expect(ctaBox).not.toBeNull();
   expect(ctaBox!.y - (cloudBox!.y + cloudBox!.height)).toBeGreaterThanOrEqual(0);
-  expect(ctaBox!.y - (cloudBox!.y + cloudBox!.height)).toBeLessThanOrEqual(12);
+  expect(ctaBox!.y - (cloudBox!.y + cloudBox!.height)).toBeLessThanOrEqual(18);
 });
 
 test("les logos clients défilent en bandeau entre les synchronisations et le fil Parigo", async ({ page }, testInfo) => {

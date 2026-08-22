@@ -3,10 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
 import type { CSSProperties } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { localizedPath } from "@/lib/locale";
+import { HomeReveal, HOME_MOTION_EASE, useHomeReducedMotion } from "./HomeMotion";
+import { HomeSeeAllLink } from "./HomeSeeAllLink";
 
 export type ComposerStreamProfile = {
   slug: string;
@@ -76,6 +77,7 @@ function ComposerStreamGroup({ profiles, duplicate = false, locale }: { profiles
 }
 
 export function ComposerRelationshipSection({ profiles, locale }: { profiles: ComposerStreamProfile[]; locale: "fr" | "en" }) {
+  const reduceMotion = useHomeReducedMotion();
   const description = locale === "fr"
     ? "Une musique ne naît jamais seule. Elle est le fruit d'une rencontre, d'une sensibilité et d'un dialogue entre ceux qui la composent et ceux qui la font vivre. Chez Parigo, nous plaçons cette relation au cœur de notre métier. Nous développons notre catalogue original aux côtés d'auteurs, de compositeurs et d'artistes de talent, dont nous accompagnons les parcours avec passion, convaincus que les plus belles collaborations s'inscrivent dans la durée."
     : "Music is never born alone. It grows from an encounter, a sensibility and a dialogue between those who compose it and those who bring it to life. At Parigo, we place this relationship at the heart of our work. We develop our original catalogue alongside talented writers, composers and artists, supporting their journeys with passion and the conviction that the finest collaborations are built to last.";
@@ -87,12 +89,21 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
     <section data-testid="home-composers" className="composer-relationship overflow-hidden border-b border-[var(--line)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
       <div className="mx-auto max-w-[1580px]">
         <header className="mx-auto max-w-[1180px] text-center">
-          <SignedTitle as="h2" className="text-[clamp(3rem,6.5vw,7rem)] font-semibold leading-[.88] tracking-[-.065em]">
-            {locale === "fr" ? "Les talents qui donnent vie à notre catalogue." : "The talents who bring our catalogue to life."}
-          </SignedTitle>
-          <p className="mx-auto mt-8 max-w-5xl text-base leading-7 text-[var(--text-muted)] md:text-lg md:leading-8">
+          <HomeReveal origin="left" viewportAmount={0.28}>
+            <SignedTitle as="h2" className="text-[clamp(3rem,6.5vw,7rem)] font-semibold leading-[.88] tracking-[-.065em]">
+              {locale === "fr" ? "Les talents qui donnent vie à notre catalogue." : "The talents who bring our catalogue to life."}
+            </SignedTitle>
+          </HomeReveal>
+          <motion.p
+            data-home-reveal="right"
+            initial={reduceMotion ? false : { opacity: 0, x: 84, rotate: 1.2, scale: 0.985 }}
+            whileInView={{ opacity: 1, x: 0, rotate: 0, scale: 1 }}
+            viewport={{ once: true, amount: .28 }}
+            transition={{ duration: reduceMotion ? 0 : .88, delay: reduceMotion ? 0 : .1, ease: HOME_MOTION_EASE }}
+            className="mx-auto mt-8 max-w-5xl text-base leading-7 text-[var(--text-muted)] md:text-lg md:leading-8"
+          >
             {description}
-          </p>
+          </motion.p>
         </header>
 
         <div
@@ -100,10 +111,10 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
           style={{ "--composer-cloud-duration": `${Math.max(72, profiles.length * 5)}s` } as CSSProperties}
         >
           <motion.div
-            initial={{ opacity: 0, y: 44 }}
+            initial={reduceMotion ? false : { opacity: 0, y: 44 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: .15 }}
-            transition={{ duration: .85, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: reduceMotion ? 0 : .85, ease: HOME_MOTION_EASE }}
             className="composer-cloud__viewport"
           >
             <div className="composer-cloud__track">
@@ -114,16 +125,13 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: .7 }}
-          transition={{ duration: .65, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-0 flex justify-center text-center md:mt-2"
+          transition={{ duration: reduceMotion ? 0 : .65, ease: HOME_MOTION_EASE }}
+          className="mt-4 flex justify-end text-right"
         >
-          <Link href={localizedPath(locale, "/talents")} className="group inline-flex max-w-4xl items-end justify-center gap-2 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)] md:text-base">
-            <span className="underline decoration-2 decoration-[var(--signal-strong)] underline-offset-[7px]">{cta}</span>
-            <ArrowUpRight size={17} className="mb-0.5 shrink-0 text-[var(--signal-strong)] transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-          </Link>
+          <HomeSeeAllLink href={localizedPath(locale, "/talents")}>{cta}</HomeSeeAllLink>
         </motion.div>
       </div>
     </section>

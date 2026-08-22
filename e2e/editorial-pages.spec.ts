@@ -257,6 +257,32 @@ test("le détail d’une synchronisation contient son titre et masque la descrip
   expect(await page.locator("main h1").evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
 });
 
+test("la playlist détail compacte ses actions et ses pistes sur mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La composition icon-only est réservée au mobile.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/playlists/22b6c3499f843b2d");
+  const actions = [
+    page.getByRole("button", { name: "Écouter la sélection" }),
+    page.getByRole("button", { name: "Lecture aléatoire" }),
+    page.getByRole("button", { name: "Copier dans mes playlists" }),
+  ];
+  const boxes = [];
+  for (const action of actions) {
+    await expect(action).toBeVisible({ timeout: 30_000 });
+    boxes.push((await action.boundingBox())!);
+  }
+  expect(new Set(boxes.map((box) => Math.round(box.y))).size).toBe(1);
+  for (const box of boxes) {
+    expect(box.width).toBeGreaterThanOrEqual(44);
+    expect(box.height).toBeGreaterThanOrEqual(44);
+  }
+  const tracksTitle = page.getByRole("heading", { level: 2, name: "Pistes" });
+  const firstTrack = page.locator('.parigo-track-row[data-mobile-layout="dense"]').first();
+  await expect(firstTrack).toBeVisible();
+  expect((await firstTrack.boundingBox())!.height).toBeLessThanOrEqual(152);
+  await expect(tracksTitle).toBeVisible();
+});
+
 test("previous/next disparaît de toutes les fiches de détail", async ({ page }) => {
   for (const path of [
     "/talents/minimatic",
@@ -458,7 +484,7 @@ test("les métriques publiques compactent le contenu après séparateur sur mobi
     expect(cardBox).not.toBeNull();
     expect(Math.abs(cardBox!.y - (heroBox!.y + heroBox!.height) - expectedGap)).toBeLessThanOrEqual(1);
     expect(metrics).toEqual(width < 768
-      ? { gutter: "1rem", divider: "1.5rem", section: "3rem" }
+      ? { gutter: "1rem", divider: "1.5rem", section: "2rem" }
       : { gutter: "2rem", divider: "4rem", section: "6rem" });
   }
 });

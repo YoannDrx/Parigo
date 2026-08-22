@@ -19,11 +19,14 @@ describe("LabelLogo", () => {
   });
 
   it("rend le fallback silencieux lorsqu’il accompagne déjà un nom visible", () => {
-    render(<LabelLogo src={null} name="Cosmic Library" decorative />);
+    render(<LabelLogo src={null} name="Cosmic Library" decorative fallbackVariant="monogram" />);
 
     const fallback = screen.getByTestId("label-logo-fallback");
     expect(fallback).toHaveAttribute("aria-hidden", "true");
     expect(fallback).not.toHaveAttribute("role");
+    expect(fallback).toHaveTextContent("CL");
+    expect(fallback).not.toHaveClass("border");
+    expect(fallback.querySelector(".rounded-full")).toBeNull();
   });
 
   it("remplace une image en erreur par le fallback du même label", () => {

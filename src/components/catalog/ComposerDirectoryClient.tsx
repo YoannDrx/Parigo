@@ -1,12 +1,12 @@
 "use client";
 
-import { Search, X } from "lucide-react";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import type { CanonicalComposerSummary } from "@/lib/composers/profiles";
 import type { Locale } from "@/i18n/messages";
 import { localizedPath } from "@/lib/locale";
+import { CatalogSearchField } from "@/components/search/CatalogSearchField";
 
 function normalizeSearchValue(value: string, locale: Locale) {
   return value
@@ -51,31 +51,15 @@ export function ComposerDirectoryClient({
 
   return (
     <>
-      <div className="composer-directory-search catalog-search-frame search-query-frame mb-8 flex min-h-14 items-center border border-[var(--line-strong)] bg-[var(--surface)] px-4 md:mb-10 md:max-w-2xl">
-        <Search aria-hidden="true" size={18} className="mr-3 shrink-0 text-[var(--signal-strong)]" />
-        <label htmlFor="composer-directory-search" className="sr-only">
-          {locale === "fr" ? "Rechercher un compositeur" : "Search composers"}
-        </label>
-        <input
-          id="composer-directory-search"
-          type="search"
-          autoComplete="off"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={locale === "fr" ? "Rechercher par nom…" : "Search by name…"}
-          className="h-14 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[var(--text-muted)]"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => setQuery("")}
-            className="grid h-11 w-11 shrink-0 place-items-center text-[var(--text-muted)] transition hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"
-            aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}
-          >
-            <X size={17} />
-          </button>
-        )}
-      </div>
+      <CatalogSearchField
+        id="composer-directory-search"
+        value={query}
+        onValueChange={setQuery}
+        placeholder={locale === "fr" ? "Rechercher par nom…" : "Search by name…"}
+        ariaLabel={locale === "fr" ? "Rechercher un compositeur" : "Search composers"}
+        clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"}
+        className="mb-6 md:mb-10 md:max-w-2xl"
+      />
       <p className="sr-only" role="status" aria-live="polite">
         {visibleCredits.length} {locale === "fr" ? "crédits affichés" : "credits shown"}
       </p>

@@ -129,7 +129,7 @@ export default function AccountPage() {
     { key: "phone", fr: "Téléphone", en: "Phone", type: "tel" }, { key: "website", fr: "Site web", en: "Website", type: "url" },
   ];
 
-  return <div className="account-page space-y-8">
+  return <div className="account-page grid gap-[var(--space-account-flow)]">
     <AccountPageHeader icon={User} eyebrow={locale === "fr" ? "Membre Parigo" : "Parigo member"} title={t("account.profile")} description={locale === "fr" ? "Retrouvez et mettez à jour les informations liées à votre compte." : "View and update the information associated with your account."} />
 
     <section className="parigo-frame grid gap-6 border border-[var(--line)] bg-[var(--surface)] p-6 md:grid-cols-[auto_1fr] md:p-8">

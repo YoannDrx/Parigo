@@ -513,7 +513,7 @@ function SearchContent() {
   return (
     <div className="page-shell flex min-h-screen min-w-0 flex-col overflow-x-clip">
       <Header />
-      <main className="min-w-0 flex-1 overflow-x-clip pb-28 pt-[74px]">
+      <main className="min-w-0 flex-1 overflow-x-clip pb-[var(--space-page-end)] pt-[74px]">
         <h1 className="sr-only">{t("common.search")}</h1>
         <div className="mx-auto grid max-w-[1920px] items-start gap-4 px-3 pb-3 pt-1 sm:px-4 sm:py-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
@@ -641,7 +641,7 @@ function SearchContent() {
                       : [];
                     return (
                       <section key={track.id} data-search-track-group={track.id}>
-                        <TrackRow track={track} album={albumFromTrack(track)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index} displayNumber={String(mainNumber)} showAlbumCover compact={density !== "full"} density={density} showCompleteActions />
+                        <TrackRow track={track} album={albumFromTrack(track)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index} displayNumber={String(mainNumber)} showAlbumCover compact={density !== "full"} density={density} showCompleteActions mobileLayout="dense" />
                         {type === "all" && (alternates.length > 0 || stems.length > 0) && (
                           <div className="search-version-branch relative ml-5 border-l border-[color-mix(in_srgb,var(--signal)_58%,transparent)] pl-3 sm:ml-10 sm:pl-5">
                             <div className="flex min-h-9 flex-wrap items-center gap-3 border-b border-[var(--line)] px-2 font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">
@@ -650,7 +650,7 @@ function SearchContent() {
                             </div>
                             {alternates.map((alternate, alternateIndex) => (
                               <div key={alternate.id} data-track-kind="alternate">
-                                <TrackRow track={alternate} album={albumFromTrack(alternate)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index + alternateIndex + 1} displayNumber={`${mainNumber}.${alternateIndex + 1}`} groupedVersion showAlbumCover={false} density="mid" showCompleteActions />
+                                <TrackRow track={alternate} album={albumFromTrack(alternate)} queue={trackQueue} index={(page - 1) * PAGE_SIZE + index + alternateIndex + 1} displayNumber={`${mainNumber}.${alternateIndex + 1}`} groupedVersion showAlbumCover={false} density="mid" showCompleteActions mobileLayout="dense" />
                               </div>
                             ))}
                             {stems.length > 0 && (

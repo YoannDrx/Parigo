@@ -3,7 +3,6 @@ export { AlbumCarousel } from "./AlbumCarousel";
 export { Carousel } from "./Carousel";
 export { TrackRow } from "./TrackRow";
 export { PlaylistCard } from "./PlaylistCard";
-export { SearchBar } from "./SearchBar";
 export { MiniPlayer } from "./MiniPlayer";
 export { Waveform, generateWaveformData } from "./Waveform";
 export { WaveformPlayer } from "./WaveformPlayer";

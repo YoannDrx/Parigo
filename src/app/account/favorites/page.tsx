@@ -8,7 +8,8 @@ import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useSession } from "@/lib/auth-client";
 import { TrackRow } from "@/components/features";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { Button, Input, Select } from "@/components/ui";
+import { Button, Select } from "@/components/ui";
+import { CatalogSearchField } from "@/components/search/CatalogSearchField";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Album, Track } from "@/types";
 
@@ -63,7 +64,7 @@ export default function FavoritesPage() {
   const filtersActive = Boolean(query.trim()) || category !== "all";
 
   return (
-    <div className="account-page space-y-8">
+    <div className="account-page grid gap-[var(--space-account-flow)]">
       <AccountPageHeader
         icon={Heart}
         eyebrow={locale === "fr" ? "Vos favoris" : "Your favourites"}
@@ -73,7 +74,7 @@ export default function FavoritesPage() {
 
       {!isLoading && activeTotal > 0 && (
         <section aria-label={locale === "fr" ? "Rechercher et filtrer les favoris" : "Search and filter favourites"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(16rem,1fr)_minmax(16rem,19rem)_auto] md:items-center">
-          <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Titre, album, humeur, instrument…" : "Title, album, mood, instrument…"} aria-label={locale === "fr" ? "Rechercher dans mes favoris" : "Search my favourites"} />
+          <CatalogSearchField id="account-favorites-search" value={query} onValueChange={setQuery} placeholder={locale === "fr" ? "Titre, album, humeur, instrument…" : "Title, album, mood, instrument…"} ariaLabel={locale === "fr" ? "Rechercher dans mes favoris" : "Search my favourites"} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" />
           <Select value={category} onValueChange={setCategory} ariaLabel={locale === "fr" ? "Filtrer les favoris" : "Filter favourites"} options={[{ value: "all", label: locale === "fr" ? "Tous les genres et humeurs" : "All genres and moods" }, ...categories.map((value) => ({ value, label: value }))]} className="[&_[role=combobox]]:min-h-11" />
           {filtersActive && <Button variant="ghost" className="justify-self-start px-3 md:justify-self-end" onClick={() => { setQuery(""); setCategory("all"); }}><X size={15} />{locale === "fr" ? "Effacer" : "Clear"}</Button>}
           <p className="text-xs text-[var(--text-muted)] md:col-span-3">{activeFilteredTotal} {locale === "fr" ? `sur ${activeTotal} élément${activeTotal > 1 ? "s" : ""}` : `of ${activeTotal} item${activeTotal > 1 ? "s" : ""}`}</p>

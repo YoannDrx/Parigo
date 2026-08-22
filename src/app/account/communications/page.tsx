@@ -40,7 +40,7 @@ export default function CommunicationsPage() {
     return () => controller.abort();
   }, [locale]);
 
-  return <div className="account-page space-y-8">
+  return <div className="account-page grid gap-[var(--space-account-flow)]">
     <AccountPageHeader
       icon={Mail}
       eyebrow={locale === "fr" ? "Messages transactionnels" : "Transactional messages"}

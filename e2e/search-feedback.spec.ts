@@ -803,6 +803,26 @@ test("le détail de piste mobile devient une sheet scrollable et contenue", asyn
   await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("");
 });
 
+test("les pistes de recherche utilisent la grille mobile dense", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La grille dense est contrôlée sur mobile.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/search?q=piano&view=tracks&type=main");
+  const row = page.locator(".parigo-track-row").first();
+  await expect(row).toBeVisible({ timeout: 30_000 });
+  await expect(row).toHaveAttribute("data-mobile-layout", "dense");
+  const [rowBox, titleBox, coverBox, waveformBox, actionsBox] = await Promise.all([
+    row.boundingBox(),
+    row.locator(".parigo-track-row__title").boundingBox(),
+    row.locator(".parigo-track-row__cover").boundingBox(),
+    row.locator(".parigo-track-row__waveform").boundingBox(),
+    row.locator(".parigo-track-row__actions").boundingBox(),
+  ]);
+  expect(rowBox!.height).toBeLessThanOrEqual(152);
+  expect(Math.abs(titleBox!.x - coverBox!.x)).toBeLessThanOrEqual(1);
+  expect(titleBox!.x + titleBox!.width).toBeLessThanOrEqual(actionsBox!.x + 1);
+  expect(waveformBox!.x + waveformBox!.width).toBeGreaterThan(actionsBox!.x + actionsBox!.width - 2);
+});
+
 test("un ancien brief devient un mot-clé littéral et AIMS reste désactivé", async ({ page }) => {
   await page.goto("/search?brief=mariage&resolve=1&view=tracks&translate=0");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("mariage");

@@ -37,9 +37,9 @@ export function Footer() {
   ];
 
   return (
-    <footer className="parigo-footer relative overflow-hidden bg-[#0b110d] px-4 pb-7 pt-12 text-[#f2f1ed] md:px-8 md:pt-16">
+    <footer className="parigo-footer relative overflow-hidden bg-[#0b110d] px-4 pb-7 pt-[var(--space-footer-top)] text-[#f2f1ed] md:px-8">
       <div className="relative mx-auto max-w-[1680px]">
-        <div className="grid gap-12 border-b border-current/18 pb-12 lg:grid-cols-12 lg:gap-8 lg:pb-16">
+        <div className="grid gap-8 border-b border-current/18 pb-8 lg:grid-cols-12 lg:gap-8 lg:pb-16">
           <div className="lg:col-span-4">
             <div className="w-fit">
               <Link href={localizedPath("/")} aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group flex focus-visible:outline-offset-8"><ParigoLogo className="text-[clamp(2.8rem,5vw,5.2rem)]" /></Link>

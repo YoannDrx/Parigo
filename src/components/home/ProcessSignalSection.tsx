@@ -1,8 +1,9 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
 import { useRef } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
+import { HomeReveal, useHomeReducedMotion } from "./HomeMotion";
 
 function ProcessStep({ number, title, copy, progress, index, stepLabel, reduceMotion }: { number: string; title: string; copy: string; progress: MotionValue<number>; index: number; stepLabel: string; reduceMotion: boolean }) {
   const start = .12 + index * .18;
@@ -22,7 +23,7 @@ function ProcessStep({ number, title, copy, progress, index, stepLabel, reduceMo
 
 export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHomeReducedMotion();
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start 84%", "end 45%"] });
   const steps = locale === "fr" ? [
     ["01", "Décrivez", "Une scène, une émotion, un rythme ou quelques références suffisent pour lancer la recherche."],
@@ -37,7 +38,7 @@ export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
   return (
     <section id="process" ref={sectionRef} className="relative px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
       <div className="mx-auto max-w-[1580px]">
-        <div className="mb-[var(--space-heading-content)]"><SignedTitle as="h2" className="max-w-5xl text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle></div>
+        <HomeReveal origin="top" className="mb-[var(--space-heading-content)]"><SignedTitle as="h2" className="max-w-5xl text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle></HomeReveal>
         <div className="process-shell relative isolate overflow-hidden border border-white/14 bg-[#090c09] shadow-[0_34px_100px_rgba(5,10,6,.22)]">
           <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(145deg,rgba(72,191,103,.13),transparent_42%),linear-gradient(180deg,rgba(255,255,255,.025),transparent_70%)]" />
           <div className="relative border-b border-white/12 px-5 py-4 md:px-8 md:py-5">

@@ -75,7 +75,7 @@ export default function HistoryPage() {
   }, [history, locale]);
 
   return (
-    <div className="account-page space-y-8">
+    <div className="account-page grid gap-[var(--space-account-flow)]">
       <AccountPageHeader
         icon={Clock}
         eyebrow={locale === "fr" ? "Le fil de vos écoutes" : "Your listening trail"}
@@ -105,7 +105,7 @@ export default function HistoryPage() {
           </p>
         </motion.div>
       ) : (
-        <div className="space-y-8">
+        <div className="grid gap-[var(--space-account-flow)]">
           {Object.entries(groupedHistory).map(([date, entries], groupIndex) => (
             <motion.details
               key={date}

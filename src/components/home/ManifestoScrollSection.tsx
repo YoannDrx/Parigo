@@ -1,11 +1,12 @@
 "use client";
 
-import { motion, useInView, useReducedMotion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import {
   ShowreelSoundButton,
   useShowreelAudio,
 } from "@/components/providers/ShowreelAudioProvider";
+import { useHomeReducedMotion } from "./HomeMotion";
 
 const SHOWREEL_SOURCE = "/videos/garden-of-eden-showreel.mp4";
 const SHOWREEL_POSTER = "/images/home/garden-of-eden-poster.jpg";
@@ -55,7 +56,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const soundWasCenteredRef = useRef(false);
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useHomeReducedMotion();
   const inView = useInView(sectionRef, { amount: .08 });
   const [playbackStarted, setPlaybackStarted] = useState(false);
   const [revealFallbackElapsed, setRevealFallbackElapsed] = useState(false);

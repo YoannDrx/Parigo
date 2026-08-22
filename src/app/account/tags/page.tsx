@@ -125,7 +125,7 @@ export default function TagsPage() {
     else setMessage(payload?.error?.message || "Parigo error");
   };
 
-  return <div className="account-page space-y-8">
+  return <div className="account-page grid gap-[var(--space-account-flow)]">
     <AccountPageHeader icon={Tag} eyebrow={locale === "fr" ? "Votre classement" : "Your filing system"} title={locale === "fr" ? "Tags personnels" : "Personal tags"} description={locale === "fr" ? "Classez les pistes avec vos tags personnels Parigo. Ils restent liés à votre compte." : "Organise tracks with your personal Parigo tags. They stay attached to your account."} />
     {message && <p role="alert" className="parigo-frame border border-red-300 bg-[var(--surface)] p-3 text-sm text-red-700">{message}</p>}
     <form onSubmit={create} className="account-toolbar flex max-w-xl gap-2"><Input value={name} onChange={(event) => setName(event.target.value)} placeholder={locale === "fr" ? "Nom du nouveau tag" : "New tag name"} /><Button type="submit"><Plus size={17} />{locale === "fr" ? "Créer" : "Create"}</Button></form>

@@ -84,9 +84,9 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
             <>
               <div data-testid="labels-mobile-list" className="border-t border-[var(--line)] md:hidden">
                 {visibleLabels.map((label) => (
-                  <Link key={label.id} href={localizedPath(`/labels/${label.slug}`)} className="group grid min-h-24 min-w-0 grid-cols-[4.5rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--signal-strong)]">
-                    <span className="relative h-14 w-[4.5rem] overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
-                      <LabelLogo src={label.logo} name={label.name} decorative fill sizes="72px" fallbackSize={36} className="object-contain p-1.5" />
+                  <Link key={label.id} href={localizedPath(`/labels/${label.slug}`)} className="group grid min-h-[5.25rem] min-w-0 grid-cols-[6.5rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--signal-strong)]">
+                    <span className="relative h-[4.25rem] w-[6.5rem] overflow-hidden">
+                      <LabelLogo src={label.logo} name={label.name} decorative fill sizes="104px" fallbackSize={40} fallbackVariant="monogram" className="object-contain p-0.5" />
                     </span>
                     <h2 className="line-clamp-2 min-w-0 break-words text-base font-semibold leading-[1.12] tracking-[-.025em]">{label.name}</h2>
                     <span className="flex min-w-11 flex-col items-end gap-1 pr-1 text-xs text-[var(--text-muted)]"><span className="flex items-center gap-1.5 whitespace-nowrap"><Disc3 size={13} />{label.albumCount}</span><ArrowUpRight size={15} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>

@@ -97,9 +97,15 @@ test("les labels mobiles utilisent une liste logo-first unique", async ({ page }
   const rows = list.locator('a[href^="/labels/"]');
   const [first, second] = await Promise.all([rows.nth(0).boundingBox(), rows.nth(1).boundingBox()]);
   expect(first!.width).toBeGreaterThanOrEqual(280);
-  expect(first!.height).toBeGreaterThanOrEqual(96);
+  expect(first!.height).toBeGreaterThanOrEqual(84);
   expect(second!.y).toBeGreaterThan(first!.y + first!.height - 1);
   await expect(rows.first().locator("img, [data-testid='label-logo-fallback']")).toHaveCount(1);
+  const fallback = list.locator("[data-testid='label-logo-fallback']").first();
+  if (await fallback.count()) {
+    await expect(fallback).not.toContainText("PM");
+    await expect(fallback).toHaveCSS("border-top-width", "0px");
+    await expect(fallback.locator(".rounded-full")).toHaveCount(0);
+  }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(320);
 });
 
