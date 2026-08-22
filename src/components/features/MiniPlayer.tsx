@@ -209,6 +209,11 @@ export function MiniPlayer() {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
+      if (event.key === "Escape" && isExpanded) {
+        event.preventDefault();
+        setIsExpanded(false);
+        return;
+      }
       if (event.code === "Space") {
         event.preventDefault();
         if (isPlaying) pause(); else resume();
@@ -218,7 +223,7 @@ export function MiniPlayer() {
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [isPlaying, next, pause, previous, resume]);
+  }, [isExpanded, isPlaying, next, pause, previous, resume]);
 
   // Handle seek on static waveform
   const handleStaticSeek = useCallback((percent: number) => {
@@ -248,6 +253,19 @@ export function MiniPlayer() {
 
   return (
     <AnimatePresence>
+      {isExpanded && isMobile ? (
+        <motion.button
+          key="mobile-player-backdrop"
+          type="button"
+          aria-label={locale === "fr" ? "Fermer le panneau du lecteur" : "Close player panel"}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: .22 }}
+          onClick={() => setIsExpanded(false)}
+          className="fixed inset-0 z-[55] cursor-default bg-black/38 backdrop-blur-[1px] motion-reduce:transition-none"
+        />
+      ) : null}
       <motion.aside
         data-testid="player-dock"
         data-player-instance={playerInstanceId}

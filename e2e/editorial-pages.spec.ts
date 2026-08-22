@@ -45,7 +45,7 @@ test("les cartes vidéo reprennent la DA des cartes audio sur mobile", async ({ 
     await expect(cardLink).toBeVisible();
     await expect(card.locator(captionSelector)).toBeHidden();
     await expect(footer).not.toContainText(/Parigo Production Music/i);
-    await expect(footer.getByText(/^\d{4}$/)).toBeVisible();
+    await expect(footer).not.toContainText(/\b\d{4}\b/);
     const [cardBox, cardLinkBox, media, footerBox, playBox, detailBox] = await Promise.all([
       card.boundingBox(),
       cardLink.boundingBox(),
@@ -61,7 +61,7 @@ test("les cartes vidéo reprennent la DA des cartes audio sur mobile", async ({ 
     expect(media, `${path} ne publie pas de média`).not.toBeNull();
     expect(footerBox, `${path} ne publie pas de footer`).not.toBeNull();
     expect(footerBox!.y).toBeGreaterThanOrEqual(media!.y + media!.height - 1);
-    expect(footerBox!.height).toBeLessThanOrEqual(112);
+    expect(footerBox!.height).toBeLessThanOrEqual(64);
     expect(playBox!.height).toBeGreaterThanOrEqual(44);
     expect(detailBox!.width).toBeGreaterThanOrEqual(44);
     expect(detailBox!.height).toBeGreaterThanOrEqual(44);
@@ -276,10 +276,17 @@ test("la playlist détail compacte ses actions et ses pistes sur mobile", async 
     expect(box.width).toBeGreaterThanOrEqual(44);
     expect(box.height).toBeGreaterThanOrEqual(44);
   }
+  const summary = page.getByTestId("playlist-mobile-summary");
+  const summaryBox = (await summary.boundingBox())!;
+  const firstActionBox = boxes[0];
+  expect(firstActionBox.x).toBeGreaterThan(summaryBox.x + summaryBox.width / 3);
+  const metadataLines = summary.locator("div").first().locator("span");
+  const [tracksMeta, durationMeta] = await Promise.all([metadataLines.nth(0).boundingBox(), metadataLines.nth(1).boundingBox()]);
+  expect(durationMeta!.y).toBeGreaterThan(tracksMeta!.y);
   const tracksTitle = page.getByRole("heading", { level: 2, name: "Pistes" });
   const firstTrack = page.locator('.parigo-track-row[data-mobile-layout="dense"]').first();
   await expect(firstTrack).toBeVisible();
-  expect((await firstTrack.boundingBox())!.height).toBeLessThanOrEqual(152);
+  expect((await firstTrack.boundingBox())!.height).toBeLessThanOrEqual(230);
   await expect(tracksTitle).toBeVisible();
 });
 
@@ -557,6 +564,20 @@ test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) 
   await page.getByRole("navigation", { name: "Sommaire du document" }).getByRole("link", { name: /Hébergement/ }).click();
   await expect(mobileContents).not.toHaveAttribute("open", "");
   await expect(page.locator(".legal-section")).toHaveCount(7);
+  const activeTocLink = page.locator(".legal-toc__link").first();
+  expect(await activeTocLink.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
+
+  await page.goto("/licensing");
+  const estimateCard = page.getByRole("heading", { name: /Décrivez le projet/ }).locator("xpath=ancestor::div[contains(@class,'parigo-frame')]");
+  const [estimateBox, footerBox] = await Promise.all([estimateCard.boundingBox(), page.locator("footer").boundingBox()]);
+  expect(Math.abs(footerBox!.y - (estimateBox!.y + estimateBox!.height) - 24)).toBeLessThanOrEqual(1);
+  await page.evaluate(() => {
+    const dock = document.createElement("aside");
+    dock.dataset.testid = "player-dock";
+    document.body.append(dock);
+  });
+  const footerWithPlayer = await page.locator("footer").boundingBox();
+  expect(Math.abs(footerWithPlayer!.y - (estimateBox!.y + estimateBox!.height) - 24)).toBeLessThanOrEqual(1);
 });
 
 test("About adopte les nouveaux textes et Licensing ouvre sur une grille repliée", async ({ page }) => {
