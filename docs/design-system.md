@@ -10,18 +10,23 @@ Les limites de pages et de sections utilisent les variables sémantiques de `src
 | `--space-page-top` | `7rem` | `9rem` | Header vers le début d’un héros |
 | `--space-page-hero-bottom` | `2rem` | `5rem` | Cadre du héros vers son séparateur |
 | `--space-divider-content` | `1.5rem` | `4rem` | Séparateur vers le premier contenu |
-| `--space-section-y` | `3rem` | `6rem` | Section standard |
-| `--space-section-y-large` | `4rem` | `8rem` | Section Home ou éditoriale ample |
-| `--space-heading-content` | `2rem` | `3rem` | Titre vers grille, rail ou contenu |
-| `--space-block-gap` | `2rem` | `3.5rem` | Deux blocs d’une même section |
+| `--space-section-y` | `2rem` | `6rem` | Section standard |
+| `--space-section-y-large` | `3rem` | `8rem` | Section Home ou éditoriale ample |
+| `--space-heading-content` | `1.5rem` | `3rem` | Titre vers grille, rail ou contenu |
+| `--space-block-gap` | `1.5rem` | `3.5rem` | Deux blocs d’une même section |
 | `--space-grid-x` | `1rem` | `1.5rem` | Colonnes et grilles de cartes superposées |
-| `--space-grid-y` | `2rem` | `3rem` | Lignes de cartes avec légende extérieure |
+| `--space-grid-y` | `1.5rem` | `3rem` | Lignes de cartes avec légende extérieure |
+| `--space-page-end` | `1.5rem` | `6rem` | Dernier contenu vers le footer |
+| `--space-footer-top` | `2rem` | `4rem` | Séparateur du footer vers le logo |
+| `--space-account-flow` | `1.5rem` | `2rem` | Rythme vertical de l’espace compte |
 
 ## Règles
 
 - Une frontière n’a qu’un responsable : le héros possède l’espace avant son séparateur et la section suivante possède l’espace après celui-ci.
 - Le premier enfant d’une section ne rajoute pas de marge structurelle au `padding` de son parent.
+- Dans une fiche détail, la section suivante porte l’écart : le bloc précédent ne cumule pas son propre padding inférieur.
+- Le `main` porte `--space-page-end`; le footer ne rajoute aucune marge extérieure. Une réserve de lecteur fixe n’est ajoutée que lorsque le lecteur est réellement monté.
 - Les grilles de médias avec texte superposé utilisent `--space-grid-x` dans les deux axes. Les catalogues avec légende sous la pochette utilisent `--space-grid-x` horizontalement et `--space-grid-y` verticalement.
 - Sous `768 px`, les sections standard restent compactes. À partir de `768 px`, la même hiérarchie respire davantage sans modifier les largeurs maximales.
 - La compacité ne réduit jamais une cible interactive sous `44 × 44 px`.
-- Les pages de compte et d’authentification ont leur propre shell et ne consomment pas automatiquement ces règles publiques.
+- Les surfaces publiques et l’espace compte consomment ces règles. Les routes d’authentification et `moods-photos` restent explicitement hors périmètre.

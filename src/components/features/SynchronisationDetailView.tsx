@@ -27,7 +27,7 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   return (
     <div className="page-shell min-h-screen">
       <Header />
-      <main className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
+      <main className="px-[var(--space-page-gutter)] pb-[var(--space-page-end)] pt-[var(--space-page-top)]">
         <div className="mx-auto max-w-[1440px]">
           <ContextualBackLink href={localizedPath("/synchronisations")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
@@ -58,7 +58,7 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
               </dl>
 
               <div className="mt-auto grid gap-3 pt-8">
-                <a href={`https://www.youtube.com/watch?v=${sync.youtubeId}`} target="_blank" rel="noreferrer" className="group flex min-h-12 items-center justify-between border border-[var(--line)] bg-[var(--surface-soft)] px-4 text-sm font-semibold transition hover:border-[var(--signal-strong)] hover:bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))] hover:text-[var(--signal-strong)]">
+                <a href={`https://www.youtube.com/watch?v=${sync.youtubeId}`} target="_blank" rel="noreferrer" className="parigo-button group flex min-h-12 items-center justify-between border border-[var(--line-strong)] bg-transparent px-4 text-sm font-semibold transition hover:border-[var(--signal-strong)] hover:bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))] hover:text-[var(--signal-strong)] focus-visible:border-[var(--signal-strong)]">
                   <span>{locale === "fr" ? "Voir sur YouTube" : "Watch on YouTube"}</span>
                   <ArrowUpRight size={15} />
                 </a>

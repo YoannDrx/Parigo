@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SignedTitle } from "@/components/ui/SignedTitle";
+import { HomeReveal } from "./HomeMotion";
 
 const TRUSTED_CLIENTS = [
   { name: "Disney+", src: "/images/partners/disney-plus-clean.png", width: 1149, height: 660, logoClass: "max-h-[5.5rem] max-w-[82%]" },
@@ -50,18 +51,20 @@ export function PartnerMarquee() {
     <section data-testid="home-partners-section" className="partner-section relative overflow-hidden border-y border-white/12 bg-[#0b110d] py-[var(--space-section-y-large)] text-white">
       <div className="partner-section__glow" aria-hidden="true" />
       <div className="relative mx-auto max-w-[1580px] px-4 md:px-8">
-        <div>
+        <HomeReveal origin="right">
           <SignedTitle as="h2" variant="section" className="max-w-[11ch] text-white">
             {locale === "fr" ? "Ils nous font confiance." : "They trust us."}
           </SignedTitle>
-        </div>
+        </HomeReveal>
       </div>
-      <div className="partner-marquee relative mt-[var(--space-heading-content)] border-y border-white/12 py-3 md:py-4" aria-label={locale === "fr" ? "Clients Parigo" : "Parigo clients"}>
-        <div className="partner-marquee__track">
-          <ClientLogoList />
-          <ClientLogoList duplicate />
+      <HomeReveal origin="bottom" delay={0.1}>
+        <div className="partner-marquee relative mt-[var(--space-heading-content)] border-y border-white/12 py-3 md:py-4" aria-label={locale === "fr" ? "Clients Parigo" : "Parigo clients"}>
+          <div className="partner-marquee__track">
+            <ClientLogoList />
+            <ClientLogoList duplicate />
+          </div>
         </div>
-      </div>
+      </HomeReveal>
     </section>
   );
 }

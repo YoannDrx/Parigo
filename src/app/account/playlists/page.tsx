@@ -15,6 +15,7 @@ import { ViewModeControl } from "@/components/ui/ViewModeControl";
 import { useParigoModalMotion } from "@/hooks/use-parigo-modal-motion";
 import { formatParigoDate } from "@/lib/date-time";
 import type { MemberPlaylistCategory } from "@/types";
+import { CatalogSearchField } from "@/components/search/CatalogSearchField";
 
 interface UserPlaylist {
   id: string;
@@ -306,7 +307,7 @@ export default function PlaylistsPage() {
       : categories.find((category) => category.id === categoryFilter)?.name || (locale === "fr" ? "Dossier" : "Folder");
 
   return (
-    <div className="account-page space-y-8">
+    <div className="account-page grid gap-[var(--space-account-flow)]">
       <AccountPageHeader
         icon={ListMusic}
         eyebrow={locale === "fr" ? "Vos sélections" : "Your selections"}
@@ -400,7 +401,7 @@ export default function PlaylistsPage() {
 
       {!isLoading && playlists.length > 0 && (
         <section aria-label={locale === "fr" ? "Rechercher et trier les playlists" : "Search and sort playlists"} className="account-toolbar grid gap-3 md:grid-cols-[minmax(15rem,1fr)_12rem_auto] md:items-center">
-          <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Rechercher une playlist…" : "Search playlists…"} aria-label={locale === "fr" ? "Rechercher dans mes playlists" : "Search my playlists"} />
+          <CatalogSearchField id="account-playlists-search" value={query} onValueChange={setQuery} placeholder={locale === "fr" ? "Rechercher une playlist…" : "Search playlists…"} ariaLabel={locale === "fr" ? "Rechercher dans mes playlists" : "Search my playlists"} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" />
           <Select value={sort} onValueChange={setSort} ariaLabel={locale === "fr" ? "Trier les playlists" : "Sort playlists"} options={[
             { value: "recent", label: locale === "fr" ? "Plus récentes" : "Most recent" },
             { value: "title", label: locale === "fr" ? "Titre A–Z" : "Title A–Z" },

@@ -14,6 +14,7 @@ interface LabelLogoProps {
   sizes?: string;
   fallbackSize?: number;
   priority?: boolean;
+  fallbackVariant?: "mark" | "monogram";
 }
 
 export function LabelLogo({
@@ -27,6 +28,7 @@ export function LabelLogo({
   sizes,
   fallbackSize = 44,
   priority = false,
+  fallbackVariant = "mark",
 }: LabelLogoProps) {
   const [failed, setFailed] = useState(false);
 
@@ -39,7 +41,7 @@ export function LabelLogo({
         aria-label={decorative ? undefined : name}
         aria-hidden={decorative || undefined}
         data-testid="label-logo-fallback"
-        className={`grid place-items-center overflow-hidden border border-[var(--line-strong)] bg-[var(--surface-soft)] text-[var(--foreground)] ${fill ? "absolute inset-0" : ""} ${className ?? ""}`}
+        className={`grid place-items-center overflow-hidden text-[var(--foreground)] ${fallbackVariant === "mark" ? "border border-[var(--line-strong)] bg-[var(--surface-soft)]" : ""} ${fill ? "absolute inset-0" : ""} ${className ?? ""}`}
         style={{
           width: fill ? undefined : width,
           height: fill ? undefined : height,
@@ -47,14 +49,7 @@ export function LabelLogo({
         }}
       >
         <span className="inline-flex items-center justify-center gap-[.35em]">
-          <span
-            aria-hidden="true"
-            className="relative grid shrink-0 place-items-center rounded-full border-2 border-[var(--foreground)]"
-            style={{ width: markSize, height: markSize }}
-          >
-            <span className="h-[58%] w-[58%] rounded-full border border-[var(--signal-strong)]" />
-            <span className="absolute h-[16%] w-[16%] rounded-full bg-[var(--signal-strong)]" />
-          </span>
+          {fallbackVariant === "mark" ? <span aria-hidden="true" className="relative grid shrink-0 place-items-center rounded-full border-2 border-[var(--foreground)]" style={{ width: markSize, height: markSize }}><span className="h-[58%] w-[58%] rounded-full border border-[var(--signal-strong)]" /><span className="absolute h-[16%] w-[16%] rounded-full bg-[var(--signal-strong)]" /></span> : null}
           {initials ? (
             <span
               className="font-mono font-semibold tracking-[-.08em]"

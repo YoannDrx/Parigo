@@ -19,9 +19,9 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
         intro={locale === "fr" ? "Retrouvez vos recherches, sélections et préférences au même endroit." : "Find your searches, selections and preferences in one place."}
         meta={locale === "fr" ? "Parigo Music · Espace membre" : "Parigo Music · Member space"}
       />
-      <div className="flex-1 pb-32 pt-10 md:pt-16">
+      <div className="flex-1 pb-[var(--space-page-end)] pt-[var(--space-divider-content)]">
         <div className="mx-auto max-w-[1600px] px-4 lg:px-8">
-          <div className="flex min-w-0 flex-col gap-8 lg:flex-row">
+          <div className="flex min-w-0 flex-col gap-[var(--space-account-flow)] lg:flex-row">
             <AccountNavigation />
             <main className="min-w-0 flex-1">
               <motion.div

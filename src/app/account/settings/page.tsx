@@ -123,7 +123,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="account-page space-y-8">
+    <div className="account-page grid gap-[var(--space-account-flow)]">
       <AccountPageHeader icon={Settings} eyebrow={locale === "fr" ? "Préférences du compte" : "Account preferences"} title={t("account.settings")} description={locale === "fr" ? "Gérez vos préférences, vos notifications et la sécurité de votre espace." : "Manage your preferences, notifications and member-space security."} />
 
       {/* Change Password Section */}

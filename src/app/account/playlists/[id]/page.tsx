@@ -10,6 +10,7 @@ import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import type { Album, MemberPlaylistCategory, Track } from "@/types";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useContextualBack } from "@/components/navigation/ContextualBackLink";
+import { CatalogSearchField } from "@/components/search/CatalogSearchField";
 
 interface MemberPlaylist { id: string; title: string; description?: string; categoryId?: string; tracks: Track[]; }
 type ShareMode = "view" | "collaborate" | "deliver";
@@ -244,7 +245,7 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
   if (loading) return <div className="flex min-h-80 items-center justify-center"><ParigoLoader size="page" label={locale === "fr" ? "Chargement de la playlist" : "Loading playlist"} /></div>;
   if (!playlist) return <div className="py-20 text-center"><p>{error}</p><Button variant="outline" className="mt-6" onClick={backToPlaylists}><ArrowLeft size={16} /> {locale === "fr" ? "Retour" : "Back"}</Button></div>;
 
-  return <div className="account-page space-y-8">
+  return <div className="account-page grid gap-[var(--space-account-flow)]">
     <button type="button" onClick={backToPlaylists} className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)]"><ArrowLeft size={16} /> {locale === "fr" ? "Mes playlists" : "My playlists"}</button>
     <AccountPageHeader
       icon={ListMusic}
@@ -257,7 +258,7 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
 
     <section className="account-toolbar grid gap-3 md:grid-cols-[minmax(14rem,1fr)_minmax(14rem,1fr)_auto] md:items-end">
       <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Dossier" : "Folder"}</span><Select value={categoryId || "root"} onValueChange={(value) => void moveToCategory(value === "root" ? "" : value)} ariaLabel={locale === "fr" ? "Dossier de la playlist" : "Playlist folder"} options={[{ value: "root", label: locale === "fr" ? "Sans dossier" : "No folder" }, ...categories.map((category) => ({ value: category.id, label: category.name }))]} className="w-full" /></label>
-      <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Rechercher dans les pistes" : "Search playlist tracks"}</span><Input isSearch value={playlistQuery} onChange={(event) => void searchPlaylist(event.target.value)} placeholder={locale === "fr" ? "Titre, description, mot-clé…" : "Title, description, keyword…"} /></label>
+      <div><span className="mb-2 block text-xs font-semibold">{locale === "fr" ? "Rechercher dans les pistes" : "Search playlist tracks"}</span><CatalogSearchField id="account-playlist-tracks-search" value={playlistQuery} onValueChange={(value) => void searchPlaylist(value)} placeholder={locale === "fr" ? "Titre, description, mot-clé…" : "Title, description, keyword…"} ariaLabel={locale === "fr" ? "Rechercher dans les pistes" : "Search playlist tracks"} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" /></div>
       <p className="pb-3 font-mono text-[.62rem] text-[var(--text-muted)]">{searchResults ? `${searchTotal} ${locale === "fr" ? "résultat(s)" : "result(s)"}` : `${playlist.tracks.length} ${locale === "fr" ? "piste(s)" : "track(s)"}`}</p>
     </section>
     {operationError && <p role="alert" className="border-l-2 border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]">{operationError}</p>}

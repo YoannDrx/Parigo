@@ -7,7 +7,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ArrowUpRight, Check, MessageSquareText, Pencil, RefreshCw, Save, Search, ShieldCheck, Trash2, X } from "lucide-react";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import { useI18n } from "@/components/providers/I18nProvider";
-import { Button, Input, ParigoDialog, Select } from "@/components/ui";
+import { Button, ParigoDialog, Select } from "@/components/ui";
+import { CatalogSearchField } from "@/components/search/CatalogSearchField";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { formatParigoDate } from "@/lib/date-time";
 import type { MemberTrackComment, MemberTrackCommentGroup } from "@/types";
@@ -138,7 +139,7 @@ export default function CommentsPage() {
   };
 
   return (
-    <div className="account-page space-y-8">
+    <div className="account-page grid gap-[var(--space-account-flow)]">
       <AccountPageHeader
         icon={MessageSquareText}
         title={t("account.comments")}
@@ -155,7 +156,7 @@ export default function CommentsPage() {
       {(error || message) && <div aria-live="polite" className={`parigo-frame flex items-start gap-3 border p-4 text-sm leading-6 ${error ? "border-[color-mix(in_srgb,var(--danger)_45%,var(--line))] text-[var(--danger)]" : "border-[var(--line)] text-[var(--signal-strong)]"}`}>{error ? <X size={17} className="mt-0.5 shrink-0" /> : <Check size={17} className="mt-0.5 shrink-0" />}<p>{error || message}</p></div>}
 
       {!loading && groups.length > 0 && <section className="account-toolbar grid gap-3 md:grid-cols-[minmax(16rem,1fr)_minmax(13rem,17rem)_auto] md:items-center" aria-label={locale === "fr" ? "Rechercher et trier les commentaires" : "Search and sort comments"}>
-        <Input isSearch value={query} onChange={(event) => setQuery(event.target.value)} placeholder={locale === "fr" ? "Titre, album ou texte du commentaire…" : "Title, album or comment text…"} aria-label={locale === "fr" ? "Rechercher dans mes commentaires" : "Search my comments"} />
+        <CatalogSearchField id="account-comments-search" value={query} onValueChange={setQuery} placeholder={locale === "fr" ? "Titre, album ou texte du commentaire…" : "Title, album or comment text…"} ariaLabel={locale === "fr" ? "Rechercher dans mes commentaires" : "Search my comments"} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" />
         <Select<SortMode> value={sort} onValueChange={setSort} ariaLabel={locale === "fr" ? "Trier les Tracks commentées" : "Sort commented tracks"} options={[{ value: "recent", label: locale === "fr" ? "Activité récente" : "Recent activity" }, { value: "title", label: locale === "fr" ? "Titre de A à Z" : "Title A to Z" }]} />
         {query && <Button variant="ghost" onClick={() => setQuery("")}><X size={15} />{locale === "fr" ? "Effacer" : "Clear"}</Button>}
         <p className="text-xs text-[var(--text-muted)] md:col-span-3">{visibleGroups.length} {locale === "fr" ? `sur ${groups.length} Track${groups.length > 1 ? "s" : ""}` : `of ${groups.length} track${groups.length === 1 ? "" : "s"}`}</p>

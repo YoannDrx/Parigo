@@ -163,7 +163,7 @@ export function SharedMusicExperience({ token, kind }: { token: string; kind: "p
                 {playlist.description ? <p className="mt-6 max-w-2xl text-[var(--text-muted)]">{playlist.description}</p> : null}
                 {playlist.tracks.length ? (
                   <div className="mt-12 border-y border-[var(--line)]">
-                    {playlist.tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumForTrack(track)} index={index} queue={playlist.tracks} />)}
+                    {playlist.tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumForTrack(track)} index={index} queue={playlist.tracks} mobileLayout="dense" />)}
                   </div>
                 ) : (
                   <p className="mt-12 border-y border-[var(--line)] py-8 text-sm text-[var(--text-muted)]">

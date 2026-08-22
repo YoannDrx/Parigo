@@ -1,7 +1,8 @@
 "use client";
 
-import { Grid3X3, List, Search, X } from "lucide-react";
+import { Grid3X3, List } from "lucide-react";
 import { Select } from "@/components/ui/Select";
+import { CatalogSearchField } from "@/components/search/CatalogSearchField";
 import { cn } from "@/lib/utils";
 import type { ViewMode } from "@/types";
 
@@ -50,26 +51,7 @@ export function CatalogToolbar<TSort extends string>({
       <div className="catalog-toolbar search-toolbar border border-[var(--line-strong)] bg-[var(--surface)] p-2.5">
         <div className="flex min-w-0 flex-wrap items-stretch gap-2">
           {query !== undefined && onQueryChange && queryPlaceholder && (
-            <label className="catalog-search-frame search-query-frame relative flex min-h-12 min-w-0 flex-[1_1_24rem] items-center border border-[var(--line-strong)] bg-[var(--background)]">
-              <Search aria-hidden="true" size={18} className="ml-3 shrink-0 text-[var(--signal-strong)]" />
-              <span className="sr-only">{queryPlaceholder}</span>
-              <input
-                value={query}
-                onChange={(event) => onQueryChange(event.target.value)}
-                className="ai-search-input h-12 min-w-0 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-[var(--text-muted)]"
-                placeholder={queryPlaceholder}
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => onQueryChange("")}
-                  className="mr-1 grid h-10 w-10 shrink-0 place-items-center text-[var(--text-muted)] transition hover:bg-[var(--surface-soft)] hover:text-[var(--foreground)]"
-                  aria-label={locale === "fr" ? "Effacer la recherche" : "Clear search"}
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </label>
+            <CatalogSearchField id="catalog-search" value={query} onValueChange={onQueryChange} placeholder={queryPlaceholder} ariaLabel={queryPlaceholder} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" className="min-w-0 flex-[1_1_24rem]" />
           )}
           {primaryControls}
           <Select

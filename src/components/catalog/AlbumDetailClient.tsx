@@ -115,7 +115,7 @@ export function AlbumDetailClient({
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 pb-24 pt-[70px]">
+      <main className="flex-1 pb-[var(--space-page-end)] pt-[70px]">
         {/* Back Link */}
         <div className="mx-auto max-w-[1700px] px-[var(--space-page-gutter)] pt-[var(--space-divider-content)]">
           <ContextualBackLink
@@ -128,7 +128,7 @@ export function AlbumDetailClient({
         </div>
 
         {/* Album Header */}
-        <section className="editorial-detail-hero relative mx-auto max-w-[1700px] overflow-hidden px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1700px] overflow-hidden px-[var(--space-page-gutter)] pb-0 pt-[var(--space-section-y)]">
           <div className="grid gap-10 md:grid-cols-12 md:items-start md:gap-12">
             {/* Cover */}
             <div className="w-full max-w-[520px] md:col-span-4">
@@ -159,6 +159,11 @@ export function AlbumDetailClient({
                 )}
                 {album.code && <span className="album-reference-tag">{locale === "fr" ? "Réf." : "Ref."} {album.code}</span>}
               </div>
+              <div className="mb-6 flex flex-wrap items-center gap-4 text-sm text-[var(--color-gray-600)]">
+                <span className="flex items-center gap-1"><Music size={16} />{album.trackCount} {album.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}</span>
+                <span className="flex items-center gap-1"><Clock size={16} />{formatDuration(totalDuration)}</span>
+                {album.releaseDate && <span>{locale === "fr" ? "Sorti le" : "Released"} {formatParigoDate(album.releaseDate, locale === "fr" ? "fr-FR" : "en-GB")}</span>}
+              </div>
               {albumDescription && (
                 <p className="text-[var(--color-gray-600)] mb-6 max-w-xl">
                   {albumDescription}
@@ -177,23 +182,6 @@ export function AlbumDetailClient({
                   ))}
                 </div>
               )}
-
-              {/* Meta */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-[var(--color-gray-600)] mb-6">
-                <span className="flex items-center gap-1">
-                  <Music size={16} />
-                  {album.trackCount} {album.trackCount === 1 ? t("catalog.track") : t("catalog.tracks")}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock size={16} />
-                  {formatDuration(totalDuration)}
-                </span>
-                {album.releaseDate && (
-                  <span>
-                    {locale === "fr" ? "Sorti le" : "Released"} {formatParigoDate(album.releaseDate, locale === "fr" ? "fr-FR" : "en-GB")}
-                  </span>
-                )}
-              </div>
 
               {/* Tags */}
               <div className="flex flex-wrap gap-2 mb-8">
@@ -231,7 +219,7 @@ export function AlbumDetailClient({
         </section>
 
         {data.contributorGroups.length > 0 && (
-          <section data-testid="album-contributor-groups" className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] pb-[var(--space-block-gap)]">
+          <section data-testid="album-contributor-groups" className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] pb-0 pt-[var(--space-block-gap)]">
             <div className="grid gap-6 border-y border-[var(--line)] py-8 md:grid-cols-2">
               {data.contributorGroups.map((group) => (
                 <div key={group.role} data-contributor-role={group.role}>
@@ -262,7 +250,7 @@ export function AlbumDetailClient({
         )}
 
         {/* Tracks */}
-        <section className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
+        <section className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] pb-0 pt-[var(--space-section-y)]">
           <div className="mb-[var(--space-heading-content)] flex flex-wrap items-end justify-between gap-4">
             <div>
               <p className="eyebrow text-[var(--signal-strong)]">{album.label}</p>
@@ -314,6 +302,7 @@ export function AlbumDetailClient({
                     initialDetailsOpen={track.id === resolvedInitialTrackId}
                     initialDetailsTab={track.id === resolvedInitialTrackId ? initialTrackTab : undefined}
                     initialHighlight={track.id === resolvedInitialTrackId ? initialHighlight : undefined}
+                    mobileLayout="dense"
                   />
                 </div>
               ))}
@@ -325,7 +314,7 @@ export function AlbumDetailClient({
 
         {/* Similar Albums */}
         {similarAlbums.length > 0 && (
-          <section className="mx-auto max-w-[1700px] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
+          <section className="mx-auto max-w-[1700px] px-[var(--space-page-gutter)] pb-0 pt-[var(--space-section-y-large)]">
             <SignedTitle as="h2" className="mb-[var(--space-heading-content)] font-[var(--font-editorial)] text-5xl font-normal tracking-[-.05em]">
               {locale === "fr" ? "Dans le même univers" : "In the same universe"}
             </SignedTitle>
