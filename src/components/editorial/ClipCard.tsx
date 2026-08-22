@@ -14,7 +14,6 @@ export function ClipCard({
 }) {
   const title = clip.title[locale];
   const href = localizedPath(locale, `/clips/${clip.slug}`);
-  const mobileMeta = clip.publishedAt ? String(new Date(clip.publishedAt).getUTCFullYear()) : undefined;
   return (
     <ParigoVideoCard
       clip={{
@@ -29,7 +28,6 @@ export function ClipCard({
       title={title}
       eyebrow={videoTypeLabels[clip.videoType][locale]}
       detail={clip.channelTitle || clip.subtitle?.[locale]}
-      mobileMeta={mobileMeta}
       headingLevel={headingLevel}
     />
   );

@@ -16,11 +16,9 @@ export function ParigoVideoCard({
   title,
   eyebrow,
   detail,
-  mobileMeta,
   sizes = "(max-width: 1024px) 100vw, 50vw",
   className,
   headingLevel = "h2",
-  mobileFooterVariant = "full",
 }: {
   clip: ClipPlaybackDescriptor;
   href: string;
@@ -28,11 +26,9 @@ export function ParigoVideoCard({
   title: string;
   eyebrow: string;
   detail?: string;
-  mobileMeta?: string;
   sizes?: string;
   className?: string;
   headingLevel?: "h2" | "h3";
-  mobileFooterVariant?: "full" | "title-only";
 }) {
   const { locale } = useI18n();
   const { activeClip, status, toggleClip } = useClipPlayback();
@@ -87,14 +83,12 @@ export function ParigoVideoCard({
         </div>
         <span aria-hidden="true" className="parigo-video-card__ring max-md:!hidden" />
       </ClipPlaybackAnchor>
-      <footer className={cn("editorial-card__mobile-footer relative z-[1] flex items-end justify-between gap-4 px-1 pb-1 text-[var(--foreground)] md:hidden", mobileFooterVariant === "title-only" ? "min-h-14 pt-3" : "min-h-24 pt-5")}>
+      <footer className="editorial-card__mobile-footer relative z-[1] flex min-h-14 items-center px-1 pb-1 pt-3 text-[var(--foreground)] md:hidden">
         <div className="min-w-0">
-          {mobileFooterVariant === "full" ? <p className="truncate font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--signal-strong)]">{eyebrow}</p> : null}
-          <Heading className={cn("line-clamp-2 text-lg font-semibold leading-[1.05] tracking-[-.025em]", mobileFooterVariant === "full" && "mt-2")}>
+          <Heading className="line-clamp-2 text-lg font-semibold leading-[1.05] tracking-[-.025em]">
             {title}
           </Heading>
         </div>
-        {mobileFooterVariant === "full" && mobileMeta ? <p className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{mobileMeta}</p> : null}
       </footer>
       <Link href={href} className="editorial-video-card__mobile-link absolute inset-0 z-[2] rounded-[1.1rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] md:hidden" aria-label={detailLabel} />
     </article>

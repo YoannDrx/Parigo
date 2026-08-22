@@ -14,7 +14,7 @@ export function PlaylistCard({ playlist, priority = false }: PlaylistCardProps) 
   const { t, localizedPath } = useI18n();
   return (
     <Link href={localizedPath(`/playlists/${playlist.id}`)}>
-      <div className="parigo-frame group/card border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
+      <div className="playlist-card parigo-frame group/card border border-[var(--line)] bg-[var(--surface)] transition-transform duration-300 hover:-translate-y-1 active:scale-[.98]">
         {/* Cover Image */}
         <div className="media-frame relative aspect-square overflow-hidden border-0 border-b border-[var(--line)] bg-[var(--surface-soft)]">
           <Image

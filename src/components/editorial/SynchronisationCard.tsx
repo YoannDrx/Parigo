@@ -20,7 +20,6 @@ interface SynchronisationCardProps {
   className?: string;
   sizes?: string;
   headingLevel?: "h2" | "h3";
-  mobileFooterVariant?: "full" | "title-only";
 }
 
 export function SynchronisationCard({
@@ -34,7 +33,6 @@ export function SynchronisationCard({
   className,
   sizes = "(max-width: 768px) 86vw, 55vw",
   headingLevel = "h2",
-  mobileFooterVariant = "full",
 }: SynchronisationCardProps) {
   const { locale } = useI18n();
   const { activeClip, status, toggleClip } = useClipPlayback();
@@ -48,9 +46,6 @@ export function SynchronisationCard({
   }), [href, image, slug, title, youtubeId]);
   const active = activeClip?.slug === clip.slug;
   const playing = active && (status === "playing" || status === "loading");
-  const mobileEyebrow = /^parigo production music$/i.test(client.trim())
-    ? (locale === "fr" ? "Synchronisation" : "Sync")
-    : client;
   const detailLabel = locale === "fr" ? `Voir le détail de ${title}` : `View ${title} details`;
   return (
     <article className={cn("home-sync-card editorial-video-card group block min-w-0 max-md:before:!hidden max-md:after:!hidden", className)}>
@@ -93,14 +88,12 @@ export function SynchronisationCard({
           {detail && <p className="mt-2 truncate text-sm text-white/72">{detail}</p>}
         </div>
       </ClipPlaybackAnchor>
-      <footer className={cn("editorial-card__mobile-footer relative z-[1] flex items-end justify-between gap-4 px-1 pb-1 text-[var(--foreground)] md:hidden", mobileFooterVariant === "title-only" ? "min-h-14 pt-3" : "min-h-24 pt-5")}>
+      <footer className="editorial-card__mobile-footer relative z-[1] flex min-h-14 items-center px-1 pb-1 pt-3 text-[var(--foreground)] md:hidden">
         <div className="min-w-0">
-          {mobileFooterVariant === "full" ? <p className="truncate font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--signal-strong)]">{mobileEyebrow}</p> : null}
-          <Heading className={cn("line-clamp-2 text-lg font-semibold leading-[1.05] tracking-[-.025em]", mobileFooterVariant === "full" && "mt-2")}>
+          <Heading className="line-clamp-2 text-lg font-semibold leading-[1.05] tracking-[-.025em]">
             {title}
           </Heading>
         </div>
-        {mobileFooterVariant === "full" && detail ? <p className="shrink-0 font-mono text-[.55rem] text-[var(--text-muted)]">{detail}</p> : null}
       </footer>
       <Link href={href} className="editorial-video-card__mobile-link absolute inset-0 z-[2] rounded-[1.1rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--surface)] md:hidden" aria-label={detailLabel} />
     </article>
