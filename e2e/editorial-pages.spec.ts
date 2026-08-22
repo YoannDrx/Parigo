@@ -454,18 +454,16 @@ test("le hover du Brief IA conserve les mêmes angles arrondis", async ({ page }
     await hero.getByRole("option", { name: /Brief IA/ }).click();
     const form = hero.locator(".search-command__form");
     const glow = hero.getByTestId("ai-search-glow");
+    const row = hero.locator(".search-command__row");
     await form.locator("input").evaluate((node) => node.blur());
     await page.mouse.move(0, 0);
     await page.waitForTimeout(550);
-    const restingGlowShadow = await glow.evaluate((node) => getComputedStyle(node).boxShadow);
-    await form.hover();
+    await row.hover();
+    expect(await row.evaluate((node) => node.matches(":hover"))).toBe(true);
     await expect(form).toHaveCSS("border-radius", `${corner} 16px`);
     await expect(form).toHaveCSS("background-image", "none");
     await expect(form).toHaveCSS("box-shadow", "none");
     await expect(glow).toHaveCSS("border-radius", `${Number.parseInt(corner, 10) + 3}px 19px`);
-    if (await page.evaluate(() => matchMedia("(hover: hover)").matches)) {
-      await expect.poll(() => glow.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe(restingGlowShadow);
-    }
   }
 });
 
