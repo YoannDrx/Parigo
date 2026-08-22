@@ -363,7 +363,13 @@ test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   const signature = hero.locator(".parigo-title-signature");
+  const aiGlow = hero.getByTestId("ai-search-glow");
+  const aiGlowBeam = hero.getByTestId("ai-search-glow-beam");
+  const searchForm = hero.locator(".search-command__form");
   await expect(hero).toHaveAttribute("data-search-mode", "catalog");
+  await expect(aiGlow).toHaveAttribute("data-active", "false");
+  await expect(aiGlow).toHaveCSS("opacity", "0");
+  await expect(aiGlowBeam).toHaveCSS("animation-name", "none");
   await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "catalog");
   const resolveColorToken = (token: string) => page.evaluate((name) => {
     const probe = document.createElement("span");
@@ -378,12 +384,56 @@ test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
   await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
   await page.getByRole("option", { name: /Brief IA/ }).click();
   await expect(hero).toHaveAttribute("data-search-mode", "ai");
+  await expect(aiGlow).toHaveAttribute("data-active", "true");
+  await expect(aiGlow).toHaveCSS("opacity", "1");
+  await expect(aiGlowBeam).toHaveCSS("animation-name", "spin");
+  await expect(searchForm).toHaveCSS("border-color", "rgba(0, 0, 0, 0)");
+  expect(await searchForm.evaluate((node) => getComputedStyle(node, "::before").display)).toBe("none");
+  expect(await searchForm.evaluate((node) => getComputedStyle(node, "::after").display)).toBe("none");
   await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "ai");
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(catalogColor);
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(await resolveColorToken("--ai-search"));
   await hero.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
   await hero.getByRole("option", { name: /Catalogue/ }).click();
+  await expect(aiGlow).toHaveAttribute("data-active", "false");
+  await expect(aiGlow).toHaveCSS("opacity", "0");
+  await expect(aiGlowBeam).toHaveCSS("animation-name", "none");
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(catalogColor);
+});
+
+test("la lumière du Brief IA reste statique en mouvement réduit", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  await hero.getByRole("option", { name: /Brief IA/ }).click();
+  await expect(hero.getByTestId("ai-search-glow")).toHaveCSS("opacity", "1");
+  await expect(hero.getByTestId("ai-search-glow-beam")).toHaveCSS("animation-name", "none");
+});
+
+test("le hover du Brief IA conserve les mêmes angles arrondis", async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("parigo-theme", "light"));
+  for (const [width, corner] of [[390, "8px"], [1024, "14px"]] as const) {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    const hero = page.getByTestId("home-hero");
+    await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+    await hero.getByRole("option", { name: /Brief IA/ }).click();
+    const form = hero.locator(".search-command__form");
+    const glow = hero.getByTestId("ai-search-glow");
+    await form.locator("input").evaluate((node) => node.blur());
+    await page.mouse.move(0, 0);
+    await page.waitForTimeout(550);
+    const restingGlowShadow = await glow.evaluate((node) => getComputedStyle(node).boxShadow);
+    await form.hover();
+    await expect(form).toHaveCSS("border-radius", `${corner} 16px`);
+    await expect(form).toHaveCSS("background-image", "none");
+    await expect(form).toHaveCSS("box-shadow", "none");
+    await expect(glow).toHaveCSS("border-radius", `${Number.parseInt(corner, 10) + 3}px 19px`);
+    if (await page.evaluate(() => matchMedia("(hover: hover)").matches)) {
+      await expect.poll(() => glow.evaluate((node) => getComputedStyle(node).boxShadow)).not.toBe(restingGlowShadow);
+    }
+  }
 });
 
 test("les métriques publiques compactent le contenu après séparateur sur mobile", async ({ page }) => {

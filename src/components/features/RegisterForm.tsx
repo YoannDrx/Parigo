@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { AlertCircle, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { PasswordCreationField } from "@/components/features/PasswordCreationField";
 import { signUp } from "@/lib/auth-client";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -14,6 +15,7 @@ import { Select } from "@/components/ui/Select";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { registrationErrorMessageKey } from "@/lib/auth-errors";
+import { meetsPasswordPolicy } from "@/lib/password-strength";
 
 interface RegistrationForm {
   firstName: string;
@@ -51,10 +53,6 @@ function Field({ label, id, value, onChange, required, type = "text", autoComple
   return <label htmlFor={id} className="block text-sm font-medium"><span className="mb-2 block">{label}{required ? " *" : ""}</span><Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} required={required} autoComplete={autoComplete} /></label>;
 }
 
-function PasswordField({ label, id, value, onChange, visible, onToggle, showLabel, hideLabel }: { label: string; id: string; value: string; onChange: (value: string) => void; visible: boolean; onToggle: () => void; showLabel: string; hideLabel: string }) {
-  return <div><label htmlFor={id} className="mb-2 block text-sm font-medium">{label} *</label><div className="relative"><Input id={id} type={visible ? "text" : "password"} value={value} onChange={(event) => onChange(event.target.value)} required autoComplete="new-password" className="pr-12" /><button type="button" aria-label={visible ? hideLabel : showLabel} aria-controls={id} aria-pressed={visible} onClick={onToggle} className="absolute right-1 top-1/2 inline-flex min-h-10 min-w-10 -translate-y-1/2 items-center justify-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-muted)] hover:text-[var(--foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-strong)]">{visible ? <EyeOff aria-hidden="true" size={18} /> : <Eye aria-hidden="true" size={18} />}</button></div></div>;
-}
-
 export function RegisterForm({
   embedded = false,
   headingId,
@@ -72,18 +70,11 @@ export function RegisterForm({
   const [formats, setFormats] = useState<Array<{ id: string; label: string }>>([]);
   const [countries, setCountries] = useState(fallbackCountries);
   const [error, setError] = useState<string | null>(null);
-  const [passwordVisibility, setPasswordVisibility] = useState({ password: false, confirmation: false });
   const [isLoading, setIsLoading] = useState(false);
   const errorRef = useRef<HTMLDivElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   const set = <K extends keyof RegistrationForm>(key: K, value: RegistrationForm[K]) => setForm((current) => ({ ...current, [key]: value }));
-  const passwordRequirements = useMemo(() => [
-    { label: locale === "fr" ? "Au moins 8 caractères" : "At least 8 characters", met: form.password.length >= 8 },
-    { label: locale === "fr" ? "Au moins une majuscule" : "At least one uppercase letter", met: /[A-Z]/.test(form.password) },
-    { label: locale === "fr" ? "Au moins un chiffre" : "At least one number", met: /[0-9]/.test(form.password) },
-  ], [form.password, locale]);
-
   useEffect(() => {
     void fetch("/api/download-formats")
       .then((response) => response.ok ? response.json() : null)
@@ -122,7 +113,7 @@ export function RegisterForm({
     };
     if (!form.firstName.trim() || !form.lastName.trim() || !form.email.trim()) return fail(locale === "fr" ? "Veuillez renseigner tous les champs obligatoires." : "Please complete all required fields.", !form.firstName.trim() ? "firstName" : !form.lastName.trim() ? "lastName" : "email");
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return fail(locale === "fr" ? "Veuillez saisir une adresse e-mail valide." : "Please enter a valid email address.", "email");
-    if (!passwordRequirements.every((requirement) => requirement.met)) return fail(locale === "fr" ? "Le mot de passe ne respecte pas tous les critères." : "The password does not meet every requirement.", "password");
+    if (!meetsPasswordPolicy(form.password)) return fail(locale === "fr" ? "Le mot de passe ne respecte pas tous les critères." : "The password does not meet every requirement.", "password");
     if (form.password !== form.confirmPassword) return fail(locale === "fr" ? "Les mots de passe ne correspondent pas." : "Passwords do not match.", "confirmPassword");
     if (!form.country) return fail(locale === "fr" ? "Veuillez sélectionner votre pays." : "Please select your country.", "country");
     if (!form.termsAccepted || !form.privacyAccepted) return fail(locale === "fr" ? "Veuillez cocher les deux cases obligatoires pour accepter les conditions d’utilisation et la politique de confidentialité." : "Please tick both required boxes to accept the terms of use and privacy policy.", !form.termsAccepted ? "termsAccepted" : "privacyAccepted");
@@ -161,8 +152,10 @@ export function RegisterForm({
             <h2 id="register-identity" className="border-b border-[var(--line)] pb-3 font-[var(--font-editorial)] text-xl font-semibold">{locale === "fr" ? "Identité et sécurité" : "Identity and security"}</h2>
             <div className="grid gap-5 sm:grid-cols-2"><Field id="firstName" label={locale === "fr" ? "Prénom" : "First name"} value={form.firstName} onChange={(value) => set("firstName", value)} required autoComplete="given-name" /><Field id="lastName" label={locale === "fr" ? "Nom" : "Last name"} value={form.lastName} onChange={(value) => set("lastName", value)} required autoComplete="family-name" /></div>
             <Field id="email" label={`${t("auth.email")} (${locale === "fr" ? "utilisé comme identifiant" : "used as username"})`} value={form.email} onChange={(value) => set("email", value)} required type="email" autoComplete="email" />
-            <div className="grid gap-5 sm:grid-cols-2"><PasswordField id="password" label={t("auth.password")} value={form.password} onChange={(value) => set("password", value)} visible={passwordVisibility.password} onToggle={() => setPasswordVisibility((current) => ({ ...current, password: !current.password }))} showLabel={t("auth.showPassword")} hideLabel={t("auth.hidePassword")} /><PasswordField id="confirmPassword" label={locale === "fr" ? "Confirmer le mot de passe" : "Confirm password"} value={form.confirmPassword} onChange={(value) => set("confirmPassword", value)} visible={passwordVisibility.confirmation} onToggle={() => setPasswordVisibility((current) => ({ ...current, confirmation: !current.confirmation }))} showLabel={locale === "fr" ? "Afficher la confirmation du mot de passe" : "Show password confirmation"} hideLabel={locale === "fr" ? "Masquer la confirmation du mot de passe" : "Hide password confirmation"} /></div>
-            {form.password && <div className="grid gap-2 text-xs sm:grid-cols-3">{passwordRequirements.map((requirement) => <span key={requirement.label} className={requirement.met ? "text-green-700" : "text-[var(--text-muted)]"}>{requirement.met ? <CheckCircle className="mr-1 inline" size={14} /> : "○ "}{requirement.label}</span>)}</div>}
+            <div className="grid items-start gap-5 sm:grid-cols-2">
+              <PasswordCreationField id="password" label={t("auth.password")} value={form.password} onChange={(value) => set("password", value)} showStrength />
+              <PasswordCreationField id="confirmPassword" label={locale === "fr" ? "Confirmer le mot de passe" : "Confirm password"} value={form.confirmPassword} onChange={(value) => set("confirmPassword", value)} confirmationOf={form.password} showLabel={locale === "fr" ? "Afficher la confirmation du mot de passe" : "Show password confirmation"} hideLabel={locale === "fr" ? "Masquer la confirmation du mot de passe" : "Hide password confirmation"} />
+            </div>
           </section>
           <section className="space-y-6" aria-labelledby="register-profile">
             <h2 id="register-profile" className="border-b border-[var(--line)] pb-3 font-[var(--font-editorial)] text-xl font-semibold">{locale === "fr" ? "Profil professionnel" : "Professional profile"}</h2>
