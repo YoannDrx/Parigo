@@ -444,7 +444,8 @@ test("la lumière du Brief IA reste statique en mouvement réduit", async ({ pag
   await expect(hero.getByTestId("ai-search-glow-beam")).toHaveCSS("animation-name", "none");
 });
 
-test("le hover du Brief IA conserve les mêmes angles arrondis", async ({ page }) => {
+test("le hover du Brief IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop aux largeurs mobile et desktop.");
   await page.addInitScript(() => localStorage.setItem("parigo-theme", "light"));
   for (const [width, corner] of [[390, "8px"], [1024, "14px"]] as const) {
     await page.setViewportSize({ width, height: 900 });
