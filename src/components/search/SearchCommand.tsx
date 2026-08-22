@@ -73,6 +73,7 @@ export function SearchCommand({
     || stagedFilters.length > 0
   );
   const modeMenuId = `${id}-mode-menu`;
+  const animatedAiSurface = variant === "hero" || variant === "workspace";
 
   useEffect(() => {
     if (!modeMenuOpen) return;
@@ -168,19 +169,49 @@ export function SearchCommand({
   return (
     <section
       data-testid={`${id}-command`}
-      className={cn("search-command relative overflow-visible", className)}
+      className={cn(
+        "search-command relative overflow-visible",
+        (modeMenuOpen || panelOpen) && "z-[80]",
+        className,
+      )}
       aria-label={locale === "fr" ? "Recherche dans le catalogue" : "Catalog search"}
     >
-      <div className="search-command__row min-w-0">
+      <div className="search-command__row group/search relative isolate min-w-0 [--search-shell-corner:var(--parigo-corner-md)] sm:[--search-shell-corner:var(--parigo-corner-lg)]">
+        {animatedAiSurface ? (
+          <span
+            data-testid="ai-search-glow"
+            data-active={keywordMode ? "false" : "true"}
+            aria-hidden="true"
+            className="pointer-events-none absolute -inset-[3px] z-[59] overflow-hidden opacity-0 shadow-[0_0_30px_color-mix(in_srgb,var(--ai-search)_18%,transparent)] transition-[opacity,box-shadow] duration-500 data-[active=true]:opacity-100 group-focus-within/search:shadow-[0_0_36px_color-mix(in_srgb,var(--ai-search)_28%,transparent)] group-hover/search:shadow-[0_0_36px_color-mix(in_srgb,var(--ai-search)_28%,transparent)] motion-reduce:transition-none"
+            style={{ borderRadius: "calc(var(--search-shell-corner) + 3px) calc(var(--parigo-turn-lg) + 3px)" }}
+          >
+            <span
+              data-testid="ai-search-glow-beam"
+              className={cn(
+                "absolute left-1/2 top-1/2 aspect-square w-[125%] -translate-x-1/2 -translate-y-1/2 motion-reduce:animate-none motion-reduce:opacity-70",
+                keywordMode ? "" : "animate-spin [animation-duration:4.8s]",
+              )}
+              style={{ background: "conic-gradient(from 0deg, transparent 0deg 268deg, color-mix(in srgb, var(--ai-search) 26%, white) 298deg, var(--ai-search) 326deg, transparent 360deg)" }}
+            />
+          </span>
+        ) : null}
         <form
           onSubmit={submit}
           data-mode={mode}
           data-has-value={hasSearchCriteria ? "true" : "false"}
           className={cn(
             "search-command__form grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-1.5 border bg-[var(--surface)] p-1.5",
-            keywordMode ? "search-command__form--keyword" : "search-command__form--ai",
+            keywordMode ? "search-command__form--keyword" : "search-command__form--ai before:hidden after:hidden",
             variant === "hero" ? "min-h-[4.5rem]" : "min-h-14",
           )}
+          style={animatedAiSurface && !keywordMode
+            ? {
+                borderColor: "transparent",
+                borderRadius: "var(--search-shell-corner) var(--parigo-turn-lg)",
+                background: "var(--surface)",
+                boxShadow: "none",
+              }
+            : undefined}
         >
           <div className="flex min-w-0 items-center">
             <div ref={modeSelectorRef} className="search-mode-select relative ml-1 shrink-0">

@@ -12,6 +12,33 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
+  await page.goto("/search");
+  const command = page.getByTestId("catalog-search-command");
+  await command.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  const modeMenu = command.getByRole("listbox", { name: "Choisir le mode de recherche" });
+  const toolbar = page.locator(".search-toolbar");
+  await expect(modeMenu).toBeVisible();
+  const [menuBox, toolbarBox] = await Promise.all([modeMenu.boundingBox(), toolbar.boundingBox()]);
+  expect(menuBox).not.toBeNull();
+  expect(toolbarBox).not.toBeNull();
+  const overlapTop = Math.max(menuBox!.y, toolbarBox!.y);
+  const overlapBottom = Math.min(menuBox!.y + menuBox!.height, toolbarBox!.y + toolbarBox!.height);
+  expect(overlapBottom).toBeGreaterThan(overlapTop + 8);
+  const overlapPoint = { x: menuBox!.x + 20, y: overlapTop + 8 };
+  expect(await modeMenu.evaluate((node, point) => node.contains(document.elementFromPoint(point.x, point.y)), overlapPoint)).toBe(true);
+
+  await command.getByRole("option", { name: /Brief IA/ }).click();
+  const glow = command.getByTestId("ai-search-glow");
+  const form = command.locator(".search-command__form");
+  await expect(glow).toHaveAttribute("data-active", "true");
+  await expect(glow).toHaveCSS("opacity", "1");
+  await expect(form).toHaveCSS("border-color", "rgba(0, 0, 0, 0)");
+  await expect(form).toHaveCSS("background-image", "none");
+  await expect(form).toHaveCSS("box-shadow", "none");
+});
+
 test("la pagination replace le début des résultats sous le poste de recherche", async ({ page }) => {
   await page.route("**/api/search/filters?**", (route) => route.fulfill({
     contentType: "application/json",
