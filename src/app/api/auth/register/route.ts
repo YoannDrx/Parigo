@@ -3,10 +3,11 @@ import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { registerMember } from "@/lib/harvest/member";
 import { assertSameOrigin } from "@/lib/harvest/session";
+import { meetsPasswordPolicy } from "@/lib/password-strength";
 
 const schema = z.object({
   email: z.email(),
-  password: z.string().min(8).max(200),
+  password: z.string().min(8).max(200).refine(meetsPasswordPolicy),
   firstName: z.string().trim().min(1).max(80),
   lastName: z.string().trim().min(1).max(80),
   country: z.string().trim().min(2).max(100),
