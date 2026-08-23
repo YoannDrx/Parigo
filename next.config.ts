@@ -72,9 +72,6 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   allowedDevOrigins: ["127.0.0.1"],
   productionBrowserSourceMaps: false,
-  // Metadata is part of the first HTML response for browsers, auditors and
-  // crawlers alike. This also makes no-JavaScript SEO contracts deterministic.
-  htmlLimitedBots: /.*/,
   async headers() {
     return [
       ...publicPageSources.map((source) => ({

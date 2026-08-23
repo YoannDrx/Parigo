@@ -1,5 +1,5 @@
 import { ContactExperience } from "@/components/institutional/ContactExperience";
-import { getTrack } from "@/lib/harvest/catalog";
+import { getCachedTrack } from "@/lib/harvest/catalog-cache";
 import type { Track } from "@/types";
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ track?: string | string[] }> }) {
@@ -9,7 +9,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
 
   if (requestedTrackId) {
     try {
-      track = await getTrack(requestedTrackId);
+      track = await getCachedTrack(requestedTrackId);
     } catch {
       // The contact journey remains available with the reference even if the catalogue is temporarily unavailable.
     }

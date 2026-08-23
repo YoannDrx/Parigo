@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchHarvestJsonWithTimeout, getHarvestTokenExpiry, hasSearchSimilarCapability, isHarvestRequestRetrySafe } from "./client";
+import {
+  fetchHarvestJsonWithTimeout,
+  getHarvestTokenExpiry,
+  hasSearchSimilarCapability,
+  isHarvestRequestRetrySafe,
+  shouldLogSuccessfulHarvestRequest,
+} from "./client";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -54,6 +60,19 @@ describe("Harvest retry safety", () => {
     expect(isHarvestRequestRetrySafe("/addmemberplaylist/secret", "POST")).toBe(false);
     expect(isHarvestRequestRetrySafe("/addmembersavesearch/secret", "POST")).toBe(false);
     expect(isHarvestRequestRetrySafe("/searchmembersavesearches/secret", "POST")).toBe(false);
+  });
+});
+
+describe("Harvest success log sampling", () => {
+  it("samples one percent of ordinary successful requests", () => {
+    expect(shouldLogSuccessfulHarvestRequest(200, 0.009)).toBe(true);
+    expect(shouldLogSuccessfulHarvestRequest(200, 0.01)).toBe(false);
+    expect(shouldLogSuccessfulHarvestRequest(200, 0.8)).toBe(false);
+  });
+
+  it("always keeps slow successful requests", () => {
+    expect(shouldLogSuccessfulHarvestRequest(2_000, 0.99)).toBe(true);
+    expect(shouldLogSuccessfulHarvestRequest(8_000, 0.99)).toBe(true);
   });
 });
 
