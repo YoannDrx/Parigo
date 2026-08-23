@@ -11,10 +11,14 @@ import {
   getPlaylist,
   getPlaylistDiscovery,
   getPlaylists,
+  getTrack,
   getStyles,
   getCategories,
 } from "./catalog";
 
+export const getCachedTrack = cache(
+  unstable_cache(getTrack, ["catalog-track-v1"], { revalidate: 86400, tags: ["catalog", "tracks"] }),
+);
 export const getCachedAlbum = cache(
   unstable_cache(getAlbum, ["catalog-album-v4-right-holders"], { revalidate: 300, tags: ["catalog", "albums"] }),
 );

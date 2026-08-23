@@ -22,6 +22,15 @@ const guestTokens = new Map<string, CachedToken>();
 const guestTokenPromises = new Map<string, Promise<CachedToken>>();
 
 const CLOCK_SKEW_MS = 60_000;
+const HARVEST_SUCCESS_LOG_SAMPLE_RATE = 0.01;
+const HARVEST_SLOW_REQUEST_MS = 2_000;
+
+export function shouldLogSuccessfulHarvestRequest(
+  durationMs: number,
+  randomValue = Math.random(),
+): boolean {
+  return durationMs >= HARVEST_SLOW_REQUEST_MS || randomValue < HARVEST_SUCCESS_LOG_SAMPLE_RATE;
+}
 
 function valid(token: CachedToken | undefined): token is CachedToken {
   return Boolean(token && token.expiresAt - CLOCK_SKEW_MS > Date.now());
@@ -211,13 +220,32 @@ async function rawServiceRequest<T>(path: string, init: RequestInit = {}, timeou
     response = result.response;
     payload = result.payload;
   } catch (error) {
+    logEvent({
+      level: "warn",
+      message: "harvest_request_failed",
+      route: endpoint,
+      durationMs: Date.now() - startedAt,
+      status: error instanceof HarvestError ? error.status : 502,
+      code: error instanceof HarvestError ? error.code : "UNKNOWN",
+      requestId,
+    });
     if (retry && idempotent && error instanceof HarvestError && error.retryable) {
       await new Promise((resolve) => setTimeout(resolve, 250 + Math.random() * 250));
       return rawServiceRequest<T>(path, init, timeoutMs, false);
     }
     throw error;
   }
-  logEvent({ level: response.ok ? "info" : "warn", message: "harvest_request", route: endpoint, durationMs: Date.now() - startedAt, status: response.status, requestId });
+  const durationMs = Date.now() - startedAt;
+  if (!response.ok || shouldLogSuccessfulHarvestRequest(durationMs)) {
+    logEvent({
+      level: response.ok && durationMs < HARVEST_SLOW_REQUEST_MS ? "info" : "warn",
+      message: "harvest_request",
+      route: endpoint,
+      durationMs,
+      status: response.status,
+      requestId,
+    });
+  }
   if (response.status === 429) {
     if (retry && idempotent) {
       await new Promise((resolve) => setTimeout(resolve, 400 + Math.random() * 400));
