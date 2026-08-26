@@ -996,7 +996,7 @@ test("les pistes de recherche utilisent la grille mobile dense", async ({ page }
   expect(Math.abs(playBox!.y + playBox!.height / 2 - (coverBox!.y + coverBox!.height / 2))).toBeLessThanOrEqual(1);
 });
 
-test("un ancien brief devient un mot-clé littéral et la similarité reste désactivée", async ({ page }) => {
+test("un ancien brief devient un mot-clé littéral sans préremplir le brief de similarité", async ({ page }) => {
   await page.goto("/search?brief=mariage&resolve=1&view=tracks&translate=0");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("mariage");
   const url = new URL(page.url());
@@ -1008,7 +1008,7 @@ test("un ancien brief devient un mot-clé littéral et la similarité reste dés
   await modeSelect.click();
   await page.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(page.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /Trouver des pistes similaires/ })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
   await expect(page.getByTestId("search-detected-criteria")).toHaveCount(0);
 });
 
