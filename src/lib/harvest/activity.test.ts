@@ -258,7 +258,7 @@ describe("Harvest collaborative sharing", () => {
         return {
           ShareMusic: [{
             Status: "Success",
-            Url: "https://parigo.test/engage-playlist/share-token",
+            Url: "http://www.parigomusic.com/engage-playlist/share-token",
           }],
         };
       }
@@ -280,7 +280,7 @@ describe("Harvest collaborative sharing", () => {
       allowShare: false,
       sendEmail: true,
     })).resolves.toMatchObject({
-      url: "https://parigo.test/engage-playlist/share-token",
+      url: "https://www.parigomusic.com/engage-playlist/share-token",
       emailed: true,
       delivered: false,
       recipientType: "MemberAccount",
@@ -299,6 +299,7 @@ describe("Harvest collaborative sharing", () => {
     expect(JSON.parse(String(emailInit?.body))).toMatchObject({
       ContentType: "Playlist",
       ContentTitle: "Film été",
+      Link: "https://www.parigomusic.com/engage-playlist/share-token",
       SelectEmailTemplateByMemberRegion: false,
     });
   });

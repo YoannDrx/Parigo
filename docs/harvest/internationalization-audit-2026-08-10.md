@@ -2,9 +2,17 @@
 
 Date de vérification : **10 août 2026**.
 
+> **Mise à jour du 26 août 2026.** Le constat album reste inchangé. Le contrat
+> label a changé : `getlibraries` expose encore les `LanguageItems`, mais
+> `getlibrary` commute désormais `Detail` avec `languagecode=en/fr` et omet
+> `LanguageItems`; Parigo effectue donc deux lectures. Les détails des 64
+> playlists exposent des traductions FR, contrairement à la liste. La matrice
+> courante et les fixtures se trouvent dans
+> [`launch-readiness-audit-2026-08-26.md`](./launch-readiness-audit-2026-08-26.md).
+
 ## Conclusion
 
-- **Labels : exploitable aujourd’hui.** `getlibrary` expose les descriptions localisées dans `LanguageItems`; Parigo les sélectionne déjà selon la langue de l’URL.
+- **Labels : exploitable avec compensation.** La liste expose `LanguageItems`; le détail commute `Detail` selon `languagecode`. Parigo assemble EN/FR et applique un fallback anglais.
 - **Albums : bloqué par le contrat Public API.** Harvest Admin stocke bien une description française, mais `getalbum` ne la renvoie pas. Le site ne peut donc pas afficher le français sans nouvelle donnée exposée par Harvest.
 - **E-mails : infrastructure multilingue présente mais contrat de sélection incomplet.** L’Admin gère les langues et les variantes de templates. En revanche, la manière dont chaque endpoint sélectionne sa variante n’est pas documentée, les comptes Parigo restent en `LanguageCode=EN`, et plusieurs templates nécessaires n’ont aucune variante française.
 
@@ -61,7 +69,10 @@ Au 10 août, `getlibraries` renvoie 103 Libraries. Une Library, **Musica.it**, p
 }
 ```
 
-`getlibrary` renvoie le même `LanguageItems`. Le test navigateur local confirme :
+Au 26 août, `getlibrary` ne renvoie plus ce `LanguageItems`. En revanche,
+`getlibrary?languagecode=en` et `getlibrary?languagecode=fr` renvoient
+respectivement les valeurs anglaise et française dans `Detail`. Le test
+navigateur confirme :
 
 - `/labels/9d330c152c37bca0` affiche la description française et une meta description française ;
 - `/en/labels/9d330c152c37bca0` affiche `Detail` en anglais et une meta description anglaise.

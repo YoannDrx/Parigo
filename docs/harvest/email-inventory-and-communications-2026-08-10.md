@@ -2,12 +2,19 @@
 
 Vérification du **10 août 2026** : réponse du support `#68617`, Harvest Admin, Gmail, Public API live, BFF et UI Parigo.
 
+> **Mise à jour du 26 août.** Le nombre de types/variantes et les six variantes
+> françaises sont inchangés. La plupart des lignes utilisent désormais
+> `Parigo Music Notifications`; quelques lignes conservent
+> `Parigo Music - France` et certains expéditeurs restent vides. Les nouveaux
+> messages contrôlés utilisent `info@parigomusic.com` avec SPF, DKIM et DMARC
+> alignés, sans la mention Gmail « via harvestmedia.net ».
+
 ## Conclusion
 
 - Le back-office Parigo contient **26 types** et **34 variantes** actives; deux familles optionnelles sont désactivées par leur interrupteur.
 - Il n’existe aucune variante explicitement `English`; `All` sert de fallback par défaut.
 - Seuls **six types** ont une variante `French`.
-- La majorité des variantes utilisent encore `Parigo Music - France <Guillaume.albeck@parigomusic.com>`.
+- L’identité d’expéditeur a été corrigée après cet inventaire historique ; la couverture linguistique reste inchangée.
 - `gethistorybycommunications` n’est pas l’inventaire des templates et n’est pas un journal global du compte. Sur le membre testé, il ne contient que cinq resets.
 
 ## Inventaire réellement visible dans Email Templates

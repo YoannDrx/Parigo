@@ -1030,12 +1030,13 @@ async function main() {
   const formatId = Array.isArray(formatList) ? findString(formatList[0], ["id", "ID"]) : undefined;
   if (formatId) {
     const validation = await direct(`/validatemusicdownloadrequest/${memberToken}`, json("POST", {
-      downloadtype: "track",
-      identifier: trackId,
-      format: formatId,
-      trimstartsecs: 0,
-      trimendsecs: 0,
-      includeversioncheck: false,
+      Identifier: trackId,
+      ContentIDs: "",
+      DownloadType: "track",
+      Format: [formatId],
+      TrimEndSecs: 0,
+      TrimStartSecs: 0,
+      IncludeVersionCheck: false,
     }));
     addResult({
       family: "Téléchargements",

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { AimsCapabilities, AimsExternalPlatform, AimsSearchRequest } from "@/types";
+import type { AimsCapabilities, AimsExternalPlatform, AimsSearchRequest, SimilarityCapabilities } from "@/types";
 import { isRecord } from "@/lib/harvest/errors";
 import { asBoolean, asList, asNumber, asString } from "@/lib/harvest/values";
 
@@ -199,6 +199,32 @@ export function parseAimsCapabilities(serviceInfo: Record<string, unknown>, flag
       platforms,
     },
     playlistSuggestions: providerAvailable,
+  };
+}
+
+export function publicSimilarityCapabilities(
+  capabilities: AimsCapabilities,
+  publicEnabled = true,
+): SimilarityCapabilities {
+  const normalized = {
+    track: capabilities.track,
+    prompt: {
+      ...capabilities.prompt,
+      // The public contract describes what Parigo can actually offer. Harvest
+      // may still advertise prompt=false while accepting successful searches.
+      advertised: capabilities.prompt.advertised || capabilities.prompt.enabled,
+    },
+    upload: capabilities.upload,
+    externalUrl: capabilities.externalUrl,
+    playlistSuggestions: capabilities.playlistSuggestions,
+  };
+  if (publicEnabled) return normalized;
+  return {
+    track: { ...normalized.track, enabled: false },
+    prompt: { ...normalized.prompt, enabled: false },
+    upload: { ...normalized.upload, enabled: false },
+    externalUrl: { ...normalized.externalUrl, enabled: false },
+    playlistSuggestions: false,
   };
 }
 

@@ -51,6 +51,24 @@ import {
 type HarvestRecord = Record<string, unknown>;
 
 const TRACK_COMMENT_INDEX_TAG_NAME = "PARIGO_INTERNAL_TRACK_COMMENTS_V1";
+const PARIGO_SHARE_HOSTS = new Set(["parigomusic.com", "www.parigomusic.com"]);
+
+function normalizePublicShareUrl(value: string): string {
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    throw new HarvestError("Harvest returned an invalid playlist share URL", "HARVEST_INVALID_RESPONSE");
+  }
+  if (url.username || url.password || !PARIGO_SHARE_HOSTS.has(url.hostname.toLowerCase())) {
+    throw new HarvestError("Harvest returned an unexpected playlist share URL", "HARVEST_INVALID_RESPONSE");
+  }
+  if (url.protocol === "http:") url.protocol = "https:";
+  if (url.protocol !== "https:") {
+    throw new HarvestError("Harvest returned an insecure playlist share URL", "HARVEST_INVALID_RESPONSE");
+  }
+  return url.toString();
+}
 
 export function isReservedMemberTagName(name: string): boolean {
   return name.trim().toLocaleUpperCase() === TRACK_COMMENT_INDEX_TAG_NAME;
@@ -708,8 +726,9 @@ export async function createMusicShare(memberToken: string, input: {
     })),
   });
   const shareResult = recordArray(share, "ShareMusic")[0] || share;
-  const url = asString(shareResult.Url || shareResult.URL);
-  if (!url) throw new HarvestError("Parigo did not return a playlist share URL", "HARVEST_INVALID_RESPONSE");
+  const rawUrl = asString(shareResult.Url || shareResult.URL);
+  if (!rawUrl) throw new HarvestError("Parigo did not return a playlist share URL", "HARVEST_INVALID_RESPONSE");
+  const url = normalizePublicShareUrl(rawUrl);
   if (input.sendEmail) {
     await memberRequest(memberToken, (token) => `/sendsharemusiclinkemail/${token}`, {
       method: "POST",

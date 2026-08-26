@@ -145,6 +145,7 @@ export const HarvestPlaylistSchema = z.looseObject({
   Archived: harvestBoolean.optional(),
   CreatedDate: z.string().optional().nullable(),
   LastUpdated: z.string().optional().nullable(),
+  LanguageItems: z.array(z.unknown()).optional().default([]),
   Tracks: z.array(HarvestTrackSchema).optional().default([]),
 });
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapAlbum, mapLibraryDescriptions, mapTrack } from "./catalog";
+import { mapAlbum, mapLibraryDescriptions, mapTrack, mergeLibraryDescriptions } from "./catalog";
 
 const templates = {
   trackStream: "",
@@ -36,6 +36,20 @@ describe("Harvest label translations", () => {
       fr: "Description française",
       en: "English description",
     });
+  });
+
+  it("merges locale-switched getlibrary Detail values", () => {
+    expect(mergeLibraryDescriptions(
+      { Detail: "English library detail", LanguageItems: [] },
+      { Detail: "Description française", LanguageItems: [] },
+    )).toEqual({ en: "English library detail", fr: "Description française" });
+  });
+
+  it("does not invent a French value when Harvest repeats the English fallback", () => {
+    expect(mergeLibraryDescriptions(
+      { Detail: "English fallback" },
+      { Detail: "English fallback" },
+    )).toEqual({ en: "English fallback" });
   });
 });
 

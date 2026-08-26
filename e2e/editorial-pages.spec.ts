@@ -1,4 +1,17 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
+
+async function enableSimilarityForVisualTest(page: Page) {
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+      externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
+      playlistSuggestions: true,
+    } }),
+  }));
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -392,6 +405,7 @@ test("les ondes du héros restent légères et animées sur mobile sans forme ci
 });
 
 test("le héros suit la palette Catalogue puis Similarité IA", async ({ page }) => {
+  await enableSimilarityForVisualTest(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
@@ -435,6 +449,7 @@ test("le héros suit la palette Catalogue puis Similarité IA", async ({ page })
 });
 
 test("la lumière de la Similarité IA reste statique en mouvement réduit", async ({ page }) => {
+  await enableSimilarityForVisualTest(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
@@ -446,6 +461,7 @@ test("la lumière de la Similarité IA reste statique en mouvement réduit", asy
 
 test("le hover de la Similarité IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop aux largeurs mobile et desktop.");
+  await enableSimilarityForVisualTest(page);
   await page.addInitScript(() => localStorage.setItem("parigo-theme", "light"));
   for (const [width, corner] of [[390, "8px"], [1024, "14px"]] as const) {
     await page.setViewportSize({ width, height: 900 });
