@@ -777,13 +777,14 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   if (testInfo.project.name === "mobile") await expect(nextButton).toBeHidden();
   else {
     await expect(nextButton).toBeEnabled();
-    await expect(nextButton).toHaveClass(/home-rail-nav--next/);
+    await expect(nextButton).toHaveClass(/carousel-nav-button--next/);
+    await expect(nextButton.locator(".carousel-nav-button__icon")).toBeVisible();
     expect((await nextButton.boundingBox())!.width).toBeLessThanOrEqual(44);
     expect((await nextButton.boundingBox())!.height).toBeLessThanOrEqual(44);
     await nextButton.hover();
     await expect.poll(() => nextButton.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
     await expect(page.getByRole("tooltip")).toHaveText("Suivant");
-    const inverseButton = page.locator(".home-rail-nav--inverse").last();
+    const inverseButton = page.locator(".carousel-nav-button--inverse").last();
     const inverseColors = await inverseButton.evaluate((node) => ({
       control: getComputedStyle(node).color,
       section: getComputedStyle(node.closest("section")!).backgroundColor,
@@ -1103,8 +1104,22 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   await expect(section.getByText(/^(?:01|02|03)$/)).toHaveCount(0);
   const cta = section.getByRole("link", { name: "Découvrez nos talents" });
   await expect(cta).toHaveAttribute("href", "/talents");
-  await expect(cta).toHaveClass(/home-see-all/);
+  await expect(cta).toHaveClass(/home-section-cta/);
   await expect(cta).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+  await expect(cta.locator(".home-section-cta__arrow")).toBeVisible();
+  await expect(cta.locator("xpath=parent::div")).toHaveCSS("justify-content", "center");
+  const aboutCta = page.getByRole("link", { name: "Découvrir le catalogue" });
+  const [composerCtaShape, aboutCtaShape] = await Promise.all([
+    cta.evaluate((node) => {
+      const style = getComputedStyle(node);
+      return { borderRadius: style.borderRadius, fontSize: style.fontSize, height: style.height, paddingLeft: style.paddingLeft };
+    }),
+    aboutCta.evaluate((node) => {
+      const style = getComputedStyle(node);
+      return { borderRadius: style.borderRadius, fontSize: style.fontSize, height: style.height, paddingLeft: style.paddingLeft };
+    }),
+  ]);
+  expect(composerCtaShape).toEqual(aboutCtaShape);
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
   const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/talents/"]');
   await expect(primaryCards).toHaveCount(63);

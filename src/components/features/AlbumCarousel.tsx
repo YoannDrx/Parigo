@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AlbumCard } from "./AlbumCard";
 import type { Album } from "@/types";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { CarouselNavButton } from "@/components/ui/CarouselNavButton";
 
 interface AlbumCarouselProps {
   albums: Album[];
@@ -238,23 +238,21 @@ export function AlbumCarousel({
 
       {/* Navigation buttons - always visible on hover */}
       {canGoPrevious && (
-        <button
+        <CarouselNavButton
+          direction="previous"
           onClick={goToPrevious}
-          className="parigo-frame absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[var(--line-strong)] bg-[var(--surface)] opacity-0 transition-all hover:-translate-y-[calc(50%+1px)] hover:translate-x-[-1px] group-hover/carousel:opacity-100 focus:opacity-100"
+          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
           aria-label={locale === "fr" ? "Albums précédents" : "Previous albums"}
-        >
-          <ChevronLeft className="w-5 h-5 text-[var(--color-black)]" />
-        </button>
+        />
       )}
 
       {canGoNext && (
-        <button
+        <CarouselNavButton
+          direction="next"
           onClick={goToNext}
-          className="parigo-frame absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[var(--line-strong)] bg-[var(--surface)] opacity-0 transition-all hover:-translate-y-[calc(50%+1px)] hover:translate-x-[1px] group-hover/carousel:opacity-100 focus:opacity-100"
+          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
           aria-label={locale === "fr" ? "Albums suivants" : "Next albums"}
-        >
-          <ChevronRight className="w-5 h-5 text-[var(--color-black)]" />
-        </button>
+        />
       )}
 
       {/* Progress indicator */}

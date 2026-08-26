@@ -6,7 +6,7 @@ import type { CSSProperties } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { localizedPath } from "@/lib/locale";
 import { HomeReveal } from "./HomeMotion";
-import { HomeSeeAllLink } from "./HomeSeeAllLink";
+import { HomeSectionCta } from "./HomeSectionCta";
 
 export type ComposerStreamProfile = {
   slug: string;
@@ -112,8 +112,8 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
           </div>
         </div>
 
-        <div className="mt-4 flex justify-end text-right">
-          <HomeSeeAllLink href={localizedPath(locale, "/talents")}>{cta}</HomeSeeAllLink>
+        <div className="mt-4 flex justify-center text-center">
+          <HomeSectionCta href={localizedPath(locale, "/talents")}>{cta}</HomeSectionCta>
         </div>
       </div>
     </section>
