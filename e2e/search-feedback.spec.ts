@@ -1,5 +1,29 @@
 import { expect, test } from "@playwright/test";
 
+const enabledSimilarityCapabilities = { data: {
+  track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+  prompt: { advertised: true, enabled: true },
+  upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+  externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
+  playlistSuggestions: true,
+} };
+
+const similarityTrack = {
+  id: "similarity-track-1",
+  title: "Éclat nocturne",
+  duration: 148,
+  bpm: 92,
+  audioUrl: null,
+  albumId: "similarity-album-1",
+  albumTitle: "Parigo Similarity",
+  albumCover: "/images/placeholder-album.svg",
+  albumLabel: "Parigo",
+  genres: ["Cinematic"],
+  moods: ["Nocturnal"],
+  isVocal: false,
+  waveform: null,
+};
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({
@@ -55,8 +79,9 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
   await expect(workspace.getByRole("button", { name: "Analyser le lien" })).toBeEnabled();
   const currentEmptyResults = page.getByRole("heading", { name: "Utilisez un lien public" });
   const aiToolbar = workspace.locator(".search-toolbar--ai-compact");
-  await expect(aiToolbar.getByRole("combobox", { name: "Niveau de détail des pistes similaires" })).toBeVisible();
-  await expect(aiToolbar).not.toContainText(/Résultats|Ordre|Similarité/);
+  await expect(aiToolbar).toHaveCount(0);
+  await expect(page.locator(".search-results-status")).toHaveCSS("border-bottom-width", "0px");
+  expect(await workspace.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
 
   const [workspaceBox, sidebarBox, resultsBox] = await Promise.all([
     workspace.boundingBox(),
@@ -76,7 +101,115 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
 });
 
-test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", async ({ page }) => {
+test("l’affichage rejoint le compteur, garde le corner catalogue et aligne la barre sticky", async ({ page }, testInfo) => {
+  const similarityTracks = Array.from({ length: 12 }, (_, index) => ({
+    ...similarityTrack,
+    id: `${similarityTrack.id}-${index + 1}`,
+    title: `${similarityTrack.title} ${index + 1}`,
+  }));
+  await page.route("**/api/similarity/search", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      data: { tracks: similarityTracks, mode: "prompt" },
+      meta: { total: similarityTracks.length, durationMs: 10, requestId: "e2e-similarity-display" },
+    }),
+  }));
+
+  await page.goto("/search?mode=ai&source=prompt");
+  const display = page.getByRole("combobox", { name: "Niveau de détail des pistes similaires" });
+  await expect(display).toHaveCount(0);
+
+  await page.getByLabel("Décrire la musique recherchée").fill("Une tension cinématique nocturne");
+  await page.getByRole("button", { name: "Lancer le brief" }).click();
+  await expect(display).toBeVisible();
+
+  const status = page.locator(".search-results-status");
+  const select = status.locator(".parigo-select");
+  const counter = status.locator("span").first();
+  const [counterBox, displayBox] = await Promise.all([counter.boundingBox(), display.boundingBox()]);
+  expect(counterBox).not.toBeNull();
+  expect(displayBox).not.toBeNull();
+  expect(Math.abs(counterBox!.y + counterBox!.height / 2 - (displayBox!.y + displayBox!.height / 2))).toBeLessThanOrEqual(2);
+  expect(displayBox!.x).toBeGreaterThan(counterBox!.x + counterBox!.width);
+
+  const cornerColors = await select.evaluate((node) => ({
+    select: getComputedStyle(node, "::after").borderBottomColor,
+    signal: (() => {
+      const probe = document.createElement("span");
+      probe.style.borderBottom = "1px solid var(--signal-strong)";
+      node.appendChild(probe);
+      const color = getComputedStyle(probe).borderBottomColor;
+      probe.remove();
+      return color;
+    })(),
+  }));
+  expect(cornerColors.select).toBe(cornerColors.signal);
+
+  if (testInfo.project.name === "desktop") {
+    await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
+    await expect(page.locator("header")).toHaveAttribute("data-header-visible", "false");
+    await page.waitForTimeout(350);
+    const [formBox, sidebarBox] = await Promise.all([
+      page.getByTestId("search-workspace").locator(".search-command__form").boundingBox(),
+      page.getByRole("complementary", { name: "Modes de recherche par similarité IA" }).locator(".search-filter-panel").boundingBox(),
+    ]);
+    expect(formBox).not.toBeNull();
+    expect(sidebarBox).not.toBeNull();
+    expect(formBox!.y).toBeGreaterThanOrEqual(8);
+    expect(Math.abs(formBox!.y - sidebarBox!.y)).toBeLessThanOrEqual(2);
+    const scrollMask = await page.getByTestId("search-workspace").evaluate((node) => {
+      const mask = getComputedStyle(node, "::before");
+      return {
+        content: mask.content,
+        height: mask.height,
+        backgroundColor: mask.backgroundColor,
+        workspaceBackgroundColor: getComputedStyle(node).backgroundColor,
+      };
+    });
+    expect(scrollMask.content).toBe('""');
+    expect(scrollMask.height).toBe("12px");
+    expect(scrollMask.backgroundColor).toBe(scrollMask.workspaceBackgroundColor);
+  }
+});
+
+test("les contrôles sans résultat et les séparateurs décoratifs restent masqués", async ({ page }) => {
+  await page.route("**/api/search?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      data: { items: [] },
+      meta: { page: 1, pageSize: 30, total: 0, requestId: "e2e-empty-search" },
+    }),
+  }));
+
+  await page.goto("/search");
+  await expect(page.getByRole("combobox", { name: "Niveau de détail des pistes" })).toHaveCount(0);
+  await expect(page.locator(".search-results-status")).toHaveCSS("border-bottom-width", "0px");
+  expect(await page.getByTestId("search-workspace").evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
+});
+
+test("le survol d’un groupe de filtres utilise un repère vertical à gauche", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Le survol est une interaction desktop.");
+  await page.goto("/search");
+  const summary = page.getByRole("complementary", { name: "Filtres de recherche" }).locator(".search-filter-group__summary").first();
+  await expect(summary).toBeVisible();
+  await summary.hover();
+  await expect.poll(() => summary.evaluate((node) => getComputedStyle(node, "::after").transform)).toBe("matrix(1, 0, 0, 1, 0, 0)");
+
+  const marker = await summary.evaluate((node) => {
+    const style = getComputedStyle(node, "::after");
+    return {
+      width: Number.parseFloat(style.width),
+      height: Number.parseFloat(style.height),
+      left: style.left,
+      transform: style.transform,
+    };
+  });
+  expect(marker.left).toBe("0px");
+  expect(marker.width).toBeLessThan(marker.height / 5);
+  expect(marker.transform).toBe("matrix(1, 0, 0, 1, 0, 0)");
+});
+
+test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", async ({ page }, testInfo) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("parigo-theme", "light");
     window.localStorage.setItem("parigo-recent-searches-v1", JSON.stringify({ version: 1, keyword: [], ai: [{ query: "Film solaire", updatedAt: Date.now() }] }));
@@ -115,28 +248,26 @@ test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", asy
   await methods.getByRole("button", { name: /À partir de la shortlist/ }).click();
   const shortlistTrigger = command.getByRole("button", { name: /Choisissez des pistes dans votre shortlist/ });
   await expect(shortlistTrigger).toHaveAttribute("aria-expanded", "false");
+  if (testInfo.project.name === "desktop") {
+    const chevron = shortlistTrigger.locator(".similarity-shortlist-trigger__chevron");
+    const initialBackground = await chevron.evaluate((node) => getComputedStyle(node).backgroundColor);
+    await shortlistTrigger.hover();
+    await expect.poll(() => chevron.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(initialBackground);
+    await expect(chevron).not.toHaveCSS("border-color", "rgba(0, 0, 0, 0)");
+  }
   await shortlistTrigger.click();
   await expect(shortlistTrigger).toHaveAttribute("aria-expanded", "true");
   const shortlistPanel = page.getByRole("dialog", { name: "Sélectionner les pistes de la shortlist" });
   await expect(shortlistPanel).toBeVisible();
-  const [panelBox, formBox, aiToolbarBox] = await Promise.all([
+  const [panelBox, formBox] = await Promise.all([
     shortlistPanel.boundingBox(),
     form.boundingBox(),
-    page.locator(".search-toolbar--ai-compact").boundingBox(),
   ]);
   expect(panelBox).not.toBeNull();
   expect(formBox).not.toBeNull();
-  expect(aiToolbarBox).not.toBeNull();
   expect(Math.abs(panelBox!.x - formBox!.x)).toBeLessThanOrEqual(2);
   expect(Math.abs(panelBox!.width - formBox!.width)).toBeLessThanOrEqual(2);
-  const panelOverlapTop = Math.max(panelBox!.y, aiToolbarBox!.y);
-  const panelOverlapBottom = Math.min(panelBox!.y + panelBox!.height, aiToolbarBox!.y + aiToolbarBox!.height);
-  const panelOverlapLeft = Math.max(panelBox!.x, aiToolbarBox!.x);
-  const panelOverlapRight = Math.min(panelBox!.x + panelBox!.width, aiToolbarBox!.x + aiToolbarBox!.width);
-  const overlap = panelOverlapBottom > panelOverlapTop + 2 && panelOverlapRight > panelOverlapLeft + 2;
-  const topmostPoint = overlap
-    ? { x: panelOverlapLeft + 2, y: panelOverlapTop + 2 }
-    : { x: panelBox!.x + panelBox!.width / 2, y: panelBox!.y + Math.min(20, panelBox!.height / 2) };
+  const topmostPoint = { x: panelBox!.x + panelBox!.width / 2, y: panelBox!.y + Math.min(20, panelBox!.height / 2) };
   expect(await shortlistPanel.evaluate((node, point) => node.contains(document.elementFromPoint(point.x, point.y)), topmostPoint)).toBe(true);
   await page.keyboard.press("Escape");
   await expect(shortlistTrigger).toBeFocused();
@@ -897,7 +1028,7 @@ test("le changement de langue conserve toute la recherche en cours", async ({ pa
   const languageLink = testInfo.project.name === "mobile"
     ? await (async () => {
       await page.getByRole("button", { name: "Ouvrir le menu" }).click();
-      return page.getByRole("dialog", { name: "Menu principal" }).locator('a[href^="/en/search?"]');
+      return page.getByRole("dialog", { name: "Menu principal" }).locator('a.nav-control[href^="/en/search?"]');
     })()
     : page.locator('a.nav-control[href^="/en/search?"]');
   await expect(languageLink).toBeVisible();

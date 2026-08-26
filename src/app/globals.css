@@ -1956,23 +1956,23 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 }
 @media (min-width: 1024px) {
   .search-workspace {
-    top: 74px;
+    top: calc(var(--search-header-clearance, 74px) + .5rem);
     transition: top 300ms var(--ease-out);
   }
-  :root:has(header[data-header-visible="false"]) .search-workspace {
-    top: 0;
+  .search-workspace::before {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: -.75rem;
+    left: 0;
+    z-index: 1;
+    height: .75rem;
+    background: var(--background);
+    pointer-events: none;
   }
-}
-.search-workspace::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: -1;
-  height: 1px;
-  background: var(--line);
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--background) 82%, transparent);
+  :root:has(header[data-header-visible="false"]) .search-workspace {
+    --search-header-clearance: 0px;
+  }
 }
 .search-command-center {
   background-image: linear-gradient(90deg, color-mix(in srgb, var(--signal) 4%, transparent) 1px, transparent 1px);
@@ -2620,7 +2620,6 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 }
 .search-filter-group[open] {
   background: color-mix(in srgb, var(--surface) 68%, var(--background));
-  box-shadow: inset 3px 0 0 var(--signal-strong);
 }
 .search-filter-group__summary {
   position: relative;
@@ -2630,12 +2629,14 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 .search-filter-group__summary::after {
   content: "";
   position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 0;
-  height: 2px;
+  top: .65rem;
+  bottom: .65rem;
+  left: 0;
+  width: 3px;
   background: var(--signal);
-  transition: width 420ms var(--ease-out);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform 280ms var(--ease-out);
 }
 .search-filter-group__index {
   width: 2.25rem;
@@ -2650,7 +2651,7 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
   border-radius: 0 var(--parigo-turn-md) var(--parigo-turn-md) 0;
 }
 .search-filter-group__summary:hover::after,
-.search-filter-group[open] > .search-filter-group__summary::after { width: 3.5rem; }
+.search-filter-group[open] > .search-filter-group__summary::after { transform: scaleY(1); }
 .search-filter-group__summary:hover .search-filter-group__index,
 .search-filter-group[open] > .search-filter-group__summary .search-filter-group__index { color: var(--signal); }
 .search-filter-group__summary:hover [class*="text-[var(--text-muted)]"],
@@ -2660,6 +2661,26 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 .search-filter-group__body {
   position: relative;
   background-image: linear-gradient(90deg, transparent calc(100% - 2rem), color-mix(in srgb, var(--signal) 5%, transparent) calc(100% - 2rem));
+}
+.similarity-shortlist-trigger {
+  border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
+  outline: none;
+  transition: background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
+}
+.similarity-shortlist-trigger__chevron {
+  border: 1px solid transparent;
+  border-radius: var(--parigo-corner-sm) var(--parigo-turn-sm);
+  transition: color var(--motion-fast) ease, background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, transform var(--motion-fast) ease;
+}
+.similarity-shortlist-trigger:is(:hover, :focus-visible) {
+  background: color-mix(in srgb, var(--ai-search) 5%, transparent);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--ai-search) 72%, transparent);
+}
+.similarity-shortlist-trigger:is(:hover, :focus-visible) .similarity-shortlist-trigger__chevron {
+  border-color: color-mix(in srgb, var(--ai-search) 48%, var(--line));
+  background: color-mix(in srgb, var(--ai-search) 12%, var(--surface));
+  color: var(--ai-search);
+  transform: translateY(1px);
 }
 .search-filter-field::before,
 .search-filter-field::after {

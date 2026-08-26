@@ -667,7 +667,7 @@ function SearchContent() {
                   {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="w-full min-w-0 lg:w-auto lg:min-w-[11.5rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "main", label: locale === "fr" ? "Principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
                 </div>
                 <div className="contents lg:flex lg:min-w-0 lg:flex-wrap lg:items-stretch lg:justify-end lg:gap-2">
-                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="w-full min-w-0 lg:w-auto lg:min-w-[10.5rem]" listboxClassName="search-mobile-select-listbox--right" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
+                  {view === "tracks" && tracks.length > 0 ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="w-full min-w-0 lg:w-auto lg:min-w-[10.5rem]" listboxClassName="search-mobile-select-listbox--right" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
                   <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="w-full min-w-0 lg:w-auto lg:min-w-[9rem]" listboxClassName="search-mobile-select-listbox--left" options={[
                     { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
                     { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
@@ -678,13 +678,10 @@ function SearchContent() {
                 </div>
               </div>}
 
-              {searchMode === "ai" && <div className="search-toolbar search-toolbar--ai-compact mt-2 flex w-full items-stretch justify-stretch border border-[var(--line-strong)] bg-[var(--surface)] p-2 after:!border-[var(--ai-search)] sm:ml-auto sm:w-fit sm:justify-end">
-                <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes similaires" : "Similar track detail level"} className="w-full min-w-0 sm:w-auto sm:min-w-[12rem]" listboxClassName="search-mobile-select-listbox--right" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} />
-              </div>}
             </div>
 
             {searchMode === "ai" ? (
-              <SimilaritySearchWorkspace controller={similarity} density={density} />
+              <SimilaritySearchWorkspace controller={similarity} density={density} onDensityChange={setDensity} />
             ) : <>
 
             {(categories.length > 0 || labels.length > 0 || styles.length > 0 || composers.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
@@ -729,7 +726,7 @@ function SearchContent() {
               </div>
             ) : null}
 
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]">
+            <div className="search-results-status mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
               <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
               {session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}
             </div>
