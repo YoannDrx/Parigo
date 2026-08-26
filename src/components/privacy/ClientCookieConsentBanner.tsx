@@ -23,7 +23,9 @@ function readConsentSnapshot() {
 }
 
 export function ClientCookieConsentBanner({ locale }: { locale: Locale }) {
-  const [visible, setVisible] = useState(false);
+  // Keep the shared initial render deterministic while reserving the banner's
+  // layout before hydration. Existing choices are hidden during hydration.
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
     const refresh = () => setVisible(readConsentSnapshot() === CONSENT_UNSET);

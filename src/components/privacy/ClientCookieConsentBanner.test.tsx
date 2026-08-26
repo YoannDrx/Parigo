@@ -1,6 +1,8 @@
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { renderToString } from "react-dom/server";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+  CONSENT_BANNER_ID,
   CONSENT_COOKIE_NAME,
   CONSENT_STORAGE_KEY,
   createDefaultConsentPreferences,
@@ -14,6 +16,10 @@ describe("ClientCookieConsentBanner", () => {
   });
 
   afterEach(cleanup);
+
+  it("réserve le bandeau dans le rendu initial pour éviter un LCP tardif", () => {
+    expect(renderToString(<ClientCookieConsentBanner locale="fr" />)).toContain(CONSENT_BANNER_ID);
+  });
 
   it("affiche le bandeau après hydratation lorsqu’aucun choix n’existe", async () => {
     render(<ClientCookieConsentBanner locale="fr" />);
