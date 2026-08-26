@@ -128,7 +128,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
   };
 
   return (
-    <div className="w-full">
+    <div className={compact ? "w-full" : "h-[4.5rem] w-full overflow-visible"}>
       <SearchCommand
         id={compact ? "home-search-compact" : "home-search"}
         value={query}

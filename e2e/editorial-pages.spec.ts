@@ -388,7 +388,7 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("le gradient Wave du héros reste animé sur mobile et statique en mouvement réduit", async ({ page }) => {
+test("le gradient Silk du héros reste animé sur mobile et statique en mouvement réduit", async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -455,6 +455,58 @@ test("le héros suit la palette Catalogue puis Similarité IA", async ({ page })
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(catalogColor);
 });
 
+test("le switch Catalogue et IA ne déplace ni le titre ni la barre du héros", async ({ page }) => {
+  test.setTimeout(60_000);
+  await enableSimilarityForVisualTest(page);
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
+
+  for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/");
+    const hero = page.getByTestId("home-hero");
+    const content = hero.getByTestId("home-hero-content");
+    const title = hero.locator('[data-banner-reveal="title"]');
+    const form = hero.locator(".search-command__form");
+    await expect(hero.getByTestId("home-hero-search-mask")).toHaveAttribute("data-banner-mask", "open");
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const [catalogTitle, catalogForm] = await Promise.all([title.boundingBox(), form.boundingBox()]);
+    expect(catalogTitle).not.toBeNull();
+    expect(catalogForm).not.toBeNull();
+    if (viewport.width === 390) {
+      const [heroBox, contentBox] = await Promise.all([hero.boundingBox(), content.boundingBox()]);
+      expect(heroBox).not.toBeNull();
+      expect(contentBox).not.toBeNull();
+      expect(contentBox!.y - heroBox!.y).toBeLessThanOrEqual(170);
+    }
+
+    await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+    await hero.getByRole("option", { name: /Similarité IA/ }).click();
+    await expect(hero).toHaveAttribute("data-search-mode", "ai");
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(650);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const [aiTitle, aiForm] = await Promise.all([title.boundingBox(), form.boundingBox()]);
+    expect(aiTitle).not.toBeNull();
+    expect(aiForm).not.toBeNull();
+    expect(Math.abs(aiTitle!.y - catalogTitle!.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(aiForm!.x - catalogForm!.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(aiForm!.y - catalogForm!.y)).toBeLessThanOrEqual(1);
+
+    await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
+    await hero.getByRole("option", { name: /Catalogue/ }).click();
+    await expect(hero).toHaveAttribute("data-search-mode", "catalog");
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(650);
+    await page.evaluate(() => window.scrollTo(0, 0));
+    const [restoredTitle, restoredForm] = await Promise.all([title.boundingBox(), form.boundingBox()]);
+    expect(restoredTitle).not.toBeNull();
+    expect(restoredForm).not.toBeNull();
+    expect(Math.abs(restoredTitle!.y - catalogTitle!.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(restoredForm!.x - catalogForm!.x)).toBeLessThanOrEqual(1);
+    expect(Math.abs(restoredForm!.y - catalogForm!.y)).toBeLessThanOrEqual(1);
+  }
+});
+
 test("la lumière de la Similarité IA reste statique en mouvement réduit", async ({ page }) => {
   await enableSimilarityForVisualTest(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
@@ -519,7 +571,7 @@ test("les métriques publiques compactent le contenu après séparateur sur mobi
   }
 });
 
-test("le héros desktop charge Gradflow avec un fallback Wave sans forme organique", async ({ page }, testInfo) => {
+test("le héros desktop charge Gradflow Silk avec un fallback sans forme organique", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le rendu Gradflow desktop est contrôlé dans le viewport desktop.");
   await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");
