@@ -50,7 +50,89 @@ export interface Track {
   libraryType?: string;
   highlighted?: boolean;
   matchEvidence?: SearchMatchEvidence[];
+  /** Matching passages returned by Harvest's AIMS/Evoke ranking. */
+  similaritySegments?: SimilaritySegment[];
 }
+
+export interface SimilaritySegment {
+  start: number;
+  duration: number;
+  /** Harvest currently returns zero for some providers; unusable scores are omitted. */
+  score?: number;
+}
+
+export type SimilaritySearchSource = "track" | "prompt" | "upload" | "url";
+
+export type SimilarityExternalPlatform =
+  | "youtube"
+  | "spotify"
+  | "vimeo"
+  | "soundcloud"
+  | "appleMusic"
+  | "tiktok";
+
+export interface SimilarityCapabilities {
+  track: {
+    advertised: boolean;
+    enabled: boolean;
+    multiSeed: boolean;
+    prioritizeBpm: boolean;
+  };
+  prompt: {
+    advertised: boolean;
+    enabled: boolean;
+  };
+  upload: {
+    advertised: boolean;
+    enabled: boolean;
+    contentTypes: ["audio/mpeg", "audio/wav"];
+    maxBytes: number;
+    maxDurationSeconds: number;
+  };
+  externalUrl: {
+    advertised: boolean;
+    enabled: boolean;
+    platforms: SimilarityExternalPlatform[];
+  };
+  playlistSuggestions: boolean;
+}
+
+export type SimilaritySearchRequest =
+  | {
+      type: "track";
+      seedTrackIds: string[];
+      includeSeed?: boolean;
+      prioritizeBpm?: boolean;
+    }
+  | {
+      type: "prompt";
+      prompt: string;
+      locale: "fr" | "en";
+    }
+  | {
+      type: "upload" | "url";
+      referenceToken: string;
+    };
+
+export interface SimilaritySearchResponse {
+  data: {
+    tracks: Track[];
+    mode: SimilaritySearchSource;
+    indexed?: boolean;
+  };
+  meta: {
+    total: number;
+    durationMs: number;
+    requestId: string;
+  };
+}
+
+/** Server-side integration aliases. Public/client code should use the neutral names above. */
+export type AimsSearchSource = SimilaritySearchSource;
+export type AimsExternalPlatform = SimilarityExternalPlatform;
+export type AimsCapabilities = SimilarityCapabilities & { provider: "AIMS" };
+export type AimsSearchRequest = SimilaritySearchRequest;
+export type AimsSearchResponse = SimilaritySearchResponse & { meta: SimilaritySearchResponse["meta"] & { provider: "AIMS" } };
 
 export interface ComposerCreditLink {
   credit: string;
@@ -328,7 +410,7 @@ export interface SearchFilterGroup {
   items: SearchFilterItem[];
   source?: "catalog";
   state?: "available" | "unavailable";
-  remote?: "harvest-track-composers";
+  remote?: "track-composers";
   description?: string;
 }
 

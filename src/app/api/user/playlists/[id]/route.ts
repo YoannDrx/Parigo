@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, apiPlaylist, apiTrack, requestId } from "@/lib/harvest/api";
 import { getMemberPlaylist, removeMemberPlaylist, updateMemberPlaylist } from "@/lib/harvest/activity";
-import { getServiceInfo, hasSearchSimilarCapability } from "@/lib/harvest/client";
+import { getAimsCapabilities } from "@/lib/harvest/aims";
 import { isHarvestPlaylistSharingEnabled } from "@/lib/harvest/config";
 import { assertSameOrigin, requireHarvestSession } from "@/lib/harvest/session";
 
@@ -14,16 +14,16 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
   try {
     const session = await requireHarvestSession();
     const id = idSchema.parse((await context.params).id);
-    const [playlist, serviceInfo] = await Promise.all([
+    const [playlist, aims] = await Promise.all([
       getMemberPlaylist(session.memberToken, id),
-      getServiceInfo().catch(() => ({})),
+      getAimsCapabilities().catch(() => null),
     ]);
     if (!playlist) return NextResponse.json({ error: { code: "NOT_FOUND", message: "Playlist not found", retryable: false, requestId: requestID } }, { status: 404 });
     return NextResponse.json({
       data: {
         playlist: { ...apiPlaylist(playlist), tracks: playlist.tracks?.map(apiTrack) || [] },
         capabilities: {
-          playlistSuggestions: hasSearchSimilarCapability(serviceInfo),
+          playlistSuggestions: Boolean(aims?.playlistSuggestions),
           playlistSharing: isHarvestPlaylistSharingEnabled(),
         },
       },

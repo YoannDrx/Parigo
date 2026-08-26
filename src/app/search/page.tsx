@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Layers3,
+  Link2,
   Minus,
   RotateCcw,
   SlidersHorizontal,
@@ -21,18 +22,26 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { SearchCommand, type SearchResultView } from "@/components/search/SearchCommand";
+import {
+  SimilarityCommandContent,
+  SimilaritySearchWorkspace,
+  similarityInputError,
+  useSimilaritySearchController,
+} from "@/components/search/SimilaritySearchWorkspace";
 import { Button } from "@/components/ui/Button";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
 import { Select } from "@/components/ui/Select";
-import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
+import { useSimilarityCapabilities, useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId } from "@/lib/search-intent";
 import { canonicalSearchFilterLabel, canonicalSearchFilterName } from "@/lib/search-filter-labels";
 import { normalizeSearchText } from "@/lib/search-normalization";
+import { looksLikeExternalUrl } from "@/lib/search/similarity-platforms";
 import { cn, formatDuration } from "@/lib/utils";
-import type { Album, AutocompleteItem, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchTranslationMode, SortMode, Track } from "@/types";
+import type { SimilaritySearchSource, Album, AutocompleteItem, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchMode, SearchTranslationMode, SortMode, Track } from "@/types";
 import { useSession } from "@/lib/auth-client";
+import { clearSimilarityHandoff, useSimilarityHandoff } from "@/stores/similarity-handoff-store";
 
 const TrackRow = dynamic(
   () => import("@/components/features/TrackRow").then((module) => module.TrackRow),
@@ -100,6 +109,13 @@ function SearchContent() {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const initialSearchMode: SearchMode = searchParams.get("mode") === "ai" ? "ai" : "keyword";
+  const rawSimilaritySource = searchParams.get("source");
+  const initialSimilaritySource: SimilaritySearchSource = rawSimilaritySource === "track" || rawSimilaritySource === "upload" || rawSimilaritySource === "url" ? rawSimilaritySource : "prompt";
+  const initialSimilaritySeedIds = [...new Set([
+    ...csv(searchParams.get("seeds")),
+    ...searchParams.getAll("seed").flatMap(csv),
+  ])].slice(0, 10);
   const legacyKeyword = searchParams.get("keyword") ?? searchParams.get("brief") ?? "";
   const rawInitialQuery = searchParams.get("q") ?? legacyKeyword;
   const initialQuery = stripQuotes(rawInitialQuery);
@@ -113,6 +129,10 @@ function SearchContent() {
 
   const [query, setQuery] = useState(initialQuery);
   const [queryDraft, setQueryDraft] = useState(initialQuery);
+  const [searchMode, setSearchMode] = useState<SearchMode>(initialSearchMode);
+  const [similaritySource, setSimilaritySource] = useState<SimilaritySearchSource>(initialSimilaritySource);
+  const [similarityPrompt, setSimilarityPrompt] = useState(initialSearchMode === "ai" && initialSimilaritySource === "prompt" ? initialQuery : "");
+  const initialSimilarityHandoff = useSimilarityHandoff();
   const legacyTranslate = searchParams.get("translate");
   const initialTranslation = searchParams.get("translation");
   const [translation, setTranslation] = useState<SearchTranslationMode>(
@@ -155,6 +175,14 @@ function SearchContent() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const searchWorkspaceRef = useRef<HTMLDivElement>(null);
+  const similarityCapabilitiesQuery = useSimilarityCapabilities();
+  const aiEnabled = Boolean(similarityCapabilitiesQuery.data && (
+    similarityCapabilitiesQuery.data.track.enabled
+    || similarityCapabilitiesQuery.data.prompt.enabled
+    || similarityCapabilitiesQuery.data.upload.enabled
+    || similarityCapabilitiesQuery.data.externalUrl.enabled
+  ));
+
 
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
@@ -232,7 +260,7 @@ function SearchContent() {
     // On mobile the filter sheet is an explicit apply surface. Deferring the URL
     // replacement keeps the focus trap and scroll position stable while users
     // make several selections; closing the sheet commits the canonical URL.
-    if (mobileFiltersOpen) return;
+    if (mobileFiltersOpen || searchMode === "ai") return;
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (query && translation !== "offer") params.set("translation", translation);
@@ -264,7 +292,7 @@ function SearchContent() {
         return () => window.removeEventListener("load", replaceUrl);
       }
     }
-  }, [bpmRange, categories, composers, density, durationRange, labels, localizedPath, mobileFiltersOpen, page, query, searchParams, sort, styles, translation, type, view]);
+  }, [bpmRange, categories, composers, density, durationRange, labels, localizedPath, mobileFiltersOpen, page, query, searchMode, searchParams, sort, styles, translation, type, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -320,8 +348,8 @@ function SearchContent() {
     translation,
   }), [bpmRange, categories, composers, durationRange, labels, locale, page, query, sort, styles, translation, type]);
   const debouncedParams = useDebounced(requestParams, 300);
-  const tracksQuery = useTracks(debouncedParams, view === "tracks");
-  const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, view === "albums");
+  const tracksQuery = useTracks(debouncedParams, searchMode === "keyword" && view === "tracks");
+  const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, searchMode === "keyword" && view === "albums");
   const activeQuery = view === "tracks" ? tracksQuery : albumsQuery;
   const tracks = useMemo(() => tracksQuery.data?.tracks ?? [], [tracksQuery.data?.tracks]);
   const trackQueue = useMemo(
@@ -379,6 +407,57 @@ function SearchContent() {
     setQueryDraft("");
     setQuery("");
     setTranslation("offer");
+  };
+
+  const switchSearchMode = (nextMode: SearchMode) => {
+    setSearchMode(nextMode);
+    const params = new URLSearchParams(window.location.search);
+    if (nextMode === "ai") {
+      params.set("mode", "ai");
+      params.set("source", similaritySource);
+      params.delete("page");
+    } else {
+      params.delete("mode");
+      params.delete("source");
+      params.delete("seed");
+      params.delete("seeds");
+    }
+    window.history.replaceState(window.history.state, "", `${localizedPath("/search")}${params.size ? `?${params}` : ""}`);
+  };
+
+  const updateSimilaritySource = (nextSource: SimilaritySearchSource) => {
+    setSimilaritySource(nextSource);
+    if (searchMode !== "ai") return;
+    const params = new URLSearchParams(window.location.search);
+    params.set("mode", "ai");
+    params.set("source", nextSource);
+    window.history.replaceState(window.history.state, "", `${localizedPath("/search")}?${params}`);
+  };
+
+  const similarity = useSimilaritySearchController({
+    source: similaritySource,
+    prompt: similarityPrompt,
+    initialSeedIds: initialSimilaritySeedIds,
+    initialHandoff: initialSimilarityHandoff,
+    onPromptChange: setSimilarityPrompt,
+    onSourceChange: updateSimilaritySource,
+  });
+  const similarityInlineError = similarity.effectiveSource === "url" ? similarityInputError(similarity.url, locale) : similarity.fileError;
+
+  const updateSimilarityText = (value: string) => {
+    const partialUrl = /^(?:h|ht|htt|https?|https?:\/|https?:\/\/)?$/i.test(value.trim());
+    if (looksLikeExternalUrl(value) || (similarity.effectiveSource === "url" && partialUrl)) {
+      similarity.setUrl(value);
+      if (similarity.effectiveSource !== "url") similarity.selectSource("url");
+      return;
+    }
+    similarity.onPromptChange(value);
+    if (similarity.effectiveSource !== "prompt") similarity.selectSource("prompt");
+  };
+
+  const selectSimilarityFiles = (files: File[]) => {
+    similarity.selectSource("upload");
+    void similarity.selectFiles(files);
   };
 
   const activeValues = [...categories, ...styles];
@@ -516,12 +595,12 @@ function SearchContent() {
       <main className="min-w-0 flex-1 overflow-x-clip pb-[var(--space-page-end)] pt-[74px]">
         <h1 className="sr-only">{t("common.search")}</h1>
         <div className="mx-auto grid max-w-[1920px] items-start gap-4 px-3 pb-3 pt-1 sm:px-4 sm:py-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
+          {searchMode === "keyword" && <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
             {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
-          </aside>
+          </aside>}
 
-          <section ref={searchWorkspaceRef} className="min-w-0" aria-live="polite">
-            <div data-testid="search-workspace" className="search-workspace relative z-40 mb-3 bg-[var(--background)] pb-2 pt-1 lg:sticky">
+          <section ref={searchWorkspaceRef} className={cn("min-w-0", searchMode === "ai" && "contents")} aria-live="polite">
+            <div data-testid="search-workspace" className={cn("search-workspace relative z-40 mb-3 min-w-0 bg-[var(--background)] pb-2 pt-1 lg:sticky", searchMode === "ai" && "order-1 lg:col-start-2 lg:row-start-1")}>
               <SearchCommand
                 id="catalog-search"
                 value={queryDraft}
@@ -549,9 +628,39 @@ function SearchContent() {
                   if (item.filterGroup === "styles") updateStyles(styles.filter((value) => value.replace(/^-/, "") !== item.id));
                   else updateCategories(categories.filter((value) => value.replace(/^-/, "") !== item.id));
                 }}
+                mode={searchMode}
+                onModeChange={switchSearchMode}
+                aiEnabled={aiEnabled}
+                aiSource={similarity.effectiveSource}
+                aiSubmitEnabled={similarity.canSubmit}
+                aiHasCriteria={similarity.canSubmit}
+                aiValue={similarity.effectiveSource === "url" ? similarity.url : similarity.prompt}
+                onAiValueChange={updateSimilarityText}
+                onAiSubmit={() => void similarity.submit()}
+                aiInputType={similarity.effectiveSource === "url" ? "url" : "text"}
+                aiInputLabel={similarity.effectiveSource === "url"
+                  ? locale === "fr" ? "Lien public vers une référence musicale" : "Public link to a music reference"
+                  : locale === "fr" ? "Décrire la musique recherchée" : "Describe the music you need"}
+                aiPlaceholder={similarity.effectiveSource === "url"
+                  ? locale === "fr" ? "Collez un lien YouTube, Spotify, Vimeo, SoundCloud, Apple Music ou TikTok…" : "Paste a YouTube, Spotify, Vimeo, SoundCloud, Apple Music or TikTok link…"
+                  : locale === "fr" ? "Décrivez une scène, une émotion, un rythme ou un usage…" : "Describe a scene, emotion, rhythm or use…"}
+                aiSubmitLabel={similarity.effectiveSource === "track"
+                  ? locale === "fr" ? `Trouver des pistes similaires (${similarity.seedIds.length})` : `Find similar tracks (${similarity.seedIds.length})`
+                  : similarity.effectiveSource === "prompt"
+                    ? locale === "fr" ? "Lancer le brief" : "Run brief"
+                    : similarity.effectiveSource === "upload"
+                      ? locale === "fr" ? "Envoyer et analyser" : "Upload and analyse"
+                      : locale === "fr" ? "Analyser le lien" : "Analyse link"}
+                aiCustomContent={similarity.effectiveSource === "track" || similarity.effectiveSource === "upload" ? <SimilarityCommandContent controller={similarity} initialPickerOpen={initialSimilarityHandoff?.source === "track" && initialSimilarityHandoff.openPicker} onInitialPickerConsumed={() => clearSimilarityHandoff("track")} /> : undefined}
+                aiLeadingContent={similarity.effectiveSource === "url" ? <Link2 size={18} className="text-[var(--text-muted)]" /> : undefined}
+                aiRecentEnabled={similarity.effectiveSource === "prompt"}
+                onAiFilesDrop={selectSimilarityFiles}
               />
 
-              <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
+              {searchMode === "ai" && similarity.fileStatus === "checking" ? <p role="status" className="mt-2 text-xs text-[var(--text-muted)]">{locale === "fr" ? "Vérification du fichier…" : "Checking file…"}</p> : null}
+              {searchMode === "ai" && similarityInlineError ? <p role="alert" className="mt-2 text-xs font-medium text-[var(--danger)]">{similarityInlineError}</p> : null}
+
+              {searchMode === "keyword" && <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
                 <div className="contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-wrap lg:items-center lg:gap-2">
                   <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
                   <Select variant="editorial" caption={locale === "fr" ? "Résultats" : "Results"} value={view} onValueChange={(value) => { setView(value as ResultView); setPage(1); }} ariaLabel={locale === "fr" ? "Type de résultats" : "Result type"} className="w-full min-w-0 lg:w-auto lg:min-w-[10rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "tracks", label: locale === "fr" ? "Pistes" : "Tracks" }, { value: "albums", label: "Albums" }]} />
@@ -567,8 +676,16 @@ function SearchContent() {
                     { value: "title-desc", label: "Z–A" },
                   ]} />
                 </div>
-              </div>
+              </div>}
+
+              {searchMode === "ai" && <div className="search-toolbar search-toolbar--ai-compact mt-2 flex w-full items-stretch justify-stretch border border-[var(--line-strong)] bg-[var(--surface)] p-2 after:!border-[var(--ai-search)] sm:ml-auto sm:w-fit sm:justify-end">
+                <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes similaires" : "Similar track detail level"} className="w-full min-w-0 sm:w-auto sm:min-w-[12rem]" listboxClassName="search-mobile-select-listbox--right" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} />
+              </div>}
             </div>
+
+            {searchMode === "ai" ? (
+              <SimilaritySearchWorkspace controller={similarity} density={density} />
+            ) : <>
 
             {(categories.length > 0 || labels.length > 0 || styles.length > 0 || composers.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
               <div className="search-active-filters mb-4 border border-[var(--line-strong)] bg-[var(--background)] p-3">
@@ -691,11 +808,12 @@ function SearchContent() {
                 <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>
               </nav>
             )}
+            </>}
           </section>
         </div>
       </main>
 
-      {mobileFiltersOpen && (
+      {searchMode === "keyword" && mobileFiltersOpen && (
         <MobileFilterSheet
           ref={dialogRef}
           title={locale === "fr" ? "Filtres" : "Filters"}

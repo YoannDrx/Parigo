@@ -3,11 +3,13 @@
 import { Clock3, Trash2 } from "lucide-react";
 import type { RecentSearchEntry } from "@/hooks/use-recent-searches";
 import { cn } from "@/lib/utils";
+import type { SearchMode } from "@/types";
 
 interface RecentSearchesMenuProps {
   id: string;
   items: RecentSearchEntry[];
   total: number;
+  mode: SearchMode;
   locale: "fr" | "en";
   activeIndex: number;
   placement: "top" | "bottom";
@@ -30,6 +32,7 @@ export function RecentSearchesMenu({
   id,
   items,
   total,
+  mode,
   locale,
   activeIndex,
   placement,
@@ -37,22 +40,24 @@ export function RecentSearchesMenu({
   onSelect,
   onClearAll,
 }: RecentSearchesMenuProps) {
+  const historyLabel = mode === "ai" ? (locale === "fr" ? "Briefs récents" : "Recent briefs") : (locale === "fr" ? "Recherches récentes" : "Recent searches");
   return (
     <div
       data-testid="recent-searches-menu"
       data-placement={placement}
       className={cn(
-        "absolute inset-x-0 z-[70] overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] shadow-[8px_10px_0_color-mix(in_srgb,var(--signal)_10%,transparent),var(--shadow-xl)] motion-safe:animate-[search-autocomplete-enter_180ms_ease-out_both]",
+        "absolute inset-x-0 z-[70] overflow-hidden border bg-[var(--surface)] motion-safe:animate-[search-autocomplete-enter_180ms_ease-out_both]",
+        mode === "ai" ? "border-[color-mix(in_srgb,var(--ai-search)_48%,var(--line))] shadow-[8px_10px_0_color-mix(in_srgb,var(--ai-search)_10%,transparent),var(--shadow-xl)]" : "border-[var(--line-strong)] shadow-[8px_10px_0_color-mix(in_srgb,var(--signal)_10%,transparent),var(--shadow-xl)]",
         "rounded-[var(--parigo-corner-lg)_var(--parigo-turn-lg)]",
         placement === "top" ? "bottom-[calc(100%+.55rem)]" : "top-[calc(100%+.55rem)]",
       )}
     >
       <div className="flex min-h-12 items-center justify-between gap-3 border-b border-[var(--line)] px-4">
-        <p className="flex items-center gap-2 text-xs font-semibold"><Clock3 size={14} className="text-[var(--signal-strong)]" />{locale === "fr" ? "Recherches récentes" : "Recent searches"}</p>
+        <p className={cn("flex items-center gap-2 text-xs font-semibold", mode === "ai" && "text-[var(--ai-search)]")}><Clock3 size={14} className={mode === "ai" ? "text-[var(--ai-search)]" : "text-[var(--signal-strong)]"} />{historyLabel}</p>
         {total > 0 ? <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClearAll} className="inline-flex min-h-11 items-center gap-1.5 text-[.68rem] font-semibold text-[var(--text-muted)] transition hover:text-[var(--danger)] focus-visible:text-[var(--danger)]"><Trash2 size={13} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button> : null}
       </div>
       {items.length ? (
-        <div id={id} role="listbox" aria-label={locale === "fr" ? "Recherches récentes" : "Recent searches"} className="max-h-[min(18rem,42vh)] overflow-y-auto p-2">
+        <div id={id} role="listbox" aria-label={historyLabel} className="max-h-[min(18rem,42vh)] overflow-y-auto p-2">
           {items.map((entry, index) => (
             <button
               key={`${entry.query}-${entry.updatedAt}`}
@@ -71,7 +76,7 @@ export function RecentSearchesMenu({
             </button>
           ))}
         </div>
-      ) : <div id={id} role="listbox" aria-label={locale === "fr" ? "Recherches récentes" : "Recent searches"}><p className="px-4 py-5 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune recherche récente dans ce mode." : "No recent searches in this mode."}</p></div>}
+      ) : <div id={id} role="listbox" aria-label={historyLabel}><p className="px-4 py-5 text-sm text-[var(--text-muted)]">{mode === "ai" ? (locale === "fr" ? "Aucun brief récent." : "No recent brief.") : (locale === "fr" ? "Aucune recherche récente dans ce mode." : "No recent searches in this mode.")}</p></div>}
     </div>
   );
 }

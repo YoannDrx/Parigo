@@ -12,8 +12,75 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("la similarité IA reprend l’architecture de la recherche Catalogue", async ({ page }, testInfo) => {
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+      externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
+      playlistSuggestions: true,
+    } }),
+  }));
+
+  await page.goto("/search?mode=ai&source=track");
+  const workspace = page.getByTestId("search-workspace");
+  const sidebar = page.getByRole("complementary", { name: "Modes de recherche par similarité IA" });
+  const methods = sidebar.getByRole("group", { name: "Choisir une méthode de similarité" });
+  const emptyResults = page.getByRole("heading", { name: "Choisissez vos pistes de référence" });
+  await expect(workspace).toBeVisible();
+  await expect(sidebar).toBeVisible();
+  await expect(emptyResults).toBeVisible();
+  await expect(sidebar.getByRole("heading", { name: "Recherche par similarité IA" })).toBeVisible();
+  await expect(sidebar).toContainText("Choisissez votre méthode");
+  await expect(sidebar).not.toContainText(/AIMS|Harvest|01 ·|02 ·|03 ·|04 ·/i);
+  await expect(methods.getByRole("button")).toHaveCount(4);
+  expect(await methods.locator("strong").allTextContents()).toEqual(["Décrire une musique", "À partir de la shortlist", "Importer un fichier", "Rechercher depuis un lien"]);
+  await expect(methods.getByRole("button", { name: /À partir de la shortlist/ })).toHaveAttribute("aria-pressed", "true");
+  await expect(workspace.getByRole("group", { name: "Méthodes de recherche par similarité IA" })).toHaveCount(0);
+  await expect(workspace.getByRole("button", { name: "Trouver des pistes similaires (0)" })).toBeDisabled();
+
+  await methods.getByRole("button", { name: /Décrire une musique/ }).click();
+  await expect(workspace.getByLabel("Décrire la musique recherchée")).toBeVisible();
+  await expect(workspace.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
+  await methods.getByRole("button", { name: /Importer un fichier/ }).click();
+  await expect(workspace.getByText("Déposez un MP3 ou WAV, ou cliquez pour le choisir")).toBeVisible();
+  await expect(workspace.getByRole("button", { name: "Envoyer et analyser" })).toBeDisabled();
+  await expect(page.getByRole("checkbox", { name: /transmission/i })).toHaveCount(0);
+  await methods.getByRole("button", { name: /Rechercher depuis un lien/ }).click();
+  const urlInput = workspace.getByLabel("Lien public vers une référence musicale");
+  await expect(urlInput).toHaveAttribute("placeholder", "Collez un lien YouTube, Spotify, Vimeo, SoundCloud, Apple Music ou TikTok…");
+  await urlInput.fill("https://open.spotify.com/track/example");
+  await expect(workspace.getByRole("button", { name: "Analyser le lien" })).toBeEnabled();
+  const currentEmptyResults = page.getByRole("heading", { name: "Utilisez un lien public" });
+  const aiToolbar = workspace.locator(".search-toolbar--ai-compact");
+  await expect(aiToolbar.getByRole("combobox", { name: "Niveau de détail des pistes similaires" })).toBeVisible();
+  await expect(aiToolbar).not.toContainText(/Résultats|Ordre|Similarité/);
+
+  const [workspaceBox, sidebarBox, resultsBox] = await Promise.all([
+    workspace.boundingBox(),
+    sidebar.boundingBox(),
+    currentEmptyResults.boundingBox(),
+  ]);
+  expect(workspaceBox).not.toBeNull();
+  expect(sidebarBox).not.toBeNull();
+  expect(resultsBox).not.toBeNull();
+  if (testInfo.project.name === "desktop") {
+    expect(sidebarBox!.x).toBeLessThan(workspaceBox!.x);
+    expect(Math.abs(sidebarBox!.y - workspaceBox!.y)).toBeLessThanOrEqual(2);
+  } else {
+    expect(workspaceBox!.y).toBeLessThan(sidebarBox!.y);
+    expect(sidebarBox!.y).toBeLessThan(resultsBox!.y);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+});
+
 test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
+  await page.addInitScript(() => {
+    window.localStorage.setItem("parigo-theme", "light");
+    window.localStorage.setItem("parigo-recent-searches-v1", JSON.stringify({ version: 1, keyword: [], ai: [{ query: "Film solaire", updatedAt: Date.now() }] }));
+  });
   await page.goto("/search");
   const command = page.getByTestId("catalog-search-command");
   await command.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
@@ -29,7 +96,10 @@ test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", asy
   const overlapPoint = { x: menuBox!.x + 20, y: overlapTop + 8 };
   expect(await modeMenu.evaluate((node, point) => node.contains(document.elementFromPoint(point.x, point.y)), overlapPoint)).toBe(true);
 
-  await command.getByRole("option", { name: /Brief IA/ }).click();
+  await command.getByRole("option", { name: /Similarité IA/ }).click();
+  const aiInput = command.getByLabel("Décrire la musique recherchée");
+  await expect(aiInput).not.toBeFocused();
+  await expect(page.getByRole("listbox", { name: "Briefs récents" })).toHaveCount(0);
   const glow = command.getByTestId("ai-search-glow");
   const form = command.locator(".search-command__form");
   await expect(glow).toHaveAttribute("data-active", "true");
@@ -37,6 +107,101 @@ test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", asy
   await expect(form).toHaveCSS("border-color", "rgba(0, 0, 0, 0)");
   await expect(form).toHaveCSS("background-image", "none");
   await expect(form).toHaveCSS("box-shadow", "none");
+  await aiInput.focus();
+  await expect(page.getByRole("listbox", { name: "Briefs récents" })).toBeVisible();
+  await aiInput.press("Escape");
+
+  const methods = page.getByRole("complementary", { name: "Modes de recherche par similarité IA" }).getByRole("group", { name: "Choisir une méthode de similarité" });
+  await methods.getByRole("button", { name: /À partir de la shortlist/ }).click();
+  const shortlistTrigger = command.getByRole("button", { name: /Choisissez des pistes dans votre shortlist/ });
+  await expect(shortlistTrigger).toHaveAttribute("aria-expanded", "false");
+  await shortlistTrigger.click();
+  await expect(shortlistTrigger).toHaveAttribute("aria-expanded", "true");
+  const shortlistPanel = page.getByRole("dialog", { name: "Sélectionner les pistes de la shortlist" });
+  await expect(shortlistPanel).toBeVisible();
+  const [panelBox, formBox, aiToolbarBox] = await Promise.all([
+    shortlistPanel.boundingBox(),
+    form.boundingBox(),
+    page.locator(".search-toolbar--ai-compact").boundingBox(),
+  ]);
+  expect(panelBox).not.toBeNull();
+  expect(formBox).not.toBeNull();
+  expect(aiToolbarBox).not.toBeNull();
+  expect(Math.abs(panelBox!.x - formBox!.x)).toBeLessThanOrEqual(2);
+  expect(Math.abs(panelBox!.width - formBox!.width)).toBeLessThanOrEqual(2);
+  const panelOverlapTop = Math.max(panelBox!.y, aiToolbarBox!.y);
+  const panelOverlapBottom = Math.min(panelBox!.y + panelBox!.height, aiToolbarBox!.y + aiToolbarBox!.height);
+  const panelOverlapLeft = Math.max(panelBox!.x, aiToolbarBox!.x);
+  const panelOverlapRight = Math.min(panelBox!.x + panelBox!.width, aiToolbarBox!.x + aiToolbarBox!.width);
+  const overlap = panelOverlapBottom > panelOverlapTop + 2 && panelOverlapRight > panelOverlapLeft + 2;
+  const topmostPoint = overlap
+    ? { x: panelOverlapLeft + 2, y: panelOverlapTop + 2 }
+    : { x: panelBox!.x + panelBox!.width / 2, y: panelBox!.y + Math.min(20, panelBox!.height / 2) };
+  expect(await shortlistPanel.evaluate((node, point) => node.contains(document.elementFromPoint(point.x, point.y)), topmostPoint)).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(shortlistTrigger).toBeFocused();
+});
+
+test("la shortlist garde la hauteur du brief et l’import s’anime sans étirement", async ({ page }) => {
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+      externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
+      playlistSuggestions: true,
+    } }),
+  }));
+  await page.goto("/search?mode=ai&source=prompt");
+  const form = page.getByTestId("catalog-search-command").locator(".search-command__form");
+  const methods = page.getByRole("group", { name: "Choisir une méthode de similarité" });
+  await expect(methods.getByRole("button")).toHaveCount(4);
+  const promptHeight = (await form.boundingBox())!.height;
+
+  await methods.getByRole("button", { name: /À partir de la shortlist/ }).click();
+  const shortlistHeight = (await form.boundingBox())!.height;
+  expect(Math.abs(shortlistHeight - promptHeight)).toBeLessThanOrEqual(1);
+
+  await methods.getByRole("button", { name: /Importer un fichier/ }).click();
+  await page.waitForTimeout(160);
+  const openingMidpoint = (await form.boundingBox())!.height;
+  const [formDuringOpening, dropzoneViewportDuringOpening] = await Promise.all([
+    form.boundingBox(),
+    form.locator(".similarity-dropzone-viewport").boundingBox(),
+  ]);
+  expect(dropzoneViewportDuringOpening!.y + dropzoneViewportDuringOpening!.height).toBeLessThanOrEqual(formDuringOpening!.y + formDuringOpening!.height);
+  await expect(form.locator(".similarity-dropzone-viewport")).toHaveCSS("overflow", "hidden");
+  const transformsWhileOpening = await form.evaluate((node) => [node, ...node.querySelectorAll("svg, strong, small, button")].map((item) => getComputedStyle(item).transform));
+  expect(transformsWhileOpening.every((value) => value === "none")).toBe(true);
+  await page.waitForTimeout(520);
+  const uploadHeight = (await form.boundingBox())!.height;
+  expect(openingMidpoint).toBeGreaterThan(promptHeight + 2);
+  expect(openingMidpoint).toBeLessThan(uploadHeight - 2);
+
+  await methods.getByRole("button", { name: /Décrire une musique/ }).click();
+  await page.waitForTimeout(160);
+  const closingMidpoint = (await form.boundingBox())!.height;
+  const transformsWhileClosing = await form.evaluate((node) => [node, ...node.querySelectorAll("svg, strong, small, button")].map((item) => getComputedStyle(item).transform));
+  expect(transformsWhileClosing.every((value) => value === "none")).toBe(true);
+  await page.waitForTimeout(520);
+  const closedHeight = (await form.boundingBox())!.height;
+  expect(closingMidpoint).toBeLessThan(uploadHeight - 2);
+  expect(closingMidpoint).toBeGreaterThan(closedHeight + 2);
+  expect(Math.abs(closedHeight - promptHeight)).toBeLessThanOrEqual(1);
+  await expect(form).toHaveAttribute("data-source", "prompt");
+});
+
+test("la barre IA respecte la réduction des animations", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Une seule validation du média utilisateur suffit.");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/search?mode=ai&source=prompt");
+  const form = page.getByTestId("catalog-search-command").locator(".search-command__form");
+  await page.getByRole("group", { name: "Choisir une méthode de similarité" }).getByRole("button", { name: /Importer un fichier/ }).click();
+  await expect.poll(() => form.evaluate((node) => {
+    const duration = getComputedStyle(node).transitionDuration;
+    return duration.endsWith("ms") ? Number.parseFloat(duration) : Number.parseFloat(duration) * 1_000;
+  })).toBeLessThanOrEqual(.01);
 });
 
 test("la pagination replace le début des résultats sous le poste de recherche", async ({ page }) => {
@@ -331,14 +496,15 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
   const resultType = page.getByRole("combobox", { name: "Type de résultats" });
   await expect(resultType).toBeVisible();
   await command.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
-  await command.getByRole("option", { name: /Brief IA/ }).click();
-  const aiInput = command.getByLabel("Décrire un brief musical assisté par IA");
+  await command.getByRole("option", { name: /Similarité IA/ }).click();
+  await page.getByRole("group", { name: "Choisir une méthode de similarité" }).getByRole("button", { name: /Décrire une musique/ }).click();
+  const aiInput = command.getByLabel("Décrire la musique recherchée");
   await expect(aiInput).toBeVisible();
-  await expect(command.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
+  await expect(command.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
   await aiInput.fill("Une scène nocturne suspendue");
   await page.waitForTimeout(500);
   expect(new URL(page.url()).searchParams.has("q")).toBe(false);
-  await command.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
+  await command.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
   await command.getByRole("option", { name: /Catalogue/ }).click();
   const input = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await input.hover();
@@ -830,7 +996,7 @@ test("les pistes de recherche utilisent la grille mobile dense", async ({ page }
   expect(Math.abs(playBox!.y + playBox!.height / 2 - (coverBox!.y + coverBox!.height / 2))).toBeLessThanOrEqual(1);
 });
 
-test("un ancien brief devient un mot-clé littéral et AIMS reste désactivé", async ({ page }) => {
+test("un ancien brief devient un mot-clé littéral et la similarité reste désactivée", async ({ page }) => {
   await page.goto("/search?brief=mariage&resolve=1&view=tracks&translate=0");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("mariage");
   const url = new URL(page.url());
@@ -840,9 +1006,9 @@ test("un ancien brief devient un mot-clé littéral et AIMS reste désactivé", 
   const modeSelect = page.getByRole("button", { name: "Mode de recherche : Catalogue" });
   await expect(modeSelect).toBeEnabled();
   await modeSelect.click();
-  await page.getByRole("option", { name: /Brief IA/ }).click();
-  await expect(page.getByRole("button", { name: "Mode de recherche : Brief IA" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
+  await page.getByRole("option", { name: /Similarité IA/ }).click();
+  await expect(page.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Trouver des pistes similaires/ })).toBeDisabled();
   await expect(page.getByTestId("search-detected-criteria")).toHaveCount(0);
 });
 
@@ -865,7 +1031,7 @@ test("la barre mémorise et relance les recherches Catalogue", async ({ page }) 
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("piano intime");
 });
 
-test("les historiques Catalogue et Brief IA restent séparés et s’effacent ensemble", async ({ page }) => {
+test("les historiques Catalogue et Similarité IA restent séparés et s’effacent ensemble", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("parigo-recent-searches-v1", JSON.stringify({
     version: 1,
     keyword: [{ query: "Piano catalogue", updatedAt: Date.now() - 60_000 }],
@@ -878,11 +1044,13 @@ test("les historiques Catalogue et Brief IA restent séparés et s’effacent en
   await expect(history.getByRole("option", { name: /Piano catalogue/ })).toBeVisible();
   await expect(history).not.toContainText("Film solaire");
   await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
-  await page.getByRole("option", { name: /Brief IA/ }).click();
-  history = page.getByRole("listbox", { name: "Recherches récentes" });
-  await expect(history.getByRole("option", { name: /Film solaire/ })).toHaveCount(0);
+  await page.getByRole("option", { name: /Similarité IA/ }).click();
+  await page.getByRole("group", { name: "Choisir une méthode de similarité" }).getByRole("button", { name: /Décrire une musique/ }).click();
+  const aiInput = page.getByLabel("Décrire la musique recherchée");
+  await aiInput.focus();
+  history = page.getByRole("listbox", { name: "Briefs récents" });
+  await expect(history.getByRole("option", { name: /Film solaire/ })).toBeVisible();
   await expect(history).not.toContainText("Piano catalogue");
-  await expect(history).toContainText("Aucune recherche récente dans ce mode.");
   await page.getByRole("button", { name: "Tout effacer" }).click();
   await expect(history.getByRole("option")).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("parigo-recent-searches-v1") || "null"))).toEqual({ version: 1, keyword: [], ai: [] });

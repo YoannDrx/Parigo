@@ -4,6 +4,7 @@ import { getHarvestApiConfig } from "./config";
 import { assertNoHarvestError, HarvestError, isRecord } from "./errors";
 import { asIsoDate, asNumber, asString, pick } from "./values";
 import { logEvent } from "@/lib/logger";
+import { findAimsProvider } from "@/lib/search/aims-contract";
 
 interface CachedToken {
   value: string;
@@ -319,7 +320,7 @@ export async function getServiceInfo(): Promise<Record<string, unknown>> {
 }
 
 export function hasSearchSimilarCapability(info: Record<string, unknown>): boolean {
-  return Array.isArray(info.SearchSimilarInfo) && info.SearchSimilarInfo.length > 0;
+  return Boolean(findAimsProvider(info));
 }
 
 export async function getRegionId(): Promise<string> {

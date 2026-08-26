@@ -4,10 +4,6 @@ import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const allowedPages = new Set([
-  join(root, "src/app/legal/page.tsx"),
-  join(root, "src/app/privacy/page.tsx"),
-  join(root, "src/app/rights/page.tsx"),
-  join(root, "src/app/terms/page.tsx"),
   // These catalogue pages expose provenance deliberately: raw composer
   // credits must remain traceable to the CMS source.
   join(root, "src/app/albums/[id]/page.tsx"),
@@ -28,7 +24,7 @@ function filesIn(directory: string): string[] {
 }
 
 describe("public Parigo copy", () => {
-  it("does not expose the technical catalogue provider outside legal and source-inspection surfaces", () => {
+  it("does not expose technical providers in public product copy", () => {
     const files = [
       ...filesIn(join(root, "src/components")),
       ...filesIn(join(root, "src/content")),
@@ -42,7 +38,7 @@ describe("public Parigo copy", () => {
       const lines = readFileSync(file, "utf8").split("\n");
       return lines.flatMap((line, index) => {
         if (/^\s*(import|export .* from)\b/.test(line) || line.includes("@/lib/harvest")) return [];
-        return /harvest/i.test(line) ? [`${file.replace(`${root}/`, "")}:${index + 1}`] : [];
+        return /harvest|\baims\b/i.test(line) ? [`${file.replace(`${root}/`, "")}:${index + 1}`] : [];
       });
     });
     expect(violations).toEqual([]);

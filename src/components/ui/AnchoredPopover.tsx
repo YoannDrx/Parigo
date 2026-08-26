@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 interface AnchoredPopoverProps {
+  id?: string;
   open: boolean;
   onClose: () => void;
   anchorRef: RefObject<HTMLElement | null>;
@@ -12,6 +13,7 @@ interface AnchoredPopoverProps {
   children: ReactNode;
   className?: string;
   width?: number;
+  anchorContainerSelector?: string;
 }
 
 interface Position {
@@ -21,7 +23,17 @@ interface Position {
   maxHeight: number;
 }
 
-export function AnchoredPopover({ open, onClose, anchorRef, label, children, className, width = 288 }: AnchoredPopoverProps) {
+export function AnchoredPopover({
+  id,
+  open,
+  onClose,
+  anchorRef,
+  label,
+  children,
+  className,
+  width = 288,
+  anchorContainerSelector,
+}: AnchoredPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<Position | null>(null);
 
@@ -32,8 +44,14 @@ export function AnchoredPopover({ open, onClose, anchorRef, label, children, cla
 
     const gutter = 12;
     const gap = 8;
-    const anchorBounds = anchor.getBoundingClientRect();
-    const resolvedWidth = Math.min(width, window.innerWidth - gutter * 2);
+    const anchorContainer = anchorContainerSelector
+      ? anchor.closest<HTMLElement>(anchorContainerSelector) ?? anchor
+      : anchor;
+    const anchorBounds = anchorContainer.getBoundingClientRect();
+    const resolvedWidth = Math.min(
+      anchorContainerSelector ? anchorBounds.width : width,
+      window.innerWidth - gutter * 2,
+    );
     const popoverHeight = Math.min(popover.offsetHeight, window.innerHeight - gutter * 2);
     const spaceAbove = anchorBounds.top - gutter;
     const spaceBelow = window.innerHeight - anchorBounds.bottom - gutter;
@@ -41,13 +59,15 @@ export function AnchoredPopover({ open, onClose, anchorRef, label, children, cla
     const top = placeAbove
       ? Math.max(gutter, anchorBounds.top - popoverHeight - gap)
       : Math.min(window.innerHeight - popoverHeight - gutter, anchorBounds.bottom + gap);
-    const left = Math.min(
-      Math.max(gutter, anchorBounds.right - resolvedWidth),
-      window.innerWidth - resolvedWidth - gutter,
-    );
+    const left = anchorContainerSelector
+      ? Math.min(Math.max(gutter, anchorBounds.left), window.innerWidth - resolvedWidth - gutter)
+      : Math.min(
+        Math.max(gutter, anchorBounds.right - resolvedWidth),
+        window.innerWidth - resolvedWidth - gutter,
+      );
 
     setPosition({ left, top, width: resolvedWidth, maxHeight: window.innerHeight - gutter * 2 });
-  }, [anchorRef, width]);
+  }, [anchorContainerSelector, anchorRef, width]);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -80,6 +100,7 @@ export function AnchoredPopover({ open, onClose, anchorRef, label, children, cla
 
   return createPortal(
     <div
+      id={id}
       ref={popoverRef}
       role="dialog"
       aria-label={label}

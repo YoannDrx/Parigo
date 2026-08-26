@@ -284,6 +284,16 @@ export function mapTrack(
     isExplicit: parsed.IsExplicit || false,
     libraryType: parsed.LibraryType || undefined,
     highlighted: parsed.Highlighted || false,
+    similaritySegments: parsed.EvokeSegments.flatMap((segment) => {
+      const start = segment.Start ?? 0;
+      const duration = segment.Length ?? 0;
+      if (duration <= 0) return [];
+      return [{
+        start,
+        duration,
+        ...(segment.Score && segment.Score > 0 ? { score: segment.Score } : {}),
+      }];
+    }),
   };
   track.alternateTracks = parsed.AlternateTracks
     .filter(isRecord)

@@ -38,7 +38,9 @@ La recherche publique utilise par défaut le profil Harvest éditorial explicite
 
 La traduction générique des recherches françaises sans résultat utilise DeepL côté serveur. Ajouter `DEEPL_AUTH_KEY` pour l’activer ; une clé API Free (`:fx`) sélectionne automatiquement `https://api-free.deepl.com`, sinon l’endpoint Pro est utilisé. `DEEPL_API_URL` permet uniquement de remplacer explicitement cet endpoint. DeepL n’est jamais appelé pendant la saisie : après la soumission d’une recherche Catalogue sans résultat, la page propose une alternative que l’utilisateur doit accepter. Elle n’est ni injectée dans l’autocomplétion ni appliquée silencieusement. Après acceptation, la traduction remplace le texte du champ et devient la nouvelle requête littérale. Sans clé, la recherche Harvest continue de fonctionner sans suggestion traduite.
 
-La loupe lance une recherche Catalogue unifiée et majoritairement anglaise : titres de pistes, albums et playlists, références, métadonnées éditoriales, filtres structurés et, de façon isolée, paroles. L’utilisateur n’a pas à choisir le champ avant de chercher ; le panneau explique et ordonne les correspondances par sections, avec les titres littéraux en premier. Le panneau et la page complète partagent le même classement : une voie de titres vérifiés précède une voie éditoriale qui exclut ces candidats, les deux appels Harvest de la première page étant lancés en parallèle. Entrée confirme toujours le texte et la liste complète n’est plus modifiée pendant la simple saisie. Le seul autre mode visible est « Brief IA », réservé à AIMS et désactivé. `/api/search/capabilities` expose cette indisponibilité ; aucune recherche par intention locale n’est exécutée et aucun secret AIMS n’est attendu dans cette livraison.
+La loupe lance une recherche Catalogue unifiée et majoritairement anglaise : titres de pistes, albums et playlists, références, métadonnées éditoriales, filtres structurés et, de façon isolée, paroles. L’utilisateur n’a pas à choisir le champ avant de chercher ; le panneau explique et ordonne les correspondances par sections, avec les titres littéraux en premier. Le panneau et la page complète partagent le même classement : une voie de titres vérifiés précède une voie éditoriale qui exclut ces candidats, les deux appels Harvest de la première page étant lancés en parallèle. Entrée confirme toujours le texte et la liste complète n’est plus modifiée pendant la simple saisie.
+
+Le mode public « Similarité IA » utilise AIMS exclusivement à travers la Public API Harvest, sans exposer ces fournisseurs dans l’interface ou le contrat navigateur. Il prend en charge une à dix pistes du catalogue, un brief, un fichier MP3/WAV envoyé directement vers l’URL présignée Harvest et les liens YouTube, Spotify, Vimeo, SoundCloud, Apple Music ou TikTok. Les routes publiques `/api/similarity/*` ne renvoient jamais de jeton Harvest et n’acceptent les ressources temporaires qu’au moyen de références chiffrées. Tous les modes sont fermés par défaut : `AIMS_CONTRACT_VERIFIED=1` puis le flag du mode concerné sont nécessaires. Le prompt exige en plus `AIMS_PROMPT_CAPABILITY_OVERRIDE=1` tant que Harvest l’annonce comme indisponible. Les fichiers et liens exigent `AIMS_REFERENCE_TOKEN_SECRET`; le format, la taille et la durée des fichiers sont contrôlés dans le navigateur avant tout envoi, tandis que la page Confidentialité centralise l’information sur les prestataires techniques.
 
 ## Commandes
 
@@ -50,6 +52,8 @@ pnpm build
 pnpm test:e2e
 pnpm email:dev
 HARVEST_LIVE_TESTS=1 pnpm test:harvest
+HARVEST_AIMS_LIVE_TESTS=1 pnpm test:harvest:aims
+HARVEST_AIMS_INDEX_AUDIT=1 pnpm audit:harvest:aims-index
 HARVEST_MEMBER_MUTATION_TESTS=1 pnpm test:harvest:member
 HARVEST_SHARING_MUTATION_TESTS=1 pnpm test:harvest:sharing
 pnpm audit:youtube:clips

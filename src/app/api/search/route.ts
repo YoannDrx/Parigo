@@ -96,7 +96,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         error: {
           code: "FEATURE_UNAVAILABLE",
-          message: "AIMS prompt search is not available yet",
+          message: "La recherche par similarité n’est pas disponible sur cette route.",
           retryable: false,
           requestId: id,
         },

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getServiceInfo, hasSearchSimilarCapability } from "@/lib/harvest/client";
+import { getAimsCapabilities } from "@/lib/harvest/aims";
 import { requestId } from "@/lib/harvest/api";
 import { getHarvestApiConfig, isParigoSessionConfigured } from "@/lib/harvest/config";
 
@@ -26,14 +26,15 @@ export async function GET() {
     }, { status: 503, headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
   }
   try {
-    const info = await getServiceInfo();
+    const aims = await getAimsCapabilities();
     return NextResponse.json({
       data: {
         status: "ok",
         catalog: { configured: true, available: true },
         account: { configured: memberConfigured },
         remote: { available: true },
-        searchSimilar: hasSearchSimilarCapability(info),
+        searchSimilar: aims.track.enabled,
+        aims,
         durationMs: Date.now() - startedAt,
       },
       meta: { requestId: id },

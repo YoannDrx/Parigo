@@ -101,6 +101,11 @@ export const HarvestTrackSchema = z.looseObject({
   Stems: z.array(z.unknown()).optional().default([]),
   RightHolders: z.array(HarvestRightHolderSchema).optional().default([]),
   TrackRate: z.record(z.string(), z.unknown()).optional().nullable(),
+  EvokeSegments: z.array(z.looseObject({
+    Start: harvestNumber.optional().nullable(),
+    Length: harvestNumber.optional().nullable(),
+    Score: harvestNumber.optional().nullable(),
+  })).optional().default([]),
 });
 
 export const HarvestAlbumSchema = z.looseObject({

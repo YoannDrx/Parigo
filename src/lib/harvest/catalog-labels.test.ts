@@ -90,4 +90,19 @@ describe("Harvest track author credits", () => {
       authors: [],
     });
   });
+
+  it("maps useful AIMS passages without exposing zero confidence as a score", () => {
+    expect(mapTrack({
+      ID: "track-aims-1",
+      DisplayTitle: "A similar track",
+      EvokeSegments: [
+        { Start: 12.5, Length: 24, Score: 0 },
+        { Start: 48, Length: 18, Score: 0.72 },
+        { Start: 80, Length: 0, Score: 1 },
+      ],
+    }, templates).similaritySegments).toEqual([
+      { start: 12.5, duration: 24 },
+      { start: 48, duration: 18, score: 0.72 },
+    ]);
+  });
 });

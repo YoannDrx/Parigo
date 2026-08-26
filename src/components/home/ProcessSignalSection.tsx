@@ -1,23 +1,19 @@
 "use client";
 
-import { motion, useScroll, useTransform, type MotionValue } from "framer-motion";
+import { motion, useScroll } from "framer-motion";
 import { useRef } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { HomeReveal, useHomeReducedMotion } from "./HomeMotion";
 
-function ProcessStep({ number, title, copy, progress, index, stepLabel, reduceMotion }: { number: string; title: string; copy: string; progress: MotionValue<number>; index: number; stepLabel: string; reduceMotion: boolean }) {
-  const start = .12 + index * .18;
-  const opacity = useTransform(progress, [start, start + .2], [.2, 1]);
-  const y = useTransform(progress, [start, start + .2], [38, 0]);
-
+function ProcessStep({ number, title, copy, stepLabel }: { number: string; title: string; copy: string; stepLabel: string }) {
   return (
-    <motion.article style={reduceMotion ? { opacity: 1, y: 0 } : { opacity, y }} className="process-step group relative flex min-h-[245px] flex-col px-5 py-7 transition-colors duration-500 hover:bg-white/[.055] lg:min-h-[360px] lg:px-8 lg:py-10">
+    <article className="process-step group relative flex min-h-[245px] flex-col px-5 py-7 transition-colors duration-500 hover:bg-white/[.055] lg:min-h-[360px] lg:px-8 lg:py-10">
       <div className="flex items-center justify-between gap-4">
         <span className="font-mono text-[.6rem] uppercase tracking-[.14em] text-[var(--signal)]">{stepLabel} {number}</span>
       </div>
       <span aria-hidden="true" className="process-step__number mt-5 w-fit border border-white/10 px-4 py-2 text-[4.1rem] font-semibold leading-none tracking-[-.09em] text-white/[.12] transition duration-500 group-hover:border-[var(--signal)]/34 group-hover:text-[var(--signal)] lg:mt-7 lg:text-[clamp(4.5rem,7vw,7.6rem)]">{number}</span>
       <div className="mt-auto pt-5 lg:pt-8"><h3 className="text-2xl font-semibold tracking-[-.045em] text-white lg:text-3xl">{title}</h3><p className="mt-3 max-w-sm text-sm leading-6 text-white/74 lg:mt-4">{copy}</p></div>
-    </motion.article>
+    </article>
   );
 }
 
@@ -45,7 +41,7 @@ export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
             <div className="relative h-1 overflow-hidden rounded-full bg-white/8" data-testid="process-progress"><motion.div aria-hidden="true" style={reduceMotion ? { scaleX: 1 } : { scaleX: scrollYProgress, transformOrigin: "left" }} className="absolute inset-0 origin-left rounded-full bg-[var(--signal)] shadow-[0_0_18px_color-mix(in_srgb,var(--signal)_55%,transparent)]" /></div>
           </div>
           <div className="relative grid divide-y divide-white/12 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-            {steps.map(([number, title, copy], index) => <ProcessStep key={number} number={number} title={title} copy={copy} progress={scrollYProgress} index={index} stepLabel={locale === "fr" ? "Étape" : "Step"} reduceMotion={Boolean(reduceMotion)} />)}
+            {steps.map(([number, title, copy]) => <ProcessStep key={number} number={number} title={title} copy={copy} stepLabel={locale === "fr" ? "Étape" : "Step"} />)}
           </div>
         </div>
       </div>

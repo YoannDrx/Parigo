@@ -3,6 +3,10 @@
  */
 
 import type {
+  SimilarityCapabilities,
+  SimilarityExternalPlatform,
+  SimilaritySearchRequest,
+  SimilaritySearchResponse,
   Album,
   AutocompleteGroup,
   AutocompleteSearchContext,
@@ -20,6 +24,34 @@ import type {
 } from "@/types";
 
 const API_BASE = "/api";
+
+export class SimilarityApiError extends Error {
+  constructor(
+    message: string,
+    public readonly code: string,
+    public readonly status: number,
+    public readonly retryable: boolean,
+    public readonly requestId?: string,
+  ) {
+    super(message);
+    this.name = "SimilarityApiError";
+  }
+}
+
+async function similarityPayload<T>(response: Response): Promise<T> {
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.error) {
+    const error = payload?.error;
+    throw new SimilarityApiError(
+      error?.message || "La recherche de similarité est temporairement indisponible.",
+      error?.code || "SIMILARITY_UNAVAILABLE",
+      response.status,
+      Boolean(error?.retryable),
+      error?.requestId || response.headers.get("X-Request-ID") || undefined,
+    );
+  }
+  return payload as T;
+}
 
 // Types for API responses
 export type ApiAlbum = Album;
@@ -337,4 +369,68 @@ export async function fetchAutocomplete(query: string, language: "fr" | "en", co
   if (!response.ok) throw new Error("Failed to fetch autocomplete suggestions");
   const payload = await response.json() as { data: { groups: AutocompleteGroup[] } };
   return payload.data.groups;
+}
+
+export async function fetchSimilarityCapabilities(signal?: AbortSignal): Promise<SimilarityCapabilities> {
+  const response = await fetch(`${API_BASE}/similarity/capabilities`, { signal });
+  const payload = await similarityPayload<{ data: SimilarityCapabilities }>(response);
+  return payload.data;
+}
+
+export async function runSimilaritySearch(input: SimilaritySearchRequest, signal?: AbortSignal): Promise<SimilaritySearchResponse> {
+  const response = await fetch(`${API_BASE}/similarity/search`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    cache: "no-store",
+    body: JSON.stringify(input),
+    signal,
+  });
+  return similarityPayload<SimilaritySearchResponse>(response);
+}
+
+export async function prepareSimilarityUpload(input: {
+  fileName: string;
+  contentType: "audio/mpeg" | "audio/wav";
+  size: number;
+}, signal?: AbortSignal): Promise<{ uploadUrl: string; uploadToken: string; contentType: string; expiresInSeconds: number }> {
+  const response = await fetch(`${API_BASE}/similarity/uploads`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    cache: "no-store",
+    body: JSON.stringify(input),
+    signal,
+  });
+  const payload = await similarityPayload<{ data: { uploadUrl: string; uploadToken: string; contentType: string; expiresInSeconds: number } }>(response);
+  return payload.data;
+}
+
+export async function confirmSimilarityUpload(uploadToken: string, signal?: AbortSignal): Promise<{ referenceToken: string; expiresInSeconds: number }> {
+  const response = await fetch(`${API_BASE}/similarity/uploads/confirm`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    cache: "no-store",
+    body: JSON.stringify({ uploadToken }),
+    signal,
+  });
+  const payload = await similarityPayload<{ data: { referenceToken: string; expiresInSeconds: number } }>(response);
+  return payload.data;
+}
+
+export async function createSimilarityReference(
+  url: string,
+  signal?: AbortSignal,
+): Promise<{ referenceToken: string; platform: SimilarityExternalPlatform; expiresInSeconds: number }> {
+  const response = await fetch(`${API_BASE}/similarity/references`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
+    cache: "no-store",
+    body: JSON.stringify({ url }),
+    signal,
+  });
+  const payload = await similarityPayload<{ data: { referenceToken: string; platform: SimilarityExternalPlatform; expiresInSeconds: number } }>(response);
+  return payload.data;
 }

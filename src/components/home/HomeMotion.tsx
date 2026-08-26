@@ -4,7 +4,6 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 
-export const HOME_MOTION_EASE = [0.22, 1, 0.36, 1] as const;
 const BANNER_REVEAL_EASE = [0, 0.55, 0.45, 1] as const;
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
@@ -40,21 +39,11 @@ export function useHomeReducedMotion() {
 
 type RevealOrigin = "bottom" | "left" | "right" | "top";
 
-const REVEAL_OFFSETS: Record<RevealOrigin, { x: number; y: number; rotate: number }> = {
-  bottom: { x: 0, y: 68, rotate: 0.8 },
-  left: { x: -84, y: 0, rotate: -1.2 },
-  right: { x: 84, y: 0, rotate: 1.2 },
-  top: { x: 0, y: -58, rotate: -0.8 },
-};
-
 export function HomeReveal({
   children,
   className = "",
-  delay = 0,
-  duration = 0.88,
   origin = "bottom",
   testId,
-  viewportAmount = 0.18,
 }: {
   children: ReactNode;
   className?: string;
@@ -64,21 +53,15 @@ export function HomeReveal({
   testId?: string;
   viewportAmount?: number;
 }) {
-  const reduceMotion = useHomeReducedMotion();
-  const offset = REVEAL_OFFSETS[origin];
-
   return (
-    <motion.div
+    <div
       data-testid={testId}
-      data-home-reveal={origin}
-      initial={reduceMotion ? false : { opacity: 0, x: offset.x, y: offset.y, rotate: offset.rotate, scale: 0.985 }}
-      whileInView={{ opacity: 1, x: 0, y: 0, rotate: 0, scale: 1 }}
-      viewport={{ once: true, amount: viewportAmount }}
-      transition={{ duration: reduceMotion ? 0 : duration, delay: reduceMotion ? 0 : delay, ease: HOME_MOTION_EASE }}
+      data-home-reveal="static"
+      data-home-reveal-origin={origin}
       className={className}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 
