@@ -80,9 +80,9 @@ export function HomeHeroContent({
   const [searchRevealComplete, setSearchRevealComplete] = useState(false);
   const words = title.split(" ");
   const { scrollYProgress } = useScroll({ target, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, -132]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.91]);
-  const opacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, -116]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.93]);
+  const opacity = useTransform(scrollYProgress, [0, 0.62], [1, 0]);
 
   return (
     <motion.div
