@@ -75,7 +75,7 @@ export function TrackRow({
 }: TrackRowProps) {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
-  const { currentTrack, isPlaying, progress, duration, play, pause, resume, setQueue, addToQueue } = usePlayerStore();
+  const { currentTrack, isPlaying, progress, duration, play, pause, resume, seekTo, setQueue, addToQueue } = usePlayerStore();
   const addToShortlist = useShortlistStore((state) => state.add);
   const removeFromShortlist = useShortlistStore((state) => state.remove);
   const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === track.id));
@@ -186,6 +186,19 @@ export function TrackRow({
       }
       play(track);
     }
+  };
+  const handleWaveformSeek = (percentage: number) => {
+    if (!isCurrentTrack) {
+      if (queue?.length) {
+        const trackIndex = queue.findIndex((item) => item.id === track.id);
+        setQueue(queue, trackIndex >= 0 ? trackIndex : 0);
+      } else if (album?.tracks) {
+        const trackIndex = album.tracks.findIndex((item) => item.id === track.id);
+        setQueue(album.tracks, trackIndex >= 0 ? trackIndex : 0);
+      }
+      play(track);
+    }
+    seekTo((percentage / 100) * track.duration);
   };
   const shareTrack = async () => {
     const url = `${window.location.origin}/albums/${album?.slug || track.albumId}?track=${encodeURIComponent(track.id)}`;
@@ -352,7 +365,10 @@ export function TrackRow({
               initialData={track.waveform}
               progress={progressPercent}
               height={density === "full" ? 28 : 20}
-              className="opacity-80 group-hover:opacity-100 transition-opacity"
+              interactive
+              onSeek={handleWaveformSeek}
+              ariaLabel={`${locale === "fr" ? "Position de lecture" : "Playback position"} : ${track.title}`}
+              className="opacity-80 transition-opacity group-hover:opacity-100"
             />
           </div>
         )}

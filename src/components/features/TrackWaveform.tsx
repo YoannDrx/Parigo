@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Waveform } from "./Waveform";
 
-export function TrackWaveform({ trackId, initialData, progress = 0, height = 28, interactive = false, onSeek, className }: { trackId: string; initialData?: number[] | null; progress?: number; height?: number; interactive?: boolean; onSeek?: (progress: number) => void; className?: string }) {
+export function TrackWaveform({ trackId, initialData, progress = 0, height = 28, interactive = false, onSeek, ariaLabel, className }: { trackId: string; initialData?: number[] | null; progress?: number; height?: number; interactive?: boolean; onSeek?: (progress: number) => void; ariaLabel?: string; className?: string }) {
   const [remote, setRemote] = useState<{ trackId: string; data: number[] } | null>(null);
   const [nearViewport, setNearViewport] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,7 +35,7 @@ export function TrackWaveform({ trackId, initialData, progress = 0, height = 28,
   return (
     <div ref={containerRef} className={className} style={{ height }}>
       {nearViewport ? (
-        <Waveform data={data} progress={progress} height={height} waveColor="color-mix(in srgb, var(--foreground) 16%, transparent)" progressColor="var(--signal-strong)" interactive={interactive} onSeek={onSeek} />
+        <Waveform data={data} progress={progress} height={height} waveColor="color-mix(in srgb, var(--foreground) 16%, transparent)" progressColor="var(--signal-strong)" interactive={interactive} onSeek={onSeek} ariaLabel={ariaLabel} />
       ) : (
         <div
           aria-hidden="true"

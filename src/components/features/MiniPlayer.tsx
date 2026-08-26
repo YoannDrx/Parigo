@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState, useCallback } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   Play,
   Pause,
@@ -19,6 +20,8 @@ import {
   Repeat2,
   Share2,
   Shuffle,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type WaveSurfer from "wavesurfer.js";
@@ -36,12 +39,13 @@ import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 export function MiniPlayer() {
   const playerInstanceId = useId();
-  const { locale, t } = useI18n();
+  const { locale, localizedPath, t } = useI18n();
   const {
     currentTrack,
     isPlaying,
     volume,
     progress,
+    seekRevision,
     duration,
     queue,
     queueIndex,
@@ -53,6 +57,7 @@ export function MiniPlayer() {
     previous,
     setVolume,
     setProgress,
+    seekTo,
     setDuration,
     clearQueue,
     setRepeatMode,
@@ -63,13 +68,15 @@ export function MiniPlayer() {
   const wavesurferRef = useRef<WaveSurfer | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isReady, setIsReady] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [playerView, setPlayerView] = useState<"stowed" | "docked" | "expanded">("docked");
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const addToShortlist = useShortlistStore((state) => state.add);
   const removeFromShortlist = useShortlistStore((state) => state.remove);
   const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === currentTrack?.id));
+  const isExpanded = playerView === "expanded";
+  const isStowed = playerView === "stowed";
 
   useEffect(() => {
     const query = window.matchMedia("(max-width: 767px)");
@@ -193,6 +200,14 @@ export function MiniPlayer() {
     }
   }, [isExpanded, isReady]);
 
+  useEffect(() => {
+    const wavesurfer = wavesurferRef.current;
+    if (!wavesurfer || !isReady || seekRevision === 0) return;
+    const requestedProgress = usePlayerStore.getState().progress;
+    const waveformDuration = wavesurfer.getDuration();
+    wavesurfer.setTime(Math.min(requestedProgress, waveformDuration));
+  }, [currentTrack?.id, isReady, seekRevision]);
+
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
@@ -211,7 +226,7 @@ export function MiniPlayer() {
       if (target?.matches("input, textarea, select, [contenteditable='true']")) return;
       if (event.key === "Escape" && isExpanded) {
         event.preventDefault();
-        setIsExpanded(false);
+        setPlayerView("docked");
         return;
       }
       if (event.code === "Space") {
@@ -227,12 +242,8 @@ export function MiniPlayer() {
 
   // Handle seek on static waveform
   const handleStaticSeek = useCallback((percent: number) => {
-    const newProgress = (percent / 100) * duration;
-    setProgress(newProgress);
-    if (wavesurferRef.current && isReady) {
-      wavesurferRef.current.seekTo(percent / 100);
-    }
-  }, [duration, isReady, setProgress]);
+    seekTo((percent / 100) * duration);
+  }, [duration, seekTo]);
 
   const cycleRepeat = () => {
     setRepeatMode(repeatMode === "off" ? "queue" : repeatMode === "queue" ? "track" : "off");
@@ -249,6 +260,13 @@ export function MiniPlayer() {
     ? [...queue.slice(queueIndex + 1), ...queue.slice(0, queueIndex)].slice(0, 4)
     : [];
 
+  const trackHref = currentTrack
+    ? `${localizedPath(`/albums/${currentTrack.albumSlug || currentTrack.albumId}`)}?track=${encodeURIComponent(currentTrack.id)}`
+    : localizedPath("/albums");
+  const labelHref = currentTrack?.albumLabelSlug
+    ? localizedPath(`/labels/${currentTrack.albumLabelSlug}`)
+    : null;
+
   if (!currentTrack) return null;
 
   return (
@@ -262,22 +280,40 @@ export function MiniPlayer() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: .22 }}
-          onClick={() => setIsExpanded(false)}
+          onClick={() => setPlayerView("docked")}
           className="fixed inset-0 z-[55] cursor-default bg-black/38 backdrop-blur-[1px] motion-reduce:transition-none"
         />
       ) : null}
       <motion.aside
         data-testid="player-dock"
         data-player-instance={playerInstanceId}
+        data-player-state={playerView}
+        data-playing={isPlaying ? "true" : "false"}
         aria-label={locale === "fr" ? "Lecteur audio persistant" : "Persistent audio player"}
         initial={{ y: 120, opacity: 0, scale: .98 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
         exit={{ y: 120, opacity: 0, scale: .98 }}
         transition={{ duration: .42, ease: [.22, 1, .36, 1] }}
-        className={cn("parigo-player fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden border border-white/18 bg-[#101410]/96 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5", isExpanded && "parigo-player--expanded")}
+        className={cn(
+          "parigo-player fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden border border-white/18 bg-[#101410]/96 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5",
+          isExpanded && "parigo-player--expanded",
+          isStowed && "parigo-player--stowed !left-auto !right-3 !w-16 !max-w-16 !overflow-visible !mx-0 md:!right-5",
+        )}
       >
+        {isStowed ? <div className="parigo-player__stowed flex w-16 flex-col">
+          <div className="parigo-player__stowed-cover relative h-16 w-16 overflow-hidden bg-[#101410]">
+            {albumCover ? <Image src={albumCover} alt="" fill sizes="64px" className="object-cover opacity-72" /> : <span className="absolute inset-0 grid place-items-center"><ListMusic size={20} className="text-white/68" /></span>}
+            <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(145deg,rgba(8,10,8,.04),rgba(8,10,8,.68))]" />
+            <Tooltip label={isPlaying ? t("common.pause") : t("common.play")}><button type="button" onClick={() => (isPlaying ? pause() : resume())} className="absolute inset-0 m-auto grid h-9 w-9 place-items-center bg-[var(--signal)] text-[#0c120d] shadow-[0_0_0_4px_rgba(8,10,8,.45)] transition hover:scale-105 hover:bg-white" aria-label={isPlaying ? t("common.pause") : t("common.play")}>
+              {isLoading ? <ParigoLoader size="icon" label={locale === "fr" ? "Chargement de la piste" : "Loading track"} /> : isPlaying ? <Pause size={15} className="fill-current" /> : <Play size={15} className="ml-0.5 fill-current" />}
+            </button></Tooltip>
+            <Tooltip label={locale === "fr" ? "Déployer le lecteur" : "Restore player"}><button type="button" onClick={() => setPlayerView("docked")} className="absolute right-0 top-0 grid h-6 w-6 place-items-center bg-black/72 text-white/82 transition hover:bg-white hover:text-black" aria-label={locale === "fr" ? "Déployer le lecteur" : "Restore player"}><Maximize2 size={11} /></button></Tooltip>
+          </div>
+          <span aria-hidden="true" className="mt-[3px] block h-[2px] w-full overflow-hidden bg-[color-mix(in_srgb,var(--foreground)_18%,transparent)]"><span className="block h-full bg-[var(--signal-strong)]" style={{ width: `${Math.max(0, Math.min(100, progressPercent))}%` }} /></span>
+        </div> : null}
+        <div className={cn("parigo-player__standard relative", isStowed && "pointer-events-none invisible absolute bottom-0 right-0 w-[min(calc(100vw-1.5rem),1560px)] md:w-[min(calc(100vw-2.5rem),1560px)]")}>
         <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(100deg,rgba(60,156,97,.24)_0%,rgba(16,20,16,.96)_23%,rgba(8,10,8,.99)_100%),linear-gradient(115deg,transparent_0%,rgba(255,255,255,.035)_48%,transparent_48.2%)]" />
-        <div className="relative grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2 px-3 py-3 sm:px-4 md:grid-cols-[minmax(210px,.8fr)_auto_minmax(300px,1.45fr)_auto] md:gap-x-5 md:px-5">
+        <div className="parigo-player__main relative grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-2 px-3 py-3 sm:px-4 md:grid-cols-[minmax(210px,.8fr)_auto_minmax(300px,1.45fr)_auto] md:gap-x-5 md:px-5">
           <div className="flex min-w-0 items-center gap-3 md:pr-2">
             <div className="parigo-player__art relative h-12 w-12 flex-shrink-0 overflow-hidden border border-white/16 bg-white/6 sm:h-14 sm:w-14">
               {albumCover ? (
@@ -293,8 +329,11 @@ export function MiniPlayer() {
             </div>
             <div className="min-w-0">
               <p className="mb-1 font-mono text-[.5rem] uppercase tracking-[.13em] text-[var(--signal)]">{locale === "fr" ? "À l’écoute" : "Now playing"}</p>
-              <p className="truncate text-sm font-semibold leading-tight text-white sm:text-base">{currentTrack.title}</p>
-              <p className="mt-1 truncate text-[.68rem] text-white/72 sm:text-xs">{currentTrack.artists?.map((artist) => artist.name).join(", ") || albumTitle}</p>
+              <Link href={trackHref} className="parigo-player__metadata-link block truncate text-sm font-semibold leading-tight text-white transition sm:text-base" aria-label={`${locale === "fr" ? "Ouvrir la piste" : "Open track"} ${currentTrack.title}`}>{currentTrack.title}</Link>
+              <div className="mt-1 flex min-w-0 items-center gap-2 truncate text-[.68rem] text-white/72 sm:text-xs">
+                <span className="min-w-0 truncate">{currentTrack.artists?.map((artist) => artist.name).join(", ") || albumTitle}</span>
+                {currentTrack.albumLabel ? <><span aria-hidden="true" className="shrink-0 text-white/32">·</span>{labelHref ? <Link href={labelHref} className="parigo-player__metadata-link shrink-0 font-medium text-white/82 transition" aria-label={`${locale === "fr" ? "Ouvrir le label" : "Open label"} ${currentTrack.albumLabel}`}>{currentTrack.albumLabel}</Link> : <span className="shrink-0 font-medium text-white/82">{currentTrack.albumLabel}</span>}</> : null}
+              </div>
               <p className="mt-1 hidden truncate font-mono text-[.5rem] uppercase tracking-[.1em] text-white/54 lg:block">{currentTrack.cdCode || albumTitle || "PARIGO"} · {currentTrack.version || (locale === "fr" ? "Version principale" : "Main version")}{currentTrack.bpm ? ` · ${formatBPM(currentTrack.bpm)}` : ""}</p>
             </div>
           </div>
@@ -319,13 +358,14 @@ export function MiniPlayer() {
               <Tooltip label={isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")}><button type="button" onClick={() => isShortlisted ? removeFromShortlist(currentTrack.id) : addToShortlist(currentTrack)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center rounded-full transition", isShortlisted ? "bg-[var(--signal)] text-[#0c120d]" : "text-white/74 hover:bg-white/9 hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${currentTrack.title}`}>{isShortlisted ? <Check size={16} /> : <ListPlus size={16} />}</button></Tooltip>
               <Tooltip label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${currentTrack.title}`}><Share2 size={16} /></button></Tooltip>
             </div>
-            <Tooltip label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Détails de la piste" : "Track details")}><button onClick={() => setIsExpanded(!isExpanded)} className="flex h-10 w-10 items-center justify-center rounded-full text-white/78 transition hover:bg-white/9 hover:text-white" aria-expanded={isExpanded} aria-label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Agrandir le lecteur" : "Expand player")}>{isExpanded ? <ChevronDown size={17} /> : <ChevronUp size={17} />}</button></Tooltip>
+            <Tooltip label={locale === "fr" ? "Ranger le lecteur" : "Stow player"}><button type="button" onClick={() => setPlayerView("stowed")} className="flex h-10 w-10 items-center justify-center rounded-full text-white/78 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Ranger le lecteur" : "Stow player"}><Minimize2 size={16} /></button></Tooltip>
+            <Tooltip label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Détails de la piste" : "Track details")}><button type="button" onClick={() => setPlayerView(isExpanded ? "docked" : "expanded")} className="flex h-10 w-10 items-center justify-center rounded-full text-white/78 transition hover:bg-white/9 hover:text-white" aria-expanded={isExpanded} aria-label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Agrandir le lecteur" : "Expand player")}>{isExpanded ? <ChevronDown size={17} /> : <ChevronUp size={17} />}</button></Tooltip>
             <Tooltip label={t("common.close")}><button onClick={clearQueue} className="flex h-10 w-9 items-center justify-center rounded-full text-white/68 transition hover:bg-white/9 hover:text-white" aria-label={t("common.close")}><X size={16} /></button></Tooltip>
           </div>
 
           <div className={cn("relative col-span-3 mt-2 min-w-0 md:order-3 md:col-span-1 md:mt-0", isExpanded ? "h-[72px]" : "h-9")}>
             <div ref={waveformRef} data-testid="player-waveform" className={cn("parigo-player__wave h-full w-full cursor-pointer overflow-hidden transition-opacity", hasError && "pointer-events-none opacity-0")} />
-            {(hasError || isLoading) && <div className="absolute inset-0"><TrackWaveform trackId={currentTrack.id} initialData={currentTrack.waveform} progress={progressPercent} height={isExpanded ? 72 : 36} interactive onSeek={handleStaticSeek} /></div>}
+            {(hasError || isLoading) && <div className="absolute inset-0"><TrackWaveform trackId={currentTrack.id} initialData={currentTrack.waveform} progress={progressPercent} height={isExpanded ? 72 : 36} interactive onSeek={handleStaticSeek} ariaLabel={`${locale === "fr" ? "Position de lecture du player" : "Player playback position"} : ${currentTrack.title}`} /></div>}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-between font-mono text-[.5rem] text-white/62"><span data-testid="player-time-current">{formatDuration(progress)}</span><span>{formatDuration(duration)}</span></div>
           </div>
         </div>
@@ -352,6 +392,7 @@ export function MiniPlayer() {
             </div>
           </motion.div>}
         </AnimatePresence>
+        </div>
       </motion.aside>
     </AnimatePresence>
   );
