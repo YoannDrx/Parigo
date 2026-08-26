@@ -62,7 +62,7 @@ export function ParigoDialog({
         >
           <motion.div
             aria-hidden="true"
-            className="parigo-modal-backdrop absolute inset-0 cursor-default bg-[#090d0a]/72 backdrop-blur-md"
+            className="parigo-modal-backdrop absolute inset-0 cursor-default"
             onPointerDown={onClose}
             {...modalMotion.backdrop}
           />

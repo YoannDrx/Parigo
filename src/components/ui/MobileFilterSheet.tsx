@@ -23,7 +23,7 @@ export const MobileFilterSheet = forwardRef<HTMLDivElement, MobileFilterSheetPro
 }, ref) {
   return (
     <div className="fixed inset-0 z-[120] lg:hidden" role="dialog" aria-modal="true" aria-label={ariaLabel}>
-      <button type="button" className="absolute inset-0 bg-black/55 backdrop-blur-sm" onClick={onClose} aria-label={closeLabel} />
+      <button type="button" className="parigo-modal-backdrop absolute inset-0" onClick={onClose} aria-label={closeLabel} />
       <div ref={ref} className="mobile-filter-sheet parigo-drawer parigo-drawer--bottom absolute inset-x-0 bottom-0 flex h-[calc(100dvh-8px)] animate-[fade-in_.3s_ease-out_both] flex-col bg-[var(--background)]">
         <div className="flex min-h-16 shrink-0 items-center justify-between border-b border-[var(--line)] px-4">
           <h2 className="font-semibold">{title}</h2>

@@ -68,7 +68,9 @@ export function SimilaritySourceRail({
   return (
     <div className={cn("similarity-hero-hint mt-3 text-center", className)} aria-label={locale === "fr" ? "Fonctionnement de la recherche par similarité IA" : "How AI similarity search works"}>
       <p className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1.5 text-xs leading-5 text-[var(--text-muted)] sm:text-sm">
-        <span>{locale === "fr" ? "Décrivez une scène, une émotion ou un usage, ou collez un lien public" : "Describe a scene, emotion or use, or paste a public link"}</span>
+        <span className="basis-full sm:hidden">{locale === "fr" ? "Décrivez une scène, une émotion ou un usage" : "Describe a scene, emotion or use"}</span>
+        <span className="basis-full sm:hidden">{locale === "fr" ? "Collez un lien public" : "Paste a public link"}</span>
+        <span className="hidden sm:inline">{locale === "fr" ? "Décrivez une scène, une émotion ou un usage, ou collez un lien public" : "Describe a scene, emotion or use, or paste a public link"}</span>
         {enabled.has("url") ? <span className="similarity-platform-icons inline-flex items-center gap-1.5" aria-label={locale === "fr" ? "YouTube, Spotify, Vimeo, SoundCloud, Apple Music et TikTok" : "YouTube, Spotify, Vimeo, SoundCloud, Apple Music and TikTok"}>{SIMILARITY_PLATFORMS.map((platform) => <span key={platform.id} title={platform.label}><SimilarityPlatformIcon platform={platform.id} className="h-3.5 w-3.5" /></span>)}</span> : null}
         {enabled.has("upload") ? <><span aria-hidden="true">·</span><button type="button" onClick={() => { onSelectSource("upload"); inputRef.current?.click(); }} className="inline-flex min-h-8 items-center gap-1.5 font-semibold text-[var(--foreground)] underline decoration-[var(--ai-search)] decoration-1 underline-offset-4 transition hover:text-[var(--ai-search)]" aria-label={locale === "fr" ? "Importer un fichier MP3 ou WAV" : "Upload an MP3 or WAV file"}><UploadCloud size={14} aria-hidden="true" />{locale === "fr" ? "Importer un MP3/WAV" : "Upload an MP3/WAV"}</button></> : null}
       </p>

@@ -1,10 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 type TooltipSide = "top" | "bottom";
+
+const hoverQuery = "(hover: hover) and (pointer: fine)";
+
+function subscribeToHoverCapability(callback: () => void) {
+  const media = window.matchMedia(hoverQuery);
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+
+function getHoverCapability() {
+  return window.matchMedia(hoverQuery).matches;
+}
 
 export function Tooltip({
   label,
@@ -20,6 +32,7 @@ export function Tooltip({
   className?: string;
 }) {
   const id = useId();
+  const canHover = useSyncExternalStore(subscribeToHoverCapability, getHoverCapability, () => false);
   const triggerRef = useRef<HTMLSpanElement>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [visible, setVisible] = useState(false);
@@ -67,14 +80,15 @@ export function Tooltip({
     <span
       ref={triggerRef}
       className={cn("inline-flex", className)}
-      onPointerEnter={() => show()}
+      onPointerEnter={(event) => { if (canHover && event.pointerType === "mouse") show(); }}
       onPointerLeave={hide}
-      onFocusCapture={() => show(true)}
+      onPointerDown={(event) => { if (event.pointerType !== "mouse") hide(); }}
+      onFocusCapture={(event) => { if (canHover && (event.target as HTMLElement).matches(":focus-visible")) show(true); }}
       onBlurCapture={hide}
-      aria-describedby={visible ? id : undefined}
+      aria-describedby={visible && canHover ? id : undefined}
     >
       {children}
-      {visible && typeof document !== "undefined" && createPortal(
+      {visible && canHover && typeof document !== "undefined" && createPortal(
         <span
           id={id}
           role="tooltip"

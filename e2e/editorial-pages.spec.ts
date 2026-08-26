@@ -476,7 +476,7 @@ test("le switch Catalogue et IA ne déplace ni le titre ni la barre du héros", 
       const [heroBox, contentBox] = await Promise.all([hero.boundingBox(), content.boundingBox()]);
       expect(heroBox).not.toBeNull();
       expect(contentBox).not.toBeNull();
-      expect(contentBox!.y - heroBox!.y).toBeLessThanOrEqual(170);
+      expect(contentBox!.y - heroBox!.y).toBeLessThanOrEqual(146);
     }
 
     await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
@@ -491,6 +491,14 @@ test("le switch Catalogue et IA ne déplace ni le titre ni la barre du héros", 
     expect(Math.abs(aiTitle!.y - catalogTitle!.y)).toBeLessThanOrEqual(1);
     expect(Math.abs(aiForm!.x - catalogForm!.x)).toBeLessThanOrEqual(1);
     expect(Math.abs(aiForm!.y - catalogForm!.y)).toBeLessThanOrEqual(1);
+    if (viewport.width === 390) {
+      const firstHintLine = hero.getByText("Décrivez une scène, une émotion ou un usage", { exact: true });
+      const secondHintLine = hero.getByText("Collez un lien public", { exact: true });
+      const [firstHintBox, secondHintBox] = await Promise.all([firstHintLine.boundingBox(), secondHintLine.boundingBox()]);
+      expect(firstHintBox).not.toBeNull();
+      expect(secondHintBox).not.toBeNull();
+      expect(secondHintBox!.y).toBeGreaterThan(firstHintBox!.y);
+    }
 
     await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
     await hero.getByRole("option", { name: /Catalogue/ }).click();
@@ -714,10 +722,31 @@ test("About laisse le récit poursuivre sa lecture sous l’image sans colonne �
   expect(headingBox!.width).toBeGreaterThan(650);
 });
 
-test("la page des labels adopte l’intitulé Labels", async ({ page }) => {
+test("la page des labels adopte l’intitulé Labels", async ({ page }, testInfo) => {
   await page.goto("/labels");
   await expect(page.getByRole("heading", { level: 1, name: "Labels" })).toBeVisible();
   await expect(page.locator("footer").getByRole("link", { name: "Labels", exact: true })).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    const corners = await Promise.all([
+      page.locator(".page-hero__frame").evaluate((node) => {
+        const style = getComputedStyle(node, "::after");
+        return { width: style.width, clipPath: style.clipPath, offset: style.bottom };
+      }),
+      page.locator(".catalog-toolbar").evaluate((node) => {
+        const style = getComputedStyle(node, "::after");
+        return { width: style.width, clipPath: style.clipPath, offset: style.bottom };
+      }),
+      page.locator('.parigo-select[data-variant="editorial"]').evaluate((node) => {
+        const style = getComputedStyle(node, "::before");
+        return { width: style.width, clipPath: style.clipPath, offset: style.top };
+      }),
+    ]);
+    for (const corner of corners) {
+      expect(Number.parseFloat(corner.width)).toBeGreaterThan(100);
+      expect(corner.clipPath).not.toBe("none");
+      expect(corner.offset).toBe("-1px");
+    }
+  }
 });
 
 test("la page Clips porte l’introduction éditoriale complète", async ({ page }) => {
