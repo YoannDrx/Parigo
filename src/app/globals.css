@@ -797,9 +797,7 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
   width: 100%;
 }
 .hero-gradflow__veil {
-  background:
-    linear-gradient(90deg, transparent 49.9%, color-mix(in srgb, var(--foreground) 5%, transparent) 50%, transparent 50.1%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 6%, transparent), transparent 26%, color-mix(in srgb, var(--surface) 9%, transparent));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 6%, transparent), transparent 26%, color-mix(in srgb, var(--surface) 9%, transparent));
   opacity: .32;
 }
 .home-hero {

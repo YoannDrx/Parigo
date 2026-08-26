@@ -147,6 +147,10 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero).toBeVisible();
+  const heroVeilGradients = await hero.locator(".hero-gradflow__veil").evaluate((node) => (
+    getComputedStyle(node).backgroundImage.match(/linear-gradient/g)?.length ?? 0
+  ));
+  expect(heroVeilGradients).toBe(1);
   const backgrounds = await page.evaluate(() => ({
     canvas: getComputedStyle(document.documentElement).backgroundColor,
     hero: getComputedStyle(document.querySelector<HTMLElement>("[data-testid='home-hero']")!).backgroundColor,
