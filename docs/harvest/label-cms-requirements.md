@@ -9,7 +9,8 @@ n'est maintenue dans l'application.
 
 ## Traductions vérifiées
 
-Le détail `getlibrary` expose les descriptions localisées sous la forme :
+Vérification du **26 août 2026** : le contrat diffère entre liste et détail.
+`getlibraries` expose les descriptions localisées sous la forme :
 
 ```json
 {
@@ -24,8 +25,14 @@ Le détail `getlibrary` expose les descriptions localisées sous la forme :
 }
 ```
 
-Le site sélectionne `FR` ou `EN` selon la locale, puis utilise `Detail` ou
-`Profile` comme repli lorsque la traduction demandée est absente.
+`getlibrary` omet actuellement `LanguageItems`, mais
+`?languagecode=en`/`fr` renvoie la langue correspondante directement dans
+`Detail`. Parigo assemble donc la fiche à partir de deux lectures et applique
+le fallback langue demandée → anglais → `Detail`/`Profile`.
+
+Fixture live : **Musica.it**, ID `9d330c152c37bca0`. Le label Parigo possède
+une description anglaise mais son champ français est vide : il s’agit d’une
+action de contenu, pas d’un défaut API.
 
 ## Spécification de logo à transmettre aux labels
 

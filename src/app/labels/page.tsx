@@ -1,5 +1,6 @@
 import { LabelsPageClient } from "@/components/catalog/LabelsPageClient";
 import { getCachedLabels } from "@/lib/harvest/catalog-cache";
+import { localizeLabel } from "@/lib/catalog-localization";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
 
@@ -9,6 +10,9 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
 }
 
 export default async function LabelsPage() {
-  const labels = await getCachedLabels();
-  return <LabelsPageClient labels={labels.map((label) => ({ ...label, slug: label.slug || label.id, description: label.description || null, website: label.website || null }))} />;
+  const [labels, locale] = await Promise.all([getCachedLabels(), getRequestLocale()]);
+  return <LabelsPageClient labels={labels.map((source) => {
+    const label = localizeLabel(source, locale);
+    return { ...label, slug: label.slug || label.id, description: label.description || null, website: label.website || null };
+  })} />;
 }

@@ -178,7 +178,9 @@ export interface Playlist {
   id: string;
   slug?: string;
   title: string;
+  titles?: Partial<Record<"fr" | "en", string>>;
   description?: string;
+  descriptions?: Partial<Record<"fr" | "en", string>>;
   cover: string;
   trackIds?: string[];
   trackCount?: number;

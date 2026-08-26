@@ -5,14 +5,15 @@ import { getCachedPlaylist } from "@/lib/harvest/catalog-cache";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
+import { localizePlaylist } from "@/lib/catalog-localization";
 
 interface PlaylistPageProps {
   params: Promise<{ slug: string }>;
 }
 
-async function loadPlaylist(slug: string) {
+async function loadPlaylist(slug: string, locale: "fr" | "en") {
   try {
-    const playlist = await getCachedPlaylist(slug);
+    const playlist = localizePlaylist(await getCachedPlaylist(slug), locale);
     return {
       ...playlist,
       totalDuration: playlist.tracks.reduce((sum, track) => sum + track.duration, 0),
@@ -24,7 +25,7 @@ async function loadPlaylist(slug: string) {
 
 export async function generateMetadata({ params }: PlaylistPageProps): Promise<Metadata> {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
-  const playlist = await loadPlaylist(slug);
+  const playlist = await loadPlaylist(slug, locale);
   return buildMetadata({
     locale,
     path: `/playlists/${slug}`,
@@ -38,7 +39,7 @@ export async function generateMetadata({ params }: PlaylistPageProps): Promise<M
 
 export default async function PlaylistPage({ params }: PlaylistPageProps) {
   const [{ slug }, locale] = await Promise.all([params, getRequestLocale()]);
-  const playlist = await loadPlaylist(slug);
+  const playlist = await loadPlaylist(slug, locale);
   return (
     <>
       <JsonLd data={{

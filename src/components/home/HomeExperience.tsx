@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
-import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
@@ -23,6 +23,7 @@ import { HomeAudioCard } from "./HomeAudioCard";
 import { usePlayerStore } from "@/stores/player-store";
 import { HomeHeroContent, HomeReveal } from "./HomeMotion";
 import { HomeSeeAllLink } from "./HomeSeeAllLink";
+import { localizePlaylist } from "@/lib/catalog-localization";
 
 const PartnerMarquee = lazy(() => import("./PartnerMarquee").then((module) => ({ default: module.PartnerMarquee })));
 
@@ -105,7 +106,10 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
   const audioTracks = useRef(new Map<string, Track[]>());
   const releasesRef = useRef(releases);
   const parigoAlbumsRef = useRef(parigoAlbums);
-  const editorialPlaylists = initialPlaylists.playlists;
+  const editorialPlaylists = useMemo(
+    () => initialPlaylists.playlists.map((playlist) => localizePlaylist(playlist, locale)),
+    [initialPlaylists.playlists, locale],
+  );
   const isFeaturedTabLoading = (
     featuredTab === "releases" && releases.length === 0 && tabError !== "releases"
   ) || (

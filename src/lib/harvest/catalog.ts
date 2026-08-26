@@ -43,6 +43,7 @@ type HarvestRecord = Record<string, unknown>;
 const TAXONOMY_DIAGNOSTIC_TTL_MS = 60 * 60 * 1000;
 let categoryDiagnosticExpiresAt = 0;
 let styleDiagnosticExpiresAt = 0;
+const loggedPlaylistTranslationConflicts = new Set<string>();
 
 export interface TaxonomyLocalization {
   name: string;
@@ -165,6 +166,21 @@ export function mapLibraryDescriptions(item: HarvestRecord): Partial<Record<"fr"
     const value = asString(pick(languageItem, "Value", "Detail", "Description")).trim();
     if ((language === "fr" || language === "en") && value) descriptions[language] = value;
   }
+  return descriptions;
+}
+
+export function mergeLibraryDescriptions(
+  englishItem: HarvestRecord,
+  frenchItem?: HarvestRecord,
+): Partial<Record<"fr" | "en", string>> {
+  const descriptions = {
+    ...mapLibraryDescriptions(englishItem),
+    ...(frenchItem ? mapLibraryDescriptions(frenchItem) : {}),
+  };
+  const english = asString(pick(englishItem, "Detail", "Profile")).trim();
+  const french = frenchItem ? asString(pick(frenchItem, "Detail", "Profile")).trim() : "";
+  if (english) descriptions.en = english;
+  if (french && french !== english) descriptions.fr = french;
   return descriptions;
 }
 
@@ -355,11 +371,57 @@ export function mapAlbum(item: HarvestRecord, templates: HarvestAssetTemplates):
 export function mapPlaylist(item: HarvestRecord, templates: HarvestAssetTemplates): Playlist {
   const parsed: HarvestPlaylistPayload = HarvestPlaylistSchema.parse(item);
   const id = parsed.ID;
+  const canonicalTitle = titleOf(parsed).trim();
+  const canonicalDescription = parsed.Description?.trim() || "";
+  const titles: Partial<Record<"fr" | "en", string>> = canonicalTitle ? { en: canonicalTitle } : {};
+  const descriptions: Partial<Record<"fr" | "en", string>> = canonicalDescription ? { en: canonicalDescription } : {};
+  const valuesByKey = new Map<string, Set<string>>();
+  for (const languageItem of parsed.LanguageItems) {
+    if (!isRecord(languageItem)) continue;
+    const type = asString(languageItem.Type).trim().toLocaleLowerCase("en");
+    const target = type === "featuredplaylistname"
+      ? titles
+      : type === "featuredplaylistdescription"
+        ? descriptions
+        : undefined;
+    if (!target) continue;
+    const language = asString(pick(
+      languageItem,
+      "LanguageCode_ISO639_1",
+      "LanguageCode",
+      "Language",
+      "CultureCode",
+    )).trim().toLocaleLowerCase("en").split(/[-_]/)[0];
+    if (language !== "fr" && language !== "en") continue;
+    const value = asString(pick(languageItem, "Value", "Name", "Detail", "Description", "Text")).trim();
+    if (!value) continue;
+    const key = `${type}:${language}`;
+    const values = valuesByKey.get(key) ?? new Set<string>();
+    values.add(value);
+    valuesByKey.set(key, values);
+    if (!target[language]) target[language] = value;
+  }
+  const conflictingKeys = [...valuesByKey]
+    .filter(([, values]) => values.size > 1)
+    .map(([key]) => key);
+  if (conflictingKeys.length && !loggedPlaylistTranslationConflicts.has(id)) {
+    loggedPlaylistTranslationConflicts.add(id);
+    logEvent({
+      level: "warn",
+      message: "playlist_translation_conflict",
+      route: "harvest-playlists",
+      requestId: crypto.randomUUID(),
+      conflictingCount: conflictingKeys.length,
+      sampleIds: [id, ...conflictingKeys],
+    });
+  }
   return {
     id,
     slug: id,
-    title: titleOf(parsed),
-    description: parsed.Description || undefined,
+    title: titles.en || canonicalTitle,
+    ...(Object.keys(titles).length ? { titles } : {}),
+    description: descriptions.en || canonicalDescription || undefined,
+    ...(Object.keys(descriptions).length ? { descriptions } : {}),
     cover: templates.playlistArt
       ? assetUrl(templates.playlistArt, { id, width: 800, height: 800 })
       : "/images/placeholder-playlist.svg",
@@ -637,12 +699,14 @@ export async function getLabels(): Promise<Label[]> {
     .map((item) => {
       const id = asString(item.ID);
       const logoUrl = asString(item.LibraryLogoUrl);
+      const descriptions = mergeLibraryDescriptions(item);
       return {
         id,
         slug: id,
         name: asString(item.Name),
         logo: verifiedLabelLogo(id, logoUrl),
-        description: asString(pick(item, "Detail", "Profile")) || undefined,
+        description: descriptions.en || asString(pick(item, "Detail", "Profile")) || undefined,
+        ...(Object.keys(descriptions).length ? { descriptions } : {}),
         website: asString(item.Website) || undefined,
         albumCount: albumFacets.get(id) ?? 0,
         location: asString(item.Location) || undefined,
@@ -655,25 +719,30 @@ export async function getLabels(): Promise<Label[]> {
 }
 
 export async function getLabel(id: string): Promise<Label | null> {
-  const [payload, albumCount, trackCount] = await Promise.all([
+  const [englishPayload, frenchPayload, albumCount, trackCount] = await Promise.all([
     guestRequest<HarvestRecord>((token) =>
-      `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true`,
+      `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true&languagecode=en`,
+    ),
+    guestRequest<HarvestRecord>((token) =>
+      `/getlibrary/${token}/${encodeURIComponent(id)}?returnCodes=true&languagecode=fr`,
     ),
     cloudSearch({ view: "Album", limit: 1, labels: [id], sort: "ReleaseDate_Desc" })
       .then((result) => result.total),
     cloudSearch({ view: "Track", limit: 1, labels: [id], sort: "RankExpression" })
       .then((result) => result.total),
   ]);
-  const item = isRecord(payload.Library) ? payload.Library : undefined;
-  if (!item) return null;
+  const englishItem = isRecord(englishPayload.Library) ? englishPayload.Library : undefined;
+  const frenchItem = isRecord(frenchPayload.Library) ? frenchPayload.Library : undefined;
+  if (!englishItem && !frenchItem) return null;
+  const item = englishItem || frenchItem as HarvestRecord;
   const logoUrl = asString(item.LibraryLogoUrl);
-  const descriptions = mapLibraryDescriptions(item);
+  const descriptions = mergeLibraryDescriptions(item, frenchItem);
   return {
     id,
     slug: id,
     name: asString(item.Name),
     logo: verifiedLabelLogo(id, logoUrl),
-    description: asString(pick(item, "Detail", "Profile")) || undefined,
+    description: descriptions.en || asString(pick(item, "Detail", "Profile")) || undefined,
     ...(Object.keys(descriptions).length ? { descriptions } : {}),
     website: asString(item.Website) || undefined,
     albumCount,
@@ -733,22 +802,38 @@ function uniqueTerms(values: Array<string[] | undefined>): string[] {
     .sort((left, right) => left.localeCompare(right, "fr", { sensitivity: "base" }));
 }
 
-export async function getPlaylistDiscovery(): Promise<Playlist[]> {
-  const playlists = (await getPlaylists({ limit: 100 })).items;
+export async function getPlaylistDiscovery(options: { limit?: number } = {}): Promise<Playlist[]> {
+  const playlists = (await getPlaylists({ limit: options.limit ?? 100 })).items;
   const enriched: Playlist[] = [];
   const concurrency = 6;
   for (let offset = 0; offset < playlists.length; offset += concurrency) {
     const batch = playlists.slice(offset, offset + concurrency);
     const details = await Promise.all(batch.map(async (playlist) => {
-      const detail = await getPlaylist(playlist.id);
-      return {
-        ...playlist,
-        trackCount: detail.tracks.length,
-        genres: uniqueTerms(detail.tracks.map((track) => track.genres)),
-        moods: uniqueTerms(detail.tracks.map((track) => track.moods)),
-        instruments: uniqueTerms(detail.tracks.map((track) => track.instruments)),
-        musicFor: uniqueTerms(detail.tracks.map((track) => track.musicFor)),
-      } satisfies Playlist;
+      try {
+        const detail = await getPlaylist(playlist.id);
+        return {
+          ...playlist,
+          title: detail.title,
+          titles: detail.titles,
+          description: detail.description,
+          descriptions: detail.descriptions,
+          trackCount: detail.tracks.length,
+          genres: uniqueTerms(detail.tracks.map((track) => track.genres)),
+          moods: uniqueTerms(detail.tracks.map((track) => track.moods)),
+          instruments: uniqueTerms(detail.tracks.map((track) => track.instruments)),
+          musicFor: uniqueTerms(detail.tracks.map((track) => track.musicFor)),
+        } satisfies Playlist;
+      } catch (error) {
+        logEvent({
+          level: "warn",
+          message: "playlist_detail_enrichment_failed",
+          route: "harvest-playlists",
+          requestId: crypto.randomUUID(),
+          code: error instanceof HarvestError ? error.code : "UNKNOWN",
+          sampleIds: [playlist.id],
+        });
+        return playlist;
+      }
     }));
     enriched.push(...details);
   }

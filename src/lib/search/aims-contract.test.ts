@@ -5,6 +5,7 @@ import {
   buildAimsCloudSearch,
   detectAimsExternalPlatform,
   parseAimsCapabilities,
+  publicSimilarityCapabilities,
 } from "./aims-contract";
 
 const serviceInfo = {
@@ -47,6 +48,24 @@ describe("Harvest-mediated AIMS contract", () => {
     expect(capabilities.upload.enabled).toBe(false);
     expect(capabilities.externalUrl.enabled).toBe(false);
     expect(capabilities.playlistSuggestions).toBe(true);
+  });
+
+  it("advertises a verified prompt capability in the neutral public contract", () => {
+    const capabilities = parseAimsCapabilities(serviceInfo, enabledFlags);
+    expect(capabilities.prompt).toEqual({ advertised: false, enabled: true });
+    expect(publicSimilarityCapabilities(capabilities).prompt).toEqual({ advertised: true, enabled: true });
+  });
+
+  it("keeps every public mode disabled behind the launch gate", () => {
+    const publicCapabilities = publicSimilarityCapabilities(
+      parseAimsCapabilities(serviceInfo, enabledFlags),
+      false,
+    );
+    expect(publicCapabilities.track.enabled).toBe(false);
+    expect(publicCapabilities.prompt.enabled).toBe(false);
+    expect(publicCapabilities.upload.enabled).toBe(false);
+    expect(publicCapabilities.externalUrl.enabled).toBe(false);
+    expect(publicCapabilities.playlistSuggestions).toBe(false);
   });
 
   it("builds EvokeRanking payloads without keyword filters or paging", () => {

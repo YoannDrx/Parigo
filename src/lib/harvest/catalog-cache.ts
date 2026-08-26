@@ -32,19 +32,19 @@ export const getCachedAlbumCount = cache(
   unstable_cache(async () => (await getAlbums({ limit: 1 })).total, ["catalog-album-count"], { revalidate: 86400, tags: ["catalog", "sitemaps"] }),
 );
 export const getCachedLabel = cache(
-  unstable_cache(getLabel, ["catalog-label-v2"], { revalidate: 600, tags: ["catalog", "labels"] }),
+  unstable_cache(getLabel, ["catalog-label-v3-localized"], { revalidate: 600, tags: ["catalog", "labels"] }),
 );
 export const getCachedLabels = cache(
-  unstable_cache(getLabels, ["catalog-labels-v2"], { revalidate: 600, tags: ["catalog", "labels"] }),
+  unstable_cache(getLabels, ["catalog-labels-v3-localized"], { revalidate: 600, tags: ["catalog", "labels"] }),
 );
 export const getCachedPlaylist = cache(
-  unstable_cache(getPlaylist, ["catalog-playlist"], { revalidate: 600, tags: ["catalog", "playlists"] }),
+  unstable_cache(getPlaylist, ["catalog-playlist-v2-localized"], { revalidate: 600, tags: ["catalog", "playlists"] }),
 );
 export const getCachedPlaylists = cache(
-  unstable_cache(getPlaylists, ["catalog-playlists"], { revalidate: 600, tags: ["catalog", "playlists"] }),
+  unstable_cache(getPlaylists, ["catalog-playlists-v2-localized"], { revalidate: 600, tags: ["catalog", "playlists"] }),
 );
 export const getCachedPlaylistDiscovery = cache(
-  unstable_cache(getPlaylistDiscovery, ["catalog-playlist-discovery"], { revalidate: 86400, tags: ["catalog", "playlists", "filters"] }),
+  unstable_cache(getPlaylistDiscovery, ["catalog-playlist-discovery-v2-localized"], { revalidate: 86400, tags: ["catalog", "playlists", "filters"] }),
 );
 export const getCachedStyles = cache(
   unstable_cache(getStyles, ["catalog-styles"], { revalidate: 3600, tags: ["catalog", "filters"] }),

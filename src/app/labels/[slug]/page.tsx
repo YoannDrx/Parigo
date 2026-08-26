@@ -6,6 +6,7 @@ import { JsonLd } from "@/components/seo/JsonLd";
 import { getCachedAlbumDiscovery, getCachedLabel } from "@/lib/harvest/catalog-cache";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
+import { localizeLabel } from "@/lib/catalog-localization";
 
 interface LabelPageProps {
   params: Promise<{ slug: string }>;
@@ -18,11 +19,12 @@ async function loadLabel(slug: string, locale: "fr" | "en") {
     getCachedAlbumDiscovery({ label: slug, limit: 30, sort: "recent" }),
   ]);
   if (!label) notFound();
+  const localizedLabel = localizeLabel(label, locale);
   return {
-    ...label,
-    slug: label.slug || label.id,
-    description: label.descriptions?.[locale] || label.description || null,
-    website: label.website || null,
+    ...localizedLabel,
+    slug: localizedLabel.slug || localizedLabel.id,
+    description: localizedLabel.description || null,
+    website: localizedLabel.website || null,
     albumCount: albums.total,
     trackCount: label.trackCount ?? 0,
     albums: {

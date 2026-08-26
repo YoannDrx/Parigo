@@ -20,7 +20,7 @@ async function main() {
   const results: Array<{ id: string; label: string; indexed: boolean; latencyMs: number }> = [];
   for (const sample of samples) {
     const startedAt = Date.now();
-    const similarResponse = await fetch(`${baseUrl}/api/aims/search`, {
+    const similarResponse = await fetch(`${baseUrl}/api/similarity/search`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Origin: baseUrl },
       body: JSON.stringify({ type: "track", seedTrackIds: [sample.id] }),

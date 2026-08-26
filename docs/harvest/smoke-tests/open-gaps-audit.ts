@@ -232,7 +232,10 @@ async function main() {
     }
   }
 
-  const rawTags = await direct(`/getmembertags/${memberToken}?Skip=0&Limit=100&Sort=Alphabetic_Asc&ReturnTagCount=1`);
+  const [rawTags, rawTagsWithoutCount] = await Promise.all([
+    direct(`/getmembertags/${memberToken}?Skip=0&Limit=100&Sort=Alphabetic_Asc&ReturnTagCount=1`),
+    direct(`/getmembertags/${memberToken}?Skip=0&Limit=100&Sort=Alphabetic_Asc`),
+  ]);
   const tagEvidence = [];
   for (const tag of list(rawTags.payload, "Tags").slice(0, 20)) {
     const tagId = String(tag.TagID || tag.ID || "");
@@ -354,8 +357,20 @@ async function main() {
 
   const result: JsonRecord = {
     tagCounts: {
-      httpStatus: rawTags.status,
+      httpStatus: { withOption: rawTags.status, withoutOption: rawTagsWithoutCount.status },
       inspected: Math.min(list(rawTags.payload, "Tags").length, 20),
+      returned: {
+        withOption: list(rawTags.payload, "Tags").length,
+        withoutOption: list(rawTagsWithoutCount.payload, "Tags").length,
+      },
+      countFields: {
+        withOption: [...new Set(list(rawTags.payload, "Tags").flatMap((tag) => Object.keys(tag)))]
+          .filter((key) => /count/i.test(key))
+          .sort(),
+        withoutOption: [...new Set(list(rawTagsWithoutCount.payload, "Tags").flatMap((tag) => Object.keys(tag)))]
+          .filter((key) => /count/i.test(key))
+          .sort(),
+      },
       evidence: tagEvidence,
       ...(tagMutationEvidence ? { mutation: tagMutationEvidence } : {}),
     },

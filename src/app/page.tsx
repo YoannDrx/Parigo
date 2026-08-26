@@ -5,7 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { staticMetadata } from "@/lib/seo-server";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { SITE_URL, siteConfig } from "@/lib/seo";
-import { getCachedAlbumDiscovery, getCachedPlaylists } from "@/lib/harvest/catalog-cache";
+import { getCachedAlbumDiscovery, getCachedPlaylistDiscovery } from "@/lib/harvest/catalog-cache";
 import { getSynchronisations } from "@/lib/youtube/synchronisations";
 import { getFeaturedEditorialVideos } from "@/lib/editorial/videos";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
@@ -18,7 +18,7 @@ export const generateMetadata = staticMetadata("/", {
 
 function loadHomeData() {
   return Promise.all([
-    getCachedPlaylists({ limit: 12 }),
+    getCachedPlaylistDiscovery({ limit: 12 }),
     getCachedAlbumDiscovery({ limit: 12, sort: "releaseDate" }),
     getCachedAlbumDiscovery({ label: PARIGO_LABEL_ID, limit: 12, sort: "releaseDate" }),
     getSynchronisations(),
@@ -35,12 +35,12 @@ const homeComposerProfiles = canonicalComposerProfiles.map((profile) => ({
 async function HomeDataSections({ dataPromise }: { dataPromise: ReturnType<typeof loadHomeData> }) {
   const [playlists, releases, parigoAlbums, synchronisations, clips] = await dataPromise;
   const initialPlaylists = {
-    playlists: playlists.items,
+    playlists,
     pagination: {
-      total: playlists.total,
-      limit: playlists.pageSize,
+      total: playlists.length,
+      limit: playlists.length,
       offset: 0,
-      hasMore: playlists.items.length < playlists.total,
+      hasMore: false,
     },
   };
 

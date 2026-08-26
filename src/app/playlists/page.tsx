@@ -2,6 +2,7 @@ import { PlaylistsPageClient } from "@/components/catalog/PlaylistsPageClient";
 import { getCachedPlaylistDiscovery } from "@/lib/harvest/catalog-cache";
 import { getRequestLocale } from "@/lib/locale-server";
 import { buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
+import { localizePlaylist } from "@/lib/catalog-localization";
 
 export async function generateMetadata({ searchParams }: { searchParams: PageSearchParams }) {
   const [locale, filtered] = await Promise.all([getRequestLocale(), hasSearchParams(searchParams)]);
@@ -9,6 +10,9 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
 }
 
 export default async function PlaylistsPage() {
-  const playlists = await getCachedPlaylistDiscovery();
-  return <PlaylistsPageClient playlists={playlists.map((playlist) => ({ ...playlist, slug: playlist.slug || playlist.id, description: playlist.description || null, cover: playlist.cover || null, trackCount: playlist.trackCount || 0, category: playlist.category || null, isFeatured: playlist.isFeatured ?? true }))} />;
+  const [playlists, locale] = await Promise.all([getCachedPlaylistDiscovery(), getRequestLocale()]);
+  return <PlaylistsPageClient playlists={playlists.map((source) => {
+    const playlist = localizePlaylist(source, locale);
+    return { ...playlist, slug: playlist.slug || playlist.id, description: playlist.description || null, cover: playlist.cover || null, trackCount: playlist.trackCount || 0, category: playlist.category || null, isFeatured: playlist.isFeatured ?? true };
+  })} />;
 }

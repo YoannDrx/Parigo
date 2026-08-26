@@ -2,13 +2,15 @@ import { NextResponse } from "next/server";
 import { apiError, apiPlaylist, apiTrack, requestId } from "@/lib/harvest/api";
 import { getPlaylist } from "@/lib/harvest/catalog";
 import { readHarvestSession } from "@/lib/harvest/session";
+import { localizePlaylist, type CatalogLocale } from "@/lib/catalog-localization";
 
-export async function GET(_request: Request, { params }: { params: Promise<{ slug: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const id = requestId();
   try {
     const { slug } = await params;
+    const language = new URL(request.url).searchParams.get("languagecode")?.toLocaleLowerCase("en").startsWith("fr") ? "fr" : "en" satisfies CatalogLocale;
     const session = await readHarvestSession();
-    const playlist = await getPlaylist(slug, session?.memberToken);
+    const playlist = localizePlaylist(await getPlaylist(slug, session?.memberToken), language);
     const tracks = playlist.tracks.map(apiTrack);
     return NextResponse.json(
       {
