@@ -545,6 +545,7 @@ test("la homepage ne contient pas de violation critique axe", async ({ page }) =
 
 test("la home expose le catalogue Parigo et un menu modal responsive", async ({ page }, testInfo) => {
   test.setTimeout(90_000);
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");
   await expect(page.getByText(/démo locale/i)).toHaveCount(0);
   const menuTrigger = page.getByRole("button", { name: "Ouvrir le menu" });
@@ -561,7 +562,13 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await expect(menu).not.toContainText("Paris · France");
   await expect(menu).not.toContainText(/Parigo \/(?: Explorer| Explore)/);
   await expect(menu).not.toContainText("Catalogue, images et compositeurs");
-  expect(await menu.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toContain("repeating-linear-gradient");
+  await expect(menu).toHaveCSS("background-color", "rgb(242, 241, 237)");
+  await expect(menu).toHaveCSS("background-image", "none");
+  await expect(menu).toHaveCSS("color", "rgb(21, 24, 21)");
+  await expect(menu).toHaveCSS("backdrop-filter", "none");
+  const projectCard = menu.locator(".parigo-menu-aside");
+  await expect(projectCard).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(projectCard).toHaveCSS("background-image", "none");
   await expect(menu.locator('a[href="/labels"]')).toContainText("Labels");
   await expect(menu.getByRole("link", { name: "Notre label" })).toBeVisible();
   for (const note of [
@@ -600,9 +607,37 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
     "/clips",
     "/talents",
   ]);
+  const themeToggle = testInfo.project.name === "mobile"
+    ? menu.getByTestId("mobile-menu-controls").getByRole("button", { name: "Passer au thème sombre" })
+    : page.getByRole("navigation", { name: "Navigation principale" }).getByRole("button", { name: "Passer au thème sombre" });
+  await themeToggle.click();
+  await expect(menu).toHaveCSS("background-color", "rgb(11, 13, 11)");
+  await expect(menu).toHaveCSS("color", "rgb(241, 241, 236)");
+  await expect(projectCard).toHaveCSS("background-color", "rgb(17, 20, 17)");
   if (testInfo.project.name === "mobile") {
-    await expect(menu.getByText("Compte", { exact: true })).toBeVisible();
-    await expect(menu.getByText("Préférences", { exact: true })).toBeVisible();
+    const mobileControls = menu.getByTestId("mobile-menu-controls");
+    await expect(mobileControls).toBeVisible();
+    await expect(mobileControls.locator('a[href="/en"]')).toHaveText("EN");
+    await expect(mobileControls.getByRole("button", { name: "Passer au thème clair" })).toBeVisible();
+    await expect(mobileControls.getByRole("button", { name: "Ouvrir la connexion" })).toBeVisible();
+    await mobileControls.getByRole("button", { name: "Ouvrir la connexion" }).focus();
+    await expect(page.getByRole("tooltip")).toHaveCount(0);
+    await expect(menu.getByText("Votre espace", { exact: true })).not.toBeVisible();
+    await expect(menu.getByText("Préférences", { exact: true })).not.toBeVisible();
+    await expect(menu.getByTestId("embedded-login")).not.toBeVisible();
+    const mobileCardCorner = await menu.locator(".parigo-menu-card").first().evaluate((node) => ({
+      width: Number.parseFloat(getComputedStyle(node, "::after").width),
+      bottom: getComputedStyle(node, "::after").bottom,
+      radius: getComputedStyle(node, "::after").borderRadius,
+      cardRadius: getComputedStyle(node).borderRadius,
+      clipPath: getComputedStyle(node, "::after").clipPath,
+      shadow: getComputedStyle(node).boxShadow,
+    }));
+    expect(mobileCardCorner.width).toBeGreaterThan(300);
+    expect(mobileCardCorner.bottom).toBe("-1px");
+    expect(mobileCardCorner.radius).toBe(mobileCardCorner.cardRadius);
+    expect(mobileCardCorner.clipPath).not.toBe("none");
+    expect(mobileCardCorner.shadow).toBe("none");
     await expect(menu).toHaveCSS("overflow-y", "auto");
     const initialScrollMetrics = await menu.evaluate((element) => ({
       clientHeight: element.clientHeight,
@@ -613,7 +648,7 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
     await expect.poll(() => menu.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
     await expect(menu.getByRole("link", { name: "Confidentialité" })).toBeVisible();
   } else {
-    await expect(menu.getByText("Compte", { exact: true })).not.toBeVisible();
+    await expect(menu.getByTestId("mobile-menu-controls")).not.toBeVisible();
     await expect(menu.getByText("Préférences", { exact: true })).not.toBeVisible();
   }
   await expect(page.locator("body")).toHaveCSS("overflow", "hidden");
@@ -627,6 +662,23 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
 
   await expect(page.getByRole("heading", { name: "Une sélection, plusieurs récits." })).toHaveCount(0);
   await expect(page.getByRole("tab", { name: "Synchronisations" })).toHaveCount(0);
+});
+
+test("le changement de langue mobile conserve le menu ouvert sans recharger la page", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Le contrôle compact de langue est propre au menu mobile.");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  const menu = page.getByRole("dialog", { name: "Menu principal" });
+  await expect(menu).toBeVisible();
+  await page.evaluate(() => { (window as Window & { __parigoLocaleMarker?: string }).__parigoLocaleMarker = "client-navigation"; });
+  await menu.getByTestId("mobile-menu-controls").locator('a[href="/en"]').click();
+  await expect(page).toHaveURL(/\/en$/);
+  const englishMenu = page.getByRole("dialog", { name: "Main menu" });
+  await expect(englishMenu).toBeVisible();
+  await expect(englishMenu.getByRole("heading", { name: "Explore Parigo" })).toBeVisible();
+  await expect(englishMenu.getByTestId("mobile-menu-controls").locator('a[href="/"]')).toHaveText("FR");
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  expect(await page.evaluate(() => (window as Window & { __parigoLocaleMarker?: string }).__parigoLocaleMarker)).toBe("client-navigation");
 });
 
 test("le footer reprend l’ordre du menu et sépare le compte des réseaux sociaux", async ({ page }) => {
@@ -1646,7 +1698,10 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
     await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   }
   await page.getByRole("button", { name: "Ouvrir la connexion" }).click();
-  const dialog = page.getByRole("dialog");
+  const dialog = page.locator('[role="dialog"][aria-labelledby^="auth-"]');
+  const backdrop = page.getByTestId("auth-modal-backdrop");
+  await expect(backdrop).toHaveCSS("background-color", "rgb(7, 9, 7)");
+  await expect(backdrop).toHaveCSS("backdrop-filter", "none");
   const switcher = dialog.getByTestId("auth-switcher");
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
   await expect(dialog.getByRole("heading", { name: "Se connecter" })).toBeVisible();
@@ -1666,7 +1721,12 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
     await expect(dialog.locator("#auth-register-panel button[type=submit]")).toBeInViewport();
   }
   await page.keyboard.press("Escape");
+  expect(await backdrop.count()).toBe(1);
   await expect(dialog).toHaveCount(0);
+  await expect(backdrop).toHaveCount(0);
+  if (testInfo.project.name === "mobile") {
+    await expect(page.getByRole("dialog", { name: "Menu principal" })).toBeVisible();
+  }
 });
 
 test("le reset n’annonce pas un e-mail quand la route Harvest manque", async ({ page }) => {

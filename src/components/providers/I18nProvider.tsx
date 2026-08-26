@@ -1,8 +1,9 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { messages, type Locale, type MessageKey } from "@/i18n/messages";
-import { localizedPath as buildLocalizedPath } from "@/lib/locale";
+import { localeFromPathname, localizedPath as buildLocalizedPath } from "@/lib/locale";
 
 interface I18nContextValue {
   locale: Locale;
@@ -27,7 +28,13 @@ export function I18nProvider({
   children: ReactNode;
   initialLocale: Locale;
 }) {
-  const locale = initialLocale;
+  const pathname = usePathname();
+  const locale = pathname ? localeFromPathname(pathname) : initialLocale;
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
+
   const t = useCallback((key: MessageKey) => resolveMessage(locale, key), [locale]);
   const localizedPath = useCallback((path: string) => buildLocalizedPath(locale, path), [locale]);
   const value = useMemo(() => ({ locale, localizedPath, t }), [locale, localizedPath, t]);

@@ -89,7 +89,7 @@ export function HomeHeroContent({
       data-testid="home-hero-content"
       data-home-hero-motion={reduceMotion ? "static" : "animated"}
       style={reduceMotion ? { y: 0, scale: 1, opacity: 1 } : { y, scale, opacity }}
-      className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center max-sm:-top-6"
+      className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center max-sm:-top-12"
     >
       <motion.div
         data-banner-reveal="title"

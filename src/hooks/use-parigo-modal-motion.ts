@@ -9,12 +9,12 @@ const backdropVariants: Variants = {
   visible: {
     scaleX: [0, 1, 1],
     scaleY: [0.003, 0.003, 1],
-    transition: { duration: 0.78, times: [0, 0.36, 1], ease: modalEase },
+    transition: { duration: 1.55, times: [0, 0.4, 1], ease: modalEase },
   },
   closed: {
     scaleX: [1, 1, 0],
     scaleY: [1, 0.003, 0.003],
-    transition: { duration: 0.64, times: [0, 0.62, 1], delay: 0.18, ease: modalEase },
+    transition: { duration: 1.35, times: [0, 0.6, 1], delay: 0.32, ease: modalEase },
   },
 };
 
@@ -23,12 +23,12 @@ const dialogVariants: Variants = {
   visible: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.38, delay: 0.48, ease: modalEase },
+    transition: { duration: 0.48, delay: 0.92, ease: modalEase },
   },
   closed: {
     opacity: 0,
     scale: 0.82,
-    transition: { duration: 0.24, ease: modalEase },
+    transition: { duration: 0.38, ease: modalEase },
   },
 };
 

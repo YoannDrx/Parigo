@@ -136,6 +136,8 @@ test("le refus marketing ouvre les préférences sans charger YouTube", async ({
   await play.click();
 
   await expect(page.getByRole("dialog", { name: "Préférences de cookies" })).toBeVisible();
+  await expect(page.getByTestId("cookie-modal-backdrop")).toHaveCSS("background-color", "rgb(7, 9, 7)");
+  await expect(page.getByTestId("cookie-modal-backdrop")).toHaveCSS("backdrop-filter", "none");
   await expect(page.getByTestId("persistent-clip-iframe")).toHaveCount(0);
   await expect(page.locator("#parigo-youtube-iframe-api")).toHaveCount(0);
 });

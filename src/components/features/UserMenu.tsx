@@ -50,6 +50,9 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
   const [isSigningOut, setIsSigningOut] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
+  const openLogin = () => {
+    useAuthModalStore.getState().openLogin();
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -95,14 +98,14 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
 
   // Not logged in
   if (!session?.user) {
-    if (embedded) return <section aria-label={locale === "fr" ? "Compte" : "Account"} className="border-y border-[var(--line-strong)] bg-[var(--surface)] px-3 py-5 sm:px-5"><p className="eyebrow mb-4 text-[var(--text-muted)]">{locale === "fr" ? "Compte" : "Account"}</p><Button variant="outline" className="w-full gap-2" aria-label={t("auth.openLogin")} onClick={() => useAuthModalStore.getState().openLogin()}><User size={18} />{t("auth.login")}</Button></section>;
+    if (embedded) return <section aria-label={locale === "fr" ? "Compte" : "Account"}><button type="button" data-testid="embedded-login" className="group inline-flex min-h-11 items-center gap-2.5 bg-transparent text-sm font-semibold text-[var(--foreground)] transition-colors hover:text-[var(--signal-strong)]" aria-label={t("auth.openLogin")} onClick={openLogin}><User size={17} /><span>{t("auth.login")}</span><ArrowUpRight size={14} className="opacity-55 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:opacity-100" /></button></section>;
     const control = (
       <Button
         variant={compact ? "ghost" : "outline"}
         size="sm"
         className={compact ? "nav-control h-11 w-11 rounded-none border-transparent p-0 hover:!bg-transparent" : "gap-2"}
         aria-label={t("auth.openLogin")}
-        onClick={() => useAuthModalStore.getState().openLogin()}
+        onClick={openLogin}
       >
         <User size={18} />
         {!compact && <span className="hidden sm:inline">{t("auth.login")}</span>}

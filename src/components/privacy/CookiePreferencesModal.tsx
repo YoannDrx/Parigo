@@ -82,7 +82,7 @@ export function CookiePreferencesModal({
     <AnimatePresence>
       {open ? (
         <motion.div className="fixed inset-0 z-[130] grid place-items-center overflow-y-auto p-3 md:p-8">
-          <motion.div aria-hidden="true" className="absolute inset-0 bg-black/68 backdrop-blur-sm" onPointerDown={() => { if (hasChoice) onClose(); }} {...modalMotion.backdrop} />
+          <motion.div data-testid="cookie-modal-backdrop" aria-hidden="true" className="parigo-modal-backdrop absolute inset-0" onPointerDown={() => { if (hasChoice) onClose(); }} {...modalMotion.backdrop} />
           <motion.section ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="cookie-title" className="parigo-modal relative my-auto w-full max-w-3xl overflow-hidden border border-white/16 bg-[var(--background)] text-[var(--foreground)]" {...modalMotion.dialog}>
             <header className="flex items-center justify-between border-b border-[var(--line)] px-5 py-4 md:px-7"><div><p className="eyebrow text-[var(--color-primary-dark)]">Parigo / {locale === "fr" ? "Confidentialité" : "Privacy"}</p><h2 id="cookie-title" className="mt-1 font-[var(--font-editorial)] text-3xl font-normal">{copy.title}</h2></div>{hasChoice && <button ref={closeRef} type="button" onClick={onClose} className="grid h-11 w-11 place-items-center bg-[var(--surface-soft)]" aria-label={locale === "fr" ? "Fermer" : "Close"}><X size={18} /></button>}</header>
             <div className="max-h-[62dvh] overflow-y-auto px-5 py-6 md:px-7"><h3 className="font-semibold">{copy.introTitle}</h3><p className="mt-2 max-w-2xl text-sm leading-relaxed text-[var(--text-muted)]">{copy.intro}</p><div className="mt-6 space-y-2">{copy.categories.map(([key, label, description]) => {

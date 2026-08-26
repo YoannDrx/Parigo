@@ -120,7 +120,7 @@ export function CatalogFacetDropdown({
         <>
           <button
             type="button"
-            className="catalog-facet__scrim fixed inset-0 z-[74] hidden bg-black/35 backdrop-blur-[2px]"
+            className="catalog-facet__scrim parigo-modal-backdrop fixed inset-0 z-[74] hidden"
             onClick={() => setOpen(false)}
             aria-label={locale === "fr" ? `Fermer le filtre ${label}` : `Close ${label} filter`}
           />

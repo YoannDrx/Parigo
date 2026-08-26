@@ -46,7 +46,7 @@ export function AuthModal() {
     <AnimatePresence>
       {isOpen ? (
         <motion.div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4">
-          <motion.div aria-hidden="true" className="absolute inset-0 cursor-default bg-black/55 backdrop-blur-md" onPointerDown={close} {...modalMotion.backdrop} />
+          <motion.div data-testid="auth-modal-backdrop" aria-hidden="true" className="parigo-modal-backdrop absolute inset-0 cursor-default" onPointerDown={close} {...modalMotion.backdrop} />
           <motion.div
             ref={dialogRef}
             role="dialog"
