@@ -98,9 +98,9 @@ export function HomeHeroContent({
         transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.08 }}
       >
         <SignedTitle className="pointer-events-auto relative z-10 mx-auto max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
-          <span aria-label={title}>
+          <span>
             {words.map((word, index) => (
-              <span key={`${word}-${index}`} aria-hidden="true" className="inline-block overflow-hidden pb-[.07em] align-bottom">
+              <span key={`${word}-${index}`} className="inline-block overflow-hidden pb-[.07em] align-bottom">
                 <motion.span
                   data-testid="home-hero-title-word"
                   data-banner-word={index}
@@ -123,12 +123,11 @@ export function HomeHeroContent({
       </motion.div>
 
       <p
-        aria-label={descriptionLines.join(" ")}
         data-banner-reveal="description"
         className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg"
       >
         {descriptionLines.map((line, index) => (
-          <span key={line} aria-hidden="true" className="block overflow-hidden pb-[.08em]">
+          <span key={line} className="block overflow-hidden pb-[.08em]">
             <motion.span
               data-testid="home-hero-description-line"
               className="block"
