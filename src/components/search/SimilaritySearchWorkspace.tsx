@@ -9,6 +9,7 @@ import { SimilarityPlatformIcon, SIMILARITY_PLATFORMS } from "@/components/searc
 import { AnchoredPopover } from "@/components/ui/AnchoredPopover";
 import { Button } from "@/components/ui/Button";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { Select } from "@/components/ui/Select";
 import { useSimilarityCapabilities } from "@/hooks/use-api";
 import { useSimilarityFile } from "@/hooks/use-similarity-file";
 import {
@@ -328,8 +329,8 @@ export function SimilarityCommandContent({
 
   if (source === "track") {
     return <div className="relative flex min-w-0 flex-1 items-center">
-      <button ref={triggerRef} type="button" onClick={() => setShortlistOpen((open) => !open)} aria-expanded={shortlistOpen} aria-controls={panelId} className="flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 text-left">
-        <span className="grid h-9 w-9 shrink-0 place-items-center text-[var(--text-muted)]" aria-hidden="true">{shortlistOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</span>
+      <button ref={triggerRef} type="button" onClick={() => setShortlistOpen((open) => !open)} aria-expanded={shortlistOpen} aria-controls={panelId} className="similarity-shortlist-trigger flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 text-left">
+        <span className="similarity-shortlist-trigger__chevron grid h-9 w-9 shrink-0 place-items-center text-[var(--text-muted)]" aria-hidden="true">{shortlistOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</span>
         <span className="min-w-0"><strong className="block truncate text-sm">{controller.seedIds.length
           ? locale === "fr" ? `${controller.seedIds.length} piste${controller.seedIds.length > 1 ? "s" : ""} sélectionnée${controller.seedIds.length > 1 ? "s" : ""} dans votre shortlist` : `${controller.seedIds.length} shortlist track${controller.seedIds.length > 1 ? "s" : ""} selected`
           : locale === "fr" ? "Choisissez des pistes dans votre shortlist" : "Choose tracks from your shortlist"}</strong><small className="block truncate text-[.65rem] text-[var(--text-muted)]">{locale === "fr" ? "Une à dix pistes de référence" : "One to ten reference tracks"}</small></span>
@@ -379,7 +380,17 @@ function EmptyState({ controller }: { controller: SimilaritySearchController }) 
   return <div className="border border-[var(--line-strong)] bg-[var(--surface)] px-5 py-20 text-center"><Sparkles className="mx-auto text-[var(--text-muted)]" size={26} /><h2 className="mt-5 text-3xl">{copy[0]}</h2><p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-[var(--text-muted)]">{copy[1]}</p>{source === "url" ? <div className="mt-5 flex flex-wrap justify-center gap-2" aria-label={locale === "fr" ? "Plateformes compatibles" : "Supported platforms"}>{SIMILARITY_PLATFORMS.map((item) => <span key={item.id} className="grid h-9 w-9 place-items-center border border-[var(--line)] text-[var(--text-muted)]" title={item.label}><SimilarityPlatformIcon platform={item.id} /></span>)}</div> : null}</div>;
 }
 
-export function SimilaritySearchWorkspace({ controller, density }: { controller: SimilaritySearchController; density: "full" | "mid" | "light" }) {
+type SimilarityDensity = "full" | "mid" | "light";
+
+export function SimilaritySearchWorkspace({
+  controller,
+  density,
+  onDensityChange,
+}: {
+  controller: SimilaritySearchController;
+  density: SimilarityDensity;
+  onDensityChange: (density: SimilarityDensity) => void;
+}) {
   const { locale } = controller;
   const unavailable = controller.capabilitiesQuery.isError || (!controller.capabilitiesQuery.isLoading && controller.enabledSources.length === 0);
   return <>
@@ -399,7 +410,13 @@ export function SimilaritySearchWorkspace({ controller, density }: { controller:
 
     <section className="order-3 min-w-0 lg:order-none lg:col-start-2 lg:row-start-2" aria-live="polite">
       {controller.capabilitiesQuery.isLoading ? <div className="flex min-h-80 items-center justify-center border border-[var(--line)]"><ParigoLoader size="page" label={locale === "fr" ? "Préparation de la similarité" : "Preparing similarity"} /></div> : unavailable ? <div className="border border-[var(--line-strong)] bg-[var(--surface)] px-5 py-20 text-center"><Sparkles className="mx-auto text-[var(--text-muted)]" size={28} /><h2 className="mt-5 text-3xl">{locale === "fr" ? "La recherche de similarité n’est pas encore ouverte." : "Similarity search is not open yet."}</h2></div> : <>
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-[var(--line)] pb-3 text-xs text-[var(--text-muted)]"><span>{controller.busy ? (locale === "fr" ? "Recherche…" : "Searching…") : controller.state === "done" ? `${controller.tracks.length ? 1 : 0}–${controller.tracks.length} / ${controller.total.toLocaleString(locale)}` : "0–0 / 0"}</span>{controller.lastCompletedSource && controller.lastCompletedSource !== controller.effectiveSource ? <span>{locale === "fr" ? "Résultats de la recherche précédente" : "Previous search results"}</span> : null}</div>
+        <div className="search-results-status mb-4 flex min-w-0 items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <span>{controller.busy ? (locale === "fr" ? "Recherche…" : "Searching…") : controller.state === "done" ? `${controller.tracks.length ? 1 : 0}–${controller.tracks.length} / ${controller.total.toLocaleString(locale)}` : "0–0 / 0"}</span>
+            {controller.lastCompletedSource && controller.lastCompletedSource !== controller.effectiveSource ? <span>{locale === "fr" ? "Résultats de la recherche précédente" : "Previous search results"}</span> : null}
+          </div>
+          {controller.tracks.length > 0 ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={onDensityChange} ariaLabel={locale === "fr" ? "Niveau de détail des pistes similaires" : "Similar track detail level"} className="w-full max-w-[12rem] shrink-0" listboxClassName="search-mobile-select-listbox--right" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
+        </div>
         {controller.busy ? <div role="status" className="flex min-h-32 items-center justify-center border border-[var(--line)]"><ParigoLoader label={controller.state === "uploading" ? (locale === "fr" ? `Envoi du fichier — ${controller.uploadProgress} %` : `Uploading file — ${controller.uploadProgress}%`) : controller.state === "analyzing" ? (locale === "fr" ? "Analyse de la référence" : "Analysing reference") : controller.state === "preparing" ? (locale === "fr" ? "Préparation de la référence" : "Preparing reference") : (locale === "fr" ? "Classement des pistes" : "Ranking tracks")} /></div> : null}
         {controller.error ? <div role="alert" className="border border-[var(--danger)] bg-[color-mix(in_srgb,var(--danger)_7%,var(--surface))] p-4 text-sm"><p>{controller.error.message}</p>{controller.error.requestId ? <p className="mt-2 font-mono text-[.62rem] opacity-65">{locale === "fr" ? "Référence" : "Reference"} : {controller.error.requestId}</p> : null}<Button variant="outline" size="sm" onClick={() => void controller.submit()} className="mt-4 !border-[var(--ai-search)] !text-[var(--ai-search)]"><RotateCcw size={14} />{locale === "fr" ? "Réessayer" : "Retry"}</Button></div> : null}
         {controller.state === "idle" ? <EmptyState controller={controller} /> : null}
