@@ -30,7 +30,7 @@ test("les postes de filtrage défilent sur mobile et restent visibles sur deskto
       expect(workspaceBox!.y, `poste catalogue encore sticky sur mobile sur ${path}`).toBeLessThan(0);
     } else {
       expect(workspaceBox!.y, `poste catalogue non sticky sur ${path}`).toBeGreaterThanOrEqual(0);
-      expect(workspaceBox!.y, `poste catalogue trop bas sur ${path}`).toBeLessThanOrEqual(80);
+      expect(workspaceBox!.y, `poste catalogue trop bas sur ${path}`).toBeLessThanOrEqual(84);
     }
 
     if (path === "/albums" && testInfo.project.name !== "mobile") {

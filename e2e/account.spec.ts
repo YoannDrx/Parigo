@@ -50,9 +50,12 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Ouvrir le menu" }).click();
 
   const scope = testInfo.project.name === "mobile" ? page.locator("#global-menu") : page.getByRole("navigation", { name: "Navigation principale" });
-  const accountSurface = testInfo.project.name === "mobile" ? scope.getByTestId("account-menu") : scope;
+  const accountSurface = testInfo.project.name === "mobile" ? scope.getByRole("dialog", { name: "Navigation du compte" }) : scope;
   const trigger = scope.getByTestId("account-trigger");
-  if (testInfo.project.name === "desktop") {
+  if (testInfo.project.name === "mobile") {
+    await expect(trigger).toBeVisible();
+    await trigger.click();
+  } else {
     await expect(trigger).toBeVisible();
     await trigger.hover();
     await expect(page.getByRole("tooltip", { name: "Mon compte" })).toBeVisible();
@@ -68,10 +71,11 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   if (testInfo.project.name === "mobile") {
     await expect(menu.getByText("Yoann Andrieux", { exact: true })).toBeVisible();
     const accountBox = await menu.boundingBox();
-    const firstGeneralLinkBox = await scope.getByRole("link", { name: "Recherche", exact: true }).boundingBox();
+    const triggerBox = await trigger.boundingBox();
     expect(accountBox).not.toBeNull();
-    expect(firstGeneralLinkBox).not.toBeNull();
-    expect(firstGeneralLinkBox!.y + firstGeneralLinkBox!.height).toBeLessThanOrEqual(accountBox!.y);
+    expect(triggerBox).not.toBeNull();
+    expect(accountBox!.y).toBeGreaterThanOrEqual(triggerBox!.y + triggerBox!.height - 1);
+    expect(accountBox!.x + accountBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
   }
   await expect(menu.getByText("Espace personnel", { exact: true })).toBeVisible();
   await expect(menu.getByRole("link", { name: "Ouvrir mon profil" })).toHaveAttribute("href", "/account");
@@ -376,8 +380,7 @@ test("la shortlist rend ses pistes navigables et garde les longues listes de pla
       borderRight: style.borderRightWidth,
     };
   });
-  expect(saveCardCorner).toMatchObject({ left: "-1px", bottom: "-1px", borderLeft: "1px", borderRight: "0px" });
-  expect(Number.parseFloat(saveCardCorner.right)).toBeGreaterThan(100);
+  expect(saveCardCorner).toMatchObject({ left: "-1px", right: "-1px", bottom: "-1px", borderLeft: "1px", borderRight: "0px" });
   if (testInfo.project.name !== "mobile") {
     const closeButton = drawer.getByRole("button", { name: "Fermer", exact: true });
     const closeIconTransform = await closeButton.locator("svg").evaluate((node) => getComputedStyle(node).transform);
