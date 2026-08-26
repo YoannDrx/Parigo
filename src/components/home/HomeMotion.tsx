@@ -88,62 +88,67 @@ export function HomeHeroContent({
     <motion.div
       data-testid="home-hero-content"
       data-home-hero-motion={reduceMotion ? "static" : "animated"}
-      style={reduceMotion ? { y: 0, scale: 1, opacity: 1 } : { y, scale, opacity }}
+      style={reduceMotion ? { y: 0, scale: 1 } : { y, scale }}
       className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center max-sm:-top-12"
     >
       <motion.div
-        data-banner-reveal="title"
-        initial={reduceMotion ? false : { opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.08 }}
+        data-testid="home-hero-copy"
+        style={reduceMotion ? { opacity: 1 } : { opacity }}
       >
-        <SignedTitle className="pointer-events-auto relative z-10 mx-auto max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
-          <span>
-            {words.map((word, index) => (
-              <span key={`${word}-${index}`} className="inline-block overflow-hidden pb-[.07em] align-bottom">
-                <motion.span
-                  data-testid="home-hero-title-word"
-                  data-banner-word={index}
-                  className="inline-block"
-                  initial={reduceMotion ? false : { opacity: 0, y: "108%" }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{
-                    duration: reduceMotion ? 0 : 0.76,
-                    delay: reduceMotion ? 0 : 0.12 + index * 0.14,
-                    ease: BANNER_REVEAL_EASE,
-                  }}
-                >
-                  {word}
-                </motion.span>
-                {index < words.length - 1 ? "\u00a0" : null}
-              </span>
-            ))}
-          </span>
-        </SignedTitle>
-      </motion.div>
+        <motion.div
+          data-banner-reveal="title"
+          initial={reduceMotion ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.08 }}
+        >
+          <SignedTitle className="pointer-events-auto relative z-10 mx-auto max-w-[13ch] text-[clamp(3.4rem,7.2vw,7.5rem)] font-semibold leading-[.9] tracking-[-.065em]">
+            <span>
+              {words.map((word, index) => (
+                <span key={`${word}-${index}`} className="inline-block overflow-hidden pb-[.07em] align-bottom">
+                  <motion.span
+                    data-testid="home-hero-title-word"
+                    data-banner-word={index}
+                    className="inline-block"
+                    initial={reduceMotion ? false : { opacity: 0, y: "108%" }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: reduceMotion ? 0 : 0.76,
+                      delay: reduceMotion ? 0 : 0.12 + index * 0.14,
+                      ease: BANNER_REVEAL_EASE,
+                    }}
+                  >
+                    {word}
+                  </motion.span>
+                  {index < words.length - 1 ? "\u00a0" : null}
+                </span>
+              ))}
+            </span>
+          </SignedTitle>
+        </motion.div>
 
-      <p
-        data-banner-reveal="description"
-        className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg"
-      >
-        {descriptionLines.map((line, index) => (
-          <span key={line} className="block overflow-hidden pb-[.08em]">
-            <motion.span
-              data-testid="home-hero-description-line"
-              className="block"
-              initial={reduceMotion ? false : { opacity: 0, y: "112%" }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: reduceMotion ? 0 : 0.68,
-                delay: reduceMotion ? 0 : 0.66 + index * 0.12,
-                ease: BANNER_REVEAL_EASE,
-              }}
-            >
-              {line}
-            </motion.span>
-          </span>
-        ))}
-      </p>
+        <p
+          data-banner-reveal="description"
+          className="mx-auto mt-6 max-w-3xl font-[var(--font-rounded)] text-base leading-relaxed text-[var(--text-muted)] md:text-lg"
+        >
+          {descriptionLines.map((line, index) => (
+            <span key={line} className="block overflow-hidden pb-[.08em]">
+              <motion.span
+                data-testid="home-hero-description-line"
+                className="block"
+                initial={reduceMotion ? false : { opacity: 0, y: "112%" }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: reduceMotion ? 0 : 0.68,
+                  delay: reduceMotion ? 0 : 0.66 + index * 0.12,
+                  ease: BANNER_REVEAL_EASE,
+                }}
+              >
+                {line}
+              </motion.span>
+            </span>
+          ))}
+        </p>
+      </motion.div>
 
       <div
         data-testid="home-hero-search-mask"
