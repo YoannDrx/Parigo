@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useRef } from "react";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SignedTitle } from "@/components/ui/SignedTitle";
 import { HomeReveal } from "./HomeMotion";
@@ -46,6 +47,10 @@ function ClientLogoList({ duplicate = false }: { duplicate?: boolean }) {
 
 export function PartnerMarquee() {
   const { locale } = useI18n();
+  const trackRef = useRef<HTMLDivElement>(null);
+  const setPlaybackRate = (rate: number) => {
+    trackRef.current?.getAnimations().forEach((animation) => animation.updatePlaybackRate(rate));
+  };
 
   return (
     <section data-testid="home-partners-section" className="partner-section relative overflow-hidden border-y border-white/12 bg-[#0b110d] py-[var(--space-section-y-large)] text-white">
@@ -58,8 +63,13 @@ export function PartnerMarquee() {
         </HomeReveal>
       </div>
       <HomeReveal origin="bottom" delay={0.1}>
-        <div className="partner-marquee relative mt-[var(--space-heading-content)] border-y border-white/12 py-3 md:py-4" aria-label={locale === "fr" ? "Clients Parigo" : "Parigo clients"}>
-          <div className="partner-marquee__track">
+        <div
+          className="partner-marquee relative mt-[var(--space-heading-content)] border-y border-white/12 py-3 md:py-4"
+          aria-label={locale === "fr" ? "Clients Parigo" : "Parigo clients"}
+          onPointerEnter={() => setPlaybackRate(0.32)}
+          onPointerLeave={() => setPlaybackRate(1)}
+        >
+          <div ref={trackRef} className="partner-marquee__track">
             <ClientLogoList />
             <ClientLogoList duplicate />
           </div>

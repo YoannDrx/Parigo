@@ -305,32 +305,32 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
-        <DeferredHomeStorySections locale={locale} profiles={initialComposers} />
-
-        <section data-testid="home-sync-section" className="overflow-x-clip bg-[var(--surface-inverse)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)] text-[var(--background)]">
-          <div className="mx-auto max-w-[1580px]">
-            <SectionReveal origin="left" className="mb-[var(--space-heading-content)] w-full min-w-0"><SignedTitle as="h2" variant="section" className="max-w-[12ch] break-words">{t("home.syncTitle")}</SignedTitle></SectionReveal>
-            <HomeReveal origin="bottom" delay={0.08}>
-            <HorizontalRail wide inverse tone="inverse" label={locale === "fr" ? "Nos synchros" : "Our syncs"}>
-              {syncs.map((sync) => (
-                <SynchronisationCard
-                  key={sync.slug}
-                  slug={sync.slug}
-                  youtubeId={sync.youtubeId}
-                  href={localizedPath(`/synchronisations/${sync.slug}`)}
-                  image={sync.image}
-                  title={sync.title}
-                  client={sync.client}
-                  detail={sync.year ? String(sync.year) : undefined}
-                  className="snap-start"
-                  headingLevel="h3"
-                />
-              ))}
-            </HorizontalRail>
-            </HomeReveal>
-            <div className="mt-3 text-right"><HomeSeeAllLink href="/synchronisations">{t("common.seeAll")}</HomeSeeAllLink></div>
-          </div>
-        </section>
+        <DeferredHomeStorySections locale={locale} profiles={initialComposers}>
+          <section data-testid="home-sync-section" className="overflow-x-clip bg-[var(--surface-inverse)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)] text-[var(--background)]">
+            <div className="mx-auto max-w-[1580px]">
+              <SectionReveal origin="left" className="mb-[var(--space-heading-content)] w-full min-w-0"><SignedTitle as="h2" variant="section" className="max-w-[12ch] break-words">{t("home.syncTitle")}</SignedTitle></SectionReveal>
+              <HomeReveal origin="bottom" delay={0.08}>
+              <HorizontalRail wide inverse tone="inverse" label={locale === "fr" ? "Nos synchros" : "Our syncs"}>
+                {syncs.map((sync) => (
+                  <SynchronisationCard
+                    key={sync.slug}
+                    slug={sync.slug}
+                    youtubeId={sync.youtubeId}
+                    href={localizedPath(`/synchronisations/${sync.slug}`)}
+                    image={sync.image}
+                    title={sync.title}
+                    client={sync.client}
+                    detail={sync.year ? String(sync.year) : undefined}
+                    className="snap-start"
+                    headingLevel="h3"
+                  />
+                ))}
+              </HorizontalRail>
+              </HomeReveal>
+              <div className="mt-3 text-right"><HomeSeeAllLink href="/synchronisations">{t("common.seeAll")}</HomeSeeAllLink></div>
+            </div>
+          </section>
+        </DeferredHomeStorySections>
 
         <Suspense fallback={<div className="min-h-72 bg-[#0b110d]" aria-hidden="true" />}>
           <PartnerMarquee />

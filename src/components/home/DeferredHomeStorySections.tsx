@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType, type ReactNode } from "react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { ComposerStreamProfile } from "./ComposerRelationshipSection";
 
 type StoryProps = {
+  children: ReactNode;
   locale: "fr" | "en";
   profiles: ComposerStreamProfile[];
 };

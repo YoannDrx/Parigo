@@ -810,10 +810,18 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     await expect(firstSyncCard.locator(".home-sync-card__frame").getByRole("link", { name: /^Voir le détail/ })).toBeVisible();
     await expect(firstSyncCard.locator(".editorial-video-card__mobile-link")).toBeVisible();
   } else {
+    const cornersBeforeHover = await firstSyncCard.evaluate((node) => ({
+      top: getComputedStyle(node, "::before").width,
+      bottom: getComputedStyle(node, "::after").width,
+    }));
     await expect(syncCaption).toHaveCSS("opacity", "0");
     await firstSyncCard.hover();
     await expect(syncCaption).toHaveCSS("opacity", "1");
     await expect(firstSyncCard.locator(".home-sync-card__image")).toHaveCSS("filter", "blur(5px)");
+    expect(await firstSyncCard.evaluate((node) => ({
+      top: getComputedStyle(node, "::before").width,
+      bottom: getComputedStyle(node, "::after").width,
+    }))).toEqual(cornersBeforeHover);
   }
   if (testInfo.project.name === "mobile") {
     const clipCard = page.getByTestId("home-clips-section").locator(".parigo-video-card").first();
@@ -821,6 +829,17 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     await expect(clipFooter).toBeVisible();
     await expect(clipFooter).not.toContainText(/Clip Parigo|Parigo Production Music|\b\d{4}\b/i);
     expect((await clipFooter.boundingBox())!.height).toBeLessThanOrEqual(64);
+  } else {
+    const clipCard = page.getByTestId("home-clips-section").locator(".parigo-video-card").first();
+    const cornersBeforeHover = await clipCard.evaluate((node) => ({
+      top: getComputedStyle(node, "::before").width,
+      bottom: getComputedStyle(node, "::after").width,
+    }));
+    await clipCard.hover();
+    expect(await clipCard.evaluate((node) => ({
+      top: getComputedStyle(node, "::before").width,
+      bottom: getComputedStyle(node, "::after").width,
+    }))).toEqual(cornersBeforeHover);
   }
   const syncHref = await firstSync.getAttribute("href");
   expect(syncHref).toMatch(/^\/synchronisations\/[^/]+$/);
@@ -843,7 +862,7 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
   await expect(page.getByTestId("persistent-clip-iframe")).toBeVisible();
 });
 
-test("les rails restent transparents et les cartes vidéo mobiles conservent leur surface", async ({ page }, testInfo) => {
+test("les rails reprennent le fond de leur section et adaptent leur espacement vertical", async ({ page }, testInfo) => {
   await page.goto("/");
   const sections = [
     page.locator("#featured"),
@@ -858,17 +877,27 @@ test("les rails restent transparents et les cartes vidéo mobiles conservent leu
     await expect(card).toBeVisible();
     const colors = await section.evaluate((node) => {
       const railNode = node.querySelector<HTMLElement>(".home-rail");
+      const viewportNode = node.querySelector<HTMLElement>('.home-rail > [role="region"]');
       const cardNode = node.querySelector<HTMLElement>(".home-rail-card, .home-sync-card");
       return {
         section: getComputedStyle(node).backgroundColor,
         surface: getComputedStyle(document.querySelector<HTMLElement>("#featured")!).backgroundColor,
         rail: railNode ? getComputedStyle(railNode).backgroundColor : "",
+        viewport: viewportNode ? getComputedStyle(viewportNode).backgroundColor : "",
+        paddingTop: viewportNode ? getComputedStyle(viewportNode).paddingTop : "",
+        paddingBottom: viewportNode ? getComputedStyle(viewportNode).paddingBottom : "",
         card: cardNode ? getComputedStyle(cardNode).backgroundColor : "",
+        cardShadow: cardNode ? getComputedStyle(cardNode).boxShadow : "",
       };
     });
-    expect(colors.rail).toBe("rgba(0, 0, 0, 0)");
+    expect(colors.rail).toBe(colors.section);
+    expect(colors.viewport).toBe(colors.section);
+    expect(colors.paddingTop).toBe("8px");
+    expect(colors.paddingBottom).toBe(index === 0 ? "20px" : "0px");
     const usesMobileVideoSurface = testInfo.project.name === "mobile" && index > 0;
     expect(colors.card).toBe(usesMobileVideoSurface ? colors.surface : colors.section);
+    if (index === 0) expect(colors.cardShadow).not.toBe("none");
+    else expect(colors.cardShadow).toBe("none");
   }
 });
 
@@ -1402,8 +1431,13 @@ test("les logos clients défilent en bandeau entre les synchronisations et le fi
   await expect(partners.locator('a[href^="/labels/"]')).toHaveCount(0);
   const track = partners.locator(".partner-marquee__track");
   await expect(track).toHaveCSS("animation-name", "partner-marquee");
+  await expect(track).toHaveCSS("animation-duration", "42s");
   await partners.locator(".partner-marquee").hover();
-  await expect(track).toHaveCSS("animation-play-state", "paused");
+  await expect(track).toHaveCSS("animation-play-state", "running");
+  await expect.poll(() => track.evaluate((node) => node.getAnimations()[0]?.playbackRate)).toBeCloseTo(0.32, 2);
+  await partners.getByRole("heading", { name: "Ils nous font confiance" }).hover();
+  await expect.poll(() => track.evaluate((node) => node.getAnimations()[0]?.playbackRate)).toBe(1);
+  expect(await page.getByTestId("home-showreel").evaluate((node) => node.parentElement?.nextElementSibling?.getAttribute("data-testid"))).toBe("home-sync-section");
   expect(await page.evaluate(([syncId, partnersId, socialId]) => {
     const syncNode = document.querySelector(syncId)!;
     const partnersNode = document.querySelector(partnersId)!;
@@ -1424,6 +1458,9 @@ test("les logos clients défilent en bandeau entre les synchronisations et le fi
     const linktree = social.locator(".social-follow-cta");
     await expect(socialIcon).toHaveCSS("animation-name", "social-platform-float");
     await expect(linktree).toHaveCSS("animation-name", "none");
+  } else {
+    const fadeWidth = await partners.locator(".partner-marquee").evaluate((node) => Number.parseFloat(getComputedStyle(node, "::before").width));
+    expect(fadeWidth).toBeLessThanOrEqual(128);
   }
 });
 

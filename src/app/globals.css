@@ -918,11 +918,8 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 .partner-marquee__track {
   display: flex;
   width: max-content;
-  animation: partner-marquee 46s linear infinite;
+  animation: partner-marquee 42s linear infinite;
   will-change: transform;
-}
-.partner-marquee:is(:hover, :focus-within) .partner-marquee__track {
-  animation-play-state: paused;
 }
 .partner-marquee__group {
   display: flex;
@@ -994,7 +991,7 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 }
 @media (min-width: 768px) {
   .partner-marquee::before,
-  .partner-marquee::after { width: clamp(7rem, 10vw, 10rem); }
+  .partner-marquee::after { width: clamp(5.5rem, 8vw, 8rem); }
   .partner-marquee__item {
     padding: .5rem;
   }
@@ -3677,18 +3674,18 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 }
 .home-rail--page {
   --home-rail-background: var(--background);
-  background: transparent;
+  background: var(--home-rail-background);
 }
 .home-rail--surface {
   --home-rail-background: var(--surface);
-  background: transparent;
+  background: var(--home-rail-background);
 }
 .home-rail--inverse {
   --home-rail-background: var(--surface-inverse);
-  background: transparent;
+  background: var(--home-rail-background);
 }
 .home-rail > [role="region"] {
-  background-color: transparent;
+  background-color: var(--home-rail-background);
 }
 .home-rail .home-rail-card,
 .home-rail .home-sync-card {
@@ -3920,12 +3917,10 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
   width: 3rem;
   height: 3rem;
   pointer-events: none;
-  transition: width 520ms var(--ease-out), height 520ms var(--ease-out);
 }
 .home-sync-card::before { top: .7rem; right: .7rem; border-top: 1px solid var(--signal); border-right: 1px solid var(--signal); border-top-right-radius: .5rem; }
 .home-sync-card::after { bottom: .7rem; left: .7rem; border-bottom: 1px solid var(--signal); border-left: 1px solid var(--signal); border-bottom-left-radius: .5rem; }
 .home-sync-card:is(:hover, :focus-visible, :focus-within) { border-color: color-mix(in srgb, var(--signal) 65%, transparent); box-shadow: 0 34px 90px rgba(0,0,0,.3); transform: translateY(-6px); outline: none; }
-.home-sync-card:is(:hover, :focus-visible, :focus-within)::before, .home-sync-card:is(:hover, :focus-visible, :focus-within)::after { width: calc(100% - 1.4rem); height: calc(100% - 1.4rem); }
 .home-sync-card__frame { overflow: hidden; border-radius: inherit; }
 .home-sync-card:not(.parigo-video-card) .home-sync-card__frame::after {
   content: "";
@@ -3985,6 +3980,12 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 @media (max-width:767px) {
   .editorial-video-card{--evs:9px 10px 0 color-mix(in srgb,var(--signal-soft) 52%,transparent),0 14px 40px rgba(15,22,16,.04);border-color:var(--line);border-radius:1.1rem;padding:.55rem;background:var(--surface)!important;box-shadow:var(--evs)}
   .editorial-video-card:is(:hover,:focus-visible,:focus-within,:active){border-color:color-mix(in srgb,var(--signal) 62%,var(--line));box-shadow:13px 15px 0 color-mix(in srgb,var(--signal) 22%,transparent),0 28px 70px rgba(15,22,16,.12);transform:translate3d(-3px,-6px,0) rotate(-.35deg)}
+}
+.home-rail--page .home-sync-card,
+.home-rail--inverse .home-sync-card,
+.home-rail--page .home-sync-card:is(:hover, :focus-visible, :focus-within, :active),
+.home-rail--inverse .home-sync-card:is(:hover, :focus-visible, :focus-within, :active) {
+  box-shadow: none;
 }
 .parigo-video-card__actions {
   opacity: 1;

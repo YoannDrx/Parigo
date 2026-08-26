@@ -205,7 +205,7 @@ test("la bordure et les corners des synchronisations restent visibles au survol"
   await expect(caption).toHaveCSS("opacity", "1");
   await expect(image).toHaveCSS("filter", "blur(5px)");
   const topCorner = await card.evaluate((node) => getComputedStyle(node, "::before").width);
-  expect(Number.parseFloat(topCorner)).toBeGreaterThan(100);
+  expect(Number.parseFloat(topCorner)).toBeCloseTo(48, 0);
 });
 
 test("la home expose une section Clips reliée à la vidéothèque", async ({ page }) => {
