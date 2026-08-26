@@ -1,13 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-const enabledSimilarityCapabilities = { data: {
-  track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
-  prompt: { advertised: true, enabled: true },
-  upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
-  externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
-  playlistSuggestions: true,
-} };
-
 const similarityTrack = {
   id: "similarity-track-1",
   title: "Éclat nocturne",

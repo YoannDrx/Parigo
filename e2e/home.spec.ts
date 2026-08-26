@@ -473,14 +473,21 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
 });
 
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
+  const ensureMobileMenuOpen = async () => {
+    if (testInfo.project.name !== "mobile") return;
+    const menu = page.locator("#global-menu");
+    if (!(await menu.isVisible())) {
+      await page.getByRole("button", { name: /^(Ouvrir le menu|Open menu)$/ }).click();
+    }
+    await expect(menu).toBeVisible();
+  };
+
   for (const colorScheme of ["light", "dark"] as const) {
     await page.emulateMedia({ colorScheme });
     await page.goto("/");
     await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   }
-  if (testInfo.project.name === "mobile") {
-    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
-  }
+  await ensureMobileMenuOpen();
   const controls = testInfo.project.name === "mobile"
     ? page.locator("#global-menu")
     : page.locator("body");
@@ -488,10 +495,7 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   await expect(page).toHaveURL(/\/en(?:\/|$)/);
   await expect(page.getByRole("heading", { level: 1, name: /Find the right music/i })).toBeVisible();
   await waitForHeaderHydration(page);
-  if (testInfo.project.name === "mobile") {
-    await page.getByRole("button", { name: "Open menu" }).click();
-    await expect(page.locator("#global-menu")).toBeVisible();
-  }
+  await ensureMobileMenuOpen();
   const themeControls = testInfo.project.name === "mobile"
     ? page.locator("#global-menu")
     : page.locator("body");
@@ -500,10 +504,7 @@ test("le thème et la langue sont basculables et persistants", async ({ page }, 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("data-theme", "light");
   await waitForHeaderHydration(page);
-  if (testInfo.project.name === "mobile") {
-    await page.getByRole("button", { name: "Open menu" }).click();
-    await expect(page.locator("#global-menu")).toBeVisible();
-  }
+  await ensureMobileMenuOpen();
   const restoredThemeControls = testInfo.project.name === "mobile"
     ? page.locator("#global-menu")
     : page.locator("body");
@@ -1549,7 +1550,7 @@ test("la page albums propose une vue liste réellement compacte", async ({ page 
 
 test("une playlist Harvest avec une plage de BPM ouvre son détail", async ({ page }) => {
   await page.goto("/playlists/a408d52f57e8de96");
-  await expect(page.getByRole("heading", { level: 1, name: "Discovery - Travel" })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { level: 1, name: "Découverte - Voyage" })).toBeVisible({ timeout: 30_000 });
   await expect(page.getByText("Lapochka", { exact: true })).toBeVisible();
   expect(await page.getByRole("button", { name: /^Écouter / }).count()).toBeGreaterThan(5);
 });
