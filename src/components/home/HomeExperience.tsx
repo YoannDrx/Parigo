@@ -8,7 +8,7 @@ import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { fetchAlbum, fetchAlbums, fetchPlaylist } from "@/lib/api-client";
-import { DeferredOrganicHeroBackdrop } from "./DeferredOrganicHeroBackdrop";
+import { HeroGradientBackdrop } from "./HeroGradientBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
 import { DeferredHomeStorySections } from "./DeferredHomeStorySections";
 import type { Album, Playlist, SearchMode, Track } from "@/types";
@@ -62,7 +62,7 @@ export function HomeHero() {
 
   return (
     <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-x-clip bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
-      <DeferredOrganicHeroBackdrop mode={searchMode} />
+      <HeroGradientBackdrop mode={searchMode} />
       <HomeHeroContent
         target={heroRef}
         title={title}

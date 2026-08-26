@@ -388,24 +388,27 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("les ondes du héros restent légères et animées sur mobile sans forme circulaire", async ({ page }) => {
+test("le gradient Wave du héros reste animé sur mobile et statique en mouvement réduit", async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
-  await expect(hero.locator("canvas")).toHaveCount(0);
-  const fallback = hero.locator(".signal-field-fallback");
-  await expect(fallback).toHaveAttribute("data-static", "false");
-  await expect(fallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "signal-field-shift");
+  const backdrop = hero.getByTestId("hero-gradient-backdrop");
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-light");
+  await expect(backdrop).toHaveAttribute("data-motion", "animated");
+  await expect(backdrop).toHaveAttribute("data-renderer", "webgl");
+  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
-  const reducedFallback = page.getByTestId("home-hero").locator(".signal-field-fallback");
-  await expect(reducedFallback).toHaveAttribute("data-static", "true");
-  await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
+  const reducedBackdrop = page.getByTestId("home-hero").getByTestId("hero-gradient-backdrop");
+  await expect(reducedBackdrop).toHaveAttribute("data-motion", "static");
+  await expect(reducedBackdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
 });
 
 test("le héros suit la palette Catalogue puis Similarité IA", async ({ page }) => {
   await enableSimilarityForVisualTest(page);
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
@@ -413,11 +416,13 @@ test("le héros suit la palette Catalogue puis Similarité IA", async ({ page })
   const aiGlow = hero.getByTestId("ai-search-glow");
   const aiGlowBeam = hero.getByTestId("ai-search-glow-beam");
   const searchForm = hero.locator(".search-command__form");
+  const backdrop = hero.getByTestId("hero-gradient-backdrop");
   await expect(hero).toHaveAttribute("data-search-mode", "catalog");
+  await expect(backdrop).toHaveAttribute("data-gradient-mode", "catalog");
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-light");
   await expect(aiGlow).toHaveAttribute("data-active", "false");
   await expect(aiGlow).toHaveCSS("opacity", "0");
   await expect(aiGlowBeam).toHaveCSS("animation-name", "none");
-  await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "catalog");
   const resolveColorToken = (token: string) => page.evaluate((name) => {
     const probe = document.createElement("span");
     probe.style.backgroundColor = `var(${name})`;
@@ -431,17 +436,19 @@ test("le héros suit la palette Catalogue puis Similarité IA", async ({ page })
   await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
   await page.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(hero).toHaveAttribute("data-search-mode", "ai");
+  await expect(backdrop).toHaveAttribute("data-gradient-mode", "ai");
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "ai-light");
   await expect(aiGlow).toHaveAttribute("data-active", "true");
   await expect(aiGlow).toHaveCSS("opacity", "1");
   await expect(aiGlowBeam).toHaveCSS("animation-name", "spin");
   await expect(searchForm).toHaveCSS("border-color", "rgba(0, 0, 0, 0)");
   expect(await searchForm.evaluate((node) => getComputedStyle(node, "::before").display)).toBe("none");
   expect(await searchForm.evaluate((node) => getComputedStyle(node, "::after").display)).toBe("none");
-  await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "ai");
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(catalogColor);
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(await resolveColorToken("--ai-search"));
   await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
   await hero.getByRole("option", { name: /Catalogue/ }).click();
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-light");
   await expect(aiGlow).toHaveAttribute("data-active", "false");
   await expect(aiGlow).toHaveCSS("opacity", "0");
   await expect(aiGlowBeam).toHaveCSS("animation-name", "none");
@@ -457,6 +464,7 @@ test("la lumière de la Similarité IA reste statique en mouvement réduit", asy
   await hero.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(hero.getByTestId("ai-search-glow")).toHaveCSS("opacity", "1");
   await expect(hero.getByTestId("ai-search-glow-beam")).toHaveCSS("animation-name", "none");
+  await expect(hero.getByTestId("hero-gradient-backdrop")).toHaveAttribute("data-motion", "static");
 });
 
 test("le hover de la Similarité IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {
@@ -511,36 +519,39 @@ test("les métriques publiques compactent le contenu après séparateur sur mobi
   }
 });
 
-test("le héros desktop conserve ses ondes autonomes sans forme organique", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "Les ondes desktop sont contrôlées dans le viewport desktop.");
+test("le héros desktop charge Gradflow avec un fallback Wave sans forme organique", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Le rendu Gradflow desktop est contrôlé dans le viewport desktop.");
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
-  const backdrop = hero.getByTestId("organic-hero-backdrop");
+  const backdrop = hero.getByTestId("hero-gradient-backdrop");
 
   await expect(backdrop).toBeVisible({ timeout: 10_000 });
   await expect(backdrop).toHaveCSS("pointer-events", "none");
-  await expect(backdrop.getByTestId("organic-hero-blob")).toHaveCount(0);
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-light");
+  await expect(backdrop).toHaveAttribute("data-renderer", "webgl");
   await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
-  const gradientLayer = backdrop.locator(":scope > div").first();
+  const gradientLayer = backdrop.locator(".hero-gradflow__fallback");
   expect(await gradientLayer.evaluate((node) => getComputedStyle(node).backgroundImage)).toContain("linear-gradient");
   expect(await gradientLayer.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toContain("radial-gradient");
 });
 
-test("les ondes du héros gagnent du contraste uniquement en thème clair", async ({ page }) => {
+test("Gradflow sélectionne les quatre presets Catalogue et IA selon le thème", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Les quatre presets partagent le même contexte de thème sur mobile.");
+  await enableSimilarityForVisualTest(page);
   await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");
-  const signal = page.getByTestId("home-hero").locator(".hero-signal-field");
-  await expect(signal).toBeVisible();
-  await expect(signal).toHaveCSS("mix-blend-mode", "multiply");
-  await expect.poll(() => signal.evaluate((node) => Number(getComputedStyle(node).opacity))).toBeGreaterThanOrEqual(.9);
-  expect(await signal.evaluate((node) => getComputedStyle(node).filter)).not.toBe("none");
-
-  await page.evaluate(() => {
-    document.documentElement.dataset.theme = "dark";
-    document.documentElement.style.colorScheme = "dark";
-  });
-  await expect(signal).toHaveCSS("mix-blend-mode", "screen");
-  await expect(signal).toHaveCSS("filter", "none");
+  const hero = page.getByTestId("home-hero");
+  const backdrop = hero.getByTestId("hero-gradient-backdrop");
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-light");
+  await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  await hero.getByRole("option", { name: /Similarité IA/ }).click();
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "ai-light");
+  await page.getByRole("button", { name: "Passer au thème sombre" }).click();
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "ai-dark");
+  await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
+  await hero.getByRole("option", { name: /Catalogue/ }).click();
+  await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-dark");
 });
 
 test("les héros des pages internes restent sobres sans formes géométriques en arrière-plan", async ({ page }) => {

@@ -33,6 +33,9 @@ importers:
       framer-motion:
         specifier: ^12.43.0
         version: 12.43.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      gradflow:
+        specifier: 0.2.0
+        version: 0.2.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       jose:
         specifier: ^6.2.9
         version: 6.2.9
@@ -2361,6 +2364,12 @@ packages:
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
+  gradflow@0.2.0:
+    resolution: {integrity: sha512-OyotFAKm8Bd3XiaurtOWXljymoO22WPsi/54NC2k7ngt7BEeMKFMlQO6qUlwTrFBwM4iK9R6myc2JxTt0zRt+Q==}
+    peerDependencies:
+      react: '>=18.0.0'
+      react-dom: '>=18.0.0'
+
   gzip-size@6.0.0:
     resolution: {integrity: sha512-ax7ZYomf6jqPTQ4+XCpUGyXKHk5WweS+e05MBO4/y3WJ5RkmPXNKvX+bx1behVILVwr6JSQvZAku021CHPXG3Q==}
     engines: {node: '>=10'}
@@ -3001,6 +3010,9 @@ packages:
   obug@2.1.4:
     resolution: {integrity: sha512-4a+OsYv9UktOJKE+l1A4OufDgdRF9PifWj+tJnHURo/P+WOxpG4GzUFL9qCalmWauao6ogiG+QvnCovwPoyAWA==}
     engines: {node: '>=12.20.0'}
+
+  ogl@1.0.11:
+    resolution: {integrity: sha512-kUpC154AFfxi16pmZUK4jk3J+8zxwTWGPo03EoYA8QPbzikHoaC82n6pNTbd+oEaJonaE8aPWBlX7ad9zrqLsA==}
 
   opener@1.5.2:
     resolution: {integrity: sha512-ur5UIdyw5Y7yEj9wLzhqXiy6GZ3Mwx0yGI+5sMn2r0N0v3cKJvUmFH5yPP+WXh9e0xfyzyJX95D8l088DNFj7A==}
@@ -5950,6 +5962,12 @@ snapshots:
 
   graceful-fs@4.2.11: {}
 
+  gradflow@0.2.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+    dependencies:
+      ogl: 1.0.11
+      react: 19.2.8
+      react-dom: 19.2.8(react@19.2.8)
+
   gzip-size@6.0.0:
     dependencies:
       duplexer: 0.1.2
@@ -6509,6 +6527,8 @@ snapshots:
       es-object-atoms: 1.1.2
 
   obug@2.1.4: {}
+
+  ogl@1.0.11: {}
 
   opener@1.5.2: {}
 
