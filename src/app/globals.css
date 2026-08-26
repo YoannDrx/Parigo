@@ -810,6 +810,9 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   --hero-accent: var(--ai-search);
   --hero-soft: var(--ai-search-soft);
 }
+.home-hero [data-testid="home-hero-search-mask"]:has(.search-autocomplete-panel) {
+  opacity: 1 !important;
+}
 .home-hero .parigo-title-signature {
   background: var(--hero-accent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--hero-accent) 42%, transparent);

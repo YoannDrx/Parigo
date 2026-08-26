@@ -312,7 +312,7 @@ test("les suggestions du héros restent au-dessus de la section suivante", async
 
   await expect.poll(() => page.evaluate(() => {
     const copy = document.querySelector<HTMLElement>('[data-testid="home-hero-copy"]');
-    const search = document.querySelector<HTMLElement>('[data-testid="home-hero-search-reveal"]');
+    const search = document.querySelector<HTMLElement>('[data-testid="home-hero-search-mask"]');
     if (!copy || !search) return null;
     return {
       copyOpacity: Number.parseFloat(getComputedStyle(copy).opacity),
@@ -323,6 +323,10 @@ test("les suggestions du héros restent au-dessus de la section suivante", async
     searchOpacity: 1,
   }));
   expect(await page.getByTestId("home-hero-copy").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(0.95);
+
+  await hero.getByLabel("Rechercher dans le catalogue Parigo").press("Escape");
+  await expect(panel).toBeHidden();
+  await expect.poll(() => page.getByTestId("home-hero-search-mask").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(0.95);
 });
 
 test("le sélecteur du héros reste contenu sur un petit viewport", async ({ page }, testInfo) => {
