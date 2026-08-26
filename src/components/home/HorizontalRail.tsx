@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from "react"
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { CarouselNavButton } from "@/components/ui/CarouselNavButton";
 
 export function HorizontalRail({ children, label, wide = false, cinema = false, inverse = false, tone = "page" }: { children: ReactNode; label: string; wide?: boolean; cinema?: boolean; inverse?: boolean; tone?: "page" | "surface" | "inverse" }) {
   const { locale } = useI18n();
@@ -54,10 +55,10 @@ export function HorizontalRail({ children, label, wide = false, cinema = false, 
         <div aria-hidden="true" className="relative h-[2px] overflow-hidden"><div style={{ transform: `scaleX(${bounds.overflow ? Math.max(.06, progress) : 1})` }} className="absolute inset-0 origin-left bg-[var(--signal)] transition-transform duration-300" /></div>
         <div className="home-rail-nav-group hidden items-center lg:flex">
           <Tooltip label={locale === "fr" ? "Précédent" : "Previous"}>
-            <button type="button" onClick={() => move(-1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--previous", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Précédent" : "Previous"}><span className="home-rail-nav__triangle" aria-hidden="true" /></button>
+            <CarouselNavButton direction="previous" inverse={inverse} onClick={() => move(-1)} disabled={!bounds.overflow} className="home-rail-nav" aria-label={locale === "fr" ? "Précédent" : "Previous"} />
           </Tooltip>
           <Tooltip label={locale === "fr" ? "Suivant" : "Next"}>
-            <button type="button" onClick={() => move(1)} disabled={!bounds.overflow} className={cn("home-rail-nav home-rail-nav--next", inverse && "home-rail-nav--inverse")} aria-label={locale === "fr" ? "Suivant" : "Next"}><span className="home-rail-nav__triangle" aria-hidden="true" /></button>
+            <CarouselNavButton direction="next" inverse={inverse} onClick={() => move(1)} disabled={!bounds.overflow} className="home-rail-nav" aria-label={locale === "fr" ? "Suivant" : "Next"} />
           </Tooltip>
         </div>
       </div>

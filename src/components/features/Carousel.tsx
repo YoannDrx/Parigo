@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect, useCallback, ReactNode } from "react";
 import { motion, useMotionValue, useSpring, PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { CarouselNavButton } from "@/components/ui/CarouselNavButton";
 
 interface CarouselProps {
   children: ReactNode[];
@@ -244,23 +244,21 @@ export function Carousel({
 
       {/* Navigation buttons */}
       {showArrows && canGoPrevious && (
-        <button
+        <CarouselNavButton
+          direction="previous"
           onClick={goToPrevious}
-          className="parigo-frame absolute left-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[var(--line-strong)] bg-[var(--surface)] opacity-0 transition-all hover:-translate-y-[calc(50%+1px)] hover:translate-x-[-1px] group-hover/carousel:opacity-100 focus:opacity-100"
+          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
           aria-label={locale === "fr" ? "Précédent" : "Previous"}
-        >
-          <ChevronLeft className="w-5 h-5 text-[var(--color-black)]" />
-        </button>
+        />
       )}
 
       {showArrows && canGoNext && (
-        <button
+        <CarouselNavButton
+          direction="next"
           onClick={goToNext}
-          className="parigo-frame absolute right-2 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center border border-[var(--line-strong)] bg-[var(--surface)] opacity-0 transition-all hover:-translate-y-[calc(50%+1px)] hover:translate-x-[1px] group-hover/carousel:opacity-100 focus:opacity-100"
+          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
           aria-label={locale === "fr" ? "Suivant" : "Next"}
-        >
-          <ChevronRight className="w-5 h-5 text-[var(--color-black)]" />
-        </button>
+        />
       )}
 
       {/* Progress indicator */}

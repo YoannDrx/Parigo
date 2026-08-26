@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
+import { AlertCircle, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -24,6 +23,7 @@ import { usePlayerStore } from "@/stores/player-store";
 import { HomeHeroContent, HomeReveal } from "./HomeMotion";
 import { HomeSeeAllLink } from "./HomeSeeAllLink";
 import { localizePlaylist } from "@/lib/catalog-localization";
+import { HomeSectionCta } from "./HomeSectionCta";
 
 const PartnerMarquee = lazy(() => import("./PartnerMarquee").then((module) => ({ default: module.PartnerMarquee })));
 
@@ -187,7 +187,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
               <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
                 <HomeReveal origin="left" viewportAmount={0.35}><SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes nous ?" : "Who are we?"}</SignedTitle></HomeReveal>
                 <HomeReveal origin="bottom" delay={0.12} viewportAmount={0.35}><p className="mt-7 max-w-2xl text-base leading-7 text-white/88 md:text-lg">{locale === "fr" ? "Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits. Télévision, cinéma, documentaires, publicité, podcasts, radio ou contenus digitaux : notre catalogue international et notre expertise de la synchronisation vous aident à trouver la musique idéale pour votre projet." : "Parigo helps image and sound professionals search for music and manage rights. Television, cinema, documentaries, advertising, podcasts, radio and digital content: our international catalogue and synchronisation expertise help you find the ideal music for your project."}</p></HomeReveal>
-                <HomeReveal origin="right" delay={0.2} viewportAmount={0.35} className="w-fit"><Link href="/albums" className="home-about-cta mt-8 inline-flex min-h-11 w-fit items-center gap-2 rounded-md px-5 text-sm font-semibold transition">{locale === "fr" ? "Découvrir le catalogue" : "Explore the catalogue"}<ArrowRight size={15} /></Link></HomeReveal>
+                <HomeReveal origin="right" delay={0.2} viewportAmount={0.35} className="w-fit"><HomeSectionCta href="/albums" inverse className="mt-8">{locale === "fr" ? "Découvrir le catalogue" : "Explore the catalogue"}</HomeSectionCta></HomeReveal>
               </div>
             </div>
           </SectionReveal>
