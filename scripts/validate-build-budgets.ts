@@ -5,9 +5,9 @@ import path from "node:path";
 const root = process.cwd();
 const nextRoot = path.join(root, ".next");
 const staticRoot = path.join(nextRoot, "static");
-// Search v2 adds the shared command bar, autocomplete and responsive interaction
-// states while keeping a narrow margin over the current 143.9 KiB of source CSS.
-const CSS_BUDGET = 145 * 1024;
+// The responsive navigation, Silk hero, editorial rails, search workspace and
+// persistent player keep a narrow margin over the current 152.0 KiB source CSS.
+const CSS_BUDGET = 155 * 1024;
 // Similarity search adds its source controller and responsive workspace to the
 // search route while keeping a narrow margin over the current 221.5 KiB Brotli.
 const DEFAULT_JS_BUDGET = 224 * 1024;
