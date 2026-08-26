@@ -80,9 +80,9 @@ export function HomeHeroContent({
   const [searchRevealComplete, setSearchRevealComplete] = useState(false);
   const words = title.split(" ");
   const { scrollYProgress } = useScroll({ target, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, -96]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.94]);
-  const opacity = useTransform(scrollYProgress, [0, 0.82], [1, 0]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, -132]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.91]);
+  const opacity = useTransform(scrollYProgress, [0, 0.55], [1, 0]);
 
   return (
     <motion.div
@@ -150,9 +150,10 @@ export function HomeHeroContent({
         </p>
       </motion.div>
 
-      <div
+      <motion.div
         data-testid="home-hero-search-mask"
         data-banner-mask={reduceMotion || searchRevealComplete ? "open" : "closed"}
+        style={reduceMotion ? { opacity: 1 } : { opacity }}
         className={`pointer-events-auto mx-auto mt-9 max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}
       >
         <motion.div
@@ -169,7 +170,7 @@ export function HomeHeroContent({
         >
           {search}
         </motion.div>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }
