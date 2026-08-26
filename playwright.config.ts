@@ -11,6 +11,7 @@ const previewBypass = process.env.VERCEL_AUTOMATION_BYPASS_SECRET;
 export default defineConfig({
   testDir: "./e2e",
   workers: 1,
+  retries: process.env.CI && externalBaseURL ? 1 : 0,
   expect: { timeout: 10_000 },
   use: {
     baseURL,
