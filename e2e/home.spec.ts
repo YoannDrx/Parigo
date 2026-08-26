@@ -260,6 +260,71 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
 });
 
+test("les suggestions du héros restent au-dessus de la section suivante", async ({ page }) => {
+  await page.route("**/api/autocomplete?**", async (route) => {
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { groups: [
+        { key: "filters", count: 2, items: [
+          { id: "STYLE_piano", kind: "filter", filterGroup: "styles", label: "Style · Piano", subtitle: "Ajouter comme filtre", matchedTerm: "piano" },
+          { id: "INST_piano", kind: "filter", filterGroup: "instruments", label: "Instrument · Piano", subtitle: "Ajouter comme filtre", matchedTerm: "piano" },
+        ] },
+        { key: "tracks", count: 2, items: [
+          { id: "track-piano-1", kind: "track", label: "Melancholy Piano Scene", subtitle: "Full · GZM005", image: "/images/placeholder-album.svg", href: "/albums/album-piano?track=track-piano-1" },
+          { id: "track-piano-2", kind: "track", label: "Nostalgic Piano Theme", subtitle: "Full · GZM005", image: "/images/placeholder-album.svg", href: "/albums/album-piano?track=track-piano-2" },
+        ] },
+        { key: "albums", count: 3, items: [
+          { id: "album-piano-1", kind: "album", label: "Piano Stories", subtitle: "Parigo", trackCount: 12, image: "/images/placeholder-album.svg", href: "/albums/album-piano-1" },
+          { id: "album-piano-2", kind: "album", label: "Intimate Piano", subtitle: "Parigo", trackCount: 10, image: "/images/placeholder-album.svg", href: "/albums/album-piano-2" },
+          { id: "album-piano-3", kind: "album", label: "Modern Piano", subtitle: "Parigo", trackCount: 8, image: "/images/placeholder-album.svg", href: "/albums/album-piano-3" },
+        ] },
+      ] } }),
+    });
+  });
+
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await hero.getByLabel("Rechercher dans le catalogue Parigo").fill("piano");
+  const panel = page.getByRole("listbox", { name: "Suggestions de recherche" });
+  await expect(panel).toBeVisible();
+  await expect(page.locator("#about")).toBeAttached();
+
+  await page.evaluate(() => {
+    const suggestions = document.querySelector<HTMLElement>(".search-autocomplete-panel");
+    const nextSection = document.querySelector<HTMLElement>("#about");
+    if (!suggestions || !nextSection) return;
+    const overlapY = Math.max(suggestions.getBoundingClientRect().top, nextSection.getBoundingClientRect().top) + 8;
+    if (overlapY > window.innerHeight - 40) window.scrollBy({ top: overlapY - window.innerHeight / 2, behavior: "instant" });
+  });
+
+  await expect.poll(() => page.evaluate(() => {
+    const suggestions = document.querySelector<HTMLElement>(".search-autocomplete-panel");
+    const nextSection = document.querySelector<HTMLElement>("#about");
+    if (!suggestions || !nextSection) return false;
+    const panelBox = suggestions.getBoundingClientRect();
+    const sectionBox = nextSection.getBoundingClientRect();
+    const overlapTop = Math.max(panelBox.top, sectionBox.top);
+    const overlapBottom = Math.min(panelBox.bottom, sectionBox.bottom, window.innerHeight);
+    if (overlapBottom <= overlapTop) return false;
+    const topElement = document.elementFromPoint(panelBox.left + panelBox.width / 2, overlapTop + 4);
+    return Boolean(topElement && suggestions.contains(topElement));
+  })).toBe(true);
+
+  await expect.poll(() => page.evaluate(() => {
+    const copy = document.querySelector<HTMLElement>('[data-testid="home-hero-copy"]');
+    const search = document.querySelector<HTMLElement>('[data-testid="home-hero-search-reveal"]');
+    if (!copy || !search) return null;
+    return {
+      copyOpacity: Number.parseFloat(getComputedStyle(copy).opacity),
+      searchOpacity: Number.parseFloat(getComputedStyle(search).opacity),
+    };
+  })).toEqual(expect.objectContaining({
+    copyOpacity: expect.any(Number),
+    searchOpacity: 1,
+  }));
+  expect(await page.getByTestId("home-hero-copy").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(0.95);
+});
+
 test("le sélecteur du héros reste contenu sur un petit viewport", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "Le placement adaptatif est contrôlé sur mobile.");
   await page.setViewportSize({ width: 320, height: 568 });
