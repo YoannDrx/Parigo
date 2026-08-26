@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import {
   ShowreelSoundButton,
   useShowreelAudio,
@@ -11,41 +11,21 @@ import { useHomeReducedMotion } from "./HomeMotion";
 const SHOWREEL_SOURCE = "/videos/garden-of-eden-showreel.mp4";
 const SHOWREEL_POSTER = "/images/home/garden-of-eden-poster.jpg";
 
-function TypewriterLine({
-  line,
-  offset,
-  reveal,
-  reduceMotion,
-}: {
-  line: string;
-  offset: number;
-  reveal: boolean;
-  reduceMotion: boolean;
-}) {
+function ManifestoLine({ line }: { line: string }) {
   return (
     <span aria-hidden="true" className="block whitespace-nowrap pb-[.08em]">
       {Array.from(line).map((character, index) => {
         const isSquare = character === ".";
         return (
-          <motion.span
+          <span
             key={`${character}-${index}`}
             data-testid={isSquare ? "showreel-title-square" : "showreel-title-letter"}
-            data-character-index={offset + index}
             className={isSquare
               ? "ml-[.06em] inline-block h-[.17em] w-[.17em] bg-[var(--signal)] align-[.08em] shadow-[0_0_18px_color-mix(in_srgb,var(--signal)_48%,transparent)]"
               : "inline-block"}
-            initial={reduceMotion ? false : { opacity: 0, y: isSquare ? 0 : ".1em", scale: isSquare ? .35 : 1 }}
-            animate={reveal
-              ? { opacity: 1, y: 0, scale: 1 }
-              : { opacity: 0, y: isSquare ? 0 : ".1em", scale: isSquare ? .35 : 1 }}
-            transition={{
-              duration: reduceMotion ? 0 : isSquare ? .24 : .08,
-              delay: reduceMotion || !reveal ? 0 : .2 + (offset + index) * .047,
-              ease: [0.22, 1, 0.36, 1],
-            }}
           >
             {isSquare ? null : character === " " ? "\u00a0" : character}
-          </motion.span>
+          </span>
         );
       })}
     </span>
@@ -58,8 +38,6 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   const soundWasCenteredRef = useRef(false);
   const reduceMotion = useHomeReducedMotion();
   const inView = useInView(sectionRef, { amount: .08 });
-  const [playbackStarted, setPlaybackStarted] = useState(false);
-  const [revealFallbackElapsed, setRevealFallbackElapsed] = useState(false);
   const {
     detach,
     clearReattachOrigin,
@@ -76,14 +54,6 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   const titleLines = locale === "fr"
     ? ["Une musique", "juste.", "Au bon moment.", "Pour la bonne", "image."]
     : ["The right music.", "At the right moment.", "For the right image."];
-  const reveal = Boolean(reduceMotion) || (inView && (playbackStarted || revealFallbackElapsed));
-
-  useEffect(() => {
-    if (!inView || playbackStarted || revealFallbackElapsed) return;
-    const timeout = window.setTimeout(() => setRevealFallbackElapsed(true), 1_200);
-    return () => window.clearTimeout(timeout);
-  }, [inView, playbackStarted, revealFallbackElapsed]);
-
   useEffect(() => {
     registerSection(sectionRef.current);
     return () => registerSection(null);
@@ -104,10 +74,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
       }
       try {
         await video.play();
-        setPlaybackStarted(true);
-      } catch {
-        setPlaybackStarted(false);
-      }
+      } catch {}
       await start();
     };
     void syncAndPlay();
@@ -161,7 +128,6 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
             const persistentTime = getCurrentTime();
             if (persistentTime > 0) event.currentTarget.currentTime = persistentTime;
           }}
-          onPlay={() => setPlaybackStarted(true)}
           className="absolute inset-0 h-full w-full object-cover"
           aria-label={locale === "fr" ? "Showreel Garden of Eden" : "Garden of Eden showreel"}
         />
@@ -171,13 +137,10 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
             aria-label={titleLines.join(" ")}
             className="text-[clamp(2.4rem,12.5vw,4rem)] font-semibold leading-[.82] tracking-[-.07em] text-white mix-blend-difference [text-shadow:0_1px_18px_rgba(0,0,0,.14)] sm:text-[clamp(4rem,7.8vw,10rem)]"
           >
-            {titleLines.map((line, index) => (
-              <TypewriterLine
+            {titleLines.map((line) => (
+              <ManifestoLine
                 key={line}
                 line={line}
-                offset={titleLines.slice(0, index).reduce((total, item) => total + item.length, 0)}
-                reveal={reveal}
-                reduceMotion={Boolean(reduceMotion)}
               />
             ))}
           </h2>

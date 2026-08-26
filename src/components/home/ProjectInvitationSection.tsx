@@ -2,24 +2,16 @@
 
 import Link from "next/link";
 import { ArrowRight, Mail } from "lucide-react";
-import { motion } from "framer-motion";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SignedTitle } from "@/components/ui/SignedTitle";
-import { HomeReveal, useHomeReducedMotion } from "./HomeMotion";
+import { HomeReveal } from "./HomeMotion";
 
 export function ProjectInvitationSection() {
   const { locale, localizedPath } = useI18n();
-  const reduceMotion = useHomeReducedMotion();
 
   return (
     <section className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)]">
-      <motion.div
-        initial={reduceMotion ? undefined : { opacity: 0, y: 24 }}
-        whileInView={reduceMotion ? undefined : { opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: .2 }}
-        transition={{ duration: .62, ease: [0.22, 1, 0.36, 1] }}
-        className="project-invitation parigo-frame mx-auto grid max-w-[1580px] gap-10 border border-white/14 bg-[#0b0f0c] p-6 text-white md:grid-cols-12 md:items-end md:p-10 lg:p-12"
-      >
+      <div className="project-invitation parigo-frame mx-auto grid max-w-[1580px] gap-10 border border-white/14 bg-[#0b0f0c] p-6 text-white md:grid-cols-12 md:items-end md:p-10 lg:p-12">
         <div className="relative md:col-span-8">
           <HomeReveal origin="left" viewportAmount={0.35}>
             <SignedTitle as="h2" className="max-w-[15ch] text-[clamp(2.6rem,5vw,5.4rem)] leading-[.92] tracking-[-.055em] text-white">
@@ -42,7 +34,7 @@ export function ProjectInvitationSection() {
               </a>
             </div>
         </HomeReveal>
-      </motion.div>
+      </div>
     </section>
   );
 }

@@ -18,6 +18,8 @@
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test e2e/home.spec.ts e2e/editorial-pages.spec.ts e2e/parigo-editorial-catalog.spec.ts --project=desktop --grep \"homepage rend la recherche principale|pages d’information alignent leurs corners|pages anglaises exposent canoniques\"",
     "test:harvest": "node --env-file=.env --import tsx docs/harvest/smoke-tests/harvest-api-smoke-test.ts",
+    "test:harvest:aims": "node --env-file=.env --import tsx docs/harvest/smoke-tests/aims-live-contract.ts",
+    "audit:harvest:aims-index": "node --env-file=.env --import tsx docs/harvest/smoke-tests/aims-index-coverage.ts",
     "audit:harvest:docs": "node --import tsx scripts/refresh-harvest-endpoint-inventory.ts && node --import tsx scripts/generate-harvest-api-audit-inventories.ts && node --import tsx scripts/generate-harvest-code-conformance-matrix.ts",
     "audit:harvest:public-read": "HARVEST_PUBLIC_READ_AUDIT=1 node --env-file=.env --import tsx docs/harvest/smoke-tests/public-read-conformance-audit.ts",
     "audit:harvest:gaps": "node --import tsx scripts/audit-harvest-gaps.ts",

@@ -86,9 +86,10 @@ describe("Harvest token expiry", () => {
 });
 
 describe("Harvest capabilities", () => {
-  it("only enables similar-search UI when Harvest publishes a provider", () => {
+  it("only enables similar-search UI when Harvest publishes an AIMS provider", () => {
     expect(hasSearchSimilarCapability({ SearchSimilarInfo: [] })).toBe(false);
     expect(hasSearchSimilarCapability({})).toBe(false);
+    expect(hasSearchSimilarCapability({ SearchSimilarInfo: [{ Provider: "Cyanite" }] })).toBe(false);
     expect(hasSearchSimilarCapability({ SearchSimilarInfo: [{ Provider: "AIMS" }] })).toBe(true);
   });
 });

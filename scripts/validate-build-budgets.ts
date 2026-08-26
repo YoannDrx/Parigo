@@ -8,10 +8,12 @@ const staticRoot = path.join(nextRoot, "static");
 // Search v2 adds the shared command bar, autocomplete and responsive interaction
 // states while keeping a narrow margin over the current 143.9 KiB of source CSS.
 const CSS_BUDGET = 145 * 1024;
-// Persistent showreel and clip coordination adds 3.9 KiB Brotli to the shared
-// runtime while keeping a narrow margin over the current 204.7 KiB maximum.
-const DEFAULT_JS_BUDGET = 208 * 1024;
-const HOME_JS_BUDGET = 220 * 1024;
+// Similarity search adds its source controller and responsive workspace to the
+// search route while keeping a narrow margin over the current 221.5 KiB Brotli.
+const DEFAULT_JS_BUDGET = 224 * 1024;
+// The home hero also embeds the brief, URL and direct-upload entry points; its
+// current 235.7 KiB Brotli baseline remains isolated from the other routes.
+const HOME_JS_BUDGET = 240 * 1024;
 
 async function walk(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });

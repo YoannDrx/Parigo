@@ -1,6 +1,6 @@
 # Harvest — écarts et demandes encore actifs
 
-Dernière vérification : **14 août 2026** (Public API live, BFF, navigateur local, Vercel, Gmail et DNS).
+Dernière vérification : **25 août 2026** (Public API live, BFF, navigateur local, Vercel, Gmail et DNS).
 
 Ce registre ne contient que les sujets qui nécessitent encore une action ou une réponse de Harvest. Les adaptations normales déjà prises en charge par Parigo — fusion de la hiérarchie des playlists et URL canonique des recherches sauvegardées — en ont été retirées.
 
@@ -14,6 +14,19 @@ Ce registre ne contient que les sujets qui nécessitent encore une action ou une
 | I18N-02 | Les deux membres de test renvoient `LanguageCode=EN/en`, mais ce champ n’est documenté ni dans la requête `registermember` ni dans `updatemember`; Parigo ne peut donc pas l’écrire proprement. L’Admin contient 34 variantes pour 26 types, mais seulement six variantes françaises (reset, remerciement d’inscription, approbation, refus, partage de playlist et partage vers un membre). Vérification d’adresse, contact API, partage générique et téléchargements n’ont qu’un fallback `All`. | Le sélecteur FR/EN du site n’est volontairement pas synchronisé avec Harvest tant que le contrat d’écriture et la règle de résolution ne sont pas confirmés. | Confirmer l’endpoint/champ officiel pour lire et modifier la langue du membre, les valeurs acceptées, la règle de sélection pour chaque endpoint, le sens et le membre de référence de `SelectEmailTemplateByMemberRegion`, puis le fallback `French` → `All`. Confirmer aussi qu’il faut créer les variantes FR manquantes. |
 | I18N-03 | `getcategories?...languagecode=fr` conserve le nom canonique dans `Name` et expose la valeur française dans `LanguageItems[].Value`. L’audit trouve 342 traductions FR sur 531 nœuds : Genre 38/191, Moods 148/149, Music For 61/69, Period 20/22, Instruments 30/55 et Area 45/45. `getstyles/{token}/fr` ne contient qu'une valeur FR sur 161 styles. `fr-FR` ne produit pas le même contrat que `fr`, et le type `CategoryAtttribute` est mal orthographié. | Le mapper lit désormais `LanguageItems` par code ISO, joint EN/FR par ID stable et conserve le nom canonique lorsque la traduction manque. Aucun dictionnaire local ou fallback DeepL n'est utilisé pour les filtres. | Confirmer que `LanguageItems` est la source officielle, documenter les codes de langue acceptés, garantir la stabilité des IDs et de la hiérarchie, compléter les valeurs FR manquantes, préciser le délai de publication/cache et fournir si possible un export de couverture ainsi qu'une révision ou un ETag. |
 | MAIL-AUTH-01 | Gmail affiche `Parigo Music - France <Guillaume.albeck@parigomusic.com> via harvestmedia.net`. Le back-office configure cette identité sur la majorité des variantes. Le Return-Path, SPF et DKIM sont authentifiés par `sendgrid.harvestmedia.net` / `harvestmedia.net`, sans signature DKIM alignée `parigomusic.com`; le DNS Parigo n’a actuellement ni DMARC ni CNAME SendGrid visibles. | Le nom/adresse visible peuvent être standardisés dans les templates, mais cela ne retirera pas `via` sans authentification du domaine dans le compte SendGrid utilisé par Harvest. | Utiliser `Parigo Music <info@parigomusic.com>` pour les e-mails transactionnels, authentifier `parigomusic.com` dans le compte/subuser SendGrid Harvest et transmettre les CNAME DKIM et return-path exacts à ajouter au DNS. Confirmer ensuite par un nouvel e-mail aligné. |
+
+## AIMS — réponses requises avant activation publique
+
+L’intégration complète est construite derrière des flags serveur et continue à utiliser exclusivement la Public API Harvest. La similarité par piste peut être activée après l’audit de couverture. Le prompt, les fichiers et les liens restent fermés tant que Harvest n’a pas répondu par écrit aux points suivants :
+
+1. expliquer pourquoi le prompt fonctionne alors que `SimiliarByPrompt.Allow=false`, confirmer son autorisation commerciale et son coût par requête ;
+2. fournir la couverture exacte de l’index Parigo, le délai d’indexation des nouvelles pistes et un plan de rattrapage ;
+3. expliquer pourquoi `Start`/`Duration` semblent ignorés, pourquoi filtres et pagination fonctionnent malgré les capacités annoncées, et définir `EvokeSegments.Score` lorsqu’il vaut zéro ;
+4. préciser la rétention, la suppression, les régions de traitement, les sous-traitants, le DPA et l’éventuelle utilisation des fichiers, liens ou prompts pour entraîner ou améliorer les modèles ;
+5. documenter les coûts, quotas et limites de concurrence de chaque mode ;
+6. confirmer si le CORS des uploads peut être restreint aux domaines Parigo au lieu de `Access-Control-Allow-Origin: *`.
+
+Ces réponses ne bloquent pas le code livré ni les essais opt-in. Elles bloquent l’ouverture publique du prompt, des fichiers et des liens.
 
 ## Non bloquants mais à clarifier
 
@@ -30,7 +43,6 @@ Ce registre ne contient que les sujets qui nécessitent encore une action ou une
 - **Catégorie des playlists** : la liste plate n’a pas `PlaylistCategoryID`, mais l’endpoint hiérarchique contient les cinq playlists et leurs dossiers. La fusion par ID dans le BFF est correcte et l’UI restitue les deux playlists du dossier `test`.
 - **Personnalisation HTML/CSS des e-mails** : capacité confirmée puis template restauré. Le chantier graphique et le CTA personnalisé sont reportés; aucune question à Peter pour l’instant.
 - **Right Holders** : Parigo discute en interne du workflow et du batch proposé à 100 € avant de revenir vers Roland.
-- **AIMS** : le principe technique est clarifié; l’éventuel essai, l’indexation et les coûts restent un sujet produit/commercial Parigo–Harvest/AIMS, distinct du présent mail d’écarts Public API.
 
 ## Règle de maintenance
 

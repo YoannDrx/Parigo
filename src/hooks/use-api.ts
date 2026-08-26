@@ -13,7 +13,17 @@ import {
   fetchInstruments,
   fetchCategoryGroups,
   fetchSearchFilters,
+  fetchSimilarityCapabilities,
 } from "@/lib/api-client";
+
+export function useSimilarityCapabilities() {
+  return useQuery({
+    queryKey: ["similarity-capabilities"],
+    queryFn: ({ signal }) => fetchSimilarityCapabilities(signal),
+    staleTime: 5 * 60_000,
+    retry: 1,
+  });
+}
 
 // Albums hooks
 export function useAlbums(
@@ -39,7 +49,7 @@ export function useSearchFilters(language: "fr" | "en") {
 
 export function useCategoryGroups(language: "fr" | "en") {
   return useQuery({
-    queryKey: ["harvest-categories", language],
+    queryKey: ["catalog-categories", language],
     queryFn: () => fetchCategoryGroups(language),
     staleTime: 1000 * 60 * 60,
   });

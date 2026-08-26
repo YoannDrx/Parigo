@@ -615,7 +615,16 @@ export async function suggestPlaylistTracks(memberToken: string, playlistId: str
     }, 15_000),
     getAssetTemplates(memberToken),
   ]);
-  return recordArray(payload, "Tracks").map((track) => mapTrack(track, templates, undefined, "member-playlist-suggestion"));
+  const seenWorks = new Set<string>();
+  return recordArray(payload, "Tracks")
+    .map((track) => mapTrack(track, templates, undefined, "member-playlist-suggestion"))
+    .filter((track) => {
+      const workId = track.mainTrackId || track.id;
+      if (seenWorks.has(workId)) return false;
+      seenWorks.add(workId);
+      return true;
+    })
+    .slice(0, limit);
 }
 
 export type MusicShareMode = "view" | "collaborate" | "deliver";

@@ -391,7 +391,7 @@ test("les ondes du héros restent légères et animées sur mobile sans forme ci
   await expect(reducedFallback.locator(".signal-field-fallback__wave").first()).toHaveCSS("animation-name", "none");
 });
 
-test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
+test("le héros suit la palette Catalogue puis Similarité IA", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
@@ -415,7 +415,7 @@ test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
   const catalogColor = await signature.evaluate((node) => getComputedStyle(node).backgroundColor);
   expect(catalogColor).toBe(await resolveColorToken("--signal"));
   await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
-  await page.getByRole("option", { name: /Brief IA/ }).click();
+  await page.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(hero).toHaveAttribute("data-search-mode", "ai");
   await expect(aiGlow).toHaveAttribute("data-active", "true");
   await expect(aiGlow).toHaveCSS("opacity", "1");
@@ -426,7 +426,7 @@ test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
   await expect(hero.locator(".signal-field-fallback")).toHaveAttribute("data-mode", "ai");
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(catalogColor);
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(await resolveColorToken("--ai-search"));
-  await hero.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
+  await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
   await hero.getByRole("option", { name: /Catalogue/ }).click();
   await expect(aiGlow).toHaveAttribute("data-active", "false");
   await expect(aiGlow).toHaveCSS("opacity", "0");
@@ -434,17 +434,17 @@ test("le héros suit la palette Catalogue puis Brief IA", async ({ page }) => {
   await expect.poll(() => signature.evaluate((node) => getComputedStyle(node).backgroundColor)).toBe(catalogColor);
 });
 
-test("la lumière du Brief IA reste statique en mouvement réduit", async ({ page }) => {
+test("la lumière de la Similarité IA reste statique en mouvement réduit", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
-  await hero.getByRole("option", { name: /Brief IA/ }).click();
+  await hero.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(hero.getByTestId("ai-search-glow")).toHaveCSS("opacity", "1");
   await expect(hero.getByTestId("ai-search-glow-beam")).toHaveCSS("animation-name", "none");
 });
 
-test("le hover du Brief IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {
+test("le hover de la Similarité IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop aux largeurs mobile et desktop.");
   await page.addInitScript(() => localStorage.setItem("parigo-theme", "light"));
   for (const [width, corner] of [[390, "8px"], [1024, "14px"]] as const) {
@@ -452,11 +452,11 @@ test("le hover du Brief IA conserve les mêmes angles arrondis", async ({ page }
     await page.goto("/");
     const hero = page.getByTestId("home-hero");
     await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
-    await hero.getByRole("option", { name: /Brief IA/ }).click();
+    await hero.getByRole("option", { name: /Similarité IA/ }).click();
     const form = hero.locator(".search-command__form");
     const glow = hero.getByTestId("ai-search-glow");
     const row = hero.locator(".search-command__row");
-    await form.locator("input").evaluate((node) => node.blur());
+    await form.getByRole("combobox").evaluate((node) => node.blur());
     await page.mouse.move(0, 0);
     await page.waitForTimeout(550);
     await row.hover();

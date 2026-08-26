@@ -200,7 +200,7 @@ function FilterGroupSection({
   const [remoteState, setRemoteState] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [remoteIncomplete, setRemoteIncomplete] = useState(false);
   const [remoteResultQuery, setRemoteResultQuery] = useState("");
-  const isRemote = group.remote === "harvest-track-composers";
+  const isRemote = group.remote === "track-composers";
   const normalizedRemoteQuery = query.trim();
   useEffect(() => {
     if (!isRemote) return;

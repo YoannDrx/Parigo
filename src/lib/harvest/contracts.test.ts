@@ -58,6 +58,14 @@ describe("endpoint-specific Harvest contracts", () => {
     expect(track.Bpm).toBeNull();
   });
 
+  it("preserves AIMS/Evoke matching passages", () => {
+    const track = HarvestTrackSchema.parse({
+      ID: "track-with-segments",
+      EvokeSegments: [{ Start: "12.5", Length: "24", Score: "0" }],
+    });
+    expect(track.EvokeSegments).toEqual([{ Start: 12.5, Length: 24, Score: 0 }]);
+  });
+
   it("rejects a partial response missing a field required by the view", () => {
     expect(() => HarvestMemberTagSchema.parse({ TagID: "tag-fixture-1" })).toThrow();
   });

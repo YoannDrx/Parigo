@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { AlertCircle, ArrowRight, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
 import { lazy, Suspense, useEffect, useRef, useState, type ReactNode } from "react";
@@ -20,7 +21,6 @@ import type { EditorialVideo } from "@/lib/editorial/video-types";
 import { resizeArtworkSource } from "@/lib/image-loader";
 import { HomeAudioCard } from "./HomeAudioCard";
 import { usePlayerStore } from "@/stores/player-store";
-import { HomeParallaxImage } from "./HomeParallax";
 import { HomeHeroContent, HomeReveal } from "./HomeMotion";
 import { HomeSeeAllLink } from "./HomeSeeAllLink";
 
@@ -169,7 +169,16 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
         <section id="about" className="px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
           <SectionReveal className="mx-auto max-w-[1580px]">
             <div className="relative min-h-[610px] overflow-hidden rounded-xl md:min-h-[760px]">
-              <HomeParallaxImage src="/images/editorial/parigo-spaces/01-home-studio-parigo-covers.avif" alt="Studio PARIGO avec ses pochettes et sa collection de vinyles" sizes="100vw" />
+              <Image
+                data-testid="home-about-image"
+                src="/images/editorial/parigo-spaces/01-home-studio-parigo-covers.avif"
+                alt="Studio PARIGO avec ses pochettes et sa collection de vinyles"
+                fill
+                loading="lazy"
+                quality={75}
+                sizes="100vw"
+                className="object-cover"
+              />
               <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
               <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
                 <HomeReveal origin="left" viewportAmount={0.35}><SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes nous ?" : "Who are we?"}</SignedTitle></HomeReveal>

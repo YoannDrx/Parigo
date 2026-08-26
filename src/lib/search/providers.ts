@@ -3,7 +3,6 @@ import "server-only";
 import type { SearchFieldProfile, SearchMode } from "@/types";
 import { cloudSearch } from "@/lib/harvest/catalog";
 import type { HarvestSearchInput } from "@/lib/harvest/search";
-export { AIMS_FILTER_FIELD_MAP } from "./aims-contract";
 
 export interface SearchProvider {
   readonly id: "harvest-keyword" | "aims-prompt";
@@ -19,14 +18,14 @@ export const harvestKeywordProvider: SearchProvider = {
 
 export interface SearchCapabilities {
   keywordSearchAvailable: true;
-  aiPromptSearchAvailable: false;
+  aiPromptSearchAvailable: boolean;
   keywordFieldProfiles: SearchFieldProfile[];
 }
 
-export function getSearchCapabilities(): SearchCapabilities {
+export function getSearchCapabilities(aiPromptSearchAvailable = false): SearchCapabilities {
   return {
     keywordSearchAvailable: true,
-    aiPromptSearchAvailable: false,
+    aiPromptSearchAvailable,
     keywordFieldProfiles: ["title", "editorial"],
   };
 }

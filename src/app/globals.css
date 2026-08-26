@@ -278,6 +278,7 @@ textarea {
   box-shadow: 3px 4px 0 color-mix(in srgb, var(--search-accent) 4%, transparent);
   outline: none;
   transition:
+    height 560ms cubic-bezier(.22, 1, .36, 1),
     border-color 240ms ease,
     border-radius 420ms var(--ease-out),
     box-shadow 420ms var(--ease-out),
@@ -288,40 +289,31 @@ textarea {
 .search-command__form::after {
   content: "";
   position: absolute;
+  inset: -1px;
   z-index: 3;
-  width: 1.8rem;
-  height: 1.8rem;
+  box-sizing: border-box;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  opacity: 0;
   pointer-events: none;
   transition:
-    width 520ms var(--ease-out),
-    height 520ms var(--ease-out),
     border-color 240ms ease,
-    border-width 220ms ease,
     opacity 260ms ease;
 }
 
 .search-command__form::before {
-  top: -1px;
-  right: -1px;
-  border-top: 2px solid var(--foreground);
-  border-right: 2px solid var(--foreground);
-  border-top-right-radius: calc(var(--search-turn) + 1px);
-  transform-origin: top right;
+  border-top-color: var(--foreground);
+  border-right-color: var(--foreground);
 }
 
 .search-command__form::after {
-  bottom: -1px;
-  left: -1px;
-  border-bottom: 2px solid var(--search-accent);
-  border-left: 2px solid var(--search-accent);
-  border-bottom-left-radius: calc(var(--search-turn) + 1px);
-  transform-origin: bottom left;
+  border-bottom-color: var(--search-accent);
+  border-left-color: var(--search-accent);
 }
 
 .search-command__form:is(:hover, :focus-within)::before,
 .search-command__form:is(:hover, :focus-within)::after {
-  width: calc(100% + 2px);
-  height: calc(100% + 2px);
+  opacity: 1;
 }
 
 .search-command__form--keyword {
@@ -359,14 +351,10 @@ textarea {
 }
 
 .search-command__form[data-has-value="true"]:focus-within::before {
-  border-top-width: 3px;
-  border-right-width: 3px;
   animation: search-corner-breathe 3.4s var(--ease-out) infinite;
 }
 
 .search-command__form[data-has-value="true"]:focus-within::after {
-  border-bottom-width: 3px;
-  border-left-width: 3px;
   animation: search-corner-breathe 3.4s var(--ease-out) -1.7s infinite;
 }
 
@@ -402,6 +390,37 @@ textarea {
   background: var(--surface);
   opacity: .42;
   transform: none;
+}
+
+.similarity-dropzone-viewport {
+  --dropzone-start-height: 2.75rem;
+  --dropzone-end-height: 6.75rem;
+  height: var(--dropzone-end-height);
+  animation: similarity-dropzone-viewport-enter 560ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.similarity-dropzone {
+  opacity: 1;
+  animation: similarity-dropzone-enter 560ms ease both;
+  transition:
+    border-color 220ms ease,
+    background-color 220ms ease;
+}
+
+@keyframes similarity-dropzone-viewport-enter {
+  from { height: var(--dropzone-start-height); }
+  to { height: var(--dropzone-end-height); }
+}
+
+@keyframes similarity-dropzone-enter {
+  0%, 38% { opacity: 0; }
+  72%, 100% { opacity: 1; }
+}
+
+@media (max-width: 639px) {
+  .similarity-dropzone-viewport {
+    --dropzone-end-height: 6.25rem;
+  }
 }
 
 .search-mode-select {

@@ -16,11 +16,9 @@ interface RecentSearchesControllerProps {
   onClearAnnouncement: () => void;
 }
 
-const NO_RECENT_SEARCHES: RecentSearchEntry[] = [];
-
 export function RecentSearchesController({ id, inputId, mode, locale, onSelectQuery, onClearAnnouncement }: RecentSearchesControllerProps) {
   const { items, total, record, clearAll } = useRecentSearches(mode);
-  const visibleItems = mode === "ai" ? NO_RECENT_SEARCHES : items;
+  const visibleItems = items;
   const [activeIndex, setActiveIndex] = useState(-1);
   const [placement] = useState<"top" | "bottom">(() => {
     const input = document.getElementById(inputId);
@@ -65,5 +63,5 @@ export function RecentSearchesController({ id, inputId, mode, locale, onSelectQu
     return () => input.removeAttribute("aria-activedescendant");
   }, [activeIndex, id, inputId]);
 
-  return <RecentSearchesMenu id={id} items={visibleItems} total={total} locale={locale} activeIndex={activeIndex} placement={placement} onActiveIndexChange={setActiveIndex} onSelect={select} onClearAll={() => { clearAll(); setActiveIndex(-1); onClearAnnouncement(); }} />;
+  return <RecentSearchesMenu id={id} items={visibleItems} total={total} mode={mode} locale={locale} activeIndex={activeIndex} placement={placement} onActiveIndexChange={setActiveIndex} onSelect={select} onClearAll={() => { clearAll(); setActiveIndex(-1); onClearAnnouncement(); }} />;
 }

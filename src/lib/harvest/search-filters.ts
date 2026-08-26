@@ -130,7 +130,7 @@ async function loadSearchFilterGroups(
       items: [],
       source: "catalog",
       state: "available",
-      remote: "harvest-track-composers",
+      remote: "track-composers",
     },
     {
       key: "styles",

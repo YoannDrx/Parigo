@@ -15,6 +15,7 @@ import { PlaybackCoordinatorProvider, usePlaybackCoordinator } from "./PlaybackC
 import { ClipPlaybackProvider } from "./ClipPlaybackProvider";
 import { NavigationHistoryProvider } from "@/components/navigation/ContextualBackLink";
 import type { Theme } from "./ThemeProvider";
+import { ReactQueryProvider } from "./ReactQueryProvider";
 
 function GlobalOverlays() {
   const authOpen = useAuthModalStore((state) => state.isOpen);
@@ -64,21 +65,23 @@ function GlobalOverlays() {
 export function QueryProvider({ children, initialLocale, initialConsentSnapshot, initialTheme }: { children: ReactNode; initialLocale: Locale; initialConsentSnapshot: string; initialTheme: Theme }) {
   return (
     <ThemeProvider initialTheme={initialTheme}>
-      <I18nProvider initialLocale={initialLocale}>
-        <NavigationHistoryProvider>
-          <PlaybackCoordinatorProvider>
-            <ClipPlaybackProvider initialConsentSnapshot={initialConsentSnapshot}>
-              <ShowreelAudioProvider>
-                {children}
-                <GlobalOverlays />
-              </ShowreelAudioProvider>
-            </ClipPlaybackProvider>
-            <CookieConsent initialSnapshot={initialConsentSnapshot} />
-          </PlaybackCoordinatorProvider>
-        </NavigationHistoryProvider>
-        <AnalyticsGate />
-        <ClientErrorMonitor />
-      </I18nProvider>
+      <ReactQueryProvider>
+        <I18nProvider initialLocale={initialLocale}>
+          <NavigationHistoryProvider>
+            <PlaybackCoordinatorProvider>
+              <ClipPlaybackProvider initialConsentSnapshot={initialConsentSnapshot}>
+                <ShowreelAudioProvider>
+                  {children}
+                  <GlobalOverlays />
+                </ShowreelAudioProvider>
+              </ClipPlaybackProvider>
+              <CookieConsent initialSnapshot={initialConsentSnapshot} />
+            </PlaybackCoordinatorProvider>
+          </NavigationHistoryProvider>
+          <AnalyticsGate />
+          <ClientErrorMonitor />
+        </I18nProvider>
+      </ReactQueryProvider>
     </ThemeProvider>
   );
 }

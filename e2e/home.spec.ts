@@ -4,6 +4,29 @@ import AxeBuilder from "@axe-core/playwright";
 const formFixtureValue = ["Ui", "Form", "Value", "1"].join("-");
 const mediumFormFixture = ["Parigo", "20", "26"].join("");
 
+function wavFixture(durationSeconds = 1) {
+  const sampleRate = 8_000;
+  const channels = 1;
+  const bitsPerSample = 16;
+  const sampleCount = sampleRate * durationSeconds;
+  const dataSize = sampleCount * channels * (bitsPerSample / 8);
+  const buffer = Buffer.alloc(44 + dataSize);
+  buffer.write("RIFF", 0);
+  buffer.writeUInt32LE(36 + dataSize, 4);
+  buffer.write("WAVE", 8);
+  buffer.write("fmt ", 12);
+  buffer.writeUInt32LE(16, 16);
+  buffer.writeUInt16LE(1, 20);
+  buffer.writeUInt16LE(channels, 22);
+  buffer.writeUInt32LE(sampleRate, 24);
+  buffer.writeUInt32LE(sampleRate * channels * (bitsPerSample / 8), 28);
+  buffer.writeUInt16LE(channels * (bitsPerSample / 8), 32);
+  buffer.writeUInt16LE(bitsPerSample, 34);
+  buffer.write("data", 36);
+  buffer.writeUInt32LE(dataSize, 40);
+  return buffer;
+}
+
 async function waitForHeaderHydration(page: Page) {
   await page.waitForFunction(() => {
     const trigger = document.querySelector('button[aria-controls="global-menu"]');
@@ -21,6 +44,103 @@ test.beforeEach(async ({ page }) => {
       updatedAt: "2026-07-23T00:00:00.000Z",
     }));
   });
+});
+
+test("le héros ouvre une recherche par similarité IA depuis un brief", async ({ page }) => {
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+      externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
+      playlistSuggestions: true,
+    } }),
+  }));
+  await page.route("**/api/similarity/search", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { tracks: [], mode: "prompt" }, meta: { total: 0, durationMs: 10, requestId: "e2e-similarity" } }),
+  }));
+
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  const option = hero.getByRole("option", { name: /Similarité/ });
+  await expect(option).toBeEnabled();
+  await option.click();
+  const aiInput = hero.getByRole("combobox", { name: /Brief, lien ou fichier/ });
+  await expect(aiInput).not.toBeFocused();
+  await expect(hero.getByRole("listbox", { name: "Briefs récents" })).toHaveCount(0);
+  const hint = hero.getByLabel("Fonctionnement de la recherche par similarité IA");
+  await expect(hint).toContainText("Décrivez une scène, une émotion ou un usage, ou collez un lien public");
+  await expect(hint.getByRole("button", { name: "Importer un fichier MP3 ou WAV" })).toBeVisible();
+  await expect(hint.getByTitle("YouTube")).toBeVisible();
+  await expect(hint.getByTitle("Spotify")).toBeVisible();
+  const accessibility = await new AxeBuilder({ page }).include('[data-testid="home-hero"]').analyze();
+  expect(accessibility.violations.filter((violation) => violation.impact === "critical")).toEqual([]);
+  await aiInput.fill("Une tension cinématique nocturne");
+  const runBrief = hero.getByRole("button", { name: "Lancer le brief" });
+  await expect(runBrief.getByText("Lancer le brief")).toBeVisible();
+  await runBrief.click();
+
+  await expect(page).toHaveURL(/\/search\?mode=ai&source=prompt/);
+  await expect(page.getByRole("region", { name: "Recherche par similarité IA" })).toBeVisible();
+  await expect(page.getByText("Aucune piste similaire n’a été trouvée.")).toBeVisible();
+});
+
+test("le héros IA reconnaît un lien compatible et un fichier audio", async ({ page }) => {
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+      externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
+      playlistSuggestions: true,
+    } }),
+  }));
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  await hero.getByRole("option", { name: /Similarité IA/ }).click();
+  const input = hero.getByRole("combobox", { name: /Brief, lien ou fichier/ });
+  const hint = hero.getByLabel("Fonctionnement de la recherche par similarité IA");
+  await expect(input).toHaveAttribute("placeholder", "Décrivez une musique, collez un lien ou déposez un MP3/WAV…");
+  await input.fill("https://open.spotify.com/track/example");
+  await expect(hint.getByTitle("Spotify")).toBeVisible();
+  await expect(hero.getByRole("button", { name: "Analyser le lien" })).toBeEnabled();
+  await hero.locator(".search-command__form").evaluate((node) => {
+    const transfer = new DataTransfer();
+    transfer.items.add(new File(["not-an-audio-file"], "reference.png", { type: "image/png" }));
+    node.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: transfer }));
+  });
+  await expect(hero.getByRole("alert")).toContainText("format n’est pas accepté");
+  await expect(hero.getByRole("button", { name: "Envoyer et analyser" })).toBeDisabled();
+  const fileInput = hint.locator('input[type="file"]');
+  await fileInput.setInputFiles({ name: "reference.wav", mimeType: "audio/wav", buffer: wavFixture() });
+  await expect(hero.getByText("reference.wav")).toBeVisible();
+  await expect(hero.getByRole("button", { name: "Envoyer et analyser" })).toBeEnabled();
+  await expect(hero).not.toContainText(/AIMS|Harvest/i);
+});
+
+test("la home réserve la shortlist à la page Search", async ({ page }) => {
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+      externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify", "vimeo", "soundcloud", "appleMusic", "tiktok"] },
+      playlistSuggestions: true,
+    } }),
+  }));
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
+  await hero.getByRole("option", { name: /Similarité IA/ }).click();
+  const hint = hero.getByLabel("Fonctionnement de la recherche par similarité IA");
+  await expect(hint).not.toContainText(/shortlist/i);
+  await expect(hint.getByRole("button", { name: "Importer un fichier MP3 ou WAV" })).toBeVisible();
 });
 
 test("la homepage rend la recherche principale et navigue vers les résultats", async ({ page }, testInfo) => {
@@ -45,12 +165,18 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   const modeSelect = hero.getByRole("button", { name: "Mode de recherche : Catalogue" });
   await expect(modeSelect).toBeEnabled();
   await modeSelect.click();
-  await hero.getByRole("option", { name: /Brief IA/ }).click();
-  await expect(hero.getByRole("button", { name: "Mode de recherche : Brief IA" })).toBeVisible();
-  await expect(hero.getByLabel("Décrire un brief musical assisté par IA")).toBeVisible();
-  await expect(hero.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
-  await hero.getByRole("button", { name: "Mode de recherche : Brief IA" }).click();
-  await hero.getByRole("option", { name: /Catalogue/ }).click();
+  const aiOption = hero.getByRole("option", { name: /Similarité IA/ });
+  if (await aiOption.isEnabled()) {
+    await aiOption.click();
+    await expect(hero.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
+    await expect(hero.getByLabel("Brief, lien ou fichier pour la similarité IA")).toBeVisible();
+    await expect(hero.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
+    await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
+    await hero.getByRole("option", { name: /Catalogue/ }).click();
+  } else {
+    await expect(aiOption).toBeDisabled();
+    await modeSelect.click();
+  }
   await expect(hero.getByRole("button", { name: "Pistes", exact: true })).toHaveCount(0);
   await expect(hero.getByRole("button", { name: "Albums", exact: true })).toHaveCount(0);
   const searchBar = hero.locator(".search-command__form");
@@ -58,13 +184,21 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   const submitSearch = hero.getByRole("button", { name: "Rechercher", exact: true });
   await expect(submitSearch).toBeDisabled();
   await page.mouse.move(0, 0);
-  await search.evaluate((node) => node.blur());
+  await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await expect.poll(() => searchBar.evaluate((node) => Number.parseFloat(getComputedStyle(node).borderTopLeftRadius))).toBeGreaterThan(5);
+  await expect.poll(() => searchBar.evaluate((node) => [
+    Number.parseFloat(getComputedStyle(node, "::before").opacity),
+    Number.parseFloat(getComputedStyle(node, "::after").opacity),
+  ])).toEqual([0, 0]);
   const restingRadius = await searchBar.evaluate((node) => ({
     topLeft: Number.parseFloat(getComputedStyle(node).borderTopLeftRadius),
     topRight: Number.parseFloat(getComputedStyle(node).borderTopRightRadius),
+    topCornerOpacity: getComputedStyle(node, "::before").opacity,
+    bottomCornerOpacity: getComputedStyle(node, "::after").opacity,
   }));
   expect(restingRadius.topRight).toBeGreaterThan(restingRadius.topLeft);
+  expect(restingRadius.topCornerOpacity).toBe("0");
+  expect(restingRadius.bottomCornerOpacity).toBe("0");
   await search.focus();
   await expect(submitSearch).toBeDisabled();
   expect(Number.parseFloat(await submitSearch.evaluate((node) => getComputedStyle(node).opacity))).toBeLessThan(0.5);
@@ -80,12 +214,26 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     topCornerLeft: getComputedStyle(node, "::before").borderLeftWidth,
     bottomCornerTop: getComputedStyle(node, "::after").borderTopWidth,
     bottomCornerRight: getComputedStyle(node, "::after").borderRightWidth,
+    topCornerOpacity: getComputedStyle(node, "::before").opacity,
+    bottomCornerOpacity: getComputedStyle(node, "::after").opacity,
+    topCornerInset: [getComputedStyle(node, "::before").top, getComputedStyle(node, "::before").right],
+    bottomCornerInset: [getComputedStyle(node, "::after").bottom, getComputedStyle(node, "::after").left],
+    topCornerRadius: getComputedStyle(node, "::before").borderTopRightRadius,
+    formTopCornerRadius: getComputedStyle(node).borderTopRightRadius,
+    bottomCornerRadius: getComputedStyle(node, "::after").borderBottomLeftRadius,
+    formBottomCornerRadius: getComputedStyle(node).borderBottomLeftRadius,
   }));
   expect(focusedFrame.boxShadow).toContain("inset");
-  expect(focusedFrame.topCornerBottom).toBe("0px");
-  expect(focusedFrame.topCornerLeft).toBe("0px");
-  expect(focusedFrame.bottomCornerTop).toBe("0px");
-  expect(focusedFrame.bottomCornerRight).toBe("0px");
+  expect(focusedFrame.topCornerBottom).toBe("2px");
+  expect(focusedFrame.topCornerLeft).toBe("2px");
+  expect(focusedFrame.bottomCornerTop).toBe("2px");
+  expect(focusedFrame.bottomCornerRight).toBe("2px");
+  expect(focusedFrame.topCornerOpacity).toBe("1");
+  expect(focusedFrame.bottomCornerOpacity).toBe("1");
+  expect(focusedFrame.topCornerInset).toEqual(["-1px", "-1px"]);
+  expect(focusedFrame.bottomCornerInset).toEqual(["-1px", "-1px"]);
+  expect(focusedFrame.topCornerRadius).toBe(focusedFrame.formTopCornerRadius);
+  expect(focusedFrame.bottomCornerRadius).toBe(focusedFrame.formBottomCornerRadius);
   await search.fill("piano");
   await expect(submitSearch).toBeEnabled();
   await expect(searchBar).toHaveAttribute("data-has-value", "true");
@@ -98,7 +246,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await expect.poll(() => searchBar.evaluate((node) => ({
     top: getComputedStyle(node, "::before").borderTopWidth,
     bottom: getComputedStyle(node, "::after").borderBottomWidth,
-  }))).toEqual({ top: "3px", bottom: "3px" });
+  }))).toEqual({ top: "2px", bottom: "2px" });
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
   await expect(page.getByTestId("search-workspace")).toBeVisible();
@@ -1084,34 +1232,26 @@ test("le player étendu mobile devient une bottom sheet ajustée au contenu", as
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(pageScroll);
 });
 
-test("le parallaxe About accompagne seul le récit de la home", async ({ page }) => {
+test("l’image About reste fixe pendant le défilement", async ({ page }) => {
   await page.goto("/");
-  const about = page.getByTestId("home-about-parallax");
-  const aboutLayer = page.getByTestId("home-about-parallax-layer");
-
-  await expect(about).toHaveAttribute("data-parallax-static", "false");
-  await expect(about.getByRole("img", { name: "Studio PARIGO avec ses pochettes et sa collection de vinyles" })).toBeVisible();
-  await expect(about.locator("img")).toHaveAttribute("src", /01-home-studio-parigo-covers/);
-
-  const sampleParallax = async (section: typeof about, layer: typeof aboutLayer, minimumTravel: number) => {
-    const metrics = await section.evaluate((node) => {
-      const bounds = node.getBoundingClientRect();
-      return { top: bounds.top + window.scrollY, height: bounds.height };
-    });
-    await page.evaluate(({ top }) => window.scrollTo(0, Math.max(0, top - window.innerHeight * .78)), metrics);
-    await page.waitForTimeout(120);
-    const firstY = await layer.evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).m42);
-    await page.evaluate(({ top, height }) => window.scrollTo(0, top + height - window.innerHeight * .22), metrics);
-    await expect.poll(() => layer.evaluate((node) => new DOMMatrixReadOnly(getComputedStyle(node).transform).m42)).toBeGreaterThan(firstY + minimumTravel);
-  };
-
-  await sampleParallax(about, aboutLayer, 90);
+  const image = page.getByTestId("home-about-image");
+  await expect(image).toBeVisible();
+  await expect(image).toHaveAttribute("src", /01-home-studio-parigo-covers/);
+  await expect(image).toHaveCSS("transform", "none");
+  const about = page.locator("#about");
+  const metrics = await about.evaluate((node) => {
+    const bounds = node.getBoundingClientRect();
+    return { top: bounds.top + window.scrollY, height: bounds.height };
+  });
+  await page.evaluate(({ top, height }) => window.scrollTo(0, top + height * .7), metrics);
+  await expect(image).toHaveCSS("transform", "none");
+  await expect(page.getByTestId("home-about-parallax")).toHaveCount(0);
   await expect(page.getByTestId("home-parallax-interlude")).toHaveCount(0);
   await expect(page.getByText("Quand la musique rencontre l’image", { exact: false })).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
 });
 
-test("le héros et les titres de sections partagent une chorégraphie directionnelle", async ({ page }) => {
+test("le héros garde sa chorégraphie et les textes des autres sections restent statiques", async ({ page }) => {
   await page.goto("/");
   const heroContent = page.getByTestId("home-hero-content");
   const heroWords = page.getByTestId("home-hero-title-word");
@@ -1132,26 +1272,28 @@ test("le héros et les titres de sections partagent une chorégraphie directionn
   await page.evaluate(() => window.scrollTo(0, window.innerHeight * .72));
   await expect.poll(() => heroContent.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(heroOpacityBefore - .25);
 
-  const featuredReveal = page.locator('#featured [data-home-reveal="left"]').first();
+  const featuredReveal = page.locator('#featured [data-home-reveal="static"]').first();
   await featuredReveal.scrollIntoViewIfNeeded();
   await expect(featuredReveal).toHaveCSS("opacity", "1");
+  await expect(featuredReveal).toHaveCSS("transform", "none");
 
-  const clipsReveal = page.getByTestId("home-clips-section").locator('[data-home-reveal="right"]').first();
+  const clipsReveal = page.getByTestId("home-clips-section").locator('[data-home-reveal="static"]').first();
   await clipsReveal.scrollIntoViewIfNeeded();
   await expect(clipsReveal).toHaveCSS("opacity", "1");
+  await expect(clipsReveal).toHaveCSS("transform", "none");
 
-  const processReveal = page.locator('#process [data-home-reveal="top"]').first();
+  const processReveal = page.locator('#process [data-home-reveal="static"]').first();
   await processReveal.scrollIntoViewIfNeeded();
   await expect(processReveal).toHaveCSS("opacity", "1");
+  await expect(processReveal).toHaveCSS("transform", "none");
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
 });
 
-test("le parallaxe About devient statique en mouvement réduit", async ({ page }) => {
+test("le mouvement réduit conserve l’image About et le héros statiques", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  const about = page.getByTestId("home-about-parallax");
-  await expect(about).toHaveAttribute("data-parallax-static", "true");
-  await expect(page.getByTestId("home-about-parallax-layer")).toHaveCSS("transform", "none");
+  await expect(page.getByTestId("home-about-image")).toHaveCSS("transform", "none");
+  await expect(page.getByTestId("home-about-parallax")).toHaveCount(0);
   await expect(page.getByTestId("home-parallax-interlude")).toHaveCount(0);
   await expect(page.getByTestId("home-hero-content")).toHaveAttribute("data-home-hero-motion", "static");
   await expect(page.getByTestId("home-hero-title-word").first()).toHaveCSS("transform", "none");
@@ -1369,14 +1511,14 @@ test("la shortlist expose son état sans contenu prédictif persistant à vide",
   await expect(remove).toHaveAttribute("aria-pressed", "true");
 });
 
-test("le Brief IA AIMS est visible mais indisponible", async ({ page }) => {
+test("la Similarité IA est visible mais indisponible", async ({ page }) => {
   await page.goto("/search");
   const modeSelect = page.getByRole("button", { name: "Mode de recherche : Catalogue" });
   await expect(modeSelect).toBeEnabled();
   await modeSelect.click();
-  await page.getByRole("option", { name: /Brief IA/ }).click();
-  await expect(page.getByRole("button", { name: "Mode de recherche : Brief IA" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Recherche AIMS bientôt disponible" })).toBeDisabled();
+  await page.getByRole("option", { name: /Similarité IA/ }).click();
+  await expect(page.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Trouver des pistes similaires (0)" })).toBeDisabled();
   const response = await page.request.get("/api/search?mode=ai&q=techno&view=tracks&limit=1");
   expect(response.status()).toBe(503);
   const contract = await response.json();
