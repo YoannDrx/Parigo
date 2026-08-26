@@ -1511,14 +1511,14 @@ test("la shortlist expose son état sans contenu prédictif persistant à vide",
   await expect(remove).toHaveAttribute("aria-pressed", "true");
 });
 
-test("la Similarité IA est visible mais indisponible", async ({ page }) => {
+test("l’ancien endpoint IA reste indisponible quand la Similarité est active", async ({ page }) => {
   await page.goto("/search");
   const modeSelect = page.getByRole("button", { name: "Mode de recherche : Catalogue" });
   await expect(modeSelect).toBeEnabled();
   await modeSelect.click();
   await page.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(page.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Trouver des pistes similaires (0)" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
   const response = await page.request.get("/api/search?mode=ai&q=techno&view=tracks&limit=1");
   expect(response.status()).toBe(503);
   const contract = await response.json();
