@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const sessionPayload = { data: { session: { user: { id: "member-1", email: "yoann@parigo.test", name: "Yoann Andrieux", image: null, role: "USER", createdAt: "2026-01-01T00:00:00.000Z" }, session: { expiresAt: "2026-08-01T00:00:00.000Z" } } } };
-const track = { id: "track-1", title: "Piano documentaire", duration: 148, bpm: 92, audioUrl: null, albumId: "album-1", albumTitle: "Parigo Test Pressing", albumCover: "/images/placeholder-album.svg", albumLabel: "Parigo", genres: ["Documentary"], moods: ["Intimate"], isVocal: false, waveform: null };
+const track = { id: "track-1", title: "Piano documentaire", duration: 148, bpm: 92, audioUrl: null, albumId: "album-1", albumTitle: "Parigo Test Pressing", albumCover: "/images/placeholder-album.svg", albumLabel: "Parigo", albumLabelSlug: "parigo", genres: ["Documentary"], moods: ["Intimate"], isVocal: false, waveform: Array.from({ length: 80 }, (_, index) => .25 + (index % 9) / 12) };
 const facets = { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [] };
 
 test.beforeEach(async ({ page }) => {
@@ -26,6 +26,68 @@ async function revealTrackAction(page: Page, actionName: string | RegExp, trigge
   await expect(action).toBeVisible();
   return action;
 }
+
+test("le player se range sous la shortlist sans perdre sa piste ni ses liens", async ({ page }) => {
+  await mockMemberSearch(page);
+  await page.goto("/search?q=piano&view=tracks&type=main");
+
+  await page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).click();
+  const shortlist = page.getByRole("dialog", { name: "Shortlist" });
+  if (await shortlist.isVisible()) {
+    await shortlist.getByRole("button", { name: "Fermer", exact: true }).click();
+    await expect(shortlist).toBeHidden();
+  }
+  await page.getByRole("button", { name: /^Écouter Piano documentaire/ }).click();
+
+  const player = page.getByTestId("player-dock");
+  await expect(player).toHaveAttribute("data-player-state", "docked");
+  await expect(player.getByRole("link", { name: "Ouvrir la piste Piano documentaire" })).toHaveAttribute("href", "/albums/album-1?track=track-1");
+  await expect(player.getByRole("link", { name: "Ouvrir le label Parigo" })).toHaveAttribute("href", "/labels/parigo");
+  await player.getByTestId("player-waveform").evaluate((node) => { node.dataset.persistenceMarker = "same-waveform"; });
+
+  await player.getByRole("button", { name: "Ranger le lecteur" }).click();
+  await expect(player).toHaveAttribute("data-player-state", "stowed");
+  await expect(player).toHaveAttribute("data-playing", "true");
+  const playerBox = await player.boundingBox();
+  expect(playerBox).not.toBeNull();
+  expect(playerBox!.width).toBeLessThanOrEqual(65);
+  expect(playerBox!.height).toBeLessThanOrEqual(70);
+  await expect(player.getByRole("button", { name: /pause/i })).toBeVisible();
+  await expect(player.getByRole("button", { name: "Déployer le lecteur" })).toBeVisible();
+  await expect(player.getByTestId("player-waveform")).toHaveAttribute("data-persistence-marker", "same-waveform");
+
+  const shortlistTrigger = page.locator("[data-shortlist-trigger]");
+  await expect(shortlistTrigger).toBeVisible();
+  await expect.poll(async () => {
+    const [compactBox, triggerBox] = await Promise.all([player.boundingBox(), shortlistTrigger.boundingBox()]);
+    return compactBox && triggerBox ? compactBox.y - (triggerBox.y + triggerBox.height) : -1;
+  }).toBeGreaterThanOrEqual(10);
+
+  await player.getByRole("button", { name: "Déployer le lecteur" }).click();
+  await expect(player).toHaveAttribute("data-player-state", "docked");
+  await expect(player.getByTestId("player-waveform")).toHaveAttribute("data-persistence-marker", "same-waveform");
+});
+
+test("la waveform d’une piste pilote la position du player à la souris et au clavier", async ({ page }) => {
+  await mockMemberSearch(page);
+  await page.goto("/search?q=piano&view=tracks&type=main");
+  const row = page.locator('.parigo-track-row[data-track-id="track-1"]');
+  const waveform = row.getByRole("slider", { name: "Position de lecture : Piano documentaire" });
+  await expect(waveform).toBeVisible();
+
+  const bounds = await waveform.boundingBox();
+  expect(bounds).not.toBeNull();
+  await page.mouse.click(bounds!.x + bounds!.width * .75, bounds!.y + bounds!.height / 2);
+  const player = page.getByTestId("player-dock");
+  await expect(player).toBeVisible();
+  await expect(player.getByTestId("player-time-current")).toHaveText(/1:5[01]/);
+  await expect(waveform).toHaveAttribute("aria-valuenow", "75");
+
+  await waveform.focus();
+  await waveform.press("ArrowLeft");
+  await expect(player.getByTestId("player-time-current")).toHaveText("1:43");
+  await expect(waveform).toHaveAttribute("aria-valuenow", "70");
+});
 
 test("la recherche connectée se sauvegarde avec le double contour porté par le formulaire", async ({ page }) => {
   await mockMemberSearch(page);

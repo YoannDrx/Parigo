@@ -18,6 +18,8 @@ interface WaveformProps {
   interactive?: boolean;
   /** Callback when user seeks */
   onSeek?: (progress: number) => void;
+  /** Accessible name for an interactive waveform */
+  ariaLabel?: string;
   /** Additional class names */
   className?: string;
 }
@@ -30,6 +32,7 @@ export function Waveform({
   progressColor = "var(--color-primary)",
   interactive = false,
   onSeek,
+  ariaLabel,
   className,
 }: WaveformProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -124,6 +127,22 @@ export function Waveform({
     onSeek(Math.max(0, Math.min(100, percentage)));
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!interactive || !onSeek) return;
+    const next = event.key === "Home"
+      ? 0
+      : event.key === "End"
+        ? 100
+        : event.key === "ArrowLeft" || event.key === "ArrowDown"
+          ? progress - 5
+          : event.key === "ArrowRight" || event.key === "ArrowUp"
+            ? progress + 5
+            : null;
+    if (next === null) return;
+    event.preventDefault();
+    onSeek(Math.max(0, Math.min(100, next)));
+  };
+
   return (
     <div
       ref={containerRef}
@@ -134,6 +153,13 @@ export function Waveform({
       )}
       style={{ height }}
       onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      role={interactive ? "slider" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-label={interactive ? ariaLabel : undefined}
+      aria-valuemin={interactive ? 0 : undefined}
+      aria-valuemax={interactive ? 100 : undefined}
+      aria-valuenow={interactive ? Math.round(progress) : undefined}
     >
       <canvas
         ref={canvasRef}

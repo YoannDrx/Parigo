@@ -22,6 +22,7 @@ describe("player store", () => {
       queue: [],
       queueIndex: 0,
       progress: 0,
+      seekRevision: 0,
       repeatMode: "off",
       shuffleEnabled: false,
     });
@@ -47,5 +48,17 @@ describe("player store", () => {
     expect(usePlayerStore.getState().volume).toBe(1);
     usePlayerStore.getState().setVolume(-1);
     expect(usePlayerStore.getState().volume).toBe(0);
+  });
+
+  it("publie une intention de seek sans changer l’état de lecture", () => {
+    const track = makeTrack("seekable");
+    usePlayerStore.getState().play(track);
+    const revision = usePlayerStore.getState().seekRevision;
+
+    usePlayerStore.getState().seekTo(48);
+
+    expect(usePlayerStore.getState().progress).toBe(48);
+    expect(usePlayerStore.getState().seekRevision).toBe(revision + 1);
+    expect(usePlayerStore.getState().isPlaying).toBe(true);
   });
 });

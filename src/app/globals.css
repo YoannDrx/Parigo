@@ -570,6 +570,7 @@ textarea {
 
 ::selection{background:var(--signal);color:#fff}
 body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,calc(1.75rem + env(safe-area-inset-bottom)))}
+body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1.75rem + env(safe-area-inset-bottom)))}
 
 .parigo-button {
   position: relative;
@@ -3545,6 +3546,32 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 }
 .parigo-player {
   border-radius: var(--parigo-corner-lg) var(--parigo-turn-lg);
+  transition: width 360ms var(--ease-out), border-radius 360ms var(--ease-out), box-shadow 360ms var(--ease-out);
+}
+.parigo-player.parigo-player--stowed {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.parigo-player.parigo-player--stowed::before,
+.parigo-player.parigo-player--stowed::after {
+  display: none;
+}
+.parigo-player--stowed .parigo-player__stowed-cover {
+  border-radius: 0 !important;
+}
+.parigo-player__metadata-link {
+  text-decoration-line: underline;
+  text-decoration-color: transparent;
+  text-decoration-thickness: 1px;
+  text-underline-offset: .2em;
+}
+.parigo-player__metadata-link:hover,
+.parigo-player__metadata-link:focus-visible {
+  color: var(--signal);
+  text-decoration-color: color-mix(in srgb, var(--signal) 72%, transparent);
 }
 .parigo-player::before {
   top: 0;
@@ -3597,7 +3624,8 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
 }
 @media (max-width: 767px) {
   .parigo-player--expanded { inset:auto 0 0; display:flex; flex-direction:column; width:100%; max-height:min(78dvh,42rem); border-right:0; border-bottom:0; border-left:0; border-radius:var(--parigo-corner-lg) var(--parigo-turn-lg) 0 0; }
-  .parigo-player--expanded > div:nth-child(2) { flex: 0 0 auto; }
+  .parigo-player--expanded > .parigo-player__standard { display:flex; min-height:0; flex:1; flex-direction:column; }
+  .parigo-player--expanded .parigo-player__main { flex: 0 0 auto; }
   .parigo-player--expanded .parigo-player__expanded { min-height:0; flex:0 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .parigo-player--expanded .parigo-player__expanded > div { min-height:max-content; grid-template-columns:1fr; padding-bottom:max(1rem,env(safe-area-inset-bottom)); }
 }

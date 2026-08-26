@@ -10,6 +10,7 @@ interface PlayerState {
   isPlaying: boolean;
   volume: number;
   progress: number;
+  seekRevision: number;
   duration: number;
   queue: Track[];
   queueIndex: number;
@@ -25,6 +26,7 @@ interface PlayerActions {
   toggle: () => void;
   setVolume: (volume: number) => void;
   setProgress: (progress: number) => void;
+  seekTo: (progress: number) => void;
   setDuration: (duration: number) => void;
   next: () => void;
   previous: () => void;
@@ -44,6 +46,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   isPlaying: false,
   volume: 0.8,
   progress: 0,
+  seekRevision: 0,
   duration: 0,
   queue: [],
   queueIndex: 0,
@@ -79,6 +82,11 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
   setVolume: (volume: number) => set({ volume: Math.max(0, Math.min(1, volume)) }),
 
   setProgress: (progress: number) => set({ progress }),
+
+  seekTo: (progress: number) => set((state) => ({
+    progress: Math.max(0, progress),
+    seekRevision: state.seekRevision + 1,
+  })),
 
   setDuration: (duration: number) => set({ duration }),
 
@@ -133,7 +141,7 @@ export const usePlayerStore = create<PlayerStore>((set, get) => ({
         isPlaying: true,
       });
     } else {
-      set({ progress: 0 });
+      set((state) => ({ progress: 0, seekRevision: state.seekRevision + 1 }));
     }
   },
 
