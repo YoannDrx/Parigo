@@ -750,70 +750,53 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
   border-top-color: rgba(255,255,255,.48);
   border-right-color: rgba(255,255,255,.48);
 }
-.signal-field-fallback {
-  overflow: visible;
-  opacity: .68;
-  filter: blur(.15px);
+.hero-gradflow {
+  --hero-gradient-1: #f2f1ed;
+  --hero-gradient-2: #b7ddc0;
+  --hero-gradient-3: #5eaf77;
+  isolation: isolate;
+  background: var(--hero-gradient-1);
 }
-.hero-signal-field {
-  opacity: .94;
-  mix-blend-mode: multiply;
-  filter: saturate(1.28) contrast(1.32);
+.hero-gradflow[data-gradient-preset="ai-light"] {
+  --hero-gradient-1: #f4efff;
+  --hero-gradient-2: #cbb5fb;
+  --hero-gradient-3: #a06fe8;
 }
-.hero-signal-field .signal-field-fallback {
-  opacity: .86;
+.hero-gradflow[data-gradient-preset="catalog-dark"] {
+  --hero-gradient-1: #111411;
+  --hero-gradient-2: #203929;
+  --hero-gradient-3: #3f704d;
 }
-[data-theme="dark"] .hero-signal-field {
-  opacity: .78;
-  mix-blend-mode: screen;
-  filter: none;
+.hero-gradflow[data-gradient-preset="ai-dark"] {
+  --hero-gradient-1: #111411;
+  --hero-gradient-2: #2c1b49;
+  --hero-gradient-3: #5c3594;
 }
-[data-theme="dark"] .hero-signal-field .signal-field-fallback {
-  opacity: .68;
+.hero-gradflow__fallback {
+  background: linear-gradient(
+    180deg,
+    var(--hero-gradient-1) 0%,
+    var(--hero-gradient-2) 36%,
+    var(--hero-gradient-3) 58%,
+    var(--hero-gradient-2) 78%,
+    var(--hero-gradient-1) 100%
+  );
+  transition: background 620ms var(--ease-out);
 }
-.signal-field-fallback__wave {
-  transform-box: view-box;
-  transform-origin: center;
-  animation: signal-field-shift 11s linear infinite;
-  transition: color 620ms ease, opacity 620ms ease;
-  will-change: transform;
+.hero-gradflow__layer {
+  will-change: opacity;
 }
-.signal-field-fallback__wave path {
-  fill: none;
-  vector-effect: non-scaling-stroke;
-  stroke-linecap: round;
+.hero-gradflow__canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
 }
-.signal-field-fallback__wave--primary {
-  color: var(--signal);
-  animation-duration: 10s;
+.hero-gradflow__veil {
+  background:
+    linear-gradient(90deg, transparent 49.9%, color-mix(in srgb, var(--foreground) 5%, transparent) 50%, transparent 50.1%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 6%, transparent), transparent 26%, color-mix(in srgb, var(--surface) 9%, transparent));
+  opacity: .32;
 }
-.signal-field-fallback__wave--primary path {
-  stroke: currentColor;
-  stroke-width: 2.2;
-  filter: drop-shadow(0 0 13px color-mix(in srgb, var(--signal) 36%, transparent));
-}
-.signal-field-fallback__wave--soft {
-  color: color-mix(in srgb, var(--signal) 52%, #efffed);
-  animation-direction: reverse;
-  animation-duration: 14s;
-  opacity: .58;
-}
-.signal-field-fallback__wave--soft path {
-  stroke: currentColor;
-  stroke-width: 1.25;
-}
-.signal-field-fallback__wave--muted {
-  color: color-mix(in srgb, var(--signal-strong) 58%, var(--text-muted));
-  animation-duration: 18s;
-  opacity: .38;
-}
-.signal-field-fallback__wave--muted path {
-  stroke: currentColor;
-  stroke-width: 1;
-}
-.signal-field-fallback[data-mode="ai"] .signal-field-fallback__wave--primary { color: #a970ff; }
-.signal-field-fallback[data-mode="ai"] .signal-field-fallback__wave--soft { color: #e5d1ff; }
-.signal-field-fallback[data-mode="ai"] .signal-field-fallback__wave--muted { color: #76529f; }
 .home-hero {
   --hero-accent: var(--signal);
   --hero-soft: var(--signal-soft);
@@ -827,37 +810,6 @@ body:has([data-testid="player-dock"]) .parigo-footer{padding-bottom:max(7rem,cal
   background: var(--hero-accent);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--hero-accent) 42%, transparent);
   transition: background-color 500ms ease, box-shadow 500ms ease;
-}
-.signal-field-fallback[data-active="false"] .signal-field-fallback__wave {
-  animation-play-state: paused;
-}
-.signal-field-fallback[data-static="true"] .signal-field-fallback__wave {
-  animation: none;
-}
-@keyframes signal-field-shift {
-  from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(-40%, 0, 0); }
-}
-.organic-hero-fallback__core {
-  animation: organic-hero-fallback-drift 16s var(--ease-out) infinite alternate;
-  will-change: border-radius, transform;
-}
-.organic-hero-fallback[data-static="true"] .organic-hero-fallback__core {
-  animation: none;
-}
-@keyframes organic-hero-fallback-drift {
-  0% {
-    border-radius: 32% 68% 42% 58% / 64% 38% 62% 36%;
-    transform: translate(-50%, -50%) rotate(-1deg) scale(1);
-  }
-  52% {
-    border-radius: 40% 60% 30% 70% / 70% 34% 66% 30%;
-    transform: translate(-50%, -51.5%) rotate(2deg) scale(.96, 1.04);
-  }
-  100% {
-    border-radius: 27% 73% 45% 55% / 58% 44% 56% 42%;
-    transform: translate(-50%, -49%) rotate(-2deg) scale(1.035, .975);
-  }
 }
 .page-hero {
   position: relative;
