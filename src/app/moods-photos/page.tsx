@@ -3,11 +3,12 @@ import Image from "next/image";
 import { MoodsPhotoGallery } from "@/components/moods/MoodsPhotoGallery";
 import { parigoImageGallery } from "@/data/parigo-image-gallery";
 import {
-  PARIGO_REAL_TARGET_COUNT,
-  parigoRealGallery,
-} from "@/data/parigo-real-production";
+  PARIGO_REAL_FAMILY_COUNT,
+  PARIGO_REAL_VERSION_COUNT,
+  parigoRealVersionedGallery,
+} from "@/data/parigo-real-v2-calibration";
 
-const galleryImages = [...parigoImageGallery, ...parigoRealGallery];
+const galleryImages = [...parigoImageGallery, ...parigoRealVersionedGallery];
 
 export const metadata: Metadata = {
   title: "Moods photos",
@@ -55,7 +56,7 @@ export default function MoodsPhotosPage() {
       </section>
 
       <footer className="border-t border-[#332b21] px-4 py-8 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[#777064] sm:px-8">
-        Parigo Music · Moods photos · {parigoImageGallery.length} concepts · {parigoRealGallery.length}/{PARIGO_REAL_TARGET_COUNT} locaux réels
+        Parigo Music · Moods photos · {parigoImageGallery.length} concepts IA · {PARIGO_REAL_FAMILY_COUNT} familles de locaux réels · {PARIGO_REAL_VERSION_COUNT} versions historisées
       </footer>
     </main>
   );
