@@ -608,7 +608,10 @@ test("Gradflow sélectionne les quatre presets Catalogue et IA selon le thème",
   await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
   await hero.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(backdrop).toHaveAttribute("data-gradient-preset", "ai-light");
-  await page.getByRole("button", { name: "Passer au thème sombre" }).click();
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  const themeToggle = page.getByRole("button", { name: "Passer au thème sombre" });
+  await expect(themeToggle).toBeVisible();
+  await themeToggle.click();
   await expect(backdrop).toHaveAttribute("data-gradient-preset", "ai-dark");
   await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
   await hero.getByRole("option", { name: /Catalogue/ }).click();
