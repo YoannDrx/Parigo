@@ -242,7 +242,9 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     needs: preview
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # Nine mobile audits (three routes across three runs) can legitimately
+    # exceed ten minutes on a shared GitHub runner, before install overhead.
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v6
