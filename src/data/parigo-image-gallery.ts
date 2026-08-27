@@ -14,9 +14,29 @@ export type ParigoGalleryImage = {
   sourceAnchor?: string;
   references?: ParigoGalleryReference[];
   changeNotes?: string[];
-  status?: "calibration" | "approved" | "review";
+  familyCode?: `R${string}`;
+  version?: ParigoImageVersion;
+  versionKey?: string;
+  variantKind?: ParigoVariantKind;
+  isLatest?: boolean;
+  supersedes?: string;
+  status?: ParigoRealStatus;
   exports?: ParigoGalleryExport[];
 };
+
+export type ParigoImageVersion = 1 | 2 | 3;
+
+export type ParigoRealStatus =
+  | "historical"
+  | "calibration"
+  | "review"
+  | "approved"
+  | "rejected";
+
+export type ParigoVariantKind =
+  | "core"
+  | "favorite-portrait"
+  | "portrait-closeup";
 
 export type ParigoGalleryReference = {
   src: string;
