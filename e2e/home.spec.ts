@@ -355,6 +355,23 @@ test("le sélecteur du héros reste contenu sur un petit viewport", async ({ pag
   await expect(menu).toHaveAttribute("data-placement", "top");
 });
 
+test("le héros conserve un espace lisible sous la navbar sur iPhone SE", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La composition iPhone SE est contrôlée sur mobile.");
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto("/");
+
+  const header = page.locator("header");
+  const title = page.getByTestId("home-hero").locator('[data-banner-reveal="title"]');
+  await expect(page.getByTestId("home-hero-search-mask")).toHaveAttribute("data-banner-mask", "open");
+  const [headerBox, titleBox] = await Promise.all([header.boundingBox(), title.boundingBox()]);
+  expect(headerBox).not.toBeNull();
+  expect(titleBox).not.toBeNull();
+  const titleGap = titleBox!.y - (headerBox!.y + headerBox!.height);
+  expect(titleGap).toBeGreaterThanOrEqual(32);
+  expect(titleGap).toBeLessThanOrEqual(64);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+});
+
 test("la home ne propose DeepL qu’après le lancement d’une recherche vide", async ({ page }) => {
   let submittedSearches = 0;
   await page.route("**/api/autocomplete?**", async (route) => {
