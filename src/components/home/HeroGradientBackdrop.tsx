@@ -8,6 +8,7 @@ import { useTheme } from "@/components/providers/ThemeProvider";
 import type { SearchMode } from "@/types";
 import { useHomeReducedMotion } from "./HomeMotion";
 import { getHeroGradientPreset, type HeroGradientMode } from "./hero-gradient-presets";
+import { supportsHardwareAcceleratedWebGl } from "./webgl-capability";
 
 const DynamicGradFlow = dynamic<GradFlowProps>(
   () => import("gradflow").then((module) => module.GradFlow),
@@ -23,7 +24,9 @@ function useEnhancedGradient() {
 
   useEffect(() => {
     const connection = (navigator as DataSavingNavigator).connection;
-    const update = () => setEnabled(!connection?.saveData);
+    const update = () => setEnabled(
+      !connection?.saveData && supportsHardwareAcceleratedWebGl(),
+    );
     update();
     connection?.addEventListener("change", update);
     return () => connection?.removeEventListener("change", update);
