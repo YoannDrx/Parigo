@@ -35,6 +35,8 @@
     "test:search-contract": "node --env-file-if-exists=.env --import tsx docs/harvest/smoke-tests/search-contract.ts",
     "sync:composers": "node --import tsx scripts/sync-canonical-composers.ts",
     "validate:assets": "node --import tsx scripts/validate-public-assets.ts",
+    "prepare:parigo-real-assets": "node --import tsx scripts/prepare-parigo-real-assets.ts",
+    "export:parigo-real-calibration": "node --import tsx scripts/export-parigo-real-calibration.ts",
     "validate:budgets": "node --import tsx scripts/validate-build-budgets.ts",
     "test:seo": "node --env-file-if-exists=.env --import tsx scripts/verify-seo.ts",
     "test:lighthouse": "pnpm dlx @lhci/cli@0.15.1 autorun"

@@ -2,6 +2,12 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { MoodsPhotoGallery } from "@/components/moods/MoodsPhotoGallery";
 import { parigoImageGallery } from "@/data/parigo-image-gallery";
+import {
+  PARIGO_REAL_TARGET_COUNT,
+  parigoRealGallery,
+} from "@/data/parigo-real-production";
+
+const galleryImages = [...parigoImageGallery, ...parigoRealGallery];
 
 export const metadata: Metadata = {
   title: "Moods photos",
@@ -35,18 +41,21 @@ export default function MoodsPhotosPage() {
           <h1 className="mt-10 max-w-4xl font-heading text-4xl font-medium leading-[1.02] tracking-[-0.045em] sm:mt-14 sm:text-6xl lg:text-7xl">
             Exploration photographique
           </h1>
+          <p className="mt-5 max-w-3xl text-sm leading-6 text-[#aaa294] sm:text-base sm:leading-7">
+            Les concepts historiques restent disponibles tels quels. La collection « Locaux réels » documente la production éditoriale réalisée à partir des vraies photographies des bureaux Parigo.
+          </p>
           <div className="mt-10 border-t border-[#332b21] sm:mt-14" />
         </div>
       </header>
 
       <section className="px-4 py-10 sm:px-8 sm:py-14 lg:px-12 lg:py-16">
         <div className="mx-auto max-w-[1800px]">
-          <MoodsPhotoGallery images={parigoImageGallery} />
+          <MoodsPhotoGallery images={galleryImages} />
         </div>
       </section>
 
       <footer className="border-t border-[#332b21] px-4 py-8 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[#777064] sm:px-8">
-        Parigo Music · Moods photos · {parigoImageGallery.length} visuels
+        Parigo Music · Moods photos · {parigoImageGallery.length} concepts · {parigoRealGallery.length}/{PARIGO_REAL_TARGET_COUNT} locaux réels
       </footer>
     </main>
   );
