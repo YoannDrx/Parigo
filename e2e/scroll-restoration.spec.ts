@@ -77,6 +77,8 @@ test("le drawer restaure la position exacte de l’accueil au retour de Talents"
   await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   await page.getByRole("dialog", { name: "Menu principal" }).getByRole("link", { name: "Talents", exact: true }).click();
   await expect(page).toHaveURL(/\/talents$/);
+  await page.reload();
+  await expect(page).toHaveURL(/\/talents$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
   await expect.poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - restoredOrigin)).toBeLessThanOrEqual(2);
