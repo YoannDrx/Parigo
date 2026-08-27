@@ -8,6 +8,7 @@ interface ShortlistState {
   items: ShortlistItem[];
   isOpen: boolean;
   add: (track: Track) => void;
+  addSilently: (track: Track) => void;
   remove: (trackId: string) => void;
   clear: () => void;
   move: (trackId: string, direction: -1 | 1) => void;
@@ -29,6 +30,9 @@ export const useShortlistStore = create<ShortlistState>()(persist((set) => ({
   add: (track) => set((state) => state.items.some((item) => item.track.id === track.id)
     ? { isOpen: true }
     : { items: [...state.items, { track, addedAt: new Date().toISOString() }], isOpen: true }),
+  addSilently: (track) => set((state) => state.items.some((item) => item.track.id === track.id)
+    ? state
+    : { items: [...state.items, { track, addedAt: new Date().toISOString() }] }),
   remove: (trackId) => set((state) => ({ items: state.items.filter((item) => item.track.id !== trackId) })),
   clear: () => set({ items: [] }),
   move: (trackId, direction) => set((state) => {

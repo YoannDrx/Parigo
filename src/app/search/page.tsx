@@ -112,10 +112,11 @@ function SearchContent() {
   const initialSearchMode: SearchMode = searchParams.get("mode") === "ai" ? "ai" : "keyword";
   const rawSimilaritySource = searchParams.get("source");
   const initialSimilaritySource: SimilaritySearchSource = rawSimilaritySource === "track" || rawSimilaritySource === "upload" || rawSimilaritySource === "url" ? rawSimilaritySource : "prompt";
-  const initialSimilaritySeedIds = [...new Set([
+  const initialSimilaritySeedIds = useMemo(() => [...new Set([
     ...csv(searchParams.get("seeds")),
     ...searchParams.getAll("seed").flatMap(csv),
-  ])].slice(0, 10);
+  ])].slice(0, 10), [searchParams]);
+  const autoRunTrackSimilarity = searchParams.get("run") === "1";
   const legacyKeyword = searchParams.get("keyword") ?? searchParams.get("brief") ?? "";
   const rawInitialQuery = searchParams.get("q") ?? legacyKeyword;
   const initialQuery = stripQuotes(rawInitialQuery);
@@ -182,7 +183,6 @@ function SearchContent() {
     || similarityCapabilitiesQuery.data.upload.enabled
     || similarityCapabilitiesQuery.data.externalUrl.enabled
   ));
-
 
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
@@ -260,7 +260,7 @@ function SearchContent() {
     // On mobile the filter sheet is an explicit apply surface. Deferring the URL
     // replacement keeps the focus trap and scroll position stable while users
     // make several selections; closing the sheet commits the canonical URL.
-    if (mobileFiltersOpen || searchMode === "ai") return;
+    if (mobileFiltersOpen || searchMode === "ai" || searchParams.get("mode") === "ai") return;
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (query && translation !== "offer") params.set("translation", translation);
@@ -421,6 +421,8 @@ function SearchContent() {
       params.delete("source");
       params.delete("seed");
       params.delete("seeds");
+      params.delete("run");
+      params.delete("pick");
     }
     window.history.replaceState(window.history.state, "", `${localizedPath("/search")}${params.size ? `?${params}` : ""}`);
   };
@@ -431,6 +433,12 @@ function SearchContent() {
     const params = new URLSearchParams(window.location.search);
     params.set("mode", "ai");
     params.set("source", nextSource);
+    if (nextSource !== "track") {
+      params.delete("seed");
+      params.delete("seeds");
+      params.delete("run");
+      params.delete("pick");
+    }
     window.history.replaceState(window.history.state, "", `${localizedPath("/search")}?${params}`);
   };
 
@@ -438,6 +446,7 @@ function SearchContent() {
     source: similaritySource,
     prompt: similarityPrompt,
     initialSeedIds: initialSimilaritySeedIds,
+    autoRunTrack: autoRunTrackSimilarity,
     initialHandoff: initialSimilarityHandoff,
     onPromptChange: setSimilarityPrompt,
     onSourceChange: updateSimilaritySource,
@@ -645,13 +654,15 @@ function SearchContent() {
                   ? locale === "fr" ? "Collez un lien YouTube, Spotify, Vimeo, SoundCloud, Apple Music ou TikTok…" : "Paste a YouTube, Spotify, Vimeo, SoundCloud, Apple Music or TikTok link…"
                   : locale === "fr" ? "Décrivez une scène, une émotion, un rythme ou un usage…" : "Describe a scene, emotion, rhythm or use…"}
                 aiSubmitLabel={similarity.effectiveSource === "track"
-                  ? locale === "fr" ? `Trouver des pistes similaires (${similarity.seedIds.length})` : `Find similar tracks (${similarity.seedIds.length})`
+                  ? similarity.referencesDirty
+                    ? locale === "fr" ? `Relancer avec ${similarity.seedIds.length} référence${similarity.seedIds.length > 1 ? "s" : ""}` : `Run again with ${similarity.seedIds.length} reference${similarity.seedIds.length > 1 ? "s" : ""}`
+                    : locale === "fr" ? `Trouver des pistes similaires (${similarity.seedIds.length})` : `Find similar tracks (${similarity.seedIds.length})`
                   : similarity.effectiveSource === "prompt"
                     ? locale === "fr" ? "Lancer le brief" : "Run brief"
                     : similarity.effectiveSource === "upload"
                       ? locale === "fr" ? "Envoyer et analyser" : "Upload and analyse"
                       : locale === "fr" ? "Analyser le lien" : "Analyse link"}
-                aiCustomContent={similarity.effectiveSource === "track" || similarity.effectiveSource === "upload" ? <SimilarityCommandContent controller={similarity} initialPickerOpen={initialSimilarityHandoff?.source === "track" && initialSimilarityHandoff.openPicker} onInitialPickerConsumed={() => clearSimilarityHandoff("track")} /> : undefined}
+                aiCustomContent={similarity.effectiveSource === "track" || similarity.effectiveSource === "upload" ? <SimilarityCommandContent controller={similarity} initialPickerOpen={initialSimilarityHandoff?.source === "track" && "openPicker" in initialSimilarityHandoff && initialSimilarityHandoff.openPicker} onInitialPickerConsumed={() => clearSimilarityHandoff("track")} /> : undefined}
                 aiLeadingContent={similarity.effectiveSource === "url" ? <Link2 size={18} className="text-[var(--text-muted)]" /> : undefined}
                 aiRecentEnabled={similarity.effectiveSource === "prompt"}
                 onAiFilesDrop={selectSimilarityFiles}
@@ -828,5 +839,24 @@ function SearchContent() {
 }
 
 export default function SearchPage() {
-  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><ParigoLoader size="page" /></div>}><SearchContent /></Suspense>;
+  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><ParigoLoader size="page" /></div>}><SearchContentBoundary /></Suspense>;
+}
+
+function SearchContentBoundary() {
+  const searchParams = useSearchParams();
+  const launchSeeds = [...new Set([
+    ...csv(searchParams.get("seeds")),
+    ...searchParams.getAll("seed").flatMap(csv),
+  ])].slice(0, 10);
+  const launchKey = searchParams.get("mode") === "ai"
+    && searchParams.get("source") === "track"
+    && searchParams.get("run") === "1"
+    && launchSeeds.length
+    ? `track:${launchSeeds.join("\u0000")}`
+    : searchParams.get("mode") === "ai"
+      && searchParams.get("source") === "track"
+      && searchParams.get("pick") === "1"
+      ? "track-picker"
+      : "default";
+  return <SearchContent key={launchKey} />;
 }

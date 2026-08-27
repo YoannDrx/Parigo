@@ -195,6 +195,13 @@ export async function fetchAlbum(idOrSlug: string): Promise<{
   return payload.data;
 }
 
+export async function fetchTrack(id: string, signal?: AbortSignal): Promise<Track> {
+  const response = await fetch(`${API_BASE}/tracks/${encodeURIComponent(id)}`, { signal });
+  if (!response.ok) throw new Error("Failed to fetch track");
+  const payload = await response.json() as { data: { track: Track } };
+  return payload.data.track;
+}
+
 export async function fetchTracks(params?: {
   limit?: number;
   offset?: number;

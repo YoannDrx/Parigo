@@ -52,8 +52,8 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
   await expect(sidebar).toContainText("Choisissez votre méthode");
   await expect(sidebar).not.toContainText(/AIMS|Harvest|01 ·|02 ·|03 ·|04 ·/i);
   await expect(methods.getByRole("button")).toHaveCount(4);
-  expect(await methods.locator("strong").allTextContents()).toEqual(["Décrire une musique", "À partir de la shortlist", "Importer un fichier", "Rechercher depuis un lien"]);
-  await expect(methods.getByRole("button", { name: /À partir de la shortlist/ })).toHaveAttribute("aria-pressed", "true");
+  expect(await methods.locator("strong").allTextContents()).toEqual(["Décrire une musique", "Pistes de référence", "Importer un fichier", "Rechercher depuis un lien"]);
+  await expect(methods.getByRole("button", { name: /Pistes de référence/ })).toHaveAttribute("aria-pressed", "true");
   await expect(workspace.getByRole("group", { name: "Méthodes de recherche par similarité IA" })).toHaveCount(0);
   await expect(workspace.getByRole("button", { name: "Trouver des pistes similaires (0)" })).toBeDisabled();
 
@@ -91,6 +91,117 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
     expect(sidebarBox!.y).toBeLessThan(resultsBox!.y);
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+});
+
+test("une piste du listing lance immédiatement sa recherche de similarité", async ({ page }) => {
+  const shortlistTrack = { ...similarityTrack, id: "shortlist-track-1", title: "Référence de la shortlist" };
+  await page.addInitScript((track) => {
+    window.localStorage.setItem("parigo-shortlist", JSON.stringify({
+      state: { items: [{ track, addedAt: "2026-08-27T06:00:00.000Z" }] },
+      version: 2,
+    }));
+  }, shortlistTrack);
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: false, enabled: false, contentTypes: [], maxBytes: 0, maxDurationSeconds: 0 },
+      externalUrl: { advertised: false, enabled: false, platforms: [] },
+      playlistSuggestions: false,
+    } }),
+  }));
+  await page.route("**/api/search/filters?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { groups: [] } }),
+  }));
+  await page.route("**/api/search?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({
+      data: { items: [similarityTrack], view: "tracks", facets: { categories: [], labels: [], styles: [] } },
+      meta: { page: 1, pageSize: 30, total: 1, requestId: "e2e-catalog-similarity-handoff" },
+    }),
+  }));
+
+  let submittedBody: unknown;
+  await page.route("**/api/similarity/search", (route) => {
+    submittedBody = route.request().postDataJSON();
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { tracks: [{ ...similarityTrack, id: "similar-result-1", title: "Reflet nocturne" }], mode: "track" },
+        meta: { total: 1, durationMs: 12, requestId: "e2e-track-similarity" },
+      }),
+    });
+  });
+
+  await page.goto("/search");
+  const similarTracksLink = page.getByRole("link", { name: `Trouver des pistes similaires : ${similarityTrack.title}` });
+  if (!await similarTracksLink.isVisible()) {
+    await page.getByRole("button", { name: `Plus d’actions : ${similarityTrack.title}` }).click();
+  }
+  await similarTracksLink.click();
+
+  await expect(page.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
+  await expect(page.getByText("Reflet nocturne")).toBeVisible();
+  expect(submittedBody).toEqual({
+    type: "track",
+    seedTrackIds: [similarityTrack.id],
+    includeSeed: false,
+    prioritizeBpm: false,
+  });
+  const currentUrl = new URL(page.url());
+  expect(currentUrl.searchParams.get("source")).toBe("track");
+  expect(currentUrl.searchParams.get("seed")).toBe(similarityTrack.id);
+  expect(currentUrl.searchParams.get("run")).toBe("1");
+
+  const referenceTrigger = page.getByRole("button", { name: new RegExp(`Référence : ${similarityTrack.title}`) });
+  await referenceTrigger.click();
+  const referencePanel = page.getByRole("dialog", { name: "Choisir les pistes de référence" });
+  await expect(referencePanel.getByLabel("Références utilisées")).toContainText(similarityTrack.title);
+  await expect(referencePanel.getByText("Référence de la shortlist")).toBeVisible();
+  await expect(referencePanel).not.toContainText("sélectionnée dans votre shortlist");
+
+  await referencePanel.getByText("Référence de la shortlist").click();
+  await expect(page.getByRole("button", { name: "Relancer avec 2 références" })).toBeVisible();
+  await expect(page.getByText("Les références ont été modifiées. Relancez la recherche pour actualiser les résultats.")).toBeVisible();
+});
+
+test("le drawer shortlist ouvre un sélecteur vide sans présélection implicite", async ({ page }) => {
+  const shortlistTrack = { ...similarityTrack, id: "drawer-reference-1", title: "Piste disponible dans la shortlist" };
+  await page.addInitScript((track) => {
+    window.localStorage.setItem("parigo-shortlist", JSON.stringify({
+      state: { items: [{ track, addedAt: "2026-08-27T06:00:00.000Z" }] },
+      version: 2,
+    }));
+  }, shortlistTrack);
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: false, enabled: false, contentTypes: [], maxBytes: 0, maxDurationSeconds: 0 },
+      externalUrl: { advertised: false, enabled: false, platforms: [] },
+      playlistSuggestions: false,
+    } }),
+  }));
+  await page.route("**/api/search/filters?**", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify({ data: { groups: [] } }) }));
+  await page.route("**/api/search?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { items: [], view: "tracks", facets: { categories: [], labels: [], styles: [] } }, meta: { page: 1, pageSize: 30, total: 0, requestId: "drawer-picker-e2e" } }),
+  }));
+
+  await page.goto("/search");
+  await page.locator("[data-shortlist-trigger]").click();
+  await page.getByRole("dialog", { name: "Shortlist" }).getByRole("link", { name: "Choisir des références pour la similarité" }).click();
+
+  await expect(page.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
+  const picker = page.getByRole("dialog", { name: "Choisir les pistes de référence" });
+  await expect(picker).toBeVisible();
+  await expect(picker.getByText(shortlistTrack.title)).toBeVisible();
+  await expect(picker.getByText("Aucune référence sélectionnée.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Trouver des pistes similaires (0)" })).toBeDisabled();
+  expect(new URL(page.url()).searchParams.get("pick")).toBe("1");
 });
 
 test("l’affichage rejoint le compteur, garde le corner catalogue et aligne la barre sticky", async ({ page }, testInfo) => {
@@ -237,8 +348,8 @@ test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", asy
   await aiInput.press("Escape");
 
   const methods = page.getByRole("complementary", { name: "Modes de recherche par similarité IA" }).getByRole("group", { name: "Choisir une méthode de similarité" });
-  await methods.getByRole("button", { name: /À partir de la shortlist/ }).click();
-  const shortlistTrigger = command.getByRole("button", { name: /Choisissez des pistes dans votre shortlist/ });
+  await methods.getByRole("button", { name: /Pistes de référence/ }).click();
+  const shortlistTrigger = command.getByRole("button", { name: /Choisir des pistes de référence/ });
   await expect(shortlistTrigger).toHaveAttribute("aria-expanded", "false");
   if (testInfo.project.name === "desktop") {
     const chevron = shortlistTrigger.locator(".similarity-shortlist-trigger__chevron");
@@ -246,10 +357,12 @@ test("le sélecteur de mode et la coque IA restent au-dessus de la toolbar", asy
     await shortlistTrigger.hover();
     await expect.poll(() => chevron.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe(initialBackground);
     await expect(chevron).not.toHaveCSS("border-color", "rgba(0, 0, 0, 0)");
+    await expect(shortlistTrigger).toHaveCSS("box-shadow", "none");
+    expect((await chevron.boundingBox())?.width).toBeLessThanOrEqual(32);
   }
   await shortlistTrigger.click();
   await expect(shortlistTrigger).toHaveAttribute("aria-expanded", "true");
-  const shortlistPanel = page.getByRole("dialog", { name: "Sélectionner les pistes de la shortlist" });
+  const shortlistPanel = page.getByRole("dialog", { name: "Choisir les pistes de référence" });
   await expect(shortlistPanel).toBeVisible();
   const [panelBox, formBox] = await Promise.all([
     shortlistPanel.boundingBox(),
@@ -282,7 +395,7 @@ test("la shortlist garde la hauteur du brief et l’import s’anime sans étire
   await expect(methods.getByRole("button")).toHaveCount(4);
   const promptHeight = (await form.boundingBox())!.height;
 
-  await methods.getByRole("button", { name: /À partir de la shortlist/ }).click();
+  await methods.getByRole("button", { name: /Pistes de référence/ }).click();
   const shortlistHeight = (await form.boundingBox())!.height;
   expect(Math.abs(shortlistHeight - promptHeight)).toBeLessThanOrEqual(1);
 

@@ -2669,22 +2669,20 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 .similarity-shortlist-trigger {
   border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
   outline: none;
-  transition: background-color var(--motion-fast) ease, box-shadow var(--motion-fast) ease;
 }
 .similarity-shortlist-trigger__chevron {
   border: 1px solid transparent;
   border-radius: var(--parigo-corner-sm) var(--parigo-turn-sm);
-  transition: color var(--motion-fast) ease, background-color var(--motion-fast) ease, border-color var(--motion-fast) ease, transform var(--motion-fast) ease;
-}
-.similarity-shortlist-trigger:is(:hover, :focus-visible) {
-  background: color-mix(in srgb, var(--ai-search) 5%, transparent);
-  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--ai-search) 72%, transparent);
+  transition: color var(--motion-fast) ease, background-color var(--motion-fast) ease, border-color var(--motion-fast) ease;
 }
 .similarity-shortlist-trigger:is(:hover, :focus-visible) .similarity-shortlist-trigger__chevron {
-  border-color: color-mix(in srgb, var(--ai-search) 48%, var(--line));
-  background: color-mix(in srgb, var(--ai-search) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--ai-search) 30%, var(--line));
+  background: color-mix(in srgb, var(--ai-search) 6%, var(--surface));
   color: var(--ai-search);
-  transform: translateY(1px);
+}
+.similarity-shortlist-trigger:focus-visible .similarity-shortlist-trigger__chevron {
+  outline: 2px solid color-mix(in srgb, var(--ai-search) 38%, transparent);
+  outline-offset: 1px;
 }
 .search-filter-field::before,
 .search-filter-field::after {

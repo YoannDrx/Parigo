@@ -114,7 +114,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
   const selectSimilaritySource = (source: SimilaritySearchSource) => {
     if (source === "track") {
       setSimilarityHandoff({ source: "track", openPicker: true });
-      router.push(localizedPath("/search?mode=ai&source=track"));
+      router.push(localizedPath("/search?mode=ai&source=track&pick=1"));
       return;
     }
     similarityFile.clearFile();

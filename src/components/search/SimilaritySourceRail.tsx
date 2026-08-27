@@ -17,10 +17,10 @@ export const SIMILARITY_SOURCE_COPY = {
     icon: Sparkles,
   },
   track: {
-    fr: "À partir de la shortlist",
-    en: "From the shortlist",
-    detailFr: "Comparez une à dix pistes de travail",
-    detailEn: "Compare one to ten working tracks",
+    fr: "Pistes de référence",
+    en: "Reference tracks",
+    detailFr: "Une à dix pistes du catalogue ou de votre shortlist",
+    detailEn: "One to ten tracks from the catalogue or your shortlist",
     icon: ListMusic,
   },
   upload: {
