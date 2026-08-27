@@ -291,7 +291,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   return (
     <section ref={catalogWorkspaceRef}>
       <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="search-filter-sticky hidden min-w-0 overflow-y-auto pb-5 lg:block">{filterPanel}</aside>
+        <aside className="search-desktop-filters search-filter-sticky hidden min-w-0 overflow-y-auto pb-5 lg:block">{filterPanel}</aside>
         <div className="min-w-0">
           <CatalogToolbar
             locale={locale}
@@ -322,7 +322,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             ) : undefined}
           >
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="gap-2 lg:hidden">
+              <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="search-mobile-filter-trigger gap-2 lg:hidden">
                 <SlidersHorizontal size={16} />{locale === "fr" ? "Tous les filtres" : "All filters"}
               </Button>
             </div>

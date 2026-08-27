@@ -21,6 +21,7 @@ import { AddTagButton } from "./AddTagButton";
 import { CueSheetButton } from "./CueSheetButton";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { searchLyricsTextSegments } from "@/lib/search-normalization";
+import { useTouchLayout } from "@/hooks/use-touch-layout";
 
 export type TrackDetailsTab = "information" | "versions" | "lyrics" | "notes";
 
@@ -179,10 +180,10 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
   const rightHolders = rightHoldersById[activeTrackId] ?? displayed.rightHolders ?? [];
   const rightHoldersLoading = activeTab === "information" && !rightHoldersById[activeTrackId];
   const rootTrackLoading = selectedTrack.id === track.id && detailsLoading && !detailsById[track.id];
+  const isTouchLayout = useTouchLayout();
 
   useEffect(() => {
-    const mobile = window.matchMedia("(max-width: 767px)");
-    if (!mobile.matches) return;
+    if (!isTouchLayout) return;
     const focusable = () => [...(panelRef.current?.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
     const frame = window.requestAnimationFrame(() => panelRef.current?.querySelector<HTMLElement>("[data-track-sheet-close]")?.focus());
     const trapFocus = (event: KeyboardEvent) => {
@@ -198,7 +199,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", trapFocus);
     };
-  }, []);
+  }, [isTouchLayout]);
 
   useEffect(() => {
     const controller = new AbortController();

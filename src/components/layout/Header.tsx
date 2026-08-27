@@ -18,6 +18,7 @@ import { releaseBodyScrollLockBeforeNavigation, useBodyScrollLock } from "@/hook
 interface HeaderProps { variant?: "default" | "overlay"; }
 
 let persistedHeaderMenuOpen = false;
+let pendingDrawerReturn: { path: string; scrollY: number } | null = null;
 
 function LanguageLink({ className, children }: { className: string; children: ReactNode }) {
   const pathname = usePathname();
@@ -71,6 +72,38 @@ export function Header({ variant = "default" }: HeaderProps) {
     window.addEventListener("scroll", updateHeader, { passive: true });
     return () => window.removeEventListener("scroll", updateHeader);
   }, [open]);
+
+  useEffect(() => {
+    const restoreDrawerOrigin = () => {
+      const pending = pendingDrawerReturn;
+      if (!pending) return;
+
+      let frame = 0;
+      let attempts = 0;
+      const restore = () => {
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+        if (currentPath !== pending.path) {
+          if (attempts++ < 120) frame = window.requestAnimationFrame(restore);
+          return;
+        }
+
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        if (maxScroll < pending.scrollY && attempts++ < 120) {
+          frame = window.requestAnimationFrame(restore);
+          return;
+        }
+
+        window.scrollTo({ top: pending.scrollY, behavior: "instant" });
+        pendingDrawerReturn = null;
+      };
+
+      frame = window.requestAnimationFrame(restore);
+      window.setTimeout(() => window.cancelAnimationFrame(frame), 2_500);
+    };
+
+    window.addEventListener("popstate", restoreDrawerOrigin);
+    return () => window.removeEventListener("popstate", restoreDrawerOrigin);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -130,7 +163,11 @@ export function Header({ variant = "default" }: HeaderProps) {
   const navigateFromOpenMenu = useCallback((href: string): LinkProps["onNavigate"] => (event) => {
     if (!open) return;
     event.preventDefault();
-    releaseBodyScrollLockBeforeNavigation();
+    const scrollY = releaseBodyScrollLockBeforeNavigation();
+    pendingDrawerReturn = {
+      path: `${window.location.pathname}${window.location.search}`,
+      scrollY,
+    };
     setOpen(false);
     router.push(href);
   }, [open, router, setOpen]);

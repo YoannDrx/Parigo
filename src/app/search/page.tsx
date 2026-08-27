@@ -572,7 +572,7 @@ function SearchContent() {
       <main className="min-w-0 flex-1 overflow-x-clip pb-[var(--space-page-end)] pt-[74px]">
         <h1 className="sr-only">{t("common.search")}</h1>
         <div className="mx-auto grid max-w-[1920px] items-start gap-4 px-3 pb-3 pt-1 sm:px-4 sm:py-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-          {searchMode === "keyword" && <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
+          {searchMode === "keyword" && <aside className="search-desktop-filters search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
             {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
           </aside>}
 
@@ -626,7 +626,7 @@ function SearchContent() {
 
               {searchMode === "keyword" && <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
                 <div className="contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-wrap lg:items-center lg:gap-2">
-                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
+                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="search-mobile-filter-trigger inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
                   <Select variant="editorial" caption={locale === "fr" ? "Résultats" : "Results"} value={view} onValueChange={(value) => { setView(value as ResultView); setPage(1); }} ariaLabel={locale === "fr" ? "Type de résultats" : "Result type"} className="w-full min-w-0 lg:w-auto lg:min-w-[10rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "tracks", label: locale === "fr" ? "Pistes" : "Tracks" }, { value: "albums", label: "Albums" }]} />
                   {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="w-full min-w-0 lg:w-auto lg:min-w-[11.5rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "main", label: locale === "fr" ? "Principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
                 </div>

@@ -347,9 +347,11 @@ test("la home conserve le process et le brief sans les deux sections supprimées
   const processCards = process.getByTestId("process-card");
   await expect(processCards).toHaveCount(3);
   for (const card of await processCards.all()) await expect(card).toHaveCSS("background-color", "rgb(17, 18, 15)");
-  const firstShadow = await processCards.nth(0).evaluate((node) => getComputedStyle(node).boxShadow);
-  const secondShadow = await processCards.nth(1).evaluate((node) => getComputedStyle(node).boxShadow);
-  expect(secondShadow).not.toBe(firstShadow);
+  const cardStyles = await processCards.evaluateAll((cards) => cards.map((node) => {
+    const style = getComputedStyle(node);
+    return { background: style.backgroundImage, border: style.borderColor, shadow: style.boxShadow };
+  }));
+  expect(new Set(cardStyles.map((style) => JSON.stringify(style))).size).toBe(1);
   await expect(page.locator("#sensations")).toHaveCount(0);
   await expect(page.locator("#editorial-playlists")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: /Envoyez-nous un brief/ })).toBeVisible();

@@ -23,6 +23,7 @@ import { useI18n } from "@/components/providers/I18nProvider";
 import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { useSession } from "@/lib/auth-client";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { useTouchLayout } from "@/hooks/use-touch-layout";
 
 interface TrackRowProps {
   track: Track;
@@ -62,7 +63,7 @@ export function TrackRow({
   compact = false,
   density = compact ? "mid" : "full",
   condensedActions = false,
-  showCompleteActions = density === "full",
+  showCompleteActions = true,
   composerCredits,
   initialDetailsOpen = false,
   initialDetailsTab = "information",
@@ -84,7 +85,7 @@ export function TrackRow({
   const [detailsOpen, setDetailsOpen] = useState(initialDetailsOpen);
   const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>(initialDetailsTab);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isTouchLayout = useTouchLayout();
   const mobileActionsToken = useRef(Symbol(track.id));
   const articleRef = useRef<HTMLElement>(null);
   const actionsTriggerRef = useRef<HTMLButtonElement>(null);
@@ -101,17 +102,10 @@ export function TrackRow({
   const additionalTermsLabel = additionalTerms.slice(0, 12).map((term) => localizeCatalogTerm(term, locale)).join(" · ");
   const mobileActionsId = `track-actions-${track.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
 
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-  useBodyScrollLock(detailsOpen && isMobile);
+  useBodyScrollLock(detailsOpen && isTouchLayout);
 
   useEffect(() => {
-    if (!detailsOpen || !isMobile) return;
+    if (!detailsOpen || !isTouchLayout) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setDetailsOpen(false);
@@ -119,7 +113,7 @@ export function TrackRow({
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [detailsOpen, isMobile]);
+  }, [detailsOpen, isTouchLayout]);
 
   useEffect(() => {
     if (!mobileActionsOpen) return;
@@ -409,18 +403,18 @@ export function TrackRow({
       <div className="parigo-track-row__actions flex flex-shrink-0 items-center gap-0.5">
         <div className="parigo-track-row__desktop-actions hidden lg:contents"><FavoriteButton type="track" itemId={track.id} size="sm" />
         <Tooltip label={locale === "fr" ? "Informations sur la piste" : "Track information"}><button type="button" onClick={() => toggleDetails("information")} aria-expanded={detailsOpen} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></Tooltip><SimilarTracksButton track={track} />{session?.user && <Tooltip label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => toggleDetails("notes")} aria-expanded={detailsOpen && detailsTab === "notes"} className={cn("flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]", detailsOpen && detailsTab === "notes" && "text-[var(--signal-strong)]")} aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></Tooltip>}</div>
-        {!condensedActions && <div className="parigo-track-row__desktop-actions hidden lg:contents"><DownloadButton trackId={track.id} trackTitle={track.title} /><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /><AddTagButton trackId={track.id} trackTitle={track.title} /><CueSheetButton compact title={track.title} trackIds={[track.id]} /></div>}
-        {!condensedActions && showCompleteActions && <Tooltip label={locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} className="parigo-track-row__wide-action hidden xl:inline-flex"><button onClick={() => addToQueue(track)} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}>
+        <div className="parigo-track-row__desktop-actions hidden lg:contents"><DownloadButton trackId={track.id} trackTitle={track.title} /><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /><AddTagButton trackId={track.id} trackTitle={track.title} /><CueSheetButton compact title={track.title} trackIds={[track.id]} /></div>
+        {showCompleteActions && <Tooltip label={locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} className="parigo-track-row__wide-action hidden xl:inline-flex"><button onClick={() => addToQueue(track)} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}>
           <ListEnd size={17} className="text-[var(--color-gray-500)]" />
         </button></Tooltip>}
         <Tooltip label={isShortlisted ? (locale === "fr" ? "Déjà dans la sélection — retirer" : "Already selected — remove") : (locale === "fr" ? "Ajouter à la sélection" : "Add to selection")}><button onClick={() => isShortlisted ? removeFromShortlist(track.id) : addToShortlist(track)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center border transition-colors", isShortlisted ? "border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal)_16%,transparent)]" : "border-[var(--signal-strong)]/45 text-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${track.title}`}>
           {isShortlisted ? <Check size={17} /> : <ListPlus size={17} />}
         </button></Tooltip>
-        <button ref={actionsTriggerRef} type="button" onClick={() => setMobileActionsOpen((value) => !value)} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} aria-haspopup={condensedActions ? "dialog" : undefined} className={cn("parigo-track-row__actions-trigger flex h-10 w-10 items-center justify-center border border-[var(--line-strong)] transition", !condensedActions && "lg:hidden", condensedActions && "rounded-[var(--parigo-corner-sm)_var(--parigo-turn-sm)]", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
+        <button ref={actionsTriggerRef} type="button" onClick={() => setMobileActionsOpen((value) => !value)} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} aria-haspopup={condensedActions ? "dialog" : undefined} className={cn("parigo-track-row__actions-trigger flex h-10 w-10 items-center justify-center border border-[var(--line-strong)] transition lg:hidden", condensedActions && "rounded-[var(--parigo-corner-sm)_var(--parigo-turn-sm)]", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
           <Ellipsis size={19} />
         </button>
-        {!condensedActions && showCompleteActions && <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="parigo-track-row__wide-action hidden xl:inline-flex"><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></Tooltip>}
-        {!condensedActions && showCompleteActions && <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"} className="parigo-track-row__wide-action hidden 2xl:inline-flex"><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}>
+        {showCompleteActions && <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="parigo-track-row__wide-action hidden xl:inline-flex"><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></Tooltip>}
+        {showCompleteActions && <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"} className="parigo-track-row__wide-action hidden 2xl:inline-flex"><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}>
           <ArrowUpRight size={17} className="text-[var(--color-gray-500)]" />
         </Link></Tooltip>}
       </div>
@@ -441,7 +435,7 @@ export function TrackRow({
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
       </div>}
-      {detailsSheet && isMobile && typeof document !== "undefined" ? createPortal(detailsSheet, document.body) : detailsSheet}
+      {detailsSheet && isTouchLayout && typeof document !== "undefined" ? createPortal(detailsSheet, document.body) : detailsSheet}
     </article>
   );
 }

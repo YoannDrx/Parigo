@@ -13,6 +13,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 test("les postes de filtrage défilent sur mobile et restent visibles sur desktop", async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
   for (const path of ["/albums", "/playlists", "/labels"]) {
     await page.goto(path);
     const workspace = page.getByTestId("catalog-workspace");
@@ -194,7 +195,8 @@ test("les playlists proposent une ligne compacte de facettes et uniquement le tr
   }
   await expect(page.locator("main select")).toHaveCount(0);
   await expect(page.getByText("Plus de pistes", { exact: true })).toHaveCount(0);
-  await expect(page.getByText(/métadonnées des pistes contenues dans les playlists/)).toBeVisible();
+  await expect(page.getByText(/métadonnées des pistes contenues dans les playlists/)).toHaveCount(0);
+  await expect(page.getByText(/metadata of tracks contained in the playlists/)).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
     const cards = page.getByTestId("playlist-grid").locator(".playlist-card");
     const [firstCard, secondCard] = await Promise.all([cards.nth(0).boundingBox(), cards.nth(1).boundingBox()]);

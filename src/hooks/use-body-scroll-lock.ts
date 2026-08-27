@@ -51,7 +51,9 @@ function releaseBodyScrollLock() {
  * calling router.push so browser back restoration records the right offset.
  */
 export function releaseBodyScrollLockBeforeNavigation() {
+  const scrollY = activeLocks > 0 ? lockedScrollY : window.scrollY;
   releaseBodyScrollLock();
+  return scrollY;
 }
 
 export function useBodyScrollLock(active: boolean) {

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 const sessionPayload = { data: { session: { user: { id: "member-1", email: "yoann@parigo.test", name: "Yoann Andrieux", image: null, role: "USER", createdAt: "2026-01-01T00:00:00.000Z" }, session: { expiresAt: "2026-08-01T00:00:00.000Z" } } } };
-const track = { id: "track-1", title: "Piano documentaire", duration: 148, bpm: 92, audioUrl: null, albumId: "album-1", albumTitle: "Parigo Test Pressing", albumCover: "/images/placeholder-album.svg", albumLabel: "Parigo", albumLabelSlug: "parigo", genres: ["Documentary"], moods: ["Intimate"], isVocal: false, waveform: Array.from({ length: 80 }, (_, index) => .25 + (index % 9) / 12) };
+const track = { id: "track-1", title: "Piano documentaire", description: "Une pièce documentaire intime qui laisse respirer le récit et les images.", duration: 148, bpm: 92, audioUrl: null, albumId: "album-1", albumTitle: "Parigo Test Pressing", albumCover: "/images/placeholder-album.svg", albumLabel: "Parigo", albumLabelSlug: "parigo", genres: ["Documentary"], moods: ["Intimate"], isVocal: false, waveform: Array.from({ length: 80 }, (_, index) => .25 + (index % 9) / 12) };
 const facets = { bpm: { min: 1, max: 300 }, duration: { min: 1, max: 2029 }, labels: [], categories: [] };
 
 test.beforeEach(async ({ page }) => {
@@ -19,9 +19,12 @@ async function mockMemberSearch(page: Page) {
 }
 
 async function revealTrackAction(page: Page, actionName: string | RegExp, triggerName: string | RegExp) {
-  const action = page.getByRole("button", { name: actionName });
-  if (!(await action.isVisible())) {
-    await page.getByRole("button", { name: triggerName }).click();
+  let action = page.getByRole("button", { name: actionName }).filter({ visible: true }).first();
+  try {
+    await action.waitFor({ state: "visible", timeout: 5_000 });
+  } catch {
+    await page.getByRole("button", { name: triggerName }).filter({ visible: true }).first().click();
+    action = page.getByRole("button", { name: actionName }).filter({ visible: true }).first();
   }
   await expect(action).toBeVisible();
   return action;
@@ -218,6 +221,117 @@ test("la piste détaillée sépare titre, album et référence sans les tronquer
     await expect(leftLedgerLabel).toBeHidden();
     await expect(rightLedgerLabel).toBeHidden();
   }
+});
+
+test("les ordinateurs compacts conservent toutes les actions et déploient le contenu sur la largeur", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "La composition à pointeur fin est propre au desktop.");
+  await mockMemberSearch(page);
+  await page.goto("/search?q=piano&view=tracks&type=main&density=full");
+  const row = page.locator('[data-track-id="track-1"]');
+  await expect(row).toBeVisible();
+
+  for (const width of [768, 900, 1024, 1152, 1280, 1366, 1440, 1920]) {
+    await page.setViewportSize({ width, height: width < 1100 ? 768 : 900 });
+    await expect(row).toBeVisible();
+    const layout = await row.evaluate((element) => {
+      const visible = (node: Element) => {
+        const style = getComputedStyle(node);
+        const box = node.getBoundingClientRect();
+        return style.display !== "none" && style.visibility !== "hidden" && box.width > 0 && box.height > 0;
+      };
+      const box = (selector: string) => {
+        const bounds = element.querySelector(selector)?.getBoundingClientRect();
+        return bounds ? { x: bounds.x, y: bounds.y, width: bounds.width, right: bounds.right } : null;
+      };
+      return {
+        row: box(":scope"),
+        identity: box(".parigo-track-row__identity"),
+        actions: box(".parigo-track-row__actions"),
+        waveform: box(".parigo-track-row__waveform"),
+        description: box(".parigo-track-row__description"),
+        labels: [...element.querySelectorAll(".parigo-track-row__actions :is(button,a)")]
+          .filter(visible)
+          .map((node) => node.getAttribute("aria-label") ?? ""),
+        overflow: element.scrollWidth - element.clientWidth,
+      };
+    });
+
+    expect(layout.overflow, `débordement de la piste à ${width}px`).toBe(0);
+    expect(layout.labels, `actions visibles à ${width}px`).toHaveLength(12);
+    for (const label of ["favoris", "Informations", "similaires", "notes privées", "Télécharger", "playlist", "tag", "Cue sheet", "file d’attente", "shortlist", "Partager", "licence"]) {
+      expect(layout.labels.some((candidate) => candidate.toLocaleLowerCase("fr").includes(label.toLocaleLowerCase("fr"))), `${label} absente à ${width}px`).toBe(true);
+    }
+    expect(layout.labels.some((label) => label.includes("Plus d’actions"))).toBe(false);
+
+    if (layout.row && layout.row.width <= 1152) {
+      expect(layout.waveform).not.toBeNull();
+      expect(layout.description).not.toBeNull();
+      expect(layout.identity!.width).toBeGreaterThan(120);
+      expect(layout.waveform!.width).toBeGreaterThanOrEqual(layout.row.width - 30);
+      expect(Math.abs(layout.waveform!.x - layout.description!.x)).toBeLessThan(2);
+      expect(Math.abs(layout.waveform!.right - layout.description!.right)).toBeLessThan(2);
+    }
+  }
+});
+
+test("les téléphones et tablettes tactiles gardent toutes les actions dans un menu contenu", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La composition tactile est vérifiée avec le contexte mobile Chromium.");
+  await mockMemberSearch(page);
+  await page.goto("/search?q=piano&view=tracks&type=main&density=full");
+  const row = page.locator('[data-track-id="track-1"]');
+  const viewports = [
+    { width: 320, height: 568 },
+    { width: 320, height: 740 },
+    { width: 375, height: 812 },
+    { width: 390, height: 844 },
+    { width: 430, height: 932 },
+    { width: 768, height: 1024 },
+    { width: 1024, height: 768 },
+    { width: 844, height: 390 },
+  ];
+
+  for (const viewport of viewports) {
+    await page.setViewportSize(viewport);
+    await expect(row).toBeVisible();
+    await page.waitForTimeout(300);
+    const trigger = row.getByRole("button", { name: `Plus d’actions : ${track.title}` });
+    await expect(trigger).toBeVisible();
+    await expect(row.getByRole("button", { name: `Ajouter à une playlist : ${track.title}` })).toBeHidden();
+    for (const control of [trigger, row.getByRole("button", { name: `Ajouter à la shortlist : ${track.title}` })]) {
+      const bounds = await control.boundingBox();
+      expect(bounds).not.toBeNull();
+      expect(bounds!.width).toBeGreaterThanOrEqual(44);
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    }
+
+    await trigger.click();
+    const actions = row.getByRole("region", { name: `Actions pour ${track.title}` });
+    await expect(actions).toBeVisible();
+    await expect(actions.locator(".track-mobile-action")).toHaveCount(11);
+    const actionBounds = await actions.boundingBox();
+    expect(actionBounds).not.toBeNull();
+    expect(actionBounds!.x).toBeGreaterThanOrEqual(0);
+    expect(actionBounds!.x + actionBounds!.width).toBeLessThanOrEqual(viewport.width);
+    expect(actionBounds!.height).toBeLessThanOrEqual(viewport.height);
+    expect(await actions.locator(".track-mobile-action__control :is(button,a)").evaluateAll((controls) => controls.every((control) => {
+      const bounds = control.getBoundingClientRect();
+      return bounds.width >= 44 && bounds.height >= 44;
+    }))).toBe(true);
+    await actions.getByRole("button", { name: "Fermer les actions" }).click();
+    await expect(actions).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
+  }
+
+  await page.setViewportSize({ width: 844, height: 390 });
+  await row.getByRole("button", { name: `Plus d’actions : ${track.title}` }).click();
+  await row.getByRole("region", { name: `Actions pour ${track.title}` }).getByRole("button", { name: `Informations sur la piste : ${track.title}` }).click();
+  const detailSheet = page.locator(".track-detail-sheet");
+  await expect(detailSheet).toBeVisible();
+  const detailBounds = await detailSheet.boundingBox();
+  expect(detailBounds).not.toBeNull();
+  expect(detailBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(detailBounds!.x + detailBounds!.width).toBeLessThanOrEqual(844);
+  expect(detailBounds!.y + detailBounds!.height).toBeLessThanOrEqual(390);
 });
 
 test("les actions et tooltips de recherche suivent la langue active", async ({ page }, testInfo) => {

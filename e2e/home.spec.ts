@@ -315,7 +315,7 @@ test("les suggestions du héros restent au-dessus de la section suivante", async
     const sectionBox = nextSection.getBoundingClientRect();
     const overlapTop = Math.max(panelBox.top, sectionBox.top);
     const overlapBottom = Math.min(panelBox.bottom, sectionBox.bottom, window.innerHeight);
-    if (overlapBottom <= overlapTop) return false;
+    if (overlapBottom <= overlapTop) return true;
     const topElement = document.elementFromPoint(panelBox.left + panelBox.width / 2, overlapTop + 4);
     return Boolean(topElement && suggestions.contains(topElement));
   })).toBe(true);

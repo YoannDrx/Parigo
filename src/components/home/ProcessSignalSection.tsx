@@ -6,12 +6,11 @@ type ProcessStepProps = {
   title: string;
   copy: string;
   icon: LucideIcon;
-  index?: number;
 };
 
-function ProcessStep({ title, copy, icon: Icon, index = 0 }: ProcessStepProps) {
+function ProcessStep({ title, copy, icon: Icon }: ProcessStepProps) {
   return (
-    <article data-testid="process-card" data-step={index + 1} className="process-card parigo-frame group flex min-h-[18rem] flex-col items-center justify-center border border-white/20 bg-[#11120f] p-6 text-center md:min-h-[20rem] md:p-7 lg:p-8">
+    <article data-testid="process-card" className="process-card parigo-frame group flex min-h-[18rem] flex-col items-center justify-center border border-white/20 bg-[#11120f] p-6 text-center md:min-h-[20rem] md:p-7 lg:p-8">
       <div className="process-card__icon grid h-14 w-14 place-items-center border border-white/25 text-[var(--signal-strong)] transition-colors duration-300 group-hover:border-[var(--signal-strong)] group-hover:bg-[color-mix(in_srgb,var(--signal)_10%,#11120f)]">
         <Icon aria-hidden="true" size={23} strokeWidth={1.55} />
       </div>
@@ -44,7 +43,7 @@ export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
         </div>
         <HomeReveal origin="bottom" delay={0.12} className="mt-12 md:mt-16">
           <div className="grid gap-4 md:grid-cols-3 lg:gap-6">
-            {steps.map((step, index) => <ProcessStep key={step.title} {...step} index={index} />)}
+            {steps.map((step) => <ProcessStep key={step.title} {...step} />)}
           </div>
         </HomeReveal>
       </div>

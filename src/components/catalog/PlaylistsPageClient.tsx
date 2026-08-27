@@ -235,11 +235,6 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
             )}
           >
             <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={resetFilters} />
-            <p className="mt-3 max-w-3xl text-xs leading-5 text-[var(--text-muted)]">
-              {locale === "fr"
-                ? "Ces filtres proviennent des métadonnées des pistes contenues dans les playlists, et non de tags attachés aux playlists."
-                : "These filters come from the metadata of tracks contained in the playlists, not from tags attached to the playlists."}
-            </p>
           </CatalogToolbar>
 
           {discoveryLoading && !discovery ? (

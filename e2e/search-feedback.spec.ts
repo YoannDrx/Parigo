@@ -136,9 +136,12 @@ test("une piste du listing lance immédiatement sa recherche de similarité", as
   });
 
   await page.goto("/search");
-  const similarTracksLink = page.getByRole("link", { name: `Trouver des pistes similaires : ${similarityTrack.title}` });
-  if (!await similarTracksLink.isVisible()) {
-    await page.getByRole("button", { name: `Plus d’actions : ${similarityTrack.title}` }).click();
+  let similarTracksLink = page.getByRole("link", { name: `Trouver des pistes similaires : ${similarityTrack.title}` }).filter({ visible: true }).first();
+  try {
+    await similarTracksLink.waitFor({ state: "visible", timeout: 5_000 });
+  } catch {
+    await page.getByRole("button", { name: `Plus d’actions : ${similarityTrack.title}` }).filter({ visible: true }).first().click();
+    similarTracksLink = page.getByRole("link", { name: `Trouver des pistes similaires : ${similarityTrack.title}` }).filter({ visible: true }).first();
   }
   await similarTracksLink.click();
 

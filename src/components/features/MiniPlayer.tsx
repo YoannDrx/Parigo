@@ -36,6 +36,7 @@ import { AddToPlaylistButton } from "./AddToPlaylistButton";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { useTouchLayout } from "@/hooks/use-touch-layout";
 
 export function MiniPlayer() {
   const playerInstanceId = useId();
@@ -71,21 +72,14 @@ export function MiniPlayer() {
   const [playerView, setPlayerView] = useState<"stowed" | "docked" | "expanded">("docked");
   const [hasError, setHasError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
+  const isTouchLayout = useTouchLayout();
   const addToShortlist = useShortlistStore((state) => state.add);
   const removeFromShortlist = useShortlistStore((state) => state.remove);
   const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === currentTrack?.id));
   const isExpanded = playerView === "expanded";
   const isStowed = playerView === "stowed";
 
-  useEffect(() => {
-    const query = window.matchMedia("(max-width: 767px)");
-    const update = () => setIsMobile(query.matches);
-    update();
-    query.addEventListener("change", update);
-    return () => query.removeEventListener("change", update);
-  }, []);
-  useBodyScrollLock(isExpanded && isMobile);
+  useBodyScrollLock(isExpanded && isTouchLayout);
 
   // Get album info from track
   const albumCover = currentTrack?.albumCover;
@@ -271,7 +265,7 @@ export function MiniPlayer() {
 
   return (
     <AnimatePresence>
-      {isExpanded && isMobile ? (
+      {isExpanded && isTouchLayout ? (
         <motion.button
           key="mobile-player-backdrop"
           type="button"

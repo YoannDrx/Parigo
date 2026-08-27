@@ -752,9 +752,6 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     #11120f;
   box-shadow: 7px 8px 0 color-mix(in srgb, var(--signal) 18%, transparent);
 }
-.process-card[data-step="2"] {
-  box-shadow: 7px 8px 0 color-mix(in srgb, var(--color-accent-yellow) 28%, transparent);
-}
 .process-card__icon {
   border-radius: var(--parigo-corner-md) var(--parigo-turn-lg);
 }
@@ -766,12 +763,6 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     7px 8px 0 color-mix(in srgb, var(--signal) 13%, transparent),
     0 24px 58px color-mix(in srgb, var(--foreground) 9%, transparent);
   transform: translateY(-3px);
-}
-.process-card.parigo-frame[data-step="2"]:hover {
-  border-color: color-mix(in srgb, var(--color-accent-yellow) 58%, transparent);
-  box-shadow:
-    9px 10px 0 color-mix(in srgb, var(--color-accent-yellow) 34%, transparent),
-    0 24px 58px rgba(0, 0, 0, .28);
 }
 .project-invitation {
   background:
@@ -3133,6 +3124,7 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 }
 .parigo-track-row {
   isolation: isolate;
+  container-type: inline-size;
   background: var(--surface);
   border-radius: var(--parigo-corner-md) var(--parigo-turn-md);
 }
@@ -3331,39 +3323,115 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   background-image: linear-gradient(90deg, transparent calc(100% - 3rem), color-mix(in srgb, var(--signal) 5%, transparent) calc(100% - 3rem));
 }
 @container (max-width: 72rem) {
-  .search-results-ledger .parigo-track-row__tags,
-  .search-results-ledger .parigo-track-row__desktop-actions,
-  .search-results-ledger .parigo-track-row__wide-action,
-  .search-results-ledger .parigo-track-row__bpm {
+  .parigo-track-row__tags,
+  .parigo-track-row__desktop-actions,
+  .parigo-track-row__wide-action,
+  .parigo-track-row__bpm {
     display: none;
   }
-  .search-results-ledger .parigo-track-row__actions-trigger {
+  .parigo-track-row__actions-trigger {
     display: flex;
   }
-  .search-results-ledger .parigo-track-row__mobile-actions {
+  .parigo-track-row__mobile-actions {
     display: block;
   }
-  .search-results-ledger .parigo-track-row__info {
+  .parigo-track-row__info {
     min-width: 11rem;
   }
 }
-@container (min-width: 58rem) and (max-width: 72rem) {
-  .search-results-ledger .parigo-track-row--compact .parigo-track-row__desktop-actions {
-    display: contents;
+@media (hover: hover) and (pointer: fine) {
+  @container (min-width: 40rem) {
+    .parigo-track-row__desktop-actions {
+      display: contents;
+    }
+    .parigo-track-row__wide-action {
+      display: inline-flex;
+    }
+    .parigo-track-row__actions-trigger,
+    .parigo-track-row__mobile-actions {
+      display: none;
+    }
   }
-  .search-results-ledger .parigo-track-row--compact .parigo-track-row__actions-trigger {
-    display: none;
+
+  @container (min-width: 40rem) and (max-width: 72rem) {
+    .parigo-track-row__main {
+      display: grid;
+      grid-template-columns: auto auto auto minmax(8rem, 1fr) auto auto;
+      grid-template-areas:
+        "leading index cover identity duration actions"
+        "waveform waveform waveform waveform waveform waveform"
+        "description description description description description description";
+      align-items: center;
+      gap: .4rem .65rem;
+    }
+    .parigo-track-row__leading-meta { grid-area: leading; }
+    .parigo-track-row__index { grid-area: index; }
+    .parigo-track-row__cover { grid-area: cover; }
+    .parigo-track-row__info { display: contents; min-width: 0; }
+    .parigo-track-row__identity { grid-area: identity; min-width: 0; }
+    .parigo-track-row__waveform { grid-area: waveform; width: 100%; min-width: 0; margin-top: .25rem; }
+    .parigo-track-row__description { grid-area: description; width: 100%; max-width: none; }
+    .parigo-track-row__mobile-meta { display: none; }
+    .parigo-track-row__tags,
+    .parigo-track-row__bpm { display: none; }
+    .parigo-track-row__duration { grid-area: duration; display: block; }
+    .parigo-track-row__actions { grid-area: actions; min-width: max-content; justify-self: end; }
+  }
+
+  @container (min-width: 40rem) and (max-width: 58rem) {
+    .parigo-track-row__main {
+      grid-template-areas:
+        "leading index cover identity identity duration"
+        "actions actions actions actions actions actions"
+        "waveform waveform waveform waveform waveform waveform"
+        "description description description description description description";
+    }
+    .parigo-track-row__actions {
+      width: 100%;
+      justify-content: flex-end;
+    }
   }
 }
 @container (max-width: 42rem) {
-  .search-results-ledger .parigo-track-row__duration {
+  .parigo-track-row__duration {
     display: none;
   }
-  .search-results-ledger .parigo-track-row__info {
+  .parigo-track-row__info {
     min-width: 0;
   }
-  .search-results-ledger .parigo-track-row__main {
+  .parigo-track-row__main {
     align-items: flex-start;
+  }
+}
+@media (hover: none) and (pointer: coarse) {
+  .parigo-track-row__desktop-actions,
+  .parigo-track-row__wide-action {
+    display: none !important;
+  }
+  .parigo-track-row__actions-trigger {
+    display: flex !important;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+  .parigo-track-row__actions > button,
+  .parigo-track-row__actions > span > button,
+  .track-mobile-action__control button,
+  .track-mobile-action__control a,
+  .parigo-track-actions-popover__close {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+  .parigo-track-row__mobile-actions {
+    display: block !important;
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
+    padding-bottom: max(.625rem, env(safe-area-inset-bottom));
+  }
+  .search-desktop-filters {
+    display: none !important;
+  }
+  .search-mobile-filter-trigger {
+    display: inline-flex !important;
   }
 }
 .search-version-branch::before {
@@ -3466,7 +3534,7 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 .track-detail-panel__content {
   background: color-mix(in srgb, var(--surface-soft) 76%, var(--surface));
 }
-@media (max-width: 767px) {
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
   .track-detail-sheet { position: fixed; inset: 74px 0 0; z-index: 190; margin: 0 !important; min-height: 0; }
   .track-detail-panel { height: 100%; overflow-y: auto; overscroll-behavior: contain; border: 0; border-top: 1px solid var(--line); border-radius: 0; -webkit-overflow-scrolling: touch; }
   .track-detail-panel__mobile-summary { position: sticky; top: 0; z-index: 8; display: flex; }
@@ -3646,7 +3714,7 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     linear-gradient(90deg, rgba(60,156,97,.1), transparent 28%),
     rgba(0,0,0,.12);
 }
-@media (max-width: 767px) {
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {
   .parigo-player--expanded { inset:auto 0 0; display:flex; flex-direction:column; width:100%; max-height:min(78dvh,42rem); border-right:0; border-bottom:0; border-left:0; border-radius:var(--parigo-corner-lg) var(--parigo-turn-lg) 0 0; }
   .parigo-player--expanded > .parigo-player__standard { display:flex; min-height:0; flex:1; flex-direction:column; }
   .parigo-player--expanded .parigo-player__main { flex: 0 0 auto; }

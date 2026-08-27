@@ -161,7 +161,7 @@ export function HomeHeroContent({
         data-testid="home-hero-search-mask"
         data-banner-mask={reduceMotion || searchRevealComplete ? "open" : "closed"}
         style={reduceMotion ? { opacity: 1 } : { opacity }}
-        className={`pointer-events-auto mx-auto mt-9 max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}
+        className={`pointer-events-auto mx-auto mt-9 min-h-[14.25rem] max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}
       >
         <motion.div
           data-testid="home-hero-search-reveal"
