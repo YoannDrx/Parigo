@@ -388,7 +388,7 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("le gradient Silk du héros reste animé sur mobile et statique en mouvement réduit", async ({ page }) => {
+test("le gradient Silk du héros préserve son fallback sur un renderer logiciel", async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -396,14 +396,15 @@ test("le gradient Silk du héros reste animé sur mobile et statique en mouvemen
   const backdrop = hero.getByTestId("hero-gradient-backdrop");
   await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-light");
   await expect(backdrop).toHaveAttribute("data-motion", "animated");
-  await expect(backdrop).toHaveAttribute("data-renderer", "webgl");
-  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
+  await expect(backdrop).toHaveAttribute("data-renderer", "fallback");
+  await expect(backdrop.locator("canvas")).toHaveCount(0);
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
   const reducedBackdrop = page.getByTestId("home-hero").getByTestId("hero-gradient-backdrop");
   await expect(reducedBackdrop).toHaveAttribute("data-motion", "static");
-  await expect(reducedBackdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
+  await expect(reducedBackdrop).toHaveAttribute("data-renderer", "fallback");
+  await expect(reducedBackdrop.locator("canvas")).toHaveCount(0);
 });
 
 test("le héros suit la palette Catalogue puis Similarité IA", async ({ page }) => {
@@ -579,7 +580,7 @@ test("les métriques publiques compactent le contenu après séparateur sur mobi
   }
 });
 
-test("le héros desktop charge Gradflow Silk avec un fallback sans forme organique", async ({ page }, testInfo) => {
+test("le héros desktop conserve le fallback Silk sans forme organique sur un renderer logiciel", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le rendu Gradflow desktop est contrôlé dans le viewport desktop.");
   await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");
@@ -589,8 +590,8 @@ test("le héros desktop charge Gradflow Silk avec un fallback sans forme organiq
   await expect(backdrop).toBeVisible({ timeout: 10_000 });
   await expect(backdrop).toHaveCSS("pointer-events", "none");
   await expect(backdrop).toHaveAttribute("data-gradient-preset", "catalog-light");
-  await expect(backdrop).toHaveAttribute("data-renderer", "webgl");
-  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 10_000 });
+  await expect(backdrop).toHaveAttribute("data-renderer", "fallback");
+  await expect(backdrop.locator("canvas")).toHaveCount(0);
   const gradientLayer = backdrop.locator(".hero-gradflow__fallback");
   expect(await gradientLayer.evaluate((node) => getComputedStyle(node).backgroundImage)).toContain("linear-gradient");
   expect(await gradientLayer.evaluate((node) => getComputedStyle(node).backgroundImage)).not.toContain("radial-gradient");
