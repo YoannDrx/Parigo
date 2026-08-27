@@ -11,7 +11,7 @@ export function ProjectInvitationSection() {
 
   return (
     <section className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)]">
-      <div className="project-invitation parigo-frame mx-auto grid max-w-[1580px] gap-10 border border-white/14 bg-[#0b0f0c] p-6 text-white md:grid-cols-12 md:items-end md:p-10 lg:p-12">
+      <div className="project-invitation relative isolate mx-auto grid max-w-[1580px] gap-10 overflow-hidden rounded-[var(--parigo-turn-lg)_var(--parigo-corner-lg)] border border-white/14 bg-[#0b0f0c] p-6 text-white shadow-[0_28px_90px_rgba(5,10,6,.2)] md:grid-cols-12 md:items-end md:p-10 lg:p-12">
         <div className="relative md:col-span-8">
           <HomeReveal origin="left" viewportAmount={0.35}>
             <SignedTitle as="h2" className="max-w-[15ch] text-[clamp(2.6rem,5vw,5.4rem)] leading-[.92] tracking-[-.055em] text-white">

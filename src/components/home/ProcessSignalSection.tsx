@@ -7,12 +7,10 @@ import { HomeReveal, useHomeReducedMotion } from "./HomeMotion";
 
 function ProcessStep({ number, title, copy, stepLabel }: { number: string; title: string; copy: string; stepLabel: string }) {
   return (
-    <article className="process-step group relative flex min-h-[245px] flex-col px-5 py-7 transition-colors duration-500 hover:bg-white/[.055] lg:min-h-[360px] lg:px-8 lg:py-10">
-      <div className="flex items-center justify-between gap-4">
-        <span className="font-mono text-[.6rem] uppercase tracking-[.14em] text-[var(--signal)]">{stepLabel} {number}</span>
-      </div>
-      <span aria-hidden="true" className="process-step__number mt-5 w-fit border border-white/10 px-4 py-2 text-[4.1rem] font-semibold leading-none tracking-[-.09em] text-white/[.12] transition duration-500 group-hover:border-[var(--signal)]/34 group-hover:text-[var(--signal)] lg:mt-7 lg:text-[clamp(4.5rem,7vw,7.6rem)]">{number}</span>
-      <div className="mt-auto pt-5 lg:pt-8"><h3 className="text-2xl font-semibold tracking-[-.045em] text-white lg:text-3xl">{title}</h3><p className="mt-3 max-w-sm text-sm leading-6 text-white/74 lg:mt-4">{copy}</p></div>
+    <article className="process-step grid gap-4 border-t border-[var(--line-strong)] py-7 first:border-t-0 md:grid-cols-[4.5rem_minmax(0,.72fr)_minmax(16rem,1fr)] md:items-start md:gap-6 md:py-9">
+      <span className="font-mono text-[.62rem] uppercase tracking-[.14em] text-[var(--signal-strong)]">{stepLabel} {number}</span>
+      <h3 className="max-w-[14ch] text-2xl font-semibold tracking-[-.045em] text-[var(--foreground)] md:text-3xl">{title}</h3>
+      <p className="max-w-xl text-sm leading-7 text-[var(--text-muted)]">{copy}</p>
     </article>
   );
 }
@@ -33,17 +31,20 @@ export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
 
   return (
     <section id="process" ref={sectionRef} className="relative px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
-      <div className="mx-auto max-w-[1580px]">
-        <HomeReveal origin="top" className="mb-[var(--space-heading-content)]"><SignedTitle as="h2" className="max-w-5xl text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle></HomeReveal>
-        <div className="process-shell relative isolate overflow-hidden border border-white/14 bg-[#090c09] shadow-[0_34px_100px_rgba(5,10,6,.22)]">
-          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(145deg,rgba(72,191,103,.13),transparent_42%),linear-gradient(180deg,rgba(255,255,255,.025),transparent_70%)]" />
-          <div className="relative border-b border-white/12 px-5 py-4 md:px-8 md:py-5">
-            <div className="relative h-1 overflow-hidden rounded-full bg-white/8" data-testid="process-progress"><motion.div aria-hidden="true" style={reduceMotion ? { scaleX: 1 } : { scaleX: scrollYProgress, transformOrigin: "left" }} className="absolute inset-0 origin-left rounded-full bg-[var(--signal)] shadow-[0_0_18px_color-mix(in_srgb,var(--signal)_55%,transparent)]" /></div>
+      <div className="mx-auto grid max-w-[1580px] gap-12 lg:grid-cols-12 lg:gap-8">
+        <HomeReveal origin="left" className="lg:col-span-4">
+          <p className="mb-5 font-mono text-[.62rem] uppercase tracking-[.16em] text-[var(--signal-strong)]">{locale === "fr" ? "Notre méthode" : "Our method"}</p>
+          <SignedTitle as="h2" className="max-w-[10ch] text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle>
+          <p className="mt-7 max-w-sm text-sm leading-7 text-[var(--text-muted)]">{locale === "fr" ? "Un chemin simple, de l’intention musicale à une sélection prête à partager." : "A simple path from musical intent to a selection ready to share."}</p>
+        </HomeReveal>
+        <HomeReveal origin="right" delay={0.08} className="lg:col-span-7 lg:col-start-6">
+          <div className="process-flow relative border-y border-[var(--line-strong)] pl-5 md:pl-7">
+            <div aria-hidden="true" className="absolute inset-y-0 left-0 w-px bg-[var(--line)]" data-testid="process-progress"><motion.div style={reduceMotion ? { scaleY: 1 } : { scaleY: scrollYProgress, transformOrigin: "top" }} className="absolute inset-0 origin-top bg-[var(--signal-strong)]" /></div>
+            <div className="relative">
+              {steps.map(([number, title, copy]) => <ProcessStep key={number} number={number} title={title} copy={copy} stepLabel={locale === "fr" ? "Étape" : "Step"} />)}
+            </div>
           </div>
-          <div className="relative grid divide-y divide-white/12 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
-            {steps.map(([number, title, copy]) => <ProcessStep key={number} number={number} title={title} copy={copy} stepLabel={locale === "fr" ? "Étape" : "Step"} />)}
-          </div>
-        </div>
+        </HomeReveal>
       </div>
     </section>
   );

@@ -752,10 +752,6 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     url("/images/home/project-invitation-vinyl.png") center 34% / cover no-repeat,
     #0b0f0c;
 }
-.project-invitation::before {
-  border-top-color: rgba(255,255,255,.48);
-  border-right-color: rgba(255,255,255,.48);
-}
 .hero-gradflow {
   --hero-gradient-1: #f2f1ed;
   --hero-gradient-2: #b7ddc0;
