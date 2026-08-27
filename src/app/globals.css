@@ -749,7 +749,11 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   --parigo-stroke-height: 1.15rem;
   background:
     linear-gradient(145deg, color-mix(in srgb, var(--signal) 5%, transparent), transparent 42%),
-    var(--surface);
+    #11120f;
+  box-shadow: 7px 8px 0 color-mix(in srgb, var(--signal) 18%, transparent);
+}
+.process-card[data-step="2"] {
+  box-shadow: 7px 8px 0 color-mix(in srgb, var(--color-accent-yellow) 28%, transparent);
 }
 .process-card__icon {
   border-radius: var(--parigo-corner-md) var(--parigo-turn-lg);
@@ -762,6 +766,12 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     7px 8px 0 color-mix(in srgb, var(--signal) 13%, transparent),
     0 24px 58px color-mix(in srgb, var(--foreground) 9%, transparent);
   transform: translateY(-3px);
+}
+.process-card.parigo-frame[data-step="2"]:hover {
+  border-color: color-mix(in srgb, var(--color-accent-yellow) 58%, transparent);
+  box-shadow:
+    9px 10px 0 color-mix(in srgb, var(--color-accent-yellow) 34%, transparent),
+    0 24px 58px rgba(0, 0, 0, .28);
 }
 .project-invitation {
   background:

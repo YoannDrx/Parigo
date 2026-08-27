@@ -689,9 +689,8 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(page.getByRole("combobox", { name: "Niveau de détail des pistes" })).toHaveCount(0);
 });
 
-test("la saisie déclenche une autocomplétion groupée et accessible", async ({ page }) => {
+test("la saisie Catalogue reste littérale et ne déclenche aucune autocomplétion", async ({ page }) => {
   let autocompleteRequests = 0;
-  const autocompleteScopes: Array<string | null> = [];
   await page.route("**/api/search/filters?**", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -707,7 +706,6 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
   });
   await page.route("**/api/autocomplete?**", async (route) => {
     autocompleteRequests += 1;
-    autocompleteScopes.push(new URL(route.request().url()).searchParams.get("view"));
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({ data: { groups: [
@@ -746,49 +744,20 @@ test("la saisie déclenche une autocomplétion groupée et accessible", async ({
   await input.hover();
   await input.fill("crime");
   expect(new URL(page.url()).searchParams.get("q")).toBeNull();
-  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Filtres trouvés" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Dans les titres" })).toBeVisible();
-  const titleGroup = page.getByRole("group", { name: "Dans les titres" });
-  await expect(titleGroup.getByRole("heading", { name: "Pistes", exact: true })).toBeVisible();
-  await expect(titleGroup.getByRole("heading", { name: "Albums", exact: true })).toBeVisible();
-  await expect(titleGroup.getByRole("heading", { name: "Playlists", exact: true })).toBeVisible();
-  const entityHeadings = await page.locator(".search-autocomplete-panel h3").allTextContents();
-  expect(entityHeadings.indexOf("Dans les titres")).toBeLessThan(entityHeadings.indexOf("Filtres trouvés"));
-  expect(entityHeadings.indexOf("Filtres trouvés")).toBeLessThan(entityHeadings.indexOf("Pistes"));
-  expect(entityHeadings.indexOf("Dans les titres")).toBeLessThan(entityHeadings.indexOf("Pistes"));
-  await expect(input).not.toHaveAttribute("aria-activedescendant");
-  await expect(page.getByRole("option", { name: "Crime Scene" })).toBeVisible();
-  await expect(page.getByRole("option", { name: /Crime Stories/ })).toBeVisible();
-  await expect(page.getByRole("option", { name: /Crime Investigation/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "Dans les paroles" })).toHaveCount(0);
-  await expect(page.locator(".search-autocomplete-panel").getByLabel("Raisons de la correspondance")).toHaveCount(0);
-  await expect(page.locator(".search-autocomplete-panel img").first()).toBeVisible();
-  const [commandBox, panelBox] = await Promise.all([command.boundingBox(), page.locator(".search-autocomplete-panel").boundingBox()]);
-  expect(commandBox).not.toBeNull();
-  expect(panelBox).not.toBeNull();
-  expect(Math.abs(panelBox!.width - commandBox!.width)).toBeLessThanOrEqual(2);
-  await input.press("ArrowDown");
-  await expect(input).toHaveAttribute("aria-activedescendant", /catalog-search-suggestions-option-0/);
-  await input.press("Enter");
-  await expect(input).toBeFocused();
-  await expect(input).toHaveValue("");
-  await expect(page.locator(".search-autocomplete-panel")).toBeVisible();
-  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBeNull();
-  await expect.poll(() => new URL(page.url()).searchParams.get("categories")).toBe("ATT_crime");
-  await expect(page.getByText("Ambiance · Crime", { exact: true }).last()).toBeVisible();
-  expect(autocompleteRequests).toBeGreaterThan(0);
-  expect(autocompleteScopes.every((scope) => scope === null)).toBe(true);
-
-  await input.press("Escape");
+  await page.waitForTimeout(500);
   await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
+  expect(autocompleteRequests).toBe(0);
+  await input.press("Enter");
+  await expect(input).toHaveValue("crime");
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("crime");
+  expect(new URL(page.url()).searchParams.get("categories")).toBeNull();
   await resultType.click();
   await page.getByRole("option", { name: "Albums", exact: true }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get("view")).toBe("albums");
   await expect(input).toBeVisible();
 });
 
-test("un filtre traduit consomme son terme et les filtres appliqués restent visibles", async ({ page }, testInfo) => {
+test("un filtre traduit ne consomme plus son terme et reste visible dans les filtres manuels", async ({ page }, testInfo) => {
   await page.route("**/api/search/filters?**", async (route) => {
     await route.fulfill({
       contentType: "application/json",
@@ -827,31 +796,19 @@ test("un filtre traduit consomme son terme et les filtres appliqués restent vis
   await expect(suggestions).toBeVisible();
   await suggestions.getByRole("option", { name: /Ambiance · Triste \(Sad\)/ }).click();
   await expect(input).toBeFocused();
-  await expect(input).toHaveValue("reggae");
+  await expect(input).toHaveValue("reggae triste");
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByText("Filtres à appliquer au lancement")).toBeVisible();
   await page.getByRole("button", { name: "Voir les résultats · 1 filtre" }).click();
   await expect.poll(() => {
     const url = new URL(page.url());
     return { path: url.pathname, q: url.searchParams.get("q"), categories: url.searchParams.get("categories") };
-  }).toEqual({ path: "/search", q: "reggae", categories: "ATT_c333333333333333" });
+  }).toEqual({ path: "/search", q: "reggae triste", categories: "ATT_c333333333333333" });
   const searchInput = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await searchInput.focus();
-  const appliedSuggestions = page.getByRole("listbox", { name: "Suggestions de recherche" });
-  await expect(appliedSuggestions).toBeVisible();
-  await expect(page.getByText("Filtres appliqués", { exact: true })).toBeVisible();
-  await expect(page.locator(".search-autocomplete-panel").getByRole("button", { name: /Ambiance · Triste/ })).toBeVisible();
-  await expect(appliedSuggestions.getByRole("option", { name: /Genre · Reggae/ })).toHaveAttribute("aria-selected", "false");
-  await appliedSuggestions.getByRole("option", { name: /Genre · Reggae/ }).click();
-  await expect(searchInput).toHaveValue("");
-  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBeNull();
-  await expect.poll(() => new URL(page.url()).searchParams.get("categories")).toBe("ATT_a111111111111111,ATT_c333333333333333");
-  const appliedPanel = page.locator(".search-autocomplete-panel");
-  await expect(appliedPanel.getByRole("button", { name: /Genre · Reggae/ })).toBeVisible();
-  await expect(appliedPanel.getByRole("button", { name: /Ambiance · Triste/ })).toBeVisible();
-  await appliedPanel.getByRole("button", { name: /Genre · Reggae/ }).click();
-  await expect(searchInput).toHaveValue("");
-  await expect.poll(() => new URL(page.url()).searchParams.get("categories")).toBe("ATT_c333333333333333");
+  await expect(searchInput).toHaveValue("reggae triste");
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
+  await expect(page.getByText("Ambiance · Triste", { exact: true })).toBeVisible();
 
   await searchInput.press("Escape");
   if (testInfo.project.name === "mobile") {
@@ -874,8 +831,10 @@ test("un filtre traduit consomme son terme et les filtres appliqués restent vis
   await expect(usesGroup.getByText("Mariage", { exact: true })).toBeVisible();
 });
 
-test("l’autocomplétion conserve un état vide global sans afficher de sections à zéro", async ({ page }) => {
+test("une saisie sans résultat ne crée aucun panneau d’autocomplétion", async ({ page }) => {
+  let autocompleteRequests = 0;
   await page.route("**/api/autocomplete?**", async (route) => {
+    autocompleteRequests += 1;
     await route.fulfill({
       contentType: "application/json",
       body: JSON.stringify({ data: { groups: [] } }),
@@ -885,12 +844,9 @@ test("l’autocomplétion conserve un état vide global sans afficher de section
   await page.goto("/search");
   const input = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await input.fill("introuvable");
-  const suggestions = page.getByRole("listbox", { name: "Suggestions de recherche" });
-  await expect(suggestions).toBeVisible();
-  await expect(suggestions).toContainText("Aucun résultat pour « introuvable ».");
-  await expect(suggestions.getByRole("heading", { name: "Pistes" })).toHaveCount(0);
-  await expect(suggestions.getByRole("heading", { name: "Albums" })).toHaveCount(0);
-  await expect(suggestions.getByRole("heading", { name: "Playlists" })).toHaveCount(0);
+  await page.waitForTimeout(500);
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
+  expect(autocompleteRequests).toBe(0);
 });
 
 test("la référence Harvest reste recherchable mais séparée du titre éditorial", async ({ page }) => {
@@ -1043,7 +999,7 @@ test("DeepL reste hors du panneau et ne se propose qu’après une recherche vid
           total: 0,
           requestId: "translation-e2e",
           searchMode: "keyword",
-          fieldProfile: "editorial",
+          fieldProfile: "aggregate-title-first",
           providerDurationMs: 10,
           ...(translation === "offer" && query === "coucher de soleil" ? { translationSuggestion: { original: "coucher de soleil", effective: "sunset", source: "machine-translation" } } : {}),
         },
@@ -1072,8 +1028,7 @@ test("DeepL reste hors du panneau et ne se propose qu’après une recherche vid
     query: new URL(page.url()).searchParams.get("q"),
     translation: new URL(page.url()).searchParams.get("translation"),
   })).toEqual({ query: "sunset", translation: "off" });
-  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
-  await expect(page.getByRole("option", { name: "sunset" })).toBeVisible();
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
   await expect(page.getByText(/Rechercher aussi « sunset »/)).toHaveCount(0);
 });
 
@@ -1104,14 +1059,13 @@ test("une correspondance de filtre partielle n’empêche pas DeepL après soumi
   const search = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await search.fill("une forêt sombre");
   const panel = page.locator(".search-autocomplete-panel");
-  await expect(panel.getByRole("option", { name: /Ambiance · Sombre \(Dark\)/ })).toBeVisible();
-  await expect(panel.getByText(/dark forest/i)).toHaveCount(0);
+  await expect(panel).toHaveCount(0);
   await search.press("Enter");
   const translation = page.getByRole("button", { name: "Rechercher en anglais" });
   await expect(translation).toBeVisible();
   await translation.click();
   await expect(search).toHaveValue("dark forest");
-  await expect(panel.getByRole("option", { name: "The Dark Forest" })).toBeVisible();
+  await expect(panel).toHaveCount(0);
 });
 
 test("le changement de langue conserve toute la recherche en cours", async ({ page }, testInfo) => {
@@ -1159,27 +1113,16 @@ test("le changement de langue conserve toute la recherche en cours", async ({ pa
   });
 });
 
-test("une suggestion trouvée par préfixe dans les paroles ouvre, surligne et centre sa preuve", async ({ page }) => {
+test("une requête proche de paroles reste littérale sans suggestion implicite", async ({ page }) => {
   await page.goto("/search");
   const search = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await search.fill("happy balad");
-  const lyricsGroup = page.getByRole("group", { name: "Dans les paroles" });
-  await expect(lyricsGroup).toBeVisible({ timeout: 30_000 });
-  await lyricsGroup.getByRole("option").first().click();
-  await expect.poll(() => {
-    const url = new URL(page.url());
-    return { panel: url.searchParams.get("panel"), highlight: url.searchParams.get("highlight"), hasTrack: Boolean(url.searchParams.get("track")) };
-  }, { timeout: 30_000 }).toEqual({ panel: "lyrics", highlight: "happy balad", hasTrack: true });
-  await expect(page.getByRole("tab", { name: "Paroles" })).toHaveAttribute("aria-selected", "true");
-  const highlightedWord = page.locator(".track-detail-panel mark").first();
-  await expect(highlightedWord).toBeVisible({ timeout: 30_000 });
-  await expect(page.locator(".track-detail-panel mark").filter({ hasText: /^balad$/i }).first()).toBeVisible();
-  await expect(highlightedWord).toBeFocused();
-  await expect.poll(async () => highlightedWord.evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    const center = rect.top + rect.height / 2;
-    return rect.top >= 88 && center >= window.innerHeight * 0.25 && center <= window.innerHeight * 0.75;
-  })).toBe(true);
+  await page.waitForTimeout(500);
+  await expect(page.getByRole("group", { name: "Dans les paroles" })).toHaveCount(0);
+  await search.press("Enter");
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("happy balad");
+  expect(new URL(page.url()).searchParams.get("panel")).toBeNull();
+  expect(new URL(page.url()).searchParams.get("highlight")).toBeNull();
 });
 
 test("le détail de piste mobile devient une sheet scrollable et contenue", async ({ page }, testInfo) => {

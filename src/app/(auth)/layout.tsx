@@ -15,6 +15,23 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const usesSwitcher = /\/(?:login|register)$/.test(pathname);
+  const authVisual = pathname.endsWith("/forgot-password")
+    ? {
+        src: "/images/editorial/parigo-spaces/33-forgot-password-rewind.avif",
+        fr: "Retrouvez le fil de votre accès.",
+        en: "Rewind and recover your access.",
+      }
+    : pathname.endsWith("/reset-password")
+      ? {
+          src: "/images/editorial/parigo-spaces/34-reset-password-patchbay.avif",
+          fr: "Reconnectez votre accès à Parigo.",
+          en: "Reconnect your access to Parigo.",
+        }
+      : {
+          src: "/images/editorial/parigo-spaces/35-account-verification-signal.avif",
+          fr: "Gardez le fil de toutes vos intuitions.",
+          en: "Keep track of every creative intuition.",
+        };
 
   return (
     <div className={cn("grid min-h-screen bg-[var(--background)] text-[var(--foreground)]", !usesSwitcher && "lg:grid-cols-2")}>
@@ -50,10 +67,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </div>
       {!usesSwitcher ? (
         <aside className="relative hidden overflow-hidden bg-[#11120f] lg:block">
-          <Image src="/images/synchros/kleo-original-86.jpg" alt="" fill priority sizes="50vw" className="object-cover grayscale opacity-75" />
+          <Image src={authVisual.src} alt="" fill priority sizes="50vw" className="object-cover opacity-80" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/15" />
           <p className="absolute bottom-10 left-10 max-w-xl text-5xl font-semibold leading-[.94] tracking-[-.05em] text-[#f2efe7]">
-            {locale === "fr" ? "Gardez le fil de toutes vos intuitions." : "Keep track of every creative intuition."}
+            {authVisual[locale]}
           </p>
         </aside>
       ) : null}

@@ -311,7 +311,7 @@ export interface QueryResolution {
 }
 
 export type SearchMode = "keyword" | "ai";
-export type SearchFieldProfile = "title" | "editorial";
+export type SearchFieldProfile = "title" | "editorial" | "aggregate-title-first";
 export type SearchTranslationMode = "offer" | "apply" | "off";
 
 export type SearchMatchField =
@@ -491,6 +491,11 @@ export interface Genre {
   name: string;
   slug: string;
   color?: string;
+  genres?: string[];
+  moods?: string[];
+  instruments?: string[];
+  musicFor?: string[];
+  tracks?: Track[];
 }
 
 export interface Mood {

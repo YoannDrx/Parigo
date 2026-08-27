@@ -59,12 +59,12 @@ export const LYRICS_SEARCH_FIELDS = ["TrackLyrics"] as const;
 export function configuredSearchFieldProfile(): SearchFieldProfile {
   return process.env.HARVEST_SEARCH_FIELD_PROFILE?.trim().toLocaleLowerCase("en") === "title"
     ? "title"
-    : "editorial";
+    : "aggregate-title-first";
 }
 
 export function keywordSearchFields(
   view: "Track" | "Album",
-  profile: SearchFieldProfile | "lyrics",
+  profile: Exclude<SearchFieldProfile, "aggregate-title-first"> | "lyrics",
 ): string {
   if (profile === "lyrics") return LYRICS_SEARCH_FIELDS.join(",");
   if (profile === "title") return view === "Album" ? "AlbumDisplayTitle" : "TrackDisplayTitle";

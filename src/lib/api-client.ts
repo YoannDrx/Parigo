@@ -103,6 +103,11 @@ interface SearchApiResponse<T extends Track | Album> {
     fieldProfile: SearchFieldProfile;
     providerDurationMs: number;
     titleMatchTotal?: number;
+    timings?: {
+      titleSearchMs: number;
+      aggregateSearchMs: number;
+      enrichmentMs: number;
+    };
   };
 }
 

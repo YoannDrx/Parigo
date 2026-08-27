@@ -26,6 +26,6 @@ export function getSearchCapabilities(aiPromptSearchAvailable = false): SearchCa
   return {
     keywordSearchAvailable: true,
     aiPromptSearchAvailable,
-    keywordFieldProfiles: ["title", "editorial"],
+    keywordFieldProfiles: ["title", "aggregate-title-first"],
   };
 }

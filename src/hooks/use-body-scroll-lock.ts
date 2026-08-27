@@ -45,6 +45,15 @@ function releaseBodyScrollLock() {
   previousBodyStyles = null;
 }
 
+/**
+ * A route transition must snapshot the real document scroll position, not the
+ * temporary `0` exposed while the body is fixed. Release synchronously before
+ * calling router.push so browser back restoration records the right offset.
+ */
+export function releaseBodyScrollLockBeforeNavigation() {
+  releaseBodyScrollLock();
+}
+
 export function useBodyScrollLock(active: boolean) {
   const ownsLock = useRef(false);
 

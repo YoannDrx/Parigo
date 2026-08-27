@@ -13,6 +13,19 @@ export default async function PlaylistsPage() {
   const [playlists, locale] = await Promise.all([getCachedPlaylistDiscovery(), getRequestLocale()]);
   return <PlaylistsPageClient playlists={playlists.map((source) => {
     const playlist = localizePlaylist(source, locale);
-    return { ...playlist, slug: playlist.slug || playlist.id, description: playlist.description || null, cover: playlist.cover || null, trackCount: playlist.trackCount || 0, category: playlist.category || null, isFeatured: playlist.isFeatured ?? true };
+    return {
+      id: playlist.id,
+      slug: playlist.slug || playlist.id,
+      title: playlist.title,
+      description: playlist.description || null,
+      cover: playlist.cover || null,
+      trackCount: playlist.trackCount || 0,
+      category: playlist.category || null,
+      isFeatured: playlist.isFeatured ?? true,
+      genres: playlist.genres,
+      moods: playlist.moods,
+      instruments: playlist.instruments,
+      musicFor: playlist.musicFor,
+    };
   })} />;
 }

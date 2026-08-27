@@ -29,9 +29,9 @@ export function ProjectInvitationSection() {
               <Link href={localizedPath("/contact?subject=brief")} className="home-project-cta inline-flex min-h-11 items-center gap-2 rounded-md bg-[var(--signal)] px-5 text-sm font-semibold text-[#101410] transition hover:bg-white">
                 {locale === "fr" ? "Envoyer un brief" : "Send a brief"}<ArrowRight size={15} />
               </Link>
-              <a href="mailto:info@parigomusic.com" className="inline-flex min-h-11 items-center gap-2 border-b border-white/32 text-sm font-semibold text-white transition hover:border-[var(--signal)] hover:text-[var(--signal)]">
+              <Link href={localizedPath("/contact")} className="inline-flex min-h-11 items-center gap-2 border-b border-white/32 text-sm font-semibold text-white transition hover:border-[var(--signal)] hover:text-[var(--signal)]">
                 {locale === "fr" ? "Contacter l’équipe" : "Contact the team"}<Mail size={15} />
-              </a>
+              </Link>
             </div>
         </HomeReveal>
       </div>

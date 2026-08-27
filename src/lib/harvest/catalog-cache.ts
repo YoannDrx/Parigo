@@ -44,7 +44,7 @@ export const getCachedPlaylists = cache(
   unstable_cache(getPlaylists, ["catalog-playlists-v2-localized"], { revalidate: 600, tags: ["catalog", "playlists"] }),
 );
 export const getCachedPlaylistDiscovery = cache(
-  unstable_cache(getPlaylistDiscovery, ["catalog-playlist-discovery-v2-localized"], { revalidate: 86400, tags: ["catalog", "playlists", "filters"] }),
+  unstable_cache(getPlaylistDiscovery, ["catalog-playlist-discovery-v3-track-index"], { revalidate: 86400, tags: ["catalog", "playlists", "filters"] }),
 );
 export const getCachedStyles = cache(
   unstable_cache(getStyles, ["catalog-styles"], { revalidate: 3600, tags: ["catalog", "filters"] }),

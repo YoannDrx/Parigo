@@ -120,6 +120,7 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByPlaceholder(/Rechercher dans les albums de/)).toBeVisible();
   await expect(page.getByText("Discographie", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Albums", exact: true })).toHaveAttribute("aria-pressed", "true");
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Tous les filtres" }).click();
   }
@@ -141,6 +142,10 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await expect(filterScope.getByLabel("Durée minimum")).toBeVisible();
   await expect(filterScope.getByText("Compositeurs", { exact: true })).toBeVisible();
   await expect(filterScope.getByText("Styles", { exact: true })).toBeVisible();
+  if (testInfo.project.name === "mobile") await filterScope.getByRole("button", { name: /Afficher \d+ résultats/ }).click();
+  await page.getByRole("button", { name: "Pistes", exact: true }).click();
+  await expect(page).toHaveURL(/kind=tracks/);
+  await expect(page.locator(".search-results-ledger")).toBeVisible({ timeout: 30_000 });
 });
 
 test("Albums et Notre label filtrent par un compositeur unique sans perdre le label fixe", async ({ page }, testInfo) => {
@@ -189,6 +194,7 @@ test("les playlists proposent une ligne compacte de facettes et uniquement le tr
   }
   await expect(page.locator("main select")).toHaveCount(0);
   await expect(page.getByText("Plus de pistes", { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/métadonnées des pistes contenues dans les playlists/)).toBeVisible();
   if (testInfo.project.name === "mobile") {
     const cards = page.getByTestId("playlist-grid").locator(".playlist-card");
     const [firstCard, secondCard] = await Promise.all([cards.nth(0).boundingBox(), cards.nth(1).boundingBox()]);
@@ -214,6 +220,10 @@ test("les playlists proposent une ligne compacte de facettes et uniquement le tr
   if (selectedMood) await expect(page.getByRole("button", { name: `Retirer ${selectedMood}` })).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(page.getByText(/Sélection par Hugo/i)).toHaveCount(0);
+  await page.getByRole("button", { name: "Pistes", exact: true }).click();
+  await expect(page).toHaveURL(/kind=tracks/);
+  await expect(page.locator(".search-results-ledger")).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Playlists", exact: true }).click();
   await page.getByRole("button", { name: "Vue liste" }).click();
   await expect(page).toHaveURL(/view=list/);
   const firstRow = page.locator("main .catalog-list-row").first();

@@ -4,7 +4,6 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useSta
 import { ArrowRight, Check, ChevronDown, Search, Sparkles, X } from "lucide-react";
 import { SearchAutocompleteMenu } from "@/components/search/SearchAutocompleteMenu";
 import { useSearchAutocomplete } from "@/hooks/use-search-autocomplete";
-import { consumeSearchExpression } from "@/lib/search-normalization";
 import { cn } from "@/lib/utils";
 import type { AutocompleteItem, AutocompleteSearchContext, SearchMode, SimilaritySearchSource } from "@/types";
 
@@ -180,15 +179,8 @@ export function SearchCommand({
         onRemoveStagedFilter(item);
         setFilterAnnouncement(locale === "fr" ? `Filtre ${item.label} retiré` : `${item.label} filter removed`);
       } else {
-        const remainingQuery = consumeSearchExpression(displayedValue, item.matchedTerm);
-        onValueChange(remainingQuery);
-        onSelect(item, remainingQuery);
-        const recognizedTerm = item.matchedTerm?.trim();
-        setFilterAnnouncement(recognizedTerm
-          ? locale === "fr"
-            ? `« ${recognizedTerm} » a été utilisé comme filtre ${item.label}`
-            : `“${recognizedTerm}” was used as the ${item.label} filter`
-          : locale === "fr" ? `Filtre ${item.label} ajouté` : `${item.label} filter added`);
+        onSelect(item, displayedValue);
+        setFilterAnnouncement(locale === "fr" ? `Filtre ${item.label} ajouté` : `${item.label} filter added`);
       }
       setPanelDismissed(false);
       window.requestAnimationFrame(() => inputRef.current?.focus());

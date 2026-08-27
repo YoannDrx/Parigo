@@ -340,11 +340,16 @@ test("la home conserve le process et le brief sans les deux sections supprimées
   await page.goto("/");
 
   const process = page.locator("#process");
-  await expect(process.getByTestId("process-progress")).toBeVisible();
-  await expect(process.getByText(/Progression du parcours|Parigo · supervision musicale|Chercher · Écouter · Sélectionner/)).toHaveCount(0);
-  await expect(process.locator(".process-step")).toHaveCount(3);
-  await expect(process.locator(".process-step > span.absolute")).toHaveCount(0);
-  await expect(process.locator(".process-step__signal")).toHaveCount(0);
+  await process.scrollIntoViewIfNeeded();
+  await expect(process.getByRole("heading", { name: /Du brief à la sélection/ })).toBeVisible();
+  await expect(process.getByText("Notre méthode", { exact: true })).toHaveCount(0);
+  await expect(process.getByText(/Un chemin simple/)).toHaveCount(0);
+  const processCards = process.getByTestId("process-card");
+  await expect(processCards).toHaveCount(3);
+  for (const card of await processCards.all()) await expect(card).toHaveCSS("background-color", "rgb(17, 18, 15)");
+  const firstShadow = await processCards.nth(0).evaluate((node) => getComputedStyle(node).boxShadow);
+  const secondShadow = await processCards.nth(1).evaluate((node) => getComputedStyle(node).boxShadow);
+  expect(secondShadow).not.toBe(firstShadow);
   await expect(page.locator("#sensations")).toHaveCount(0);
   await expect(page.locator("#editorial-playlists")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: /Envoyez-nous un brief/ })).toBeVisible();
@@ -673,6 +678,7 @@ test("les pages institutionnelles restent lisibles à 320 px", async ({ page }) 
 test("About adopte les nouveaux textes et Licensing ouvre sur une grille repliée", async ({ page }) => {
   await page.goto("/licensing");
   await expect(page.getByRole("heading", { level: 1, name: "Une musique trouvée, une licence maîtrisée" })).toBeVisible();
+  await expect(page.getByText("Besoin d’un chiffrage", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Grille indicative", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Un cadre lisible, projet par projet" })).toHaveCount(0);
   await expect(page.getByText("Tarifs publics indicatifs", { exact: false })).toHaveCount(0);
@@ -768,10 +774,24 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
   const logoPanelBox = await logoPanel.boundingBox();
   expect(logoPanelBox).not.toBeNull();
   if (testInfo.project.name === "mobile") {
-    expect(logoPanelBox!.width / logoPanelBox!.height).toBeCloseTo(16 / 10, 1);
+    expect(logoPanelBox!.height).toBeLessThanOrEqual(181);
   } else {
-    expect(logoPanelBox!.height).toBeGreaterThanOrEqual(350);
+    expect(logoPanelBox!.height).toBeLessThanOrEqual(241);
+    expect(logoPanelBox!.width).toBeLessThanOrEqual(321);
   }
+});
+
+test("la description Musica.it change de langue sans rechargement", async ({ page }, testInfo) => {
+  await page.goto("/labels/9d330c152c37bca0");
+  const description = page.locator(".editorial-detail-hero p").last();
+  await expect(description).toBeVisible();
+  const french = (await description.textContent())?.trim();
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  }
+  await page.getByRole("link", { name: /English version — English/ }).first().click();
+  await expect(page).toHaveURL(/\/en\/labels\/9d330c152c37bca0/);
+  await expect.poll(async () => (await page.locator(".editorial-detail-hero p").last().textContent())?.trim()).not.toBe(french);
 });
 
 test("le détail compositeur aligne le nom en bas du portrait sans arc décoratif", async ({ page }, testInfo) => {
@@ -836,6 +856,7 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
   await expect(team.getByRole("heading", { level: 2, name: "Notre équipe" })).toBeVisible();
   await expect(team.getByRole("heading", { level: 3 })).toHaveText(["Guillaume Albeck", "Caroline Senyk", "Eliott Grellier"]);
   await expect(team.getByText("Responsable copyright et production musicale", { exact: true })).toBeVisible();
+  await expect(team.getByText("Responsable catalogue", { exact: true })).toBeVisible();
   await expect(team.getByRole("link", { name: "guillaume.albeck@parigomusic.com" })).toHaveAttribute("href", "mailto:guillaume.albeck@parigomusic.com");
   await expect(team.getByRole("link", { name: "caroline.senyk@parigomusic.com" })).toHaveAttribute("href", "mailto:caroline.senyk@parigomusic.com");
   await expect(team.getByRole("link", { name: "eliott.grellier@parigomusic.com" })).toHaveAttribute("href", "mailto:eliott.grellier@parigomusic.com");
@@ -853,6 +874,7 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
 
   await page.goto("/en/contact");
   await expect(page.getByTestId("contact-team").getByText("Head of Copyright and Music Production", { exact: true })).toBeVisible();
+  await expect(page.getByTestId("contact-team").getByText("Library manager", { exact: true })).toBeVisible();
   await expect(page.getByTestId("contact-team")).not.toContainText("Administration");
 });
 

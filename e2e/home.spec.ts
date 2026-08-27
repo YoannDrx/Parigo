@@ -422,6 +422,7 @@ test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ pa
   test.skip(testInfo.project.name === "mobile", "Le survol du CTA est un comportement desktop.");
   await page.goto("/");
   const cta = page.getByRole("link", { name: "Envoyer un brief" });
+  await expect(page.getByRole("link", { name: "Contacter l’équipe" })).toHaveAttribute("href", "/contact");
   await cta.scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
   await cta.hover();
@@ -1907,6 +1908,7 @@ test("le reset n’annonce pas un e-mail quand la route Harvest manque", async (
     body: JSON.stringify({ data: { accepted: true, deliveryConfigured: false } }),
   }));
   await page.goto("/forgot-password");
+  await expect(page.locator('aside img')).toHaveAttribute("src", /33-forgot-password-rewind/);
   await page.getByLabel("E-mail").fill("member@example.invalid");
   await page.getByRole("button", { name: "Envoyer le lien" }).click();
 
@@ -1924,6 +1926,7 @@ test("les anciens liens FLEX change-password restent compatibles", async ({ page
   await page.goto("/change-password/legacy-reset-token");
 
   await expect(page).toHaveURL(/\/reset-password\?token=legacy-reset-token$/);
+  await expect(page.locator('aside img')).toHaveAttribute("src", /34-reset-password-patchbay/);
   await expect(page.getByText("Nouveau mot de passe", { exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("Confirmer")).toBeVisible();
   const password = page.getByLabel("Nouveau mot de passe *");

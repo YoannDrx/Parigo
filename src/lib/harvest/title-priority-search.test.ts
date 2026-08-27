@@ -51,7 +51,7 @@ describe("title-priority Harvest search", () => {
         ? { ...result([], 2), tracks: [track("title-1", "Crime One"), track("title-2", "Crime Two")] }
         : result(["editorial-1", "editorial-2"], 8);
     });
-    const pending = searchWithTitlePriority({ query: "crime", view: "Track", textScope: "editorial", limit: 3 }, execute);
+    const pending = searchWithTitlePriority({ query: "crime", view: "Track", textScope: "aggregate", limit: 3 }, execute);
 
     expect(execute).toHaveBeenCalledTimes(2);
     release?.();
@@ -60,7 +60,7 @@ describe("title-priority Harvest search", () => {
     expect(searched.tracks.map((item) => item.id)).toEqual(["title-1", "title-2", "editorial-1"]);
     expect(searched.total).toBe(10);
     expect(execute.mock.calls[1]?.[0]).toMatchObject({
-      textScope: "editorial",
+      textScope: "aggregate",
       excludeTitleQuery: "crime",
       skip: 0,
     });
@@ -71,7 +71,7 @@ describe("title-priority Harvest search", () => {
       ? { ...result([], 2), tracks: [track("valid", "Crime Scene"), track("false-positive", "Unrelated")] }
       : result(["editorial-1", "editorial-2"], 8));
 
-    const searched = await searchWithTitlePriority({ query: "crime", view: "Track", textScope: "editorial", limit: 2 }, execute);
+    const searched = await searchWithTitlePriority({ query: "crime", view: "Track", textScope: "aggregate", limit: 2 }, execute);
 
     expect(searched.tracks.map((item) => item.id)).toEqual(["valid", "editorial-1"]);
     expect(searched.titleTracks.map((item) => item.id)).toEqual(["valid"]);
@@ -90,7 +90,7 @@ describe("title-priority Harvest search", () => {
     const searched = await searchWithTitlePriority({
       query: "crime",
       view: "Track",
-      textScope: "editorial",
+      textScope: "aggregate",
       skip: 60,
       limit: 30,
     }, execute);

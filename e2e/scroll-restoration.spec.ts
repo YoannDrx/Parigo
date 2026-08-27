@@ -64,3 +64,32 @@ test("le retour d’un album conserve le contexte Notre label", async ({ page })
   await page.getByRole("link", { name: /Retour|Back/ }).first().click();
   await expect(page).toHaveURL(/\/notre-label$/);
 });
+
+test("le drawer restaure la position exacte de l’accueil au retour de Talents", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#process").scrollIntoViewIfNeeded();
+  const expectedScrollY = await page.evaluate(() => window.scrollY);
+  expect(expectedScrollY).toBeGreaterThan(500);
+  await page.waitForTimeout(400);
+  await page.evaluate(() => window.scrollBy({ top: -500, behavior: "instant" }));
+  const restoredOrigin = await page.evaluate(() => window.scrollY);
+  await expect(page.locator("header[data-variant]")).toHaveAttribute("data-header-visible", "true");
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  await page.getByRole("dialog", { name: "Menu principal" }).getByRole("link", { name: "Talents", exact: true }).click();
+  await expect(page).toHaveURL(/\/talents$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - restoredOrigin)).toBeLessThanOrEqual(2);
+});
+
+test("le logo du header remonte l’accueil déjà actif", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#process").scrollIntoViewIfNeeded();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
+  await page.waitForTimeout(400);
+  await page.evaluate(() => window.scrollBy({ top: -500, behavior: "instant" }));
+  await expect(page.locator("header[data-variant]")).toHaveAttribute("data-header-visible", "true");
+  await page.getByRole("link", { name: "Parigo — Accueil" }).first().click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(2);
+  await expect(page).toHaveURL(/\/$/);
+});

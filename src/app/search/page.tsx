@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Check,
   BookmarkPlus,
@@ -35,11 +35,11 @@ import { Select } from "@/components/ui/Select";
 import { useSimilarityCapabilities, useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId } from "@/lib/search-intent";
-import { canonicalSearchFilterLabel, canonicalSearchFilterName } from "@/lib/search-filter-labels";
+import { canonicalSearchFilterLabel } from "@/lib/search-filter-labels";
 import { normalizeSearchText } from "@/lib/search-normalization";
 import { looksLikeExternalUrl } from "@/lib/search/similarity-platforms";
 import { cn, formatDuration } from "@/lib/utils";
-import type { SimilaritySearchSource, Album, AutocompleteItem, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchMode, SearchTranslationMode, SortMode, Track } from "@/types";
+import type { SimilaritySearchSource, Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchMode, SearchTranslationMode, SortMode, Track } from "@/types";
 import { useSession } from "@/lib/auth-client";
 import { clearSimilarityHandoff, useSimilarityHandoff } from "@/stores/similarity-handoff-store";
 
@@ -95,19 +95,9 @@ function albumFromTrack(track: Track): Album {
   };
 }
 
-function useDebounced<T>(value: T, delay = 300): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timeout = window.setTimeout(() => setDebounced(value), delay);
-    return () => window.clearTimeout(timeout);
-  }, [delay, value]);
-  return debounced;
-}
-
 function SearchContent() {
   const { locale, t, localizedPath } = useI18n();
   const { data: session } = useSession();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearchMode: SearchMode = searchParams.get("mode") === "ai" ? "ai" : "keyword";
   const rawSimilaritySource = searchParams.get("source");
@@ -176,6 +166,9 @@ function SearchContent() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const searchWorkspaceRef = useRef<HTMLDivElement>(null);
+  const resultsAnchorRef = useRef<HTMLDivElement>(null);
+  const pendingKeywordScrollRef = useRef(false);
+  const pendingAiScrollRef = useRef(false);
   const similarityCapabilitiesQuery = useSimilarityCapabilities();
   const aiEnabled = Boolean(similarityCapabilitiesQuery.data && (
     similarityCapabilitiesQuery.data.track.enabled
@@ -190,24 +183,6 @@ function SearchContent() {
   const itemNames = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => (
     [item.id, canonicalSearchFilterLabel(group.key, item, locale)] as const
   )))), [filterGroups, locale]);
-  const filterItemsById = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => [item.id, { group, item }] as const))), [filterGroups]);
-  const selectedAutocompleteFilters = useMemo(() => [...categories, ...styles]
-    .filter((value) => !value.startsWith("-"))
-    .flatMap((value) => {
-      const resolved = filterItemsById.get(value);
-      if (!resolved) return [];
-      const localized = resolved.item.localizedName || resolved.item.name;
-      const canonical = canonicalSearchFilterName(resolved.item);
-      return [{
-        id: value,
-        kind: "filter" as const,
-        label: canonicalSearchFilterLabel(resolved.group.key, resolved.item, locale),
-        filterGroup: resolved.group.key,
-        canonicalName: canonical,
-        localizedName: localized,
-      }];
-    }), [categories, filterItemsById, locale, styles]);
-
   useEffect(() => {
     if (!filterGroups.length) return;
     const frame = window.requestAnimationFrame(() => setCategories((current) => {
@@ -347,9 +322,8 @@ function SearchContent() {
     sort,
     translation,
   }), [bpmRange, categories, composers, durationRange, labels, locale, page, query, sort, styles, translation, type]);
-  const debouncedParams = useDebounced(requestParams, 300);
-  const tracksQuery = useTracks(debouncedParams, searchMode === "keyword" && view === "tracks");
-  const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, searchMode === "keyword" && view === "albums");
+  const tracksQuery = useTracks(requestParams, searchMode === "keyword" && view === "tracks");
+  const albumsQuery = useAlbums({ ...requestParams, forceSearch: true, sort }, searchMode === "keyword" && view === "albums");
   const activeQuery = view === "tracks" ? tracksQuery : albumsQuery;
   const tracks = useMemo(() => tracksQuery.data?.tracks ?? [], [tracksQuery.data?.tracks]);
   const trackQueue = useMemo(
@@ -400,7 +374,9 @@ function SearchContent() {
   }, [query]);
 
   const applyUnifiedSearch = (value = queryDraft) => {
+    pendingKeywordScrollRef.current = true;
     commitSearchDraft(value);
+    if (value.trim() === query) void activeQuery.refetch();
   };
 
   const clearUnifiedSearch = () => {
@@ -469,6 +445,27 @@ function SearchContent() {
     void similarity.selectFiles(files);
   };
 
+  const scrollToFirstResult = useCallback(() => {
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
+    const anchor = resultsAnchorRef.current;
+    if (!anchor) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const top = Math.max(0, window.scrollY + anchor.getBoundingClientRect().top - 82);
+    window.scrollTo({ top, behavior: reduceMotion ? "instant" : "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (!pendingKeywordScrollRef.current || activeQuery.isFetching || total === 0) return;
+    pendingKeywordScrollRef.current = false;
+    window.requestAnimationFrame(scrollToFirstResult);
+  }, [activeQuery.isFetching, scrollToFirstResult, total]);
+
+  useEffect(() => {
+    if (!pendingAiScrollRef.current || similarity.state !== "done" || similarity.tracks.length === 0) return;
+    pendingAiScrollRef.current = false;
+    window.requestAnimationFrame(scrollToFirstResult);
+  }, [scrollToFirstResult, similarity.state, similarity.tracks.length]);
+
   const activeValues = [...categories, ...styles];
   const includedCount = activeValues.filter((value) => !value.startsWith("-")).length + labels.length + composers.length;
   const excludedCount = activeValues.filter((value) => value.startsWith("-")).length;
@@ -478,35 +475,6 @@ function SearchContent() {
     const setter = source === "categories" ? updateCategories : source === "labels" ? updateLabels : source === "styles" ? updateStyles : updateComposers;
     const values = source === "categories" ? categories : source === "labels" ? labels : source === "styles" ? styles : composers;
     setter(values.filter((item) => item !== value));
-  };
-  const selectSuggestion = (item: AutocompleteItem, remainingQuery?: string) => {
-    if (item.kind === "filter" && item.filterGroup) {
-      if (remainingQuery !== undefined) {
-        setQueryDraft(remainingQuery);
-        setQuery(remainingQuery);
-        setTranslation("offer");
-        setPage(1);
-      }
-      if (item.filterGroup === "styles") updateStyles([...styles, item.id]);
-      else updateCategories([...categories, item.id]);
-      return;
-    }
-    if (item.kind === "label") {
-      updateLabels([...labels, item.id]);
-      return;
-    }
-    if (item.kind === "composer") {
-      updateComposers([item.label]);
-      return;
-    }
-    if (item.href) {
-      router.push(localizedPath(item.href));
-      return;
-    }
-    setQueryDraft(item.label);
-    setQuery(item.label);
-    setTranslation("offer");
-    setPage(1);
   };
   const applySuggestedTranslation = () => {
     const effectiveQuery = translationSuggestion?.effective.trim();
@@ -616,27 +584,9 @@ function SearchContent() {
                 locale={locale}
                 onValueChange={setQueryDraft}
                 onSubmit={applyUnifiedSearch}
-                onSelect={selectSuggestion}
+                onSelect={() => undefined}
                 onClear={clearUnifiedSearch}
-                stagedFilters={selectedAutocompleteFilters}
-                filterSelectionState="applied"
-                autocompleteEnabled={!(translation === "offer" && Boolean(translationSuggestion))}
-                autocompleteContext={{
-                  categories,
-                  styles,
-                  labels,
-                  composer: composers[0],
-                  minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
-                  maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
-                  minDuration: durationRange[0] !== DEFAULT_DURATION[0] ? durationRange[0] : undefined,
-                  maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
-                  type,
-                  sort,
-                }}
-                onRemoveStagedFilter={(item) => {
-                  if (item.filterGroup === "styles") updateStyles(styles.filter((value) => value.replace(/^-/, "") !== item.id));
-                  else updateCategories(categories.filter((value) => value.replace(/^-/, "") !== item.id));
-                }}
+                autocompleteEnabled={false}
                 mode={searchMode}
                 onModeChange={switchSearchMode}
                 aiEnabled={aiEnabled}
@@ -645,7 +595,10 @@ function SearchContent() {
                 aiHasCriteria={similarity.canSubmit}
                 aiValue={similarity.effectiveSource === "url" ? similarity.url : similarity.prompt}
                 onAiValueChange={updateSimilarityText}
-                onAiSubmit={() => void similarity.submit()}
+                onAiSubmit={() => {
+                  pendingAiScrollRef.current = true;
+                  void similarity.submit();
+                }}
                 aiInputType={similarity.effectiveSource === "url" ? "url" : "text"}
                 aiInputLabel={similarity.effectiveSource === "url"
                   ? locale === "fr" ? "Lien public vers une référence musicale" : "Public link to a music reference"
@@ -737,6 +690,7 @@ function SearchContent() {
               </div>
             ) : null}
 
+            <div ref={resultsAnchorRef} aria-hidden="true" />
             <div className="search-results-status mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
               <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
               {session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}

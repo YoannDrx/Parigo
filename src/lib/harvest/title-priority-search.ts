@@ -134,19 +134,19 @@ export async function searchWithTitlePriority(
     saveSearchHistory: false,
     excludeTitleQuery: undefined,
   });
-  const editorialInput = (editorialSkip: number): HarvestSearchInput => ({
+  const aggregateInput = (aggregateSkip: number): HarvestSearchInput => ({
     ...input,
     query,
-    textScope: "editorial",
-    skip: editorialSkip,
+    textScope: "aggregate",
+    skip: aggregateSkip,
     limit,
     excludeTitleQuery: query,
   });
 
   const titleBatchSize = 100;
-  const [titleSummary, editorialAtStart] = await Promise.all([
+  const [titleSummary, aggregateAtStart] = await Promise.all([
     execute(titleInput(0, titleBatchSize)),
-    execute(editorialInput(0)),
+    execute(aggregateInput(0)),
   ]);
   const firstCandidates = splitTitleCandidates(titleSummary, view, query);
   const verifiedCandidates = [...firstCandidates.verified];
@@ -171,30 +171,33 @@ export async function searchWithTitlePriority(
   const editorialSkip = exhaustedTitleCandidates
     ? Math.max(0, skip - orderedTitleLane.length)
     : 0;
-  const editorialResult = editorialSkip === 0
-    ? editorialAtStart
-    : await execute(editorialInput(editorialSkip));
-  const editorialEntities = entities(editorialResult, view);
-  const pageEntities = [...titleEntities, ...editorialEntities].slice(0, limit);
+  const aggregateResult = editorialSkip === 0
+    ? aggregateAtStart
+    : await execute(aggregateInput(editorialSkip));
+  const aggregateEntities = entities(aggregateResult, view);
+  const pageEntities = [...titleEntities, ...aggregateEntities].slice(0, limit);
   const verifiedIds = new Set(verifiedCandidates.map((item) => item.id));
   const verifiedPageTitles = titleEntities.filter((item) => verifiedIds.has(item.id));
   const unverifiedPageTitles = titleEntities.filter((item) => !verifiedIds.has(item.id));
   const titleTracks = view === "Track" ? verifiedPageTitles as Track[] : [];
   const titleAlbums = view === "Album" ? verifiedPageTitles as Album[] : [];
-  const editorialTracks = view === "Track" ? [...unverifiedPageTitles, ...editorialResult.tracks] as Track[] : [];
-  const editorialAlbums = view === "Album" ? [...unverifiedPageTitles, ...editorialResult.albums] as Album[] : [];
+  const editorialTracks = view === "Track" ? [...unverifiedPageTitles, ...aggregateResult.tracks] as Track[] : [];
+  const editorialAlbums = view === "Album" ? [...unverifiedPageTitles, ...aggregateResult.albums] as Album[] : [];
 
   return {
     tracks: view === "Track" ? pageEntities as Track[] : [],
     albums: view === "Album" ? pageEntities as Album[] : [],
-    total: titleSummary.total + editorialResult.total,
-    facets: mergeDisjointSearchFacets([titleSummary, editorialResult]),
-    searchHistoryId: editorialResult.searchHistoryId ?? titleSummary.searchHistoryId,
+    total: titleSummary.total + aggregateResult.total,
+    facets: mergeDisjointSearchFacets([titleSummary, aggregateResult]),
+    searchHistoryId: aggregateResult.searchHistoryId ?? titleSummary.searchHistoryId,
     titleTracks,
     titleAlbums,
     editorialTracks,
     editorialAlbums,
-    titleTotal: titleSummary.total,
-    editorialTotal: editorialResult.total,
+    // This count contains only title candidates that were verified locally in
+    // the portion scanned for the requested page. Unlike Harvest's raw title
+    // candidate total, it never counts an unrelated wildcard candidate.
+    titleTotal: verifiedCandidates.length,
+    editorialTotal: aggregateResult.total,
   };
 }

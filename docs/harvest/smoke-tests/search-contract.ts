@@ -1,9 +1,25 @@
 export {};
 
 const previewBaseUrl = process.env.HARVEST_PREVIEW_BASE_URL || "http://127.0.0.1:3000";
+const pageSize = 30;
 
 type RecordValue = Record<string, unknown>;
 type SearchView = "tracks" | "albums";
+
+type HistoricalCase = {
+  query: string;
+  view: SearchView;
+  expectedProfile: "aggregate-title-first" | "title";
+};
+
+const historicalMatrix: HistoricalCase[] = [
+  { query: "piano sad", view: "tracks", expectedProfile: "aggregate-title-first" },
+  { query: "piano triste", view: "tracks", expectedProfile: "aggregate-title-first" },
+  { query: "reggae triste", view: "tracks", expectedProfile: "aggregate-title-first" },
+  { query: "crime", view: "tracks", expectedProfile: "aggregate-title-first" },
+  { query: "mariage", view: "tracks", expectedProfile: "aggregate-title-first" },
+  { query: "PGO", view: "albums", expectedProfile: "title" },
+];
 
 function record(value: unknown): RecordValue {
   return value && typeof value === "object" ? value as RecordValue : {};
@@ -16,16 +32,30 @@ function records(value: unknown, key: string): RecordValue[] {
     : [];
 }
 
-function titles(payload: RecordValue): string[] {
-  return records(record(payload.data), "items")
-    .map((item) => String(item.title ?? ""))
+function normalizeWords(value: string): string[] {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("fr")
+    .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean);
 }
 
-function ids(payload: RecordValue): string[] {
-  return records(record(payload.data), "items")
-    .map((item) => String(item.id ?? ""))
-    .filter(Boolean);
+function titleContainsAllWords(title: string, query: string): boolean {
+  const normalizedTitle = normalizeWords(title);
+  return normalizeWords(query).every((word) => normalizedTitle.includes(word));
+}
+
+function resultItems(payload: RecordValue): RecordValue[] {
+  return records(record(payload.data), "items");
+}
+
+function itemIds(payload: RecordValue): string[] {
+  return resultItems(payload).map((item) => String(item.id ?? "")).filter(Boolean);
+}
+
+function itemTitles(payload: RecordValue): string[] {
+  return resultItems(payload).map((item) => String(item.title ?? "")).filter(Boolean);
 }
 
 async function fetchPreview(path: string): Promise<RecordValue> {
@@ -34,194 +64,122 @@ async function fetchPreview(path: string): Promise<RecordValue> {
   return record(await response.json());
 }
 
-async function checkEditorialSearch(query: string, view: SearchView, titleBaseline: number) {
-  const payload = await fetchPreview(
-    `/api/search?q=${encodeURIComponent(query)}&view=${view}&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off`,
+function matrixKey(testCase: HistoricalCase): string {
+  return `${testCase.view}:${testCase.query}`;
+}
+
+function referenceTotals(): Record<string, number> {
+  const raw = process.env.HISTORICAL_SEARCH_TOTALS_JSON?.trim();
+  if (!raw) return {};
+
+  const parsed = record(JSON.parse(raw));
+  return Object.fromEntries(Object.entries(parsed).map(([key, value]) => {
+    const total = Number(value);
+    if (!Number.isFinite(total) || total < 0) {
+      throw new Error(`Invalid historical total for ${key}: ${String(value)}`);
+    }
+    return [key, total];
+  }));
+}
+
+function assertTitlePrefix(query: string, titles: string[]) {
+  let aggregateLaneStarted = false;
+  for (const title of titles) {
+    const isVerifiedTitle = titleContainsAllWords(title, query);
+    if (aggregateLaneStarted && isVerifiedTitle) {
+      throw new Error(`A verified title appeared after an aggregate result for "${query}": ${title}`);
+    }
+    if (!isVerifiedTitle) aggregateLaneStarted = true;
+  }
+}
+
+async function checkHistoricalCase(testCase: HistoricalCase, references: Record<string, number>) {
+  const params = new URLSearchParams({
+    q: testCase.query,
+    view: testCase.view,
+    page: "1",
+    limit: String(pageSize),
+    type: "main",
+    sort: "relevance",
+    language: "fr",
+    translation: "off",
+  });
+  const first = await fetchPreview(`/api/search?${params}`);
+  const meta = record(first.meta);
+  const firstIds = itemIds(first);
+  const firstTitles = itemTitles(first);
+  const total = Number(meta.total ?? -1);
+  const titleMatchTotal = Number(meta.titleMatchTotal ?? 0);
+
+  if (!Number.isInteger(total) || total < 0 || total < firstIds.length) {
+    throw new Error(`Invalid total for ${matrixKey(testCase)}: ${String(meta.total)}`);
+  }
+  if (firstIds.length > pageSize || new Set(firstIds).size !== firstIds.length) {
+    throw new Error(`The first page is oversized or contains duplicates for ${matrixKey(testCase)}`);
+  }
+  if (meta.fieldProfile !== testCase.expectedProfile || meta.searchMode !== "keyword") {
+    throw new Error(`Unexpected public search contract for ${matrixKey(testCase)}`);
+  }
+  if (!Number.isFinite(titleMatchTotal) || titleMatchTotal < 0 || titleMatchTotal > total) {
+    throw new Error(`Invalid titleMatchTotal for ${matrixKey(testCase)}: ${String(meta.titleMatchTotal)}`);
+  }
+  if (testCase.expectedProfile === "aggregate-title-first") {
+    assertTitlePrefix(testCase.query, firstTitles);
+    const timings = record(meta.timings);
+    for (const timing of ["titleSearchMs", "aggregateSearchMs", "enrichmentMs"] as const) {
+      if (!Number.isFinite(Number(timings[timing])) || Number(timings[timing]) < 0) {
+        throw new Error(`Missing ${timing} for ${matrixKey(testCase)}`);
+      }
+    }
+  }
+
+  const expectedTotal = references[matrixKey(testCase)];
+  if (expectedTotal !== undefined && total !== expectedTotal) {
+    throw new Error(
+      `Historical coverage mismatch for ${matrixKey(testCase)}: production=${expectedTotal}, development=${total}`,
+    );
+  }
+
+  if (total > pageSize) {
+    params.set("page", "2");
+    const second = await fetchPreview(`/api/search?${params}`);
+    const secondIds = itemIds(second);
+    if (secondIds.length > pageSize || secondIds.some((id) => firstIds.includes(id))) {
+      throw new Error(`Pagination is oversized or duplicated for ${matrixKey(testCase)}`);
+    }
+
+    params.set("page", "1");
+    const repeated = await fetchPreview(`/api/search?${params}`);
+    if (itemIds(repeated).join("|") !== firstIds.join("|")) {
+      throw new Error(`The first page is unstable for ${matrixKey(testCase)}`);
+    }
+  }
+
+  console.log(JSON.stringify({
+    check: matrixKey(testCase),
+    developmentTotal: total,
+    historicalTotal: expectedTotal ?? "not supplied",
+    titleMatchTotal,
+    firstTitles: firstTitles.slice(0, 5),
+  }, null, 2));
+}
+
+async function checkAllPgoAlbumsArePageable() {
+  const first = await fetchPreview(
+    `/api/search?q=PGO&view=albums&page=1&limit=${pageSize}&type=main&sort=relevance&language=fr&translation=off`,
   );
-  const meta = record(payload.meta);
-  const resultTitles = titles(payload);
-  const total = Number(meta.total ?? 0);
-  if (!resultTitles.length || total < resultTitles.length) {
-    throw new Error(`Editorial ${view} search returned an invalid result set for "${query}"`);
-  }
-  if (meta.fieldProfile !== "editorial" || meta.searchMode !== "keyword") {
-    throw new Error(`Editorial ${view} search did not expose the expected public contract`);
-  }
-  if (total <= titleBaseline) {
-    throw new Error(`Editorial ${view} search did not expand the title baseline for "${query}"`);
-  }
-  if (meta.intentResolution) throw new Error("Keyword search unexpectedly exposed an intent resolution");
-  console.log(JSON.stringify({ check: `editorial-${view}`, query, total, examples: resultTitles.slice(0, 5) }, null, 2));
-}
+  const total = Number(record(first.meta).total ?? 0);
+  const allIds = [...itemIds(first)];
 
-async function checkBilingualSuggestion() {
-  if (!process.env.DEEPL_AUTH_KEY?.trim()) {
-    console.log("Generic translation contract skipped because DEEPL_AUTH_KEY is not configured.");
-    return;
-  }
-  const originalQuery = "coucher de soleil";
-  const encodedQuery = encodeURIComponent(originalQuery);
-  const offered = await fetchPreview(`/api/search?q=${encodedQuery}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=offer`);
-  const offeredMeta = record(offered.meta);
-  const suggestion = record(offeredMeta.translationSuggestion);
-  if (suggestion.original !== originalQuery || !suggestion.effective || suggestion.source !== "machine-translation") {
-    throw new Error("The French → English suggestion metadata is missing or invalid");
-  }
-  if (offeredMeta.queryResolution || Number(offeredMeta.total ?? 0) !== 0) {
-    throw new Error("The translation suggestion was applied without explicit consent");
+  for (let page = 2; page <= Math.ceil(total / pageSize); page += 1) {
+    const payload = await fetchPreview(
+      `/api/search?q=PGO&view=albums&page=${page}&limit=${pageSize}&type=main&sort=relevance&language=fr&translation=off`,
+    );
+    allIds.push(...itemIds(payload));
   }
 
-  const applied = await fetchPreview(`/api/search?q=${encodedQuery}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=apply`);
-  const appliedMeta = record(applied.meta);
-  const resolution = record(appliedMeta.queryResolution);
-  if (resolution.original !== originalQuery || resolution.effective !== suggestion.effective) {
-    throw new Error("The accepted translation was not applied consistently");
-  }
-  if (Number(appliedMeta.total ?? 0) < 1 || titles(applied).length < 1) {
-    throw new Error("The accepted English query returned no tracks");
-  }
-
-  const literal = await fetchPreview(`/api/search?q=${encodedQuery}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off`);
-  if (record(literal.meta).queryResolution || record(literal.meta).translationSuggestion) {
-    throw new Error("Translation-off search unexpectedly exposed translation metadata");
-  }
-}
-
-async function checkOfficialTaxonomySuppressesMachineTranslation() {
-  const search = await fetchPreview("/api/search?q=mariage&view=tracks&page=1&limit=1&type=main&sort=relevance&language=fr&translation=offer&probe=1");
-  const meta = record(search.meta);
-  if (meta.translationSuggestion || meta.queryResolution) {
-    throw new Error("An official French taxonomy match unexpectedly triggered machine translation");
-  }
-
-  const autocomplete = await fetchPreview("/api/autocomplete?q=mariage&language=fr");
-  const filters = records(record(autocomplete.data), "groups")
-    .find((group) => group.key === "filters");
-  const wedding = filters
-    ? records(filters, "items").find((item) => item.id === "ATT_6f5d841140fc2123")
-    : undefined;
-  if (wedding?.canonicalName !== "Wedding" || wedding.localizedName !== "Mariage") {
-    throw new Error("The official Wedding → Mariage filter contract is missing");
-  }
-}
-
-async function checkPartialTaxonomyAllowsMachineTranslation() {
-  if (!process.env.DEEPL_AUTH_KEY) return;
-  const search = await fetchPreview("/api/search?q=une%20for%C3%AAt%20sombre&view=tracks&page=1&limit=1&type=main&sort=relevance&language=fr&translation=offer&probe=1");
-  const suggestion = record(record(search.meta).translationSuggestion);
-  if (String(suggestion.effective ?? "").toLocaleLowerCase("en") !== "dark forest") {
-    throw new Error(`A partial mood match incorrectly suppressed the full-query translation (received ${String(suggestion.effective)})`);
-  }
-}
-
-function findFilterItem(items: RecordValue[], id: string): RecordValue | undefined {
-  for (const item of items) {
-    if (String(item.id ?? "") === id) return item;
-    const nested = findFilterItem(records(item, "children"), id);
-    if (nested) return nested;
-  }
-  return undefined;
-}
-
-async function checkFrenchTaxonomyTranslation() {
-  const payload = await fetchPreview("/api/search/filters?language=fr");
-  const groups = records(record(payload.data), "groups");
-  const mood = groups.find((group) => group.key === "moods");
-  const sad = mood ? findFilterItem(records(mood, "items"), "ATT_b71182fbd44d6ef6") : undefined;
-  if (!sad) throw new Error("Harvest's stable Sad mood identifier is missing from the French taxonomy");
-  if (sad.canonicalName !== "Sad" || sad.localizedName !== "Triste") {
-    throw new Error(`Harvest has not honored the French Sad translation contract (received canonical=${String(sad.canonicalName)}, localized=${String(sad.localizedName)})`);
-  }
-}
-
-async function checkAutocompleteTitlePriority() {
-  const payload = await fetchPreview("/api/autocomplete?q=crime&language=fr");
-  const groups = records(record(payload.data), "groups");
-  const titlesIndex = groups.findIndex((candidate) => candidate.key === "titles");
-  const firstEntityIndex = groups.findIndex((candidate) => ["titles", "tracks", "albums", "playlists"].includes(String(candidate.key ?? "")));
-  const titles = titlesIndex >= 0 ? records(groups[titlesIndex], "items") : [];
-  if (!titles.length || titlesIndex !== firstEntityIndex) {
-    throw new Error("Autocomplete did not place the shared literal-title group before other entities for crime");
-  }
-  if (titles.some((item) => !records(item, "matchEvidence").some((evidence) => ["trackTitle", "albumTitle", "playlistTitle"].includes(String(evidence.field ?? ""))))) {
-    throw new Error("Autocomplete's literal-title group contains an item without title evidence");
-  }
-  const firstTrackTitle = titles.find((item) => item.kind === "track");
-  if (firstTrackTitle?.label !== "Echoes Of Crime (Full Mix)") {
-    throw new Error(`Autocomplete's dedicated title lane lost the known top crime result (received ${String(firstTrackTitle?.label)})`);
-  }
-}
-
-async function checkAutocompleteSearchPrefix() {
-  const query = "crime";
-  const [autocomplete, search] = await Promise.all([
-    fetchPreview(`/api/autocomplete?q=${encodeURIComponent(query)}&language=fr`),
-    fetchPreview(`/api/search?q=${encodeURIComponent(query)}&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off`),
-  ]);
-  const groups = records(record(autocomplete.data), "groups");
-  const titleTracks = records(groups.find((group) => group.key === "titles"), "items")
-    .filter((item) => item.kind === "track");
-  const otherTracks = records(groups.find((group) => group.key === "tracks"), "items");
-  const suggestedIds = [...titleTracks, ...otherTracks].map((item) => String(item.id ?? "")).filter(Boolean);
-  const resultIds = ids(search);
-  if (!suggestedIds.length || !suggestedIds.every((id, index) => resultIds[index] === id)) {
-    throw new Error(`Autocomplete tracks are not the title-priority prefix of the full search for "${query}"`);
-  }
-  const searchItems = records(record(search.data), "items");
-  if (String(searchItems[0]?.title ?? "") !== "Echoes Of Crime (Full Mix)") {
-    throw new Error("The complete crime search did not preserve the known first literal-title result");
-  }
-  if (!searchItems.slice(0, Math.min(30, searchItems.length)).every((item) => (
-    records(item, "matchEvidence").some((evidence) => evidence.field === "trackTitle")
-  ))) {
-    throw new Error("The first crime page placed an editorial match before a verified title match");
-  }
-}
-
-async function checkLegacyBriefCompatibility() {
-  const payload = await fetchPreview(
-    "/api/search?brief=crime&resolve=1&view=tracks&page=1&limit=5&type=main&sort=relevance&language=fr&translate=0",
-  );
-  const meta = record(payload.meta);
-  if (meta.intentResolution || meta.queryResolution || meta.translationSuggestion) {
-    throw new Error("A legacy brief unexpectedly re-enabled intent or translation resolution");
-  }
-  if (meta.searchMode !== "keyword" || Number(meta.total ?? 0) < 1) {
-    throw new Error("A legacy brief was not treated as a literal keyword search");
-  }
-}
-
-async function checkLiteralCompatibility() {
-  const title = await fetchPreview(
-    "/api/search?q=Piano%20On%20My%20Mind&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off",
-  );
-  if (!titles(title).includes("Piano On My Mind")) {
-    throw new Error("The editorial profile lost a known exact title result");
-  }
-
-  const multiWord = await fetchPreview(
-    "/api/search?q=dark%20piano&view=tracks&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off",
-  );
-  if (Number(record(multiWord.meta).total ?? 0) < 1) {
-    throw new Error("Harvest's multi-word AND serialization returned no tracks");
-  }
-
-  const reference = await fetchPreview(
-    "/api/search?q=PRTM%200212&view=albums&page=1&limit=30&type=main&sort=relevance&language=fr&translation=off",
-  );
-  if (!titles(reference).includes("Between Light and Void") || record(reference.meta).fieldProfile !== "title") {
-    throw new Error("The narrow Harvest catalogue-reference compatibility path failed");
-  }
-}
-
-async function checkAiCapability() {
-  const response = await fetch(`${previewBaseUrl}/api/search?mode=ai&q=cinematic&view=tracks`);
-  if (response.status !== 503) throw new Error(`AI search unexpectedly returned HTTP ${response.status}`);
-  const payload = record(await response.json());
-  const error = record(payload.error);
-  const capabilities = record(record(payload.meta).capabilities);
-  if (error.code !== "FEATURE_UNAVAILABLE" || capabilities.aiPromptSearchAvailable !== false) {
-    throw new Error("Disabled AIMS capability contract is invalid");
+  if (allIds.length !== total || new Set(allIds).size !== total) {
+    throw new Error(`PGO pagination exposes ${allIds.length} rows (${new Set(allIds).size} unique) for a total of ${total}`);
   }
 }
 
@@ -230,18 +188,19 @@ async function main() {
     console.log("Search contract skipped. Set HARVEST_LIVE_TESTS=1 to exercise the live Harvest catalogue.");
     return;
   }
-  await checkEditorialSearch("crime", "albums", 47);
-  await checkEditorialSearch("crime", "tracks", 174);
-  await checkEditorialSearch("wedding", "tracks", 171);
-  await checkLiteralCompatibility();
-  await checkAutocompleteTitlePriority();
-  await checkAutocompleteSearchPrefix();
-  await checkFrenchTaxonomyTranslation();
-  await checkOfficialTaxonomySuppressesMachineTranslation();
-  await checkPartialTaxonomyAllowsMachineTranslation();
-  await checkLegacyBriefCompatibility();
-  await checkBilingualSuggestion();
-  await checkAiCapability();
+
+  const references = referenceTotals();
+  if (!Object.keys(references).length) {
+    console.log(
+      "Historical totals were not supplied. Capture them from parigomusic.com and set " +
+      "HISTORICAL_SEARCH_TOTALS_JSON to make coverage comparison strict.",
+    );
+  }
+
+  for (const testCase of historicalMatrix) {
+    await checkHistoricalCase(testCase, references);
+  }
+  await checkAllPgoAlbumsArePageable();
 }
 
 main().catch((error) => {

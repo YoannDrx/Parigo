@@ -20,6 +20,9 @@ describe("title search query normalization", () => {
     expect(isTranslatableSearchQuery("forêt sombre")).toBe(true);
     expect(isCatalogIdentifier("PRTM 0212")).toBe(true);
     expect(isCatalogIdentifier("KAPL008")).toBe(true);
+    expect(isCatalogIdentifier("PGO")).toBe(true);
+    expect(isCatalogIdentifier("PRTM")).toBe(true);
     expect(isCatalogIdentifier("dark piano")).toBe(false);
+    expect(isCatalogIdentifier("crime")).toBe(false);
   });
 });
