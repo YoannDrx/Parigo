@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, ListPlus, RotateCcw, Sparkles, UploadCloud, X } from "lucide-react";
 import { TrackRow } from "@/components/features/TrackRow";
@@ -439,10 +439,12 @@ export function SimilaritySearchWorkspace({
   controller,
   density,
   onDensityChange,
+  resultsAnchorRef,
 }: {
   controller: SimilaritySearchController;
   density: SimilarityDensity;
   onDensityChange: (density: SimilarityDensity) => void;
+  resultsAnchorRef: RefObject<HTMLDivElement | null>;
 }) {
   const { locale } = controller;
   const unavailable = controller.capabilitiesQuery.isError || (!controller.capabilitiesQuery.isLoading && controller.enabledSources.length === 0);
@@ -462,6 +464,7 @@ export function SimilaritySearchWorkspace({
     </aside>
 
     <section className="order-3 min-w-0 lg:order-none lg:col-start-2 lg:row-start-2" aria-live="polite">
+      <div ref={resultsAnchorRef} data-testid="similarity-results-anchor" aria-hidden="true" />
       {controller.capabilitiesQuery.isLoading ? <div className="flex min-h-80 items-center justify-center border border-[var(--line)]"><ParigoLoader size="page" label={locale === "fr" ? "Préparation de la similarité" : "Preparing similarity"} /></div> : unavailable ? <div className="border border-[var(--line-strong)] bg-[var(--surface)] px-5 py-20 text-center"><Sparkles className="mx-auto text-[var(--text-muted)]" size={28} /><h2 className="mt-5 text-3xl">{locale === "fr" ? "La recherche de similarité n’est pas encore ouverte." : "Similarity search is not open yet."}</h2></div> : <>
         <div className="search-results-status mb-4 flex min-w-0 items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
           <div className="flex min-w-0 flex-wrap items-center gap-3">

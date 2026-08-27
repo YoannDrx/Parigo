@@ -93,6 +93,53 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
 });
 
+test("un brief IA explicite révèle automatiquement ses résultats sur mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Le déplacement automatique est réservé au mobile.");
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: {
+      track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+      prompt: { advertised: true, enabled: true },
+      upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+      externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify"] },
+      playlistSuggestions: false,
+    } }),
+  }));
+  await page.route("**/api/similarity/search", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { tracks: [similarityTrack], mode: "prompt" },
+        meta: { total: 1, durationMs: 120, requestId: "e2e-mobile-ai-scroll" },
+      }),
+    });
+  });
+
+  await page.goto("/search?mode=ai&source=prompt");
+  const prompt = page.getByLabel("Décrire la musique recherchée");
+  await prompt.fill("fun");
+  await page.waitForTimeout(200);
+  expect(await page.evaluate(() => window.scrollY)).toBeLessThanOrEqual(2);
+
+  await page.getByRole("button", { name: "Lancer le brief" }).click();
+  await expect(page.getByRole("button", { name: `Écouter ${similarityTrack.title}` })).toBeVisible();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  await expect.poll(async () => (await page.getByTestId("similarity-results-anchor").boundingBox())?.y ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(90);
+
+  const [anchorBox, firstResultBox] = await Promise.all([
+    page.getByTestId("similarity-results-anchor").boundingBox(),
+    page.locator(".parigo-track-row").first().boundingBox(),
+  ]);
+  expect(anchorBox).not.toBeNull();
+  expect(firstResultBox).not.toBeNull();
+  expect(anchorBox!.y).toBeGreaterThanOrEqual(78);
+  expect(anchorBox!.y).toBeLessThanOrEqual(90);
+  expect(firstResultBox!.y).toBeGreaterThan(anchorBox!.y);
+  expect(firstResultBox!.y).toBeLessThan(220);
+});
+
 test("une piste du listing lance immédiatement sa recherche de similarité", async ({ page }) => {
   const shortlistTrack = { ...similarityTrack, id: "shortlist-track-1", title: "Référence de la shortlist" };
   await page.addInitScript((track) => {

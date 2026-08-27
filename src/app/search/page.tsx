@@ -645,7 +645,7 @@ function SearchContent() {
             </div>
 
             {searchMode === "ai" ? (
-              <SimilaritySearchWorkspace controller={similarity} density={density} onDensityChange={setDensity} />
+              <SimilaritySearchWorkspace controller={similarity} density={density} onDensityChange={setDensity} resultsAnchorRef={resultsAnchorRef} />
             ) : <>
 
             {(categories.length > 0 || labels.length > 0 || styles.length > 0 || composers.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
