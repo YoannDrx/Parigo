@@ -1424,6 +1424,7 @@ test("l’image About reste fixe pendant le défilement", async ({ page }) => {
 test("le héros garde sa chorégraphie et les textes des autres sections restent statiques", async ({ page }) => {
   await page.goto("/");
   const heroContent = page.getByTestId("home-hero-content");
+  const heroCopy = page.getByTestId("home-hero-copy");
   const heroWords = page.getByTestId("home-hero-title-word");
   const descriptionLines = page.getByTestId("home-hero-description-line");
   const heroSearch = page.getByTestId("home-hero-search-reveal");
@@ -1438,9 +1439,12 @@ test("le héros garde sa chorégraphie et les textes des autres sections restent
   await expect(heroSearchMask).toHaveAttribute("data-banner-mask", "open");
   await expect(heroSearchMask).toHaveCSS("overflow", "visible");
 
-  const heroOpacityBefore = Number.parseFloat(await heroContent.evaluate((node) => getComputedStyle(node).opacity));
+  const copyOpacityBefore = Number.parseFloat(await heroCopy.evaluate((node) => getComputedStyle(node).opacity));
+  const searchOpacityBefore = Number.parseFloat(await heroSearchMask.evaluate((node) => getComputedStyle(node).opacity));
   await page.evaluate(() => window.scrollTo(0, window.innerHeight * .72));
-  await expect.poll(() => heroContent.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(heroOpacityBefore - .25);
+  await expect.poll(() => heroCopy.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(copyOpacityBefore - .25);
+  await expect.poll(() => heroSearchMask.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(searchOpacityBefore - .25);
+  await expect.poll(() => heroContent.evaluate((node) => getComputedStyle(node).transform)).not.toBe("none");
 
   const featuredReveal = page.locator('#featured [data-home-reveal="static"]').first();
   await featuredReveal.scrollIntoViewIfNeeded();

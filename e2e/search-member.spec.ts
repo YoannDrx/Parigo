@@ -33,11 +33,16 @@ test("le player se range sous la shortlist sans perdre sa piste ni ses liens", a
 
   await page.getByRole("button", { name: /^Ajouter à la shortlist :/ }).click();
   const shortlist = page.getByRole("dialog", { name: "Shortlist" });
+  const shortlistDrawer = page.locator(".shortlist-drawer");
+  const shortlistBackdrop = page.locator(".parigo-modal-backdrop");
   if (await shortlist.isVisible()) {
     await shortlist.getByRole("button", { name: "Fermer", exact: true }).click();
-    await expect(shortlist).toBeHidden();
+    await expect(shortlistDrawer).toHaveCount(0);
+    await expect(shortlistBackdrop).toHaveCount(0);
   }
-  await page.getByRole("button", { name: /^Écouter Piano documentaire/ }).click();
+  const playButton = page.getByRole("button", { name: /^Écouter Piano documentaire/ });
+  await playButton.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
+  await playButton.click();
 
   const player = page.getByTestId("player-dock");
   await expect(player).toHaveAttribute("data-player-state", "docked");
