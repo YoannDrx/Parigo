@@ -30,6 +30,58 @@ export function NavigationHistoryProvider({ children }: { children: ReactNode })
   const [previousPathname, setPreviousPathname] = useState<string | null>(null);
 
   useEffect(() => {
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    const storageKey = () => `parigo:scroll:${normalizePathname(window.location.pathname)}`;
+    const rememberScroll = () => {
+      if (document.documentElement.dataset.scrollLocked === "true") return;
+      window.sessionStorage.setItem(storageKey(), String(window.scrollY));
+    };
+    const restoreHistoryScroll = () => {
+      const nextPathname = normalizePathname(window.location.pathname);
+      const storedTarget = window.sessionStorage.getItem(`parigo:scroll:${nextPathname}`);
+      if (storedTarget === null) return;
+      const target = Number(storedTarget);
+      if (!Number.isFinite(target)) return;
+      let attempts = 0;
+      let cancelled = false;
+      const cancelEvents = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
+      const removeCancellationListeners = () => {
+        for (const eventName of cancelEvents) {
+          window.removeEventListener(eventName, cancelForUserInput);
+        }
+      };
+      const cancelForUserInput = () => {
+        cancelled = true;
+        removeCancellationListeners();
+      };
+      for (const eventName of cancelEvents) {
+        window.addEventListener(eventName, cancelForUserInput, { once: true, passive: true });
+      }
+      const restore = () => {
+        if (cancelled) return;
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        if (maxScroll >= target) window.scrollTo({ top: target, behavior: "instant" });
+        attempts += 1;
+        if (attempts < 40) {
+          window.setTimeout(restore, 50);
+        } else {
+          removeCancellationListeners();
+        }
+      };
+      window.setTimeout(restore, 0);
+    };
+    window.addEventListener("scroll", rememberScroll, { passive: true });
+    window.addEventListener("popstate", restoreHistoryScroll);
+    rememberScroll();
+    return () => {
+      window.history.scrollRestoration = previousRestoration;
+      window.removeEventListener("scroll", rememberScroll);
+      window.removeEventListener("popstate", restoreHistoryScroll);
+    };
+  }, []);
+
+  useEffect(() => {
     const nextPathname = normalizePathname(pathname);
     if (nextPathname === currentPathnameRef.current) return;
 

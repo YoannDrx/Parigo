@@ -46,7 +46,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("le héros ouvre une recherche par similarité IA depuis un brief", async ({ page }) => {
+test("le héros ouvre une recherche par similarité IA depuis un brief", async ({ page }, testInfo) => {
   await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify({ data: {
@@ -76,6 +76,16 @@ test("le héros ouvre une recherche par similarité IA depuis un brief", async (
   await expect(hint.getByRole("button", { name: "Importer un fichier MP3 ou WAV" })).toBeVisible();
   await expect(hint.getByTitle("YouTube")).toBeVisible();
   await expect(hint.getByTitle("Spotify")).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    const heroBox = await hero.boundingBox();
+    const hintBox = await hint.boundingBox();
+    expect(heroBox).not.toBeNull();
+    expect(hintBox).not.toBeNull();
+    expect(hintBox!.x).toBeGreaterThanOrEqual(heroBox!.x);
+    expect(hintBox!.x + hintBox!.width).toBeLessThanOrEqual(heroBox!.x + heroBox!.width);
+    expect(hintBox!.y + hintBox!.height).toBeLessThanOrEqual(heroBox!.y + heroBox!.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+  }
   const accessibility = await new AxeBuilder({ page }).include('[data-testid="home-hero"]').analyze();
   expect(accessibility.violations.filter((violation) => violation.impact === "critical")).toEqual([]);
   await aiInput.fill("Une tension cinématique nocturne");
@@ -305,7 +315,7 @@ test("les suggestions du héros restent au-dessus de la section suivante", async
     const sectionBox = nextSection.getBoundingClientRect();
     const overlapTop = Math.max(panelBox.top, sectionBox.top);
     const overlapBottom = Math.min(panelBox.bottom, sectionBox.bottom, window.innerHeight);
-    if (overlapBottom <= overlapTop) return false;
+    if (overlapBottom <= overlapTop) return true;
     const topElement = document.elementFromPoint(panelBox.left + panelBox.width / 2, overlapTop + 4);
     return Boolean(topElement && suggestions.contains(topElement));
   })).toBe(true);
@@ -343,6 +353,23 @@ test("le sélecteur du héros reste contenu sur un petit viewport", async ({ pag
   expect(box!.y).toBeGreaterThanOrEqual(8);
   expect(box!.y + box!.height).toBeLessThanOrEqual(560);
   await expect(menu).toHaveAttribute("data-placement", "top");
+});
+
+test("le héros conserve un espace lisible sous la navbar sur iPhone SE", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La composition iPhone SE est contrôlée sur mobile.");
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto("/");
+
+  const header = page.locator("header");
+  const title = page.getByTestId("home-hero").locator('[data-banner-reveal="title"]');
+  await expect(page.getByTestId("home-hero-search-mask")).toHaveAttribute("data-banner-mask", "open");
+  const [headerBox, titleBox] = await Promise.all([header.boundingBox(), title.boundingBox()]);
+  expect(headerBox).not.toBeNull();
+  expect(titleBox).not.toBeNull();
+  const titleGap = titleBox!.y - (headerBox!.y + headerBox!.height);
+  expect(titleGap).toBeGreaterThanOrEqual(32);
+  expect(titleGap).toBeLessThanOrEqual(64);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
 });
 
 test("la home ne propose DeepL qu’après le lancement d’une recherche vide", async ({ page }) => {
@@ -412,6 +439,7 @@ test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ pa
   test.skip(testInfo.project.name === "mobile", "Le survol du CTA est un comportement desktop.");
   await page.goto("/");
   const cta = page.getByRole("link", { name: "Envoyer un brief" });
+  await expect(page.getByRole("link", { name: "Contacter l’équipe" })).toHaveAttribute("href", "/contact");
   await cta.scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
   await cta.hover();
@@ -803,7 +831,12 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
 
   const process = page.locator("#process");
   await process.scrollIntoViewIfNeeded();
-  expect((await page.getByTestId("process-progress").boundingBox())!.height).toBeGreaterThanOrEqual(4);
+  const processCards = page.getByTestId("process-card");
+  await expect(processCards).toHaveCount(3);
+  await expect(process.getByText("Étape", { exact: true })).toHaveCount(0);
+  for (const number of ["01", "02", "03"]) await expect(process.getByText(number, { exact: true })).toHaveCount(0);
+  const processCardBoxes = await processCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().toJSON()));
+  expect(processCardBoxes[1].top).toBeGreaterThan(processCardBoxes[0].bottom);
 
   await expect(page.getByTestId("editorial-mobile-rail")).toHaveCount(0);
 
@@ -1446,6 +1479,32 @@ test("le héros garde sa chorégraphie et les textes des autres sections restent
   await expect.poll(() => heroSearchMask.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(searchOpacityBefore - .25);
   await expect.poll(() => heroContent.evaluate((node) => getComputedStyle(node).transform)).not.toBe("none");
 
+  const opacityTrail = await page.evaluate(async () => {
+    const hero = document.querySelector<HTMLElement>('[data-testid="home-hero"]');
+    const copy = document.querySelector<HTMLElement>('[data-testid="home-hero-copy"]');
+    const search = document.querySelector<HTMLElement>('[data-testid="home-hero-search-mask"]');
+    if (!hero || !copy || !search) return [];
+    const heroBottom = hero.getBoundingClientRect().bottom + window.scrollY;
+    const step = Math.max(48, Math.round(window.innerHeight / 10));
+    const samples: Array<{ copy: number; search: number }> = [];
+    for (let y = 0; y <= heroBottom + step; y += step) {
+      window.scrollTo(0, y);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      samples.push({
+        copy: Number.parseFloat(getComputedStyle(copy).opacity),
+        search: Number.parseFloat(getComputedStyle(search).opacity),
+      });
+    }
+    return samples;
+  });
+  expect(opacityTrail.length).toBeGreaterThan(4);
+  for (let index = 1; index < opacityTrail.length; index += 1) {
+    expect(opacityTrail[index].copy).toBeLessThanOrEqual(opacityTrail[index - 1].copy + 0.01);
+    expect(opacityTrail[index].search).toBeLessThanOrEqual(opacityTrail[index - 1].search + 0.01);
+  }
+  expect(opacityTrail.at(-1)!.copy).toBeLessThanOrEqual(0.01);
+  expect(opacityTrail.at(-1)!.search).toBeLessThanOrEqual(0.01);
+
   const featuredReveal = page.locator('#featured [data-home-reveal="static"]').first();
   await featuredReveal.scrollIntoViewIfNeeded();
   await expect(featuredReveal).toHaveCSS("opacity", "1");
@@ -1866,6 +1925,7 @@ test("le reset n’annonce pas un e-mail quand la route Harvest manque", async (
     body: JSON.stringify({ data: { accepted: true, deliveryConfigured: false } }),
   }));
   await page.goto("/forgot-password");
+  await expect(page.locator('aside img')).toHaveAttribute("src", /33-forgot-password-rewind/);
   await page.getByLabel("E-mail").fill("member@example.invalid");
   await page.getByRole("button", { name: "Envoyer le lien" }).click();
 
@@ -1883,6 +1943,7 @@ test("les anciens liens FLEX change-password restent compatibles", async ({ page
   await page.goto("/change-password/legacy-reset-token");
 
   await expect(page).toHaveURL(/\/reset-password\?token=legacy-reset-token$/);
+  await expect(page.locator('aside img')).toHaveAttribute("src", /34-reset-password-patchbay/);
   await expect(page.getByText("Nouveau mot de passe", { exact: true })).toBeVisible();
   await expect(page.getByPlaceholder("Confirmer")).toBeVisible();
   const password = page.getByLabel("Nouveau mot de passe *");

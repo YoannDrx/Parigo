@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import type { LinkProps } from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpRight, Menu, Moon, Sun, X } from "lucide-react";
 import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode, type SetStateAction } from "react";
 import { UserMenu } from "@/components/features/UserMenu";
@@ -12,11 +13,12 @@ import { alternateLocalePath, localizedPath, stripLocalePrefix } from "@/lib/loc
 import { ParigoLogo } from "./ParigoLogo";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { SignedTitle } from "@/components/ui/SignedTitle";
-import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
+import { releaseBodyScrollLockBeforeNavigation, useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 
 interface HeaderProps { variant?: "default" | "overlay"; }
 
 let persistedHeaderMenuOpen = false;
+let pendingDrawerReturn: { path: string; scrollY: number } | null = null;
 
 function LanguageLink({ className, children }: { className: string; children: ReactNode }) {
   const pathname = usePathname();
@@ -25,7 +27,7 @@ function LanguageLink({ className, children }: { className: string; children: Re
   const query = searchParams.toString();
   const href = `${alternateLocalePath(pathname, locale)}${query ? `?${query}` : ""}`;
   return (
-    <Link href={href} hrefLang={locale === "fr" ? "en" : "fr"} className={className} aria-label={`${t("common.language")} — ${locale === "fr" ? "English" : "Français"}`}>
+    <Link href={href} prefetch={false} hrefLang={locale === "fr" ? "en" : "fr"} className={className} aria-label={`${t("common.language")} — ${locale === "fr" ? "English" : "Français"}`}>
       {children}
     </Link>
   );
@@ -33,6 +35,7 @@ function LanguageLink({ className, children }: { className: string; children: Re
 
 export function Header({ variant = "default" }: HeaderProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { locale, t } = useI18n();
   const { theme, toggleTheme } = useTheme();
   const [open, setOpenState] = useState(() => persistedHeaderMenuOpen);
@@ -69,6 +72,38 @@ export function Header({ variant = "default" }: HeaderProps) {
     window.addEventListener("scroll", updateHeader, { passive: true });
     return () => window.removeEventListener("scroll", updateHeader);
   }, [open]);
+
+  useEffect(() => {
+    const restoreDrawerOrigin = () => {
+      const pending = pendingDrawerReturn;
+      if (!pending) return;
+
+      let frame = 0;
+      let attempts = 0;
+      const restore = () => {
+        const currentPath = `${window.location.pathname}${window.location.search}`;
+        if (currentPath !== pending.path) {
+          if (attempts++ < 120) frame = window.requestAnimationFrame(restore);
+          return;
+        }
+
+        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        if (maxScroll < pending.scrollY && attempts++ < 120) {
+          frame = window.requestAnimationFrame(restore);
+          return;
+        }
+
+        window.scrollTo({ top: pending.scrollY, behavior: "instant" });
+        pendingDrawerReturn = null;
+      };
+
+      frame = window.requestAnimationFrame(restore);
+      window.setTimeout(() => window.cancelAnimationFrame(frame), 2_500);
+    };
+
+    window.addEventListener("popstate", restoreDrawerOrigin);
+    return () => window.removeEventListener("popstate", restoreDrawerOrigin);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -125,6 +160,28 @@ export function Header({ variant = "default" }: HeaderProps) {
   ];
   const currentPath = stripLocalePrefix(pathname);
   const hrefFor = (href: string) => localizedPath(locale, href);
+  const navigateFromOpenMenu = useCallback((href: string): LinkProps["onNavigate"] => (event) => {
+    if (!open) return;
+    event.preventDefault();
+    const scrollY = releaseBodyScrollLockBeforeNavigation();
+    pendingDrawerReturn = {
+      path: `${window.location.pathname}${window.location.search}`,
+      scrollY,
+    };
+    setOpen(false);
+    router.push(href);
+  }, [open, router, setOpen]);
+  const handleLogoClick = useCallback((event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (stripLocalePrefix(pathname) !== "/") {
+      setOpen(false);
+      return;
+    }
+    event.preventDefault();
+    if (open) releaseBodyScrollLockBeforeNavigation();
+    setOpen(false);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: reduceMotion ? "instant" : "smooth" });
+  }, [open, pathname, setOpen]);
 
   return (
     <header
@@ -134,7 +191,7 @@ export function Header({ variant = "default" }: HeaderProps) {
       className={cn("fixed inset-x-0 z-[80] w-full text-[var(--foreground)] transition-[top] duration-300 ease-out", open && "h-[100dvh] overflow-hidden")}
     >
       <nav aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"} className="relative z-[2] grid h-[74px] w-full grid-cols-[1fr_auto] items-center border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] px-4 backdrop-blur-xl md:px-8 lg:grid-cols-[190px_minmax(0,1fr)_auto]">
-        <Link href={hrefFor("/")} onClick={() => setOpen(false)} aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group justify-self-start focus-visible:outline-offset-8">
+        <Link href={hrefFor("/")} onClick={handleLogoClick} aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group justify-self-start focus-visible:outline-offset-8">
           <ParigoLogo className="text-[1.75rem] md:text-[1.95rem]" />
         </Link>
 
@@ -185,6 +242,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                         <Link
                           href={hrefFor(item.href)}
                           onClick={() => setOpen(false)}
+                          onNavigate={navigateFromOpenMenu(hrefFor(item.href))}
                           aria-label={item.name}
                           aria-current={active ? "page" : undefined}
                           data-active={active ? "true" : "false"}
@@ -210,7 +268,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                   <p className="mt-3 text-xl font-semibold leading-tight tracking-[-.035em]">
                     {locale === "fr" ? "Parlons musique, images et intentions." : "Let’s talk music, images and intent."}
                   </p>
-                  <Link href={hrefFor("/contact")} onClick={() => setOpen(false)} className="parigo-menu-contact group mt-5">
+                  <Link href={hrefFor("/contact")} onClick={() => setOpen(false)} onNavigate={navigateFromOpenMenu(hrefFor("/contact"))} className="parigo-menu-contact group mt-5">
                     <span>{locale === "fr" ? "Nous envoyer un brief" : "Send us a brief"}</span>
                     <ArrowUpRight size={14} className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
                   </Link>

@@ -247,9 +247,20 @@ async function main() {
     const name = String(group.Name || "Unknown");
     return { name, ...coverage(categoryRows.filter((item) => item.rootName === name)) };
   });
-  const styles = records(await call(`/getstyles/${guestToken}/fr?groupID=`), "Styles");
+  const [stylesFrPayload, stylesEnPayload] = await Promise.all([
+    call(`/getstyles/${guestToken}/fr?groupID=`),
+    call(`/getstyles/${guestToken}/en?groupID=`),
+  ]);
+  const styles = records(stylesFrPayload, "Styles");
+  const englishStyles = records(stylesEnPayload, "Styles");
   const sad = categoryRows.find((item) => String(item.ID) === "b71182fbd44d6ef6");
   const sadFrench = sad ? localizedValue(sad, "fr") : "";
+  const abstract = styles.find((item) =>
+    String(item.Name).trim().toLocaleLowerCase("en") === "abstract" || localizedValue(item, "fr") === "Abstrait");
+  const abstractFrench = abstract ? localizedValue(abstract, "fr") : "";
+  const abstractEnglish = abstract
+    ? englishStyles.find((item) => String(item.ID) === String(abstract.ID))
+    : undefined;
 
   const report = {
     checkedAt: new Date().toISOString(),
@@ -263,6 +274,12 @@ async function main() {
       id: sad?.ID,
       canonicalName: sad?.Name,
       localizedName: sadFrench,
+    },
+    styleAcceptanceFixture: {
+      id: abstract?.ID,
+      englishName: abstractEnglish?.Name,
+      frenchName: abstract?.Name,
+      localizedName: abstractFrench || abstract?.Name,
     },
   };
 
@@ -279,6 +296,9 @@ async function main() {
 
   if (!sad || sad.Name !== "Sad" || sadFrench !== "Triste") {
     throw new Error(`French Sad contract failed (canonical=${String(sad?.Name)}, localized=${sadFrench})`);
+  }
+  if (!abstract || abstractEnglish?.Name !== "Abstract" || abstract.Name !== "Abstrait") {
+    throw new Error(`French Abstract contract failed (english=${String(abstractEnglish?.Name)}, french=${String(abstract?.Name)})`);
   }
 }
 

@@ -114,7 +114,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
   const selectSimilaritySource = (source: SimilaritySearchSource) => {
     if (source === "track") {
       setSimilarityHandoff({ source: "track", openPicker: true });
-      router.push(localizedPath("/search?mode=ai&source=track"));
+      router.push(localizedPath("/search?mode=ai&source=track&pick=1"));
       return;
     }
     similarityFile.clearFile();
@@ -128,7 +128,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
   };
 
   return (
-    <div className={compact ? "w-full" : "h-[4.5rem] w-full overflow-visible"}>
+    <div className={compact ? "w-full" : "min-h-[4.5rem] w-full overflow-visible"}>
       <SearchCommand
         id={compact ? "home-search-compact" : "home-search"}
         value={query}

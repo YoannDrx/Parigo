@@ -1,10 +1,11 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import type { SimilaritySearchSource } from "@/types";
+import type { SimilaritySearchSource, Track } from "@/types";
 
 export type SimilarityHandoff =
   | { source: "track"; openPicker: true }
+  | { source: "track"; tracks: Track[]; autoRun: true }
   | { source: "prompt"; prompt: string }
   | { source: "url"; url: string }
   | { source: "upload"; file: File };

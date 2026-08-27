@@ -2,6 +2,7 @@ import { parigoUsageImages } from "./parigo-image-gallery-usage";
 
 export type ParigoGalleryImage = {
   id: number;
+  code?: string;
   title: string;
   src: string;
   aspect: "16:9" | "4:3" | "4:5" | "21:9" | "1.91:1";
@@ -9,6 +10,25 @@ export type ParigoGalleryImage = {
   usage?: ParigoGalleryUsage;
   subject?: string;
   prompt: string;
+  collection?: "concept" | "real";
+  sourceAnchor?: string;
+  references?: ParigoGalleryReference[];
+  changeNotes?: string[];
+  status?: "calibration" | "approved" | "review";
+  exports?: ParigoGalleryExport[];
+};
+
+export type ParigoGalleryReference = {
+  src: string;
+  label: string;
+  role: "ancrage" | "géométrie" | "détail" | "suppression" | "décoration" | "vidéo";
+};
+
+export type ParigoGalleryExport = {
+  src: string;
+  label: string;
+  width: number;
+  height: number;
 };
 
 export type ParigoGalleryUsage =

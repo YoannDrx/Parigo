@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { apiError, requestId } from "@/lib/harvest/api";
 import { buildAutocompletePayload, mapAutocompleteResponse } from "@/lib/harvest/autocomplete";
-import { getAlbumsByIds, getTracksByIds } from "@/lib/harvest/catalog";
+import { getTracksByIds } from "@/lib/harvest/catalog";
 import { guestRequest } from "@/lib/harvest/client";
 import {
   findStaleIndexedComposerQuery,
@@ -120,7 +120,7 @@ export async function GET(request: NextRequest) {
     const searchInput: HarvestSearchInput = {
       query: input.q.trim() || "%",
       view: input.view === "albums" ? "Album" : "Track",
-      textScope: fieldProfile,
+      textScope: fieldProfile === "aggregate-title-first" ? "aggregate" : fieldProfile,
       skip,
       limit: input.limit,
       sort: sortMap[input.sort],
@@ -139,9 +139,18 @@ export async function GET(request: NextRequest) {
       saveSearchHistory,
       includeStyleFacets: true,
     };
-    const executeSearch = (candidate: HarvestSearchInput) => harvestKeywordProvider.search(candidate, session?.memberToken);
+    let titleSearchMs = 0;
+    let aggregateSearchMs = 0;
+    const executeSearch = async (candidate: HarvestSearchInput) => {
+      const searchStartedAt = Date.now();
+      const response = await harvestKeywordProvider.search(candidate, session?.memberToken);
+      const duration = Date.now() - searchStartedAt;
+      if (candidate.textScope === "title") titleSearchMs += duration;
+      else aggregateSearchMs += duration;
+      return response;
+    };
     const runSearch = (candidate: HarvestSearchInput) => (
-      candidate.textScope === "editorial"
+      candidate.textScope === "aggregate"
       && candidate.query !== "%"
       && candidate.sort === "RankExpression"
         ? searchWithTitlePriority(candidate, executeSearch)
@@ -199,6 +208,7 @@ export async function GET(request: NextRequest) {
         });
       }
     }
+    const enrichmentStartedAt = Date.now();
     if (input.view === "tracks" && appliedResult.tracks.length) {
       const enrichedTracks = await getTracksByIds(
         appliedResult.tracks.map((track) => track.id),
@@ -225,34 +235,26 @@ export async function GET(request: NextRequest) {
         ),
       };
     }
+    const enrichmentMs = Date.now() - enrichmentStartedAt;
     const evidenceQuery = appliedQueryResolution?.effective || input.q;
     let unattributedCount = 0;
     const items = input.q === "%"
       ? (input.view === "albums" ? appliedResult.albums : appliedResult.tracks)
       : input.view === "albums"
-        ? appliedResult.albums.flatMap((album) => {
+        ? appliedResult.albums.map((album) => {
           const matchEvidence = albumSearchEvidence(album, evidenceQuery);
           if (!explainsSearchQuery(matchEvidence, evidenceQuery)) {
             unattributedCount += 1;
-            return [];
           }
-          return [{ ...album, matchEvidence }];
+          return { ...album, matchEvidence };
         })
-        : await (async () => {
-          const albums = await getAlbumsByIds(
-            appliedResult.tracks.map((track) => track.albumId),
-            session?.memberToken,
-          ).catch(() => []);
-          const albumsById = new Map(albums.map((album) => [album.id, album]));
-          return appliedResult.tracks.flatMap((track) => {
-            const matchEvidence = trackSearchEvidence(track, evidenceQuery, albumsById.get(track.albumId));
+        : appliedResult.tracks.map((track) => {
+            const matchEvidence = trackSearchEvidence(track, evidenceQuery);
             if (!explainsSearchQuery(matchEvidence, evidenceQuery)) {
               unattributedCount += 1;
-              return [];
             }
-            return [{ ...track, matchEvidence }];
+            return { ...track, matchEvidence };
           });
-        })();
     if (unattributedCount) {
       logEvent({
         level: "warn",
@@ -297,6 +299,11 @@ export async function GET(request: NextRequest) {
         fieldProfile,
         provider: harvestKeywordProvider.id,
         providerDurationMs,
+        timings: {
+          titleSearchMs,
+          aggregateSearchMs,
+          enrichmentMs,
+        },
         capabilities,
         ...(input.sort === "relevance" && isTitlePrioritySearchResult(appliedResult)
           ? { titleMatchTotal: appliedResult.titleTotal }

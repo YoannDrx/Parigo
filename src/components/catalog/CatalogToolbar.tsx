@@ -20,7 +20,7 @@ interface CatalogToolbarProps<TSort extends string> {
   primaryControls?: React.ReactNode;
   children?: React.ReactNode;
   sticky?: boolean;
-  viewControlVisibility?: "all" | "desktop";
+  viewControlVisibility?: "all" | "desktop" | "hidden";
 }
 
 export function CatalogToolbar<TSort extends string>({
@@ -63,7 +63,10 @@ export function CatalogToolbar<TSort extends string>({
             className="min-w-44"
             options={sortOptions}
           />
-          <div className={cn("search-view-toggle w-fit shrink-0 border border-[var(--line-strong)] bg-[var(--background)] p-1", viewControlVisibility === "desktop" ? "hidden md:inline-flex" : "inline-flex")} role="group" aria-label={locale === "fr" ? "Mode d’affichage" : "Display mode"}>
+          <div className={cn(
+            "search-view-toggle w-fit shrink-0 border border-[var(--line-strong)] bg-[var(--background)] p-1",
+            viewControlVisibility === "desktop" ? "hidden md:inline-flex" : viewControlVisibility === "hidden" ? "hidden" : "inline-flex",
+          )} role="group" aria-label={locale === "fr" ? "Mode d’affichage" : "Display mode"}>
             {([
               ["grid", Grid3X3, locale === "fr" ? "Vue grille" : "Grid view"],
               ["list", List, locale === "fr" ? "Vue liste" : "List view"],

@@ -130,11 +130,12 @@ export async function GET(request: NextRequest) {
       }
     };
     const fieldProfile = isCatalogIdentifier(query) ? "title" : configuredSearchFieldProfile();
+    const textScope = fieldProfile === "aggregate-title-first" ? "aggregate" : fieldProfile;
     const searchEntities = (view: "Track" | "Album") => {
       const searchInput = {
       query: stripLegacySearchQuotes(query),
       view,
-      textScope: fieldProfile,
+      textScope,
       limit: view === "Track" ? 30 : 6,
       sort: rankedSort[sortMode],
       type,
@@ -149,7 +150,7 @@ export async function GET(request: NextRequest) {
       language: locale,
       saveSearchHistory: false,
       } as const;
-      return fieldProfile === "editorial" && sortMode === "relevance"
+      return textScope === "aggregate" && sortMode === "relevance"
         ? searchWithTitlePriority(searchInput, (candidate) => cloudSearch(candidate))
         : cloudSearch(searchInput);
     };

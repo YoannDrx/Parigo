@@ -103,6 +103,11 @@ interface SearchApiResponse<T extends Track | Album> {
     fieldProfile: SearchFieldProfile;
     providerDurationMs: number;
     titleMatchTotal?: number;
+    timings?: {
+      titleSearchMs: number;
+      aggregateSearchMs: number;
+      enrichmentMs: number;
+    };
   };
 }
 
@@ -193,6 +198,13 @@ export async function fetchAlbum(idOrSlug: string): Promise<{
   if (!res.ok) throw new Error("Failed to fetch album");
   const payload = await res.json() as { data: { album: ApiAlbum & { tracks: ApiTrack[] }; similarAlbums: ApiAlbum[] } };
   return payload.data;
+}
+
+export async function fetchTrack(id: string, signal?: AbortSignal): Promise<Track> {
+  const response = await fetch(`${API_BASE}/tracks/${encodeURIComponent(id)}`, { signal });
+  if (!response.ok) throw new Error("Failed to fetch track");
+  const payload = await response.json() as { data: { track: Track } };
+  return payload.data.track;
 }
 
 export async function fetchTracks(params?: {

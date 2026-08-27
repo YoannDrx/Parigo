@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-03T13:53:32.502Z",
+  "generatedAt": "2026-08-27T13:56:16.160Z",
   "endpointChecks": 59,
   "transportErrors": 0,
   "logicalErrors": 1,
@@ -42,7 +42,7 @@
       ],
       "logicalError": null,
       "arrays": {
-        "SearchSimilarInfo": 0,
+        "SearchSimilarInfo": 1,
         "FileFormats": 6
       }
     },
@@ -104,7 +104,7 @@
       ],
       "logicalError": null,
       "arrays": {
-        "Libraries": 103
+        "Libraries": 108
       }
     },
     {
@@ -115,7 +115,7 @@
       ],
       "logicalError": null,
       "arrays": {
-        "Libraries": 107
+        "Libraries": 109
       }
     },
     {
@@ -168,7 +168,7 @@
       ],
       "logicalError": null,
       "arrays": {
-        "Styles": 165
+        "Styles": 161
       }
     },
     {
@@ -286,7 +286,7 @@
       "logicalError": null,
       "arrays": {
         "Tracks": 1,
-        "CategoryFacet": 0
+        "CategoryFacet": 3
       }
     },
     {
@@ -334,7 +334,7 @@
       ],
       "logicalError": null,
       "arrays": {
-        "PlaylistCategories": 0
+        "PlaylistCategories": 1
       }
     },
     {
@@ -535,7 +535,7 @@
       ],
       "logicalError": null,
       "arrays": {
-        "Shares": 0
+        "Shares": 1
       }
     },
     {
@@ -633,7 +633,7 @@
       ],
       "logicalError": null,
       "arrays": {
-        "Tags": 2
+        "Tags": 3
       }
     },
     {
@@ -684,6 +684,6 @@
     }
   ],
   "serviceCapabilities": {
-    "similarityProviders": 0
+    "similarityProviders": 1
   }
 }

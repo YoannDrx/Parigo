@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
-import { ChevronDown, ChevronUp, RotateCcw, Sparkles, UploadCloud, X } from "lucide-react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
+import { useQueries } from "@tanstack/react-query";
+import { ChevronDown, ChevronUp, ListPlus, RotateCcw, Sparkles, UploadCloud, X } from "lucide-react";
 import { TrackRow } from "@/components/features/TrackRow";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { SIMILARITY_SOURCE_COPY, SIMILARITY_SOURCE_ORDER } from "@/components/search/SimilaritySourceRail";
@@ -16,6 +17,7 @@ import {
   SimilarityApiError,
   confirmSimilarityUpload,
   createSimilarityReference,
+  fetchTrack,
   prepareSimilarityUpload,
   runSimilaritySearch,
 } from "@/lib/api-client";
@@ -31,6 +33,7 @@ interface ControllerOptions {
   source: SimilaritySearchSource;
   prompt: string;
   initialSeedIds?: string[];
+  autoRunTrack?: boolean;
   initialHandoff?: SimilarityHandoff | null;
   onPromptChange: (value: string) => void;
   onSourceChange: (source: SimilaritySearchSource) => void;
@@ -82,7 +85,7 @@ function publicError(locale: "fr" | "en", source: SimilaritySearchSource, caught
   if (pending) return locale === "fr" ? "L’analyse de la référence prend plus de temps que prévu." : "The reference is taking longer than expected to analyse.";
   const messages: Record<SimilaritySearchSource, [string, string]> = {
     prompt: ["Le brief n’a pas pu être analysé.", "The brief could not be analysed."],
-    track: ["La recherche depuis la shortlist n’a pas pu aboutir.", "The shortlist search could not be completed."],
+    track: ["La recherche depuis les pistes de référence n’a pas pu aboutir.", "The reference-track search could not be completed."],
     upload: ["Le fichier n’a pas pu être analysé.", "The file could not be analysed."],
     url: ["Ce lien n’a pas pu être analysé.", "This link could not be analysed."],
   };
@@ -93,6 +96,7 @@ export function useSimilaritySearchController({
   source,
   prompt,
   initialSeedIds = [],
+  autoRunTrack = false,
   initialHandoff,
   onPromptChange,
   onSourceChange,
@@ -100,10 +104,14 @@ export function useSimilaritySearchController({
   const { locale } = useI18n();
   const capabilitiesQuery = useSimilarityCapabilities();
   const shortlistItems = useShortlistStore((value) => value.items);
+  const addToShortlistSilently = useShortlistStore((value) => value.addSilently);
   const shortlist = useMemo(() => shortlistItems.map((item) => item.track), [shortlistItems]);
+  const [initialReferenceTracks] = useState<Track[]>(
+    () => initialHandoff?.source === "track" && "tracks" in initialHandoff ? initialHandoff.tracks : [],
+  );
   const [seedIds, setSeedIds] = useState<string[]>(() => {
     const explicit = [...new Set(initialSeedIds)].slice(0, 10);
-    return explicit.length ? explicit : shortlist.slice(0, 10).map((track) => track.id);
+    return explicit;
   });
   const [includeSeed, setIncludeSeed] = useState(false);
   const [prioritizeBpm, setPrioritizeBpm] = useState(false);
@@ -115,10 +123,11 @@ export function useSimilaritySearchController({
   const [indexed, setIndexed] = useState<boolean | undefined>();
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
   const [lastCompletedSource, setLastCompletedSource] = useState<SimilaritySearchSource | null>(null);
+  const [lastSubmittedSeedIds, setLastSubmittedSeedIds] = useState<string[]>([]);
   const runSequence = useRef(0);
   const searchAbort = useRef<AbortController | null>(null);
   const uploadRequest = useRef<XMLHttpRequest | null>(null);
-  const autoRunStarted = useRef(false);
+  const autoRunStarted = useRef<string | null>(null);
 
   const capabilities = capabilitiesQuery.data;
   const similarityFile = useSimilarityFile({
@@ -142,6 +151,30 @@ export function useSimilaritySearchController({
   const effectiveSource = enabledSources.includes(source) ? source : enabledSources[0] ?? source;
   const busy = ["preparing", "uploading", "analyzing", "searching"].includes(state);
   const platform = detectSimilarityPlatform(url);
+  const trackAutoRunKey = autoRunTrack && initialSeedIds.length
+    ? `track:${initialSeedIds.join(",")}`
+    : null;
+  const knownReferenceTracks = useMemo(() => new Map(
+    [...shortlist, ...initialReferenceTracks].map((track) => [track.id, track] as const),
+  ), [initialReferenceTracks, shortlist]);
+  const referenceQueries = useQueries({
+    queries: seedIds.map((id) => ({
+      queryKey: ["track", id],
+      queryFn: ({ signal }: { signal: AbortSignal }) => fetchTrack(id, signal),
+      initialData: knownReferenceTracks.get(id),
+      staleTime: 5 * 60_000,
+      retry: 1,
+    })),
+  });
+  const referenceItems = seedIds.map((id, index) => ({
+    id,
+    track: referenceQueries[index]?.data,
+    loading: referenceQueries[index]?.isLoading ?? false,
+    error: referenceQueries[index]?.isError ?? false,
+  }));
+  const referencesDirty = lastCompletedSource === "track"
+    && state === "done"
+    && seedIds.join("\u0000") !== lastSubmittedSeedIds.join("\u0000");
 
   const abortCurrent = useCallback(() => {
     runSequence.current += 1;
@@ -151,7 +184,10 @@ export function useSimilaritySearchController({
     uploadRequest.current = null;
   }, []);
 
-  useEffect(() => () => abortCurrent(), [abortCurrent]);
+  useEffect(() => () => {
+    abortCurrent();
+    autoRunStarted.current = null;
+  }, [abortCurrent]);
 
   const selectSource = (nextSource: SimilaritySearchSource) => {
     if (nextSource === source) return;
@@ -170,6 +206,7 @@ export function useSimilaritySearchController({
     setState("searching");
     setError(null);
     setIndexed(undefined);
+    if (request.type === "track") setLastSubmittedSeedIds(request.seedTrackIds);
     for (let attempt = 0; attempt < 5; attempt += 1) {
       try {
         const result = await runSimilaritySearch(request, controller.signal);
@@ -258,12 +295,21 @@ export function useSimilaritySearchController({
   }, [abortCurrent, busy, effectivePrompt, effectiveSource, includeSeed, locale, performSearch, platform, prioritizeBpm, seedIds, uploadAndSearch, url]);
 
   useEffect(() => {
-    if (autoRunStarted.current || !capabilities || !enabledSources.includes(source)) return;
+    if (!capabilities || !enabledSources.includes(source)) return;
+    if (source === "track" && trackAutoRunKey) {
+      if (autoRunStarted.current === trackAutoRunKey) return;
+      autoRunStarted.current = trackAutoRunKey;
+      const requestedSeeds = [...new Set(initialSeedIds)].slice(0, 10);
+      void performSearch({ type: "track", seedTrackIds: requestedSeeds, includeSeed, prioritizeBpm }, "track");
+      if (initialHandoff?.source === "track") clearSimilarityHandoff("track");
+      return;
+    }
+    if (autoRunStarted.current || source === "track") return;
     if (initialHandoff?.source === "upload" && similarityFile.status !== "valid") return;
-    const shouldRun = (initialHandoff?.source === source && source !== "track")
+    const shouldRun = initialHandoff?.source === source
       || (source === "prompt" && effectivePrompt.trim().length >= 3);
     if (!shouldRun) return;
-    autoRunStarted.current = true;
+    autoRunStarted.current = `handoff:${source}`;
     const timeout = window.setTimeout(() => {
       if (initialHandoff?.source === "url") setUrl(initialHandoff.url);
       if (initialHandoff?.source === "prompt") onPromptChange(initialHandoff.prompt);
@@ -271,7 +317,7 @@ export function useSimilaritySearchController({
       if (initialHandoff?.source === source) clearSimilarityHandoff(source);
     }, 0);
     return () => window.clearTimeout(timeout);
-  }, [capabilities, effectivePrompt, enabledSources, initialHandoff, onPromptChange, similarityFile.status, source, submit]);
+  }, [capabilities, effectivePrompt, enabledSources, includeSeed, initialHandoff, initialSeedIds, onPromptChange, performSearch, prioritizeBpm, similarityFile.status, source, submit, trackAutoRunKey]);
 
   const selectFiles = async (files: File[]) => {
     setUploadProgress(0);
@@ -290,7 +336,8 @@ export function useSimilaritySearchController({
 
   return {
     locale, capabilitiesQuery, capabilities, enabledSources, effectiveSource, selectSource,
-    shortlist, seedIds, toggleSeed, includeSeed, setIncludeSeed, prioritizeBpm, setPrioritizeBpm,
+    shortlist, seedIds, toggleSeed, referenceItems, referencesDirty, lastSubmittedSeedIds,
+    addToShortlistSilently, includeSeed, setIncludeSeed, prioritizeBpm, setPrioritizeBpm,
     prompt: effectivePrompt, onPromptChange, url, setUrl, platform, file,
     fileStatus: similarityFile.status, fileError: similarityFile.error, selectFiles, clearFile: similarityFile.clearFile, uploadProgress,
     state, tracks, total, indexed, error, busy, canSubmit, submit, lastCompletedSource,
@@ -314,6 +361,9 @@ export function SimilarityCommandContent({
   const initialPickerConsumedRef = useRef(false);
   const panelId = useId();
   const { locale, effectiveSource: source } = controller;
+  const shortlistedIds = new Set(controller.shortlist.map((track) => track.id));
+  const shortlistCandidates = controller.shortlist.filter((track) => !controller.seedIds.includes(track.id));
+  const firstReference = controller.referenceItems[0]?.track;
 
   useEffect(() => {
     if (!initialPickerOpen || initialPickerConsumedRef.current) return;
@@ -330,14 +380,17 @@ export function SimilarityCommandContent({
   if (source === "track") {
     return <div className="relative flex min-w-0 flex-1 items-center">
       <button ref={triggerRef} type="button" onClick={() => setShortlistOpen((open) => !open)} aria-expanded={shortlistOpen} aria-controls={panelId} className="similarity-shortlist-trigger flex min-h-11 min-w-0 flex-1 items-center gap-3 px-3 text-left">
-        <span className="similarity-shortlist-trigger__chevron grid h-9 w-9 shrink-0 place-items-center text-[var(--text-muted)]" aria-hidden="true">{shortlistOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}</span>
+        <span className="similarity-shortlist-trigger__chevron grid h-8 w-8 shrink-0 place-items-center text-[var(--text-muted)]" aria-hidden="true">{shortlistOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}</span>
         <span className="min-w-0"><strong className="block truncate text-sm">{controller.seedIds.length
-          ? locale === "fr" ? `${controller.seedIds.length} piste${controller.seedIds.length > 1 ? "s" : ""} sélectionnée${controller.seedIds.length > 1 ? "s" : ""} dans votre shortlist` : `${controller.seedIds.length} shortlist track${controller.seedIds.length > 1 ? "s" : ""} selected`
-          : locale === "fr" ? "Choisissez des pistes dans votre shortlist" : "Choose tracks from your shortlist"}</strong><small className="block truncate text-[.65rem] text-[var(--text-muted)]">{locale === "fr" ? "Une à dix pistes de référence" : "One to ten reference tracks"}</small></span>
+          ? controller.seedIds.length === 1 && firstReference
+            ? locale === "fr" ? `Référence : ${firstReference.title}` : `Reference: ${firstReference.title}`
+            : locale === "fr" ? `${controller.seedIds.length} pistes de référence` : `${controller.seedIds.length} reference tracks`
+          : locale === "fr" ? "Choisir des pistes de référence" : "Choose reference tracks"}</strong><small className="block truncate text-[.65rem] text-[var(--text-muted)]">{locale === "fr" ? "Une à dix pistes du catalogue ou de votre shortlist" : "One to ten tracks from the catalogue or your shortlist"}</small></span>
       </button>
-      <AnchoredPopover id={panelId} open={shortlistOpen} onClose={closeShortlist} anchorRef={triggerRef} anchorContainerSelector=".search-command__form" label={locale === "fr" ? "Sélectionner les pistes de la shortlist" : "Select shortlist tracks"} className="similarity-command-panel !border-[var(--ai-search)] !p-3 shadow-[var(--shadow-xl)]">
-        <div className="mb-3 flex items-center justify-between gap-3"><strong className="text-sm">{locale === "fr" ? "Votre shortlist" : "Your shortlist"}</strong><button type="button" onClick={closeShortlist} className="grid h-9 w-9 place-items-center" aria-label={locale === "fr" ? "Fermer la sélection" : "Close selection"}><X size={16} /></button></div>
-        {controller.shortlist.length ? <div className="grid gap-2">{controller.shortlist.map((track) => <label key={track.id} className={cn("flex min-h-12 cursor-pointer items-center gap-3 border px-3", controller.seedIds.includes(track.id) ? "border-[var(--ai-search)] bg-[color-mix(in_srgb,var(--ai-search)_9%,var(--surface))]" : "border-[var(--line)]")}><input type="checkbox" className="accent-[var(--ai-search)]" checked={controller.seedIds.includes(track.id)} onChange={() => controller.toggleSeed(track.id)} /><span className="min-w-0"><strong className="block truncate text-sm">{track.title}</strong><small className="block truncate text-[var(--text-muted)]">{track.albumTitle}</small></span></label>)}</div> : <p className="border border-dashed border-[var(--line-strong)] p-4 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Votre shortlist est vide. Ajoutez d’abord des pistes depuis le catalogue." : "Your shortlist is empty. Add tracks from the catalogue first."}</p>}
+      <AnchoredPopover id={panelId} open={shortlistOpen} onClose={closeShortlist} anchorRef={triggerRef} anchorContainerSelector=".search-command__form" label={locale === "fr" ? "Choisir les pistes de référence" : "Choose reference tracks"} className="similarity-command-panel !border-[var(--ai-search)] !p-3 shadow-[var(--shadow-xl)]">
+        <div className="mb-3 flex items-center justify-between gap-3"><div className="flex items-center gap-2"><strong className="text-sm">{locale === "fr" ? "Pistes de référence" : "Reference tracks"}</strong><span className="font-mono text-[.62rem] text-[var(--text-muted)]">{controller.seedIds.length} / 10</span></div><button type="button" onClick={closeShortlist} className="grid h-9 w-9 place-items-center" aria-label={locale === "fr" ? "Fermer la sélection" : "Close selection"}><X size={16} /></button></div>
+        {controller.referenceItems.length ? <div className="grid gap-2" aria-label={locale === "fr" ? "Références utilisées" : "Selected references"}>{controller.referenceItems.map(({ id, track, loading, error }) => <div key={id} className="grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border border-[var(--ai-search)] bg-[color-mix(in_srgb,var(--ai-search)_7%,var(--surface))] px-3 py-2"><span className="min-w-0"><strong className="block truncate text-sm">{track?.title || (loading ? locale === "fr" ? "Chargement de la piste…" : "Loading track…" : error ? locale === "fr" ? "Piste indisponible" : "Track unavailable" : id)}</strong><small className="block truncate text-[var(--text-muted)]">{track?.albumTitle || (shortlistedIds.has(id) ? locale === "fr" ? "Depuis votre shortlist" : "From your shortlist" : locale === "fr" ? "Référence du catalogue" : "Catalog reference")}</small></span><span className="flex items-center gap-1">{track && !shortlistedIds.has(id) ? <button type="button" onClick={() => controller.addToShortlistSilently(track)} className="inline-flex min-h-9 items-center gap-1.5 px-2 text-[.65rem] font-semibold text-[var(--signal-strong)] transition hover:bg-[var(--surface)]" aria-label={`${locale === "fr" ? "Ajouter à la shortlist" : "Add to shortlist"} : ${track.title}`}><ListPlus size={14} />{locale === "fr" ? "Shortlist" : "Shortlist"}</button> : null}<button type="button" onClick={() => controller.toggleSeed(id)} className="grid h-9 w-9 place-items-center text-[var(--text-muted)] transition hover:bg-[var(--surface)] hover:text-[var(--foreground)]" aria-label={`${locale === "fr" ? "Retirer des références" : "Remove from references"} : ${track?.title || id}`}><X size={15} /></button></span></div>)}</div> : <p className="border border-dashed border-[var(--line-strong)] p-4 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune référence sélectionnée." : "No reference selected."}</p>}
+        <div className="mt-3 border-t border-[var(--line)] pt-3"><div className="mb-2 flex items-center justify-between gap-3"><strong className="text-xs">{locale === "fr" ? "Ajouter depuis votre shortlist" : "Add from your shortlist"}</strong>{controller.seedIds.length >= 10 ? <span className="text-[.62rem] font-semibold text-[var(--ai-search)]">{locale === "fr" ? "Limite atteinte" : "Limit reached"}</span> : null}</div>{shortlistCandidates.length ? <div className="grid gap-2">{shortlistCandidates.map((track) => <label key={track.id} className={cn("flex min-h-12 items-center gap-3 border border-[var(--line)] px-3", controller.seedIds.length < 10 ? "cursor-pointer hover:border-[var(--ai-search)]" : "cursor-not-allowed opacity-45")}><input type="checkbox" className="accent-[var(--ai-search)]" checked={false} disabled={controller.seedIds.length >= 10} onChange={() => controller.toggleSeed(track.id)} /><span className="min-w-0"><strong className="block truncate text-sm">{track.title}</strong><small className="block truncate text-[var(--text-muted)]">{track.albumTitle}</small></span></label>)}</div> : <p className="border border-dashed border-[var(--line-strong)] p-3 text-xs text-[var(--text-muted)]">{controller.shortlist.length ? (locale === "fr" ? "Toutes les pistes de votre shortlist sont déjà utilisées." : "Every shortlist track is already selected.") : (locale === "fr" ? "Votre shortlist est vide. Vous pouvez tout de même lancer une recherche depuis une piste du catalogue." : "Your shortlist is empty. You can still search from a catalog track.")}</p>}</div>
         <div className="mt-3 flex flex-wrap gap-4 border-t border-[var(--line)] pt-3 text-xs"><label className="inline-flex items-center gap-2"><input type="checkbox" className="accent-[var(--ai-search)]" checked={controller.includeSeed} onChange={(event) => controller.setIncludeSeed(event.target.checked)} />{locale === "fr" ? "Inclure les pistes sources" : "Include source tracks"}</label>{controller.capabilities?.track.prioritizeBpm ? <label className="inline-flex items-center gap-2"><input type="checkbox" className="accent-[var(--ai-search)]" checked={controller.prioritizeBpm} onChange={(event) => controller.setPrioritizeBpm(event.target.checked)} />{locale === "fr" ? "Prioriser le BPM" : "Prioritise BPM"}</label> : null}</div>
       </AnchoredPopover>
     </div>;
@@ -365,13 +418,13 @@ export function SimilarityCommandContent({
 function EmptyState({ controller }: { controller: SimilaritySearchController }) {
   const { locale, effectiveSource: source } = controller;
   const content = {
-    track: ["Choisissez vos pistes de référence", "Sélectionnez une à dix pistes de votre shortlist pour trouver les titres qui leur ressemblent."],
+    track: ["Choisissez vos pistes de référence", "Sélectionnez une à dix pistes du catalogue ou de votre shortlist pour trouver les titres qui leur ressemblent."],
     prompt: ["Décrivez la musique recherchée", "Indiquez une scène, une émotion, un rythme, des instruments ou un usage."],
     upload: ["Utilisez un fichier comme référence", "Déposez un MP3 ou WAV dans la barre pour comparer sa couleur musicale au catalogue."],
     url: ["Utilisez un lien public", "Collez dans la barre un lien provenant de l’une des plateformes compatibles."],
   }[source];
   const english = {
-    track: ["Choose your reference tracks", "Select one to ten shortlist tracks to find music that sounds similar."],
+    track: ["Choose your reference tracks", "Select one to ten catalog or shortlist tracks to find music that sounds similar."],
     prompt: ["Describe the music you need", "Include a scene, emotion, rhythm, instruments or intended use."],
     upload: ["Use a file as reference", "Drop an MP3 or WAV in the bar to compare its musical character with the catalogue."],
     url: ["Use a public link", "Paste a link from one of the supported platforms in the bar."],
@@ -386,10 +439,12 @@ export function SimilaritySearchWorkspace({
   controller,
   density,
   onDensityChange,
+  resultsAnchorRef,
 }: {
   controller: SimilaritySearchController;
   density: SimilarityDensity;
   onDensityChange: (density: SimilarityDensity) => void;
+  resultsAnchorRef: RefObject<HTMLDivElement | null>;
 }) {
   const { locale } = controller;
   const unavailable = controller.capabilitiesQuery.isError || (!controller.capabilitiesQuery.isLoading && controller.enabledSources.length === 0);
@@ -409,6 +464,7 @@ export function SimilaritySearchWorkspace({
     </aside>
 
     <section className="order-3 min-w-0 lg:order-none lg:col-start-2 lg:row-start-2" aria-live="polite">
+      <div ref={resultsAnchorRef} data-testid="similarity-results-anchor" aria-hidden="true" />
       {controller.capabilitiesQuery.isLoading ? <div className="flex min-h-80 items-center justify-center border border-[var(--line)]"><ParigoLoader size="page" label={locale === "fr" ? "Préparation de la similarité" : "Preparing similarity"} /></div> : unavailable ? <div className="border border-[var(--line-strong)] bg-[var(--surface)] px-5 py-20 text-center"><Sparkles className="mx-auto text-[var(--text-muted)]" size={28} /><h2 className="mt-5 text-3xl">{locale === "fr" ? "La recherche de similarité n’est pas encore ouverte." : "Similarity search is not open yet."}</h2></div> : <>
         <div className="search-results-status mb-4 flex min-w-0 items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
           <div className="flex min-w-0 flex-wrap items-center gap-3">
@@ -419,6 +475,7 @@ export function SimilaritySearchWorkspace({
         </div>
         {controller.busy ? <div role="status" className="flex min-h-32 items-center justify-center border border-[var(--line)]"><ParigoLoader label={controller.state === "uploading" ? (locale === "fr" ? `Envoi du fichier — ${controller.uploadProgress} %` : `Uploading file — ${controller.uploadProgress}%`) : controller.state === "analyzing" ? (locale === "fr" ? "Analyse de la référence" : "Analysing reference") : controller.state === "preparing" ? (locale === "fr" ? "Préparation de la référence" : "Preparing reference") : (locale === "fr" ? "Classement des pistes" : "Ranking tracks")} /></div> : null}
         {controller.error ? <div role="alert" className="border border-[var(--danger)] bg-[color-mix(in_srgb,var(--danger)_7%,var(--surface))] p-4 text-sm"><p>{controller.error.message}</p>{controller.error.requestId ? <p className="mt-2 font-mono text-[.62rem] opacity-65">{locale === "fr" ? "Référence" : "Reference"} : {controller.error.requestId}</p> : null}<Button variant="outline" size="sm" onClick={() => void controller.submit()} className="mt-4 !border-[var(--ai-search)] !text-[var(--ai-search)]"><RotateCcw size={14} />{locale === "fr" ? "Réessayer" : "Retry"}</Button></div> : null}
+        {controller.referencesDirty ? <div role="status" className="mb-3 border border-[var(--ai-search)] bg-[color-mix(in_srgb,var(--ai-search)_6%,var(--surface))] px-4 py-3 text-sm text-[var(--foreground)]">{locale === "fr" ? "Les références ont été modifiées. Relancez la recherche pour actualiser les résultats." : "The references have changed. Run the search again to refresh the results."}</div> : null}
         {controller.state === "idle" ? <EmptyState controller={controller} /> : null}
         {controller.state === "done" ? controller.indexed === false ? <div className="border border-[var(--line)] px-5 py-20 text-center"><h2 className="text-3xl">{locale === "fr" ? "Cette piste n’est pas encore disponible dans l’index de similarité." : "This track is not yet available in the similarity index."}</h2></div> : controller.tracks.length ? <div className="search-results-ledger overflow-visible border border-[var(--line-strong)] bg-[var(--surface)]"><div className="search-results-ledger__header hidden min-h-10 items-center justify-between gap-6 border-b border-[var(--line-strong)] px-4 font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--text-muted)] xl:flex"><span>{locale === "fr" ? "Titre · album · waveform" : "Title · album · waveform"}</span><span>{locale === "fr" ? "Tags · ambiance · tempo · durée · actions" : "Tags · mood · tempo · duration · actions"}</span></div>{controller.tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFromTrack(track)} queue={controller.tracks} index={index} displayNumber={String(index + 1)} showAlbumCover compact={density !== "full"} density={density} showCompleteActions mobileLayout="dense" />)}</div> : <div className="border border-[var(--line)] px-5 py-20 text-center"><h2 className="text-3xl">{locale === "fr" ? "Aucune piste similaire n’a été trouvée." : "No similar track was found."}</h2><p className="mt-3 text-sm text-[var(--text-muted)]">{controller.effectiveSource === "prompt" ? (locale === "fr" ? "Précisez l’émotion, l’instrumentation ou l’usage." : "Specify the emotion, instrumentation or use.") : controller.effectiveSource === "upload" ? (locale === "fr" ? "Essayez un extrait plus représentatif." : "Try a more representative excerpt.") : controller.effectiveSource === "url" ? (locale === "fr" ? "Vérifiez que le lien est public et toujours disponible." : "Check that the link is public and still available.") : (locale === "fr" ? "Modifiez ou réduisez les pistes de référence." : "Change or reduce the reference tracks.")}</p></div> : null}
       </>}

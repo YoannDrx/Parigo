@@ -3,17 +3,18 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { ChevronLeft, ChevronRight, Disc3, Music2, SlidersHorizontal } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AlbumCard } from "@/components/features/AlbumCard";
+import { TrackRow } from "@/components/features/TrackRow";
 import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { Button } from "@/components/ui/Button";
 import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
-import { useAlbums, useSearchFilters } from "@/hooks/use-api";
+import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { displaySearchFilterName } from "@/lib/search-filter-labels";
 import { cn } from "@/lib/utils";
-import type { Album, SearchFacets, SearchFilterItem, ViewMode } from "@/types";
+import type { Album, SearchFacets, SearchFilterItem, Track, ViewMode } from "@/types";
 import { CatalogActiveFilters, type CatalogActiveFilter } from "./CatalogActiveFilters";
 import { CatalogToolbar } from "./CatalogToolbar";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
@@ -31,6 +32,7 @@ interface AlbumExplorerProps {
   fixedLabel?: string;
   queryPlaceholder?: { fr: string; en: string };
   headingLevel?: 2 | 3;
+  enableTrackView?: boolean;
 }
 
 const DEFAULT_BPM: [number, number] = [50, 200];
@@ -53,12 +55,30 @@ function flatten(items: SearchFilterItem[]): SearchFilterItem[] {
   return items.flatMap((item) => [item, ...flatten(item.children ?? [])]);
 }
 
-export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headingLevel = 2 }: AlbumExplorerProps) {
+function albumFromTrack(track: Track): Album {
+  return {
+    id: track.albumId,
+    slug: track.albumSlug,
+    title: track.albumTitle || "",
+    cover: track.albumCover || "/images/placeholder-album.svg",
+    label: track.albumLabel || "",
+    labelSlug: track.albumLabelSlug,
+    code: track.albumCode || track.cdCode,
+    genres: track.genres,
+    moods: track.moods,
+    trackCount: 0,
+  };
+}
+
+export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headingLevel = 2, enableTrackView = false }: AlbumExplorerProps) {
   const { locale, t, localizedPath } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const [kind, setKind] = useState<"albums" | "tracks">(
+    enableTrackView && searchParams.get("kind") === "tracks" ? "tracks" : "albums",
+  );
   const [sort, setSort] = useState<AlbumSort>(
     searchParams.get("sort") === "oldest" || searchParams.get("sort") === "relevance"
       ? searchParams.get("sort") as AlbumSort
@@ -112,10 +132,17 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   const isInitialState = !query && page === 1 && sort === "recent" && !categories.length && !labels.length && !styles.length && !composers.length
     && bpmRange[0] === DEFAULT_BPM[0] && bpmRange[1] === DEFAULT_BPM[1]
     && durationRange[0] === DEFAULT_DURATION[0] && durationRange[1] === DEFAULT_DURATION[1];
-  const albumsQuery = useAlbums(requestParams, true, isInitialState ? initialData : undefined);
+  const albumsQuery = useAlbums(requestParams, kind === "albums", isInitialState ? initialData : undefined);
+  const tracksQuery = useTracks({ ...requestParams, type: "main" }, enableTrackView && kind === "tracks");
   const albums = albumsQuery.data?.albums ?? [];
-  const facets = albumsQuery.data?.facets ?? initialData.facets;
-  const total = albumsQuery.data?.pagination.total ?? initialData.pagination.total;
+  const tracks = tracksQuery.data?.tracks ?? [];
+  const activeQuery = kind === "tracks" ? tracksQuery : albumsQuery;
+  const facets = kind === "tracks"
+    ? tracksQuery.data?.facets
+    : albumsQuery.data?.facets ?? initialData.facets;
+  const total = kind === "tracks"
+    ? tracksQuery.data?.pagination.total ?? 0
+    : albumsQuery.data?.pagination.total ?? initialData.pagination.total;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const goToPage = useCallback((nextPage: number) => {
     setPage(Math.max(1, Math.min(totalPages, nextPage)));
@@ -133,6 +160,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     if (mobileFiltersOpen) return;
     const params = new URLSearchParams();
     if (query) params.set("q", query);
+    if (enableTrackView && kind === "tracks") params.set("kind", "tracks");
     if (sort !== "recent") params.set("sort", sort);
     if (view !== "grid") params.set("view", view);
     if (page > 1) params.set("page", String(page));
@@ -146,7 +174,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
     const next = params.toString();
     if (next !== searchParams.toString()) router.replace(`${pathname}${next ? `?${next}` : ""}`, { scroll: false });
-  }, [bpmRange, categories, composers, durationRange, labels, mobileFiltersOpen, page, pathname, query, router, searchParams, sort, styles, view]);
+  }, [bpmRange, categories, composers, durationRange, enableTrackView, kind, labels, mobileFiltersOpen, page, pathname, query, router, searchParams, sort, styles, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -263,13 +291,15 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   return (
     <section ref={catalogWorkspaceRef}>
       <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-        <aside className="search-filter-sticky hidden min-w-0 overflow-y-auto pb-5 lg:block">{filterPanel}</aside>
+        <aside className="search-desktop-filters search-filter-sticky hidden min-w-0 overflow-y-auto pb-5 lg:block">{filterPanel}</aside>
         <div className="min-w-0">
           <CatalogToolbar
             locale={locale}
             query={query}
             onQueryChange={(value) => { setQuery(value); setPage(1); }}
-            queryPlaceholder={queryPlaceholder?.[locale] ?? (locale === "fr" ? "Rechercher un titre d’album ou un mot-clé" : "Search an album title or keyword")}
+            queryPlaceholder={kind === "tracks"
+              ? locale === "fr" ? "Rechercher une piste ou un mot-clé" : "Search a track or keyword"
+              : queryPlaceholder?.[locale] ?? (locale === "fr" ? "Rechercher un titre d’album ou un mot-clé" : "Search an album title or keyword")}
             sort={sort}
             onSortChange={(value) => { setSort(value); setPage(1); }}
             sortOptions={[
@@ -280,17 +310,33 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             view={view}
             onViewChange={setView}
             resultCount={total}
+            viewControlVisibility={kind === "tracks" ? "hidden" : "all"}
+            primaryControls={enableTrackView ? (
+              <div className="search-view-toggle inline-flex w-fit shrink-0 border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Contenu du label" : "Label content"}>
+                {(["albums", "tracks"] as const).map((value) => {
+                  const Icon = value === "albums" ? Disc3 : Music2;
+                  const label = value === "albums" ? "Albums" : locale === "fr" ? "Pistes" : "Tracks";
+                  return <button key={value} type="button" aria-pressed={kind === value} onClick={() => { setKind(value); setPage(1); }} className={cn("inline-flex h-10 items-center gap-2 px-3 text-xs font-semibold transition", kind === value ? "bg-[var(--foreground)] text-[var(--background)]" : "hover:bg-[var(--surface-soft)]")}><Icon size={15} />{label}</button>;
+                })}
+              </div>
+            ) : undefined}
           >
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="gap-2 lg:hidden">
+              <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="search-mobile-filter-trigger gap-2 lg:hidden">
                 <SlidersHorizontal size={16} />{locale === "fr" ? "Tous les filtres" : "All filters"}
               </Button>
             </div>
             <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={reset} />
           </CatalogToolbar>
 
-          {albumsQuery.isFetching && !albumsQuery.data ? (
+          {activeQuery.isFetching && !activeQuery.data ? (
             <div className="grid min-h-72 place-items-center"><ParigoLoader size="page" label={t("common.loading")} /></div>
+          ) : kind === "tracks" ? tracks.length ? (
+            <div className="search-results-ledger overflow-visible border border-[var(--line-strong)] bg-[var(--surface)]">
+              {tracks.map((track, index) => <TrackRow key={track.id} track={track} album={albumFromTrack(track)} queue={tracks} index={(page - 1) * pageSize + index} displayNumber={String((page - 1) * pageSize + index + 1)} showAlbumCover mobileLayout="dense" />)}
+            </div>
+          ) : (
+            <div className="border-y border-[var(--line)] py-20 text-center"><p className="text-lg">{locale === "fr" ? "Aucune piste ne correspond à cette recherche." : "No tracks match this search."}</p><Button variant="outline" onClick={reset} className="mt-5">{t("common.reset")}</Button></div>
           ) : albums.length ? (
             <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-[var(--space-grid-x)] gap-y-[var(--space-grid-y)] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
               {albums.map((album, index) => view === "grid"
@@ -305,7 +351,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             <div className="border-y border-[var(--line)] py-20 text-center"><p className="text-lg">{t("catalog.noAlbums")}</p><Button variant="outline" onClick={reset} className="mt-5">{t("common.reset")}</Button></div>
           )}
           {totalPages > 1 && (
-            <nav className="mt-[var(--space-block-gap)] flex items-center justify-between border-t border-[var(--line)] pt-6" aria-label={locale === "fr" ? "Pagination des albums" : "Album pagination"}>
+            <nav className="mt-[var(--space-block-gap)] flex items-center justify-between border-t border-[var(--line)] pt-6" aria-label={locale === "fr" ? "Pagination des résultats" : "Results pagination"}>
               <Button variant="outline" disabled={page <= 1} onClick={() => goToPage(page - 1)}><ChevronLeft size={16} />{locale === "fr" ? "Précédent" : "Previous"}</Button>
               <span className="font-mono text-xs text-[var(--text-muted)]">{page} / {totalPages}</span>
               <Button variant="outline" disabled={page >= totalPages} onClick={() => goToPage(page + 1)}>{locale === "fr" ? "Suivant" : "Next"}<ChevronRight size={16} /></Button>

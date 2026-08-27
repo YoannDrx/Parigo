@@ -22,7 +22,7 @@ const TEAM = [
   },
   {
     name: "Eliott Grellier",
-    role: { fr: "Responsable de la librairie musicale", en: "Library Music Manager" },
+    role: { fr: "Responsable catalogue", en: "Library manager" },
     email: "eliott.grellier@parigomusic.com",
   },
 ] as const;

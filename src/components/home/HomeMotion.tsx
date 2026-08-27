@@ -79,17 +79,24 @@ export function HomeHeroContent({
   const reduceMotion = useHomeReducedMotion();
   const [searchRevealComplete, setSearchRevealComplete] = useState(false);
   const words = title.split(" ");
-  const { scrollYProgress } = useScroll({ target, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, -116]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.93]);
-  const opacity = useTransform(scrollYProgress, [0, 0.62], [1, 0]);
+  const { scrollY } = useScroll();
+  const heroProgress = useTransform(scrollY, (currentScrollY) => {
+    const element = target.current;
+    if (!element) return 0;
+    const elementTop = element.getBoundingClientRect().top + currentScrollY;
+    const distance = Math.max(element.offsetHeight, 1);
+    return Math.min(1, Math.max(0, (currentScrollY - elementTop) / distance));
+  });
+  const y = useTransform(heroProgress, [0, 1], [0, -116]);
+  const scale = useTransform(heroProgress, [0, 1], [1, 0.93]);
+  const opacity = useTransform(heroProgress, [0, 0.62], [1, 0]);
 
   return (
     <motion.div
       data-testid="home-hero-content"
       data-home-hero-motion={reduceMotion ? "static" : "animated"}
       style={reduceMotion ? { y: 0, scale: 1 } : { y, scale }}
-      className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center max-sm:-top-12"
+      className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center"
     >
       <motion.div
         data-testid="home-hero-copy"
@@ -154,7 +161,7 @@ export function HomeHeroContent({
         data-testid="home-hero-search-mask"
         data-banner-mask={reduceMotion || searchRevealComplete ? "open" : "closed"}
         style={reduceMotion ? { opacity: 1 } : { opacity }}
-        className={`pointer-events-auto mx-auto mt-9 max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}
+        className={`pointer-events-auto mx-auto mt-9 min-h-[14.25rem] max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}
       >
         <motion.div
           data-testid="home-hero-search-reveal"

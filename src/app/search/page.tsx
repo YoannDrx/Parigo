@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Check,
   BookmarkPlus,
@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { SearchCommand, type SearchResultView } from "@/components/search/SearchCommand";
 import {
   SimilarityCommandContent,
@@ -35,17 +34,22 @@ import { Select } from "@/components/ui/Select";
 import { useSimilarityCapabilities, useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { canonicalizeCategoryValues, findSearchFilterId } from "@/lib/search-intent";
-import { canonicalSearchFilterLabel, canonicalSearchFilterName } from "@/lib/search-filter-labels";
+import { canonicalSearchFilterLabel } from "@/lib/search-filter-labels";
 import { normalizeSearchText } from "@/lib/search-normalization";
 import { looksLikeExternalUrl } from "@/lib/search/similarity-platforms";
 import { cn, formatDuration } from "@/lib/utils";
-import type { SimilaritySearchSource, Album, AutocompleteItem, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchMode, SearchTranslationMode, SortMode, Track } from "@/types";
+import type { SimilaritySearchSource, Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchMode, SearchTranslationMode, SortMode, Track } from "@/types";
 import { useSession } from "@/lib/auth-client";
 import { clearSimilarityHandoff, useSimilarityHandoff } from "@/stores/similarity-handoff-store";
 
 const TrackRow = dynamic(
   () => import("@/components/features/TrackRow").then((module) => module.TrackRow),
   { ssr: false, loading: () => <div className="grid min-h-20 place-items-center border-b border-[var(--line)] bg-[var(--surface-soft)]"><ParigoLoader size="compact" /></div> },
+);
+
+const SearchFilterPanel = dynamic(
+  () => import("@/components/search/SearchFilterPanel").then((module) => module.SearchFilterPanel),
+  { ssr: false, loading: () => <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader size="compact" /></div> },
 );
 
 type ResultView = SearchResultView;
@@ -95,27 +99,18 @@ function albumFromTrack(track: Track): Album {
   };
 }
 
-function useDebounced<T>(value: T, delay = 300): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const timeout = window.setTimeout(() => setDebounced(value), delay);
-    return () => window.clearTimeout(timeout);
-  }, [delay, value]);
-  return debounced;
-}
-
 function SearchContent() {
   const { locale, t, localizedPath } = useI18n();
   const { data: session } = useSession();
-  const router = useRouter();
   const searchParams = useSearchParams();
   const initialSearchMode: SearchMode = searchParams.get("mode") === "ai" ? "ai" : "keyword";
   const rawSimilaritySource = searchParams.get("source");
   const initialSimilaritySource: SimilaritySearchSource = rawSimilaritySource === "track" || rawSimilaritySource === "upload" || rawSimilaritySource === "url" ? rawSimilaritySource : "prompt";
-  const initialSimilaritySeedIds = [...new Set([
+  const initialSimilaritySeedIds = useMemo(() => [...new Set([
     ...csv(searchParams.get("seeds")),
     ...searchParams.getAll("seed").flatMap(csv),
-  ])].slice(0, 10);
+  ])].slice(0, 10), [searchParams]);
+  const autoRunTrackSimilarity = searchParams.get("run") === "1";
   const legacyKeyword = searchParams.get("keyword") ?? searchParams.get("brief") ?? "";
   const rawInitialQuery = searchParams.get("q") ?? legacyKeyword;
   const initialQuery = stripQuotes(rawInitialQuery);
@@ -175,6 +170,9 @@ function SearchContent() {
   const dialogRef = useRef<HTMLDivElement>(null);
   const mobileTriggerRef = useRef<HTMLButtonElement>(null);
   const searchWorkspaceRef = useRef<HTMLDivElement>(null);
+  const resultsAnchorRef = useRef<HTMLDivElement>(null);
+  const pendingKeywordScrollRef = useRef(false);
+  const pendingAiScrollRef = useRef(false);
   const similarityCapabilitiesQuery = useSimilarityCapabilities();
   const aiEnabled = Boolean(similarityCapabilitiesQuery.data && (
     similarityCapabilitiesQuery.data.track.enabled
@@ -183,31 +181,12 @@ function SearchContent() {
     || similarityCapabilitiesQuery.data.externalUrl.enabled
   ));
 
-
   const filtersQuery = useSearchFilters(locale);
   const filterGroups = useMemo(() => filtersQuery.data ?? [], [filtersQuery.data]);
   const allFilterItems = useMemo(() => filterGroups.flatMap((group) => flatten(group.items)), [filterGroups]);
   const itemNames = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => (
     [item.id, canonicalSearchFilterLabel(group.key, item, locale)] as const
   )))), [filterGroups, locale]);
-  const filterItemsById = useMemo(() => new Map(filterGroups.flatMap((group) => flatten(group.items).map((item) => [item.id, { group, item }] as const))), [filterGroups]);
-  const selectedAutocompleteFilters = useMemo(() => [...categories, ...styles]
-    .filter((value) => !value.startsWith("-"))
-    .flatMap((value) => {
-      const resolved = filterItemsById.get(value);
-      if (!resolved) return [];
-      const localized = resolved.item.localizedName || resolved.item.name;
-      const canonical = canonicalSearchFilterName(resolved.item);
-      return [{
-        id: value,
-        kind: "filter" as const,
-        label: canonicalSearchFilterLabel(resolved.group.key, resolved.item, locale),
-        filterGroup: resolved.group.key,
-        canonicalName: canonical,
-        localizedName: localized,
-      }];
-    }), [categories, filterItemsById, locale, styles]);
-
   useEffect(() => {
     if (!filterGroups.length) return;
     const frame = window.requestAnimationFrame(() => setCategories((current) => {
@@ -260,7 +239,7 @@ function SearchContent() {
     // On mobile the filter sheet is an explicit apply surface. Deferring the URL
     // replacement keeps the focus trap and scroll position stable while users
     // make several selections; closing the sheet commits the canonical URL.
-    if (mobileFiltersOpen || searchMode === "ai") return;
+    if (mobileFiltersOpen || searchMode === "ai" || searchParams.get("mode") === "ai") return;
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (query && translation !== "offer") params.set("translation", translation);
@@ -347,9 +326,8 @@ function SearchContent() {
     sort,
     translation,
   }), [bpmRange, categories, composers, durationRange, labels, locale, page, query, sort, styles, translation, type]);
-  const debouncedParams = useDebounced(requestParams, 300);
-  const tracksQuery = useTracks(debouncedParams, searchMode === "keyword" && view === "tracks");
-  const albumsQuery = useAlbums({ ...debouncedParams, forceSearch: true, sort }, searchMode === "keyword" && view === "albums");
+  const tracksQuery = useTracks(requestParams, searchMode === "keyword" && view === "tracks");
+  const albumsQuery = useAlbums({ ...requestParams, forceSearch: true, sort }, searchMode === "keyword" && view === "albums");
   const activeQuery = view === "tracks" ? tracksQuery : albumsQuery;
   const tracks = useMemo(() => tracksQuery.data?.tracks ?? [], [tracksQuery.data?.tracks]);
   const trackQueue = useMemo(
@@ -400,7 +378,9 @@ function SearchContent() {
   }, [query]);
 
   const applyUnifiedSearch = (value = queryDraft) => {
+    pendingKeywordScrollRef.current = true;
     commitSearchDraft(value);
+    if (value.trim() === query) void activeQuery.refetch();
   };
 
   const clearUnifiedSearch = () => {
@@ -421,6 +401,8 @@ function SearchContent() {
       params.delete("source");
       params.delete("seed");
       params.delete("seeds");
+      params.delete("run");
+      params.delete("pick");
     }
     window.history.replaceState(window.history.state, "", `${localizedPath("/search")}${params.size ? `?${params}` : ""}`);
   };
@@ -431,6 +413,12 @@ function SearchContent() {
     const params = new URLSearchParams(window.location.search);
     params.set("mode", "ai");
     params.set("source", nextSource);
+    if (nextSource !== "track") {
+      params.delete("seed");
+      params.delete("seeds");
+      params.delete("run");
+      params.delete("pick");
+    }
     window.history.replaceState(window.history.state, "", `${localizedPath("/search")}?${params}`);
   };
 
@@ -438,6 +426,7 @@ function SearchContent() {
     source: similaritySource,
     prompt: similarityPrompt,
     initialSeedIds: initialSimilaritySeedIds,
+    autoRunTrack: autoRunTrackSimilarity,
     initialHandoff: initialSimilarityHandoff,
     onPromptChange: setSimilarityPrompt,
     onSourceChange: updateSimilaritySource,
@@ -460,6 +449,27 @@ function SearchContent() {
     void similarity.selectFiles(files);
   };
 
+  const scrollToFirstResult = useCallback(() => {
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
+    const anchor = resultsAnchorRef.current;
+    if (!anchor) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const top = Math.max(0, window.scrollY + anchor.getBoundingClientRect().top - 82);
+    window.scrollTo({ top, behavior: reduceMotion ? "instant" : "smooth" });
+  }, []);
+
+  useEffect(() => {
+    if (!pendingKeywordScrollRef.current || activeQuery.isFetching || total === 0) return;
+    pendingKeywordScrollRef.current = false;
+    window.requestAnimationFrame(scrollToFirstResult);
+  }, [activeQuery.isFetching, scrollToFirstResult, total]);
+
+  useEffect(() => {
+    if (!pendingAiScrollRef.current || similarity.state !== "done" || similarity.tracks.length === 0) return;
+    pendingAiScrollRef.current = false;
+    window.requestAnimationFrame(scrollToFirstResult);
+  }, [scrollToFirstResult, similarity.state, similarity.tracks.length]);
+
   const activeValues = [...categories, ...styles];
   const includedCount = activeValues.filter((value) => !value.startsWith("-")).length + labels.length + composers.length;
   const excludedCount = activeValues.filter((value) => value.startsWith("-")).length;
@@ -469,35 +479,6 @@ function SearchContent() {
     const setter = source === "categories" ? updateCategories : source === "labels" ? updateLabels : source === "styles" ? updateStyles : updateComposers;
     const values = source === "categories" ? categories : source === "labels" ? labels : source === "styles" ? styles : composers;
     setter(values.filter((item) => item !== value));
-  };
-  const selectSuggestion = (item: AutocompleteItem, remainingQuery?: string) => {
-    if (item.kind === "filter" && item.filterGroup) {
-      if (remainingQuery !== undefined) {
-        setQueryDraft(remainingQuery);
-        setQuery(remainingQuery);
-        setTranslation("offer");
-        setPage(1);
-      }
-      if (item.filterGroup === "styles") updateStyles([...styles, item.id]);
-      else updateCategories([...categories, item.id]);
-      return;
-    }
-    if (item.kind === "label") {
-      updateLabels([...labels, item.id]);
-      return;
-    }
-    if (item.kind === "composer") {
-      updateComposers([item.label]);
-      return;
-    }
-    if (item.href) {
-      router.push(localizedPath(item.href));
-      return;
-    }
-    setQueryDraft(item.label);
-    setQuery(item.label);
-    setTranslation("offer");
-    setPage(1);
   };
   const applySuggestedTranslation = () => {
     const effectiveQuery = translationSuggestion?.effective.trim();
@@ -595,7 +576,7 @@ function SearchContent() {
       <main className="min-w-0 flex-1 overflow-x-clip pb-[var(--space-page-end)] pt-[74px]">
         <h1 className="sr-only">{t("common.search")}</h1>
         <div className="mx-auto grid max-w-[1920px] items-start gap-4 px-3 pb-3 pt-1 sm:px-4 sm:py-4 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)]">
-          {searchMode === "keyword" && <aside className="search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
+          {searchMode === "keyword" && <aside className="search-desktop-filters search-filter-sticky hidden overflow-y-auto pb-5 lg:block" aria-label={locale === "fr" ? "Filtres de recherche" : "Search filters"}>
             {filtersQuery.isLoading ? <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader label={t("common.loading")} /></div> : filterPanel}
           </aside>}
 
@@ -607,27 +588,9 @@ function SearchContent() {
                 locale={locale}
                 onValueChange={setQueryDraft}
                 onSubmit={applyUnifiedSearch}
-                onSelect={selectSuggestion}
+                onSelect={() => undefined}
                 onClear={clearUnifiedSearch}
-                stagedFilters={selectedAutocompleteFilters}
-                filterSelectionState="applied"
-                autocompleteEnabled={!(translation === "offer" && Boolean(translationSuggestion))}
-                autocompleteContext={{
-                  categories,
-                  styles,
-                  labels,
-                  composer: composers[0],
-                  minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
-                  maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
-                  minDuration: durationRange[0] !== DEFAULT_DURATION[0] ? durationRange[0] : undefined,
-                  maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
-                  type,
-                  sort,
-                }}
-                onRemoveStagedFilter={(item) => {
-                  if (item.filterGroup === "styles") updateStyles(styles.filter((value) => value.replace(/^-/, "") !== item.id));
-                  else updateCategories(categories.filter((value) => value.replace(/^-/, "") !== item.id));
-                }}
+                autocompleteEnabled={false}
                 mode={searchMode}
                 onModeChange={switchSearchMode}
                 aiEnabled={aiEnabled}
@@ -636,7 +599,10 @@ function SearchContent() {
                 aiHasCriteria={similarity.canSubmit}
                 aiValue={similarity.effectiveSource === "url" ? similarity.url : similarity.prompt}
                 onAiValueChange={updateSimilarityText}
-                onAiSubmit={() => void similarity.submit()}
+                onAiSubmit={() => {
+                  pendingAiScrollRef.current = true;
+                  void similarity.submit();
+                }}
                 aiInputType={similarity.effectiveSource === "url" ? "url" : "text"}
                 aiInputLabel={similarity.effectiveSource === "url"
                   ? locale === "fr" ? "Lien public vers une référence musicale" : "Public link to a music reference"
@@ -645,13 +611,15 @@ function SearchContent() {
                   ? locale === "fr" ? "Collez un lien YouTube, Spotify, Vimeo, SoundCloud, Apple Music ou TikTok…" : "Paste a YouTube, Spotify, Vimeo, SoundCloud, Apple Music or TikTok link…"
                   : locale === "fr" ? "Décrivez une scène, une émotion, un rythme ou un usage…" : "Describe a scene, emotion, rhythm or use…"}
                 aiSubmitLabel={similarity.effectiveSource === "track"
-                  ? locale === "fr" ? `Trouver des pistes similaires (${similarity.seedIds.length})` : `Find similar tracks (${similarity.seedIds.length})`
+                  ? similarity.referencesDirty
+                    ? locale === "fr" ? `Relancer avec ${similarity.seedIds.length} référence${similarity.seedIds.length > 1 ? "s" : ""}` : `Run again with ${similarity.seedIds.length} reference${similarity.seedIds.length > 1 ? "s" : ""}`
+                    : locale === "fr" ? `Trouver des pistes similaires (${similarity.seedIds.length})` : `Find similar tracks (${similarity.seedIds.length})`
                   : similarity.effectiveSource === "prompt"
                     ? locale === "fr" ? "Lancer le brief" : "Run brief"
                     : similarity.effectiveSource === "upload"
                       ? locale === "fr" ? "Envoyer et analyser" : "Upload and analyse"
                       : locale === "fr" ? "Analyser le lien" : "Analyse link"}
-                aiCustomContent={similarity.effectiveSource === "track" || similarity.effectiveSource === "upload" ? <SimilarityCommandContent controller={similarity} initialPickerOpen={initialSimilarityHandoff?.source === "track" && initialSimilarityHandoff.openPicker} onInitialPickerConsumed={() => clearSimilarityHandoff("track")} /> : undefined}
+                aiCustomContent={similarity.effectiveSource === "track" || similarity.effectiveSource === "upload" ? <SimilarityCommandContent controller={similarity} initialPickerOpen={initialSimilarityHandoff?.source === "track" && "openPicker" in initialSimilarityHandoff && initialSimilarityHandoff.openPicker} onInitialPickerConsumed={() => clearSimilarityHandoff("track")} /> : undefined}
                 aiLeadingContent={similarity.effectiveSource === "url" ? <Link2 size={18} className="text-[var(--text-muted)]" /> : undefined}
                 aiRecentEnabled={similarity.effectiveSource === "prompt"}
                 onAiFilesDrop={selectSimilarityFiles}
@@ -662,7 +630,7 @@ function SearchContent() {
 
               {searchMode === "keyword" && <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
                 <div className="contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-wrap lg:items-center lg:gap-2">
-                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
+                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="search-mobile-filter-trigger inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
                   <Select variant="editorial" caption={locale === "fr" ? "Résultats" : "Results"} value={view} onValueChange={(value) => { setView(value as ResultView); setPage(1); }} ariaLabel={locale === "fr" ? "Type de résultats" : "Result type"} className="w-full min-w-0 lg:w-auto lg:min-w-[10rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "tracks", label: locale === "fr" ? "Pistes" : "Tracks" }, { value: "albums", label: "Albums" }]} />
                   {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="w-full min-w-0 lg:w-auto lg:min-w-[11.5rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "main", label: locale === "fr" ? "Principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
                 </div>
@@ -681,7 +649,7 @@ function SearchContent() {
             </div>
 
             {searchMode === "ai" ? (
-              <SimilaritySearchWorkspace controller={similarity} density={density} onDensityChange={setDensity} />
+              <SimilaritySearchWorkspace controller={similarity} density={density} onDensityChange={setDensity} resultsAnchorRef={resultsAnchorRef} />
             ) : <>
 
             {(categories.length > 0 || labels.length > 0 || styles.length > 0 || composers.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
@@ -726,6 +694,7 @@ function SearchContent() {
               </div>
             ) : null}
 
+            <div ref={resultsAnchorRef} aria-hidden="true" />
             <div className="search-results-status mb-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[var(--text-muted)]">
               <span>{activeQuery.isFetching ? (locale === "fr" ? "Recherche…" : "Searching…") : `${resultStart}–${resultEnd} / ${total.toLocaleString(locale)}`}</span>
               {session?.user && <button type="button" onClick={openSaveSearch} disabled={!searchHistoryId || activeQuery.isFetching} className="inline-flex min-h-9 items-center gap-2 font-semibold text-[var(--foreground)] transition hover:text-[var(--signal-strong)] disabled:cursor-not-allowed disabled:opacity-35"><BookmarkPlus size={14} />{locale === "fr" ? "Sauvegarder" : "Save"}</button>}
@@ -828,5 +797,24 @@ function SearchContent() {
 }
 
 export default function SearchPage() {
-  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><ParigoLoader size="page" /></div>}><SearchContent /></Suspense>;
+  return <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><ParigoLoader size="page" /></div>}><SearchContentBoundary /></Suspense>;
+}
+
+function SearchContentBoundary() {
+  const searchParams = useSearchParams();
+  const launchSeeds = [...new Set([
+    ...csv(searchParams.get("seeds")),
+    ...searchParams.getAll("seed").flatMap(csv),
+  ])].slice(0, 10);
+  const launchKey = searchParams.get("mode") === "ai"
+    && searchParams.get("source") === "track"
+    && searchParams.get("run") === "1"
+    && launchSeeds.length
+    ? `track:${launchSeeds.join("\u0000")}`
+    : searchParams.get("mode") === "ai"
+      && searchParams.get("source") === "track"
+      && searchParams.get("pick") === "1"
+      ? "track-picker"
+      : "default";
+  return <SearchContent key={launchKey} />;
 }

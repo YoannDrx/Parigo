@@ -34,6 +34,14 @@ describe("shortlist store", () => {
     expect(useShortlistStore.getState().items).toEqual([]);
   });
 
+  it("ajoute une piste silencieusement sans ouvrir le drawer", () => {
+    useShortlistStore.getState().addSilently(track);
+    useShortlistStore.getState().addSilently(track);
+
+    expect(useShortlistStore.getState().items).toHaveLength(1);
+    expect(useShortlistStore.getState().isOpen).toBe(false);
+  });
+
   it("identifie uniquement l’ancienne piste de démonstration ACIDE", () => {
     expect(isLegacyDemoTrack({ ...track, title: "Track 1", albumTitle: "ACIDE" })).toBe(true);
     expect(isLegacyDemoTrack({ ...track, title: "Track 1", albumTitle: "Un véritable album" })).toBe(false);

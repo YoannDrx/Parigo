@@ -818,6 +818,7 @@ export async function getPlaylistDiscovery(options: { limit?: number } = {}): Pr
           description: detail.description,
           descriptions: detail.descriptions,
           trackCount: detail.tracks.length,
+          tracks: detail.tracks,
           genres: uniqueTerms(detail.tracks.map((track) => track.genres)),
           moods: uniqueTerms(detail.tracks.map((track) => track.moods)),
           instruments: uniqueTerms(detail.tracks.map((track) => track.instruments)),

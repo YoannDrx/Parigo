@@ -133,13 +133,24 @@ La page contient précisément **26 types et 34 variantes**. La majorité des va
 
 ### Comptes membre et sélection de langue
 
+Contrôle Admin du **27 août 2026** : les langues English (`EN`) et French
+(`FR`) sont actives. Le formulaire **Add Member** expose un champ `Language`
+avec ces deux valeurs et sélectionne `EN` par défaut. Harvest sait donc bien
+persister une langue sur un membre depuis son back-office.
+
 Les deux comptes de test renvoient :
 
 - `Country=FR` ;
 - la même région Global ;
 - `LanguageCode=EN` ou `en`.
 
-Le schéma Parigo actuel ne conserve pas `LanguageCode`, l’interface Compte ne permet pas de le modifier et les requêtes `registermember` / `updatemember` ne l’envoient pas. La documentation publique inclut bien `LanguageCode` dans les **réponses**, mais pas dans les champs documentés des **requêtes**. Il ne faut donc pas ajouter ce champ au hasard avant confirmation.
+Le schéma Parigo actuel ne conserve pas `LanguageCode`, l’interface Compte ne
+permet pas de le modifier et les requêtes `registermember` / `updatemember` ne
+l’envoient pas. La documentation publique inclut bien `LanguageCode` dans les
+**réponses**, mais pas dans les champs documentés des **requêtes**. La présence
+du sélecteur dans l’Admin ne prouve pas que la Public API accepte ce champ en
+écriture ni qu’il pilote les variantes d’e-mail. Il ne faut donc pas l’ajouter
+au hasard avant confirmation.
 
 ### Endpoints réellement utilisés par Parigo
 

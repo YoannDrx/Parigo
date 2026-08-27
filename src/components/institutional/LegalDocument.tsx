@@ -22,12 +22,14 @@ export function LegalDocument({ sections, updated = "13 juillet 2026" }: { secti
   })), [sections]);
   const [activeId, setActiveId] = useState(sectionEntries[0]?.id ?? "");
   const mobileContentsRef = useRef<HTMLDetailsElement>(null);
+  const activeAnchorPinUntilRef = useRef(0);
 
   useEffect(() => {
     const nodes = sectionEntries.map(({ id }) => document.getElementById(id)).filter((node): node is HTMLElement => Boolean(node));
     if (!nodes.length) return;
 
     const updateActiveSection = () => {
+      if (Date.now() < activeAnchorPinUntilRef.current) return;
       const anchor = window.innerHeight * .36;
       const current = nodes.reduce((candidate, node) => (
         node.getBoundingClientRect().top <= anchor ? node : candidate
@@ -58,8 +60,12 @@ export function LegalDocument({ sections, updated = "13 juillet 2026" }: { secti
               aria-current={activeId === section.id ? "location" : undefined}
               data-active={activeId === section.id}
               onClick={() => {
+                activeAnchorPinUntilRef.current = Date.now() + 750;
                 setActiveId(section.id);
                 if (mobileContentsRef.current) mobileContentsRef.current.open = false;
+                window.requestAnimationFrame(() => {
+                  document.getElementById(section.id)?.scrollIntoView({ block: "start", behavior: "instant" });
+                });
               }}
               className="legal-toc__link group grid min-h-11 grid-cols-[2rem_minmax(0,1fr)] items-center gap-2 py-2 text-sm text-[var(--text-muted)]"
             >
