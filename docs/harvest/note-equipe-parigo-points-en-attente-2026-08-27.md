@@ -21,25 +21,30 @@ malgré une première relance. Les plus importantes sont les suivantes :
    site. L’album *The Projectionist* en est un exemple très clair : la version
    française du site affiche encore le texte anglais.
 2. **E-mails envoyés aux utilisateurs** : nous ne savons toujours pas comment
-   Harvest choisit la langue d’un e-mail. Sur 26 familles d’e-mails visibles,
-   seules six ont une version française. Il faut également confirmer que tous
-   les liens d’inscription et de mot de passe renverront bien vers le site final,
-   en HTTPS.
+   Harvest choisit la langue d’un e-mail. Le back-office permet bien de choisir
+   `EN` ou `FR` sur un membre, avec `EN` par défaut, mais l’écriture de cette
+   valeur depuis l’API du site n’est pas documentée. Sur 26 familles d’e-mails
+   visibles et 34 variantes, seules six variantes sont françaises. Il faut
+   également confirmer que tous les liens d’inscription et de mot de passe
+   renverront bien vers le site final, en HTTPS.
 3. **Formulaire de contact** : Harvest refuse actuellement les messages envoyés
    par le formulaire du site. Parigo affiche donc l’adresse
    `info@parigomusic.com` en solution de secours, mais ce fonctionnement doit
-   être corrigé avant ou peu après le lancement.
-4. **Labels et playlists** : les traductions existent, mais Harvest ne les
-   fournit pas de la même manière selon les écrans. Nous avons compensé ce
-   problème dans le site, au prix de traitements supplémentaires. Nous avons
-   besoin de savoir si cette méthode restera stable.
+   être corrigé avant le lancement. C’est le principal blocage restant.
+4. **Labels et playlists** : les traductions disponibles fonctionnent sur le
+   site. Nous devons simplement faire confirmer à Harvest la règle officielle
+   de lecture. Quatre noms de playlists et la grande majorité des descriptions
+   de playlists sont absents des données : ils sont classés comme contenu à
+   compléter, pas comme défaut API démontré.
 5. **Fonctions de compte** : certains compteurs et l’historique des e-mails sont
    incomplets côté Harvest. Le site compense lorsqu’il le peut, mais Harvest doit
    confirmer le fonctionnement officiel.
-6. **Similarité musicale** : les quatre modes fonctionnent — piste, description,
-   fichier et lien YouTube — mais il manque encore la confirmation écrite des
-   quotas, des coûts, de la couverture du catalogue et des conditions de
-   traitement des fichiers et liens.
+6. **Similarité musicale** : l’intégration AIMS est terminée et les quatre modes
+   fonctionnent — piste, description, fichier et lien YouTube. Il ne reste
+   aucun développement dépendant directement d’AIMS. La disponibilité et
+   l’ajout continu des nouveaux masters seront simplement surveillés côté
+   Harvest. Les sujets commerciaux sont suivis directement par Parigo avec
+   AIMS.
 
 Ces sujets ne signifient pas que tout le site est bloqué. La majorité du site
 fonctionne et plusieurs écarts ont un contournement. En revanche, nous avons
@@ -66,10 +71,10 @@ la traduction française de certains albums n’arrive pas jusqu’au site, le
 formulaire de contact est refusé, et la langue/les liens des e-mails de compte
 ne sont pas suffisamment documentés. Les labels, playlists, tags et recherches
 fonctionnent grâce à des compensations ajoutées côté Parigo, mais nous devons
-faire confirmer que ces contournements resteront valables. La similarité
-musicale fonctionne dans ses quatre modes ; il manque surtout les confirmations
-de quotas, coûts et confidentialité. Un appui de la direction pour obtenir une
-réponse écrite et datée de Harvest serait très utile avant la mise en production.
+faire confirmer que ces contournements resteront valables. L’intégration AIMS
+est terminée et la similarité fonctionne dans ses quatre modes. Un appui de la
+direction pour obtenir une réponse écrite et datée de Harvest serait très utile
+avant la mise en production.
 
 ## Ce que nous demandons à la direction Parigo
 
@@ -95,13 +100,14 @@ réponse écrite et datée de Harvest serait très utile avant la mise en produc
 > mais nous devons sécuriser les parcours de compte, les e-mails et les contenus
 > bilingues avant le lancement.
 >
-> Merci beaucoup pour votre aide et pour un retour d’ici **[date souhaitée]**.
+> Merci beaucoup pour votre aide et pour un retour dans les meilleurs délais,
+> Parigo visant une mise en production la semaine prochaine.
 
 ## À ne pas présenter comme des problèmes encore ouverts
 
 - L’authentification de l’adresse d’envoi `info@parigomusic.com` est corrigée.
 - Les catégories et styles sont désormais entièrement traduits.
-- Le principe de l’intégration AIMS à travers Harvest est confirmé.
+- L’intégration AIMS à travers Harvest est terminée et ses quatre modes ont été
+  testés avec succès.
 - Le mode de similarité par lien fonctionne, notamment avec le lien YouTube
   Music utilisé pendant la recette.
-

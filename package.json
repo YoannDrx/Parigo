@@ -25,6 +25,7 @@
     "audit:harvest:gaps": "node --import tsx scripts/audit-harvest-gaps.ts",
     "audit:harvest:open-gaps": "HARVEST_OPEN_GAPS_AUDIT=1 node --env-file=.env --import tsx docs/harvest/smoke-tests/open-gaps-audit.ts",
     "audit:harvest:taxonomy": "node --env-file=.env --import tsx docs/harvest/smoke-tests/taxonomy-localization-audit.ts",
+    "audit:harvest:localization": "HARVEST_LOCALIZATION_AUDIT=1 node --env-file=.env --import tsx docs/harvest/smoke-tests/localization-contract-audit.ts",
     "audit:youtube:clips": "node --env-file-if-exists=.env --import tsx scripts/audit-youtube-clips.ts",
     "test:harvest:member": "node --env-file=.env --import tsx docs/harvest/smoke-tests/member-mutations.ts",
     "test:harvest:sharing": "node --env-file=.env --import tsx docs/harvest/smoke-tests/member-sharing.ts",

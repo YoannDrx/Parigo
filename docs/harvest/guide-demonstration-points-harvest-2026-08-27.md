@@ -4,6 +4,11 @@ Date : **27 août 2026**
 Preview vérifiée : [https://parigo-ten.vercel.app](https://parigo-ten.vercel.app)  
 Administration Harvest : [https://admin.harvestmedia.net/dashboard.aspx](https://admin.harvestmedia.net/dashboard.aspx)
 
+Les preuves Public API et site ont été retestées le 27 août. Les constats
+visuels Admin ont été inspectés le 26 août ; la session Admin ayant expiré lors
+du second contrôle, refaire une lecture visuelle de `PGO0031` et des modèles
+d’e-mail juste avant la démonstration, sans enregistrer de modification.
+
 Ce guide permet de présenter les constats à une personne non technique. Les
 tests sont classés selon trois niveaux :
 
@@ -93,7 +98,7 @@ la fiche à Harvest, car la traduction n’est pas renvoyée de façon cohérent
 **Attente envers Harvest**  
 Confirmer la règle officielle pour récupérer les traductions des labels.
 
-### 3. Playlists — traduction présente seulement dans le détail
+### 3. Playlists — noms traduits et contenu éditorial incomplet
 
 **Liens principaux**
 
@@ -105,10 +110,13 @@ Confirmer la règle officielle pour récupérer les traductions des labels.
 1. Ouvrir les deux pages côte à côte.
 2. Vérifier le titre : `Découverte - Voyage` en français et
    `Discovery - Travel` en anglais.
-3. Comparer également les descriptions.
-4. Expliquer que Harvest ne fournit pas ces traductions dans la liste générale
-   des playlists. Parigo doit ouvrir le détail de chaque playlist pour les
-   retrouver et les fusionner.
+3. Constater que les textes sous les titres sont des métadonnées génériques du
+   site : `Discovery - Travel` ne possède actuellement aucune description
+   éditoriale, ni anglaise ni française, dans la Public API.
+4. Expliquer que la liste et le détail Harvest contiennent tous deux les
+   `LanguageItems` disponibles. Le paramètre `languagecode`, lui, ne remplace
+   pas les champs canoniques de la liste. Parigo lit donc explicitement
+   `LanguageItems` et applique un fallback anglais.
 
 **Quatre exemples dont le nom français manque dans Harvest**
 
@@ -123,20 +131,23 @@ plutôt que d’inventer une traduction.
 
 **Phrase simple à dire**
 
-> Le site sait afficher les traductions, mais Harvest les cache dans le détail
-> de chaque playlist. Nous avons compensé ce fonctionnement et gardons l’anglais
-> quand un nom français manque.
+> Le site sait afficher les noms traduits présents dans Harvest. Quand une
+> traduction ou une description éditoriale manque, nous gardons l’anglais ou
+> un texte générique sans inventer de contenu.
 
 **Chiffres à rappeler**
 
 - 64 playlists contrôlées ;
 - 60 noms français présents ;
 - quatre noms français manquants ;
-- 53 descriptions françaises répétées à l’identique dans les données Harvest.
+- seulement deux descriptions françaises présentes ;
+- deux playlists contiennent des lignes FR dupliquées à l’identique, sans
+  conflit de valeur.
 
 **Attente envers Harvest**  
-Confirmer que le détail est la source officielle, puis nettoyer les doublons et
-compléter les quatre noms manquants.
+Confirmer que `LanguageItems` est la source officielle. Les 62 descriptions et
+les quatre noms absents doivent être traités comme du contenu à compléter, sauf
+si Harvest indique un autre endpoint officiel.
 
 ### 4. Description française du label Parigo — action interne, pas bug Harvest
 
@@ -165,19 +176,23 @@ compléter les quatre noms manquants.
 **Étapes**
 
 1. Ouvrir [Harvest Admin](https://admin.harvestmedia.net/dashboard.aspx).
-2. Aller dans la rubrique **Email Templates**.
-3. Montrer que l’administration contient 26 types d’e-mails et 34 variantes.
-4. Filtrer ou repérer les variantes marquées **French**.
-5. Montrer que seules six familles ont une variante française :
+2. Aller dans **Members**, ouvrir le formulaire **Add Member** sans rien
+   enregistrer, puis montrer le champ `Language` : `English (EN)` et
+   `French (FR)`, avec `EN` sélectionné par défaut.
+3. Aller ensuite dans la rubrique **Email Templates**.
+4. Montrer que l’administration contient 26 types d’e-mails et 34 variantes.
+5. Filtrer ou repérer les variantes marquées **French**.
+6. Montrer que seules six familles ont une variante française :
    `Reset Password`, `Thank you for registering`, `Member Approved`,
    `Member Denied`, `Share Playlist Email` et `Share to Member`.
-6. Ouvrir par exemple `Verify Email Address`, `Download` ou
+7. Ouvrir par exemple `Verify Email Address`, `Download` ou
    `Contact Us (API/Custom)` : aucune variante française n’est configurée.
 
 **Phrase simple à dire**
 
-> Harvest ne nous a pas expliqué comment la langue d’un utilisateur choisit le
-> bon modèle. Et la majorité des e-mails n’a aujourd’hui aucune version
+> Harvest sait enregistrer EN ou FR dans le back-office, mais ne nous a pas
+> expliqué comment le site doit écrire cette valeur par l’API ni comment elle
+> choisit le bon modèle. La majorité des e-mails n’a aujourd’hui aucune version
 > française explicite.
 
 **Ce que ce test ne prouve pas**  
@@ -214,8 +229,9 @@ Parigo.
 **Phrase simple à dire**
 
 > Le formulaire du site arrive bien jusqu’à Harvest, mais Harvest refuse
-> l’opération. Notre solution de secours évite de perdre complètement le contact,
-> mais ce n’est pas le fonctionnement final souhaité.
+> l’opération. L’adresse de secours reste disponible en urgence, mais le
+> formulaire doit fonctionner avant la mise en production : c’est aujourd’hui
+> un blocage de lancement.
 
 **Attente envers Harvest**  
 Corriger la configuration du modèle `Contact Us (API/Custom)`, son destinataire
@@ -315,9 +331,12 @@ en une seule fois.
    Parigo lance plusieurs recherches puis vérifie les titres reçus.
 
 **Preuve de l’audit**  
-Les quatre réglages Harvest censés différencier une expression exacte et une
-recherche partielle ont renvoyé des comportements presque identiques. Sur le
-fixture technique, les totaux observés étaient 1 478, 1 489, 1 478 et 1 478.
+Les titres complets `Piano Minuet`, `Café Paris`, `Train D'Amour` et
+`L'Amour Sur Les Faubourgs (Instr)` sont correctement retrouvés. En revanche,
+pour le terme simple `piano`, les quatre réglages renvoient 1 480, 1 491,
+1 480 et 1 480 résultats : ils ne constituent pas des modes de champ distincts
+« contient / commence par / égal ». L’apostrophe typographique `’` n’est pas
+assimilée à l’apostrophe droite `'`, que Parigo normalise donc avant recherche.
 
 **Phrase simple à dire**
 
@@ -368,10 +387,10 @@ un album test avant le traitement global.
 
 **Phrase simple à dire**
 
-> La fonction marche. Notre question pour Harvest n’est plus technique : nous
-> attendons la confirmation écrite des quotas, des coûts, de la couverture du
-> catalogue et des règles de confidentialité avant de considérer le service
-> comme définitivement sécurisé pour la production.
+> L’intégration AIMS est terminée. Les quatre modes — piste, description,
+> fichier et URL — fonctionnent dans nos tests. La disponibilité et
+> l’indexation des nouveaux masters seront simplement surveillées côté Harvest ;
+> il ne reste aucun développement dépendant directement d’AIMS.
 
 **À ne pas dire**  
 Ne pas présenter le mode URL comme défaillant. Un seul échec temporaire a été
@@ -383,12 +402,13 @@ fonctionné.
 1. **Album français absent** : preuve visuelle immédiate et incontestable.
 2. **Formulaire de contact** : parcours public actuellement en erreur.
 3. **E-mails et callbacks** : risque direct sur les comptes au lancement.
-4. **Labels et playlists** : fonctionnement correct, mais dépendant de
-   contournements Parigo.
+4. **Labels et playlists** : fonctionnement correct ; contrat à faire confirmer
+   et contenus manquants à distinguer des défauts API.
 5. **Historique, tags et recherche** : limites masquées par le site, avec un coût
    de complexité et de performance.
-6. **Right Holders et AIMS** : confirmations de périmètre, de coût et de
-   responsabilité avant opérations définitives.
+6. **Right Holders** : confirmations de périmètre, de coût et de responsabilité
+   avant toute opération définitive. AIMS est résolu et ne fait plus partie des
+   points à débloquer.
 
 ## Captures à joindre à une relance
 
@@ -404,4 +424,3 @@ Limiter la relance à cinq preuves lisibles :
 
 Ne joindre ni clé d’API, ni token, ni adresse d’un client réel, ni capture
 contenant des données personnelles.
-

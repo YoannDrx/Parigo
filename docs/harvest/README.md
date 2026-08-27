@@ -33,6 +33,8 @@ La cle API Postman personnelle n'est pas stockee dans le repo et n'a pas ete nec
 | [internationalization-audit-2026-08-10.md](./internationalization-audit-2026-08-10.md) | Audit live et navigateur des descriptions albums/labels, langues membre et templates d’e-mail |
 | [open-questions-audit-2026-08-10.md](./open-questions-audit-2026-08-10.md) | Relecture consolidée des réponses Harvest, retests live et classement des seules questions encore ouvertes |
 | [gaps-and-requests.md](./gaps-and-requests.md) | Registre simplifié des écarts actifs et formulation exacte des demandes à Harvest |
+| [launch-readiness-audit-2026-08-26.md](./launch-readiness-audit-2026-08-26.md) | Matrice de lancement actualisée avec les retests du 27 août |
+| [email-thread-analysis-2026-08-27.md](./email-thread-analysis-2026-08-27.md) | Questions Harvest/AIMS reliées à la dernière réponse explicite trouvée dans Gmail |
 | [email-template-live-test-2026-08-10.md](./email-template-live-test-2026-08-10.md) | Test réel d’un template HTML/CSS, contrôle Gmail et preuve de restauration |
 | [runtime-route-matrix.csv](./runtime-route-matrix.csv) | Matrice UI → BFF → Harvest et preuves de persistance |
 | [last-audit-run.json](./last-audit-run.json) | Synthèse expurgée du dernier run |
@@ -66,6 +68,14 @@ pnpm audit:harvest:open-gaps
 
 Les trois déclenchements d’e-mails restent désactivés par défaut dans ce script et nécessitent chacun un flag explicite.
 Le compteur non nul peut être vérifié avec `HARVEST_TAG_COUNT_MUTATION_TEST=1`; le script crée alors un tag temporaire, lui associe une piste et le supprime systématiquement.
+
+Le contrat live de localisation albums/labels/playlists/pistes et les
+capabilities AIMS brutes peuvent être relus sans mutation avec :
+
+```bash
+pnpm audit:harvest:localization
+pnpm audit:harvest:taxonomy
+```
 
 L'inventaire officiel `latest`, les classifications et la matrice code ↔ documentation
 peuvent être régénérés ensemble avec :

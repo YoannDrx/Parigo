@@ -355,6 +355,49 @@ async function main() {
     }
   }
 
+  const exactFixtureEvidence = [];
+  for (const query of [
+    "Piano Minuet",
+    "piano minuet",
+    "  Piano   Minuet  ",
+    "Café Paris",
+    "Cafe Paris",
+    "Train D'Amour",
+    "Train D’Amour",
+    "L'Amour Sur Les Faubourgs (Instr)",
+  ]) {
+    const body = buildCloudSearch({
+      query,
+      view: "Track",
+      textScope: "title",
+      skip: 0,
+      limit: 100,
+      language: "fr",
+      regionId,
+      saveSearchHistory: false,
+    });
+    const term = record(record(record(body.SearchFilters)?.SearchTermBundle)?.St_Keyword);
+    if (term) {
+      term.ExactPhrase = true;
+      term.Wildcard = false;
+    }
+    const response = await direct(`/cloudsearch/${memberToken}`, post(body));
+    const titles = searchTitles(response.payload);
+    const trimmedQuery = query.trim().replace(/\s+/g, " ");
+    exactFixtureEvidence.push({
+      query,
+      total: totalTracks(response.payload),
+      returned: titles.length,
+      rawExactCount: titles.filter((title) => title === trimmedQuery).length,
+      caseInsensitiveExactCount: titles.filter((title) =>
+        title.toLocaleLowerCase("fr") === trimmedQuery.toLocaleLowerCase("fr")).length,
+      accentInsensitiveExactCount: titles.filter((title) =>
+        title.localeCompare(trimmedQuery, "fr", { sensitivity: "base" }) === 0).length,
+      examples: titles.slice(0, 10),
+      ...errorSummary(response.payload),
+    });
+  }
+
   const result: JsonRecord = {
     tagCounts: {
       httpStatus: { withOption: rawTags.status, withoutOption: rawTagsWithoutCount.status },
@@ -400,6 +443,7 @@ async function main() {
         .sort(),
     },
     titleMatch: titleMatchEvidence,
+    exactTitleFixtures: exactFixtureEvidence,
   };
 
   if (process.env.HARVEST_EMAIL_TEMPLATE_PREVIEW === "1" ||

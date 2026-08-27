@@ -1,0 +1,53 @@
+Bonjour à tous,
+
+Nous sommes dans la dernière ligne droite — et, espérons-le, vraiment la dernière ! Le développement Parigo est terminé et nous visons une mise en production la semaine prochaine. Après un nouveau contrôle de la Public API, voici les derniers points techniques à résoudre ou à confirmer.
+
+1. Formulaire de contact — bloquant
+
+POST /sendcontactusemail/{token}, avec le payload documenté Name, Email, PhoneNumber, Subject et Message, renvoie HTTP 200 puis Code=4 — Internal Operation Error. Aucun e-mail n’arrive et notre BFF renvoie donc 502.
+
+Pouvez-vous vérifier la configuration de cet endpoint pour la clé Parigo et nous confirmer lorsque le même payload fonctionne ? C’est notre dernier blocage de mise en production.
+
+2. Domaines, callbacks et HTTPS
+
+Les domaines et routes étant configurés par clé API, une même clé peut-elle autoriser plusieurs URL de base, comme FLEX qui pouvait transmettre l’URL utile avec la requête ? Si ce mécanisme n’existe pas dans la Public API, quel est l’équivalent supporté ?
+
+Les liens de vérification, de réinitialisation et de partage peuvent-ils également être générés directement en HTTPS ? getsharemusicurl renvoie encore une URL http://www.parigomusic.com/engage-playlist/... ; nous validons actuellement le domaine et remplaçons le protocole côté Parigo.
+
+3. Langue des membres et des e-mails
+
+getmember renvoie LanguageCode, mais ce champ n’est pas documenté en écriture dans registermember ou updatemember. Quel champ ou endpoint devons-nous utiliser pour enregistrer EN ou FR ?
+
+Comment sendmemberverifylinkemail, sendpasswordresetemail, les endpoints de partage, sendcontactusemail et les téléchargements choisissent-ils ensuite la langue du modèle ?
+
+4. Réponses localisées du catalogue
+
+getalbum/750a3d73a7f4dae6 avec languagecode=en, fr ou fr-FR renvoie toujours le même Detail anglais et aucun LanguageItems. Quel endpoint ou paramètre doit renvoyer la description française de PGO0031 / The Projectionist ?
+
+Pour les labels, getlibraries expose les traductions dans LanguageItems, tandis que getlibrary?languagecode=en/fr place la langue demandée dans Detail et omet LanguageItems. Pouvez-vous confirmer que cette différence de structure est le contrat attendu ?
+
+Pour les playlists éditoriales, languagecode=en/fr ne remplace pas les champs canoniques renvoyés par getfeaturedplaylistsplaylistonly ; les traductions disponibles sont dans LanguageItems sur la liste et le détail. Pouvez-vous confirmer que LanguageItems est la source officielle à utiliser ?
+
+5. Recherche et autres contrats Public API
+
+Recherche multilingue — Guillaume, je te mentionne sur ce point. J’ai bien compris la réponse de Roland indiquant que Harvest ne propose actuellement pas de recherche multilingue native et recommande les keyword groups. Guillaume se souvient néanmoins qu’un comportement bilingue avait déjà été configuré pour Parigo et que Lucas, alors chez Parigo, avait transmis à Harvest un modèle de traduction lors du paramétrage initial.
+
+Il s’agissait peut-être d’un mapping ou d’une ancienne configuration de keyword groups. Pouvez-vous vérifier les archives ou la configuration historique du compte et nous indiquer si ce mécanisme existe encore ? Le cas de test attendu est simple : reggae triste doit interpréter triste comme sad et renvoyer les résultats correspondants. Guillaume, n’hésite pas à compléter ou corriger cet historique.
+
+getmembertags?...&ReturnTagCount=1 n’ajoute aucun compteur, alors que les détails des trois tags contiennent respectivement 1, 4 et 1 pistes. Existe-t-il un endpoint agrégé ou batch pour obtenir ces comptes ?
+
+Sur TrackDisplayTitle, les quatre combinaisons ExactPhrase/Wildcard ne produisent pas trois comportements distincts « contient », « commence par » et « égal ». Quels payloads faut-il utiliser ? RankExpression permet-il officiellement de donner la priorité au titre et, si oui, avec quelle syntaxe ?
+
+gethistorybycommunications contient les e-mails de réinitialisation, mais pas l’e-mail de partage reçu par le même membre de test. Quels événements alimentent cet historique ? Existe-t-il une réponse plus complète exposant le type d’événement, le contenu ou l’identifiant du modèle ?
+
+6. Right Holders — après la mise en production
+
+Nous normalisons temporairement l’affichage des valeurs Composer, Publisher et Artist côté front. Le nettoyage de la donnée source reste toutefois à effectuer dans Harvest. Nous reprendrons ce chantier après la mise en production, avec un pilote réversible sur un album avant toute opération globale.
+
+L’intégration AIMS à travers Harvest est terminée : les recherches par piste, prompt, fichier et URL fonctionnent dans nos tests.
+
+Tout le reste est prêt de notre côté. Parigo vise une mise en production la semaine prochaine ; toute aide pour clôturer rapidement les points critiques ci-dessus serait très appréciée.
+
+Merci beaucoup pour votre aide :)
+
+Yoann
