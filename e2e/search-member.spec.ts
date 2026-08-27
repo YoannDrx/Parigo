@@ -35,11 +35,10 @@ test("le player se range sous la shortlist sans perdre sa piste ni ses liens", a
   const shortlist = page.getByRole("dialog", { name: "Shortlist" });
   const shortlistDrawer = page.locator(".shortlist-drawer");
   const shortlistBackdrop = page.locator(".parigo-modal-backdrop");
-  if (await shortlist.isVisible()) {
-    await shortlist.getByRole("button", { name: "Fermer", exact: true }).click();
-    await expect(shortlistDrawer).toHaveCount(0);
-    await expect(shortlistBackdrop).toHaveCount(0);
-  }
+  await expect(shortlist).toBeVisible();
+  await shortlist.getByRole("button", { name: "Fermer", exact: true }).click();
+  await expect(shortlistDrawer).toHaveCount(0);
+  await expect(shortlistBackdrop).toHaveCount(0);
   const playButton = page.getByRole("button", { name: /^Écouter Piano documentaire/ });
   await playButton.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
   await playButton.click();
