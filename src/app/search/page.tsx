@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
-import { SearchFilterPanel } from "@/components/search/SearchFilterPanel";
 import { SearchCommand, type SearchResultView } from "@/components/search/SearchCommand";
 import {
   SimilarityCommandContent,
@@ -46,6 +45,11 @@ import { clearSimilarityHandoff, useSimilarityHandoff } from "@/stores/similarit
 const TrackRow = dynamic(
   () => import("@/components/features/TrackRow").then((module) => module.TrackRow),
   { ssr: false, loading: () => <div className="grid min-h-20 place-items-center border-b border-[var(--line)] bg-[var(--surface-soft)]"><ParigoLoader size="compact" /></div> },
+);
+
+const SearchFilterPanel = dynamic(
+  () => import("@/components/search/SearchFilterPanel").then((module) => module.SearchFilterPanel),
+  { ssr: false, loading: () => <div className="flex min-h-52 items-center justify-center rounded-xl border border-[var(--line)]"><ParigoLoader size="compact" /></div> },
 );
 
 type ResultView = SearchResultView;
