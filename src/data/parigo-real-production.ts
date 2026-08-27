@@ -331,6 +331,7 @@ function itemReferences(item: ParigoRealProductionItem): ParigoGalleryReference[
 
 export const parigoRealGallery: ParigoGalleryImage[] = parigoRealProductionManifest.map((item, index) => {
   const exports = itemExports(item);
+  const hasCalibrationV2 = ["R01", "R02", "R03", "R14", "R15", "R32"].includes(item.code);
   return ({
     id: 101 + index,
     code: item.code,
@@ -341,6 +342,11 @@ export const parigoRealGallery: ParigoGalleryImage[] = parigoRealProductionManif
     usage: item.usage,
     prompt: item.prompt,
     collection: "real",
+    familyCode: item.code,
+    version: 1,
+    versionKey: `${item.code}-v1`,
+    variantKind: "core",
+    isLatest: !hasCalibrationV2,
     sourceAnchor: source(item.anchorFile),
     references: itemReferences(item),
     changeNotes: [
@@ -348,9 +354,10 @@ export const parigoRealGallery: ParigoGalleryImage[] = parigoRealProductionManif
       item.additions.length ? `Mise en scène : ${item.additions.join(", ")}` : "Aucun accessoire dominant ajouté",
       item.covers.length ? `Pochettes HD distinctes : ${item.covers.join(", ")}` : "Architecture et mobilier réel préservés",
     ],
-    status: item.status,
+    status: "historical",
     exports,
   });
 });
 
 export const PARIGO_REAL_TARGET_COUNT = parigoRealProductionManifest.length;
+export const PARIGO_REAL_V1_COUNT = parigoRealProductionManifest.length;
