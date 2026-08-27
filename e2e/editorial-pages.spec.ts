@@ -388,7 +388,7 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("le gradient Silk du héros préserve son fallback sur un renderer logiciel", async ({ page }) => {
+test("le gradient Wave du héros préserve son fallback sur un renderer logiciel", async ({ page }) => {
   await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
@@ -580,7 +580,7 @@ test("les métriques publiques compactent le contenu après séparateur sur mobi
   }
 });
 
-test("le héros desktop conserve le fallback Silk sans forme organique sur un renderer logiciel", async ({ page }, testInfo) => {
+test("le héros desktop conserve le fallback Wave sans forme organique sur un renderer logiciel", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le rendu Gradflow desktop est contrôlé dans le viewport desktop.");
   await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");

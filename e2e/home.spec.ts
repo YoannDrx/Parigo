@@ -46,7 +46,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("le héros ouvre une recherche par similarité IA depuis un brief", async ({ page }) => {
+test("le héros ouvre une recherche par similarité IA depuis un brief", async ({ page }, testInfo) => {
   await page.route("**/api/similarity/capabilities", (route) => route.fulfill({
     contentType: "application/json",
     body: JSON.stringify({ data: {
@@ -76,6 +76,16 @@ test("le héros ouvre une recherche par similarité IA depuis un brief", async (
   await expect(hint.getByRole("button", { name: "Importer un fichier MP3 ou WAV" })).toBeVisible();
   await expect(hint.getByTitle("YouTube")).toBeVisible();
   await expect(hint.getByTitle("Spotify")).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    const heroBox = await hero.boundingBox();
+    const hintBox = await hint.boundingBox();
+    expect(heroBox).not.toBeNull();
+    expect(hintBox).not.toBeNull();
+    expect(hintBox!.x).toBeGreaterThanOrEqual(heroBox!.x);
+    expect(hintBox!.x + hintBox!.width).toBeLessThanOrEqual(heroBox!.x + heroBox!.width);
+    expect(hintBox!.y + hintBox!.height).toBeLessThanOrEqual(heroBox!.y + heroBox!.height);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+  }
   const accessibility = await new AxeBuilder({ page }).include('[data-testid="home-hero"]').analyze();
   expect(accessibility.violations.filter((violation) => violation.impact === "critical")).toEqual([]);
   await aiInput.fill("Une tension cinématique nocturne");
@@ -803,7 +813,12 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
 
   const process = page.locator("#process");
   await process.scrollIntoViewIfNeeded();
-  expect((await page.getByTestId("process-progress").boundingBox())!.height).toBeGreaterThanOrEqual(4);
+  const processCards = page.getByTestId("process-card");
+  await expect(processCards).toHaveCount(3);
+  await expect(process.getByText("Étape", { exact: true })).toHaveCount(0);
+  for (const number of ["01", "02", "03"]) await expect(process.getByText(number, { exact: true })).toHaveCount(0);
+  const processCardBoxes = await processCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().toJSON()));
+  expect(processCardBoxes[1].top).toBeGreaterThan(processCardBoxes[0].bottom);
 
   await expect(page.getByTestId("editorial-mobile-rail")).toHaveCount(0);
 
@@ -1445,6 +1460,32 @@ test("le héros garde sa chorégraphie et les textes des autres sections restent
   await expect.poll(() => heroCopy.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(copyOpacityBefore - .25);
   await expect.poll(() => heroSearchMask.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(searchOpacityBefore - .25);
   await expect.poll(() => heroContent.evaluate((node) => getComputedStyle(node).transform)).not.toBe("none");
+
+  const opacityTrail = await page.evaluate(async () => {
+    const hero = document.querySelector<HTMLElement>('[data-testid="home-hero"]');
+    const copy = document.querySelector<HTMLElement>('[data-testid="home-hero-copy"]');
+    const search = document.querySelector<HTMLElement>('[data-testid="home-hero-search-mask"]');
+    if (!hero || !copy || !search) return [];
+    const heroBottom = hero.getBoundingClientRect().bottom + window.scrollY;
+    const step = Math.max(48, Math.round(window.innerHeight / 10));
+    const samples: Array<{ copy: number; search: number }> = [];
+    for (let y = 0; y <= heroBottom + step; y += step) {
+      window.scrollTo(0, y);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      samples.push({
+        copy: Number.parseFloat(getComputedStyle(copy).opacity),
+        search: Number.parseFloat(getComputedStyle(search).opacity),
+      });
+    }
+    return samples;
+  });
+  expect(opacityTrail.length).toBeGreaterThan(4);
+  for (let index = 1; index < opacityTrail.length; index += 1) {
+    expect(opacityTrail[index].copy).toBeLessThanOrEqual(opacityTrail[index - 1].copy + 0.01);
+    expect(opacityTrail[index].search).toBeLessThanOrEqual(opacityTrail[index - 1].search + 0.01);
+  }
+  expect(opacityTrail.at(-1)!.copy).toBeLessThanOrEqual(0.01);
+  expect(opacityTrail.at(-1)!.search).toBeLessThanOrEqual(0.01);
 
   const featuredReveal = page.locator('#featured [data-home-reveal="static"]').first();
   await featuredReveal.scrollIntoViewIfNeeded();

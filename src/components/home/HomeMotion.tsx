@@ -79,10 +79,17 @@ export function HomeHeroContent({
   const reduceMotion = useHomeReducedMotion();
   const [searchRevealComplete, setSearchRevealComplete] = useState(false);
   const words = title.split(" ");
-  const { scrollYProgress } = useScroll({ target, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, -116]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.93]);
-  const opacity = useTransform(scrollYProgress, [0, 0.62], [1, 0]);
+  const { scrollY } = useScroll();
+  const heroProgress = useTransform(scrollY, (currentScrollY) => {
+    const element = target.current;
+    if (!element) return 0;
+    const elementTop = element.getBoundingClientRect().top + currentScrollY;
+    const distance = Math.max(element.offsetHeight, 1);
+    return Math.min(1, Math.max(0, (currentScrollY - elementTop) / distance));
+  });
+  const y = useTransform(heroProgress, [0, 1], [0, -116]);
+  const scale = useTransform(heroProgress, [0, 1], [1, 0.93]);
+  const opacity = useTransform(heroProgress, [0, 0.62], [1, 0]);
 
   return (
     <motion.div

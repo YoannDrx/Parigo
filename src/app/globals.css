@@ -743,8 +743,25 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   border-left: 2px solid var(--signal);
   border-bottom-left-radius: var(--parigo-turn-lg);
 }
-.process-step__number {
+.process-card {
+  --parigo-stroke-top-width: 2.8rem;
+  --parigo-stroke-bottom-width: 2.8rem;
+  --parigo-stroke-height: 1.15rem;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--signal) 5%, transparent), transparent 42%),
+    var(--surface);
+}
+.process-card__icon {
   border-radius: var(--parigo-corner-md) var(--parigo-turn-lg);
+}
+.process-card.parigo-frame:hover {
+  --parigo-stroke-top-width: 2.8rem;
+  --parigo-stroke-bottom-width: 2.8rem;
+  border-color: color-mix(in srgb, var(--signal-strong) 52%, var(--line));
+  box-shadow:
+    7px 8px 0 color-mix(in srgb, var(--signal) 13%, transparent),
+    0 24px 58px color-mix(in srgb, var(--foreground) 9%, transparent);
+  transform: translateY(-3px);
 }
 .project-invitation {
   background:
