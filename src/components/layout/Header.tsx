@@ -18,7 +18,62 @@ import { releaseBodyScrollLockBeforeNavigation, useBodyScrollLock } from "@/hook
 interface HeaderProps { variant?: "default" | "overlay"; }
 
 let persistedHeaderMenuOpen = false;
-let pendingDrawerReturn: { path: string; scrollY: number } | null = null;
+const DRAWER_RETURN_STORAGE_KEY = "parigo-drawer-return";
+const DRAWER_RETURN_MAX_AGE_MS = 30 * 60 * 1000;
+type PendingDrawerReturn = {
+  path: string;
+  destinationPath: string;
+  scrollY: number;
+  savedAt: number;
+};
+let pendingDrawerReturn: PendingDrawerReturn | null = null;
+
+function clearPendingDrawerReturn() {
+  pendingDrawerReturn = null;
+  try {
+    window.sessionStorage.removeItem(DRAWER_RETURN_STORAGE_KEY);
+  } catch {
+    // The in-memory fallback still prevents a blocked storage backend from breaking navigation.
+  }
+}
+
+function readPendingDrawerReturn(): PendingDrawerReturn | null {
+  if (pendingDrawerReturn) return pendingDrawerReturn;
+  let stored: string | null = null;
+  try {
+    stored = window.sessionStorage.getItem(DRAWER_RETURN_STORAGE_KEY);
+  } catch {
+    return null;
+  }
+  if (!stored) return null;
+  try {
+    const parsed = JSON.parse(stored) as Partial<PendingDrawerReturn>;
+    if (
+      typeof parsed.path !== "string"
+      || typeof parsed.destinationPath !== "string"
+      || typeof parsed.scrollY !== "number"
+      || typeof parsed.savedAt !== "number"
+      || Date.now() - parsed.savedAt > DRAWER_RETURN_MAX_AGE_MS
+    ) {
+      clearPendingDrawerReturn();
+      return null;
+    }
+    pendingDrawerReturn = parsed as PendingDrawerReturn;
+    return pendingDrawerReturn;
+  } catch {
+    clearPendingDrawerReturn();
+    return null;
+  }
+}
+
+function savePendingDrawerReturn(value: PendingDrawerReturn) {
+  pendingDrawerReturn = value;
+  try {
+    window.sessionStorage.setItem(DRAWER_RETURN_STORAGE_KEY, JSON.stringify(value));
+  } catch {
+    // Keep the in-memory value when session storage is unavailable.
+  }
+}
 
 function LanguageLink({ className, children }: { className: string; children: ReactNode }) {
   const pathname = usePathname();
@@ -75,7 +130,7 @@ export function Header({ variant = "default" }: HeaderProps) {
 
   useEffect(() => {
     const restoreDrawerOrigin = () => {
-      const pending = pendingDrawerReturn;
+      const pending = readPendingDrawerReturn();
       if (!pending) return;
 
       let frame = 0;
@@ -83,27 +138,35 @@ export function Header({ variant = "default" }: HeaderProps) {
       const restore = () => {
         const currentPath = `${window.location.pathname}${window.location.search}`;
         if (currentPath !== pending.path) {
-          if (attempts++ < 120) frame = window.requestAnimationFrame(restore);
+          if (currentPath !== pending.destinationPath) clearPendingDrawerReturn();
           return;
         }
 
         const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (maxScroll < pending.scrollY && attempts++ < 120) {
+        if (maxScroll < pending.scrollY && attempts++ < 240) {
           frame = window.requestAnimationFrame(restore);
           return;
         }
 
         window.scrollTo({ top: pending.scrollY, behavior: "instant" });
-        pendingDrawerReturn = null;
+        clearPendingDrawerReturn();
       };
 
       frame = window.requestAnimationFrame(restore);
-      window.setTimeout(() => window.cancelAnimationFrame(frame), 2_500);
+      return () => window.cancelAnimationFrame(frame);
     };
 
-    window.addEventListener("popstate", restoreDrawerOrigin);
-    return () => window.removeEventListener("popstate", restoreDrawerOrigin);
-  }, []);
+    let cancelRestore = restoreDrawerOrigin();
+    const handlePopState = () => {
+      cancelRestore?.();
+      cancelRestore = restoreDrawerOrigin();
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      cancelRestore?.();
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -164,10 +227,13 @@ export function Header({ variant = "default" }: HeaderProps) {
     if (!open) return;
     event.preventDefault();
     const scrollY = releaseBodyScrollLockBeforeNavigation();
-    pendingDrawerReturn = {
+    const destination = new URL(href, window.location.href);
+    savePendingDrawerReturn({
       path: `${window.location.pathname}${window.location.search}`,
+      destinationPath: `${destination.pathname}${destination.search}`,
       scrollY,
-    };
+      savedAt: Date.now(),
+    });
     setOpen(false);
     router.push(href);
   }, [open, router, setOpen]);
