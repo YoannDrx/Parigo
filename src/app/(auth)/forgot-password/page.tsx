@@ -47,8 +47,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <PasswordRecoveryCard
-      activeStep={sent ? 1 : 0}
-      eyebrow={locale === "fr" ? "Récupération du compte" : "Account recovery"}
       icon={ShieldCheck}
       title={locale === "fr" ? "Retrouver votre accès" : "Recover your access"}
       intro={locale === "fr"

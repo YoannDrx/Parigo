@@ -15,14 +15,18 @@ export type AuthSwitcherView = "login" | "register";
 const authHeroImages = [
   {
     view: "login",
-    desktopSrc: "/images/editorial/parigo-selected/r02-v1-login-1200x1500.avif",
-    mobileSrc: "/images/editorial/parigo-selected/r02-v1-login-1448x1086.avif",
+    desktopSrc: "/images/editorial/parigo-selected/r14-v3-forgot-password-1200x1500.avif",
+    mobileSrc: "/images/editorial/parigo-selected/r14-v3-forgot-password-1200x1500.avif",
+    mobileWidth: 1200,
+    mobileHeight: 1500,
     objectPosition: "center",
   },
   {
     view: "register",
     desktopSrc: "/images/editorial/parigo-selected/r15-v1-register-1200x1500.avif",
     mobileSrc: "/images/editorial/parigo-selected/r15-v1-register-1440x900.avif",
+    mobileWidth: 1440,
+    mobileHeight: 900,
     objectPosition: "center",
   },
 ] as const;
@@ -51,8 +55,8 @@ function AuthHeroArtwork({
   } = getImageProps({
     ...common,
     src: image.mobileSrc,
-    width: image.view === "login" ? 1448 : 1440,
-    height: image.view === "login" ? 1086 : 900,
+    width: image.mobileWidth,
+    height: image.mobileHeight,
   });
 
   return (
@@ -148,7 +152,7 @@ export function AuthSwitcher({
         "relative flex w-full flex-col rounded-[1.5rem] border-[8px] border-[var(--surface)] bg-[var(--surface)] shadow-[0_28px_100px_color-mix(in_srgb,var(--foreground)_12%,transparent)] ring-1 ring-[var(--line)] md:block",
         isModal
           ? "h-full touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain md:overflow-hidden"
-          : "max-w-[1180px] overflow-hidden md:h-[min(760px,calc(100dvh-11rem))] md:min-h-[620px]",
+          : "h-full max-h-full max-w-[1180px] touch-pan-y overflow-x-hidden overflow-y-auto overscroll-contain md:h-[min(760px,calc(100dvh-9rem))] md:overflow-hidden",
       )}
     >
       <aside
@@ -216,7 +220,7 @@ export function AuthSwitcher({
                 aria-label={hero.nextView === "login"
                   ? (locale === "fr" ? "Afficher le formulaire de connexion" : "Show the sign-in form")
                   : (locale === "fr" ? "Afficher le formulaire d’inscription" : "Show the registration form")}
-                className="group mx-auto mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-current px-7 text-sm font-semibold transition hover:bg-white hover:text-[var(--signal-strong)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--signal-strong)]"
+                className="group mx-auto mt-7 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-current px-7 text-sm font-semibold transition hover:bg-white hover:!text-[#10110e] focus-visible:bg-white focus-visible:!text-[#10110e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--signal-strong)]"
               >
                 {hero.action}<ArrowRight aria-hidden="true" size={15} className="transition-transform group-hover:translate-x-1" />
               </button>

@@ -28,16 +28,18 @@ const TEAM = [
   },
 ] as const;
 
-function ContactLocationImage() {
+function ContactLocationImage({ locale }: { locale: "fr" | "en" }) {
   return (
     <Image
       src="/images/editorial/parigo-selected/r03-v1-contact-1672x941.avif"
-      alt="Façade des bureaux Parigo à l’angle de la rue Rémy Dumoncel à Paris"
+      alt={locale === "fr"
+        ? "Façade des bureaux Parigo à l’angle de la rue Rémy Dumoncel à Paris"
+        : "Parigo's offices on the corner of rue Rémy Dumoncel in Paris"}
       fill
-      loading="eager"
-      sizes="(max-width: 1023px) 100vw, 58vw"
+      preload
+      sizes="(max-width: 1599px) 100vw, 1500px"
       data-testid="contact-location-image"
-      className="object-contain"
+      className="object-cover object-center"
     />
   );
 }
@@ -59,54 +61,45 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
   return (
     <InstitutionalShell title={title} intro={intro} showHero={false}>
       <section className="bg-[var(--surface-soft)] px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
-        <div data-testid="contact-split" className="mx-auto grid max-w-[1500px] gap-5 lg:grid-cols-12 lg:items-stretch lg:gap-6">
-          <div data-testid="contact-title-card" className="parigo-frame flex h-full flex-col border border-[var(--line-strong)] bg-[var(--surface)] p-6 sm:p-8 lg:col-span-5 lg:p-6 xl:p-10">
-            <p className="eyebrow text-[var(--signal-strong)]">Contact · Parigo Music</p>
-            <SignedTitle
-              as="h1"
-              className={`mt-5 max-w-[12ch] break-words font-[var(--font-editorial)] font-semibold ${isLicenceRequest
-                ? "text-[clamp(2rem,7vw,2.8rem)] leading-[.94] tracking-[-.048em] md:text-[clamp(3rem,6vw,4.2rem)] lg:text-[2.35rem] xl:text-[3.4rem]"
-                : "text-[clamp(2.25rem,10vw,5.7rem)] leading-[.92] tracking-[-.055em] lg:text-[2.65rem] xl:text-[clamp(4.5rem,6vw,5.7rem)]"}`}
-            >
-              {title}
-            </SignedTitle>
-            <p className="mt-6 max-w-2xl text-sm leading-6 text-[var(--text-muted)] sm:text-base sm:leading-7 lg:mt-auto lg:pt-5">{intro}</p>
-          </div>
+        <div className="mx-auto max-w-[1500px]">
+          <h1 className="sr-only">{title}</h1>
 
-          <figure data-testid="contact-image-frame" className="parigo-frame relative aspect-[1672/941] h-full overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] lg:col-span-7">
-            <ContactLocationImage />
+          <figure data-testid="contact-image-frame" className="parigo-frame relative aspect-[16/10] w-full overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] sm:aspect-[16/8] lg:aspect-[16/7]">
+            <ContactLocationImage locale={locale} />
           </figure>
 
-          <aside data-testid="contact-details" className="h-fit lg:sticky lg:top-[var(--sticky-offset)] lg:col-span-5 lg:self-start">
-            <div className="parigo-frame grid gap-5 border border-[var(--line)] bg-[var(--surface)] p-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-              <div>
-                <p className="eyebrow text-[var(--color-primary-dark)]">Parigo Music</p>
-                <address className="mt-4 not-italic text-base leading-relaxed text-[var(--text-muted)]">
-                  9, rue Rémy Dumoncel<br />
-                  75014 Paris, France<br />
-                  <a href="tel:+33149239476" className="mt-3 block w-fit underline decoration-[var(--signal-strong)]/35 underline-offset-4">+33 (0)1 49 23 94 76</a>
-                  <a href="mailto:info@parigomusic.com" className="block w-fit break-all underline decoration-[var(--signal-strong)]/35 underline-offset-4">info@parigomusic.com</a>
-                </address>
+          <div data-testid="contact-split" className="mt-5 grid gap-5 lg:grid-cols-12 lg:items-start lg:gap-6">
+            <aside data-testid="contact-details" className="h-fit lg:sticky lg:top-[var(--sticky-offset)] lg:col-span-4 lg:self-start">
+              <div className="parigo-frame grid gap-6 border border-[var(--line)] bg-[var(--surface)] p-6 sm:grid-cols-2 sm:p-8 lg:grid-cols-1">
+                <div>
+                  <p className="eyebrow text-[var(--color-primary-dark)]">Parigo Music</p>
+                  <address className="mt-4 not-italic text-base leading-relaxed text-[var(--text-muted)]">
+                    9, rue Rémy Dumoncel<br />
+                    75014 Paris, France<br />
+                    <a href="tel:+33149239476" className="mt-3 block w-fit underline decoration-[var(--signal-strong)]/35 underline-offset-4">+33 (0)1 49 23 94 76</a>
+                    <a href="mailto:info@parigomusic.com" className="block w-fit break-all underline decoration-[var(--signal-strong)]/35 underline-offset-4">info@parigomusic.com</a>
+                  </address>
+                </div>
+                <p className="border-t border-[var(--line)] pt-6 text-sm leading-relaxed text-[var(--text-muted)] sm:border-l sm:border-t-0 sm:pl-6 sm:pt-0 lg:border-l-0 lg:border-t lg:pl-0 lg:pt-6">
+                  <span className="block">{locale === "fr" ? "Une question urgente ? Appelez-nous\u00a0:" : "Need a quick answer? Call us:"}</span>
+                  <a href="tel:+33649396922" className="mt-2 block w-fit whitespace-nowrap text-lg font-normal text-[var(--foreground)] underline decoration-[var(--signal-strong)]/50 underline-offset-4">
+                    +33 (0)6 49 39 69 22
+                  </a>
+                </p>
               </div>
-              <p className="border-t border-[var(--line)] pt-5 text-sm leading-relaxed text-[var(--text-muted)] sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0 lg:border-l-0 lg:border-t lg:pl-0 lg:pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
-                <span className="block">{locale === "fr" ? "Une question urgente ? Appelez-nous :" : "Need a quick answer? Call us:"}</span>
-                <a href="tel:+33649396922" className="mt-2 block w-fit whitespace-nowrap text-lg font-normal text-[var(--foreground)] underline decoration-[var(--signal-strong)]/50 underline-offset-4">
-                  +33 (0)6 49 39 69 22
-                </a>
-              </p>
-            </div>
-          </aside>
+            </aside>
 
-          <div data-testid="contact-main" className="parigo-frame min-w-0 border border-[var(--line-strong)] bg-[var(--surface)] p-5 sm:p-8 lg:col-span-7 lg:p-10">
-            {isLicenceRequest ? (
-              <div className="parigo-frame mb-8 border border-[var(--line)] bg-[var(--signal-soft)] px-5 py-5">
-                <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Morceau concerné" : "Selected track"}</p>
-                <p className="mt-3 font-[var(--font-editorial)] text-2xl font-semibold leading-tight">{track?.title || requestedTrackId}</p>
-                {track?.albumTitle ? <p className="mt-2 text-sm text-[var(--text-muted)]">{track.albumTitle}</p> : null}
-                <p className="mt-3 break-all font-mono text-[.62rem] text-[var(--text-muted)]">{track?.cdCode || requestedTrackId}</p>
-              </div>
-            ) : null}
-            <ContactForm track={track} requestedTrackId={requestedTrackId} />
+            <div data-testid="contact-main" className="parigo-frame min-w-0 border border-[var(--line-strong)] bg-[var(--surface)] p-5 sm:p-8 lg:col-span-8 lg:p-10">
+              {isLicenceRequest ? (
+                <div className="parigo-frame mb-8 border border-[var(--line)] bg-[var(--signal-soft)] px-5 py-5">
+                  <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Morceau concerné" : "Selected track"}</p>
+                  <p className="mt-3 font-[var(--font-editorial)] text-2xl font-semibold leading-tight">{track?.title || requestedTrackId}</p>
+                  {track?.albumTitle ? <p className="mt-2 text-sm text-[var(--text-muted)]">{track.albumTitle}</p> : null}
+                  <p className="mt-3 break-all font-mono text-[.62rem] text-[var(--text-muted)]">{track?.cdCode || requestedTrackId}</p>
+                </div>
+              ) : null}
+              <ContactForm track={track} requestedTrackId={requestedTrackId} />
+            </div>
           </div>
         </div>
 

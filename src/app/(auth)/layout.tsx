@@ -20,21 +20,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     ? {
         src: "/images/editorial/parigo-selected/r11-v1-forgot-password-1200x1500.avif",
         photoId: "R11V1",
-        fr: "Retrouvez le fil de votre accès.",
-        en: "Rewind and recover your access.",
       }
     : isResetPassword
       ? {
           src: "/images/editorial/parigo-selected/r13-v2-password-recovery-1200x1500.avif",
           photoId: "R13V2",
-          fr: "Reconnectez votre accès à Parigo.",
-          en: "Reconnect your access to Parigo.",
         }
       : {
           src: "/images/editorial/parigo-spaces/35-account-verification-signal.avif",
           photoId: "R16",
-          fr: "Gardez le fil de toutes vos intuitions.",
-          en: "Keep track of every creative intuition.",
         };
 
   const chromeHeader = (
@@ -63,43 +57,32 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
     </header>
   );
 
-  const chromeFooter = <footer className="relative z-10 px-4 py-5 text-center text-xs opacity-35">© {new Date().getFullYear()} Parigo Music</footer>;
-
   if (usesSwitcher) {
     return (
-      <div className="flex min-h-screen flex-col bg-[var(--surface-soft)] text-[var(--foreground)]">
+      <div className="flex h-dvh flex-col overflow-hidden bg-[var(--surface-soft)] text-[var(--foreground)]">
         {chromeHeader}
-        <main className="relative flex flex-1 items-start justify-center p-3 py-6 md:items-center md:p-8">
+        <main className="relative flex min-h-0 flex-1 items-start justify-center p-3 py-6 md:items-center md:p-8">
           <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_20%,color-mix(in_srgb,var(--signal-soft)_65%,transparent),transparent_34%),radial-gradient(circle_at_90%_85%,color-mix(in_srgb,var(--signal)_10%,transparent),transparent_32%)]" />
-          <div className="relative z-[1] flex w-full justify-center">{children}</div>
+          <div className="relative z-[1] flex h-full min-h-0 w-full justify-center">{children}</div>
         </main>
-        {chromeFooter}
       </div>
     );
   }
 
   return (
-    <div className="grid min-h-screen grid-rows-[auto_auto_1fr_auto] bg-[var(--background)] text-[var(--foreground)] lg:grid-cols-[minmax(0,1.08fr)_minmax(30rem,.92fr)] lg:grid-rows-[auto_1fr_auto]">
+    <div className="grid h-dvh grid-rows-[auto_auto_minmax(0,1fr)] overflow-hidden bg-[var(--background)] text-[var(--foreground)] lg:grid-cols-[minmax(0,1.08fr)_minmax(30rem,.92fr)] lg:grid-rows-[auto_minmax(0,1fr)]">
       <div className="lg:col-start-1 lg:row-start-1">{chromeHeader}</div>
       <aside
         data-testid="password-recovery-artwork"
         data-photo-id={authVisual.photoId}
-        className="relative row-start-2 min-h-44 overflow-hidden bg-[#11120f] sm:min-h-56 lg:col-start-2 lg:row-span-3 lg:row-start-1 lg:min-h-screen"
+        className="relative row-start-2 min-h-44 overflow-hidden bg-[#11120f] sm:min-h-56 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0"
       >
-        <Image src={authVisual.src} alt="" fill loading="eager" fetchPriority="high" sizes="(max-width: 1023px) 100vw, 46vw" className="object-cover opacity-90" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-black/20" />
-        <p className="absolute left-5 top-5 rounded-full border border-white/25 bg-black/20 px-4 py-2 font-mono text-[.58rem] uppercase tracking-[.14em] text-white backdrop-blur-md sm:left-7 sm:top-7 lg:left-10 lg:top-10">
-          {locale === "fr" ? "Accès Parigo" : "Parigo access"} · {authVisual.photoId}
-        </p>
-        <p className="absolute bottom-5 left-5 max-w-[13ch] text-2xl font-semibold leading-[.94] tracking-[-.045em] text-[#f2efe7] sm:bottom-7 sm:left-7 sm:text-3xl lg:bottom-10 lg:left-10 lg:text-5xl">
-          {authVisual[locale]}
-        </p>
+        <Image src={authVisual.src} alt="" fill loading="eager" fetchPriority="high" sizes="(max-width: 1023px) 100vw, 46vw" className="object-cover" />
       </aside>
-      <main className="relative row-start-3 flex items-center justify-center px-4 py-8 sm:px-8 sm:py-12 lg:col-start-1 lg:row-start-2 lg:px-12 xl:px-16">
+      <main className="relative row-start-3 flex min-h-0 items-center justify-center overflow-y-auto px-4 py-5 sm:px-8 sm:py-6 lg:col-start-1 lg:row-start-2 lg:px-12 xl:px-16">
         <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_15%,color-mix(in_srgb,var(--signal-soft)_60%,transparent),transparent_35%)]" />
         <div className="relative z-[1] w-full">{children}</div>
       </main>
-      <div className="row-start-4 lg:col-start-1 lg:row-start-3">{chromeFooter}</div>
     </div>
   );
 }
