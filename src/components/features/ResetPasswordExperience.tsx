@@ -74,8 +74,6 @@ export function ResetPasswordExperience({ initialToken, mode = "reset" }: { init
 
   return (
     <PasswordRecoveryCard
-      activeStep={validity === "valid" ? 2 : 1}
-      eyebrow={locale === "fr" ? (isChange ? "Sécurité du compte" : "Lien de réinitialisation") : (isChange ? "Account security" : "Reset link")}
       icon={KeyRound}
       intro={locale === "fr" ? "Choisissez un mot de passe unique pour sécuriser votre espace, vos sélections et vos téléchargements." : "Choose a unique password to secure your workspace, selections and downloads."}
       title={title}

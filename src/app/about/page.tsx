@@ -22,18 +22,18 @@ export default function AboutPage() {
   return (
     <InstitutionalShell title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")} showHero={false}>
       <section className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
-        <div className="about-story mx-auto grid max-w-[1540px] gap-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start lg:gap-10 xl:gap-14">
-          <figure className="parigo-frame relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] lg:h-[calc(100dvh-var(--space-page-top)-1.5rem)] lg:max-h-[860px] lg:w-auto">
+        <div className="about-story mx-auto grid max-w-[1540px] gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-10 xl:gap-14">
+          <figure className="parigo-frame relative aspect-[4/3] w-full overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]">
             <Image
-              src="/images/editorial/parigo-selected/r14-v3-forgot-password-1200x1500.avif"
-              alt="L’orgue des bureaux Parigo avec le trophée Mark Awards et la pochette The Trip"
+              src="/images/editorial/parigo-selected/r02-v1-login-1448x1086.avif"
+              alt={locale === "fr" ? "Les bureaux Parigo baignés de lumière, avec leurs tables de travail ouvertes sur la rue" : "The light-filled Parigo offices, with work tables opening onto the street"}
               fill
               loading="eager"
               sizes="(max-width: 1023px) 100vw, 52vw"
-              className="object-contain"
+              className="object-cover"
             />
           </figure>
-          <div className="min-w-0 lg:pt-2">
+          <div className="min-w-0">
             <SignedTitle as="h1" className="font-[var(--font-editorial)] text-5xl font-normal leading-[.93] tracking-[-.05em] md:text-6xl lg:text-[clamp(3.5rem,5vw,5.75rem)]">
               {locale === "fr" ? "Une librairie avant tout" : "A music library first"}
             </SignedTitle>
