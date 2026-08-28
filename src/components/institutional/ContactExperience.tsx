@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { ContactForm } from "@/components/features/ContactForm";
 import { InstitutionalShell } from "@/components/layout/InstitutionalShell";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -27,6 +28,20 @@ const TEAM = [
   },
 ] as const;
 
+function ContactLocationImage() {
+  return (
+    <Image
+      src="/images/editorial/parigo-selected/r03-v1-contact-1672x941.avif"
+      alt="Façade des bureaux Parigo à l’angle de la rue Rémy Dumoncel à Paris"
+      fill
+      loading="eager"
+      sizes="(max-width: 1023px) 100vw, 58vw"
+      data-testid="contact-location-image"
+      className="object-contain"
+    />
+  );
+}
+
 export function ContactExperience({ track, requestedTrackId }: { track: Track | null; requestedTrackId?: string }) {
   const { locale, t } = useI18n();
   const isLicenceRequest = Boolean(requestedTrackId);
@@ -42,11 +57,49 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
     : t("institutional.contactIntro");
 
   return (
-    <InstitutionalShell title={title} intro={intro} titleVariant={isLicenceRequest ? "compact" : "page"}>
-      <section className="bg-[var(--surface-soft)] px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
-        <div className="mx-auto grid max-w-[1500px] gap-6 md:grid-cols-12">
-          <aside data-testid="contact-details" className="h-fit md:col-span-4 lg:sticky lg:top-[var(--sticky-offset)] lg:self-start">
-            <div className="parigo-frame border border-[var(--line)] bg-[var(--surface)] p-6 md:p-8">
+    <InstitutionalShell title={title} intro={intro} showHero={false}>
+      <section className="bg-[var(--surface-soft)] px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
+        <div data-testid="contact-split" className="mx-auto max-w-[1500px]">
+          <div className="grid gap-5 lg:grid-cols-12 lg:items-start lg:gap-6">
+            <div className="parigo-frame border border-[var(--line-strong)] bg-[var(--surface)] p-6 sm:p-8 lg:col-span-5 lg:p-10">
+              <p className="eyebrow text-[var(--signal-strong)]">Contact · Parigo Music</p>
+              <SignedTitle
+                as="h1"
+                variant={isLicenceRequest ? "compact" : "section"}
+                className="mt-5 max-w-[12ch] break-words font-[var(--font-editorial)] font-semibold"
+              >
+                {title}
+              </SignedTitle>
+              <p className="mt-6 max-w-2xl text-sm leading-6 text-[var(--text-muted)] sm:text-base sm:leading-7">{intro}</p>
+            </div>
+
+            <figure className="parigo-frame relative aspect-[1672/941] overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] lg:col-span-7">
+              <ContactLocationImage />
+            </figure>
+          </div>
+
+          <div className="mt-5 grid gap-5 lg:grid-cols-12 lg:items-start lg:gap-6">
+            <aside data-testid="contact-details" className="h-fit lg:sticky lg:top-[var(--sticky-offset)] lg:col-span-4 lg:self-start">
+              <div className="parigo-frame grid gap-5 border border-[var(--line)] bg-[var(--surface)] p-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                <div>
+                  <p className="eyebrow text-[var(--color-primary-dark)]">Parigo Music</p>
+                  <address className="mt-4 not-italic text-base leading-relaxed text-[var(--text-muted)]">
+                    9, rue Rémy Dumoncel<br />
+                    75014 Paris, France<br />
+                    <a href="tel:+33149239476" className="mt-3 block w-fit underline decoration-[var(--signal-strong)]/35 underline-offset-4">+33 (0)1 49 23 94 76</a>
+                    <a href="mailto:info@parigomusic.com" className="block w-fit break-all underline decoration-[var(--signal-strong)]/35 underline-offset-4">info@parigomusic.com</a>
+                  </address>
+                </div>
+                <p className="border-t border-[var(--line)] pt-5 text-sm leading-relaxed text-[var(--text-muted)] sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0 lg:border-l-0 lg:border-t lg:pl-0 lg:pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+                  <span className="block">{locale === "fr" ? "Une question urgente ? Appelez-nous :" : "Need a quick answer? Call us:"}</span>
+                  <a href="tel:+33649396922" className="mt-2 block w-fit whitespace-nowrap text-lg font-normal text-[var(--foreground)] underline decoration-[var(--signal-strong)]/50 underline-offset-4">
+                    +33 (0)6 49 39 69 22
+                  </a>
+                </p>
+              </div>
+            </aside>
+
+            <div data-testid="contact-main" className="parigo-frame min-w-0 border border-[var(--line-strong)] bg-[var(--surface)] p-5 sm:p-8 lg:col-span-8 lg:p-10">
               {isLicenceRequest ? (
                 <div className="parigo-frame mb-8 border border-[var(--line)] bg-[var(--signal-soft)] px-5 py-5">
                   <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Morceau concerné" : "Selected track"}</p>
@@ -55,27 +108,12 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
                   <p className="mt-3 break-all font-mono text-[.62rem] text-[var(--text-muted)]">{track?.cdCode || requestedTrackId}</p>
                 </div>
               ) : null}
-              <p className="eyebrow text-[var(--color-primary-dark)]">Parigo Music</p>
-              <address className="mt-6 not-italic text-lg leading-relaxed text-[var(--text-muted)]">
-                9, rue Rémy Dumoncel<br />
-                75014 Paris, France<br />
-                <a href="tel:+33149239476" className="mt-4 block w-fit underline decoration-[var(--signal-strong)]/35 underline-offset-4">+33 (0)1 49 23 94 76</a>
-                <a href="mailto:info@parigomusic.com" className="block w-fit break-all underline decoration-[var(--signal-strong)]/35 underline-offset-4">info@parigomusic.com</a>
-              </address>
-              <p className="mt-10 border-t border-[var(--line)] pt-6 text-sm leading-relaxed text-[var(--text-muted)]">
-                <span className="block">{locale === "fr" ? "Une question urgente ? Appelez-nous :" : "Need a quick answer? Call us:"}</span>
-                <a href="tel:+33649396922" className="mt-2 block w-fit whitespace-nowrap text-lg font-normal text-[var(--foreground)] underline decoration-[var(--signal-strong)]/50 underline-offset-4">
-                  +33 (0)6 49 39 69 22
-                </a>
-              </p>
+              <ContactForm track={track} requestedTrackId={requestedTrackId} />
             </div>
-          </aside>
-          <div className="parigo-frame min-w-0 border border-[var(--line-strong)] bg-[var(--surface)] p-5 md:col-span-8 md:p-8 lg:p-10">
-            <ContactForm track={track} requestedTrackId={requestedTrackId} />
           </div>
         </div>
 
-        <div data-testid="contact-team" className="mx-auto mt-[var(--space-block-gap)] max-w-[1500px]">
+        <div data-testid="contact-team" className="mx-auto mt-[var(--space-section-y-large)] max-w-[1500px]">
           <div>
             <SignedTitle as="h2" variant="section">
               {locale === "fr" ? "Notre équipe" : "Our team"}

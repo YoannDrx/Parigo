@@ -1,0 +1,18 @@
+Use case: precise-object-edit
+Asset type: final localized correction of Parigo R02 V1.
+
+Image 1 is the edit target. Keep the wooden desk itself exactly where it is now. Change only the black chair and open MacBook belonging to the wooden desk in the lower-left foreground.
+
+Required placement:
+- Move the chair laterally toward the near-left end of the desk's front edge, pulled out slightly and facing diagonally upper-right.
+- Move the open MacBook to the far-right half of the desktop, farther away from the chair.
+- Rotate the MacBook so its screen faces the chair exactly and its keyboard is naturally reachable.
+- The center of the chair, the center of the MacBook screen, and the center of the glass entrance door must visually align on one diagonal running from lower-left foreground to upper-right background.
+- An imaginary seated person would therefore look straight at the Mac and, beyond it, toward the entrance door.
+- Do not add the person.
+
+Keep the headphones, brass lamp, notebook and pen neatly on the remaining desktop without duplication. Preserve realistic spacing, legroom, scale and contact shadows.
+
+ABSOLUTE INVARIANTS: preserve every other element of Image 1, including the wooden desk dimensions and legs, the entire room, architecture, windows, blinds, entrance, parquet, dining furniture, cabinet, album covers, trophies, plant, rear desk, organ, and the full black desk group at lower right. Do not change crop, viewpoint, light, color, texture, text, artwork or organ controls.
+
+No humans, silhouettes, reflections, extra furniture, extra laptop, distortion, floating object, CGI, logo, text or watermark. Change only the chair and MacBook positions/orientations on the lower-left wooden desk.

@@ -695,7 +695,7 @@ test("About adopte les nouveaux textes et Licensing ouvre sur une grille replié
   await page.goto("/about");
   await expect(page.locator(".page-hero")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1, name: "Une librairie avant tout" })).toBeVisible();
-  await expect(page.getByRole("img", { name: "Le Monde de demain — Parigo" })).toHaveAttribute("loading", "eager");
+  await expect(page.getByRole("img", { name: /trophée Mark Awards et la pochette The Trip/ })).toHaveAttribute("loading", "eager");
   await expect(page.locator("main").getByText("À propos", { exact: true })).toHaveCount(0);
   await expect(page.locator("main").getByText("La musique, une affaire humaine", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Fondée en 2004, Parigo est une librairie musicale indépendante", { exact: false })).toBeVisible();
@@ -704,29 +704,24 @@ test("About adopte les nouveaux textes et Licensing ouvre sur une grille replié
   await expect(page.getByRole("link", { name: /Parler d.un projet/i })).toHaveCount(0);
 });
 
-test("About laisse le récit poursuivre sa lecture sous l’image sans colonne étriquée", async ({ page }) => {
+test("About contient le portrait dans le viewport desktop puis l’empile sans crop", async ({ page }) => {
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.goto("/about");
 
-  const story = page.locator(".about-story");
-  const flow = await story.evaluate((element) => {
-    const image = element.querySelector("img")?.getBoundingClientRect();
-    const lastParagraph = element.querySelector("p:last-child");
-    if (!image || !lastParagraph) return null;
-    const range = document.createRange();
-    range.selectNodeContents(lastParagraph);
-    return {
-      image: { left: image.left, right: image.right, bottom: image.bottom },
-      lines: [...range.getClientRects()].map((rect) => ({ left: rect.left, right: rect.right, top: rect.top })),
-    };
-  });
-
-  expect(flow).not.toBeNull();
-  expect(flow!.lines.some((line) => line.top >= flow!.image.bottom - 1 && line.left < flow!.image.right)).toBe(true);
+  const desktopImage = page.getByRole("img", { name: /trophée Mark Awards et la pochette The Trip/ });
+  const [desktopImageBox, desktopHeadingBox] = await Promise.all([
+    desktopImage.boundingBox(),
+    page.getByRole("heading", { level: 1, name: "Une librairie avant tout" }).boundingBox(),
+  ]);
+  expect(desktopImageBox).not.toBeNull();
+  expect(desktopHeadingBox).not.toBeNull();
+  expect(desktopImageBox!.y + desktopImageBox!.height).toBeLessThanOrEqual(901);
+  expect(desktopHeadingBox!.x).toBeGreaterThan(desktopImageBox!.x + desktopImageBox!.width);
+  await expect(desktopImage).toHaveCSS("object-fit", "contain");
 
   await page.setViewportSize({ width: 800, height: 900 });
   await page.reload();
-  const imageBox = await page.getByRole("img", { name: "Le Monde de demain — Parigo" }).boundingBox();
+  const imageBox = await page.getByRole("img", { name: /trophée Mark Awards et la pochette The Trip/ }).boundingBox();
   const headingBox = await page.getByRole("heading", { level: 1, name: "Une librairie avant tout" }).boundingBox();
   expect(imageBox).not.toBeNull();
   expect(headingBox).not.toBeNull();
@@ -840,9 +835,11 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
   await expect(page.locator("main")).not.toContainText("Donnez le ton à vos images");
 });
 
-test("le formulaire Contact conserve sa composition d’origine sans pièce jointe", async ({ page }) => {
+test("Contact présente le paysage complet dans une composition éditoriale compacte", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.goto("/contact");
+  await expect(page.locator(".page-hero")).toHaveCount(0);
+  await expect(page.getByRole("heading", { level: 1, name: "Parlez-nous de l’image" })).toBeVisible();
   await expect(page.getByText("Racontez-nous votre projet.", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Parigo Music", { exact: true }).last()).toBeVisible();
   const companyField = page.locator('input[name="company"]').locator("..");
@@ -850,6 +847,18 @@ test("le formulaire Contact conserve sa composition d’origine sans pièce join
   expect(paddingLeft).toBeGreaterThanOrEqual(20);
   await expect(page.getByText("Pièce jointe", { exact: false })).toHaveCount(0);
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
+  const locationImage = page.getByTestId("contact-location-image");
+  await expect(locationImage).toHaveAttribute("src", /r03-v1-contact-1672x941/);
+  await expect(locationImage).toHaveCSS("object-fit", "contain");
+  const [splitBox, imageBox] = await Promise.all([
+    page.getByTestId("contact-split").boundingBox(),
+    page.getByTestId("contact-location-image").boundingBox(),
+  ]);
+  expect(splitBox).not.toBeNull();
+  expect(imageBox).not.toBeNull();
+  expect(imageBox!.width).toBeLessThan(splitBox!.width * 0.7);
+  expect(imageBox!.width).toBeGreaterThan(splitBox!.width * 0.5);
+  expect(Math.abs((imageBox!.width / imageBox!.height) - (1672 / 941))).toBeLessThan(0.03);
 });
 
 test("la page Contact présente uniquement l’équipe Parigo demandée", async ({ page }) => {

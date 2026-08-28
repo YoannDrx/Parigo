@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import { AlertCircle, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
@@ -51,6 +51,42 @@ function PlatformIcon({ name }: { name: PlatformName }) {
 
 function SectionReveal({ children, className = "", origin = "bottom" }: { children: ReactNode; className?: string; origin?: "bottom" | "left" | "right" | "top" }) {
   return <HomeReveal className={className} origin={origin}>{children}</HomeReveal>;
+}
+
+function HomeAboutImage() {
+  const common = {
+    alt: "Les bureaux Parigo à Paris avec leur orgue, un espace de travail et des pochettes du catalogue",
+    sizes: "100vw",
+  };
+  const {
+    props: { srcSet: desktopSrcSet },
+  } = getImageProps({
+    ...common,
+    src: "/images/editorial/parigo-selected/r01-v1-home-1672x941.avif",
+    width: 1672,
+    height: 941,
+  });
+  const {
+    props: { srcSet: mobileSrcSet, ...mobileProps },
+  } = getImageProps({
+    ...common,
+    src: "/images/editorial/parigo-selected/r01-v1-home-1080x1920.avif",
+    width: 1080,
+    height: 1920,
+  });
+
+  return (
+    <picture>
+      <source media="(min-width: 768px)" srcSet={desktopSrcSet} />
+      <source media="(max-width: 767px)" srcSet={mobileSrcSet} />
+      <img
+        {...mobileProps}
+        alt={common.alt}
+        data-testid="home-about-image"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+    </picture>
+  );
 }
 
 export function HomeHero() {
@@ -173,16 +209,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
         <section id="about" className="px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
           <SectionReveal className="mx-auto max-w-[1580px]">
             <div className="relative min-h-[610px] overflow-hidden rounded-xl md:min-h-[760px]">
-              <Image
-                data-testid="home-about-image"
-                src="/images/editorial/parigo-spaces/01-home-studio-parigo-covers.avif"
-                alt="Studio PARIGO avec ses pochettes et sa collection de vinyles"
-                fill
-                loading="lazy"
-                quality={75}
-                sizes="100vw"
-                className="object-cover"
-              />
+              <HomeAboutImage />
               <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
               <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
                 <HomeReveal origin="left" viewportAmount={0.35}><SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes nous ?" : "Who are we?"}</SignedTitle></HomeReveal>

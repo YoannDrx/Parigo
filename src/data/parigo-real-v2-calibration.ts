@@ -219,7 +219,7 @@ export const parigoRealCalibrationV2Gallery: ParigoGalleryImage[] =
       version: 2,
       versionKey: `${item.code}-v2`,
       variantKind: "core",
-      isLatest: true,
+      isLatest: item.code !== "R14",
       supersedes: `${item.code}-v1`,
       title: item.title,
       src: exports[0].src,
@@ -242,15 +242,71 @@ export const parigoRealCalibrationV2Gallery: ParigoGalleryImage[] =
     };
   });
 
+export const parigoRealCalibrationV3Gallery: ParigoGalleryImage[] = [
+  {
+    id: 301,
+    code: "R14",
+    familyCode: "R14",
+    version: 3,
+    versionKey: "R14-v3",
+    variantKind: "core",
+    isLatest: true,
+    supersedes: "R14-v2",
+    title: "Forgot Password — The Trip ajustée",
+    src: "/images/editorial/parigo-real/v3/r14-forgot-password-v3-1200x1500.avif",
+    aspect: "4:5",
+    category: "Accès",
+    usage: "Accès",
+    collection: "real",
+    sourceAnchor: "/images/editorial/parigo-real/v2/r14-forgot-password-v2-1200x1500.avif",
+    references: [
+      {
+        src: "/images/editorial/parigo-real/v2/r14-forgot-password-v2-1200x1500.avif",
+        label: "R14 V2 — cible de l’édition",
+        role: "ancrage",
+      },
+      {
+        src: "/images/editorial/parigo-real-covers/the-trip.webp",
+        label: "Pochette HD — The Trip",
+        role: "décoration",
+      },
+    ],
+    prompt: `Use case: precise-object-edit
+Asset type: photographie éditoriale Parigo R14 V3
+
+Image 1 : R14 V2, cible absolue de l’édition.
+Image 2 : pochette HD officielle The Trip, insert de compositing.
+
+Remplacer uniquement la pochette Une Dernière Fois et son support beige décalé par une unique pochette physique carrée The Trip. Faire coïncider parfaitement l’artwork et les quatre bords de la pochette, sans deuxième carton, décalage, recadrage ni déformation. Conserver le cadre pâle et le titre manuscrit appartenant à l’artwork officiel. Poser le bord inférieur sur la réglette en bois avec une ombre de contact discrète.
+
+Conserver le cadrage, le mur, le trophée, l’orgue, le bois, les claviers, les commandes, les inscriptions, la lumière et la colorimétrie de R14 V2. Aucun autre ajout, aucun humain, reflet, texte inventé, logo ou watermark.`,
+    changeNotes: [
+      "Une Dernière Fois remplacée par la pochette HD officielle The Trip",
+      "Artwork et support physique recalés bord à bord, sans carton décalé",
+      "R14 V2 conservée et toujours accessible dans l’historique",
+    ],
+    status: "calibration",
+    exports: [
+      {
+        src: "/images/editorial/parigo-real/v3/r14-forgot-password-v3-1200x1500.avif",
+        label: "Portrait",
+        width: 1200,
+        height: 1500,
+      },
+    ],
+  },
+];
+
 export const parigoRealVersionedGallery: ParigoGalleryImage[] = [
   ...parigoRealGallery,
   ...parigoRealCalibrationV2Gallery,
+  ...parigoRealCalibrationV3Gallery,
 ];
 
 export const PARIGO_REAL_FAMILY_COUNT = 36;
 export const PARIGO_REAL_VERSION_COUNT = parigoRealVersionedGallery.length;
 export const PARIGO_REAL_V2_CALIBRATION_COUNT = parigoRealCalibrationV2Gallery.length;
+export const PARIGO_REAL_V3_CALIBRATION_COUNT = parigoRealCalibrationV3Gallery.length;
 export const PARIGO_REAL_V2_TARGET_COUNT = 48;
 export const PARIGO_REAL_FINAL_FAMILY_TARGET = 48;
 export const PARIGO_REAL_FINAL_VERSION_TARGET = 90;
-

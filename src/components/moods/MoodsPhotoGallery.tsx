@@ -390,7 +390,7 @@ export function MoodsPhotoGallery({ images }: { images: ParigoGalleryImage[] }) 
       {activeCollection === "real" ? (
         <>
           <div className="mb-6 rounded-[14px] border border-[#d3df63]/25 bg-[#d3df63]/8 p-4 text-sm leading-6 text-[#c9c2b6] sm:p-5">
-            <strong className="font-medium text-[#edf78b]">Jalon d’étalonnage V2 :</strong> 6 images sur 48 sont disponibles. La suite de la campagne reste volontairement en attente de validation de la fidélité 95/5.
+            <strong className="font-medium text-[#edf78b]">Jalons d’étalonnage :</strong> 6 images V2 et 1 image V3 sont disponibles. La suite de la campagne reste volontairement en attente de validation de la fidélité documentaire.
           </div>
           <nav aria-label="Choisir une campagne" className="mb-8 overflow-x-auto">
             <div className="flex min-w-max gap-2">

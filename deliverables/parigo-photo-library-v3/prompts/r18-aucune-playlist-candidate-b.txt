@@ -1,0 +1,30 @@
+Use case: precise-object-edit
+Asset type: photographie éditoriale Web des vrais locaux Parigo Music
+
+Primary request: transformer l'image d'ancrage en photographie éditoriale haut de gamme du véritable bureau Parigo, avec 90 % de fidélité documentaire et 10 % maximum de préparation éditoriale. L'image d'ancrage impose le cadrage, le point de vue, la perspective et l'architecture. Les autres images expliquent uniquement la géométrie, les détails matériels, les suppressions et les inserts autorisés.
+
+Style/medium: photographie d'architecture et d'intérieur photoréaliste, contemporaine, chaleureuse, musicale, analogique, sophistiquée, parisienne et habitée sans être encombrée. Influence 1970s très subtile, jamais pastiche.
+
+Lighting/mood: lumière naturelle crédible venant uniquement des vraies fenêtres, complétée par les lampes existantes autour de 3000–3200 K. Contraste doux, noirs lisibles, murs blancs crédibles, aucune dominante orange. Grain fin discret, hautes lumières organiques, netteté moderne.
+
+Materials/textures: parquet et bois véritables, patine réelle, métal, cannage, tissus et surfaces de bureau avec leurs textures physiques crédibles.
+
+Constraints: conserver exactement les proportions de la pièce, murs, colonnes, poutres, portes, fenêtres, ouvertures, stores, parquet, garde-corps, mobilier majeur et relations spatiales. Ne jamais agrandir la pièce ni déplacer un élément architectural. Aucun humain, reflet humain, silhouette, main ou fragment de corps. L'orgue doit conserver exactement son meuble, ses deux claviers, son pédalier, ses commandes, sa patine, ses proportions et son vrai banc rectangulaire brun à structure chromée. Les bureaux restent rangés mais utilisés. Aucun texte ajouté, interface, bouton, faux logo ou watermark.
+
+Avoid: architecture inventée, studio fictif, loft, showroom, mobilier remplacé, ultra grand-angle, HDR, CGI, rendu 3D, filtre sépia, orange excessif, pochettes fusionnées ou inventées, accessoires flottants, objets sans ombre de contact, symétrie artificielle.
+
+Input images:
+Image 1: edit target and absolute composition anchor; /Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1054.png
+Image 2: supporting geometry reference only; /Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1033.png
+Image 3: supporting geometry reference only; /Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1047.png
+Image 4: supporting geometry reference only; /Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1076-7s.png
+Image 5: approved style reference only; never copy geometry; /Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png
+
+Primary composition: Compartiment du vrai meuble rouge et noir laissé vide ; l'espace libre est le sujet.
+Intended use: Empty state.
+Master format: 4:3.
+Candidate direction: Favoriser une lumière naturelle douce de fin d'après-midi, toujours neutre et sans dominante orange, avec exactement le même niveau de fidélité.
+
+Change only: retirer ou ranger objets du compartiment, câbles, personnes.
+Permitted additions: aucun ajout.
+Keep everything else unchanged. Recognition of the real Parigo office is more important than visual perfection.

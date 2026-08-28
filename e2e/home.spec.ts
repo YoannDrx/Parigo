@@ -541,7 +541,7 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
   const hero = switcher.locator("aside");
   const loginPanel = switcher.locator("#auth-login-panel");
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
-  await expect(hero.locator('[data-auth-image="login"][data-active="true"] img')).toHaveAttribute("src", /31-login-studio-entrance/);
+  await expect(hero.locator('[data-auth-image="login"][data-active="true"] img')).toHaveAttribute("src", /r02-v1-login/);
   await expect(hero.getByRole("heading", { name: "Entrez dans le catalogue." })).toBeVisible();
   const [switcherBox, heroBefore, loginBox] = await Promise.all([
     switcher.boundingBox(),
@@ -560,7 +560,7 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
 
   await hero.getByRole("button", { name: "Afficher le formulaire d’inscription" }).click();
   await expect(switcher).toHaveAttribute("data-auth-view", "register");
-  await expect(hero.locator('[data-auth-image="register"][data-active="true"] img')).toHaveAttribute("src", /32-register-place-waiting/);
+  await expect(hero.locator('[data-auth-image="register"][data-active="true"] img')).toHaveAttribute("src", /r15-v1-register/);
   await expect(switcher.getByRole("heading", { name: "Créer un compte" })).toBeVisible();
   await expect(hero.getByRole("heading", { name: "Heureux de vous revoir." })).toBeVisible();
   if (testInfo.project.name !== "mobile") {
@@ -1439,7 +1439,7 @@ test("l’image About reste fixe pendant le défilement", async ({ page }) => {
   await page.goto("/");
   const image = page.getByTestId("home-about-image");
   await expect(image).toBeVisible();
-  await expect(image).toHaveAttribute("src", /01-home-studio-parigo-covers/);
+  await expect(image).toHaveAttribute("src", /r01-v1-home/);
   await expect(image).toHaveCSS("transform", "none");
   const about = page.locator("#about");
   const metrics = await about.evaluate((node) => {
@@ -1925,12 +1925,47 @@ test("le reset n’annonce pas un e-mail quand la route Harvest manque", async (
     body: JSON.stringify({ data: { accepted: true, deliveryConfigured: false } }),
   }));
   await page.goto("/forgot-password");
-  await expect(page.locator('aside img')).toHaveAttribute("src", /33-forgot-password-rewind/);
-  await page.getByLabel("E-mail").fill("member@example.invalid");
-  await page.getByRole("button", { name: "Envoyer le lien" }).click();
+  await expect(page.getByTestId("password-recovery-artwork")).toHaveAttribute("data-photo-id", "R11V1");
+  await expect(page.getByTestId("password-recovery-card")).toContainText("Votre e-mail");
+  await page.getByLabel("Adresse e-mail du compte").fill("member@example.invalid");
+  await page.getByRole("button", { name: "Recevoir mon lien sécurisé" }).click();
 
   await expect(page.getByText("La réinitialisation par e-mail n’est pas encore configurée. Contactez Parigo pour récupérer votre accès.")).toBeVisible();
   await expect(page.getByText(/Parigo vient d’envoyer un lien/)).toHaveCount(0);
+});
+
+test("Forgot Password confirme l’envoi sans révéler l’existence du compte", async ({ page }) => {
+  await page.route("**/api/auth/forgot-password", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { accepted: true, deliveryConfigured: true } }),
+  }));
+  await page.goto("/forgot-password");
+  await page.getByLabel("Adresse e-mail du compte").fill("member@example.invalid");
+  await page.getByRole("button", { name: "Recevoir mon lien sécurisé" }).click();
+
+  await expect(page.getByRole("heading", { level: 2, name: "Consultez votre boîte mail" })).toBeVisible();
+  await expect(page.getByText("Si un compte correspond à cette adresse", { exact: false })).toBeVisible();
+  await expect(page.getByText("member@example.invalid")).toHaveCount(0);
+});
+
+test("Reset Password distingue le lien expiré puis confirme le nouvel accès", async ({ page }) => {
+  await page.goto("/reset-password");
+  await expect(page.getByRole("heading", { level: 2, name: "Ce lien n’est plus valide" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Demander un nouveau lien" })).toHaveAttribute("href", "/forgot-password");
+
+  await page.route("**/api/auth/reset-password**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { valid: true } }),
+  }));
+  await page.goto("/reset-password?token=fresh-reset-token");
+  await page.getByLabel("Nouveau mot de passe *").fill(formFixtureValue);
+  await page.getByLabel("Confirmer le mot de passe *").fill(formFixtureValue);
+  await page.getByRole("button", { name: "Sécuriser mon accès" }).click();
+
+  await expect(page.getByRole("heading", { level: 2, name: "Votre accès est sécurisé" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Se connecter" })).toHaveAttribute("href", "/login");
 });
 
 test("les anciens liens FLEX change-password restent compatibles", async ({ page }) => {
@@ -1942,10 +1977,10 @@ test("les anciens liens FLEX change-password restent compatibles", async ({ page
 
   await page.goto("/change-password/legacy-reset-token");
 
-  await expect(page).toHaveURL(/\/reset-password\?token=legacy-reset-token$/);
-  await expect(page.locator('aside img')).toHaveAttribute("src", /34-reset-password-patchbay/);
-  await expect(page.getByText("Nouveau mot de passe", { exact: true })).toBeVisible();
-  await expect(page.getByPlaceholder("Confirmer")).toBeVisible();
+  await expect(page).toHaveURL(/\/change-password\/legacy-reset-token$/);
+  await expect(page.getByTestId("password-recovery-artwork")).toHaveAttribute("data-photo-id", "R13V2");
+  await expect(page.getByRole("heading", { level: 1, name: "Changer votre mot de passe" })).toBeVisible();
+  await expect(page.getByPlaceholder("Saisissez-le à nouveau")).toBeVisible();
   const password = page.getByLabel("Nouveau mot de passe *");
   await password.fill(mediumFormFixture);
   await expect(page.getByRole("meter", { name: "Force du mot de passe" })).toHaveAttribute("aria-valuenow", "2");

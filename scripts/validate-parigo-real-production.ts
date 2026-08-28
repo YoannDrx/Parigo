@@ -10,7 +10,9 @@ import {
 } from "../src/data/parigo-real-production";
 import {
   PARIGO_REAL_V2_CALIBRATION_COUNT,
+  PARIGO_REAL_V3_CALIBRATION_COUNT,
   parigoRealCalibrationV2Gallery,
+  parigoRealCalibrationV3Gallery,
   parigoRealCalibrationV2Manifest,
   parigoRealVersionedGallery,
 } from "../src/data/parigo-real-v2-calibration";
@@ -56,6 +58,16 @@ function validateManifest() {
   invariant(
     parigoRealCalibrationV2Gallery.length === 6 && PARIGO_REAL_V2_CALIBRATION_COUNT === 6,
     "Le jalon V2 doit contenir exactement six étalons.",
+  );
+  invariant(
+    parigoRealCalibrationV3Gallery.length === 1 && PARIGO_REAL_V3_CALIBRATION_COUNT === 1,
+    "Le jalon V3 doit contenir exactement R14.",
+  );
+  const r14V3 = parigoRealCalibrationV3Gallery[0];
+  invariant(r14V3.versionKey === "R14-v3", "La V3 doit appartenir à la famille R14.");
+  invariant(
+    r14V3.references?.some((reference) => reference.src.endsWith("/the-trip.webp")),
+    "R14 V3 doit référencer la pochette officielle The Trip.",
   );
 
   const pairs = new Set<string>();
@@ -112,7 +124,7 @@ async function main() {
   validateManifest();
   await Promise.all([validateExports(), validateCalibrationMasters()]);
   console.log(
-    "Photothèque Parigo valide : 36 V1 historiques, 6 V2 d’étalonnage, exports sRGB sans EXIF et chemins client sûrs.",
+    "Photothèque Parigo valide : 36 V1 historiques, 6 V2 et 1 V3 d’étalonnage, exports sRGB sans EXIF et chemins client sûrs.",
   );
 }
 
