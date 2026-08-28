@@ -2,6 +2,7 @@
 
 import Link, { type LinkProps } from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   createContext,
   useCallback,
@@ -111,7 +112,7 @@ export function useContextualBack(href: string) {
 
 type ContextualBackLinkProps = Omit<ComponentProps<typeof Link>, "href" | "onNavigate"> & { href: string };
 
-export function ContextualBackLink({ href, ...props }: ContextualBackLinkProps) {
+export function ContextualBackLink({ href, className, ...props }: ContextualBackLinkProps) {
   const previousPathname = useContext(NavigationHistoryContext);
   const router = useRouter();
 
@@ -122,5 +123,15 @@ export function ContextualBackLink({ href, ...props }: ContextualBackLinkProps) 
     router.back();
   };
 
-  return <Link {...props} href={href} onNavigate={handleNavigate} />;
+  return (
+    <Link
+      {...props}
+      href={href}
+      onNavigate={handleNavigate}
+      className={cn(
+        "contextual-back-link inline-flex min-h-11 items-center gap-2 text-sm text-[var(--text-muted)] transition-colors",
+        className,
+      )}
+    />
+  );
 }

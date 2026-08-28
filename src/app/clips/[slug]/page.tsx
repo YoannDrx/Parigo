@@ -76,13 +76,13 @@ export default async function ClipPage({ params }: ClipPageProps) {
     <div className="page-shell min-h-screen">
       {structuredData && <JsonLd data={structuredData} />}
       <Header />
-      <main className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
+      <main className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-contextual-back-page-top)] md:pt-[var(--space-page-top)]">
         <div className="mx-auto max-w-[1440px]">
-          <ContextualBackLink href={localizedPath(locale, "/clips")} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--signal-strong)]">
+          <ContextualBackLink href={localizedPath(locale, "/clips")} className="font-semibold hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
-          <div className="editorial-detail-hero relative mt-[var(--space-block-gap)] grid gap-[var(--space-grid-x)] overflow-hidden pb-[var(--space-block-gap)] lg:grid-cols-12 lg:items-start">
+          <div className="editorial-detail-hero relative mt-[var(--space-contextual-back-gap)] grid gap-[var(--space-grid-x)] overflow-hidden md:mt-[var(--space-block-gap)] lg:grid-cols-12 lg:items-start">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
               <div className="flex items-center justify-between border-b border-white/12 px-3 py-2.5 text-white/46">
                 <span className="font-mono text-[.54rem] uppercase tracking-[.14em]">Parigo screening room</span>
@@ -120,8 +120,8 @@ export default async function ClipPage({ params }: ClipPageProps) {
           </div>
 
           {(relatedTalents.length > 0 || relatedAlbum) && (
-            <section data-testid="clip-relations" className="mt-[var(--space-block-gap)] border-t border-[var(--line)] pt-[var(--space-block-gap)]">
-              <div className="grid gap-[var(--space-block-gap)] lg:grid-cols-12">
+            <section data-testid="clip-relations" className="parigo-section-boundary">
+              <div className="grid gap-0 lg:grid-cols-12 lg:gap-[var(--space-block-gap)]">
                 {relatedTalents.length > 0 && (
                   <div data-testid="clip-talents-section" className={relatedAlbum ? "lg:col-span-8" : "lg:col-span-12"}>
                     <SignedTitle as="h2" variant="section" className="mb-[var(--space-heading-content)]">
@@ -147,7 +147,12 @@ export default async function ClipPage({ params }: ClipPageProps) {
                   </div>
                 )}
                 {relatedAlbum && (
-                  <div data-testid="clip-album-section" className={relatedTalents.length > 0 ? "lg:col-span-4" : "lg:col-span-12 lg:max-w-sm"}>
+                  <div
+                    data-testid="clip-album-section"
+                    className={relatedTalents.length > 0
+                      ? "parigo-section-boundary parigo-section-boundary--mobile lg:col-span-4"
+                      : "lg:col-span-12 lg:max-w-sm"}
+                  >
                     <SignedTitle as="h2" variant="section" className="mb-[var(--space-heading-content)]">{locale === "fr" ? "Album associé" : "Related album"}</SignedTitle>
                     <AlbumCard album={relatedAlbum} headingLevel={3} />
                   </div>

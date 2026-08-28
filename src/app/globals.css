@@ -137,6 +137,8 @@
   --space-section-y-large: 3rem;
   --space-heading-content: 1.5rem;
   --space-block-gap: 1.5rem;
+  --space-contextual-back-gap: 1rem;
+  --space-contextual-back-page-top: calc(74px + var(--space-contextual-back-gap));
   --space-grid-x: 1rem;
   --space-grid-y: 1.5rem;
   --space-page-end: 1.5rem;
@@ -594,6 +596,18 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   position: relative;
   isolation: isolate;
   border-radius: var(--parigo-turn-lg) var(--parigo-corner-lg);
+}
+.parigo-section-boundary {
+  margin-top: var(--space-block-gap);
+  border-top: var(--border-width) solid var(--line);
+  padding-top: var(--space-block-gap);
+}
+@media (min-width: 1024px) {
+  .parigo-section-boundary--mobile {
+    margin-top: 0;
+    border-top-width: 0;
+    padding-top: 0;
+  }
 }
 .parigo-frame {
   position: relative;
