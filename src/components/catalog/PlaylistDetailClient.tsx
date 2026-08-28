@@ -38,9 +38,9 @@ export function PlaylistDetailClient({ playlist }: { playlist: PlaylistDetail })
   return (
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
-      <main className="flex-1 pb-[var(--space-page-end)] pt-[88px]">
-        <div className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] pt-[var(--space-divider-content)]"><ContextualBackLink href={localizedPath("/playlists")} className="inline-flex min-h-11 items-center gap-2 text-sm text-[var(--text-muted)] transition hover:text-[var(--foreground)]"><ArrowLeft size={17} /> {t("common.back")}</ContextualBackLink></div>
-        <section className="editorial-detail-hero relative mx-auto grid max-w-[1500px] items-center gap-[var(--space-block-gap)] overflow-hidden px-[var(--space-page-gutter)] pb-0 pt-[var(--space-section-y)] lg:grid-cols-[minmax(300px,420px)_minmax(0,1fr)]">
+      <main className="flex-1 pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)] md:pt-[88px]">
+        <div className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] md:pt-[var(--space-divider-content)]"><ContextualBackLink href={localizedPath("/playlists")} className="hover:text-[var(--foreground)]"><ArrowLeft size={17} /> {t("common.back")}</ContextualBackLink></div>
+        <section className="editorial-detail-hero relative mx-auto grid max-w-[1500px] items-center gap-[var(--space-block-gap)] overflow-hidden px-[var(--space-page-gutter)] pb-0 pt-[var(--space-contextual-back-gap)] md:pt-[var(--space-section-y)] lg:grid-cols-[minmax(300px,420px)_minmax(0,1fr)]">
           <div className="relative aspect-square w-full max-w-[420px] overflow-hidden rounded-[1.1rem] border border-[var(--line)] bg-[var(--surface-soft)] shadow-[0_22px_70px_rgba(15,22,16,.10)]">{playlist.cover ? <Image src={playlist.cover} alt={playlist.title} fill priority sizes="(max-width:768px) 92vw, 420px" className="object-contain" /> : <div className="flex h-full items-center justify-center bg-[var(--surface-soft)]"><ListMusic size={92} className="opacity-20" /></div>}</div>
           <div className="flex max-w-3xl animate-[fade-in_.3s_ease-out_both] flex-col justify-center">
             {playlist.category && <Tag variant="genre" className="mb-5 self-start">{playlist.category.toLowerCase() === "curated" ? (locale === "fr" ? "Sélection Parigo" : "Parigo selection") : playlist.category}</Tag>}

@@ -83,9 +83,9 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
   return (
     <div className="page-shell min-h-screen">
       <Header />
-      <main className="pt-[70px]">
-        <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
-          <ContextualBackLink href={localizedPath(locale, "/talents")} className="mb-[var(--space-heading-content)] inline-flex min-h-11 items-center gap-2 text-sm text-[var(--text-muted)] hover:text-[var(--foreground)]">
+      <main className="pt-[var(--space-contextual-back-page-top)] md:pt-[70px]">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] md:pt-[var(--space-divider-content)]">
+          <ContextualBackLink href={localizedPath(locale, "/talents")} className="mb-[var(--space-contextual-back-gap)] hover:text-[var(--foreground)] md:mb-[var(--space-heading-content)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
@@ -108,7 +108,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               </div>
             </div>
             {bio ? (
-              <div className="mt-[var(--space-block-gap)] border-t border-[var(--line)] pt-[var(--space-block-gap)]">
+              <div className="parigo-section-boundary">
                 <div data-testid="composer-biography" className="min-w-0 w-full text-base leading-8 text-[var(--text-muted)] md:text-lg">
                   <Bio value={bio} />
                 </div>
