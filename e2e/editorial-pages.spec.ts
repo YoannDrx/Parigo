@@ -859,6 +859,23 @@ test("Contact présente le paysage complet dans une composition éditoriale comp
   expect(imageBox!.width).toBeLessThan(splitBox!.width * 0.7);
   expect(imageBox!.width).toBeGreaterThan(splitBox!.width * 0.5);
   expect(Math.abs((imageBox!.width / imageBox!.height) - (1672 / 941))).toBeLessThan(0.03);
+
+  const [titleCardBox, imageFrameBox, detailsBox, formBox] = await Promise.all([
+    page.getByTestId("contact-title-card").boundingBox(),
+    page.getByTestId("contact-image-frame").boundingBox(),
+    page.getByTestId("contact-details").boundingBox(),
+    page.getByTestId("contact-main").boundingBox(),
+  ]);
+  expect(titleCardBox).not.toBeNull();
+  expect(imageFrameBox).not.toBeNull();
+  expect(detailsBox).not.toBeNull();
+  expect(formBox).not.toBeNull();
+  expect(Math.abs(titleCardBox!.y - imageFrameBox!.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(titleCardBox!.height - imageFrameBox!.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(titleCardBox!.x - detailsBox!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(titleCardBox!.width - detailsBox!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(imageFrameBox!.x - formBox!.x)).toBeLessThanOrEqual(1);
+  expect(Math.abs(imageFrameBox!.width - formBox!.width)).toBeLessThanOrEqual(1);
 });
 
 test("la page Contact présente uniquement l’équipe Parigo demandée", async ({ page }) => {
