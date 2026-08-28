@@ -541,7 +541,7 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
   const hero = switcher.locator("aside");
   const loginPanel = switcher.locator("#auth-login-panel");
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
-  await expect(hero.locator('[data-auth-image="login"][data-active="true"] img')).toHaveAttribute("src", /r02-v1-login/);
+  await expect(hero.locator('[data-auth-image="login"][data-active="true"] img')).toHaveAttribute("src", /r14-v3-forgot-password/);
   await expect(hero.getByRole("heading", { name: "Entrez dans le catalogue." })).toBeVisible();
   const [switcherBox, heroBefore, loginBox] = await Promise.all([
     switcher.boundingBox(),
@@ -567,6 +567,8 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
     await expect.poll(async () => (await hero.boundingBox())?.x ?? Number.POSITIVE_INFINITY).toBeLessThan(heroBefore!.x - switcherBox!.width / 3);
   }
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollHeight)).toBe(await page.evaluate(() => document.documentElement.clientHeight));
+  await expect(page.locator("footer")).toHaveCount(0);
 });
 
 test("le thème et la langue sont basculables et persistants", async ({ page }, testInfo) => {
@@ -1894,9 +1896,21 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   const switcher = dialog.getByTestId("auth-switcher");
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
   await expect(dialog.getByRole("heading", { name: "Se connecter" })).toBeVisible();
-  await dialog.getByRole("button", { name: "Créer un compte", exact: true }).click();
+  const registerSwitch = dialog.getByRole("button", { name: "Afficher le formulaire d’inscription" });
+  if (testInfo.project.name !== "mobile") {
+    await registerSwitch.hover();
+    await expect(registerSwitch).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(registerSwitch).toHaveCSS("color", "rgb(16, 17, 14)");
+  }
+  await registerSwitch.click();
   await expect(switcher).toHaveAttribute("data-auth-view", "register");
   await expect(dialog.getByRole("heading", { name: "Créer un compte" })).toBeVisible();
+  const loginSwitch = dialog.getByRole("button", { name: "Afficher le formulaire de connexion" });
+  if (testInfo.project.name !== "mobile") {
+    await loginSwitch.hover();
+    await expect(loginSwitch).toHaveCSS("background-color", "rgb(255, 255, 255)");
+    await expect(loginSwitch).toHaveCSS("color", "rgb(16, 17, 14)");
+  }
   await expect(dialog.getByLabel("Prénom *")).toBeVisible();
   await expect(dialog.getByRole("heading", { name: "Profil professionnel" })).toBeVisible();
   await expect(dialog.getByText("1/2")).toHaveCount(0);
@@ -1925,8 +1939,11 @@ test("le reset n’annonce pas un e-mail quand la route Harvest manque", async (
     body: JSON.stringify({ data: { accepted: true, deliveryConfigured: false } }),
   }));
   await page.goto("/forgot-password");
-  await expect(page.getByTestId("password-recovery-artwork")).toHaveAttribute("data-photo-id", "R11V1");
-  await expect(page.getByTestId("password-recovery-card")).toContainText("Votre e-mail");
+  const artwork = page.getByTestId("password-recovery-artwork");
+  await expect(artwork).toHaveAttribute("data-photo-id", "R11V1");
+  await expect(artwork.locator("p")).toHaveCount(0);
+  await expect(page.getByTestId("password-recovery-card")).not.toContainText("Récupération du compte");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(await page.evaluate(() => document.documentElement.clientHeight));
   await page.getByLabel("Adresse e-mail du compte").fill("member@example.invalid");
   await page.getByRole("button", { name: "Recevoir mon lien sécurisé" }).click();
 
@@ -1951,6 +1968,9 @@ test("Forgot Password confirme l’envoi sans révéler l’existence du compte"
 
 test("Reset Password distingue le lien expiré puis confirme le nouvel accès", async ({ page }) => {
   await page.goto("/reset-password");
+  await expect(page.getByTestId("password-recovery-artwork").locator("p")).toHaveCount(0);
+  await expect(page.getByTestId("password-recovery-card")).not.toContainText("Lien de réinitialisation");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(await page.evaluate(() => document.documentElement.clientHeight));
   await expect(page.getByRole("heading", { level: 2, name: "Ce lien n’est plus valide" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Demander un nouveau lien" })).toHaveAttribute("href", "/forgot-password");
 
@@ -1978,7 +1998,11 @@ test("les anciens liens FLEX change-password restent compatibles", async ({ page
   await page.goto("/change-password/legacy-reset-token");
 
   await expect(page).toHaveURL(/\/change-password\/legacy-reset-token$/);
-  await expect(page.getByTestId("password-recovery-artwork")).toHaveAttribute("data-photo-id", "R13V2");
+  const artwork = page.getByTestId("password-recovery-artwork");
+  await expect(artwork).toHaveAttribute("data-photo-id", "R13V2");
+  await expect(artwork.locator("p")).toHaveCount(0);
+  await expect(page.getByTestId("password-recovery-card")).not.toContainText("Sécurité du compte");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(await page.evaluate(() => document.documentElement.clientHeight));
   await expect(page.getByRole("heading", { level: 1, name: "Changer votre mot de passe" })).toBeVisible();
   await expect(page.getByPlaceholder("Saisissez-le à nouveau")).toBeVisible();
   const password = page.getByLabel("Nouveau mot de passe *");
@@ -1989,8 +2013,16 @@ test("les anciens liens FLEX change-password restent compatibles", async ({ page
   await expect(password).toHaveAttribute("type", "text");
 });
 
-test("l’inscription Parigo expose le profil complet sur un seul scroll", async ({ page }) => {
+test("le faux parcours change-password demo n’existe plus", async ({ page }) => {
+  const response = await page.goto("/change-password/demo");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByTestId("password-recovery-card")).toHaveCount(0);
+});
+
+test("l’inscription Parigo expose le profil complet sans scroll de page", async ({ page }) => {
   await page.goto("/register");
+  expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(await page.evaluate(() => document.documentElement.clientHeight));
+  await expect(page.locator("footer")).toHaveCount(0);
   await page.getByLabel("Prénom *").fill("Test");
   await page.getByLabel("Nom *", { exact: true }).fill("Parigo");
   await page.getByLabel(/E-mail.*utilisé comme identifiant/i).fill("test@example.invalid");
