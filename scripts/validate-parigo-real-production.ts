@@ -20,6 +20,7 @@ import {
 const masterRoot =
   process.env.PARIGO_MASTER_ROOT ??
   path.join(homedir(), "Downloads", "Parigo-references-IA", "07-rendus-maitres");
+const shouldValidateLocalMasters = process.env.CI !== "true" || Boolean(process.env.PARIGO_MASTER_ROOT);
 
 function invariant(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -122,7 +123,9 @@ function validateManifest() {
 
 async function main() {
   validateManifest();
-  await Promise.all([validateExports(), validateCalibrationMasters()]);
+  const validations = [validateExports()];
+  if (shouldValidateLocalMasters) validations.push(validateCalibrationMasters());
+  await Promise.all(validations);
   console.log(
     "Photothèque Parigo valide : 36 V1 historiques, 8 V2 et 1 V3, exports sRGB sans EXIF et chemins client sûrs.",
   );
