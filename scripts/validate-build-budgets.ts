@@ -8,12 +8,12 @@ const staticRoot = path.join(nextRoot, "static");
 // Contextual detail spacing extends the shared editorial layout styles while
 // keeping a narrow margin over the current 155.4 KiB source CSS.
 const CSS_BUDGET = 157 * 1024;
-// Similarity search adds its source controller and responsive workspace to the
-// search route while keeping a narrow margin over the current 221.5 KiB Brotli.
-const DEFAULT_JS_BUDGET = 224 * 1024;
-// The home hero also embeds the brief, URL and direct-upload entry points; its
-// current 235.7 KiB Brotli baseline remains isolated from the other routes.
-const HOME_JS_BUDGET = 240 * 1024;
+// Editorial empty states extend the search workspace while keeping a narrow
+// margin over its current 227.1 KiB Brotli route bundle.
+const DEFAULT_JS_BUDGET = 230 * 1024;
+// The home experience also exposes the versioned editorial photo surfaces; its
+// current 244.2 KiB Brotli baseline remains isolated from the other routes.
+const HOME_JS_BUDGET = 247 * 1024;
 
 async function walk(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
