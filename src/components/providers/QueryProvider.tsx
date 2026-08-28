@@ -57,7 +57,7 @@ function GlobalOverlays() {
     <>
       {currentTrack && MiniPlayer && foregroundPlayback !== "clip" && foregroundPlayback !== "showreel" && <MiniPlayer />}
       {AuthModal && <AuthModal />}
-      {shortlistItems > 0 && ShortlistDrawer && <ShortlistDrawer />}
+      {ShortlistDrawer && <ShortlistDrawer />}
     </>
   );
 }

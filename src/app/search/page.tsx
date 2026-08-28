@@ -748,7 +748,11 @@ function SearchContent() {
                   })}
                 </div>
             ) : (
-              <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
+              <div data-testid="empty-search-results" className="rounded-xl border border-[var(--line)] px-5 py-24 text-center">
+                <h2 className="text-4xl">{t("search.emptyTitle")}</h2>
+                <p className="mx-auto mt-4 max-w-xl text-sm text-[var(--text-muted)]">{t("search.emptyCopy")}</p>
+                <Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button>
+              </div>
             ) : albums.length ? (
                 <div data-testid="search-album-grid" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {albums.map((album, index) => (
@@ -764,7 +768,10 @@ function SearchContent() {
                   ))}
                 </div>
             ) : (
-              <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-4xl">{t("search.emptyTitle")}</h2><Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button></div>
+              <div data-testid="empty-search-albums" className="rounded-xl border border-[var(--line)] px-5 py-24 text-center">
+                <h2 className="text-4xl">{t("search.emptyTitle")}</h2>
+                <Button variant="outline" onClick={resetFilters} className="mt-6">{t("common.reset")}</Button>
+              </div>
             )}
 
             {!activeQuery.isLoading && !activeQuery.isError && totalPages > 1 && (
