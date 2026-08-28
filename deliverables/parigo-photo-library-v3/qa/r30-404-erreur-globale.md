@@ -28,3 +28,7 @@
 Statut : pending
 Sélection : —
 Notes :
+- R30-V1 rejetée : grande cloison et cadre inventés sur la gauche, incompatibles avec 1051.
+- Nouvelle candidate documentaire : `candidates/R30/r30-404-erreur-globale-v2-candidate.png`.
+- La lumière chaude, les stores fermés et le cadrage de V1 sont conservés ; la circulation gauche est reconstruite depuis 1051, V1077@6s et les vues documentaires du plateau.
+- Validation humaine requise avant promotion dans `masters/` ou intégration au site.

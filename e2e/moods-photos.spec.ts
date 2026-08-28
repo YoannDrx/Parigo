@@ -20,6 +20,8 @@ test("préserve les concepts et expose le jalon versionné sans indexation", asy
   await expect(page.locator("#image-r36-v1")).toContainText("Close-up bureau, prix et Parigo");
   await expect(page.getByRole("button", { name: "V3 · 1", exact: true })).toBeEnabled();
   await expect(page.locator("#image-r14-v3")).toContainText("Forgot Password — The Trip ajustée");
+  await expect(page.locator("#image-r29-v2")).toContainText("L’atelier des droits");
+  await expect(page.locator("#image-r30-v2")).toContainText("Le palier au bleu du soir");
   await expect(page.locator("body")).not.toContainText(/Downloads|Téléchargements|Parigo-references-IA/);
 });
 
@@ -28,12 +30,12 @@ test("filtre les campagnes et compare R01 V2 avec la V1 au clavier", async ({ pa
 
   await page.getByRole("button", { name: "V1 · 36", exact: true }).click();
   await expect(page.locator("article")).toHaveCount(36);
-  await page.getByRole("button", { name: "V2 · 6", exact: true }).click();
-  await expect(page.locator("article")).toHaveCount(6);
+  await page.getByRole("button", { name: "V2 · 8", exact: true }).click();
+  await expect(page.locator("article")).toHaveCount(8);
   await page.getByRole("button", { name: "V3 · 1", exact: true }).click();
   await expect(page.locator("#image-r14-v3")).toBeVisible();
-  await page.getByRole("button", { name: "Toutes · 43", exact: true }).click();
-  await expect(page.locator("article")).toHaveCount(43);
+  await page.getByRole("button", { name: "Toutes · 45", exact: true }).click();
+  await expect(page.locator("article")).toHaveCount(45);
 
   await page.getByRole("button", { name: "Dernières · 36", exact: true }).click();
   await page.getByRole("button", { name: "Hero", exact: true }).click();
@@ -69,7 +71,7 @@ test("filtre les campagnes et compare R01 V2 avec la V1 au clavier", async ({ pa
 
 test("filtre les usages dans la campagne V2", async ({ page }) => {
   await page.getByRole("button", { name: /Locaux réels/ }).click();
-  await page.getByRole("button", { name: "V2 · 6", exact: true }).click();
+  await page.getByRole("button", { name: "V2 · 8", exact: true }).click();
   await page.getByRole("button", { name: "Accès", exact: true }).click();
   await expect(page.locator("article")).toHaveCount(2);
   await expect(page.locator("#image-r14-v2")).toBeVisible();

@@ -23,6 +23,7 @@
 - Grandes fenêtres à stores produisant des ombres rayées caractéristiques sur le parquet et les murs.
 - Plantes hautes existantes près du garde-corps ; elles peuvent être entretenues, jamais multipliées.
 - À conserver : trémie, garde-corps, stores, radiateurs, colonnes, ouvertures et continuité vers l'entrée.
+- La vue 1051 verrouille le point de vue de R30 : à gauche, le palier reste ouvert vers le vrai bureau et l'unique zone d'entrée. Il n'existe pas de grande cloison pleine portant l'illustration encadrée dans cet axe.
 - À nettoyer : cartons, objets temporaires et personnes visibles dans les vidéos.
 
 ## Façade et rues

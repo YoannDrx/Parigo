@@ -11,6 +11,8 @@ Materials/textures: parquet et bois véritables, patine réelle, métal, cannage
 
 Constraints: conserver exactement les proportions de la pièce, murs, colonnes, poutres, portes, fenêtres, ouvertures, stores, parquet, garde-corps, mobilier majeur et relations spatiales. Ne jamais agrandir la pièce ni déplacer un élément architectural. Aucun humain, reflet humain, silhouette, main ou fragment de corps. L'orgue doit conserver exactement son meuble, ses deux claviers, son pédalier, ses commandes, sa patine, ses proportions et son vrai banc rectangulaire brun à structure chromée. Les bureaux restent rangés mais utilisés. Aucun texte ajouté, interface, bouton, faux logo ou watermark.
 
+Spatial lock specific to R30: Image 1 / 1051 is the only authority for the visible architecture. Its left side remains an open circulation toward the real desk and the single entrance zone. Never replace that circulation with a solid wall, never hang the framed Parigo illustration there, and never add a second entrance, column, corridor or room. If the requested 16:9 frame would expose an undocumented area, crop inside Image 1 instead of extending or inventing the canvas. The 10 % editorial allowance never applies to geometry.
+
 Avoid: architecture inventée, studio fictif, loft, showroom, mobilier remplacé, ultra grand-angle, HDR, CGI, rendu 3D, filtre sépia, orange excessif, pochettes fusionnées ou inventées, accessoires flottants, objets sans ombre de contact, symétrie artificielle.
 
 Input images:

@@ -56,8 +56,8 @@ function validateManifest() {
   invariant(parigoRealGallery.length === 36, "Le compte V1 doit rester exactement égal à 36.");
   invariant(PARIGO_REAL_V1_COUNT === 36, "La constante V1 doit rester égale à 36.");
   invariant(
-    parigoRealCalibrationV2Gallery.length === 6 && PARIGO_REAL_V2_CALIBRATION_COUNT === 6,
-    "Le jalon V2 doit contenir exactement six étalons.",
+    parigoRealCalibrationV2Gallery.length === 8 && PARIGO_REAL_V2_CALIBRATION_COUNT === 8,
+    "Le jalon V2 doit contenir exactement huit images.",
   );
   invariant(
     parigoRealCalibrationV3Gallery.length === 1 && PARIGO_REAL_V3_CALIBRATION_COUNT === 1,
@@ -124,7 +124,7 @@ async function main() {
   validateManifest();
   await Promise.all([validateExports(), validateCalibrationMasters()]);
   console.log(
-    "Photothèque Parigo valide : 36 V1 historiques, 6 V2 et 1 V3 d’étalonnage, exports sRGB sans EXIF et chemins client sûrs.",
+    "Photothèque Parigo valide : 36 V1 historiques, 8 V2 et 1 V3, exports sRGB sans EXIF et chemins client sûrs.",
   );
 }
 
