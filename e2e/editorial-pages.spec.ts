@@ -188,7 +188,9 @@ test("les héros éditoriaux publient les titres et introductions validés", asy
 
   for (const [path, title, intro] of cases) {
     await page.goto(path);
-    const hero = page.locator(".page-hero__frame");
+    const hero = path === "/licensing"
+      ? page.getByTestId("licensing-title-card")
+      : page.locator(".page-hero__frame");
     await expect(hero.getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
     await expect(hero.getByText(intro, { exact: true })).toBeVisible();
   }
@@ -944,14 +946,13 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
   await expect(page.getByTestId("contact-team")).not.toContainText("Administration");
 });
 
-test("la demande de licence mobile conserve ses guillemets français avec un titre compact", async ({ page }) => {
+test("la demande de licence conserve ses guillemets français dans son titre accessible", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/contact?track=c09811fbd340c24551e1c542a5591171");
-  const title = page.locator("main h1");
+  const title = page.getByRole("heading", { level: 1, name: /Low Baller/, includeHidden: true });
   await expect(title).toContainText("Low Baller", { timeout: 30_000 });
+  await expect(title).toHaveClass(/sr-only/);
   expect((await title.textContent()) || "").toContain("« Low Baller »");
-  expect(Number.parseFloat(await title.evaluate((node) => getComputedStyle(node).fontSize))).toBeLessThanOrEqual(48);
-  expect(await title.evaluate((node) => node.scrollWidth <= node.clientWidth + 1)).toBe(true);
   const message = page.getByRole("textbox", { name: /Projet & licence/ });
   expect(Number.parseFloat(await message.evaluate((node) => getComputedStyle(node).fontSize))).toBeLessThanOrEqual(18);
 });
