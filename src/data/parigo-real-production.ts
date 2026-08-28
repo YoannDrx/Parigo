@@ -331,7 +331,7 @@ function itemReferences(item: ParigoRealProductionItem): ParigoGalleryReference[
 
 export const parigoRealGallery: ParigoGalleryImage[] = parigoRealProductionManifest.map((item, index) => {
   const exports = itemExports(item);
-  const hasCalibrationV2 = ["R01", "R02", "R03", "R14", "R15", "R32"].includes(item.code);
+  const hasCalibrationV2 = ["R01", "R02", "R03", "R14", "R15", "R29", "R30", "R32"].includes(item.code);
   return ({
     id: 101 + index,
     code: item.code,

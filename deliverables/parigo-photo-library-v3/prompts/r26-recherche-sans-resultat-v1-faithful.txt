@@ -1,0 +1,24 @@
+Use case: compositing
+Asset type: correction documentaire finale de R26 Parigo, format 4:3
+
+Input images:
+Image 1: edit target. Its current architecture, framing, window, blinds, exterior, left column, narrow left window slice, narrow right wall with plaster damage, table, blue armchairs, lighting and photographic finish must remain unchanged.
+Image 2: documentary insert reference only. It shows the two real bentwood chairs on the far/window side of the table that were accidentally omitted from Image 1.
+
+Primary request:
+Add back exactly the two real bentwood wooden chairs on the far side of the table, between the table and the window, matching their style, scale, spacing, perspective and placement from Image 2. Their curved wooden backrests should rise naturally above the far edge of the table, one left of center and one right of center, exactly as in the real photograph. Match the existing light, contact shadows, wood color and perspective of Image 1.
+
+Hard invariants:
+Change only the small region directly behind the far edge of the table where these two chair backs belong. Preserve everything else in Image 1 exactly: do not alter the left column, left blind slice, main window dimensions, blind slats or cords, exterior street view, sill, lower wall, outlets, narrow right wall, damaged plaster, table dimensions or texture, both blue armchairs, two near-side cane chairs, parquet, framing, lighting or color. Keep the table empty. No added props.
+
+Furniture count after edit:
+- exactly two blue upholstered armchairs, one at each side;
+- exactly two bentwood chairs on the far/window side, restored from the real reference;
+- exactly two cane/bentwood chairs on the near/camera side;
+- no other new furniture.
+
+Constraints:
+No people, reflections, silhouettes, garments, bags, laptop, headphones, magnifying glass, notebook, lamp, framed art, text, logo, interface or watermark.
+
+Avoid:
+Changing or widening either side wall, inventing a corner, inventing a second room, moving the table, replacing blue armchairs, deleting near-side chairs, adding more than two far-side chairs, changing the exterior, repairing plaster, regrading the image, CGI, 3D render or artificial symmetry.

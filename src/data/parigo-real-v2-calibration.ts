@@ -209,8 +209,8 @@ export const parigoRealCalibrationV2Manifest: CalibrationSeed[] = [
   },
 ];
 
-export const parigoRealCalibrationV2Gallery: ParigoGalleryImage[] =
-  parigoRealCalibrationV2Manifest.map((item, index) => {
+export const parigoRealCalibrationV2Gallery: ParigoGalleryImage[] = [
+  ...parigoRealCalibrationV2Manifest.map<ParigoGalleryImage>((item, index) => {
     const exports = itemExports(item);
     return {
       id: 201 + index,
@@ -240,7 +240,99 @@ export const parigoRealCalibrationV2Gallery: ParigoGalleryImage[] =
       status: "calibration",
       exports,
     };
-  });
+  }),
+  {
+    id: 207,
+    code: "R29",
+    familyCode: "R29",
+    version: 2,
+    versionKey: "R29-v2",
+    variantKind: "core",
+    isLatest: true,
+    supersedes: "R29-v1",
+    title: "L’atelier des droits",
+    src: "/images/editorial/parigo-real/v2/r29-atelier-des-droits-v2-1920x1080.avif",
+    aspect: "16:9",
+    category: "Pages",
+    usage: "Pages",
+    collection: "real",
+    sourceAnchor: source("plateau-bureau-vue-generale-img-1084.jpg"),
+    references: [
+      sourceReference("plateau-bureau-vue-generale-img-1084.jpg", "Photo d’ancrage — plateau Parigo", "ancrage"),
+      sourceReference("plateau-bureau-perspective-large-img-1086.jpg", "Référence de géométrie — perspective large", "géométrie"),
+      sourceReference("plateau-bureau-perspective-longue-img-1085.jpg", "Référence de géométrie — profondeur du plateau", "géométrie"),
+      sourceReference("table-reunion-devant-fenetre-img-1079.jpg", "Référence de détail — table de réunion", "détail"),
+    ],
+    prompt: `Use case: precise-object-edit
+Asset type: photographie éditoriale pour la page Licensing de Parigo Music
+
+Image 1 est la cible 16:9 et l’autorité unique pour le cadrage, la perspective, l’architecture, les ouvertures, les colonnes, les fenêtres, les stores, le parquet et le mobilier. Les autres images documentent uniquement la géométrie du vrai plateau.
+
+Préparer les vrais bureaux Parigo pour une discussion professionnelle autour du licensing et de la synchronisation. Retirer les personnes, manteaux, papiers temporaires, imprimante, écrans redondants, déchets et câbles parasites. Conserver l’orgue, les tables, bureaux, chaises, murs blancs et ouvertures dans leurs positions réelles. Ajouter uniquement un carnet noir fermé, un stylo et un casque avec des appuis et ombres crédibles.
+
+Photographie d’intérieur éditoriale contemporaine, lumière naturelle chaude provenant des vraies fenêtres, murs blanc cassé neutres, bois naturel, contraste doux et zone calme pour l’interface. Aucun écran fictif, waveform, timecode, texte, logo, pochette inventée, mobilier nouveau, architecture modifiée, personne, reflet humain, CGI, HDR ou watermark.`,
+    changeNotes: [
+      "Personnes, manteaux, imprimante et désordre temporaire retirés",
+      "Orgue, ouvertures, colonnes et implantation du mobilier préservés",
+      "Carnet, stylo et casque disposés sobrement pour l’usage Licensing",
+    ],
+    status: "approved",
+    exports: [
+      {
+        src: "/images/editorial/parigo-real/v2/r29-atelier-des-droits-v2-1920x1080.avif",
+        label: "Horizontal",
+        width: 1920,
+        height: 1080,
+      },
+    ],
+  } satisfies ParigoGalleryImage,
+  {
+    id: 208,
+    code: "R30",
+    familyCode: "R30",
+    version: 2,
+    versionKey: "R30-v2",
+    variantKind: "core",
+    isLatest: true,
+    supersedes: "R30-v1",
+    title: "Le palier au bleu du soir",
+    src: "/images/editorial/parigo-real/v2/r30-palier-bleu-du-soir-v2-1920x1080.avif",
+    aspect: "16:9",
+    category: "Pages",
+    usage: "Pages",
+    collection: "real",
+    sourceAnchor: source("palier-vers-bureau-img-1051.jpg"),
+    references: [
+      sourceReference("palier-vers-bureau-img-1051.jpg", "Photo d’ancrage — palier vers le bureau", "ancrage"),
+      sourceReference("bureau-depuis-palier-plantes-img-1052.jpg", "Référence de géométrie — plantes et garde-corps", "géométrie"),
+      sourceReference("bureau-depuis-palier-contexte-img-1053.jpg", "Référence de géométrie — passage vers le bureau", "géométrie"),
+      sourceReference("palier-escalier-fenetres-plan-large-img-1050.jpg", "Référence de géométrie — escalier et fenêtres", "géométrie"),
+      sourceReference("palier-escalier-fenetre-portrait-img-1049.jpg", "Référence de détail — fenêtre du palier", "détail"),
+    ],
+    prompt: `Use case: lighting-weather
+Asset type: photographie éditoriale pour la page 404 de Parigo Music
+
+Image 1 est la cible 16:9 et l’autorité unique pour le cadrage, la perspective, le garde-corps, l’escalier, les fenêtres, les stores, les plantes et le parquet. Les autres images documentent uniquement la géométrie réelle du palier.
+
+Transformer seulement la lumière et le désordre temporaire pour créer un début de soirée crédible. Retirer les câbles et petits objets parasites, entretenir légèrement les plantes existantes et mélanger un bleu extérieur discret avec les lampes chaudes réellement plausibles. Préserver chaque mur, colonne, ouverture, fenêtre, store, radiateur, garde-corps, main courante, plante, meuble et profondeur de la photo d’ancrage.
+
+Atmosphère calme, sophistiquée et légèrement cinématographique, jamais inquiétante. Aucun panneau, chiffre 404, texte, logo, nouvelle ouverture, plante dupliquée, garde-corps déformé, personne, reflet humain, CGI, HDR, vignettage noir ou watermark.`,
+    changeNotes: [
+      "Lumière de début de soirée, entre bleu extérieur et lampes chaudes",
+      "Garde-corps, fenêtres, stores, plantes et circulation intégralement préservés",
+      "Câbles et désordre temporaire retirés sans vider le lieu",
+    ],
+    status: "approved",
+    exports: [
+      {
+        src: "/images/editorial/parigo-real/v2/r30-palier-bleu-du-soir-v2-1920x1080.avif",
+        label: "Horizontal",
+        width: 1920,
+        height: 1080,
+      },
+    ],
+  } satisfies ParigoGalleryImage,
+];
 
 export const parigoRealCalibrationV3Gallery: ParigoGalleryImage[] = [
   {
