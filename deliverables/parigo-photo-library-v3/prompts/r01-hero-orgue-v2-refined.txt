@@ -1,0 +1,21 @@
+Use case: precise-object-edit
+Asset type: photographie éditoriale Web Parigo Music, image R01V2 destinée à un hero de site
+
+Input image:
+Image 1: edit target and absolute composition anchor. Preserve its framing, camera position, perspective, architecture, room proportions and recognizable identity.
+
+Primary request:
+Retoucher la photographie existante avec des changements localisés et photoréalistes.
+1. Au-dessus de l’orgue, conserver exactement les quatre premières pochettes visibles depuis la gauche, dans le même ordre, avec leurs artworks, couleurs, proportions et textes existants. Supprimer entièrement la cinquième pochette située tout à droite. Il doit rester exactement quatre pochettes, naturellement alignées au-dessus de l’orgue, sans nouvelle pochette ni artwork inventé.
+2. Réorienter le MacBook posé sur le bureau pour que son écran et son clavier soient vraiment face à la chaise en bois derrière le bureau, comme pour une personne assise à cette chaise. Conserver un ordinateur réaliste, bien posé et à une distance d’usage naturelle ; ne pas le placer au bord.
+3. Ajouter une jolie lampe de bureau compacte et élégante sur le plateau, placée à l’intérieur du bureau et jamais près du bord. Esthétique sobre, chaleureuse, légèrement années 1970, cohérente avec le bois et l’orgue ; elle ne doit ni masquer ni gêner le MacBook.
+4. Supprimer tous les petits magnets, badges ou pastilles rondes fixés sur la colonne porteuse blanche centrale. Conserver la colonne exactement au même endroit, avec une surface blanche propre et crédible.
+5. Réchauffer modérément la pièce avec davantage de lumière naturelle dorée venant des fenêtres et une lumière de lampe jaune chaude autour de 3000–3200 K. Le parquet doit refléter subtilement la lumière et briller légèrement, avec son grain réel toujours visible. Le bois de l’orgue doit lui aussi capter une lueur chaude et un lustre discret, sans devenir verni artificiellement.
+
+Style/medium: photographie d’architecture intérieure haut de gamme, strictement photoréaliste, chaleureuse, musicale, sophistiquée et habitée sans désordre. Grain fin discret, netteté naturelle, hautes lumières organiques, contraste doux, murs blancs crédibles.
+
+Composition/framing: conserver exactement le plan large 16:9, l’orgue à droite, le bureau à gauche, la colonne au centre, les fenêtres, le garde-corps, le banc, la chaise, les plantes et toutes les relations spatiales.
+
+Constraints: effectuer uniquement les changements demandés. Préserver l’orgue à deux claviers, ses commandes, son pédalier, sa patine, son banc, le bureau, la chaise, le parquet, les stores, les ouvertures, les colonnes et le garde-corps. Exactement quatre pochettes au total et uniquement les quatre premières de l’image source. Aucun humain, reflet humain, silhouette, main ou fragment de corps. Aucun texte ajouté, faux logo, interface ou watermark.
+
+Avoid: cinquième pochette, pochette supplémentaire, artwork fusionné ou inventé, magnets ou badges sur la colonne, lampe au bord du bureau, ordinateur orienté vers la caméra plutôt que vers la chaise, architecture modifiée, pièce agrandie, mobilier déplacé, lumière orange excessive, filtre sépia, HDR, CGI, rendu 3D, parquet miroir, accessoires flottants, objets sans ombre de contact.

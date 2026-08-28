@@ -18,7 +18,8 @@ test("préserve les concepts et expose le jalon versionné sans indexation", asy
   await expect(page.locator("#image-r01-v2")).toContainText("Hero — l’orgue dans les vrais locaux");
   await expect(page.locator("#image-r05-v1")).toContainText("Détail signature de l’orgue");
   await expect(page.locator("#image-r36-v1")).toContainText("Close-up bureau, prix et Parigo");
-  await expect(page.getByRole("button", { name: "V3 · 0", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "V3 · 1", exact: true })).toBeEnabled();
+  await expect(page.locator("#image-r14-v3")).toContainText("Forgot Password — The Trip ajustée");
   await expect(page.locator("body")).not.toContainText(/Downloads|Téléchargements|Parigo-references-IA/);
 });
 
@@ -29,8 +30,10 @@ test("filtre les campagnes et compare R01 V2 avec la V1 au clavier", async ({ pa
   await expect(page.locator("article")).toHaveCount(36);
   await page.getByRole("button", { name: "V2 · 6", exact: true }).click();
   await expect(page.locator("article")).toHaveCount(6);
-  await page.getByRole("button", { name: "Toutes · 42", exact: true }).click();
-  await expect(page.locator("article")).toHaveCount(42);
+  await page.getByRole("button", { name: "V3 · 1", exact: true }).click();
+  await expect(page.locator("#image-r14-v3")).toBeVisible();
+  await page.getByRole("button", { name: "Toutes · 43", exact: true }).click();
+  await expect(page.locator("article")).toHaveCount(43);
 
   await page.getByRole("button", { name: "Dernières · 36", exact: true }).click();
   await page.getByRole("button", { name: "Hero", exact: true }).click();

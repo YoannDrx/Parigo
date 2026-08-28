@@ -22,22 +22,24 @@ export default function AboutPage() {
   return (
     <InstitutionalShell title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")} showHero={false}>
       <section className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
-        <div className="about-story mx-auto max-w-[1540px] after:block after:clear-both after:content-['']">
-          <div className="parigo-frame relative mb-8 aspect-[4/3] overflow-hidden border border-[var(--line-strong)] lg:float-left lg:mb-5 lg:mr-8 lg:w-[55%] xl:mr-10 xl:w-[58%]">
+        <div className="about-story mx-auto grid max-w-[1540px] gap-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:items-start lg:gap-10 xl:gap-14">
+          <figure className="parigo-frame relative flex aspect-[4/5] w-full items-center justify-center overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] lg:h-[calc(100dvh-var(--space-page-top)-1.5rem)] lg:max-h-[860px] lg:w-auto">
             <Image
-              src="/images/synchros/le-monde-de-demain2.jpg"
-              alt="Le Monde de demain — Parigo"
+              src="/images/editorial/parigo-selected/r14-v3-forgot-password-1200x1500.avif"
+              alt="L’orgue des bureaux Parigo avec le trophée Mark Awards et la pochette The Trip"
               fill
               loading="eager"
-              sizes="(max-width: 1023px) 100vw, 58vw"
-              className="object-cover grayscale transition duration-1000 hover:grayscale-0"
+              sizes="(max-width: 1023px) 100vw, 52vw"
+              className="object-contain"
             />
-          </div>
-          <SignedTitle as="h1" className="font-[var(--font-editorial)] text-5xl font-normal leading-[.93] tracking-[-.05em] md:text-6xl lg:text-7xl">
-            {locale === "fr" ? "Une librairie avant tout" : "A music library first"}
-          </SignedTitle>
-          <div className="mt-7 space-y-5 text-[1.02rem] leading-relaxed text-[var(--text-muted)] lg:mt-8">
-            {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          </figure>
+          <div className="min-w-0 lg:pt-2">
+            <SignedTitle as="h1" className="font-[var(--font-editorial)] text-5xl font-normal leading-[.93] tracking-[-.05em] md:text-6xl lg:text-[clamp(3.5rem,5vw,5.75rem)]">
+              {locale === "fr" ? "Une librairie avant tout" : "A music library first"}
+            </SignedTitle>
+            <div className="mt-7 space-y-5 text-[1.02rem] leading-relaxed text-[var(--text-muted)] lg:mt-8">
+              {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+            </div>
           </div>
         </div>
       </section>

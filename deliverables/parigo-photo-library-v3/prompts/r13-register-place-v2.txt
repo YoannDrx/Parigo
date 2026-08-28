@@ -1,0 +1,13 @@
+Use case: precise-object-edit
+Asset type: photographie éditoriale verticale pour Reset Password et Change Password.
+
+Image 1 : R13V1, cible d’édition et ancrage absolu de composition.
+Image 2 : vrai cadre Parigo vert avec l’illustration du couple, du dalmatien et du sac PARIGO.
+Image 3 : master officiel 3000×3000 de la pochette Egocentric Visuo-Spatial Perspective par Hexahedre, provenant du portfolio Carreau.
+
+Modifier uniquement deux zones :
+
+1. Remplacer le graphisme de l’objet violet posé près du bord droit de la table par la pochette officielle Hexahedre. Conserver sa position, son échelle et son orientation. La matérialité doit être celle d’une véritable pochette de vinyle 12 pouces extrêmement fine, environ 2–3 mm, posée à plat, avec une tranche en carton très fine et une ombre de contact discrète. Aucun dos de livre, aucune page, aucune reliure, aucune épaisseur de cahier.
+2. Remplacer uniquement le cadre géométrique mural par le vrai cadre Parigo : cadre fin vert sourd, grand passe-partout blanc et illustration existante du couple avec le dalmatien et le sac PARIGO. Respecter la position, l’échelle, la perspective du mur et l’ombre de contact du cadre d’origine.
+
+Invariants : conserver exactement fenêtre, stores, vue extérieure, murs, ouverture, table, MacBook, casque, carnet brun, stylo noir, chaises, parquet, cadrage, perspective, lumière, colorimétrie et profondeur de champ. Aucun humain réel, reflet, silhouette, objet ajouté, faux texte, faux logo, watermark, HDR, CGI ou dominante orange.

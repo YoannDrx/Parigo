@@ -1,0 +1,23 @@
+Use case: precise-object-edit
+Asset type: correction finale ultra-localisée du MacBook dans R01V2
+
+Input image:
+Image 1: edit target and absolute visual anchor.
+
+Primary request:
+Déplacer et aligner le MacBook ouvert pour créer un poste de travail réellement frontal avec la chaise en bois derrière le bureau.
+
+Critère visuel obligatoire — occlusion :
+Depuis le point de vue exact de la caméra, le dossier de la chaise doit être centré directement derrière le dos de l’écran du MacBook. Le dos de l’écran doit masquer la partie centrale du dossier de chaise. Le dossier ne doit plus apparaître uniquement à gauche du MacBook. On peut voir une petite quantité symétrique de chaise de chaque côté du MacBook, mais l’écran et la chaise doivent clairement se chevaucher dans la projection de l’image. Cette superposition prouve que le MacBook est directement devant la chaise et non placé sur le côté.
+
+Orientation obligatoire :
+Le MacBook est ouvert et parfaitement face à la personne assise. Le plan de l’écran est parallèle au dossier de la chaise. Le clavier est centré entre la chaise et l’écran. Aucune rotation latérale, aucun angle de trois quarts, aucune présentation de profil. Une personne assise regarde le milieu de l’écran sans tourner la tête ou le buste. Depuis l’avant du bureau, le dos de l’écran apparaît droit, équilibré et presque symétrique, avec le logo centré.
+
+Position :
+Déplacer franchement le MacBook vers la gauche, jusqu’à recouvrir visuellement le centre du dossier de la chaise. Ne pas déplacer la chaise. Si nécessaire, décaler très légèrement la lampe vers la droite tout en la gardant bien à l’intérieur du plateau, afin de libérer le poste de travail.
+
+Constraints:
+Changer uniquement le MacBook, éventuellement la position de la lampe, et les minuscules zones de plateau sous eux. Conserver absolument tout le reste : chaise et bureau immobiles, quatre pochettes, orgue, banc, parquet, colonne blanche, fenêtres, stores, garde-corps, plantes, lumière chaude, reflets, cadrage et architecture. Exactement quatre pochettes. Aucun nouvel objet, humain, texte ajouté ou watermark.
+
+Avoid:
+Dossier de chaise visible seulement à gauche ou seulement à droite du MacBook, MacBook décalé latéralement, MacBook en biais, MacBook de profil, écran tourné vers le côté, ordinateur fermé, chaise déplacée, cinquième pochette, modification de l’orgue ou de la scène, CGI ou rendu 3D.

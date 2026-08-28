@@ -1,0 +1,2770 @@
+{
+  "version": 3,
+  "generatedAt": "2026-08-27T19:46:18.829Z",
+  "shots": [
+    {
+      "id": "R01",
+      "slug": "hero-orgue",
+      "title": "Hero — l'orgue dans les vrais locaux",
+      "purpose": "Homepage hero",
+      "format": "16:9",
+      "variants": [
+        "portrait-dedicated"
+      ],
+      "composition": "Plan large avec l'orgue à droite et une respiration calme centre-gauche. Préserver le grand volume réel et l'axe du plateau.",
+      "cleanup": [
+        "tour PC",
+        "multiprises",
+        "câbles en amas",
+        "désordre de bureau",
+        "toute présence humaine"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "V1083@1.5s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1083-1.5s-orgue-plateau.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1048",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-plan-large-piece-img-1048.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-contexte-bureau-img-1047.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1081",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-orgue-plan-large-img-1081.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-large-img-1086.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1038",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-profil-gauche-pedalier-img-1038.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "remove",
+          "token": "1046",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-profil-gauche-tour-pc-img-1046.jpg"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "V1083@1.5s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1083-1.5s.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1048",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1048.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1047.png"
+        },
+        {
+          "role": "detail",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1036.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "pilot-pending"
+    },
+    {
+      "id": "R02",
+      "slug": "plateau-editorial",
+      "title": "Grand plateau éditorial",
+      "purpose": "Architecture / espaces",
+      "format": "16:9",
+      "variants": [
+        "panoramic"
+      ],
+      "composition": "Grand plan du plateau réel, mobilier existant rangé, espace central lisible et perspective strictement identique à l'ancrage.",
+      "cleanup": [
+        "personnes",
+        "ventilateur",
+        "manteaux",
+        "cartons",
+        "papiers excessifs",
+        "écrans dominants"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-large-img-1086.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-longue-img-1085.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-vue-generale-img-1084.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-vitrine-img-1073.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-vers-bureau-img-1051.jpg"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1086.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1085.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1084.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1073.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1051.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "pilot-pending"
+    },
+    {
+      "id": "R03",
+      "slug": "facade-angle",
+      "title": "Façade d'angle Parigo",
+      "purpose": "Contact / localisation",
+      "format": "16:9",
+      "variants": [
+        "portrait-dedicated"
+      ],
+      "composition": "Façade d'angle exacte, pan coupé et continuité des deux rues conservés. Nettoyage urbain retenu et végétation existante simplement entretenue.",
+      "cleanup": [
+        "personnes",
+        "vélos",
+        "encombrements temporaires",
+        "salissures",
+        "graffitis parasites"
+      ],
+      "additions": [
+        "végétation existante légèrement entretenue"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1067",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/04-exterieur-facade/facade-angle-entree-img-1067.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1068",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/04-exterieur-facade/facade-angle-droit-img-1068.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1069",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/04-exterieur-facade/facade-face-large-img-1069.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1070",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/04-exterieur-facade/facade-angle-portrait-img-1070.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1071",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/04-exterieur-facade/facade-contexte-rue-plan-large-img-1071.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1066",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/04-exterieur-facade/facade-face-velos-img-1066.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1074@20.5s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1074-20.5s-facade-rues.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "plaque-rue-remy-dumoncel-detail.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/09-images-fixes-videos/plaque-rue-remy-dumoncel-detail.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1067",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1067.png"
+        },
+        {
+          "role": "detail",
+          "token": "plaque-rue-remy-dumoncel-detail.jpg",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/plaque-rue-remy-dumoncel-detail.jpg.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1068",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1068.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1069",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1069.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R04",
+      "slug": "login-entree",
+      "title": "Login — entrer dans les bureaux",
+      "purpose": "Authentification",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Circulation réelle de la table vers l'entrée avec zone calme à gauche pour une interface superposée ultérieurement, sans générer cette interface.",
+      "cleanup": [
+        "personnes",
+        "imprimante dominante",
+        "manteaux",
+        "ventilateur",
+        "matériel temporaire"
+      ],
+      "additions": [
+        "carnet fermé",
+        "stylo discret"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-vitrine-img-1073.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-large-img-1086.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@28s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1076-28s-entree-circulation.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1080.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1073.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R05",
+      "slug": "orgue-commandes",
+      "title": "Signature de l'orgue",
+      "purpose": "Close-up signature",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Gros plan parfaitement fidèle des deux claviers et commandes. Aucun objet ajouté et aucun marquage réinventé.",
+      "cleanup": [
+        "poussière superficielle",
+        "reflets parasites"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-claviers-vue-plongeante-img-1039.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1042",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-gauche-detail-img-1042.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1043",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-centre-detail-img-1043.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1064",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-intermezzo-detail-img-1064.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1065",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-temptation-detail-img-1065.jpg"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "detail",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1039.png"
+        },
+        {
+          "role": "detail",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1036.png"
+        },
+        {
+          "role": "detail",
+          "token": "1042",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1042.png"
+        },
+        {
+          "role": "detail",
+          "token": "1043",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1043.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "pilot-pending"
+    },
+    {
+      "id": "R06",
+      "slug": "a-propos-orgue-pochettes",
+      "title": "À propos — orgue et pochettes",
+      "purpose": "Page À propos",
+      "format": "16:9",
+      "variants": [
+        "portrait-dedicated"
+      ],
+      "composition": "Orgue réel dans la pièce avec trois pochettes officielles, à l'échelle et physiquement posées sans masquer les commandes.",
+      "cleanup": [
+        "personnes",
+        "tour PC",
+        "câbles en amas",
+        "pochettes photographiées basse définition"
+      ],
+      "additions": [
+        "trois pochettes HD officielles"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "V1091@1.2s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1091-1.2s-orgue-pochettes.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1093",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-face-contexte-img-1093.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1088",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-face-large-img-1088.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "acid-body-music.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/acid-body-music.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "une-derniere-fois.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/une-derniere-fois.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "videoclub.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/videoclub.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "V1091@1.2s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1091-1.2s.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1093",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1093.png"
+        },
+        {
+          "role": "cover",
+          "token": "OFFICIAL-COVER-BOARD:R06",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/r06-official-cover-board.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R07",
+      "slug": "salle-reunion-fenetres",
+      "title": "Salle de réunion devant les fenêtres",
+      "purpose": "Espaces",
+      "format": "16:9",
+      "variants": [],
+      "composition": "Vraie table devant les stores, chaises existantes rangées et ouvertures inchangées.",
+      "cleanup": [
+        "personnes",
+        "manteaux",
+        "papiers",
+        "écrans"
+      ],
+      "additions": [
+        "lampe existante ou discrète"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-vitrine-img-1073.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1080.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1073.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R08",
+      "slug": "palier-escalier",
+      "title": "Palier et escalier lumineux",
+      "purpose": "Espaces",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Garde-corps noir, fenêtres, stores et ombres rayées conservés. Une seule plante existante peut être mise en valeur.",
+      "cleanup": [
+        "objets temporaires",
+        "personnes"
+      ],
+      "additions": [
+        "plante existante entretenue"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1050",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-escalier-fenetres-plan-large-img-1050.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1049",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-escalier-fenetre-portrait-img-1049.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-vers-bureau-img-1051.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1052",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-depuis-palier-plantes-img-1052.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1053",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-depuis-palier-contexte-img-1053.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1077@6s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1077-6s-palier-entree.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1050",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1050.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1049",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1049.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1051.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1052",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1052.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R09",
+      "slug": "bureau-depuis-entree",
+      "title": "Bureau depuis l'entrée",
+      "purpose": "Espaces",
+      "format": "16:9",
+      "variants": [],
+      "composition": "Axe réel depuis l'entrée vers l'orgue et le plateau, profondeur dégagée sans déplacement de mobilier majeur.",
+      "cleanup": [
+        "personnes",
+        "écrans dominants",
+        "câbles",
+        "papiers"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-vitrine-img-1073.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-vue-generale-img-1084.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-large-img-1086.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-vers-bureau-img-1051.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1081",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-orgue-plan-large-img-1081.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1073.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1084.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1086.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R10",
+      "slug": "meuble-rouge-noir",
+      "title": "Meuble rouge et noir",
+      "purpose": "Nature morte",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Nature morte sobre sur le vrai meuble rouge et noir avec une seule pochette Velodrome.",
+      "cleanup": [
+        "câbles",
+        "fournitures temporaires",
+        "personnes"
+      ],
+      "additions": [
+        "une pochette HD Velodrome"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1054",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/meuble-rouge-noir-et-orgue-img-1054.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1033",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-profil-dans-bureau-img-1033.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-contexte-bureau-img-1047.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@7s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1076-7s-meuble-orgue.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophees-metal-groupe-face-img-1061.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "velodrome.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/velodrome.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1054",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1054.png"
+        },
+        {
+          "role": "detail",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1061.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1033",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1033.png"
+        },
+        {
+          "role": "cover",
+          "token": "velodrome.jpg",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/velodrome.jpg.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R11",
+      "slug": "orgue-selection-pochettes",
+      "title": "Orgue avec sélection de pochettes",
+      "purpose": "Pochettes 33 tours",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Orgue frontal exact avec trois pochettes distinctes ; aucune commande masquée.",
+      "cleanup": [
+        "câbles",
+        "tour PC",
+        "pochettes basse définition"
+      ],
+      "additions": [
+        "trois pochettes HD officielles"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1088",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-face-large-img-1088.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1087",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-angle-droit-img-1087.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1093",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-face-contexte-img-1093.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "mustang-force.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/mustang-force.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "ny-parigo.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/ny-parigo.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "the-trip.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/the-trip.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1088",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1088.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1087",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1087.png"
+        },
+        {
+          "role": "cover",
+          "token": "OFFICIAL-COVER-BOARD:R11",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/r11-official-cover-board.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R12",
+      "slug": "trophees-parigo",
+      "title": "Trophées Parigo",
+      "purpose": "Nature morte institutionnelle",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Les trois trophées réels sur la vraie table, proportions et gravures conservées, aucune récompense inventée.",
+      "cleanup": [
+        "personnes",
+        "fond parasite",
+        "traces superficielles"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophees-metal-groupe-face-img-1061.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1062",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophees-metal-groupe-gauche-img-1062.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1063",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophees-metal-groupe-droit-img-1063.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1055",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophee-metal-01-face-img-1055.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1057",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophee-metal-02-face-img-1057.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1059",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophee-metal-03-face-img-1059.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1061.png"
+        },
+        {
+          "role": "detail",
+          "token": "1055",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1055.png"
+        },
+        {
+          "role": "detail",
+          "token": "1057",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1057.png"
+        },
+        {
+          "role": "detail",
+          "token": "1059",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1059.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R13",
+      "slug": "register-place",
+      "title": "Register — une place vous attend",
+      "purpose": "Authentification",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Vraie table avec une chaise légèrement tirée, un carnet et un stylo. Composition accueillante sans symbole d'inscription.",
+      "cleanup": [
+        "personnes",
+        "désordre"
+      ],
+      "additions": [
+        "carnet",
+        "stylo"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1080.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R14",
+      "slug": "forgot-password",
+      "title": "Forgot password — orgue, trophée et The Trip",
+      "purpose": "Authentification",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Conserver exactement la composition R14 V2 : orgue vertical et trophée réel. Remplacer uniquement la pochette Une Dernière Fois et son support décalé par une pochette carrée The Trip dont l'artwork coïncide parfaitement avec les quatre bords physiques.",
+      "cleanup": [
+        "ancienne pochette Une Dernière Fois",
+        "support beige décalé",
+        "double bord"
+      ],
+      "additions": [
+        "pochette HD officielle The Trip"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "R14-V2",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/07-rendus-maitres/v2/R14-forgot-password-v2-master.png"
+        },
+        {
+          "role": "cover",
+          "token": "the-trip.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/the-trip.jpg"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "R14-V2",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/r14-v2.png"
+        },
+        {
+          "role": "cover",
+          "token": "the-trip.jpg",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/the-trip.jpg.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R15",
+      "slug": "reset-password",
+      "title": "Reset password — autre famille de commandes",
+      "purpose": "Authentification",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Autre famille de commandes réelles, aucun faux voyant, écran, texte ou câble.",
+      "cleanup": [
+        "poussière",
+        "reflets"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1065",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-temptation-detail-img-1065.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1042",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-gauche-detail-img-1042.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-claviers-vue-plongeante-img-1039.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1065",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1065.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "detail",
+          "token": "1042",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1042.png"
+        },
+        {
+          "role": "detail",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1039.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R16",
+      "slug": "verification-reussie",
+      "title": "Vérification réussie",
+      "purpose": "Authentification",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Un trophée réel unique sur la vraie table, lumière chaleureuse mais sobre, aucun pictogramme.",
+      "cleanup": [
+        "personnes",
+        "fond parasite"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1055",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophee-metal-01-face-img-1055.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1056",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophee-metal-01-angle-img-1056.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1055",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1055.png"
+        },
+        {
+          "role": "detail",
+          "token": "1056",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1056.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R17",
+      "slug": "lien-expire",
+      "title": "Lien expiré — orgue au repos",
+      "purpose": "Authentification",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Orgue réel au repos avec grande respiration murale, lumière douce jamais anxiogène.",
+      "cleanup": [
+        "câbles",
+        "désordre",
+        "personnes"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1040",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-plan-large-mur-img-1040.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-contexte-bureau-img-1047.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1040",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1040.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1036.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1047.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R18",
+      "slug": "aucune-playlist",
+      "title": "Aucune playlist",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Compartiment du vrai meuble rouge et noir laissé vide ; l'espace libre est le sujet.",
+      "cleanup": [
+        "objets du compartiment",
+        "câbles",
+        "personnes"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1054",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/meuble-rouge-noir-et-orgue-img-1054.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1033",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-profil-dans-bureau-img-1033.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-contexte-bureau-img-1047.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@7s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1076-7s-meuble-orgue.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1054",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1054.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1033",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1033.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1047.png"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@7s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1076-7s.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R19",
+      "slug": "aucun-favori",
+      "title": "Aucun favori",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Vraie table dégagée, chaises conservées et une lampe discrète. Aucun symbole littéral.",
+      "cleanup": [
+        "personnes",
+        "documents"
+      ],
+      "additions": [
+        "lampe discrète"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-vitrine-img-1073.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1080.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1073.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R20",
+      "slug": "aucun-telechargement",
+      "title": "Aucun téléchargement",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Orgue et pédalier réels, propres et au repos ; aucune flèche ou métaphore numérique.",
+      "cleanup": [
+        "tour PC",
+        "câbles",
+        "personnes"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1038",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-profil-gauche-pedalier-img-1038.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1045",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-angle-droit-sans-pochettes-img-1045.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1038",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1038.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1036.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1045",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1045.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R21",
+      "slug": "aucun-historique",
+      "title": "Aucun historique",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Orgue éteint et carnet fermé sur un meuble voisin, aucune horloge ou métaphore littérale.",
+      "cleanup": [
+        "câbles",
+        "personnes"
+      ],
+      "additions": [
+        "carnet fermé"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1040",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-plan-large-mur-img-1040.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-contexte-bureau-img-1047.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1036.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1040",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1040.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1047.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R22",
+      "slug": "shortlist-vide",
+      "title": "Shortlist vide",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Table réelle dégagée avec deux séparateurs vierges maximum et aucun texte.",
+      "cleanup": [
+        "personnes",
+        "documents"
+      ],
+      "additions": [
+        "deux séparateurs vierges maximum"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1080.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R23",
+      "slug": "recherche-sauvegardee-vide",
+      "title": "Aucune recherche sauvegardée",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Bureau réel nettoyé avec carnet fermé et beaucoup de respiration.",
+      "cleanup": [
+        "personnes",
+        "écrans dominants",
+        "papiers"
+      ],
+      "additions": [
+        "carnet fermé"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-longue-img-1085.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-large-img-1086.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-vue-generale-img-1084.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1085.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1086.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1084.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R24",
+      "slug": "aucun-tag",
+      "title": "Aucun tag",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Rangement réel avec séparateurs vierges, sans étiquette ni texte inventé.",
+      "cleanup": [
+        "personnes",
+        "cartons",
+        "câbles en amas",
+        "objets temporaires"
+      ],
+      "additions": [
+        "séparateurs vierges"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "V1077@13s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1077-13s-rangements.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1053",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-depuis-palier-contexte-img-1053.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-vers-bureau-img-1051.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1077@10s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1077-10s-bureau-palier.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "V1077@13s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1077-13s.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1053",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1053.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1051.png"
+        },
+        {
+          "role": "geometry",
+          "token": "V1077@10s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1077-10s.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R25",
+      "slug": "aucune-communication",
+      "title": "Aucune communication",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Téléphone vintage crédible et carnet fermé sur le vrai meuble, sans message ni texte.",
+      "cleanup": [
+        "câbles",
+        "objets temporaires",
+        "personnes"
+      ],
+      "additions": [
+        "téléphone vintage",
+        "carnet fermé"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1054",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/meuble-rouge-noir-et-orgue-img-1054.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1033",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-profil-dans-bureau-img-1033.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@7s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1076-7s-meuble-orgue.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1054",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1054.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1033",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1033.png"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@7s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1076-7s.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R26",
+      "slug": "recherche-sans-resultat",
+      "title": "Recherche sans résultat",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Vide central clairement lisible sur la vraie table avec les chaises conservées.",
+      "cleanup": [
+        "personnes",
+        "documents"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1080.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R27",
+      "slug": "similarite-sans-resultat",
+      "title": "Similarité sans résultat",
+      "purpose": "Empty state",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Orgue exact sans écran, texte ou symbole d'IA, avec une zone calme pour un message ultérieur.",
+      "cleanup": [
+        "tour PC",
+        "câbles",
+        "personnes"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1045",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-angle-droit-sans-pochettes-img-1045.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-claviers-vue-plongeante-img-1039.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1045",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1045.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1036.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1039.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R28",
+      "slug": "contact",
+      "title": "Contact",
+      "purpose": "Page Contact",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Vrai bureau près de l'entrée avec téléphone et carnet, accueillant sans faux logo.",
+      "cleanup": [
+        "personnes",
+        "imprimante dominante",
+        "manteaux"
+      ],
+      "additions": [
+        "téléphone vintage",
+        "carnet"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-vitrine-img-1073.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@28s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1076-28s-entree-circulation.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1080.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1073.png"
+        },
+        {
+          "role": "geometry",
+          "token": "V1076@28s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1076-28s.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R29",
+      "slug": "licensing-synchronisation",
+      "title": "Licensing et synchronisation",
+      "purpose": "Page Licensing",
+      "format": "16:9",
+      "variants": [],
+      "composition": "Plateau professionnel rangé avec un seul écran discret, aucun faux logiciel ou waveform.",
+      "cleanup": [
+        "personnes",
+        "désordre",
+        "écrans multiples"
+      ],
+      "additions": [
+        "casque",
+        "carnet"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-vue-generale-img-1084.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-large-img-1086.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-longue-img-1085.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-entree-img-1072.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1073",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-vue-depuis-vitrine-img-1073.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1084.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1086",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1086.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1085.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1072",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1072.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R30",
+      "slug": "404-erreur-globale",
+      "title": "404 et erreur globale",
+      "purpose": "État exceptionnel",
+      "format": "16:9",
+      "variants": [],
+      "composition": "Passage réel vers le bureau, légèrement assombri mais jamais inquiétant, avec grande zone calme.",
+      "cleanup": [
+        "personnes",
+        "désordre",
+        "câbles"
+      ],
+      "additions": [],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-vers-bureau-img-1051.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1052",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/bureau-depuis-palier-plantes-img-1052.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1050",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-escalier-fenetres-plan-large-img-1050.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1049",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/palier-escalier-fenetre-portrait-img-1049.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "V1077@6s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1077-6s-palier-entree.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1051",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1051.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1052",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1052.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1050",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1050.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1049",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1049.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R02",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r02-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R31",
+      "slug": "mur-pochettes-parigo",
+      "title": "Mur de pochettes Parigo",
+      "purpose": "Pochettes / communication",
+      "format": "16:9",
+      "variants": [
+        "portrait-dedicated"
+      ],
+      "composition": "Quatre cadres fins formant un seul groupe sur le vrai mur blanc, sans boiserie ou décor inventé.",
+      "cleanup": [
+        "personnes",
+        "tour PC",
+        "câbles",
+        "désordre"
+      ],
+      "additions": [
+        "quatre cadres fins avec pochettes HD"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "V1083@1.5s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/video-stills/v1083-1.5s-orgue-plateau.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-contexte-bureau-img-1047.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1048",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-plan-large-piece-img-1048.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "acid-body-music.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/acid-body-music.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "egocentric-visuo-spatial-perspective.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/egocentric-visuo-spatial-perspective.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "hand-funktion.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/hand-funktion.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "velodrome.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/velodrome.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "V1083@1.5s",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/v1083-1.5s.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1047",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1047.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1048",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1048.png"
+        },
+        {
+          "role": "cover",
+          "token": "OFFICIAL-COVER-BOARD:R31",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/r31-official-cover-board.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R32",
+      "slug": "table-editoriale-pochettes-trophees",
+      "title": "Table éditoriale, pochettes et trophée",
+      "purpose": "Pochettes / communication",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Quatre pochettes distinctes et un seul trophée réel sur la vraie table, composition aérée.",
+      "cleanup": [
+        "personnes",
+        "documents"
+      ],
+      "additions": [
+        "quatre pochettes HD",
+        "un trophée réel"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1080",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/espace-reunion-vers-entree-img-1080.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophees-metal-groupe-face-img-1061.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1055",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophee-metal-01-face-img-1055.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "videoclub.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/videoclub.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "une-derniere-fois.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/une-derniere-fois.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "ny-parigo.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/ny-parigo.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "the-trip.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/the-trip.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "detail",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1061.png"
+        },
+        {
+          "role": "detail",
+          "token": "1055",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1055.png"
+        },
+        {
+          "role": "cover",
+          "token": "OFFICIAL-COVER-BOARD:R32",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/r32-official-cover-board.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R33",
+      "slug": "orgue-plan-moyen-avec-pochette",
+      "title": "Orgue — plan moyen avec pochette",
+      "purpose": "Studio",
+      "format": "4:5",
+      "variants": [],
+      "composition": "Plan moyen avec vrai banc rectangulaire brun chromé et une seule pochette Acid Body Music.",
+      "cleanup": [
+        "tour PC",
+        "câbles",
+        "personnes"
+      ],
+      "additions": [
+        "une pochette HD Acid Body Music"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1030",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-face-portrait-img-1030.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1093",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-face-contexte-img-1093.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "acid-body-music.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/acid-body-music.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1030",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1030.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1093",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1093.png"
+        },
+        {
+          "role": "cover",
+          "token": "acid-body-music.jpg",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/acid-body-music.jpg.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R01",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r01-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R34",
+      "slug": "orgue-closeup-avec-pochette",
+      "title": "Orgue — close-up avec pochette",
+      "purpose": "Studio",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Close-up plus large que R05 avec une seule pochette Hand Funktion posée sans masquer les commandes.",
+      "cleanup": [
+        "poussière",
+        "reflets"
+      ],
+      "additions": [
+        "une pochette HD Hand Funktion"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1031",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/02-orgue-et-pochettes/orgue-pochettes-face-rapprochee-img-1031.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-claviers-vue-plongeante-img-1039.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1036",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-face-complete-img-1036.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/01-orgue-reference/orgue-commandes-claviers-detail-img-1044.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "hand-funktion.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/hand-funktion.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1031",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1031.png"
+        },
+        {
+          "role": "detail",
+          "token": "1044",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1044.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1039",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1039.png"
+        },
+        {
+          "role": "cover",
+          "token": "hand-funktion.jpg",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/hand-funktion.jpg.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R35",
+      "slug": "closeup-bureau-vinyles",
+      "title": "Close-up bureau et vinyles",
+      "purpose": "Pochettes / communication",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Bureau vivant et tactile avec trois pochettes, casque et carnet, sans surcharge ni orgue dans le cadrage.",
+      "cleanup": [
+        "personnes",
+        "documents temporaires",
+        "câbles en amas"
+      ],
+      "additions": [
+        "casque",
+        "carnet",
+        "trois pochettes HD"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-perspective-longue-img-1085.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-vue-generale-img-1084.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1058",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophee-metal-02-angle-img-1058.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "hand-funktion.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/hand-funktion.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "videoclub.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/videoclub.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "une-derniere-fois.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/une-derniere-fois.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1085",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1085.png"
+        },
+        {
+          "role": "detail",
+          "token": "1058",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1058.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1084.png"
+        },
+        {
+          "role": "cover",
+          "token": "OFFICIAL-COVER-BOARD:R35",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/r35-official-cover-board.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    },
+    {
+      "id": "R36",
+      "slug": "closeup-bureau-prix-parigo",
+      "title": "Bureau institutionnel et prix Parigo",
+      "purpose": "Pochettes / communication",
+      "format": "4:3",
+      "variants": [],
+      "composition": "Deux vrais trophées, deux pochettes officielles et l'illustration existante sur un vrai bureau, sans surcharge.",
+      "cleanup": [
+        "personnes",
+        "documents temporaires",
+        "câbles en amas"
+      ],
+      "additions": [
+        "deux pochettes HD",
+        "deux trophées réels"
+      ],
+      "references": [
+        {
+          "role": "anchor",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/trophees-metal-groupe-face-img-1061.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/table-reunion-devant-fenetre-img-1079.jpg"
+        },
+        {
+          "role": "geometry",
+          "token": "1084",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/03-locaux-et-circulation/plateau-bureau-vue-generale-img-1084.jpg"
+        },
+        {
+          "role": "detail",
+          "token": "1096",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/05-objets-et-decoration/illustration-encadree-femme-chien-img-1096.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "egocentric-visuo-spatial-perspective.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/egocentric-visuo-spatial-perspective.jpg"
+        },
+        {
+          "role": "cover",
+          "token": "mustang-force.jpg",
+          "path": "/Users/yoannandrieux/Downloads/Parigo-references-IA/08-pochettes-hd/mustang-force.jpg"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "generationReferences": [
+        {
+          "role": "anchor",
+          "token": "1061",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1061.png"
+        },
+        {
+          "role": "detail",
+          "token": "1096",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1096.png"
+        },
+        {
+          "role": "geometry",
+          "token": "1079",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/1079.png"
+        },
+        {
+          "role": "cover",
+          "token": "OFFICIAL-COVER-BOARD:R36",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/sources/normalized/r36-official-cover-board.png"
+        },
+        {
+          "role": "style",
+          "token": "STYLE:R05",
+          "path": "/Users/yoannandrieux/Projets/parigo/deliverables/parigo-photo-library-v3/masters/r05-style-pilot-v3-master.png"
+        }
+      ],
+      "candidateCount": 2,
+      "status": "blocked-by-pilot"
+    }
+  ]
+}

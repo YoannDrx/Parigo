@@ -4,6 +4,7 @@ import { MoodsPhotoGallery } from "@/components/moods/MoodsPhotoGallery";
 import { parigoImageGallery } from "@/data/parigo-image-gallery";
 import {
   PARIGO_REAL_FAMILY_COUNT,
+  PARIGO_REAL_V3_CALIBRATION_COUNT,
   PARIGO_REAL_VERSION_COUNT,
   parigoRealVersionedGallery,
 } from "@/data/parigo-real-v2-calibration";
@@ -56,7 +57,7 @@ export default function MoodsPhotosPage() {
       </section>
 
       <footer className="border-t border-[#332b21] px-4 py-8 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-[#777064] sm:px-8">
-        Parigo Music · Moods photos · {parigoImageGallery.length} concepts IA · {PARIGO_REAL_FAMILY_COUNT} familles de locaux réels · {PARIGO_REAL_VERSION_COUNT} versions historisées
+        Parigo Music · Moods photos · {parigoImageGallery.length} concepts IA · {PARIGO_REAL_FAMILY_COUNT} familles de locaux réels · {PARIGO_REAL_VERSION_COUNT} versions historisées · {PARIGO_REAL_V3_CALIBRATION_COUNT} V3
       </footer>
     </main>
   );

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import Image from "next/image";
+import { getImageProps } from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, LogIn, UserPlus } from "lucide-react";
 import { LoginForm } from "@/components/features/LoginForm";
@@ -15,15 +15,62 @@ export type AuthSwitcherView = "login" | "register";
 const authHeroImages = [
   {
     view: "login",
-    src: "/images/editorial/parigo-spaces/31-login-studio-entrance.avif",
+    desktopSrc: "/images/editorial/parigo-selected/r02-v1-login-1200x1500.avif",
+    mobileSrc: "/images/editorial/parigo-selected/r02-v1-login-1448x1086.avif",
     objectPosition: "center",
   },
   {
     view: "register",
-    src: "/images/editorial/parigo-spaces/32-register-place-waiting.avif",
-    objectPosition: "center 42%",
+    desktopSrc: "/images/editorial/parigo-selected/r15-v1-register-1200x1500.avif",
+    mobileSrc: "/images/editorial/parigo-selected/r15-v1-register-1440x900.avif",
+    objectPosition: "center",
   },
 ] as const;
+
+function AuthHeroArtwork({
+  image,
+  isActive,
+}: {
+  image: (typeof authHeroImages)[number];
+  isActive: boolean;
+}) {
+  const common = {
+    alt: "",
+    sizes: "(max-width: 767px) 100vw, 50vw",
+  };
+  const {
+    props: { srcSet: desktopSrcSet },
+  } = getImageProps({
+    ...common,
+    src: image.desktopSrc,
+    width: 1200,
+    height: 1500,
+  });
+  const {
+    props: { srcSet: mobileSrcSet, ...mobileProps },
+  } = getImageProps({
+    ...common,
+    src: image.mobileSrc,
+    width: image.view === "login" ? 1448 : 1440,
+    height: image.view === "login" ? 1086 : 900,
+  });
+
+  return (
+    <picture>
+      <source media="(min-width: 768px)" srcSet={desktopSrcSet} />
+      <source media="(max-width: 767px)" srcSet={mobileSrcSet} />
+      <img
+        {...mobileProps}
+        alt=""
+        aria-hidden="true"
+        loading={isActive ? "eager" : "lazy"}
+        fetchPriority={isActive ? "high" : "auto"}
+        className="absolute inset-0 h-full w-full object-cover"
+        style={{ objectPosition: image.objectPosition }}
+      />
+    </picture>
+  );
+}
 
 interface AuthSwitcherProps {
   initialView?: AuthSwitcherView;
@@ -125,15 +172,7 @@ export function AuthSwitcher({
               animate={{ opacity: isActive ? 1 : 0 }}
               transition={{ duration: .65, ease: [.22, 1, .36, 1] }}
             >
-              <Image
-                src={image.src}
-                alt=""
-                fill
-                priority
-                sizes="(max-width: 767px) 100vw, 50vw"
-                className="object-cover"
-                style={{ objectPosition: image.objectPosition }}
-              />
+              <AuthHeroArtwork image={image} isActive={isActive} />
             </motion.div>
           );
         })}

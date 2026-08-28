@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { ResetPasswordExperience } from "@/components/features/ResetPasswordExperience";
 
 export default async function LegacyResetPasswordPage({ params }: { params: Promise<{ token: string }> }) {
-  redirect(`/reset-password?token=${encodeURIComponent((await params).token)}`);
+  return (
+    <Suspense>
+      <ResetPasswordExperience initialToken={(await params).token} />
+    </Suspense>
+  );
 }
