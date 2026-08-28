@@ -368,11 +368,53 @@ test("les relations manuelles publient les clips sur chaque profil compositeur c
   await expect(page.getByTestId("composer-clips-section")).toHaveCount(0);
 });
 
-test("les relations clip sont réciproques et peuvent publier plusieurs talents", async ({ page }) => {
+test("les relations clip sont réciproques et séparent le talent de l’album sur mobile", async ({ page }, testInfo) => {
   await page.goto("/clips/yt-wrO96WV69aY");
   const minimaticRelations = page.getByTestId("clip-talents-section");
+  const minimaticAlbum = page.getByTestId("clip-album-section");
   await expect(minimaticRelations.getByRole("link", { name: /Minimatic/ })).toHaveAttribute("href", "/talents/minimatic");
-  await expect(page.getByTestId("clip-album-section")).toContainText("PGO0050");
+  await expect(minimaticAlbum).toContainText("PGO0050");
+
+  const relationSpacing = await page.getByTestId("clip-relations").evaluate((relationsSection) => {
+    const detailPanel = document.querySelector<HTMLElement>('[data-testid="clip-detail-panel"]')!;
+    const talentHeading = relationsSection.querySelector<HTMLElement>('h2')!;
+    const relationsStyle = getComputedStyle(relationsSection);
+    const relationsBox = relationsSection.getBoundingClientRect();
+    const panelBox = detailPanel.getBoundingClientRect();
+    const headingBox = talentHeading.getBoundingClientRect();
+    const borderTopWidth = Number.parseFloat(relationsStyle.borderTopWidth);
+    return {
+      beforeDivider: relationsBox.top - panelBox.bottom,
+      afterDivider: headingBox.top - relationsBox.top - borderTopWidth,
+      marginTop: Number.parseFloat(relationsStyle.marginTop),
+      paddingTop: Number.parseFloat(relationsStyle.paddingTop),
+    };
+  });
+  expect(Math.abs(relationSpacing.beforeDivider - relationSpacing.afterDivider)).toBeLessThanOrEqual(1);
+  expect(relationSpacing.beforeDivider).toBeCloseTo(relationSpacing.marginTop, 0);
+  expect(relationSpacing.afterDivider).toBeCloseTo(relationSpacing.paddingTop, 0);
+
+  const albumSpacing = await minimaticAlbum.evaluate((albumSection) => {
+    const albumStyle = getComputedStyle(albumSection);
+    const gridStyle = getComputedStyle(albumSection.parentElement!);
+    return {
+      borderTopWidth: Number.parseFloat(albumStyle.borderTopWidth),
+      marginTop: Number.parseFloat(albumStyle.marginTop),
+      paddingTop: Number.parseFloat(albumStyle.paddingTop),
+      rowGap: Number.parseFloat(gridStyle.rowGap),
+    };
+  });
+  if (testInfo.project.name === "mobile") {
+    expect(albumSpacing.borderTopWidth).toBeGreaterThan(0);
+    expect(albumSpacing.marginTop).toBe(relationSpacing.marginTop);
+    expect(albumSpacing.paddingTop).toBe(relationSpacing.paddingTop);
+    expect(albumSpacing.rowGap).toBe(0);
+  } else {
+    expect(albumSpacing.borderTopWidth).toBe(0);
+    expect(albumSpacing.marginTop).toBe(0);
+    expect(albumSpacing.paddingTop).toBe(0);
+    expect(albumSpacing.rowGap).toBeGreaterThan(0);
+  }
 
   await page.goto("/clips/yt-lsXj6hGHM-Q");
   const lofiRelations = page.getByTestId("clip-talents-section");

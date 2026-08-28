@@ -319,6 +319,49 @@ test("previous/next disparaît de toutes les fiches de détail", async ({ page }
   }
 });
 
+test("les retours des fiches détail partagent le même rythme mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Le rythme compact des retours est spécifique au mobile.");
+  test.setTimeout(120_000);
+
+  const routes = [
+    { path: "/talents/minimatic", content: ".composer-detail-hero" },
+    { path: "/clips/yt-wrO96WV69aY", content: ".editorial-detail-hero > div:first-child" },
+    { path: "/synchronisations/ajvhKSKcas8", content: 'section[aria-label="Lecteur vidéo"]' },
+    { path: "/albums/48b4b95fe1f09019", content: ".album-cover-frame" },
+    { path: "/playlists/22b6c3499f843b2d", content: ".editorial-detail-hero > div:first-child" },
+    { path: "/labels/0f9769346759ee5a", content: ".editorial-detail-hero > .parigo-frame" },
+  ];
+
+  for (const route of routes) {
+    await page.goto(route.path);
+    const backLink = page.locator(".contextual-back-link");
+    const content = page.locator(route.content).first();
+    await expect(backLink).toBeVisible({ timeout: 30_000 });
+    await expect(content).toBeVisible({ timeout: 30_000 });
+
+    const [headerBox, backBox, contentBox, expectedGap] = await Promise.all([
+      page.getByRole("navigation", { name: "Navigation principale" }).boundingBox(),
+      backLink.boundingBox(),
+      content.boundingBox(),
+      page.evaluate(() => {
+        const probe = document.createElement("div");
+        probe.style.position = "absolute";
+        probe.style.width = "var(--space-contextual-back-gap)";
+        document.body.append(probe);
+        const pixels = Number.parseFloat(getComputedStyle(probe).width);
+        probe.remove();
+        return pixels;
+      }),
+    ]);
+    expect(headerBox).not.toBeNull();
+    expect(backBox).not.toBeNull();
+    expect(contentBox).not.toBeNull();
+    expect(backBox!.height).toBeGreaterThanOrEqual(44);
+    expect(backBox!.y - (headerBox!.y + headerBox!.height), route.path).toBeCloseTo(expectedGap, 0);
+    expect(contentBox!.y - (backBox!.y + backBox!.height), route.path).toBeCloseTo(expectedGap, 0);
+  }
+});
+
 test("les pages d’information alignent leurs corners et retirent la signature géographique", async ({ page }) => {
   await page.goto("/privacy");
   await expect(page.locator("main")).not.toContainText("Parigo Music · Paris · France");
@@ -683,6 +726,7 @@ test("About adopte les nouveaux textes et Licensing ouvre sur une grille replié
   await expect(page.getByText("Besoin d’un chiffrage", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Grille indicative", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("heading", { name: "Un cadre lisible, projet par projet" })).toHaveCount(0);
+  await expect(page.getByText("À chaque projet, son cadre.", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Tarifs publics indicatifs", { exact: false })).toHaveCount(0);
   const rateButtons = page.locator('main button[aria-controls^="licensing-panel-"]');
   await expect(rateButtons).toHaveCount(6);
@@ -695,7 +739,7 @@ test("About adopte les nouveaux textes et Licensing ouvre sur une grille replié
   await page.goto("/about");
   await expect(page.locator(".page-hero")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1, name: "Une librairie avant tout" })).toBeVisible();
-  await expect(page.getByRole("img", { name: /trophée Mark Awards et la pochette The Trip/ })).toHaveAttribute("loading", "eager");
+  await expect(page.getByRole("img", { name: /bureaux Parigo baignés de lumière/ })).toHaveAttribute("loading", "eager");
   await expect(page.locator("main").getByText("À propos", { exact: true })).toHaveCount(0);
   await expect(page.locator("main").getByText("La musique, une affaire humaine", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Fondée en 2004, Parigo est une librairie musicale indépendante", { exact: false })).toBeVisible();
@@ -704,11 +748,11 @@ test("About adopte les nouveaux textes et Licensing ouvre sur une grille replié
   await expect(page.getByRole("link", { name: /Parler d.un projet/i })).toHaveCount(0);
 });
 
-test("About contient le portrait dans le viewport desktop puis l’empile sans crop", async ({ page }) => {
+test("About présente son paysage en 4/3 puis l’empile sur petit écran", async ({ page }) => {
   await page.setViewportSize({ width: 1100, height: 900 });
   await page.goto("/about");
 
-  const desktopImage = page.getByRole("img", { name: /trophée Mark Awards et la pochette The Trip/ });
+  const desktopImage = page.getByRole("img", { name: /bureaux Parigo baignés de lumière/ });
   const [desktopImageBox, desktopHeadingBox] = await Promise.all([
     desktopImage.boundingBox(),
     page.getByRole("heading", { level: 1, name: "Une librairie avant tout" }).boundingBox(),
@@ -717,11 +761,12 @@ test("About contient le portrait dans le viewport desktop puis l’empile sans c
   expect(desktopHeadingBox).not.toBeNull();
   expect(desktopImageBox!.y + desktopImageBox!.height).toBeLessThanOrEqual(901);
   expect(desktopHeadingBox!.x).toBeGreaterThan(desktopImageBox!.x + desktopImageBox!.width);
-  await expect(desktopImage).toHaveCSS("object-fit", "contain");
+  expect(Math.abs((desktopImageBox!.width / desktopImageBox!.height) - (4 / 3))).toBeLessThan(0.03);
+  await expect(desktopImage).toHaveCSS("object-fit", "cover");
 
   await page.setViewportSize({ width: 800, height: 900 });
   await page.reload();
-  const imageBox = await page.getByRole("img", { name: /trophée Mark Awards et la pochette The Trip/ }).boundingBox();
+  const imageBox = await page.getByRole("img", { name: /bureaux Parigo baignés de lumière/ }).boundingBox();
   const headingBox = await page.getByRole("heading", { level: 1, name: "Une librairie avant tout" }).boundingBox();
   expect(imageBox).not.toBeNull();
   expect(headingBox).not.toBeNull();
@@ -835,11 +880,12 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
   await expect(page.locator("main")).not.toContainText("Donnez le ton à vos images");
 });
 
-test("Contact présente le paysage complet dans une composition éditoriale compacte", async ({ page }) => {
+test("Contact ouvre sur une grande image des locaux puis aligne coordonnées et formulaire", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 800 });
   await page.goto("/contact");
   await expect(page.locator(".page-hero")).toHaveCount(0);
-  await expect(page.getByRole("heading", { level: 1, name: "Parlez-nous de l’image" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Parlez-nous de l’image", includeHidden: true })).toHaveClass(/sr-only/);
+  await expect(page.getByTestId("contact-title-card")).toHaveCount(0);
   await expect(page.getByText("Racontez-nous votre projet.", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Parigo Music", { exact: true }).last()).toBeVisible();
   const companyField = page.locator('input[name="company"]').locator("..");
@@ -849,33 +895,24 @@ test("Contact présente le paysage complet dans une composition éditoriale comp
   await expect(page.locator('input[type="file"]')).toHaveCount(0);
   const locationImage = page.getByTestId("contact-location-image");
   await expect(locationImage).toHaveAttribute("src", /r03-v1-contact-1672x941/);
-  await expect(locationImage).toHaveCSS("object-fit", "contain");
-  const [splitBox, imageBox] = await Promise.all([
+  await expect(locationImage).toHaveCSS("object-fit", "cover");
+  const [splitBox, imageBox, imageFrameBox, detailsBox, formBox] = await Promise.all([
     page.getByTestId("contact-split").boundingBox(),
     page.getByTestId("contact-location-image").boundingBox(),
-  ]);
-  expect(splitBox).not.toBeNull();
-  expect(imageBox).not.toBeNull();
-  expect(imageBox!.width).toBeLessThan(splitBox!.width * 0.7);
-  expect(imageBox!.width).toBeGreaterThan(splitBox!.width * 0.5);
-  expect(Math.abs((imageBox!.width / imageBox!.height) - (1672 / 941))).toBeLessThan(0.03);
-
-  const [titleCardBox, imageFrameBox, detailsBox, formBox] = await Promise.all([
-    page.getByTestId("contact-title-card").boundingBox(),
     page.getByTestId("contact-image-frame").boundingBox(),
     page.getByTestId("contact-details").boundingBox(),
     page.getByTestId("contact-main").boundingBox(),
   ]);
-  expect(titleCardBox).not.toBeNull();
+  expect(splitBox).not.toBeNull();
+  expect(imageBox).not.toBeNull();
   expect(imageFrameBox).not.toBeNull();
   expect(detailsBox).not.toBeNull();
   expect(formBox).not.toBeNull();
-  expect(Math.abs(titleCardBox!.y - imageFrameBox!.y)).toBeLessThanOrEqual(1);
-  expect(Math.abs(titleCardBox!.height - imageFrameBox!.height)).toBeLessThanOrEqual(1);
-  expect(Math.abs(titleCardBox!.x - detailsBox!.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(titleCardBox!.width - detailsBox!.width)).toBeLessThanOrEqual(1);
-  expect(Math.abs(imageFrameBox!.x - formBox!.x)).toBeLessThanOrEqual(1);
-  expect(Math.abs(imageFrameBox!.width - formBox!.width)).toBeLessThanOrEqual(1);
+  expect(Math.abs(imageBox!.width - imageFrameBox!.width)).toBeLessThanOrEqual(2);
+  expect(imageFrameBox!.width).toBeGreaterThanOrEqual(splitBox!.width - 1);
+  expect(imageFrameBox!.y + imageFrameBox!.height).toBeLessThan(splitBox!.y);
+  expect(Math.abs(detailsBox!.y - formBox!.y)).toBeLessThanOrEqual(1);
+  expect(formBox!.width).toBeGreaterThan(detailsBox!.width * 1.8);
 });
 
 test("la page Contact présente uniquement l’équipe Parigo demandée", async ({ page }) => {
@@ -892,6 +929,7 @@ test("la page Contact présente uniquement l’équipe Parigo demandée", async 
   await expect(team).not.toContainText("Une question urgente ? Appelez-nous :");
   const details = page.getByTestId("contact-details");
   await expect(details).toContainText("Une question urgente ? Appelez-nous :");
+  expect(await details.locator("span").filter({ hasText: "Une question urgente" }).textContent()).toContain("Appelez-nous\u00a0:");
   await expect(details).not.toContainText("Demandes de licence, recherches musicales et accompagnement éditorial.");
   const urgentPhone = details.getByRole("link", { name: "+33 (0)6 49 39 69 22" });
   await expect(urgentPhone).toHaveCSS("white-space", "nowrap");
