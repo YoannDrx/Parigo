@@ -327,7 +327,8 @@ test("Loïc Laporte, NSDOS et Kokane gardent leur portrait entier en liste et en
   for (const slug of ["loic-laporte", "nsdos", "kokane"]) {
     const card = page.locator(`a.composer-card[href="/talents/${slug}"]`);
     await expect(card).toBeVisible();
-    await expect(card.locator("img").last()).toHaveCSS("object-fit", "contain");
+    await expect(card.locator("img")).toHaveCount(1);
+    await expect(card.locator("img")).toHaveCSS("object-fit", "cover");
   }
 
   const loicCard = page.locator('a.composer-card[href="/talents/loic-laporte"]');
@@ -341,7 +342,7 @@ test("Loïc Laporte, NSDOS et Kokane gardent leur portrait entier en liste et en
     await page.goto(`/talents/${slug}`);
     const portrait = page.getByRole("img", { name });
     await expect(portrait).toBeVisible();
-    await expect(portrait).toHaveCSS("object-fit", "contain");
+    await expect(portrait).toHaveCSS("object-fit", "cover");
   }
 });
 

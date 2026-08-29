@@ -21,7 +21,7 @@ export default function LicensingPage() {
           <div data-testid="licensing-split">
             <div
               data-testid="licensing-title-card"
-              className="parigo-frame flex min-h-[26rem] flex-col justify-between border border-[var(--line-strong)] bg-[var(--surface)] p-6 sm:p-8 lg:min-h-[32rem] lg:p-12 xl:p-14"
+              className="parigo-frame flex flex-col border border-[var(--line-strong)] bg-[var(--surface)] p-6 sm:p-8 md:min-h-[26rem] md:justify-between lg:min-h-[32rem] lg:p-12 xl:p-14"
             >
               <SignedTitle
                 as="h1"
@@ -29,7 +29,7 @@ export default function LicensingPage() {
               >
                 {t("institutional.licensingTitle")}
               </SignedTitle>
-              <p className="mt-6 max-w-3xl text-sm leading-6 text-[var(--text-muted)] sm:mt-8 sm:text-base sm:leading-7 lg:mt-12 lg:text-lg lg:leading-8">
+              <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)] sm:mt-5 sm:text-base sm:leading-7 md:mt-8 lg:mt-12 lg:text-lg lg:leading-8">
                 {t("institutional.licensingIntro")}
               </p>
             </div>

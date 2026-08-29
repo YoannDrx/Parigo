@@ -230,12 +230,12 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await search.focus();
   await expect(submitSearch).toBeDisabled();
   expect(Number.parseFloat(await submitSearch.evaluate((node) => getComputedStyle(node).opacity))).toBeLessThan(0.5);
-  await expect.poll(() => searchBar.evaluate((node) => ({
-    topLeft: Number.parseFloat(getComputedStyle(node).borderTopLeftRadius),
-    topRight: Number.parseFloat(getComputedStyle(node).borderTopRightRadius),
-    bottomRight: Number.parseFloat(getComputedStyle(node).borderBottomRightRadius),
-    bottomLeft: Number.parseFloat(getComputedStyle(node).borderBottomLeftRadius),
-  }))).toEqual({ topLeft: 0, topRight: 16, bottomRight: 0, bottomLeft: 16 });
+  await expect.poll(() => searchBar.evaluate((node) => [
+    getComputedStyle(node).borderTopLeftRadius,
+    getComputedStyle(node).borderTopRightRadius,
+    getComputedStyle(node).borderBottomRightRadius,
+    getComputedStyle(node).borderBottomLeftRadius,
+  ].every((radius) => Number.parseFloat(radius) > 0))).toBe(true);
   const focusedFrame = await searchBar.evaluate((node) => ({
     boxShadow: getComputedStyle(node).boxShadow,
     before: getComputedStyle(node, "::before").content,
@@ -817,7 +817,10 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const showreelTitle = showreel.locator("h2").first();
   await expect(showreel).toBeVisible({ timeout: 30_000 });
   expect(await showreel.evaluate((node) => node.clientHeight)).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) * .95);
-  await expect(showreel.getByTestId("home-showreel-video")).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  const showreelVideo = showreel.getByTestId("home-showreel-video");
+  await expect(showreelVideo).not.toHaveAttribute("src");
+  await showreelTitle.scrollIntoViewIfNeeded();
+  await expect(showreelVideo.locator('source[media="(max-width: 767px)"]')).toHaveAttribute("src", "/videos/garden-of-eden-showreel-mobile.mp4");
   expect(Number.parseFloat(await showreelTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(48);
 
   await page.getByRole("tab", { name: "Playlists" }).click();
@@ -825,8 +828,6 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const carouselArrows = page.locator('button[aria-label="Précédent"], button[aria-label="Suivant"]');
   expect(await carouselArrows.count()).toBeGreaterThan(0);
   for (let index = 0; index < await carouselArrows.count(); index += 1) await expect(carouselArrows.nth(index)).toBeHidden();
-
-  await showreelTitle.scrollIntoViewIfNeeded();
 
   const process = page.locator("#process");
   await process.scrollIntoViewIfNeeded();
@@ -981,6 +982,7 @@ test("les rails reprennent le fond de leur section et adaptent leur espacement v
         section: getComputedStyle(node).backgroundColor,
         surface: getComputedStyle(document.querySelector<HTMLElement>("#featured")!).backgroundColor,
         rail: railNode ? getComputedStyle(railNode).backgroundColor : "",
+        railBottomBorder: railNode ? getComputedStyle(railNode).borderBottomWidth : "",
         viewport: viewportNode ? getComputedStyle(viewportNode).backgroundColor : "",
         paddingTop: viewportNode ? getComputedStyle(viewportNode).paddingTop : "",
         paddingBottom: viewportNode ? getComputedStyle(viewportNode).paddingBottom : "",
@@ -989,6 +991,7 @@ test("les rails reprennent le fond de leur section et adaptent leur espacement v
       };
     });
     expect(colors.rail).toBe(colors.section);
+    expect(colors.railBottomBorder).toBe("0px");
     expect(colors.viewport).toBe(colors.section);
     expect(colors.paddingTop).toBe("8px");
     expect(colors.paddingBottom).toBe(index === 0 ? "20px" : "0px");
@@ -1014,9 +1017,23 @@ test("le showreel occupe le viewport et ne contient plus l’effet de pochettes"
   await expect(section.getByText(/Parigo accompagne chaque année/i)).toHaveCount(0);
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
   const video = section.getByTestId("home-showreel-video");
-  await expect(video).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  await expect(video).not.toHaveAttribute("src");
+  await expect(video.locator('source[media="(max-width: 767px)"]')).toHaveAttribute("src", "/videos/garden-of-eden-showreel-mobile.mp4");
+  await expect(video.locator("source").last()).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
   await expect(video).toHaveAttribute("poster", "/images/home/garden-of-eden-poster.jpg");
   await expect(section.locator("iframe")).toHaveCount(0);
+});
+
+test("le showreel ne demande aucun MP4 avant d’approcher sa section", async ({ page }) => {
+  let videoRequests = 0;
+  await page.route("**/videos/garden-of-eden-showreel*.mp4", async (route) => {
+    videoRequests += 1;
+    await route.continue();
+  });
+  await page.goto("/");
+  await page.waitForTimeout(800);
+  expect(videoRequests).toBe(0);
+  await expect(page.getByTestId("home-showreel-video").locator("source")).toHaveCount(0);
 });
 
 test("le showreel charge le MP4 local et son contrôle sonore sans consentement marketing", async ({ page }) => {
@@ -1025,7 +1042,8 @@ test("le showreel charge le MP4 local et son contrôle sonore sans consentement 
   await section.scrollIntoViewIfNeeded();
   const player = section.getByTestId("home-showreel-video");
   await expect(player).toBeVisible();
-  await expect(player).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  await expect(player).not.toHaveAttribute("src");
+  await expect(player.locator("source")).toHaveCount(2);
   await expect(page.getByRole("button", { name: /Activer le son|Couper le son/ })).toBeVisible({ timeout: 30_000 });
 });
 

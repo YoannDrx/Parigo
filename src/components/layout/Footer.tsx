@@ -79,7 +79,7 @@ export function Footer() {
             <p className="mt-1 text-xs text-[var(--inverse-muted)]">{locale === "fr" ? "Parutions, images et actualités du label." : "Releases, images and label news."}</p>
           </div>
           <ul className="flex flex-wrap gap-1 md:col-span-7 md:justify-end" aria-label={locale === "fr" ? "Réseaux sociaux" : "Social media"}>
-            {SOCIAL_PLATFORMS.map(({ name, href, label }) => (
+            {SOCIAL_PLATFORMS.filter(({ name }) => name !== "Linktree").map(({ name, href, label }) => (
               <li key={name}>
                 <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label[locale]} className="flex h-11 w-11 items-center justify-center rounded-full border border-transparent opacity-70 transition duration-300 hover:-translate-y-1 hover:border-current/25 hover:bg-[var(--inverse-accent)] hover:text-[var(--surface-inverse)] hover:opacity-100 focus-visible:bg-[var(--inverse-accent)] focus-visible:text-[var(--surface-inverse)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--inverse-accent)]">
                   <SocialPlatformIcon name={name} width={17} height={17} />

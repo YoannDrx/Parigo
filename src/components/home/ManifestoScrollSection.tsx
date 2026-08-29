@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useInView } from "framer-motion";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ShowreelSoundButton,
   useShowreelAudio,
@@ -9,6 +9,7 @@ import {
 import { useHomeReducedMotion } from "./HomeMotion";
 
 const SHOWREEL_SOURCE = "/videos/garden-of-eden-showreel.mp4";
+const SHOWREEL_MOBILE_SOURCE = "/videos/garden-of-eden-showreel-mobile.mp4";
 const SHOWREEL_POSTER = "/images/home/garden-of-eden-poster.jpg";
 
 function ManifestoLine({ line }: { line: string }) {
@@ -35,6 +36,7 @@ function ManifestoLine({ line }: { line: string }) {
 export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   const sectionRef = useRef<HTMLElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [mediaEnabled, setMediaEnabled] = useState(false);
   const soundWasCenteredRef = useRef(false);
   const reduceMotion = useHomeReducedMotion();
   const inView = useInView(sectionRef, { amount: .08 });
@@ -60,8 +62,20 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
   }, [registerSection]);
 
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || mediaEnabled) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (!entry?.isIntersecting) return;
+      setMediaEnabled(true);
+      observer.disconnect();
+    }, { rootMargin: "100% 0px" });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, [mediaEnabled]);
+
+  useEffect(() => {
     const video = videoRef.current;
-    if (!video || reduceMotion) return;
+    if (!video || !mediaEnabled || reduceMotion) return;
     if (!inView) {
       video.pause();
       return;
@@ -78,7 +92,7 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
       await start();
     };
     void syncAndPlay();
-  }, [getCurrentTime, inView, reduceMotion, start]);
+  }, [getCurrentTime, inView, mediaEnabled, reduceMotion, start]);
 
   useEffect(() => {
     const updateSoundDock = () => {
@@ -118,9 +132,8 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
         <video
           ref={videoRef}
           data-testid="home-showreel-video"
-          src={SHOWREEL_SOURCE}
           poster={SHOWREEL_POSTER}
-          preload="metadata"
+          preload={mediaEnabled ? "metadata" : "none"}
           loop
           playsInline
           muted
@@ -130,7 +143,12 @@ export function ManifestoScrollSection({ locale }: { locale: "fr" | "en" }) {
           }}
           className="absolute inset-0 h-full w-full object-cover"
           aria-label={locale === "fr" ? "Showreel Garden of Eden" : "Garden of Eden showreel"}
-        />
+        >
+          {mediaEnabled && <>
+            <source src={SHOWREEL_MOBILE_SOURCE} media="(max-width: 767px)" type="video/mp4" />
+            <source src={SHOWREEL_SOURCE} type="video/mp4" />
+          </>}
+        </video>
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,.18),transparent_36%,rgba(0,0,0,.34))]" />
         <div className="relative z-10 mx-auto flex h-full max-w-[1800px] items-center px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
           <h2

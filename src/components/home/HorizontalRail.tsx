@@ -50,8 +50,8 @@ export function HorizontalRail({ children, label, wide = false, cinema = false, 
       <div ref={railRef} role="region" onScroll={updateBounds} className={cn("no-scrollbar grid snap-x snap-mandatory grid-flow-col gap-5 overflow-x-auto px-1 pt-2", tone === "surface" && "pb-5", cinema ? "auto-cols-[91%] sm:auto-cols-[72%] lg:auto-cols-[53%] xl:auto-cols-[43%]" : wide ? "auto-cols-[86%] md:auto-cols-[58%] xl:auto-cols-[42%]" : "auto-cols-[78%] sm:auto-cols-[44%] lg:auto-cols-[31%] xl:auto-cols-[23%]")} aria-label={label}>
         {children}
       </div>
-      <div className={cn("mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border-t pt-4 lg:mt-3 lg:grid-cols-[auto_1fr_auto] lg:gap-5 lg:pt-5", inverse ? "border-[color:color-mix(in_srgb,var(--inverse-foreground)_24%,transparent)]" : "border-[var(--line)]")}>
-        <span className={cn("home-rail__label font-mono text-[.58rem] font-semibold uppercase tracking-[.14em]", inverse ? "text-[color:color-mix(in_srgb,var(--inverse-foreground)_52%,var(--surface-inverse))]" : "text-[var(--text-muted)]")}>{label}</span>
+      <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 pt-4 lg:mt-3 lg:grid-cols-[auto_1fr_auto] lg:gap-5 lg:pt-5">
+        <span className={cn("home-rail__label font-mono text-[.58rem] font-semibold uppercase tracking-[.14em]", inverse ? "text-[var(--inverse-foreground)]" : "text-[var(--text-muted)]")}>{label}</span>
         <div aria-hidden="true" className={cn("relative h-[3px] overflow-hidden", inverse ? "bg-[color:color-mix(in_srgb,var(--inverse-foreground)_20%,transparent)]" : "bg-[var(--line)]")}><div style={{ transform: `scaleX(${bounds.overflow ? Math.max(.06, progress) : 1})` }} className="absolute inset-0 origin-left bg-[var(--signal)] transition-transform duration-300" /></div>
         <div className="home-rail-nav-group hidden items-center lg:flex">
           <Tooltip label={locale === "fr" ? "Précédent" : "Previous"}>

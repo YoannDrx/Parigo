@@ -58,14 +58,16 @@ test("le player se range sous la shortlist sans perdre sa piste ni ses liens", a
   const playerBox = await player.boundingBox();
   expect(playerBox).not.toBeNull();
   if (testInfo.project.name === "mobile") {
-    expect(playerBox!.width).toBeGreaterThanOrEqual(84);
-    expect(playerBox!.height).toBeGreaterThanOrEqual(88);
+    expect(playerBox!.width).toBeGreaterThanOrEqual(63);
+    expect(playerBox!.width).toBeLessThanOrEqual(65);
+    expect(playerBox!.height).toBeGreaterThanOrEqual(66);
+    expect(playerBox!.height).toBeLessThanOrEqual(70);
     const playTarget = await player.getByRole("button", { name: /pause/i }).boundingBox();
     const expandTarget = await player.getByRole("button", { name: "Déployer le lecteur" }).boundingBox();
-    expect(playTarget!.width).toBeGreaterThanOrEqual(44);
-    expect(playTarget!.height).toBeGreaterThanOrEqual(44);
-    expect(expandTarget!.width).toBeGreaterThanOrEqual(36);
-    expect(expandTarget!.height).toBeGreaterThanOrEqual(36);
+    expect(playTarget!.width).toBeGreaterThanOrEqual(35);
+    expect(playTarget!.height).toBeGreaterThanOrEqual(35);
+    expect(expandTarget!.width).toBeGreaterThanOrEqual(23);
+    expect(expandTarget!.height).toBeGreaterThanOrEqual(23);
     await player.getByRole("button", { name: /pause/i }).click();
     await expect(player).toHaveAttribute("data-player-state", "stowed");
     await expect(player).toHaveAttribute("data-playing", "false");
@@ -105,6 +107,24 @@ test("la file du player expose tous les titres avec le scroll adapté au viewpor
   await page.getByRole("button", { name: /^Écouter Piano documentaire 1/ }).click();
   const player = page.getByTestId("player-dock");
   await player.getByRole("button", { name: "Agrandir le lecteur" }).click();
+  const shuffle = player.getByRole("button", { name: "Lecture aléatoire" });
+  const repeat = player.getByRole("button", { name: /^Répétition/ });
+  const volume = player.getByRole("slider", { name: "Volume" });
+  if (testInfo.project.name === "mobile") {
+    await expect(volume).toBeHidden();
+  } else {
+    await expect(volume).toBeVisible();
+    const [shuffleBox, repeatBox, volumeBox] = await Promise.all([
+      shuffle.boundingBox(),
+      repeat.boundingBox(),
+      volume.boundingBox(),
+    ]);
+    expect(shuffleBox).not.toBeNull();
+    expect(repeatBox).not.toBeNull();
+    expect(volumeBox).not.toBeNull();
+    expect(Math.abs(shuffleBox!.y - repeatBox!.y)).toBeLessThanOrEqual(2);
+    expect(volumeBox!.y).toBeGreaterThan(shuffleBox!.y + shuffleBox!.height);
+  }
   const queue = player.getByTestId("player-queue");
   await expect(queue.locator(".parigo-player__queue-card")).toHaveCount(6);
   const dimensions = await queue.evaluate((node) => ({
@@ -282,17 +302,14 @@ test("la piste détaillée sépare titre, album et référence sans les tronquer
   const leftLedgerLabel = page.getByText("Titre · album · waveform", { exact: true });
   const rightLedgerLabel = page.getByText("Tags · ambiance · tempo · durée · actions", { exact: true });
   await expect(page.getByTestId("search-workspace")).toBeVisible();
+  await expect(leftLedgerLabel).toHaveCount(0);
+  await expect(rightLedgerLabel).toHaveCount(0);
   if (testInfo.project.name === "desktop") {
-    await expect(leftLedgerLabel).toBeVisible();
-    await expect(rightLedgerLabel).toBeVisible();
     const before = await row.evaluate((element) => getComputedStyle(element).backgroundImage);
     await row.hover();
     const after = await row.evaluate((element) => getComputedStyle(element).backgroundImage);
     expect(after).not.toBe(before);
     expect(after).toContain("0.15");
-  } else {
-    await expect(leftLedgerLabel).toBeHidden();
-    await expect(rightLedgerLabel).toBeHidden();
   }
 });
 
@@ -330,10 +347,11 @@ test("les ordinateurs compacts conservent toutes les actions et déploient le co
     });
 
     expect(layout.overflow, `débordement de la piste à ${width}px`).toBe(0);
-    expect(layout.labels, `actions visibles à ${width}px`).toHaveLength(12);
-    for (const label of ["favoris", "Informations", "similaires", "notes privées", "Télécharger", "playlist", "tag", "Cue sheet", "file d’attente", "shortlist", "Partager", "licence"]) {
+    expect(layout.labels, `actions visibles à ${width}px`).toHaveLength(11);
+    for (const label of ["favoris", "Informations", "similaires", "notes privées", "Télécharger", "playlist", "tag", "Cue sheet", "shortlist", "Partager", "licence"]) {
       expect(layout.labels.some((candidate) => candidate.toLocaleLowerCase("fr").includes(label.toLocaleLowerCase("fr"))), `${label} absente à ${width}px`).toBe(true);
     }
+    expect(layout.labels.some((candidate) => candidate.toLocaleLowerCase("fr").includes("file d’attente"))).toBe(false);
     expect(layout.labels.some((label) => label.includes("Plus d’actions"))).toBe(false);
 
     if (layout.row && layout.row.width <= 1152) {
@@ -380,7 +398,7 @@ test("les téléphones et tablettes tactiles gardent toutes les actions dans un 
     await trigger.click();
     const actions = page.getByRole("dialog", { name: `Actions de la piste : ${track.title}`, exact: true });
     await expect(actions).toBeVisible();
-    await expect(actions.locator(".track-mobile-action")).toHaveCount(11);
+    await expect(actions.locator(".track-mobile-action")).toHaveCount(10);
     const actionBounds = await actions.boundingBox();
     expect(actionBounds).not.toBeNull();
     expect(actionBounds!.x).toBeGreaterThanOrEqual(0);

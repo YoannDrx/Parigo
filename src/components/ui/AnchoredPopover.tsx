@@ -72,6 +72,12 @@ export function AnchoredPopover({
   useLayoutEffect(() => {
     if (!open) return;
     updatePosition();
+    const frame = window.requestAnimationFrame(() => {
+      popoverRef.current?.querySelector<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      )?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
   }, [open, updatePosition]);
 
   useEffect(() => {
@@ -81,18 +87,35 @@ export function AnchoredPopover({
       const target = event.target as Node;
       if (!anchorRef.current?.contains(target) && !popoverRef.current?.contains(target)) onClose();
     };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+    const handleKeyboard = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const focusable = [...(popoverRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ) ?? [])];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable.at(-1)!;
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("resize", reposition);
     window.addEventListener("scroll", reposition, true);
     document.addEventListener("pointerdown", closeOnPointerDown);
-    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("keydown", handleKeyboard);
     return () => {
       window.removeEventListener("resize", reposition);
       window.removeEventListener("scroll", reposition, true);
       document.removeEventListener("pointerdown", closeOnPointerDown);
-      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("keydown", handleKeyboard);
     };
   }, [anchorRef, onClose, open, updatePosition]);
 

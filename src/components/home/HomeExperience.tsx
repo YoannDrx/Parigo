@@ -86,7 +86,7 @@ export function HomeHero() {
   const title = locale === "fr" ? "Trouvez la bonne musique" : "Find the right music";
 
   return (
-    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 mt-[74px] flex min-h-[calc(100svh-74px)] items-center overflow-x-clip bg-[var(--surface)] px-4 py-10 md:px-8 md:py-12">
+    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 mt-[74px] flex min-h-[calc(100svh-74px)] items-start overflow-x-clip bg-[var(--surface)] px-4 pb-10 pt-[clamp(10rem,20svh,12rem)] md:items-center md:px-8 md:py-12">
       <HeroGradientBackdrop mode={searchMode} />
       <HomeHeroContent
         target={heroRef}
@@ -201,7 +201,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
               <HomeAboutImage />
               <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
               <div className="absolute inset-0 flex max-w-3xl flex-col justify-end px-6 pb-[clamp(2.5rem,8vw,4.5rem)] pt-6 text-white md:px-14 md:pb-[clamp(4rem,8vw,7rem)] md:pt-14 lg:px-20">
-                <div className="-translate-y-[clamp(.5rem,3vw,2.5rem)]">
+                <div className="-translate-y-8 md:-translate-y-[clamp(.5rem,3vw,2.5rem)]">
                   <HomeReveal origin="left" viewportAmount={0.35}><SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes nous ?" : "Who are we?"}</SignedTitle></HomeReveal>
                   <HomeReveal origin="bottom" delay={0.12} viewportAmount={0.35}><p className="mt-5 max-w-2xl text-base leading-7 text-white/88 md:mt-6 md:text-lg">{locale === "fr" ? "Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits. Télévision, cinéma, documentaires, publicité, podcasts, radio ou contenus digitaux : notre catalogue international et notre expertise de la synchronisation vous aident à trouver la musique idéale pour votre projet." : "Parigo helps image and sound professionals search for music and manage rights. Television, cinema, documentaries, advertising, podcasts, radio and digital content: our international catalogue and synchronisation expertise help you find the ideal music for your project."}</p></HomeReveal>
                 </div>
@@ -211,7 +211,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </SectionReveal>
         </section>
 
-        <section id="featured" className="overflow-x-clip border-y border-[var(--line)] bg-[var(--surface)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
+        <section id="featured" className="overflow-x-clip bg-[var(--surface)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
           <div className="mx-auto max-w-[1580px]">
             <SectionReveal origin="left" className="mb-[var(--space-heading-content)] flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div><SignedTitle as="h2" variant="section" className="max-w-[12ch] font-semibold">{locale === "fr" ? "À écouter maintenant." : "Listen now."}</SignedTitle></div>
@@ -282,7 +282,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
-        <section data-testid="home-clips-section" className="overflow-x-clip border-b border-[var(--line)] bg-[var(--background)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
+        <section data-testid="home-clips-section" className="overflow-x-clip bg-[var(--background)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
           <div className="mx-auto max-w-[1580px]">
             <SectionReveal origin="right" className="mb-[var(--space-heading-content)]">
               <div>

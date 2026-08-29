@@ -19,18 +19,37 @@ type DataSavingNavigator = Navigator & {
   connection?: EventTarget & { saveData?: boolean };
 };
 
-function useEnhancedGradient() {
+function useEnhancedGradient(reduceMotion: boolean) {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     const connection = (navigator as DataSavingNavigator).connection;
-    const update = () => setEnabled(
-      !connection?.saveData && supportsHardwareAcceleratedWebGl(),
-    );
+    const compactOrCoarse = window.matchMedia("(max-width: 767px), (pointer: coarse)");
+    let idleId: number | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    const update = () => {
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+      idleId = undefined;
+      timeoutId = undefined;
+      if (connection?.saveData || compactOrCoarse.matches || reduceMotion) {
+        setEnabled(false);
+        return;
+      }
+      const enable = () => setEnabled(supportsHardwareAcceleratedWebGl());
+      if ("requestIdleCallback" in window) idleId = window.requestIdleCallback(enable, { timeout: 1_500 });
+      else timeoutId = globalThis.setTimeout(enable, 700);
+    };
     update();
     connection?.addEventListener("change", update);
-    return () => connection?.removeEventListener("change", update);
-  }, []);
+    compactOrCoarse.addEventListener("change", update);
+    return () => {
+      connection?.removeEventListener("change", update);
+      compactOrCoarse.removeEventListener("change", update);
+      if (idleId !== undefined) window.cancelIdleCallback(idleId);
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, [reduceMotion]);
 
   return enabled;
 }
@@ -38,7 +57,7 @@ function useEnhancedGradient() {
 export function HeroGradientBackdrop({ mode: searchMode }: { mode: SearchMode }) {
   const { theme } = useTheme();
   const reduceMotion = useHomeReducedMotion();
-  const enhancedGradient = useEnhancedGradient();
+  const enhancedGradient = useEnhancedGradient(reduceMotion);
   const mode: HeroGradientMode = searchMode === "keyword" ? "catalog" : "ai";
   const presetName = `${mode}-${theme}`;
   const config = getHeroGradientPreset(theme, mode);

@@ -35,7 +35,8 @@ export function ThemeProvider({ children, initialTheme }: { children: ReactNode;
       window.dispatchEvent(new Event(THEME_EVENT));
     };
     const documentWithTransition = document as Document & { startViewTransition?: (callback: () => void) => void };
-    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && documentWithTransition.startViewTransition) {
+    const compactOrTouch = window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
+    if (!compactOrTouch && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && documentWithTransition.startViewTransition) {
       documentWithTransition.startViewTransition(apply);
     } else {
       apply();

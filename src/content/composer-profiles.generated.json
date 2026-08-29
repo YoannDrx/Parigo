@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-29T21:35:05.186Z",
+  "generatedAt": "2026-08-29T22:47:47.396Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -472,8 +472,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "center",
-        "fit": "contain"
+        "objectPosition": "50% 18%",
+        "fit": "cover"
       },
       "harvest": {
         "aliases": [
@@ -1157,8 +1157,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "center",
-        "fit": "contain"
+        "objectPosition": "50% 18%",
+        "fit": "cover"
       },
       "harvest": {
         "aliases": [
@@ -1992,8 +1992,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "center",
-        "fit": "contain"
+        "objectPosition": "50% 14%",
+        "fit": "cover"
       },
       "harvest": {
         "aliases": [

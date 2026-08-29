@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useSyncExternalStore } from "react";
+import { useState, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -25,6 +25,7 @@ import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { AnchoredPopover } from "@/components/ui/AnchoredPopover";
 
 const subscribeToHydration = () => () => undefined;
 
@@ -46,7 +47,7 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
   const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   const openLogin = () => {
     useAuthModalStore.getState().openLogin();
@@ -56,24 +57,10 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
     onNavigate?.();
   };
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setIsOpen(false);
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, []);
+  const closePopover = () => {
+    setIsOpen(false);
+    window.requestAnimationFrame(() => triggerRef.current?.focus());
+  };
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
@@ -163,10 +150,12 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
 
   const trigger = (
     <button
+      ref={triggerRef}
       data-testid="account-trigger"
       onClick={() => setIsOpen(!isOpen)}
       aria-label={isOpen ? `${t("common.close")} ${t("common.account")}` : `${t("common.open")} ${t("common.account")}`}
       aria-expanded={isOpen}
+      aria-controls={isOpen ? "account-navigation-popover" : undefined}
       className={compact ? "group/account nav-control flex min-h-11 w-11 items-center justify-center bg-transparent p-0" : "group/account flex min-h-12 items-center gap-3 border border-[var(--line)] bg-transparent px-3 transition hover:border-[var(--signal-strong)]"}
     >
       <AccountMark initials={initials} image={user.image} />
@@ -175,16 +164,19 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
   );
 
   return (
-    <div ref={menuRef} className="relative">
+    <div className="relative">
       {compact ? <Tooltip label={locale === "fr" ? "Mon compte" : "My account"} side="bottom">{trigger}</Tooltip> : trigger}
 
-        {isOpen && (
-          <div
-            data-testid="account-menu"
-            role="dialog"
-            aria-label={locale === "fr" ? "Navigation du compte" : "Account navigation"}
-            className="parigo-popover absolute right-0 z-50 mt-3 w-[min(23rem,calc(100vw-2rem))] origin-top-right animate-[fade-in_.2s_ease-out_both] overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]"
-          >
+        <AnchoredPopover
+          id="account-navigation-popover"
+          open={isOpen}
+          onClose={closePopover}
+          anchorRef={triggerRef}
+          label={locale === "fr" ? "Navigation du compte" : "Account navigation"}
+          width={368}
+          className="!p-0 origin-top-right animate-[fade-in_.2s_ease-out_both]"
+        >
+          <div data-testid="account-menu">
             <span aria-hidden="true" className="absolute right-6 top-0 h-[3px] w-20 bg-[var(--signal)]" />
             <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 px-5 pb-5 pt-6">
               <AccountMark initials={initials} image={user.image} large />
@@ -233,7 +225,7 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
               </button>
             </div>
           </div>
-        )}
+        </AnchoredPopover>
     </div>
   );
 }

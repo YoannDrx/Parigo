@@ -373,7 +373,7 @@ export function ShowreelAudioProvider({ children }: { children: ReactNode }) {
         ref={audioRef}
         data-testid="persistent-showreel-audio"
         src={SHOWREEL_SOURCE}
-        preload="metadata"
+        preload="none"
         loop
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}

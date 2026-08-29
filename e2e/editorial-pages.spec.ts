@@ -25,7 +25,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("le footer expose les huit plateformes officielles avec leurs URLs canoniques", async ({ page }) => {
+test("le footer expose les sept plateformes officielles sans Linktree", async ({ page }) => {
   await page.goto("/");
   const footer = page.locator("footer");
   const platforms = [
@@ -36,7 +36,6 @@ test("le footer expose les huit plateformes officielles avec leurs URLs canoniqu
     ["Parigo sur Bandcamp", "https://parigomusic.bandcamp.com/music"],
     ["Les playlists Parigo sur Spotify", "https://open.spotify.com/user/zy4tz4ibp2hi7qvf315g5dv85/playlists"],
     ["Parigo sur TikTok", "https://www.tiktok.com/@parigomusic"],
-    ["Tous les liens Parigo sur Linktree", "https://linktr.ee/parigomusicproduction"],
   ] as const;
   for (const [label, href] of platforms) {
     const link = footer.getByRole("link", { name: label });
@@ -44,6 +43,7 @@ test("le footer expose les huit plateformes officielles avec leurs URLs canoniqu
     await expect(link).toHaveAttribute("rel", "noopener noreferrer");
     await expect(link.locator("svg")).toHaveCount(1);
   }
+  await expect(footer.getByRole("link", { name: /Linktree/i })).toHaveCount(0);
 });
 
 test("les synchronisations restent contenues sur un écran de 320 px", async ({ page }) => {

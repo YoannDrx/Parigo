@@ -96,7 +96,7 @@ export function HomeHeroContent({
       data-testid="home-hero-content"
       data-home-hero-motion={reduceMotion ? "static" : "animated"}
       style={reduceMotion ? { y: 0, scale: 1 } : { y, scale }}
-      className="pointer-events-none relative mx-auto h-[25rem] w-full max-w-[1180px] text-center"
+      className="pointer-events-none relative mx-auto h-auto min-h-[25rem] w-full max-w-[1180px] text-center md:h-[25rem]"
     >
       <motion.div
         data-testid="home-hero-copy"

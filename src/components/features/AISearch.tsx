@@ -180,7 +180,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
           : similarityFile.error}
         onSelectSource={selectSimilaritySource}
         onSelectFiles={selectSimilarityFiles}
-        className="absolute inset-x-0 top-full mx-auto max-w-[58rem]"
+        className="relative mx-auto max-w-[58rem] md:absolute md:inset-x-0 md:top-full"
       /> : null}
 
       {showExamples ? (
