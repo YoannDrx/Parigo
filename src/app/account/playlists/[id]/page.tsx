@@ -299,7 +299,35 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
 
     {suggestionsEnabled && suggestionsOpen && <section className="parigo-frame border border-[var(--line-strong)] bg-[var(--surface)] p-6" aria-labelledby="suggestions-title"><div className="mb-5 flex items-start justify-between gap-5"><div><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "À partir de votre playlist" : "Based on your playlist"}</p><h2 id="suggestions-title" className="mt-2 font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Prolonger le récit." : "Extend the story."}</h2></div><button type="button" onClick={() => setSuggestionsOpen(false)} className="flex h-10 w-10 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer les suggestions" : "Close suggestions"}><X size={16} /></button></div>{suggestionsLoading ? <div className="flex min-h-36 items-center justify-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des suggestions" : "Loading suggestions"} /></div> : suggestionsError ? <div className="parigo-choice border border-[var(--line)] p-5"><p className="text-sm text-[var(--text-muted)]">{suggestionsError}</p><p className="mt-2 text-xs text-[var(--text-muted)]">{locale === "fr" ? "Cette fonction nécessite que la recommandation musicale soit activée sur votre compte." : "This feature requires music recommendations to be enabled on your account."}</p></div> : suggestions.length ? <div className="border-t border-[var(--line)]">{suggestions.map((track, index) => <div key={track.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center"><TrackRow track={track} album={albumFor(track)} index={index} queue={suggestions} density="mid" /><button type="button" onClick={() => void addSuggestion(track)} className="mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--signal-strong)] text-[var(--signal-strong)] transition hover:bg-[var(--signal-strong)] hover:text-white" aria-label={`${locale === "fr" ? "Ajouter à la playlist" : "Add to playlist"} : ${track.title}`}><Plus size={16} /></button></div>)}</div> : <p className="py-8 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune suggestion supplémentaire." : "No additional suggestion."}</p>}</section>}
 
-    {searchLoading ? <div className="flex min-h-40 items-center justify-center"><ParigoLoader size="compact" label={locale === "fr" ? "Recherche dans la playlist" : "Searching playlist"} /></div> : (searchResults ?? playlist.tracks).length ? <div className="parigo-frame border border-[var(--line)] bg-[var(--surface)]">{(searchResults ?? playlist.tracks).map((track, index) => <div key={track.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center"><TrackRow track={track} album={albumFor(track)} index={index} queue={searchResults ?? playlist.tracks} density="mid" />{!searchResults && <div className="flex"><button type="button" onClick={() => move(index, -1)} disabled={index === 0} className="h-10 w-10 disabled:opacity-25" aria-label={locale === "fr" ? "Monter" : "Move up"}><ArrowUp size={16} /></button><button type="button" onClick={() => move(index, 1)} disabled={index === playlist.tracks.length - 1} className="h-10 w-10 disabled:opacity-25" aria-label={locale === "fr" ? "Descendre" : "Move down"}><ArrowDown size={16} /></button><button type="button" onClick={() => void mutateTracks("remove", [track.id])} className="h-10 w-10 text-[var(--danger)]" aria-label={locale === "fr" ? "Retirer" : "Remove"}><X size={16} /></button></div>}</div>)}</div> : <p className="account-empty py-20 text-center text-[var(--text-muted)]">{searchResults ? (locale === "fr" ? "Aucune piste ne correspond à cette recherche." : "No track matches this search.") : (locale === "fr" ? "Cette playlist est vide. Ajoutez quelques titres avant de demander des suggestions." : "This playlist is empty. Add a few tracks before requesting suggestions.")}</p>}
+    {searchLoading ? (
+      <div className="flex min-h-40 items-center justify-center">
+        <ParigoLoader size="compact" label={locale === "fr" ? "Recherche dans la playlist" : "Searching playlist"} />
+      </div>
+    ) : (searchResults ?? playlist.tracks).length ? (
+      <div className="parigo-frame overflow-hidden border border-[var(--line)] bg-[var(--surface)]">
+        {(searchResults ?? playlist.tracks).map((track, index) => (
+          <TrackRow
+            key={track.id}
+            track={track}
+            album={albumFor(track)}
+            index={index}
+            queue={searchResults ?? playlist.tracks}
+            density="full"
+            mobileLayout="dense"
+            showWaveform={false}
+            managementActions={!searchResults ? (
+              <div className="flex w-full items-center justify-end gap-1" aria-label={locale === "fr" ? `Gérer ${track.title}` : `Manage ${track.title}`}>
+                <button type="button" onClick={() => move(index, -1)} disabled={index === 0} className="grid h-[2.8125rem] w-[2.8125rem] place-items-center border border-[var(--line)] transition hover:border-[var(--foreground)] disabled:opacity-25" aria-label={locale === "fr" ? "Monter" : "Move up"}><ArrowUp size={16} /></button>
+                <button type="button" onClick={() => move(index, 1)} disabled={index === playlist.tracks.length - 1} className="grid h-[2.8125rem] w-[2.8125rem] place-items-center border border-[var(--line)] transition hover:border-[var(--foreground)] disabled:opacity-25" aria-label={locale === "fr" ? "Descendre" : "Move down"}><ArrowDown size={16} /></button>
+                <button type="button" onClick={() => void mutateTracks("remove", [track.id])} className="grid h-[2.8125rem] w-[2.8125rem] place-items-center border border-[var(--danger)] text-[var(--danger)] transition hover:bg-[var(--danger)] hover:text-white" aria-label={locale === "fr" ? "Retirer" : "Remove"}><X size={16} /></button>
+              </div>
+            ) : undefined}
+          />
+        ))}
+      </div>
+    ) : (
+      <p className="account-empty py-20 text-center text-[var(--text-muted)]">{searchResults ? (locale === "fr" ? "Aucune piste ne correspond à cette recherche." : "No track matches this search.") : (locale === "fr" ? "Cette playlist est vide. Ajoutez quelques titres avant de demander des suggestions." : "This playlist is empty. Add a few tracks before requesting suggestions.")}</p>
+    )}
     <ParigoDialog open={renameOpen} onClose={() => { if (!dialogBusy) setRenameOpen(false); }} title={locale === "fr" ? "Renommer la playlist." : "Rename the playlist."} eyebrow={locale === "fr" ? "Titre de sélection" : "Selection title"} description={locale === "fr" ? "Le lien et les pistes restent inchangés ; seul le titre visible est mis à jour." : "The link and tracks stay unchanged; only the visible title is updated."} closeLabel={locale === "fr" ? "Fermer" : "Close"}>
       <form onSubmit={(event) => void rename(event)}>
         <label className="text-sm font-semibold"><span className="mb-2 block">{locale === "fr" ? "Nouveau nom" : "New name"}</span><Input autoFocus value={renameTitle} onChange={(event) => setRenameTitle(event.target.value)} maxLength={160} /></label>

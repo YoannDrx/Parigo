@@ -215,12 +215,22 @@ test("les playlists proposent une ligne compacte de facettes et uniquement le tr
   }
   const moodFilter = page.locator(".catalog-facet").filter({ hasText: "Ambiance" });
   await moodFilter.getByRole("button").first().click();
-  const firstInclude = moodFilter.getByRole("button", { name: /^Inclure / }).first();
+  const filterPanel = testInfo.project.name === "mobile" ? page.getByRole("dialog", { name: "Filtre Ambiance" }) : moodFilter;
+  if (testInfo.project.name === "mobile") {
+    await expect(filterPanel).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("fixed");
+    await expect(page.locator(".catalog-facet__mobile-backdrop")).toHaveCSS("backdrop-filter", /blur/);
+  }
+  const firstInclude = filterPanel.getByRole("button", { name: /^Inclure / }).first();
   const selectedMood = (await firstInclude.getAttribute("aria-label"))?.replace(/^Inclure /, "");
   await firstInclude.click();
   await expect(page.getByText("1 inclus · 0 exclus", { exact: true })).toBeVisible();
   if (selectedMood) await expect(page.getByRole("button", { name: `Retirer ${selectedMood}` })).toBeVisible();
   await page.keyboard.press("Escape");
+  if (testInfo.project.name === "mobile") {
+    await expect(filterPanel).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("");
+  }
   await expect(page.getByText(/Sélection par Hugo/i)).toHaveCount(0);
   await page.getByRole("button", { name: "Pistes", exact: true }).click();
   await expect(page).toHaveURL(/kind=tracks/);

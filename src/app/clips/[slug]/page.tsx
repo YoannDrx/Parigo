@@ -84,11 +84,7 @@ export default async function ClipPage({ params }: ClipPageProps) {
           </ContextualBackLink>
           <div className="editorial-detail-hero relative mt-[var(--space-contextual-back-gap)] grid gap-[var(--space-grid-x)] overflow-hidden md:mt-[var(--space-block-gap)] lg:grid-cols-12 lg:items-start">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
-              <div className="flex items-center justify-between border-b border-white/12 px-3 py-2.5 text-white/46">
-                <span className="font-mono text-[.54rem] uppercase tracking-[.14em]">Parigo screening room</span>
-                <span className="font-mono text-[.54rem]">16:9</span>
-              </div>
-              <div className="overflow-hidden rounded-b-[.7rem]">
+              <div className="overflow-hidden rounded-[.7rem]">
                 <ConsentAwareYouTubeEmbed
                   clip={{
                     slug: clip.slug,
@@ -120,8 +116,8 @@ export default async function ClipPage({ params }: ClipPageProps) {
           </div>
 
           {(relatedTalents.length > 0 || relatedAlbum) && (
-            <section data-testid="clip-relations" className="parigo-section-boundary">
-              <div className="grid gap-0 lg:grid-cols-12 lg:gap-[var(--space-block-gap)]">
+            <section data-testid="clip-relations" className="mt-[var(--detail-section-gap)]">
+              <div className="grid gap-[var(--detail-section-gap)] lg:grid-cols-12 lg:gap-[var(--space-block-gap)]">
                 {relatedTalents.length > 0 && (
                   <div data-testid="clip-talents-section" className={relatedAlbum ? "lg:col-span-8" : "lg:col-span-12"}>
                     <SignedTitle as="h2" variant="section" className="mb-[var(--space-heading-content)]">
@@ -150,7 +146,7 @@ export default async function ClipPage({ params }: ClipPageProps) {
                   <div
                     data-testid="clip-album-section"
                     className={relatedTalents.length > 0
-                      ? "parigo-section-boundary parigo-section-boundary--mobile lg:col-span-4"
+                      ? "lg:col-span-4"
                       : "lg:col-span-12 lg:max-w-sm"}
                   >
                     <SignedTitle as="h2" variant="section" className="mb-[var(--space-heading-content)]">{locale === "fr" ? "Album associé" : "Related album"}</SignedTitle>

@@ -60,14 +60,13 @@ export function SynchronisationsExperience({ synchronisations }: { synchronisati
                 image={sync.image}
                 title={sync.title}
                 client={sync.client}
-                detail={sync.year ? String(sync.year) : undefined}
                 className="sync-gallery-card"
                 sizes="(max-width:1024px) 100vw, 50vw"
               />
             ))}
           </div>
         ) : (
-          <div className="border-t border-[var(--line)]">{synchronisations.map((sync) => <Link key={sync.youtubeId} href={localizedPath(`/synchronisations/${sync.slug}`)} className="grid min-h-24 grid-cols-[7rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-3 sm:grid-cols-[10rem_minmax(0,1fr)_auto]"><div className="relative aspect-video overflow-hidden bg-black"><Image src={sync.image} alt="" fill sizes="160px" className="object-cover" /></div><div className="min-w-0"><h2 className="truncate text-xl font-semibold">{sync.title}</h2><p className="mt-1 truncate text-sm text-[var(--text-muted)]">{sync.client}</p></div><span className="pr-2 font-mono text-xs text-[var(--text-muted)]">{sync.year ?? "—"}</span></Link>)}</div>
+          <div className="border-t border-[var(--line)]">{synchronisations.map((sync) => <Link key={sync.youtubeId} href={localizedPath(`/synchronisations/${sync.slug}`)} className="grid min-h-24 grid-cols-[7rem_minmax(0,1fr)] items-center gap-4 border-b border-[var(--line)] py-3 sm:grid-cols-[10rem_minmax(0,1fr)]"><div className="relative aspect-video overflow-hidden bg-black"><Image src={sync.image} alt="" fill sizes="160px" className="object-cover" /></div><div className="min-w-0"><h2 className="truncate text-xl font-semibold">{sync.title}</h2><p className="mt-1 truncate text-sm text-[var(--text-muted)]">{sync.client}</p></div></Link>)}</div>
         )}
       </div>
     </main>

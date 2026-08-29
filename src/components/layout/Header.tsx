@@ -18,62 +18,6 @@ import { releaseBodyScrollLockBeforeNavigation, useBodyScrollLock } from "@/hook
 interface HeaderProps { variant?: "default" | "overlay"; }
 
 let persistedHeaderMenuOpen = false;
-const DRAWER_RETURN_STORAGE_KEY = "parigo-drawer-return";
-const DRAWER_RETURN_MAX_AGE_MS = 30 * 60 * 1000;
-type PendingDrawerReturn = {
-  path: string;
-  destinationPath: string;
-  scrollY: number;
-  savedAt: number;
-};
-let pendingDrawerReturn: PendingDrawerReturn | null = null;
-
-function clearPendingDrawerReturn() {
-  pendingDrawerReturn = null;
-  try {
-    window.sessionStorage.removeItem(DRAWER_RETURN_STORAGE_KEY);
-  } catch {
-    // The in-memory fallback still prevents a blocked storage backend from breaking navigation.
-  }
-}
-
-function readPendingDrawerReturn(): PendingDrawerReturn | null {
-  if (pendingDrawerReturn) return pendingDrawerReturn;
-  let stored: string | null = null;
-  try {
-    stored = window.sessionStorage.getItem(DRAWER_RETURN_STORAGE_KEY);
-  } catch {
-    return null;
-  }
-  if (!stored) return null;
-  try {
-    const parsed = JSON.parse(stored) as Partial<PendingDrawerReturn>;
-    if (
-      typeof parsed.path !== "string"
-      || typeof parsed.destinationPath !== "string"
-      || typeof parsed.scrollY !== "number"
-      || typeof parsed.savedAt !== "number"
-      || Date.now() - parsed.savedAt > DRAWER_RETURN_MAX_AGE_MS
-    ) {
-      clearPendingDrawerReturn();
-      return null;
-    }
-    pendingDrawerReturn = parsed as PendingDrawerReturn;
-    return pendingDrawerReturn;
-  } catch {
-    clearPendingDrawerReturn();
-    return null;
-  }
-}
-
-function savePendingDrawerReturn(value: PendingDrawerReturn) {
-  pendingDrawerReturn = value;
-  try {
-    window.sessionStorage.setItem(DRAWER_RETURN_STORAGE_KEY, JSON.stringify(value));
-  } catch {
-    // Keep the in-memory value when session storage is unavailable.
-  }
-}
 
 function LanguageLink({ className, children }: { className: string; children: ReactNode }) {
   const pathname = usePathname();
@@ -127,46 +71,6 @@ export function Header({ variant = "default" }: HeaderProps) {
     window.addEventListener("scroll", updateHeader, { passive: true });
     return () => window.removeEventListener("scroll", updateHeader);
   }, [open]);
-
-  useEffect(() => {
-    const restoreDrawerOrigin = () => {
-      const pending = readPendingDrawerReturn();
-      if (!pending) return;
-
-      let frame = 0;
-      let attempts = 0;
-      const restore = () => {
-        const currentPath = `${window.location.pathname}${window.location.search}`;
-        if (currentPath !== pending.path) {
-          if (currentPath !== pending.destinationPath) clearPendingDrawerReturn();
-          return;
-        }
-
-        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (maxScroll < pending.scrollY && attempts++ < 240) {
-          frame = window.requestAnimationFrame(restore);
-          return;
-        }
-
-        window.scrollTo({ top: pending.scrollY, behavior: "instant" });
-        clearPendingDrawerReturn();
-      };
-
-      frame = window.requestAnimationFrame(restore);
-      return () => window.cancelAnimationFrame(frame);
-    };
-
-    let cancelRestore = restoreDrawerOrigin();
-    const handlePopState = () => {
-      cancelRestore?.();
-      cancelRestore = restoreDrawerOrigin();
-    };
-    window.addEventListener("popstate", handlePopState);
-    return () => {
-      cancelRestore?.();
-      window.removeEventListener("popstate", handlePopState);
-    };
-  }, [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -226,14 +130,7 @@ export function Header({ variant = "default" }: HeaderProps) {
   const navigateFromOpenMenu = useCallback((href: string): LinkProps["onNavigate"] => (event) => {
     if (!open) return;
     event.preventDefault();
-    const scrollY = releaseBodyScrollLockBeforeNavigation();
-    const destination = new URL(href, window.location.href);
-    savePendingDrawerReturn({
-      path: `${window.location.pathname}${window.location.search}`,
-      destinationPath: `${destination.pathname}${destination.search}`,
-      scrollY,
-      savedAt: Date.now(),
-    });
+    releaseBodyScrollLockBeforeNavigation();
     setOpen(false);
     router.push(href);
   }, [open, router, setOpen]);

@@ -103,6 +103,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
       setSimilarityHandoff({ source: "prompt", prompt: normalized });
     }
     const params = new URLSearchParams({ mode: "ai", source: similaritySource });
+    if (similaritySource === "prompt" && normalized) params.set("q", normalized.replace(/\s+/g, " "));
     router.push(localizedPath(`/search?${params.toString()}`));
   };
 
@@ -128,7 +129,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
   };
 
   return (
-    <div className={compact ? "w-full" : "min-h-[4.5rem] w-full overflow-visible"}>
+    <div className={compact ? "w-full" : "relative min-h-[4.5rem] w-full overflow-visible"}>
       <SearchCommand
         id={compact ? "home-search-compact" : "home-search"}
         value={query}
@@ -179,7 +180,7 @@ export function AISearch({ defaultValue = "", compact = false, showExamples = fa
           : similarityFile.error}
         onSelectSource={selectSimilaritySource}
         onSelectFiles={selectSimilarityFiles}
-        className="mx-auto max-w-[58rem]"
+        className="absolute inset-x-0 top-full mx-auto max-w-[58rem]"
       /> : null}
 
       {showExamples ? (

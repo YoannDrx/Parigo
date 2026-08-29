@@ -16,6 +16,16 @@ const similarityTrack = {
   waveform: null,
 };
 
+const similarityCapabilities = {
+  data: {
+    track: { advertised: true, enabled: true, multiSeed: true, prioritizeBpm: true },
+    prompt: { advertised: true, enabled: true },
+    upload: { advertised: true, enabled: true, contentTypes: ["audio/mpeg", "audio/wav"], maxBytes: 125_829_120, maxDurationSeconds: 900 },
+    externalUrl: { advertised: true, enabled: true, platforms: ["youtube", "spotify"] },
+    playlistSuggestions: false,
+  },
+};
+
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
     window.localStorage.setItem("parigo-cookie-consent", JSON.stringify({
@@ -26,6 +36,39 @@ test.beforeEach(async ({ page }) => {
       updatedAt: "2026-07-27T00:00:00.000Z",
     }));
   });
+});
+
+test("le brief IA conserve son URL et ses résultats après un retour", async ({ page }) => {
+  let searchRequests = 0;
+  const persistentTrack = { ...similarityTrack, albumId: "ac234560fa0cd7dc", albumSlug: "ac234560fa0cd7dc" };
+  await page.route("**/api/similarity/capabilities", (route) => route.fulfill({ contentType: "application/json", body: JSON.stringify(similarityCapabilities) }));
+  await page.route("**/api/similarity/search", (route) => {
+    searchRequests += 1;
+    return route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ data: { tracks: [persistentTrack], mode: "prompt" }, meta: { total: 1, durationMs: 10, requestId: "persistent-brief" } }),
+    });
+  });
+
+  await page.goto("/search?view=tracks&type=main&mode=ai&source=prompt");
+  const prompt = page.getByLabel("Décrire la musique recherchée");
+  await prompt.fill("piano sad");
+  await page.getByRole("button", { name: "Lancer le brief" }).click();
+  await expect(page).toHaveURL(/mode=ai/);
+  await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("piano sad");
+  await expect(page.getByText(persistentTrack.title, { exact: true })).toBeVisible();
+  expect(searchRequests).toBe(1);
+
+  await page.getByRole("link", { name: `Voir l’album ${persistentTrack.albumTitle}` }).evaluate((link: HTMLAnchorElement) => link.click());
+  await expect(page).toHaveURL(/\/albums\/ac234560fa0cd7dc/);
+  await page.goBack();
+
+  await expect(page).toHaveURL(/\/search\?/);
+  await expect(prompt).toHaveValue("piano sad");
+  await expect(page.getByText(persistentTrack.title, { exact: true })).toBeVisible();
+  await expect(page.getByTestId("empty-similarity-results")).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.get("q")).toBe("piano sad");
+  expect(searchRequests).toBe(1);
 });
 
 test("la similarité IA reprend l’architecture de la recherche Catalogue", async ({ page }, testInfo) => {
@@ -1182,7 +1225,7 @@ test("le détail de piste mobile devient une sheet scrollable et contenue", asyn
   const row = page.locator(".parigo-track-row").first();
   await expect(row).toBeVisible({ timeout: 30_000 });
   await row.getByRole("button", { name: /^Plus d’actions/ }).click();
-  await row.getByRole("button", { name: /^Informations sur la piste/ }).click();
+  await page.getByRole("dialog", { name: /^Actions de la piste/ }).getByRole("button", { name: /^Informations sur la piste/ }).click();
   const sheet = page.locator(".track-detail-sheet");
   await expect(sheet).toBeVisible();
   await expect(page.locator(".track-detail-panel__mobile-summary")).toBeVisible();

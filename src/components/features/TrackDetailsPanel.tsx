@@ -11,6 +11,7 @@ import { cn, formatBPM, formatDuration } from "@/lib/utils";
 import { formatParigoDate } from "@/lib/date-time";
 import { usePlayerStore } from "@/stores/player-store";
 import { useShortlistStore } from "@/stores/shortlist-store";
+import { useTrackShareStore } from "@/stores/track-share-store";
 import type { ComposerCreditLink, MemberTrackComment, RightHolder, Track } from "@/types";
 import { TrackWaveform } from "./TrackWaveform";
 import { useSession } from "@/lib/auth-client";
@@ -105,12 +106,9 @@ function VersionRow({ track, onInspect }: { track: Track; onInspect: (track: Tra
   const addToShortlist = useShortlistStore((state) => state.add);
   const removeFromShortlist = useShortlistStore((state) => state.remove);
   const isShortlisted = useShortlistStore((state) => state.items.some((item) => item.track.id === track.id));
+  const openShare = useTrackShareStore((state) => state.open);
   const active = currentTrack?.id === track.id;
-  const shareTrack = async () => {
-    const url = `${window.location.origin}/albums/${track.albumId}?track=${encodeURIComponent(track.id)}`;
-    if (navigator.share) await navigator.share({ title: track.title, text: track.description, url }).catch(() => undefined);
-    else await navigator.clipboard.writeText(url);
-  };
+  const shareTrack = () => openShare({ trackId: track.id, title: track.title, description: track.description, albumSlug: track.albumSlug || track.albumId });
   return (
     <article className="track-detail-version border-b border-[var(--line)] py-4 last:border-0">
       <div className="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 xl:grid-cols-[44px_minmax(0,1fr)_4.5rem_3.5rem]">
@@ -149,7 +147,7 @@ function VersionRow({ track, onInspect }: { track: Track; onInspect: (track: Tra
           <button type="button" onClick={() => isShortlisted ? removeFromShortlist(track.id) : addToShortlist(track)} aria-pressed={isShortlisted} className={cn("track-detail-version__action", isShortlisted && "bg-[var(--signal-strong)] text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${track.title}`}>{isShortlisted ? <Check size={16} /> : <ListPlus size={16} />}</button>
         </Tooltip>
         <Tooltip label={locale === "fr" ? "Partager" : "Share"}>
-          <button type="button" onClick={() => void shareTrack()} className="track-detail-version__action" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={16} /></button>
+          <button type="button" onClick={shareTrack} className="track-detail-version__action" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={16} /></button>
         </Tooltip>
         <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"}>
           <Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="track-detail-version__action" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={16} /></Link>
@@ -181,6 +179,8 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
   const rightHoldersLoading = activeTab === "information" && !rightHoldersById[activeTrackId];
   const rootTrackLoading = selectedTrack.id === track.id && detailsLoading && !detailsById[track.id];
   const isTouchLayout = useTouchLayout();
+  const openShare = useTrackShareStore((state) => state.open);
+  const shareDisplayedTrack = () => openShare({ trackId: displayed.id, title: displayed.title, description: displayed.description, albumSlug: displayed.albumSlug || displayed.albumId });
 
   useEffect(() => {
     if (!isTouchLayout) return;
@@ -312,6 +312,9 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
         <div className="no-scrollbar min-w-0 flex-1 overflow-x-auto px-4 md:px-6">
           <div className="track-detail-tabs flex min-w-max gap-6" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={activeTab === id} onClick={() => onTabChange(id)} className={cn("relative min-h-11 px-0 text-xs font-semibold transition after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-[var(--signal-strong)] after:transition-transform", activeTab === id ? "text-[var(--foreground)] after:scale-x-100" : "text-[var(--text-muted)] hover:text-[var(--foreground)] hover:after:scale-x-50")}>{label}</button>)}</div>
         </div>
+        <Tooltip label={locale === "fr" ? "Partager" : "Share"}>
+          <button type="button" onClick={shareDisplayedTrack} className="m-1.5 flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--line)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${displayed.title}`}><Share2 size={14} /></button>
+        </Tooltip>
         <button type="button" onClick={onClose} className="track-detail-panel__collapse m-1.5 flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Replier les informations" : "Collapse information"}><ChevronUp size={14} /></button>
       </div>
 

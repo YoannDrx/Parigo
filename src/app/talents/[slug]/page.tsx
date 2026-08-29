@@ -83,8 +83,8 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
   return (
     <div className="page-shell min-h-screen">
       <Header />
-      <main className="pt-[var(--space-contextual-back-page-top)] md:pt-[70px]">
-        <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] md:pt-[var(--space-divider-content)]">
+      <main className="pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)] md:pt-[70px]">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-[var(--space-page-gutter)] md:pt-[var(--space-divider-content)]">
           <ContextualBackLink href={localizedPath(locale, "/talents")} className="mb-[var(--space-contextual-back-gap)] hover:text-[var(--foreground)] md:mb-[var(--space-heading-content)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
@@ -108,7 +108,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               </div>
             </div>
             {bio ? (
-              <div className="parigo-section-boundary">
+              <div className="mt-[var(--detail-section-gap)]">
                 <div data-testid="composer-biography" className="min-w-0 w-full text-base leading-8 text-[var(--text-muted)] md:text-lg">
                   <Bio value={bio} />
                 </div>
@@ -117,9 +117,9 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
           </article>
         </section>
 
-        <section>
-          <div className="mx-auto max-w-[1240px] px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
-            <div className="mb-[var(--space-heading-content)] border-b border-[var(--line)] pb-5">
+        <section className="mt-[var(--detail-section-gap)]">
+          <div className="mx-auto max-w-[1240px] px-[var(--space-page-gutter)]">
+            <div className="mb-[var(--space-heading-content)]">
               <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">{locale === "fr" ? "Albums Parigo" : "Parigo albums"}</SignedTitle>
             </div>
             {albums.length > 0 ? (
@@ -127,7 +127,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
                 {albums.map((album) => <AlbumCard key={album.id} album={album} />)}
               </div>
             ) : (
-              <p className="border-y border-[var(--line)] py-14 text-[var(--text-muted)]">
+              <p className="bg-[var(--surface-soft)] px-5 py-14 text-[var(--text-muted)]">
                 {locale === "fr" ? "Aucune discographie n’est actuellement disponible pour ce profil." : "No discography is currently available for this profile."}
               </p>
             )}
@@ -138,9 +138,9 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
         </section>
 
         {clips.length > 0 ? (
-          <section data-testid="composer-clips-section" className="border-t border-[var(--line)]">
-            <div className="mx-auto max-w-[1240px] px-[var(--space-page-gutter)] py-[var(--space-section-y)]">
-              <div className="mb-[var(--space-heading-content)] border-b border-[var(--line)] pb-5">
+          <section data-testid="composer-clips-section" className="mt-[var(--detail-section-gap)]">
+            <div className="mx-auto max-w-[1240px] px-[var(--space-page-gutter)]">
+              <div className="mb-[var(--space-heading-content)]">
                 <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">
                   {locale === "fr" ? "Clips" : "Videos"}
                 </SignedTitle>

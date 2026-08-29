@@ -1,51 +1,47 @@
-import { AudioLines, FilePenLine, ListChecks, type LucideIcon } from "lucide-react";
+"use client";
+
+import { motion, useScroll } from "framer-motion";
+import { useRef } from "react";
 import { SignedTitle } from "@/components/ui/SignedTitle";
-import { HomeReveal } from "./HomeMotion";
+import { HomeReveal, useHomeReducedMotion } from "./HomeMotion";
 
-type ProcessStepProps = {
-  title: string;
-  copy: string;
-  icon: LucideIcon;
-};
-
-function ProcessStep({ title, copy, icon: Icon }: ProcessStepProps) {
+function ProcessStep({ number, title, copy, stepLabel }: { number: string; title: string; copy: string; stepLabel: string }) {
   return (
-    <article data-testid="process-card" className="process-card parigo-frame group flex min-h-[18rem] flex-col items-center justify-center border border-white/20 bg-[#11120f] p-6 text-center md:min-h-[20rem] md:p-7 lg:p-8">
-      <div className="process-card__icon grid h-14 w-14 place-items-center border border-white/25 text-[var(--signal-strong)] transition-colors duration-300 group-hover:border-[var(--signal-strong)] group-hover:bg-[color-mix(in_srgb,var(--signal)_10%,#11120f)]">
-        <Icon aria-hidden="true" size={23} strokeWidth={1.55} />
-      </div>
-      <div className="mt-8 flex flex-col items-center">
-        <h3 className="max-w-[15ch] text-[clamp(1.55rem,2.4vw,2.2rem)] font-semibold leading-[1.02] tracking-[-.05em] text-[#f2f1ed]">{title}</h3>
-        <p className="mt-5 max-w-[22rem] text-sm leading-7 text-[#b9beb8]">{copy}</p>
-      </div>
+    <article data-testid="process-card" className="process-step group relative flex min-h-[245px] flex-col px-5 py-7 transition-colors duration-500 hover:bg-white/[.055] lg:min-h-[360px] lg:px-8 lg:py-10">
+      <span className="font-mono text-[.6rem] uppercase tracking-[.14em] text-[var(--signal)]">{stepLabel} {number}</span>
+      <span aria-hidden="true" className="process-step__number mt-5 w-fit border border-white/10 px-4 py-2 text-[4.1rem] font-semibold leading-none tracking-[-.09em] text-white/[.12] transition duration-500 group-hover:border-[var(--signal)]/34 group-hover:text-[var(--signal)] lg:mt-7 lg:text-[clamp(4.5rem,7vw,7.6rem)]">{number}</span>
+      <div className="mt-auto pt-5 lg:pt-8"><h3 className="text-2xl font-semibold tracking-[-.045em] text-white lg:text-3xl">{title}</h3><p className="mt-3 max-w-sm text-sm leading-6 text-white/74 lg:mt-4">{copy}</p></div>
     </article>
   );
 }
 
 export function ProcessSignalSection({ locale }: { locale: "fr" | "en" }) {
-  const steps: ProcessStepProps[] = locale === "fr" ? [
-    { title: "Décrivez", copy: "Une scène, une émotion, un rythme ou quelques références suffisent pour lancer la recherche.", icon: FilePenLine },
-    { title: "Écoutez & comparez", copy: "Préécoutez, ouvrez les métadonnées, comparez les versions et construisez votre sélection de travail.", icon: AudioLines },
-    { title: "Sélectionnez & licenciez", copy: "Partagez une playlist, téléchargez les formats autorisés ou confiez-nous votre brief.", icon: ListChecks },
+  const sectionRef = useRef<HTMLElement>(null);
+  const reduceMotion = useHomeReducedMotion();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start 84%", "end 45%"] });
+  const steps = locale === "fr" ? [
+    ["01", "Décrivez", "Une scène, une émotion, un rythme ou quelques références suffisent pour lancer la recherche."],
+    ["02", "Écoutez & comparez", "Préécoutez, ouvrez les métadonnées, comparez les versions et construisez votre sélection de travail."],
+    ["03", "Sélectionnez & licenciez", "Partagez une playlist, téléchargez les formats autorisés ou confiez-nous votre brief."],
   ] : [
-    { title: "Describe", copy: "A scene, a feeling, a rhythm or a few references are enough to begin the search.", icon: FilePenLine },
-    { title: "Listen & compare", copy: "Preview, open metadata, compare versions and build your working selection.", icon: AudioLines },
-    { title: "Select & license", copy: "Share a playlist, download authorised formats or send us your brief.", icon: ListChecks },
+    ["01", "Describe", "A scene, a feeling, a rhythm or a few references are enough to begin the search."],
+    ["02", "Listen & compare", "Preview, open metadata, compare versions and build your working selection."],
+    ["03", "Select & license", "Share a playlist, download authorised formats or send us your brief."],
   ];
 
   return (
-    <section id="process" className="relative px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
+    <section id="process" ref={sectionRef} className="relative px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
       <div className="mx-auto max-w-[1580px]">
-        <div>
-          <HomeReveal origin="left">
-            <SignedTitle as="h2" className="max-w-[13ch] text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle>
-          </HomeReveal>
-        </div>
-        <HomeReveal origin="bottom" delay={0.12} className="mt-12 md:mt-16">
-          <div className="grid gap-4 md:grid-cols-3 lg:gap-6">
-            {steps.map((step) => <ProcessStep key={step.title} {...step} />)}
+        <HomeReveal origin="top" className="mb-[var(--space-heading-content)]"><SignedTitle as="h2" className="max-w-5xl text-[clamp(2.8rem,5vw,5.5rem)] leading-[.91] text-[var(--foreground)]">{locale === "fr" ? "Du brief à la sélection." : "From brief to selection."}</SignedTitle></HomeReveal>
+        <div className="process-shell relative isolate overflow-hidden border border-white/14 bg-[#090c09] shadow-[0_34px_100px_rgba(5,10,6,.22)]">
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(145deg,rgba(72,191,103,.13),transparent_42%),linear-gradient(180deg,rgba(255,255,255,.025),transparent_70%)]" />
+          <div className="relative border-b border-white/12 px-5 py-4 md:px-8 md:py-5">
+            <div className="relative h-1 overflow-hidden rounded-full bg-white/8" data-testid="process-progress"><motion.div aria-hidden="true" style={reduceMotion ? { scaleX: 1 } : { scaleX: scrollYProgress, transformOrigin: "left" }} className="absolute inset-0 origin-left rounded-full bg-[var(--signal)] shadow-[0_0_18px_color-mix(in_srgb,var(--signal)_55%,transparent)]" /></div>
           </div>
-        </HomeReveal>
+          <div className="relative grid divide-y divide-white/12 lg:grid-cols-3 lg:divide-x lg:divide-y-0">
+            {steps.map(([number, title, copy]) => <ProcessStep key={number} number={number} title={title} copy={copy} stepLabel={locale === "fr" ? "Étape" : "Step"} />)}
+          </div>
+        </div>
       </div>
     </section>
   );

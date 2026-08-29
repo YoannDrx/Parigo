@@ -96,7 +96,7 @@ export function HomeHeroContent({
       data-testid="home-hero-content"
       data-home-hero-motion={reduceMotion ? "static" : "animated"}
       style={reduceMotion ? { y: 0, scale: 1 } : { y, scale }}
-      className="pointer-events-none relative mx-auto w-full max-w-[1180px] text-center"
+      className="pointer-events-none relative mx-auto h-[25rem] w-full max-w-[1180px] text-center"
     >
       <motion.div
         data-testid="home-hero-copy"
@@ -161,7 +161,7 @@ export function HomeHeroContent({
         data-testid="home-hero-search-mask"
         data-banner-mask={reduceMotion || searchRevealComplete ? "open" : "closed"}
         style={reduceMotion ? { opacity: 1 } : { opacity }}
-        className={`pointer-events-auto mx-auto mt-9 min-h-[14.25rem] max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}
+        className={`pointer-events-auto relative mx-auto mt-9 min-h-[4.75rem] max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}
       >
         <motion.div
           data-testid="home-hero-search-reveal"

@@ -1,7 +1,7 @@
 "use client";
 
 import { getImageProps } from "next/image";
-import { AlertCircle, ArrowUpRight, Facebook, Instagram, Linkedin, RotateCcw, Youtube } from "lucide-react";
+import { AlertCircle, ArrowUpRight, RotateCcw } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -9,7 +9,7 @@ import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { fetchAlbum, fetchAlbums, fetchPlaylist } from "@/lib/api-client";
 import { HeroGradientBackdrop } from "./HeroGradientBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
-import { DeferredHomeStorySections } from "./DeferredHomeStorySections";
+import { HomeStorySections } from "./HomeStorySections";
 import type { Album, Playlist, SearchMode, Track } from "@/types";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { ParigoVideoCard } from "@/components/editorial/ParigoVideoCard";
@@ -24,12 +24,11 @@ import { HomeHeroContent, HomeReveal } from "./HomeMotion";
 import { HomeSeeAllLink } from "./HomeSeeAllLink";
 import { localizePlaylist } from "@/lib/catalog-localization";
 import { HomeSectionCta } from "./HomeSectionCta";
+import { LINKTREE_URL, SocialPlatformIcon, type SocialPlatformName } from "@/components/social/SocialPlatforms";
 
 const PartnerMarquee = lazy(() => import("./PartnerMarquee").then((module) => ({ default: module.PartnerMarquee })));
 
-type PlatformName = "Instagram" | "YouTube" | "LinkedIn" | "Facebook" | "Bandcamp" | "TikTok" | "Spotify";
-
-const LINKTREE_PLATFORMS: Array<{ name: PlatformName; position: string }> = [
+const LINKTREE_PLATFORMS: Array<{ name: SocialPlatformName; position: string }> = [
   { name: "Instagram", position: "left-0 top-4 -rotate-12 group-hover:-translate-x-1 group-hover:-translate-y-2" },
   { name: "YouTube", position: "left-10 top-[4.5rem] rotate-[8deg] group-hover:translate-y-2" },
   { name: "LinkedIn", position: "left-[4.6rem] top-0 rotate-[7deg] group-hover:-translate-y-2" },
@@ -38,16 +37,6 @@ const LINKTREE_PLATFORMS: Array<{ name: PlatformName; position: string }> = [
   { name: "TikTok", position: "left-[11.2rem] top-[4.6rem] rotate-[9deg] group-hover:translate-x-2 group-hover:translate-y-1" },
   { name: "Bandcamp", position: "left-[12.1rem] top-0 -rotate-[5deg] group-hover:translate-x-2 group-hover:-translate-y-2" },
 ];
-
-function PlatformIcon({ name }: { name: PlatformName }) {
-  if (name === "Instagram") return <Instagram size={20} />;
-  if (name === "YouTube") return <Youtube size={21} />;
-  if (name === "LinkedIn") return <Linkedin size={19} />;
-  if (name === "Facebook") return <Facebook size={20} />;
-  if (name === "Bandcamp") return <svg viewBox="0 0 24 24" width="21" height="21" fill="currentColor" aria-hidden="true"><path d="M7.1 6.6h14.4l-4.6 10.8H2.5L7.1 6.6Z" /></svg>;
-  if (name === "TikTok") return <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M14.2 3h3.1c.3 2.1 1.5 3.4 3.7 3.8V10a8.4 8.4 0 0 1-3.7-1.1v6.2a5.9 5.9 0 1 1-5.9-5.9c.4 0 .8 0 1.2.1v3.2a2.8 2.8 0 1 0 1.6 2.6V3Z" /></svg>;
-  return <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4.5 9.2c4.8-1.3 10.5-.9 14.8 1.3" /><path d="M5.6 13c4-1 8.9-.6 12.5 1.1" /><path d="M6.7 16.6c3.3-.7 7-.4 10 .9" /></svg>;
-}
 
 function SectionReveal({ children, className = "", origin = "bottom" }: { children: ReactNode; className?: string; origin?: "bottom" | "left" | "right" | "top" }) {
   return <HomeReveal className={className} origin={origin}>{children}</HomeReveal>;
@@ -211,10 +200,12 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
             <div className="relative min-h-[610px] overflow-hidden rounded-xl md:min-h-[760px]">
               <HomeAboutImage />
               <div className="absolute inset-0 bg-gradient-to-r from-black/78 via-black/38 to-black/5" />
-              <div className="absolute inset-0 flex max-w-3xl flex-col justify-end p-6 text-white md:p-14 lg:p-20">
-                <HomeReveal origin="left" viewportAmount={0.35}><SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes nous ?" : "Who are we?"}</SignedTitle></HomeReveal>
-                <HomeReveal origin="bottom" delay={0.12} viewportAmount={0.35}><p className="mt-7 max-w-2xl text-base leading-7 text-white/88 md:text-lg">{locale === "fr" ? "Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits. Télévision, cinéma, documentaires, publicité, podcasts, radio ou contenus digitaux : notre catalogue international et notre expertise de la synchronisation vous aident à trouver la musique idéale pour votre projet." : "Parigo helps image and sound professionals search for music and manage rights. Television, cinema, documentaries, advertising, podcasts, radio and digital content: our international catalogue and synchronisation expertise help you find the ideal music for your project."}</p></HomeReveal>
-                <HomeReveal origin="right" delay={0.2} viewportAmount={0.35} className="w-fit"><HomeSectionCta href="/albums" inverse className="mt-8">{locale === "fr" ? "Découvrir le catalogue" : "Explore the catalogue"}</HomeSectionCta></HomeReveal>
+              <div className="absolute inset-0 flex max-w-3xl flex-col justify-end px-6 pb-[clamp(2.5rem,8vw,4.5rem)] pt-6 text-white md:px-14 md:pb-[clamp(4rem,8vw,7rem)] md:pt-14 lg:px-20">
+                <div className="-translate-y-[clamp(.5rem,3vw,2.5rem)]">
+                  <HomeReveal origin="left" viewportAmount={0.35}><SignedTitle as="h2" className="text-[clamp(2.8rem,6vw,6.4rem)] leading-[.9] tracking-[-.06em] text-white">{locale === "fr" ? "Qui sommes nous ?" : "Who are we?"}</SignedTitle></HomeReveal>
+                  <HomeReveal origin="bottom" delay={0.12} viewportAmount={0.35}><p className="mt-5 max-w-2xl text-base leading-7 text-white/88 md:mt-6 md:text-lg">{locale === "fr" ? "Parigo accompagne les professionnels de l'image et du son dans la recherche de musiques et la gestion des droits. Télévision, cinéma, documentaires, publicité, podcasts, radio ou contenus digitaux : notre catalogue international et notre expertise de la synchronisation vous aident à trouver la musique idéale pour votre projet." : "Parigo helps image and sound professionals search for music and manage rights. Television, cinema, documentaries, advertising, podcasts, radio and digital content: our international catalogue and synchronisation expertise help you find the ideal music for your project."}</p></HomeReveal>
+                </div>
+                <HomeReveal origin="right" delay={0.2} viewportAmount={0.35} className="w-fit"><HomeSectionCta href="/albums" inverse className="mt-[clamp(2.25rem,5vw,4rem)]">{locale === "fr" ? "Découvrir le catalogue" : "Explore the catalogue"}</HomeSectionCta></HomeReveal>
               </div>
             </div>
           </SectionReveal>
@@ -332,7 +323,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
           </div>
         </section>
 
-        <DeferredHomeStorySections locale={locale} profiles={initialComposers}>
+        <HomeStorySections locale={locale} profiles={initialComposers}>
           <section data-testid="home-sync-section" className="overflow-x-clip bg-[var(--surface-inverse)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)] text-[var(--background)]">
             <div className="mx-auto max-w-[1580px]">
               <SectionReveal origin="left" className="mb-[var(--space-heading-content)] w-full min-w-0"><SignedTitle as="h2" variant="section" className="max-w-[12ch] break-words">{t("home.syncTitle")}</SignedTitle></SectionReveal>
@@ -347,7 +338,6 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
                     image={sync.image}
                     title={sync.title}
                     client={sync.client}
-                    detail={sync.year ? String(sync.year) : undefined}
                     className="snap-start"
                     headingLevel="h3"
                   />
@@ -357,7 +347,7 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
               <div className="mt-3 text-right"><HomeSeeAllLink href="/synchronisations">{t("common.seeAll")}</HomeSeeAllLink></div>
             </div>
           </section>
-        </DeferredHomeStorySections>
+        </HomeStorySections>
 
         <Suspense fallback={<div className="min-h-72 bg-[#0b110d]" aria-hidden="true" />}>
           <PartnerMarquee />
@@ -365,8 +355,8 @@ export function HomeExperience({ initialPlaylists, initialParigoAlbums, initialR
 
         <section data-testid="social-follow-section" className="px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
           <SectionReveal origin="bottom" className="group relative mx-auto grid max-w-[1580px] overflow-hidden rounded-[1.2rem] bg-[var(--signal-strong)] p-6 text-white md:grid-cols-12 md:items-center md:p-10 lg:p-14">
-            <div className="relative md:col-span-9 md:flex md:items-center md:gap-10 lg:gap-14"><div className="relative h-28 w-full max-w-[15rem] shrink-0" role="list" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform, index) => <span key={platform.name} role="listitem" aria-label={platform.name} style={{ "--platform-delay": `${index * -0.42}s` } as React.CSSProperties} className={`social-platform-icon absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><PlatformIcon name={platform.name} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-8 md:mt-0"><SignedTitle as="h2" variant="section" className="text-white">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</SignedTitle><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/78">{locale === "fr" ? "Sorties, playlists, images et actualités du label — tous nos liens réunis au même endroit." : "Releases, playlists, images and label news — all our links in one place."}</p></div></div>
-            <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href="https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67" target="_blank" rel="noreferrer" className="social-follow-cta inline-flex min-h-12 items-center gap-3 rounded-full border border-white/72 px-5 text-sm font-semibold !text-white transition hover:border-white hover:bg-white hover:!text-[#123f24] focus-visible:outline-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
+            <div className="relative md:col-span-9 md:flex md:items-center md:gap-10 lg:gap-14"><div className="relative h-28 w-full max-w-[15rem] shrink-0" role="list" aria-label={locale === "fr" ? "Plateformes Parigo : Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok et Spotify" : "Parigo platforms: Instagram, YouTube, LinkedIn, Facebook, Bandcamp, TikTok and Spotify"}>{LINKTREE_PLATFORMS.map((platform, index) => <span key={platform.name} role="listitem" aria-label={platform.name} style={{ "--platform-delay": `${index * -0.42}s` } as React.CSSProperties} className={`social-platform-icon absolute flex h-12 w-12 items-center justify-center rounded-[.9rem] border border-white/70 bg-[#ffffff] text-[#247b43] shadow-[0_12px_32px_rgba(19,70,37,.2)] transition-transform duration-500 ${platform.position}`}><SocialPlatformIcon name={platform.name} width={21} height={21} /><span className="sr-only">{platform.name}</span></span>)}</div><div className="relative mt-8 md:mt-0"><SignedTitle as="h2" variant="section" className="text-white">{locale === "fr" ? "Suivez le fil Parigo." : "Follow the Parigo signal."}</SignedTitle><p className="mt-4 max-w-xl text-sm leading-relaxed text-white/78">{locale === "fr" ? "Sorties, playlists, images et actualités du label — tous nos liens réunis au même endroit." : "Releases, playlists, images and label news — all our links in one place."}</p></div></div>
+            <div className="relative mt-8 md:col-span-3 md:col-start-10 md:mt-0 md:text-right"><a href={LINKTREE_URL} target="_blank" rel="noopener noreferrer" className="social-follow-cta inline-flex min-h-12 items-center gap-3 rounded-full border border-white/72 px-5 text-sm font-semibold !text-white transition hover:border-white hover:bg-white hover:!text-[#123f24] focus-visible:outline-white">{locale === "fr" ? "Ouvrir le Linktree" : "Open Linktree"}<ArrowUpRight size={17} /></a></div>
           </SectionReveal>
         </section>
     </>

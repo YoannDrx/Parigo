@@ -30,6 +30,7 @@ import { cn, formatBPM, formatDuration } from "@/lib/utils";
 import { TrackWaveform } from "./TrackWaveform";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useShortlistStore } from "@/stores/shortlist-store";
+import { useTrackShareStore } from "@/stores/track-share-store";
 import { FavoriteButton } from "./FavoriteButton";
 import { DownloadButton } from "./DownloadButton";
 import { AddToPlaylistButton } from "./AddToPlaylistButton";
@@ -243,11 +244,10 @@ export function MiniPlayer() {
     setRepeatMode(repeatMode === "off" ? "queue" : repeatMode === "queue" ? "track" : "off");
   };
 
-  const shareTrack = async () => {
+  const openShare = useTrackShareStore((state) => state.open);
+  const shareTrack = () => {
     if (!currentTrack) return;
-    const url = `${window.location.origin}/albums/${currentTrack.albumSlug || currentTrack.albumId}?track=${encodeURIComponent(currentTrack.id)}`;
-    if (navigator.share) await navigator.share({ title: currentTrack.title, text: currentTrack.description, url }).catch(() => undefined);
-    else await navigator.clipboard.writeText(url);
+    openShare({ trackId: currentTrack.id, title: currentTrack.title, description: currentTrack.description, albumSlug: currentTrack.albumSlug || currentTrack.albumId });
   };
 
   const nextTracks = queue.length > 1
@@ -350,7 +350,7 @@ export function MiniPlayer() {
               <AddToPlaylistButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
               <DownloadButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
               <Tooltip label={isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")}><button type="button" onClick={() => isShortlisted ? removeFromShortlist(currentTrack.id) : addToShortlist(currentTrack)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center rounded-full transition", isShortlisted ? "bg-[var(--signal)] text-[#0c120d]" : "text-white/74 hover:bg-white/9 hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${currentTrack.title}`}>{isShortlisted ? <Check size={16} /> : <ListPlus size={16} />}</button></Tooltip>
-              <Tooltip label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${currentTrack.title}`}><Share2 size={16} /></button></Tooltip>
+              <Tooltip label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={shareTrack} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${currentTrack.title}`}><Share2 size={16} /></button></Tooltip>
             </div>
             <Tooltip label={locale === "fr" ? "Ranger le lecteur" : "Stow player"}><button type="button" onClick={() => setPlayerView("stowed")} className="flex h-10 w-10 items-center justify-center rounded-full text-white/78 transition hover:bg-white/9 hover:text-white" aria-label={locale === "fr" ? "Ranger le lecteur" : "Stow player"}><Minimize2 size={16} /></button></Tooltip>
             <Tooltip label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Détails de la piste" : "Track details")}><button type="button" onClick={() => setPlayerView(isExpanded ? "docked" : "expanded")} className="flex h-10 w-10 items-center justify-center rounded-full text-white/78 transition hover:bg-white/9 hover:text-white" aria-expanded={isExpanded} aria-label={isExpanded ? (locale === "fr" ? "Réduire le lecteur" : "Collapse player") : (locale === "fr" ? "Agrandir le lecteur" : "Expand player")}>{isExpanded ? <ChevronDown size={17} /> : <ChevronUp size={17} />}</button></Tooltip>
@@ -373,7 +373,7 @@ export function MiniPlayer() {
                   <AddToPlaylistButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
                   <DownloadButton trackId={currentTrack.id} trackTitle={currentTrack.title} className="rounded-full !text-white/74 hover:!bg-white/9 [&_svg]:!text-current" />
                   <Tooltip label={isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")}><button type="button" onClick={() => isShortlisted ? removeFromShortlist(currentTrack.id) : addToShortlist(currentTrack)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center rounded-full transition", isShortlisted ? "bg-[var(--signal)] text-[#0c120d]" : "text-white/74 hover:bg-white/9 hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${currentTrack.title}`}>{isShortlisted ? <Check size={16} /> : <ListPlus size={16} />}</button></Tooltip>
-                  <Tooltip label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${currentTrack.title}`}><Share2 size={16} /></button></Tooltip>
+                  <Tooltip label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={shareTrack} className="flex h-10 w-10 items-center justify-center rounded-full text-white/74 transition hover:bg-white/9 hover:text-white" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${currentTrack.title}`}><Share2 size={16} /></button></Tooltip>
                 </div>
                 <Tooltip label={locale === "fr" ? "Lecture aléatoire" : "Shuffle"}><button onClick={toggleShuffle} aria-pressed={shuffleEnabled} className={cn("flex h-10 min-w-10 items-center justify-center gap-2 rounded-full px-3 text-xs transition hover:bg-white/9", shuffleEnabled ? "bg-[var(--signal)] text-[#0c120d]" : "text-white/74")} aria-label={locale === "fr" ? "Lecture aléatoire" : "Shuffle"}><Shuffle size={15} /><span className="hidden lg:inline">{locale === "fr" ? "Aléatoire" : "Shuffle"}</span></button></Tooltip>
                 <Tooltip label={locale === "fr" ? `Répétition : ${repeatMode}` : `Repeat: ${repeatMode}`}><button onClick={cycleRepeat} className={cn("flex h-10 min-w-10 items-center justify-center gap-2 rounded-full px-3 text-xs transition hover:bg-white/9", repeatMode !== "off" ? "text-[var(--signal)]" : "text-white/74")} aria-label={locale === "fr" ? `Répétition : ${repeatMode}` : `Repeat: ${repeatMode}`}><Repeat2 size={15} /><span className="hidden lg:inline">{repeatMode === "track" ? "1" : repeatMode === "queue" ? (locale === "fr" ? "File" : "Queue") : "Off"}</span></button></Tooltip>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type RefObject } from "react";
-import { useQueries } from "@tanstack/react-query";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, ListPlus, RotateCcw, Sparkles, UploadCloud, X } from "lucide-react";
 import { TrackRow } from "@/components/features/TrackRow";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 import { useShortlistStore } from "@/stores/shortlist-store";
 import type { SimilarityHandoff } from "@/stores/similarity-handoff-store";
 import { clearSimilarityHandoff } from "@/stores/similarity-handoff-store";
-import type { Album, SimilaritySearchRequest, SimilaritySearchSource, Track } from "@/types";
+import type { Album, SimilaritySearchRequest, SimilaritySearchResponse, SimilaritySearchSource, Track } from "@/types";
 
 interface ControllerOptions {
   source: SimilaritySearchSource;
@@ -36,7 +36,16 @@ interface ControllerOptions {
   autoRunTrack?: boolean;
   initialHandoff?: SimilarityHandoff | null;
   onPromptChange: (value: string) => void;
+  onPromptSubmit?: (value: string) => void;
   onSourceChange: (source: SimilaritySearchSource) => void;
+}
+
+function normalizedSimilarityPrompt(value: string) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
+function promptQueryKey(locale: "fr" | "en", prompt: string) {
+  return ["similarity", "prompt", locale, normalizedSimilarityPrompt(prompt)] as const;
 }
 
 function albumFromTrack(track: Track): Album {
@@ -99,9 +108,11 @@ export function useSimilaritySearchController({
   autoRunTrack = false,
   initialHandoff,
   onPromptChange,
+  onPromptSubmit,
   onSourceChange,
 }: ControllerOptions) {
   const { locale } = useI18n();
+  const queryClient = useQueryClient();
   const capabilitiesQuery = useSimilarityCapabilities();
   const shortlistItems = useShortlistStore((value) => value.items);
   const addToShortlistSilently = useShortlistStore((value) => value.addSilently);
@@ -115,19 +126,30 @@ export function useSimilaritySearchController({
   });
   const [includeSeed, setIncludeSeed] = useState(false);
   const [prioritizeBpm, setPrioritizeBpm] = useState(false);
+  const initialPrompt = prompt || (initialHandoff?.source === "prompt" ? initialHandoff.prompt : "");
+  const [initialPromptResult] = useState(() => {
+    if (normalizedSimilarityPrompt(initialPrompt).length < 3) return undefined;
+    const key = promptQueryKey(locale, initialPrompt);
+    const cached = queryClient.getQueryData<SimilaritySearchResponse>(key);
+    const updatedAt = queryClient.getQueryState(key)?.dataUpdatedAt ?? 0;
+    return cached && Date.now() - updatedAt < 5 * 60_000 ? cached : undefined;
+  });
   const [urlState, setUrl] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
-  const [state, setState] = useState<"idle" | "preparing" | "uploading" | "analyzing" | "searching" | "done" | "error">("idle");
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [total, setTotal] = useState(0);
-  const [indexed, setIndexed] = useState<boolean | undefined>();
+  const [state, setState] = useState<"idle" | "preparing" | "uploading" | "analyzing" | "searching" | "done" | "error">(initialPromptResult ? "done" : "idle");
+  const [tracks, setTracks] = useState<Track[]>(initialPromptResult?.data.tracks ?? []);
+  const [total, setTotal] = useState(initialPromptResult?.meta.total ?? 0);
+  const [indexed, setIndexed] = useState<boolean | undefined>(initialPromptResult?.data.indexed);
   const [error, setError] = useState<{ message: string; requestId?: string } | null>(null);
-  const [lastCompletedSource, setLastCompletedSource] = useState<SimilaritySearchSource | null>(null);
+  const [lastCompletedSource, setLastCompletedSource] = useState<SimilaritySearchSource | null>(initialPromptResult ? "prompt" : null);
   const [lastSubmittedSeedIds, setLastSubmittedSeedIds] = useState<string[]>([]);
   const runSequence = useRef(0);
   const searchAbort = useRef<AbortController | null>(null);
   const uploadRequest = useRef<XMLHttpRequest | null>(null);
   const autoRunStarted = useRef<string | null>(null);
+  const initialUrlPrompt = useRef(
+    initialHandoff?.source === "prompt" ? "" : normalizedSimilarityPrompt(prompt),
+  );
 
   const capabilities = capabilitiesQuery.data;
   const similarityFile = useSimilarityFile({
@@ -199,6 +221,20 @@ export function useSimilaritySearchController({
   };
 
   const performSearch = useCallback(async (request: SimilaritySearchRequest, requestSource: SimilaritySearchSource) => {
+    if (request.type === "prompt") {
+      const key = promptQueryKey(request.locale, request.prompt);
+      const cached = queryClient.getQueryData<SimilaritySearchResponse>(key);
+      const updatedAt = queryClient.getQueryState(key)?.dataUpdatedAt ?? 0;
+      if (cached && Date.now() - updatedAt < 5 * 60_000) {
+        setTracks(cached.data.tracks);
+        setTotal(cached.meta.total);
+        setIndexed(cached.data.indexed);
+        setLastCompletedSource("prompt");
+        setError(null);
+        setState("done");
+        return;
+      }
+    }
     abortCurrent();
     const sequence = ++runSequence.current;
     const controller = new AbortController();
@@ -209,7 +245,14 @@ export function useSimilaritySearchController({
     if (request.type === "track") setLastSubmittedSeedIds(request.seedTrackIds);
     for (let attempt = 0; attempt < 5; attempt += 1) {
       try {
-        const result = await runSimilaritySearch(request, controller.signal);
+        const result = request.type === "prompt"
+          ? await queryClient.fetchQuery({
+            queryKey: promptQueryKey(request.locale, request.prompt),
+            queryFn: () => runSimilaritySearch(request, controller.signal),
+            staleTime: 5 * 60_000,
+            gcTime: 30 * 60_000,
+          })
+          : await runSimilaritySearch(request, controller.signal);
         if (sequence !== runSequence.current) return;
         setTracks(result.data.tracks);
         setTotal(result.meta.total);
@@ -234,7 +277,7 @@ export function useSimilaritySearchController({
         return;
       }
     }
-  }, [abortCurrent, locale]);
+  }, [abortCurrent, locale, queryClient]);
 
   const uploadAndSearch = useCallback(async () => {
     if (!file) return;
@@ -272,7 +315,9 @@ export function useSimilaritySearchController({
     if (effectiveSource === "track" && seedIds.length) {
       await performSearch({ type: "track", seedTrackIds: seedIds.slice(0, 10), includeSeed, prioritizeBpm }, "track");
     } else if (effectiveSource === "prompt" && effectivePrompt.trim().length >= 3) {
-      await performSearch({ type: "prompt", prompt: effectivePrompt.trim(), locale }, "prompt");
+      const normalizedPrompt = normalizedSimilarityPrompt(effectivePrompt);
+      onPromptSubmit?.(normalizedPrompt);
+      await performSearch({ type: "prompt", prompt: normalizedPrompt, locale }, "prompt");
     } else if (effectiveSource === "upload") {
       await uploadAndSearch();
     } else if (effectiveSource === "url" && platform) {
@@ -292,7 +337,7 @@ export function useSimilaritySearchController({
         setState("error");
       }
     }
-  }, [abortCurrent, busy, effectivePrompt, effectiveSource, includeSeed, locale, performSearch, platform, prioritizeBpm, seedIds, uploadAndSearch, url]);
+  }, [abortCurrent, busy, effectivePrompt, effectiveSource, includeSeed, locale, onPromptSubmit, performSearch, platform, prioritizeBpm, seedIds, uploadAndSearch, url]);
 
   useEffect(() => {
     if (!capabilities || !enabledSources.includes(source)) return;
@@ -306,8 +351,11 @@ export function useSimilaritySearchController({
     }
     if (autoRunStarted.current || source === "track") return;
     if (initialHandoff?.source === "upload" && similarityFile.status !== "valid") return;
+    const normalizedPrompt = normalizedSimilarityPrompt(effectivePrompt);
     const shouldRun = initialHandoff?.source === source
-      || (source === "prompt" && effectivePrompt.trim().length >= 3);
+      || (source === "prompt"
+        && initialUrlPrompt.current.length >= 3
+        && normalizedPrompt === initialUrlPrompt.current);
     if (!shouldRun) return;
     autoRunStarted.current = `handoff:${source}`;
     const timeout = window.setTimeout(() => {

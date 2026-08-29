@@ -46,14 +46,10 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
                 {sync.title}
               </SignedTitle>
 
-              <dl className="mt-7 grid min-w-0 grid-cols-2 gap-5 border-t border-[var(--line)] pt-6">
+              <dl className="mt-7 border-t border-[var(--line)] pt-6">
                 <div className="min-w-0">
                   <dt className="font-mono text-[.55rem] uppercase tracking-[.13em] text-[var(--text-muted)]">{locale === "fr" ? "Diffuseur" : "Broadcaster"}</dt>
                   <dd className="mt-2 break-words text-sm font-semibold">{sync.client}</dd>
-                </div>
-                <div>
-                  <dt className="font-mono text-[.55rem] uppercase tracking-[.13em] text-[var(--text-muted)]">{locale === "fr" ? "Année" : "Year"}</dt>
-                  <dd className="mt-2 text-sm font-semibold">{sync.year ?? "—"}</dd>
                 </div>
               </dl>
 
