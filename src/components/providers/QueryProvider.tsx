@@ -16,15 +16,18 @@ import { ClipPlaybackProvider } from "./ClipPlaybackProvider";
 import { NavigationHistoryProvider } from "@/components/navigation/ContextualBackLink";
 import type { Theme } from "./ThemeProvider";
 import { ReactQueryProvider } from "./ReactQueryProvider";
+import { useTrackShareStore } from "@/stores/track-share-store";
 
 function GlobalOverlays() {
   const authOpen = useAuthModalStore((state) => state.isOpen);
   const shortlistItems = useShortlistStore((state) => state.items.length);
   const currentTrack = usePlayerStore((state) => state.currentTrack);
+  const shareOpen = useTrackShareStore((state) => Boolean(state.target));
   const { foregroundPlayback } = usePlaybackCoordinator();
   const [AuthModal, setAuthModal] = useState<ComponentType | null>(null);
   const [ShortlistDrawer, setShortlistDrawer] = useState<ComponentType | null>(null);
   const [MiniPlayer, setMiniPlayer] = useState<ComponentType | null>(null);
+  const [TrackShareDialog, setTrackShareDialog] = useState<ComponentType | null>(null);
 
   useEffect(() => {
     if (!authOpen || AuthModal) return;
@@ -53,11 +56,21 @@ function GlobalOverlays() {
     return () => { active = false; };
   }, [MiniPlayer, currentTrack]);
 
+  useEffect(() => {
+    if (!shareOpen || TrackShareDialog) return;
+    let active = true;
+    void import("@/components/features/TrackShareDialog").then((module) => {
+      if (active) setTrackShareDialog(() => module.TrackShareDialog);
+    });
+    return () => { active = false; };
+  }, [TrackShareDialog, shareOpen]);
+
   return (
     <>
       {currentTrack && MiniPlayer && foregroundPlayback !== "clip" && foregroundPlayback !== "showreel" && <MiniPlayer />}
       {AuthModal && <AuthModal />}
       {ShortlistDrawer && <ShortlistDrawer />}
+      {TrackShareDialog && <TrackShareDialog />}
     </>
   );
 }

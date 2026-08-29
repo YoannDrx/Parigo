@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test("Licensing ouvre sur le détail recadré de R28 et conserve la grille", async ({ page }) => {
+test("Licensing ouvre sur une introduction textuelle pleine largeur et conserve la grille", async ({ page }) => {
   await page.goto("/licensing");
 
   await expect(page.locator(".page-hero")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1, name: "Une musique trouvée, une licence maîtrisée" })).toBeVisible();
   await expect(page.getByText("Licensing · Parigo Music", { exact: true })).toHaveCount(0);
-  await expect(page.getByTestId("licensing-hero-image")).toHaveAttribute("src", /r28-v1-licensing-detail-1920x1080/);
+  await expect(page.getByTestId("licensing-hero-image")).toHaveCount(0);
+  await expect(page.getByTestId("licensing-title-card")).toBeVisible();
   await expect(page.getByText("R29 · L’atelier des droits", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Quatre repères suffisent", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Usages & tarifs", { exact: true })).toHaveCount(0);
@@ -64,9 +65,9 @@ test("About, la page Login et la modale Login échangent leurs images sans modif
   await expect(loginDialog.locator('[data-auth-image="login"] img')).toHaveAttribute("src", /r14-v3-forgot-password-1200x1500/);
 });
 
-test("les variantes anglaises conservent les images et les sorties localisées", async ({ page }) => {
+test("les variantes anglaises conservent les sorties localisées sans image Licensing", async ({ page }) => {
   await page.goto("/en/licensing");
-  await expect(page.getByTestId("licensing-hero-image")).toHaveAttribute("src", /r28-v1-licensing-detail-1920x1080/);
+  await expect(page.getByTestId("licensing-hero-image")).toHaveCount(0);
   await expect(page.getByText("A framework for every project.", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Request an estimate" })).toHaveAttribute("href", "/en/contact");
 

@@ -298,6 +298,10 @@
         "height": 1086
       },
       "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "38% 45%",
+        "scale": 1.5
+      },
       "harvest": {
         "aliases": [
           "Laurent Dury"
@@ -471,6 +475,9 @@
         "height": 714
       },
       "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "50% 14%"
+      },
       "harvest": {
         "aliases": [
           "Kokane"
@@ -1152,6 +1159,9 @@
         "height": 960
       },
       "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "50% 12%"
+      },
       "harvest": {
         "aliases": [
           "Brice Torres",
@@ -1832,6 +1842,9 @@
         "height": 1600
       },
       "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "50% 18%"
+      },
       "harvest": {
         "aliases": [
           "Of Ivory And Horn",
@@ -1869,6 +1882,11 @@
         "height": 1200
       },
       "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "42% 22%",
+        "scale": 0.96,
+        "fit": "contain"
+      },
       "harvest": {
         "aliases": [
           "Mister Modo"
@@ -1975,6 +1993,9 @@
         "height": 624
       },
       "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "50% 12%"
+      },
       "harvest": {
         "aliases": [
           "Loic Laporte",

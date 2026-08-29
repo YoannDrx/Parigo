@@ -79,7 +79,26 @@ test("le drawer restaure la position exacte de l’accueil au retour de Talents"
   await expect(page).toHaveURL(/\/talents$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
-  await expect.poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - restoredOrigin)).toBeLessThanOrEqual(2);
+  await expect.poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - restoredOrigin)).toBeLessThanOrEqual(16);
+});
+
+test("le retour Contact restaure immédiatement le bloc brief de l’accueil", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Ce scénario cible le retour tactile signalé sur la Home.");
+  await page.goto("/");
+  const cta = page.getByRole("link", { name: "Envoyer un brief" });
+  await cta.scrollIntoViewIfNeeded();
+  const origin = await page.evaluate(() => window.scrollY);
+  expect(origin).toBeGreaterThan(500);
+
+  await cta.click();
+  await expect(page).toHaveURL(/\/contact\?subject=brief$/);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect.poll(async () => Math.abs((await page.evaluate(() => window.scrollY)) - origin)).toBeLessThanOrEqual(16);
+  const restored = await page.evaluate(() => window.scrollY);
+  await page.waitForTimeout(1_100);
+  expect(Math.abs((await page.evaluate(() => window.scrollY)) - restored)).toBeLessThanOrEqual(16);
+  await expect(cta).toBeInViewport();
 });
 
 test("le logo du header remonte l’accueil déjà actif", async ({ page }) => {

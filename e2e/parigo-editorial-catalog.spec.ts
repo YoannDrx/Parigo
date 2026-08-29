@@ -220,8 +220,10 @@ test("Synthwave Retrowave crédite Schérazade comme auteur de ses chansons", as
   const song = page.locator('[data-track-id="23b92c9b02375642f77e44705437fccb"]');
   if (testInfo.project.name === "mobile") {
     await song.getByRole("button", { name: /^Plus d’actions :/ }).click();
+    await page.getByRole("dialog", { name: /^Actions de la piste/ }).getByRole("button", { name: /^Informations sur la piste/ }).click();
+  } else {
+    await song.getByRole("button", { name: /^Informations sur la piste/ }).click();
   }
-  await song.getByRole("button", { name: /^Informations sur la piste/ }).click();
   const details = testInfo.project.name === "mobile"
     ? page.locator(".track-detail-sheet .track-detail-panel")
     : song.locator(".track-detail-panel");
@@ -368,7 +370,7 @@ test("les relations manuelles publient les clips sur chaque profil compositeur c
   await expect(page.getByTestId("composer-clips-section")).toHaveCount(0);
 });
 
-test("les relations clip sont réciproques et séparent le talent de l’album sur mobile", async ({ page }, testInfo) => {
+test("les relations clip sont réciproques, sans séparateurs et régulièrement espacées", async ({ page }, testInfo) => {
   await page.goto("/clips/yt-wrO96WV69aY");
   const minimaticRelations = page.getByTestId("clip-talents-section");
   const minimaticAlbum = page.getByTestId("clip-album-section");
@@ -377,22 +379,19 @@ test("les relations clip sont réciproques et séparent le talent de l’album s
 
   const relationSpacing = await page.getByTestId("clip-relations").evaluate((relationsSection) => {
     const detailPanel = document.querySelector<HTMLElement>('[data-testid="clip-detail-panel"]')!;
-    const talentHeading = relationsSection.querySelector<HTMLElement>('h2')!;
     const relationsStyle = getComputedStyle(relationsSection);
     const relationsBox = relationsSection.getBoundingClientRect();
     const panelBox = detailPanel.getBoundingClientRect();
-    const headingBox = talentHeading.getBoundingClientRect();
-    const borderTopWidth = Number.parseFloat(relationsStyle.borderTopWidth);
     return {
-      beforeDivider: relationsBox.top - panelBox.bottom,
-      afterDivider: headingBox.top - relationsBox.top - borderTopWidth,
+      playerGap: relationsBox.top - panelBox.bottom,
       marginTop: Number.parseFloat(relationsStyle.marginTop),
+      borderTopWidth: Number.parseFloat(relationsStyle.borderTopWidth),
       paddingTop: Number.parseFloat(relationsStyle.paddingTop),
     };
   });
-  expect(Math.abs(relationSpacing.beforeDivider - relationSpacing.afterDivider)).toBeLessThanOrEqual(1);
-  expect(relationSpacing.beforeDivider).toBeCloseTo(relationSpacing.marginTop, 0);
-  expect(relationSpacing.afterDivider).toBeCloseTo(relationSpacing.paddingTop, 0);
+  expect(relationSpacing.playerGap).toBeCloseTo(relationSpacing.marginTop, 0);
+  expect(relationSpacing.borderTopWidth).toBe(0);
+  expect(relationSpacing.paddingTop).toBe(0);
 
   const albumSpacing = await minimaticAlbum.evaluate((albumSection) => {
     const albumStyle = getComputedStyle(albumSection);
@@ -405,10 +404,10 @@ test("les relations clip sont réciproques et séparent le talent de l’album s
     };
   });
   if (testInfo.project.name === "mobile") {
-    expect(albumSpacing.borderTopWidth).toBeGreaterThan(0);
-    expect(albumSpacing.marginTop).toBe(relationSpacing.marginTop);
-    expect(albumSpacing.paddingTop).toBe(relationSpacing.paddingTop);
-    expect(albumSpacing.rowGap).toBe(0);
+    expect(albumSpacing.borderTopWidth).toBe(0);
+    expect(albumSpacing.marginTop).toBe(0);
+    expect(albumSpacing.paddingTop).toBe(0);
+    expect(albumSpacing.rowGap).toBeCloseTo(relationSpacing.marginTop, 0);
   } else {
     expect(albumSpacing.borderTopWidth).toBe(0);
     expect(albumSpacing.marginTop).toBe(0);

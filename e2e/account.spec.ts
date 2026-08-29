@@ -133,6 +133,17 @@ test("les favoris chargés ne réamorcent pas leur propre requête", async ({ pa
   expect(favouriteTitleBox).not.toBeNull();
   expect(favouriteAlbumBox).not.toBeNull();
   expect(favouriteAlbumBox!.y).toBeGreaterThan(favouriteTitleBox!.y);
+  if (testInfo.project.name === "mobile") {
+    const rowBox = await favouriteRow.boundingBox();
+    expect(rowBox).not.toBeNull();
+    expect(rowBox!.x + rowBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+    await expect(favouriteRow).toHaveAttribute("data-mobile-layout", "dense");
+    for (const control of await favouriteRow.locator(".parigo-track-row__actions button:visible").all()) {
+      const bounds = await control.boundingBox();
+      expect(bounds!.width).toBeGreaterThanOrEqual(44);
+      expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    }
+  }
   const favouritesSearch = page.getByRole("textbox", { name: "Rechercher dans mes favoris" });
   await favouritesSearch.fill("introuvable");
   await expect(page.getByRole("heading", { name: "Aucun favori ne correspond." })).toBeVisible();
@@ -762,6 +773,19 @@ test("une playlist expose suggestions et partage avancé", async ({ page }) => {
   await page.route("**/api/user/favorites", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { trackIds: [], albumIds: [] } }) }));
   await page.goto("/account/playlists/playlist-1");
   await expect(page.getByRole("navigation", { name: "Navigation du compte" }).getByRole("link", { name: "Playlists" })).toHaveAttribute("aria-current", "page");
+  const playlistTrack = page.locator('[data-track-id="track-1"]');
+  await expect(playlistTrack).toHaveAttribute("data-mobile-layout", "dense");
+  if ((await page.viewportSize())!.width < 1024) {
+    const mainBox = await playlistTrack.locator(".parigo-track-row__main").boundingBox();
+    const managementBox = await playlistTrack.locator(".parigo-track-row__management").boundingBox();
+    expect(mainBox).not.toBeNull();
+    expect(managementBox).not.toBeNull();
+    expect(managementBox!.y).toBeGreaterThanOrEqual(mainBox!.y + mainBox!.height - 1);
+    expect(await playlistTrack.locator(".parigo-track-row__management button").evaluateAll((buttons) => buttons.every((button) => {
+      const bounds = button.getBoundingClientRect();
+      return bounds.width >= 44 && bounds.height >= 44;
+    }))).toBe(true);
+  }
   const playlistHeader = page.locator('.account-page__header[data-wide-title="true"]');
   await expect(playlistHeader).toBeVisible();
   const playlistHeading = playlistHeader.getByRole("heading", { name: "Film été" });

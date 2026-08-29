@@ -1,7 +1,7 @@
 "use client";
 
 import Link, { type LinkProps } from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   createContext,
@@ -27,68 +27,39 @@ export function routePathname(href: string) {
 
 export function NavigationHistoryProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const currentPathnameRef = useRef(normalizePathname(pathname));
+  const searchParams = useSearchParams();
+  const [locationHash, setLocationHash] = useState("");
+  const [hashReady, setHashReady] = useState(false);
+  const currentLocation = `${normalizePathname(pathname)}${searchParams.size ? `?${searchParams.toString()}` : ""}${locationHash}`;
+  const currentLocationRef = useRef<string | null>(null);
   const [previousPathname, setPreviousPathname] = useState<string | null>(null);
 
   useEffect(() => {
-    const previousRestoration = window.history.scrollRestoration;
-    window.history.scrollRestoration = "manual";
-    const storageKey = () => `parigo:scroll:${normalizePathname(window.location.pathname)}`;
-    const rememberScroll = () => {
-      if (document.documentElement.dataset.scrollLocked === "true") return;
-      window.sessionStorage.setItem(storageKey(), String(window.scrollY));
+    const updateHash = () => {
+      setLocationHash(window.location.hash);
+      setHashReady(true);
     };
-    const restoreHistoryScroll = () => {
-      const nextPathname = normalizePathname(window.location.pathname);
-      const storedTarget = window.sessionStorage.getItem(`parigo:scroll:${nextPathname}`);
-      if (storedTarget === null) return;
-      const target = Number(storedTarget);
-      if (!Number.isFinite(target)) return;
-      let attempts = 0;
-      let cancelled = false;
-      const cancelEvents = ["wheel", "touchstart", "pointerdown", "keydown"] as const;
-      const removeCancellationListeners = () => {
-        for (const eventName of cancelEvents) {
-          window.removeEventListener(eventName, cancelForUserInput);
-        }
-      };
-      const cancelForUserInput = () => {
-        cancelled = true;
-        removeCancellationListeners();
-      };
-      for (const eventName of cancelEvents) {
-        window.addEventListener(eventName, cancelForUserInput, { once: true, passive: true });
-      }
-      const restore = () => {
-        if (cancelled) return;
-        const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-        if (maxScroll >= target) window.scrollTo({ top: target, behavior: "instant" });
-        attempts += 1;
-        if (attempts < 40) {
-          window.setTimeout(restore, 50);
-        } else {
-          removeCancellationListeners();
-        }
-      };
-      window.setTimeout(restore, 0);
-    };
-    window.addEventListener("scroll", rememberScroll, { passive: true });
-    window.addEventListener("popstate", restoreHistoryScroll);
-    rememberScroll();
+
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    window.addEventListener("popstate", updateHash);
     return () => {
-      window.history.scrollRestoration = previousRestoration;
-      window.removeEventListener("scroll", rememberScroll);
-      window.removeEventListener("popstate", restoreHistoryScroll);
+      window.removeEventListener("hashchange", updateHash);
+      window.removeEventListener("popstate", updateHash);
     };
   }, []);
 
   useEffect(() => {
-    const nextPathname = normalizePathname(pathname);
-    if (nextPathname === currentPathnameRef.current) return;
+    if (!hashReady) return;
+    if (currentLocationRef.current === null) {
+      currentLocationRef.current = currentLocation;
+      return;
+    }
+    if (currentLocation === currentLocationRef.current) return;
 
-    setPreviousPathname(currentPathnameRef.current);
-    currentPathnameRef.current = nextPathname;
-  }, [pathname]);
+    setPreviousPathname(currentLocationRef.current);
+    currentLocationRef.current = currentLocation;
+  }, [currentLocation, hashReady]);
 
   return (
     <NavigationHistoryContext.Provider value={previousPathname}>

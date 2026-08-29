@@ -16,7 +16,6 @@ interface SynchronisationCardProps {
   image: string;
   title: string;
   client: string;
-  detail?: string;
   className?: string;
   sizes?: string;
   headingLevel?: "h2" | "h3";
@@ -29,7 +28,6 @@ export function SynchronisationCard({
   image,
   title,
   client,
-  detail,
   className,
   sizes = "(max-width: 768px) 86vw, 55vw",
   headingLevel = "h2",
@@ -85,7 +83,6 @@ export function SynchronisationCard({
               {title}
             </Link>
           </Heading>
-          {detail && <p className="mt-2 truncate text-sm text-white/72">{detail}</p>}
         </div>
       </ClipPlaybackAnchor>
       <footer className="editorial-card__mobile-footer relative z-[1] flex min-h-14 items-center px-1 pb-1 pt-3 text-[var(--foreground)] md:hidden">

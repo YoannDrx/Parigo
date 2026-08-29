@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2, Ellipsis, X, NotebookPen } from "lucide-react";
+import { Play, Pause, Check, ListPlus, ListEnd, ArrowUpRight, Info, Share2, Ellipsis, NotebookPen } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { Track, Album, ComposerCreditLink } from "@/types";
@@ -24,6 +24,8 @@ import { localizeCatalogTerm } from "@/i18n/catalog-terms";
 import { useSession } from "@/lib/auth-client";
 import { useBodyScrollLock } from "@/hooks/use-body-scroll-lock";
 import { useTouchLayout } from "@/hooks/use-touch-layout";
+import { useTrackShareStore } from "@/stores/track-share-store";
+import { TrackActionsSheet } from "./TrackActionsSheet";
 
 interface TrackRowProps {
   track: Track;
@@ -45,6 +47,7 @@ interface TrackRowProps {
   displayNumber?: string;
   groupedVersion?: boolean;
   mobileLayout?: "default" | "dense";
+  managementActions?: ReactNode;
 }
 
 const openMobileActionMenus = new Set<symbol>();
@@ -73,6 +76,7 @@ export function TrackRow({
   displayNumber,
   groupedVersion = false,
   mobileLayout = "default",
+  managementActions,
 }: TrackRowProps) {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
@@ -86,10 +90,10 @@ export function TrackRow({
   const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>(initialDetailsTab);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
   const isTouchLayout = useTouchLayout();
+  const openShare = useTrackShareStore((state) => state.open);
   const mobileActionsToken = useRef(Symbol(track.id));
   const articleRef = useRef<HTMLElement>(null);
   const actionsTriggerRef = useRef<HTMLButtonElement>(null);
-  const actionsPopoverRef = useRef<HTMLDivElement>(null);
   const displayedTerms = [track.genres[0], track.moods[0]].filter(Boolean) as string[];
   const additionalTerms = [...new Set([
     ...track.genres.slice(1),
@@ -114,29 +118,6 @@ export function TrackRow({
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [detailsOpen, isTouchLayout]);
-
-  useEffect(() => {
-    if (!mobileActionsOpen) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setMobileActionsOpen(false);
-        actionsTriggerRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [mobileActionsOpen]);
-
-  useEffect(() => {
-    if (!mobileActionsOpen || !condensedActions) return;
-    const closeOnOutsidePress = (event: PointerEvent) => {
-      const target = event.target as Node;
-      if (actionsPopoverRef.current?.contains(target) || actionsTriggerRef.current?.contains(target)) return;
-      setMobileActionsOpen(false);
-    };
-    document.addEventListener("pointerdown", closeOnOutsidePress);
-    return () => document.removeEventListener("pointerdown", closeOnOutsidePress);
-  }, [condensedActions, mobileActionsOpen]);
 
   useEffect(() => {
     if (!initialDetailsOpen || initialHighlight) return;
@@ -194,11 +175,7 @@ export function TrackRow({
     }
     seekTo((percentage / 100) * track.duration);
   };
-  const shareTrack = async () => {
-    const url = `${window.location.origin}/albums/${album?.slug || track.albumId}?track=${encodeURIComponent(track.id)}`;
-    if (navigator.share) await navigator.share({ title: track.title, text: track.description, url }).catch(() => undefined);
-    else await navigator.clipboard.writeText(url);
-  };
+  const shareTrack = () => openShare({ trackId: track.id, title: track.title, description: track.description, albumSlug: album?.slug || track.albumSlug || track.albumId });
   const toggleDetails = (tab: TrackDetailsTab) => {
     if (detailsOpen && detailsTab === tab) setDetailsOpen(false);
     else {
@@ -410,18 +387,19 @@ export function TrackRow({
         <Tooltip label={isShortlisted ? (locale === "fr" ? "Déjà dans la sélection — retirer" : "Already selected — remove") : (locale === "fr" ? "Ajouter à la sélection" : "Add to selection")}><button onClick={() => isShortlisted ? removeFromShortlist(track.id) : addToShortlist(track)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center border transition-colors", isShortlisted ? "border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal)_16%,transparent)]" : "border-[var(--signal-strong)]/45 text-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${track.title}`}>
           {isShortlisted ? <Check size={17} /> : <ListPlus size={17} />}
         </button></Tooltip>
-        <button ref={actionsTriggerRef} type="button" onClick={() => setMobileActionsOpen((value) => !value)} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} aria-haspopup={condensedActions ? "dialog" : undefined} className={cn("parigo-track-row__actions-trigger flex h-10 w-10 items-center justify-center border border-[var(--line-strong)] transition lg:hidden", condensedActions && "rounded-[var(--parigo-corner-sm)_var(--parigo-turn-sm)]", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
+        <button ref={actionsTriggerRef} type="button" onClick={() => setMobileActionsOpen((value) => !value)} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} aria-haspopup="dialog" className={cn("parigo-track-row__actions-trigger flex h-10 w-10 items-center justify-center border border-[var(--line-strong)] transition lg:hidden", condensedActions && "rounded-[var(--parigo-corner-sm)_var(--parigo-turn-sm)]", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
           <Ellipsis size={19} />
         </button>
-        {showCompleteActions && <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="parigo-track-row__wide-action hidden xl:inline-flex"><button type="button" onClick={() => void shareTrack()} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></Tooltip>}
+        {showCompleteActions && <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="parigo-track-row__wide-action hidden xl:inline-flex"><button type="button" onClick={shareTrack} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></Tooltip>}
         {showCompleteActions && <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"} className="parigo-track-row__wide-action hidden 2xl:inline-flex"><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}>
           <ArrowUpRight size={17} className="text-[var(--color-gray-500)]" />
         </Link></Tooltip>}
       </div>
+      {managementActions ? <div className="parigo-track-row__management-desktop hidden shrink-0 items-center lg:flex">{managementActions}</div> : null}
       </div>
-      {mobileActionsOpen && <div ref={actionsPopoverRef} id={mobileActionsId} role={condensedActions ? "dialog" : "region"} aria-label={`${locale === "fr" ? "Actions pour" : "Actions for"} ${track.title}`} className={cn("parigo-track-row__mobile-actions bg-[var(--surface)] px-2.5 pb-2.5 pt-2.5", condensedActions ? "parigo-track-actions-popover absolute right-2 top-[calc(100%+.25rem)] w-[min(18rem,calc(100vw-2rem))] border border-[var(--line-strong)]" : "border-t border-[var(--line)] lg:hidden")}>
-        <div className="mb-2 flex items-center justify-between gap-3 pl-1"><p className="eyebrow truncate text-[var(--text-muted)]">{locale === "fr" ? "Actions de la piste" : "Track actions"}</p><button type="button" onClick={() => setMobileActionsOpen(false)} className="parigo-track-actions-popover__close flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer les actions" : "Close actions"}><X size={14} /></button></div>
-        <div className={cn("grid grid-cols-2 gap-1.5", !condensedActions && "sm:grid-cols-3")}>
+      {managementActions ? <div className="parigo-track-row__management border-t border-[var(--line)] px-2 py-2 lg:hidden">{managementActions}</div> : null}
+      <TrackActionsSheet open={mobileActionsOpen} onClose={() => setMobileActionsOpen(false)} returnFocusRef={actionsTriggerRef} id={mobileActionsId} title={track.title} subtitle={`${album?.title || track.albumTitle || ""}${album?.code || track.albumCode ? ` · ${album?.code || track.albumCode}` : ""}`} image={album?.cover || track.albumCover} closeLabel={locale === "fr" ? "Fermer les actions" : "Close actions"} eyebrow={locale === "fr" ? "Actions de la piste" : "Track actions"}>
+        <div className="grid grid-cols-2 gap-2">
           <MobileAction label={locale === "fr" ? "Favoris" : "Favourite"}><FavoriteButton type="track" itemId={track.id} size="md" showTooltip={false} /></MobileAction>
           <MobileAction label={locale === "fr" ? "Informations" : "Information"}><button type="button" onClick={() => { toggleDetails("information"); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></MobileAction>
           <SimilarTracksButton track={track} mobileAction onNavigate={() => setMobileActionsOpen(false)} />
@@ -431,10 +409,10 @@ export function TrackRow({
           {session?.user && <MobileAction label={locale === "fr" ? "Tag personnel" : "Personal tag"}><AddTagButton trackId={track.id} trackTitle={track.title} /></MobileAction>}
           {session?.user && <MobileAction label="Cue sheet"><CueSheetButton compact title={track.title} trackIds={[track.id]} /></MobileAction>}
           <MobileAction label={locale === "fr" ? "File d’attente" : "Queue"}><button type="button" onClick={() => { addToQueue(track); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}><ListEnd size={17} /></button></MobileAction>
-          <MobileAction label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => { void shareTrack(); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></MobileAction>
+          <MobileAction label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => { shareTrack(); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></MobileAction>
           <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
-      </div>}
+      </TrackActionsSheet>
       {detailsSheet && isTouchLayout && typeof document !== "undefined" ? createPortal(detailsSheet, document.body) : detailsSheet}
     </article>
   );

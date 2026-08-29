@@ -3,6 +3,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { CanonicalComposerSummary } from "@/lib/composers/profiles";
 import type { Locale } from "@/i18n/messages";
 import { localizedPath } from "@/lib/locale";
@@ -27,6 +28,7 @@ export function ComposerDirectoryClient({
   locale: Locale;
   pathname: string;
 }) {
+  const router = useRouter();
   const [query, setQuery] = useState(initialQuery);
   const deferredQuery = useDeferredValue(query);
   const visibleCredits = useMemo(() => {
@@ -44,10 +46,10 @@ export function ComposerDirectoryClient({
       const next = `${pathname}${params.size ? `?${params.toString()}` : ""}${window.location.hash}`;
       const current = `${window.location.pathname}${window.location.search}${window.location.hash}`;
       if (current === next) return;
-      window.history.replaceState(null, "", next);
+      router.replace(next, { scroll: false });
     }, 200);
     return () => window.clearTimeout(timeout);
-  }, [pathname, query]);
+  }, [pathname, query, router]);
 
   return (
     <>
@@ -65,18 +67,23 @@ export function ComposerDirectoryClient({
       </p>
       {visibleCredits.length > 0 ? (
         <div data-testid="composer-directory-results" className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 md:gap-6 xl:grid-cols-4">
-          {visibleCredits.map((profile) => (
+          {visibleCredits.map((profile) => {
+            const crop = profile.cardCrop;
+            const image = profile.detailImage?.src ?? profile.image;
+            return (
             <Link
               key={profile.slug}
               href={localizedPath(locale, `/talents/${profile.slug}`)}
               className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
             >
+              {crop?.fit === "contain" ? <Image src={image} alt="" fill sizes="(max-width: 640px) 100vw, 25vw" aria-hidden="true" className="scale-110 object-cover opacity-45 blur-xl" /> : null}
               <Image
-                src={profile.detailImage?.src ?? profile.image}
+                src={image}
                 alt=""
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                className="object-cover grayscale transition duration-500 group-hover:grayscale-0"
+                style={{ objectPosition: crop?.objectPosition, transform: crop?.scale ? `scale(${crop.scale})` : undefined, transformOrigin: crop?.objectPosition }}
+                className={`${crop?.fit === "contain" ? "object-contain" : "object-cover"} grayscale transition duration-500 group-hover:grayscale-0`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
               <div className="composer-card__caption relative p-5 text-white sm:p-6">
@@ -85,7 +92,8 @@ export function ComposerDirectoryClient({
               <span aria-hidden="true" className="composer-card__corner composer-card__corner--top" />
               <span aria-hidden="true" className="composer-card__corner composer-card__corner--bottom" />
             </Link>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <p className="border-y border-[var(--line)] py-16 text-center text-[var(--text-muted)]">

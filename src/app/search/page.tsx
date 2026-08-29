@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
   BookmarkPlus,
@@ -101,6 +101,7 @@ function albumFromTrack(track: Track): Album {
 
 function SearchContent() {
   const { locale, t, localizedPath } = useI18n();
+  const router = useRouter();
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const initialSearchMode: SearchMode = searchParams.get("mode") === "ai" ? "ai" : "keyword";
@@ -258,9 +259,7 @@ function SearchContent() {
     if (durationRange[1] !== DEFAULT_DURATION[1]) params.set("durationMax", String(durationRange[1]));
     const next = params.toString();
     if (next !== searchParams.toString()) {
-      const replaceUrl = () => {
-        window.history.replaceState(window.history.state, "", `${localizedPath("/search")}${next ? `?${next}` : ""}`);
-      };
+      const replaceUrl = () => router.replace(`${localizedPath("/search")}${next ? `?${next}` : ""}`, { scroll: false });
       // Replacing the URL while the initial document is still loading can
       // cancel browser automation navigations and, more importantly, confuse
       // assistive history announcements. Canonicalize after the load event;
@@ -271,7 +270,7 @@ function SearchContent() {
         return () => window.removeEventListener("load", replaceUrl);
       }
     }
-  }, [bpmRange, categories, composers, density, durationRange, labels, localizedPath, mobileFiltersOpen, page, query, searchMode, searchParams, sort, styles, translation, type, view]);
+  }, [bpmRange, categories, composers, density, durationRange, labels, localizedPath, mobileFiltersOpen, page, query, router, searchMode, searchParams, sort, styles, translation, type, view]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -395,6 +394,8 @@ function SearchContent() {
     if (nextMode === "ai") {
       params.set("mode", "ai");
       params.set("source", similaritySource);
+      if (similaritySource === "prompt" && similarityPrompt.trim()) params.set("q", similarityPrompt.trim());
+      else params.delete("q");
       params.delete("page");
     } else {
       params.delete("mode");
@@ -403,8 +404,10 @@ function SearchContent() {
       params.delete("seeds");
       params.delete("run");
       params.delete("pick");
+      if (query.trim()) params.set("q", query.trim());
+      else params.delete("q");
     }
-    window.history.replaceState(window.history.state, "", `${localizedPath("/search")}${params.size ? `?${params}` : ""}`);
+    router.replace(`${localizedPath("/search")}${params.size ? `?${params}` : ""}`, { scroll: false });
   };
 
   const updateSimilaritySource = (nextSource: SimilaritySearchSource) => {
@@ -419,8 +422,19 @@ function SearchContent() {
       params.delete("run");
       params.delete("pick");
     }
-    window.history.replaceState(window.history.state, "", `${localizedPath("/search")}?${params}`);
+    if (nextSource !== "prompt") params.delete("q");
+    router.replace(`${localizedPath("/search")}?${params}`, { scroll: false });
   };
+
+  const commitSimilarityPrompt = useCallback((value: string) => {
+    setSimilarityPrompt(value);
+    const params = new URLSearchParams(window.location.search);
+    params.set("mode", "ai");
+    params.set("source", "prompt");
+    params.set("q", value);
+    params.delete("page");
+    router.replace(`${localizedPath("/search")}?${params}`, { scroll: false });
+  }, [localizedPath, router]);
 
   const similarity = useSimilaritySearchController({
     source: similaritySource,
@@ -429,6 +443,7 @@ function SearchContent() {
     autoRunTrack: autoRunTrackSimilarity,
     initialHandoff: initialSimilarityHandoff,
     onPromptChange: setSimilarityPrompt,
+    onPromptSubmit: commitSimilarityPrompt,
     onSourceChange: updateSimilaritySource,
   });
   const similarityInlineError = similarity.effectiveSource === "url" ? similarityInputError(similarity.url, locale) : similarity.fileError;

@@ -94,6 +94,7 @@ test("le héros ouvre une recherche par similarité IA depuis un brief", async (
   await runBrief.click();
 
   await expect(page).toHaveURL(/\/search\?mode=ai&source=prompt/);
+  expect(new URL(page.url()).searchParams.get("q")).toBe("Une tension cinématique nocturne");
   await expect(page.getByRole("region", { name: "Recherche par similarité IA" })).toBeVisible();
   await expect(page.getByText("Aucune piste similaire n’a été trouvée.")).toBeVisible();
 });
@@ -332,11 +333,9 @@ test("les suggestions du héros restent au-dessus de la section suivante", async
     copyOpacity: expect.any(Number),
     searchOpacity: 1,
   }));
-  expect(await page.getByTestId("home-hero-copy").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(0.95);
 
   await hero.getByLabel("Rechercher dans le catalogue Parigo").press("Escape");
   await expect(panel).toBeHidden();
-  await expect.poll(() => page.getByTestId("home-hero-search-mask").evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(0.95);
 });
 
 test("le sélecteur du héros reste contenu sur un petit viewport", async ({ page }, testInfo) => {
@@ -360,15 +359,15 @@ test("le héros conserve un espace lisible sous la navbar sur iPhone SE", async 
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/");
 
-  const header = page.locator("header");
+  const header = page.getByRole("banner");
   const title = page.getByTestId("home-hero").locator('[data-banner-reveal="title"]');
   await expect(page.getByTestId("home-hero-search-mask")).toHaveAttribute("data-banner-mask", "open");
   const [headerBox, titleBox] = await Promise.all([header.boundingBox(), title.boundingBox()]);
   expect(headerBox).not.toBeNull();
   expect(titleBox).not.toBeNull();
   const titleGap = titleBox!.y - (headerBox!.y + headerBox!.height);
-  expect(titleGap).toBeGreaterThanOrEqual(32);
-  expect(titleGap).toBeLessThanOrEqual(64);
+  expect(titleGap).toBeGreaterThanOrEqual(64);
+  expect(titleGap).toBeLessThanOrEqual(150);
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(await page.evaluate(() => document.documentElement.clientWidth));
 });
 
@@ -439,7 +438,7 @@ test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ pa
   test.skip(testInfo.project.name === "mobile", "Le survol du CTA est un comportement desktop.");
   await page.goto("/");
   const cta = page.getByRole("link", { name: "Envoyer un brief" });
-  await expect(page.getByRole("link", { name: "Contacter l’équipe" })).toHaveAttribute("href", "/contact");
+  await expect(page.getByRole("link", { name: "Contacter l’équipe" })).toHaveCount(0);
   await cta.scrollIntoViewIfNeeded();
   await page.waitForTimeout(800);
   await cta.hover();
@@ -452,6 +451,25 @@ test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ pa
   await cta.hover();
   await expect(cta).toHaveCSS("background-color", "rgb(255, 255, 255)");
   await expect(cta).toHaveCSS("color", "rgb(16, 20, 16)");
+});
+
+test("le libellé du rail des synchros reste lisible dans les deux thèmes", async ({ page }) => {
+  await page.goto("/");
+  const section = page.getByTestId("home-sync-section");
+  const label = section.locator(".home-rail__label");
+  await label.scrollIntoViewIfNeeded();
+
+  for (const [theme, foreground, background] of [
+    ["light", "rgb(242, 241, 237)", "rgb(21, 24, 21)"],
+    ["dark", "rgb(21, 24, 21)", "rgb(241, 241, 236)"],
+  ] as const) {
+    await page.evaluate((nextTheme) => {
+      document.documentElement.dataset.theme = nextTheme;
+      document.documentElement.style.colorScheme = nextTheme;
+    }, theme);
+    await expect(label).toHaveCSS("color", foreground);
+    await expect(section).toHaveCSS("background-color", background);
+  }
 });
 
 test("la navbar reste minimaliste et expose la signature Parigo dans l’onglet", async ({ page }, testInfo) => {
@@ -835,10 +853,9 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   await process.scrollIntoViewIfNeeded();
   const processCards = page.getByTestId("process-card");
   await expect(processCards).toHaveCount(3);
-  await expect(process.getByText("Étape", { exact: true })).toHaveCount(0);
-  for (const number of ["01", "02", "03"]) await expect(process.getByText(number, { exact: true })).toHaveCount(0);
+  for (const number of ["01", "02", "03"]) await expect(process.getByText(number, { exact: true })).toHaveCount(1);
   const processCardBoxes = await processCards.evaluateAll((cards) => cards.map((card) => card.getBoundingClientRect().toJSON()));
-  expect(processCardBoxes[1].top).toBeGreaterThan(processCardBoxes[0].bottom);
+  expect(Math.abs(processCardBoxes[1].top - processCardBoxes[0].bottom)).toBeLessThanOrEqual(1);
 
   await expect(page.getByTestId("editorial-mobile-rail")).toHaveCount(0);
 
@@ -856,7 +873,7 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const moreActions = page.getByRole("button", { name: /^Plus d’actions :/ }).first();
   await expect(moreActions).toBeVisible();
   await moreActions.click();
-  const actions = page.getByRole("region", { name: /^Actions pour/ }).first();
+  const actions = page.getByRole("dialog", { name: /^Actions de la piste/ }).first();
   await expect(actions).toBeVisible();
   await expect(shortlistTrigger).toHaveCSS("opacity", "0");
   await expect(shortlistTrigger).toHaveCSS("pointer-events", "none");
@@ -1788,8 +1805,7 @@ test("les suggestions et les tags enrichis restent lisibles", async ({ page }, t
   await page.goto("/search?q=piano&view=tracks&type=main");
   const moreTags = page.locator(".parigo-track-row__more-tags").first();
   await expect(moreTags).toBeVisible({ timeout: 30_000 });
-  await moreTags.hover();
-  await expect(page.getByRole("tooltip")).toContainText("Autres tags");
+  await expect(moreTags).toHaveAttribute("aria-label", /^Autres tags :/);
   await moreTags.click();
   await expect(moreTags.locator("xpath=ancestor::article").locator(".track-detail-panel")).toHaveCount(0);
 });

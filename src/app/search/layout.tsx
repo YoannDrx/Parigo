@@ -5,6 +5,5 @@ export const metadata = {
 };
 
 export default function SearchLayout({ children }: { children: React.ReactNode }) {
-  return <ReactQueryProvider>{children}</ReactQueryProvider>;
+  return children;
 }
-import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";

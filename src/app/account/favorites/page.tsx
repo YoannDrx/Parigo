@@ -116,6 +116,7 @@ export default function FavoritesPage() {
                         index={index}
                         showWaveform={false}
                         density="full"
+                        mobileLayout="dense"
                       />
                     ))}
                   </div>

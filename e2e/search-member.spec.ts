@@ -75,6 +75,37 @@ test("le player se range sous la shortlist sans perdre sa piste ni ses liens", a
   await expect(player.getByTestId("player-waveform")).toHaveAttribute("data-persistence-marker", "same-waveform");
 });
 
+test("les points de partage de piste ouvrent la même modale et réutilisent le lien court", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Les trois points d’entrée sont vérifiés une fois sur la surface desktop complète.");
+  await mockMemberSearch(page);
+  await page.route("**/api/tracks/track-1", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { track: { ...track, alternateTracks: [] } } }) }));
+  let shortUrlRequests = 0;
+  await page.route("**/api/share/short-url", (route) => {
+    shortUrlRequests += 1;
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { url: "https://hrvst.co/p/e2e-share", shortened: true } }) });
+  });
+  await page.goto("/search?q=piano&view=tracks&type=main");
+  const shareDialog = page.getByRole("dialog", { name: "Partagez ce morceau" });
+
+  await page.locator('[data-track-id="track-1"]').getByRole("button", { name: `Partager : ${track.title}` }).click();
+  await expect(shareDialog).toBeVisible();
+  await expect(shareDialog.getByLabel("Lien public")).toHaveValue("https://hrvst.co/p/e2e-share");
+  await shareDialog.getByRole("button", { name: "Fermer le partage" }).click();
+
+  await page.getByRole("button", { name: `Informations sur la piste : ${track.title}` }).first().click();
+  const details = page.locator(".track-detail-panel");
+  await expect(details).toBeVisible();
+  await details.getByRole("button", { name: `Partager : ${track.title}` }).click();
+  await expect(shareDialog.getByLabel("Lien public")).toHaveValue("https://hrvst.co/p/e2e-share");
+  await shareDialog.getByRole("button", { name: "Fermer le partage" }).click();
+
+  await page.getByRole("button", { name: `Écouter ${track.title}` }).click();
+  const player = page.getByTestId("player-dock");
+  await player.getByRole("button", { name: `Partager : ${track.title}` }).click();
+  await expect(shareDialog.getByLabel("Lien public")).toHaveValue("https://hrvst.co/p/e2e-share");
+  expect(shortUrlRequests).toBe(1);
+});
+
 test("la waveform d’une piste pilote la position du player à la souris et au clavier", async ({ page }) => {
   await mockMemberSearch(page);
   await page.goto("/search?q=piano&view=tracks&type=main");
@@ -180,7 +211,7 @@ test("toutes les versions restent groupées sous la piste principale avec leurs 
     await expect(moreActions).toBeVisible();
     await expect(moreActions.locator(".lucide-ellipsis")).toHaveCount(1);
     await moreActions.click();
-    const actions = page.getByRole("region", { name: `Actions pour ${track.title}`, exact: true });
+    const actions = page.getByRole("dialog", { name: `Actions de la piste : ${track.title}`, exact: true });
     await expect(actions).toBeVisible();
     await page.keyboard.press("Escape");
     await expect(actions).toHaveCount(0);
@@ -305,7 +336,7 @@ test("les téléphones et tablettes tactiles gardent toutes les actions dans un 
     }
 
     await trigger.click();
-    const actions = row.getByRole("region", { name: `Actions pour ${track.title}` });
+    const actions = page.getByRole("dialog", { name: `Actions de la piste : ${track.title}`, exact: true });
     await expect(actions).toBeVisible();
     await expect(actions.locator(".track-mobile-action")).toHaveCount(11);
     const actionBounds = await actions.boundingBox();
@@ -313,18 +344,19 @@ test("les téléphones et tablettes tactiles gardent toutes les actions dans un 
     expect(actionBounds!.x).toBeGreaterThanOrEqual(0);
     expect(actionBounds!.x + actionBounds!.width).toBeLessThanOrEqual(viewport.width);
     expect(actionBounds!.height).toBeLessThanOrEqual(viewport.height);
-    expect(await actions.locator(".track-mobile-action__control :is(button,a)").evaluateAll((controls) => controls.every((control) => {
+    const undersizedControls = await actions.locator(".track-mobile-action__control :is(button,a)").evaluateAll((controls) => controls.map((control) => {
       const bounds = control.getBoundingClientRect();
-      return bounds.width >= 44 && bounds.height >= 44;
-    }))).toBe(true);
-    await actions.getByRole("button", { name: "Fermer les actions" }).click();
+      return { label: control.getAttribute("aria-label"), width: bounds.width, height: bounds.height };
+    }).filter((bounds) => bounds.width < 44 || bounds.height < 44));
+    expect(undersizedControls).toEqual([]);
+    await actions.getByRole("button", { name: "Fermer les actions", exact: true }).click();
     await expect(actions).toHaveCount(0);
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBe(0);
   }
 
   await page.setViewportSize({ width: 844, height: 390 });
   await row.getByRole("button", { name: `Plus d’actions : ${track.title}` }).click();
-  await row.getByRole("region", { name: `Actions pour ${track.title}` }).getByRole("button", { name: `Informations sur la piste : ${track.title}` }).click();
+  await page.getByRole("dialog", { name: `Actions de la piste : ${track.title}`, exact: true }).getByRole("button", { name: `Informations sur la piste : ${track.title}` }).click();
   const detailSheet = page.locator(".track-detail-sheet");
   await expect(detailSheet).toBeVisible();
   const detailBounds = await detailSheet.boundingBox();

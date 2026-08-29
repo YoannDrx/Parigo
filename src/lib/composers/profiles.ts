@@ -37,6 +37,11 @@ const composerProfileSchema = z.object({
   image: z.string().regex(/^\/images\/composers\/(?:canonical\/[a-z0-9_]+\.webp|composer_placeholder\.svg)$/),
   detailImage: detailImageSchema.nullable(),
   imageStatus: z.enum(["portrait", "placeholder"]),
+  cardCrop: z.object({
+    objectPosition: z.string().min(1),
+    scale: z.number().positive().optional(),
+    fit: z.enum(["cover", "contain"]).optional(),
+  }).optional(),
   harvest: z.object({
     aliases: z.array(z.string().min(1)),
     rightHolderIds: z.array(z.string().min(1)),

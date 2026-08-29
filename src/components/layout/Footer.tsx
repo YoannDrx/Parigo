@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, Facebook, Instagram, Link2, Linkedin, Music2, Youtube } from "lucide-react";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { useAuthModalStore } from "@/stores/auth-modal-store";
 import { ParigoLogo } from "./ParigoLogo";
+import { SOCIAL_PLATFORMS, SocialPlatformIcon } from "@/components/social/SocialPlatforms";
 
 export function Footer() {
   const { locale, t, localizedPath } = useI18n();
@@ -27,15 +28,6 @@ export function Footer() {
     { title: t("footer.studio"), links: [{ name: t("common.about"), href: "/about" }, { name: t("common.licensing"), href: "/licensing" }, { name: t("common.contact"), href: "/contact" }] },
     { title: t("footer.legal"), links: [{ name: t("footer.legalNotice"), href: "/legal" }, { name: t("footer.privacy"), href: "/privacy" }, { name: t("footer.terms"), href: "/terms" }, { name: locale === "fr" ? "Réservation des droits" : "Reservation of rights", href: "/rights" }] },
   ];
-  const socials = [
-    { name: "Instagram", href: "https://www.instagram.com/parigoproductionmusic", icon: Instagram },
-    { name: "YouTube", href: "https://www.youtube.com/@parigoproductionmusic", icon: Youtube },
-    { name: "LinkedIn", href: "https://www.linkedin.com/company/parigo/?viewAsMember=true", icon: Linkedin },
-    { name: "Facebook", href: "https://www.facebook.com/Parigomusic", icon: Facebook },
-    { name: "Spotify", href: "https://open.spotify.com/user/zy4tz4ibp2hi7qvf315g5dv85/playlists", icon: Music2 },
-    { name: "Linktree", href: "https://linktr.ee/parigomusicproduction?utm_source=linktree_profile_share&ltsid=0194467e-aa2a-4573-9f3a-63c72b5b8c67", icon: Link2 },
-  ];
-
   return (
     <footer className="parigo-footer relative overflow-hidden bg-[#0b110d] px-4 pb-7 pt-[var(--space-footer-top)] text-[#f2f1ed] md:px-8">
       <div className="relative mx-auto max-w-[1680px]">
@@ -87,10 +79,10 @@ export function Footer() {
             <p className="mt-1 text-xs text-[var(--inverse-muted)]">{locale === "fr" ? "Parutions, images et actualités du label." : "Releases, images and label news."}</p>
           </div>
           <ul className="flex flex-wrap gap-1 md:col-span-7 md:justify-end" aria-label={locale === "fr" ? "Réseaux sociaux" : "Social media"}>
-            {socials.map(({ name, href, icon: Icon }) => (
+            {SOCIAL_PLATFORMS.map(({ name, href, label }) => (
               <li key={name}>
-                <a href={href} target="_blank" rel="noreferrer" aria-label={name} className="flex h-11 w-11 items-center justify-center rounded-full border border-transparent opacity-70 transition duration-300 hover:-translate-y-1 hover:border-current/25 hover:bg-[var(--inverse-accent)] hover:text-[var(--surface-inverse)] hover:opacity-100 focus-visible:bg-[var(--inverse-accent)] focus-visible:text-[var(--surface-inverse)]">
-                  <Icon size={16} />
+                <a href={href} target="_blank" rel="noopener noreferrer" aria-label={label[locale]} className="flex h-11 w-11 items-center justify-center rounded-full border border-transparent opacity-70 transition duration-300 hover:-translate-y-1 hover:border-current/25 hover:bg-[var(--inverse-accent)] hover:text-[var(--surface-inverse)] hover:opacity-100 focus-visible:bg-[var(--inverse-accent)] focus-visible:text-[var(--surface-inverse)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--inverse-accent)]">
+                  <SocialPlatformIcon name={name} width={17} height={17} />
                   <span className="sr-only">{name}</span>
                 </a>
               </li>

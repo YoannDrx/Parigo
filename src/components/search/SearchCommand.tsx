@@ -230,10 +230,6 @@ export function SearchCommand({
     : aiInputLabel || (locale === "fr" ? "Recherche par similarité IA" : "AI similarity search");
   const switchMode = (nextMode: SearchMode) => {
     if (nextMode === "ai" && !aiEnabled) return;
-    if (nextMode === "ai" && !(aiValue ?? aiDraft) && value) {
-      if (onAiValueChange) onAiValueChange(value);
-      else setAiDraft(value);
-    }
     setInternalMode(nextMode);
     onModeChange?.(nextMode);
     setModeMenuOpen(false);

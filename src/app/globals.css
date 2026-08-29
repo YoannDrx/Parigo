@@ -101,6 +101,7 @@
 }
 
 :root {
+  --detail-section-gap: clamp(4rem, 8vw, 7.5rem);
   --font-heading: "Archivo", sans-serif;
   --font-editorial: "Archivo", sans-serif;
   --font-body: "Manrope", sans-serif;
@@ -2586,7 +2587,11 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   box-shadow: 6px 6px 0 color-mix(in srgb, var(--signal) 18%, transparent), 0 22px 60px rgba(15,22,16,.16);
 }
 @media (max-width: 767px) {
-  .catalog-facet__scrim { display: block; }
+  .catalog-facet__mobile-backdrop {
+    background: rgba(4, 8, 5, .48);
+    backdrop-filter: blur(10px) saturate(.88);
+    -webkit-backdrop-filter: blur(10px) saturate(.88);
+  }
   .catalog-facet__panel {
     position: fixed;
     left: 1rem;
@@ -3233,6 +3238,20 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 .parigo-track-actions-popover__close {border-radius:var(--parigo-corner-sm) var(--parigo-turn-sm);transition:border-color var(--motion-fast) ease,background-color var(--motion-fast) ease,color var(--motion-fast) ease}
 .parigo-track-actions-popover__close:hover,.parigo-track-actions-popover__close:focus-visible {border-color:var(--foreground);background:var(--foreground);color:var(--background)}
 @keyframes parigo-actions-popover-in {from{opacity:0;transform:translateY(-.35rem) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.track-actions-sheet {
+  border-radius: var(--parigo-turn-xl) var(--parigo-corner-xl) 0 0;
+  animation: track-actions-sheet-in 220ms var(--ease-out) both;
+}
+.track-actions-sheet__backdrop {
+  background: rgba(4, 8, 5, .46);
+  backdrop-filter: blur(9px) saturate(.9);
+  -webkit-backdrop-filter: blur(9px) saturate(.9);
+}
+@keyframes track-actions-sheet-in {from{transform:translateY(100%)}to{transform:translateY(0)}}
+.parigo-track-row__management,
+.parigo-track-row__management-desktop {background:color-mix(in srgb,var(--surface-soft) 58%,transparent)}
+.parigo-track-row__management button,
+.parigo-track-row__management-desktop button {border-radius:var(--parigo-corner-sm) var(--parigo-turn-sm)}
 @media (max-width: 639px) {
   .track-mobile-dense .parigo-track-row__main {display:grid;grid-template-columns:4.5rem minmax(0,1fr);grid-template-rows:auto auto auto auto auto;align-items:start;gap:.3rem .65rem;padding:.65rem .5rem}
   .track-mobile-dense:hover > .parigo-track-row__main { padding-left: .5rem; }
@@ -3261,6 +3280,7 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   .track-mobile-dense[data-has-cover="false"] .parigo-track-row__version-line {grid-column:2;grid-row:2}
   .track-mobile-dense[data-has-cover="false"] .parigo-track-row__waveform,
   .track-mobile-dense[data-has-cover="false"] .parigo-track-row__description {grid-column:1/3}
+  .track-mobile-dense .parigo-track-row__management {padding:.5rem}
   .parigo-track-row[data-actions-open="true"] {
     animation: none;
     transform: none !important;
@@ -3467,6 +3487,9 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     box-shadow var(--motion-fast) ease,
     transform var(--motion-fast) ease;
 }
+.track-actions-sheet .track-mobile-action {min-height:4.25rem;overflow:hidden}
+.track-actions-sheet .track-mobile-action__control button,
+.track-actions-sheet .track-mobile-action__control a {width:2.8125rem!important;height:2.8125rem!important;min-width:2.8125rem!important;min-height:2.8125rem!important}
 .track-mobile-action:hover,
 .track-mobile-action:focus-within {
   z-index: 1;

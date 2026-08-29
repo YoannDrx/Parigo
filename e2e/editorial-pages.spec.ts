@@ -25,6 +25,27 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("le footer expose les huit plateformes officielles avec leurs URLs canoniques", async ({ page }) => {
+  await page.goto("/");
+  const footer = page.locator("footer");
+  const platforms = [
+    ["Parigo sur Instagram", "https://www.instagram.com/parigo_music/"],
+    ["Parigo sur YouTube", "https://www.youtube.com/@parigoproductionmusic"],
+    ["Parigo sur LinkedIn", "https://www.linkedin.com/company/parigo/"],
+    ["Parigo sur Facebook", "https://www.facebook.com/Parigomusic"],
+    ["Parigo sur Bandcamp", "https://parigomusic.bandcamp.com/music"],
+    ["Les playlists Parigo sur Spotify", "https://open.spotify.com/user/zy4tz4ibp2hi7qvf315g5dv85/playlists"],
+    ["Parigo sur TikTok", "https://www.tiktok.com/@parigomusic"],
+    ["Tous les liens Parigo sur Linktree", "https://linktr.ee/parigomusicproduction"],
+  ] as const;
+  for (const [label, href] of platforms) {
+    const link = footer.getByRole("link", { name: label });
+    await expect(link).toHaveAttribute("href", href);
+    await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    await expect(link.locator("svg")).toHaveCount(1);
+  }
+});
+
 test("les synchronisations restent contenues sur un écran de 320 px", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/synchronisations");
@@ -391,12 +412,10 @@ test("la home conserve le process et le brief sans les deux sections supprimées
   await expect(process.getByText(/Un chemin simple/)).toHaveCount(0);
   const processCards = process.getByTestId("process-card");
   await expect(processCards).toHaveCount(3);
-  for (const card of await processCards.all()) await expect(card).toHaveCSS("background-color", "rgb(17, 18, 15)");
-  const cardStyles = await processCards.evaluateAll((cards) => cards.map((node) => {
-    const style = getComputedStyle(node);
-    return { background: style.backgroundImage, border: style.borderColor, shadow: style.boxShadow };
-  }));
-  expect(new Set(cardStyles.map((style) => JSON.stringify(style))).size).toBe(1);
+  const processShell = process.locator(".process-shell");
+  await expect(processShell).toHaveCSS("background-color", "rgb(9, 12, 9)");
+  await expect(process.getByTestId("process-progress")).toBeVisible();
+  for (const number of ["01", "02", "03"]) await expect(process.getByText(number, { exact: true })).toHaveCount(1);
   await expect(page.locator("#sensations")).toHaveCount(0);
   await expect(page.locator("#editorial-playlists")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: /Envoyez-nous un brief/ })).toBeVisible();
@@ -529,7 +548,9 @@ test("le switch Catalogue et IA ne déplace ni le titre ni la barre du héros", 
       const [heroBox, contentBox] = await Promise.all([hero.boundingBox(), content.boundingBox()]);
       expect(heroBox).not.toBeNull();
       expect(contentBox).not.toBeNull();
-      expect(contentBox!.y - heroBox!.y).toBeLessThanOrEqual(146);
+      const contentOffset = contentBox!.y - heroBox!.y;
+      expect(contentOffset).toBeGreaterThanOrEqual(160);
+      expect(contentOffset).toBeLessThanOrEqual(210);
     }
 
     await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
@@ -825,17 +846,18 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
   }
 });
 
-test("la description Musica.it change de langue sans rechargement", async ({ page }, testInfo) => {
+test("la description Musica.it reste dans les métadonnées mais disparaît du détail", async ({ page }, testInfo) => {
   await page.goto("/labels/9d330c152c37bca0");
-  const description = page.locator(".editorial-detail-hero p").last();
-  await expect(description).toBeVisible();
-  const french = (await description.textContent())?.trim();
+  await expect(page.locator(".editorial-detail-hero p")).toHaveCount(0);
+  const french = await page.locator('meta[name="description"]').getAttribute("content");
+  expect(french?.trim().length).toBeGreaterThan(0);
   if (testInfo.project.name === "mobile") {
     await page.getByRole("button", { name: "Ouvrir le menu" }).click();
   }
   await page.getByRole("link", { name: /English version — English/ }).first().click();
   await expect(page).toHaveURL(/\/en\/labels\/9d330c152c37bca0/);
-  await expect.poll(async () => (await page.locator(".editorial-detail-hero p").last().textContent())?.trim()).not.toBe(french);
+  await expect(page.locator(".editorial-detail-hero p")).toHaveCount(0);
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /\S+/);
 });
 
 test("le détail compositeur aligne le nom en bas du portrait sans arc décoratif", async ({ page }, testInfo) => {
