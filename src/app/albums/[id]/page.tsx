@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AlbumDetailClient } from "@/components/catalog/AlbumDetailClient";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { getCachedAlbum } from "@/lib/harvest/catalog-cache";
 import { resolveAlbumDescription } from "@/lib/harvest/album-descriptions";
@@ -71,6 +72,10 @@ export default async function AlbumPage({ params, searchParams }: AlbumPageProps
   return (
     <>
       <JsonLd data={structuredData} />
+      <BreadcrumbJsonLd locale={locale} items={[
+        { name: locale === "fr" ? "Albums" : "Albums", path: "/albums" },
+        { name: album.title, path: `/albums/${id}` },
+      ]} />
       <AlbumDetailClient
         data={{ album, similarAlbums: result.similar, composerCredits, contributorGroups }}
         initialTrackId={typeof resolvedSearchParams.track === "string" ? resolvedSearchParams.track : undefined}

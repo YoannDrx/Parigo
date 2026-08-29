@@ -18,9 +18,11 @@ import { getParigoHarvestComposerInventory, resolveCanonicalComposerSlug } from 
 import { getEditorialVideosForComposer } from "@/lib/editorial/videos";
 import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
-import { buildMetadata } from "@/lib/seo";
+import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
 import { composerRoleLabel } from "@/lib/composers/presentation";
+import { JsonLd } from "@/components/seo/JsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
 interface ComposerPageProps {
   params: Promise<{ slug: string }>;
@@ -82,6 +84,18 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
   const detailImage = profile.detailImage ?? { src: profile.image, width: 720, height: 720 };
   return (
     <div className="page-shell min-h-screen">
+      <JsonLd data={{
+        "@context": "https://schema.org",
+        "@type": profile.kind === "group" ? "MusicGroup" : "Person",
+        name: profile.name,
+        description: bio,
+        image: profile.imageStatus === "portrait" ? absoluteUrl(detailImage.src) : undefined,
+        url: absoluteUrl(localizedPath(locale, `/talents/${profile.slug}`)),
+      }} />
+      <BreadcrumbJsonLd locale={locale} items={[
+        { name: locale === "fr" ? "Talents" : "Talents", path: "/talents" },
+        { name: profile.name, path: `/talents/${profile.slug}` },
+      ]} />
       <Header />
       <main className="pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)] md:pt-[70px]">
         <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-[var(--space-page-gutter)] md:pt-[var(--space-divider-content)]">
@@ -92,16 +106,6 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
           <article className="composer-detail-hero parigo-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-6 md:p-8 lg:p-10">
             <div className="grid items-end gap-7 md:grid-cols-[minmax(13rem,28rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
               <div className="parigo-frame relative aspect-square w-full max-w-[28rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
-                {profile.cardCrop?.fit === "contain" ? (
-                  <Image
-                    src={detailImage.src}
-                    alt=""
-                    fill
-                    aria-hidden="true"
-                    sizes="(max-width: 768px) 100vw, 28rem"
-                    className="scale-110 object-cover opacity-45 blur-xl"
-                  />
-                ) : null}
                 <Image
                   data-testid="composer-detail-image"
                   src={detailImage.src}

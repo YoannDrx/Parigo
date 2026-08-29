@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { PlaylistDetailClient } from "@/components/catalog/PlaylistDetailClient";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { getCachedPlaylist } from "@/lib/harvest/catalog-cache";
 import { rethrowCatalogError } from "@/lib/harvest/route-errors";
 import { getRequestLocale } from "@/lib/locale-server";
@@ -56,6 +57,10 @@ export default async function PlaylistPage({ params }: PlaylistPageProps) {
           item: { "@type": "MusicRecording", name: track.title },
         })),
       }} />
+      <BreadcrumbJsonLd locale={locale} items={[
+        { name: locale === "fr" ? "Playlists" : "Playlists", path: "/playlists" },
+        { name: playlist.title, path: `/playlists/${slug}` },
+      ]} />
       <PlaylistDetailClient playlist={playlist} />
     </>
   );
