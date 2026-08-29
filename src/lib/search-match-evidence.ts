@@ -1,10 +1,25 @@
 import type { Album, SearchMatchEvidence, SearchMatchField, Track } from "@/types";
-import { containsNormalizedExpression, searchTerms } from "./search-normalization";
+import { containsNormalizedExpression, normalizeSearchText, searchTerms } from "./search-normalization";
 
 type Candidate = {
   field: SearchMatchField;
   values: Array<string | null | undefined>;
 };
+
+function normalizeCatalogReference(value: string): string {
+  const compact = normalizeSearchText(value).replace(/\s+/g, "");
+  const parts = compact.match(/^([a-z]+)0*(\d+)$/);
+  return parts ? `${parts[1]}${Number.parseInt(parts[2], 10)}` : compact;
+}
+
+function catalogReferenceMatches(value: string, query: string): boolean {
+  const normalizedValue = normalizeCatalogReference(value);
+  const normalizedQuery = normalizeCatalogReference(query);
+  if (!normalizedValue || !normalizedQuery) return false;
+  if (normalizedValue === normalizedQuery || normalizedValue.startsWith(normalizedQuery)) return true;
+  const querySuffix = normalizedQuery.slice(normalizedValue.length);
+  return normalizedQuery.startsWith(normalizedValue) && /^\d+$/.test(querySuffix);
+}
 
 function evidenceFromCandidates(query: string, candidates: Candidate[]): SearchMatchEvidence[] {
   const terms = searchTerms(query);
@@ -14,7 +29,9 @@ function evidenceFromCandidates(query: string, candidates: Candidate[]): SearchM
   return candidates.flatMap(({ field, values }) => values.flatMap((rawValue) => {
     const value = rawValue?.trim();
     if (!value) return [];
-    const matchedTerms = terms.filter((term) => containsNormalizedExpression(value, term));
+    const matchedTerms = field === "catalogReference" && catalogReferenceMatches(value, query)
+      ? terms
+      : terms.filter((term) => containsNormalizedExpression(value, term));
     if (!matchedTerms.length) return [];
     const key = `${field}:${value.toLocaleLowerCase("en")}`;
     if (seen.has(key)) return [];

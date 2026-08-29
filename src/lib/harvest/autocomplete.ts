@@ -29,7 +29,7 @@ export function buildAutocompletePayload(query: string, view: "tracks" | "albums
     ReturnTracks_Order: "date_descent",
     ReturnTracks_DisableKeywordGroup: true,
     ReturnAlbums: true,
-    ReturnAlbums_Fields: "DisplayTitle,Description,Keywords",
+    ReturnAlbums_Fields: "DisplayTitle,Description,Keywords,CDCode,LibraryName",
     ReturnAlbums_Limit: view === "albums" ? GROUP_LIMIT : 6,
     ReturnAlbums_Order: "date_descent",
     ReturnAlbums_DisableKeywordGroup: true,
@@ -122,6 +122,22 @@ export function mapAutocompleteResponse(
   const labelSource = values(source, "Libraries", "libraries");
   const composerSource = values(source, "rightHolders", "RightHolders", "Composers", "composers");
   const keywordsSource = values(source, "Keywords", "keywords", "Tags", "tags", "CategoryAttributes");
+  const albumReferenceByLibrary = new Map<string, string>();
+  const albumReferences = new Set<string>();
+  for (const value of albumSource) {
+    if (!isRecord(value)) continue;
+    const libraryName = asString(pick(value, "LibraryName", "LabelName")).trim().toLocaleLowerCase("en");
+    const code = asString(pick(value, "CDCode", "CdCode", "Code")).replace(/[^a-z0-9]/gi, "");
+    const inferredPrefix = code.match(/^[a-z]{2,8}/i)?.[0]?.toUpperCase();
+    if (inferredPrefix) albumReferences.add(inferredPrefix);
+    if (libraryName && inferredPrefix && !albumReferenceByLibrary.has(libraryName)) {
+      albumReferenceByLibrary.set(libraryName, inferredPrefix);
+    }
+  }
+  const queryReference = query.replace(/[^a-z0-9]/gi, "").match(/^[a-z]{2,8}/i)?.[0]?.toUpperCase();
+  const soleLabelReference = labelSource.length === 1
+    ? [...albumReferences].find((reference) => reference === queryReference) || ([...albumReferences].length === 1 ? [...albumReferences][0] : "")
+    : "";
 
   const distinctTrackSource = trackSource.filter((value, index, items) => {
     if (!isRecord(value)) return false;
@@ -212,10 +228,20 @@ export function mapAutocompleteResponse(
   const labels = mapRecords(labelSource, "label", (item, index) => {
     const id = asString(pick(item, "LibraryID", "ID"), `label-${index}`);
     const label = asString(pick(item, "Name", "DisplayTitle"));
-    const evidence = entitySearchEvidence(query, [{ field: "labelName", values: [label] }]);
+    const prefix = asString(pick(item, "Prefix", "Code", "Reference"))
+      || albumReferenceByLibrary.get(label.trim().toLocaleLowerCase("en"))
+      || soleLabelReference
+      || "";
+    const description = asString(pick(item, "Description", "Detail"));
+    const evidence = entitySearchEvidence(query, [
+      { field: "labelName", values: [label] },
+      { field: "catalogReference", values: [prefix] },
+      { field: "description", values: [description] },
+    ]);
     return {
       id,
       label,
+      subtitle: [prefix ? `Réf. ${prefix}` : "", description].filter(Boolean).join(" · ") || undefined,
       href: `/search?view=${view}&type=main&labels=${encodeURIComponent(id)}`,
       ...(evidence.length ? { matchEvidence: evidence } : {}),
     };

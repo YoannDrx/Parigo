@@ -109,18 +109,15 @@ export async function GET(request: NextRequest) {
       ...(list(input.categories) || []),
       ...legacyCategoryValues(request),
     ];
-    // Harvest exposes catalogue references through its title index even though
-    // those codes are not part of the public display title. Keep this narrow
-    // compatibility path separate from the editorial keyword allowlist.
-    const fieldProfile = isCatalogIdentifier(input.q)
-      ? "title"
-      : configuredSearchFieldProfile();
+    // Catalogue references live in Harvest's aggregate index rather than in
+    // the public display title returned to Parigo.
+    const fieldProfile = configuredSearchFieldProfile();
     const skip = (input.page - 1) * input.limit;
     const saveSearchHistory = Boolean(session) && !input.probe;
     const searchInput: HarvestSearchInput = {
       query: input.q.trim() || "%",
       view: input.view === "albums" ? "Album" : "Track",
-      textScope: fieldProfile === "aggregate-title-first" ? "aggregate" : fieldProfile,
+      textScope: isCatalogIdentifier(input.q) || fieldProfile === "aggregate-title-first" ? "aggregate" : fieldProfile,
       skip,
       limit: input.limit,
       sort: sortMap[input.sort],
