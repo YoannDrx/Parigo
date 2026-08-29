@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapAlbum, mapLibraryDescriptions, mapTrack, mergeLibraryDescriptions } from "./catalog";
+import { libraryReferences, mapAlbum, mapLibraryDescriptions, mapTrack, mergeLibraryDescriptions } from "./catalog";
 
 const templates = {
   trackStream: "",
@@ -11,6 +11,15 @@ const templates = {
 };
 
 describe("Harvest label translations", () => {
+  it("maps label references returned by Harvest without duplicates", () => {
+    expect(libraryReferences({
+      Codes: [
+        { AttributeTypeName: "Catalogue", Value: "PGO" },
+        { SystemCode: "LibraryCode", Value: "PGO" },
+        { Code: "PGO0056" },
+      ],
+    })).toEqual(["PGO", "PGO0056"]);
+  });
   it("maps the live LanguageItems contract by ISO language code", () => {
     expect(mapLibraryDescriptions({
       LanguageItems: [

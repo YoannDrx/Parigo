@@ -839,6 +839,21 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   --hero-accent: var(--ai-search);
   --hero-soft: var(--ai-search-soft);
 }
+@media (max-width: 767px) {
+  .home-hero[data-search-mode="ai"] [data-testid="home-hero-content"] {
+    transform: none !important;
+  }
+  .home-hero[data-search-mode="ai"] .hero-gradflow__fallback {
+    background: linear-gradient(
+      180deg,
+      var(--hero-gradient-1) 0%,
+      var(--hero-gradient-2) 34%,
+      var(--hero-gradient-3) 62%,
+      var(--hero-gradient-2) 90%,
+      var(--hero-gradient-1) 100%
+    );
+  }
+}
 .home-hero [data-testid="home-hero-search-mask"]:has(.search-autocomplete-panel) {
   opacity: 1 !important;
 }
@@ -908,6 +923,71 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 @keyframes composer-cloud-drift { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 @media (max-width: 767px) {
   .composer-cloud__viewport { height: 25rem; mask-image: linear-gradient(90deg, transparent, #000 2.5%, #000 97.5%, transparent); }
+}
+
+/* Decorative opposing corner strokes have been retired site-wide. */
+:where(
+  .search-command__form,
+  .parigo-frame,
+  .parigo-modal,
+  .process-shell,
+  .parigo-menu-card,
+  .parigo-menu-aside,
+  .search-toolbar,
+  .search-active-filters,
+  .parigo-select[data-variant="editorial"],
+  .catalog-facet__trigger,
+  .search-filter-panel,
+  .search-filter-field,
+  .track-detail-panel,
+  .parigo-player,
+  .home-sync-card,
+  .album-cover-frame,
+  .label-editorial-card,
+  .contact-consent-error,
+  .shortlist-save-card,
+  .account-page__header,
+  .search-suggestion-tag,
+  .parigo-tag,
+  .parigo-track-row__cover,
+  .parigo-player__art,
+  .carousel-nav-button,
+  .parigo-switch__thumb
+)::before,
+:where(
+  .search-command__form,
+  .parigo-frame,
+  .parigo-modal,
+  .process-shell,
+  .parigo-menu-card,
+  .parigo-menu-aside,
+  .search-toolbar,
+  .search-active-filters,
+  .parigo-select[data-variant="editorial"],
+  .catalog-facet__trigger,
+  .search-filter-panel,
+  .search-filter-field,
+  .track-detail-panel,
+  .parigo-player,
+  .home-sync-card,
+  .album-cover-frame,
+  .label-editorial-card,
+  .contact-consent-error,
+  .shortlist-save-card,
+  .account-page__header,
+  .search-suggestion-tag,
+  .parigo-tag,
+  .parigo-track-row__cover,
+  .parigo-player__art,
+  .carousel-nav-button,
+  .parigo-switch__thumb
+)::after {
+  content: none !important;
+  display: none !important;
+}
+.parigo-track-row::before {
+  content: none !important;
+  display: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
   .composer-cloud__viewport { overflow-x: auto; mask-image: none; scrollbar-width: none; }
@@ -2519,6 +2599,10 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   padding-block: .5rem;
   background: color-mix(in srgb, var(--surface) 88%, var(--background));
   box-shadow: none;
+}
+.catalog-toolbar .parigo-select[data-variant="editorial"] .parigo-select__trigger {
+  min-height: 3rem;
+  height: 3rem;
 }
 .parigo-select__caption {
   padding-right: .5rem;

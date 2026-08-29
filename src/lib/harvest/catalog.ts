@@ -184,6 +184,13 @@ export function mergeLibraryDescriptions(
   return descriptions;
 }
 
+export function libraryReferences(item: HarvestRecord): string[] {
+  const values = recordArray(item, "Codes")
+    .map((code) => asString(pick(code, "Value", "Code", "SystemCode")).trim())
+    .filter(Boolean);
+  return [...new Set(values)];
+}
+
 export function mapAlbumDescriptions(
   languageItems: unknown[],
   englishDescription?: string | null,
@@ -700,10 +707,12 @@ export async function getLabels(): Promise<Label[]> {
       const id = asString(item.ID);
       const logoUrl = asString(item.LibraryLogoUrl);
       const descriptions = mergeLibraryDescriptions(item);
+      const references = libraryReferences(item);
       return {
         id,
         slug: id,
         name: asString(item.Name),
+        ...(references.length ? { references } : {}),
         logo: verifiedLabelLogo(id, logoUrl),
         description: descriptions.en || asString(pick(item, "Detail", "Profile")) || undefined,
         ...(Object.keys(descriptions).length ? { descriptions } : {}),
@@ -737,10 +746,12 @@ export async function getLabel(id: string): Promise<Label | null> {
   const item = englishItem || frenchItem as HarvestRecord;
   const logoUrl = asString(item.LibraryLogoUrl);
   const descriptions = mergeLibraryDescriptions(item, frenchItem);
+  const references = libraryReferences(item);
   return {
     id,
     slug: id,
     name: asString(item.Name),
+    ...(references.length ? { references } : {}),
     logo: verifiedLabelLogo(id, logoUrl),
     description: descriptions.en || asString(pick(item, "Detail", "Profile")) || undefined,
     ...(Object.keys(descriptions).length ? { descriptions } : {}),

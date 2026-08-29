@@ -32,8 +32,6 @@ function AccountMark({ initials, image, large = false }: { initials: string; ima
   const dimension = large ? 64 : 40;
   return (
     <span data-testid="account-mark" className={cn("account-mark", large ? "account-mark--large h-16 w-16" : "h-10 w-10")}>
-      <span aria-hidden="true" className="account-mark__corner account-mark__corner--top" />
-      <span aria-hidden="true" className="account-mark__corner account-mark__corner--bottom" />
       <span className="account-mark__content">
         {image ? <Image src={image} alt="" width={dimension} height={dimension} className="h-full w-full object-cover" /> : initials}
       </span>
@@ -41,7 +39,7 @@ function AccountMark({ initials, image, large = false }: { initials: string; ima
   );
 }
 
-export function UserMenu({ compact = false, embedded = false }: { compact?: boolean; embedded?: boolean }) {
+export function UserMenu({ compact = false, embedded = false, onNavigate }: { compact?: boolean; embedded?: boolean; onNavigate?: () => void }) {
   const { locale, t } = useI18n();
   const { data: session, isPending } = useSession();
   const router = useRouter();
@@ -52,6 +50,10 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
   const isHydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   const openLogin = () => {
     useAuthModalStore.getState().openLogin();
+  };
+  const closeForNavigation = () => {
+    setIsOpen(false);
+    onNavigate?.();
   };
 
   useEffect(() => {
@@ -78,6 +80,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
     try {
       await signOut();
       setIsOpen(false);
+      onNavigate?.();
       router.push("/");
       router.refresh();
     } catch (error) {
@@ -141,7 +144,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
       <section data-testid="account-menu" aria-label={locale === "fr" ? "Navigation du compte" : "Account navigation"} className="border-y border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 border-b border-[var(--line)] px-3 py-5 sm:px-5">
           <AccountMark initials={initials} image={user.image} large />
-          <Link href="/account" aria-label={locale === "fr" ? "Ouvrir mon profil" : "Open my profile"} className="group/profile min-w-0 outline-none">
+          <Link href="/account" onClick={closeForNavigation} aria-label={locale === "fr" ? "Ouvrir mon profil" : "Open my profile"} className="group/profile min-w-0 outline-none">
             <p className="eyebrow mb-2 text-[var(--signal-strong)]">{locale === "fr" ? "Espace personnel" : "Personal space"}</p>
             <p className="truncate font-[var(--font-editorial)] text-2xl font-semibold leading-none tracking-[-.045em] transition-colors group-hover/profile:text-[var(--signal-strong)] group-focus-visible/profile:text-[var(--signal-strong)]">{user.name || (locale === "fr" ? "Utilisateur" : "User")}</p>
             <p className="mt-2 truncate text-xs text-[var(--text-muted)]">{user.email}</p>
@@ -150,7 +153,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
         <div className="grid sm:grid-cols-2">
           {menuItems.map((item) => {
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={cn("group/item grid min-h-[4.35rem] grid-cols-[1.8rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-3 transition-colors hover:bg-[var(--signal-soft)] sm:px-5 sm:odd:border-r", active && "bg-[var(--signal-soft)]")}><item.icon size={16} className={cn("text-[var(--text-muted)] transition-colors group-hover/item:text-[var(--signal-strong)]", active && "text-[var(--signal-strong)]")} /><span className="min-w-0"><span className="block text-sm font-semibold">{item.label}</span><span className="mt-0.5 block truncate text-[.68rem] text-[var(--text-muted)]">{item.note}</span></span><ArrowUpRight size={15} className="opacity-35 transition-transform group-hover/item:-rotate-12 group-hover/item:opacity-100" /></Link>;
+            return <Link key={item.href} href={item.href} onClick={closeForNavigation} aria-current={active ? "page" : undefined} className={cn("group/item grid min-h-[4.35rem] grid-cols-[1.8rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-3 transition-colors hover:bg-[var(--signal-soft)] sm:px-5 sm:odd:border-r", active && "bg-[var(--signal-soft)]")}><item.icon size={16} className={cn("text-[var(--text-muted)] transition-colors group-hover/item:text-[var(--signal-strong)]", active && "text-[var(--signal-strong)]")} /><span className="min-w-0"><span className="block text-sm font-semibold">{item.label}</span><span className="mt-0.5 block truncate text-[.68rem] text-[var(--text-muted)]">{item.note}</span></span><ArrowUpRight size={15} className="opacity-35 transition-transform group-hover/item:-rotate-12 group-hover/item:opacity-100" /></Link>;
           })}
         </div>
         <div className="flex items-center justify-between gap-4 bg-[var(--surface-soft)] px-3 py-4 sm:px-5"><p className="text-[.67rem] leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Votre catalogue, gardé à portée de main." : "Your catalogue, kept close at hand."}</p><button onClick={handleSignOut} disabled={isSigningOut} style={{ fontSize: ".7rem", fontWeight: 500, letterSpacing: 0, textTransform: "none" }} className="inline-flex min-h-9 shrink-0 items-center gap-2 border-b border-[color-mix(in_srgb,var(--danger)_38%,transparent)] text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50">{isSigningOut ? <ParigoLoader size="icon" label={`${t("auth.logout")}…`} /> : <LogOut size={17} />}<span>{isSigningOut ? `${t("auth.logout")}…` : t("auth.logout")}</span></button></div>
@@ -185,7 +188,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
             <span aria-hidden="true" className="absolute right-6 top-0 h-[3px] w-20 bg-[var(--signal)]" />
             <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 px-5 pb-5 pt-6">
               <AccountMark initials={initials} image={user.image} large />
-              <Link href="/account" onClick={() => setIsOpen(false)} aria-label={locale === "fr" ? "Ouvrir mon profil" : "Open my profile"} className="group/profile min-w-0 outline-none">
+              <Link href="/account" onClick={closeForNavigation} aria-label={locale === "fr" ? "Ouvrir mon profil" : "Open my profile"} className="group/profile min-w-0 outline-none">
                 <p className="eyebrow mb-2 text-[var(--signal-strong)]">{locale === "fr" ? "Espace personnel" : "Personal space"}</p>
                 <p className="truncate font-[var(--font-editorial)] text-2xl font-semibold leading-none tracking-[-.045em] transition-colors group-hover/profile:text-[var(--signal-strong)] group-focus-visible/profile:text-[var(--signal-strong)]">{user.name || (locale === "fr" ? "Utilisateur" : "User")}</p>
                 <p className="mt-2 truncate text-xs text-[var(--text-muted)]">{user.email}</p>
@@ -199,7 +202,7 @@ export function UserMenu({ compact = false, embedded = false }: { compact?: bool
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeForNavigation}
                   aria-current={active ? "page" : undefined}
                   className={cn("group/item grid min-h-[4.35rem] grid-cols-[1.8rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-5 transition-colors hover:bg-[var(--signal-soft)]", active && "bg-[var(--signal-soft)]")}
                 >

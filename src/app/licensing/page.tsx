@@ -29,7 +29,7 @@ export default function LicensingPage() {
               >
                 {t("institutional.licensingTitle")}
               </SignedTitle>
-              <p className="mt-12 max-w-3xl text-sm leading-6 text-[var(--text-muted)] sm:text-base sm:leading-7 lg:text-lg lg:leading-8">
+              <p className="mt-6 max-w-3xl text-sm leading-6 text-[var(--text-muted)] sm:mt-8 sm:text-base sm:leading-7 lg:mt-12 lg:text-lg lg:leading-8">
                 {t("institutional.licensingIntro")}
               </p>
             </div>

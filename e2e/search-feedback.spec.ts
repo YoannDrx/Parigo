@@ -297,7 +297,7 @@ test("le drawer shortlist ouvre un sélecteur vide sans présélection implicite
   expect(new URL(page.url()).searchParams.get("pick")).toBe("1");
 });
 
-test("l’affichage rejoint le compteur, garde le corner catalogue et aligne la barre sticky", async ({ page }, testInfo) => {
+test("l’affichage rejoint le compteur, retire le corner du Select et aligne la barre sticky", async ({ page }, testInfo) => {
   const similarityTracks = Array.from({ length: 12 }, (_, index) => ({
     ...similarityTrack,
     id: `${similarityTrack.id}-${index + 1}`,
@@ -328,18 +328,8 @@ test("l’affichage rejoint le compteur, garde le corner catalogue et aligne la 
   expect(Math.abs(counterBox!.y + counterBox!.height / 2 - (displayBox!.y + displayBox!.height / 2))).toBeLessThanOrEqual(2);
   expect(displayBox!.x).toBeGreaterThan(counterBox!.x + counterBox!.width);
 
-  const cornerColors = await select.evaluate((node) => ({
-    select: getComputedStyle(node, "::after").borderBottomColor,
-    signal: (() => {
-      const probe = document.createElement("span");
-      probe.style.borderBottom = "1px solid var(--signal-strong)";
-      node.appendChild(probe);
-      const color = getComputedStyle(probe).borderBottomColor;
-      probe.remove();
-      return color;
-    })(),
-  }));
-  expect(cornerColors.select).toBe(cornerColors.signal);
+  expect(await select.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  expect(await select.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
 
   if (testInfo.project.name === "desktop") {
     await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
@@ -683,14 +673,10 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
 
   const density = page.getByRole("combobox", { name: "Niveau de détail des pistes" });
   const densityCorners = await density.evaluate((node) => ({
-    trigger: getComputedStyle(node).borderTopRightRadius,
-    corner: getComputedStyle(node.parentElement!, "::before").borderTopRightRadius,
-    top: getComputedStyle(node.parentElement!, "::before").top,
-    right: getComputedStyle(node.parentElement!, "::before").right,
+    before: getComputedStyle(node.parentElement!, "::before").content,
+    after: getComputedStyle(node.parentElement!, "::after").content,
   }));
-  expect(densityCorners.corner).toBe(densityCorners.trigger);
-  expect(densityCorners.top).toBe("-1px");
-  expect(densityCorners.right).toBe("-1px");
+  expect(densityCorners).toEqual({ before: "none", after: "none" });
   await density.click();
   await expect(page.getByRole("option", { name: "Piste détaillée" })).toBeVisible();
   await expect(page.getByRole("option", { name: "Piste compacte" })).toBeVisible();

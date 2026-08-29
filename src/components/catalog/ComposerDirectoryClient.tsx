@@ -74,7 +74,7 @@ export function ComposerDirectoryClient({
             <Link
               key={profile.slug}
               href={localizedPath(locale, `/talents/${profile.slug}`)}
-              className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--line)] bg-[var(--surface)] transition hover:border-[var(--line-strong)]"
+              className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--signal)] bg-[var(--surface)] transition"
             >
               {crop?.fit === "contain" ? <Image src={image} alt="" fill sizes="(max-width: 640px) 100vw, 25vw" aria-hidden="true" className="scale-110 object-cover opacity-45 blur-xl" /> : null}
               <Image
@@ -82,15 +82,17 @@ export function ComposerDirectoryClient({
                 alt=""
                 fill
                 sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                style={{ objectPosition: crop?.objectPosition, transform: crop?.scale ? `scale(${crop.scale})` : undefined, transformOrigin: crop?.objectPosition }}
+                style={{
+                  objectPosition: crop?.objectPosition,
+                  transform: profile.slug === "2080" ? "scale(1.018)" : crop?.scale ? `scale(${crop.scale})` : undefined,
+                  transformOrigin: profile.slug === "2080" ? "bottom left" : crop?.objectPosition,
+                }}
                 className={`${crop?.fit === "contain" ? "object-contain" : "object-cover"} grayscale transition duration-500 group-hover:grayscale-0`}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
               <div className="composer-card__caption relative p-5 text-white sm:p-6">
                 <h2 className="break-words text-2xl font-semibold tracking-[-.04em] sm:text-3xl">{profile.name}</h2>
               </div>
-              <span aria-hidden="true" className="composer-card__corner composer-card__corner--top" />
-              <span aria-hidden="true" className="composer-card__corner composer-card__corner--bottom" />
             </Link>
             );
           })}

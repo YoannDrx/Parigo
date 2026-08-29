@@ -9,16 +9,23 @@ import { CatalogHero } from "@/components/catalog";
 import { LabelLogo } from "@/components/catalog/LabelLogo";
 import { CatalogToolbar } from "@/components/catalog/CatalogToolbar";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { labelMatchesQuery } from "@/lib/label-search";
 import type { ViewMode } from "@/types";
 
 interface Label {
   id: string;
   slug: string;
   name: string;
+  references?: string[];
   description: string | null;
   logo: string | null;
   website: string | null;
   albumCount: number;
+}
+
+interface ReferenceAlbumSearchItem {
+  labelSlug?: string;
+  code?: string;
 }
 
 type LabelSort = "title-asc" | "title-desc" | "albums-desc";
@@ -35,16 +42,51 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
       : "title-asc",
   );
   const [view, setView] = useState<ViewMode>(searchParams.get("view") === "list" ? "list" : "grid");
+  const [referenceCodesByLabel, setReferenceCodesByLabel] = useState<Record<string, string[]>>({});
   const visibleLabels = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase(locale);
     return labels
-      .filter((label) => !normalized || `${label.name} ${label.description ?? ""}`.toLocaleLowerCase(locale).includes(normalized))
+      .filter((label) => labelMatchesQuery({
+        ...label,
+        references: [
+          ...(label.references ?? []),
+          ...(query.trim().length >= 2 ? referenceCodesByLabel[label.id] ?? [] : []),
+        ],
+      }, query, locale))
       .sort((left, right) => {
         if (sort === "albums-desc") return right.albumCount - left.albumCount || left.name.localeCompare(right.name, locale);
         const comparison = left.name.localeCompare(right.name, locale, { sensitivity: "base" });
         return sort === "title-desc" ? -comparison : comparison;
       });
-  }, [labels, locale, query, sort]);
+  }, [labels, locale, query, referenceCodesByLabel, sort]);
+
+  useEffect(() => {
+    const normalized = query.trim();
+    if (normalized.length < 2) return;
+    const controller = new AbortController();
+    const timeout = window.setTimeout(() => {
+      const params = new URLSearchParams({ q: normalized, view: "albums", type: "all", limit: "100" });
+      void fetch(`/api/search?${params.toString()}`, { signal: controller.signal })
+        .then((response) => response.ok ? response.json() : null)
+        .then((payload) => {
+          if (!payload) return;
+          const next = new Map<string, Set<string>>();
+          for (const item of (payload.data?.items ?? []) as ReferenceAlbumSearchItem[]) {
+            if (!item.labelSlug || !item.code) continue;
+            const references = next.get(item.labelSlug) ?? new Set<string>();
+            references.add(item.code);
+            next.set(item.labelSlug, references);
+          }
+          setReferenceCodesByLabel(Object.fromEntries([...next].map(([id, values]) => [id, [...values]])));
+        })
+        .catch((error: unknown) => {
+          if (!(error instanceof DOMException && error.name === "AbortError")) setReferenceCodesByLabel({});
+        });
+    }, 180);
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [query]);
 
   useEffect(() => {
     const params = new URLSearchParams();

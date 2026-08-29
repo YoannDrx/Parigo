@@ -69,14 +69,16 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
   const firstHeights = await firstCards.evaluateAll((cards) => cards.slice(0, 3).map((card) => card.getBoundingClientRect().height));
   expect(new Set(firstHeights.map((height) => Math.round(height))).size).toBe(1);
   const corners = await firstCards.first().evaluate((card) => ({
-    top: getComputedStyle(card, "::before").top,
-    right: getComputedStyle(card, "::before").right,
-    bottom: getComputedStyle(card, "::after").bottom,
-    left: getComputedStyle(card, "::after").left,
+    before: getComputedStyle(card, "::before").content,
+    after: getComputedStyle(card, "::after").content,
   }));
-  expect(corners).toEqual({ top: "-1px", right: "-1px", bottom: "-1px", left: "-1px" });
+  expect(corners).toEqual({ before: "none", after: "none" });
 
   const query = page.getByPlaceholder("Rechercher un label");
+  await query.fill("PGO Parigo");
+  await expect(page.getByRole("heading", { level: 2, name: "Parigo", exact: true })).toBeVisible({ timeout: 30_000 });
+  await query.fill("PRTM");
+  await expect(page.getByRole("heading", { level: 2, name: "Primetime Tracks", exact: true })).toBeVisible({ timeout: 30_000 });
   await query.fill("101 Music Compilations");
   await expect(page.getByRole("status").filter({ hasText: "résultats" })).toContainText("1 résultats");
   await expect(page.getByRole("heading", { level: 2, name: "101 Music Compilations" })).toBeVisible();

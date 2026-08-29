@@ -65,7 +65,7 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(menu).toBeVisible();
   const accountMark = menu.getByTestId("account-mark").first();
   await expect(accountMark).toBeVisible();
-  await expect(accountMark.locator(".account-mark__corner")).toHaveCount(2);
+  await expect(accountMark.locator(".account-mark__corner")).toHaveCount(0);
   await expect(accountMark).toHaveCSS("border-radius", "0px");
   await expect(accountMark).toHaveCSS("width", "64px");
   if (testInfo.project.name === "mobile") {
@@ -86,6 +86,26 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(menu.getByRole("link", { name: /Historique/ })).toHaveAttribute("href", "/account/history");
   await expect(menu.getByText(/^0[1-5]$/)).toHaveCount(0);
   await expect(menu.getByRole("button", { name: "Se déconnecter" })).toHaveCSS("text-transform", "none");
+});
+
+test("naviguer vers le compte depuis le menu global ferme le menu et libère la page", async ({ page }, testInfo) => {
+  await mockSession(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  const globalMenu = page.getByRole("dialog", { name: "Menu principal" });
+  await expect(globalMenu).toBeVisible();
+
+  const accountTrigger = testInfo.project.name === "mobile"
+    ? globalMenu.getByTestId("account-trigger")
+    : page.getByRole("navigation", { name: "Navigation principale" }).getByTestId("account-trigger");
+  await accountTrigger.click();
+  const accountMenu = page.locator('[data-testid="account-menu"]:visible');
+  await expect(accountMenu).toBeVisible();
+  await accountMenu.getByRole("link", { name: "Ouvrir mon profil" }).click();
+
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(globalMenu).toHaveCount(0);
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
 });
 
 test("les favoris chargés ne réamorcent pas leur propre requête", async ({ page }, testInfo) => {

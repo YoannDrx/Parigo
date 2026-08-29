@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-13T11:57:51.727Z",
+  "generatedAt": "2026-08-29T20:25:10.269Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -294,8 +294,8 @@
       "image": "/images/composers/canonical/laurent_dury.webp",
       "detailImage": {
         "src": "/images/composers/detail/laurent_dury.webp",
-        "width": 1448,
-        "height": 1086
+        "width": 760,
+        "height": 760
       },
       "imageStatus": "portrait",
       "cardCrop": {

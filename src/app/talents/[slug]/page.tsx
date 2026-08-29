@@ -99,7 +99,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 28rem"
-                  className="object-cover"
+                  className={profile.slug === "2080" ? "origin-bottom-left scale-[1.018] object-cover" : "object-cover"}
                 />
               </div>
               <div className="min-w-0">
@@ -108,7 +108,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               </div>
             </div>
             {bio ? (
-              <div className="mt-[var(--detail-section-gap)]">
+              <div className="mt-[var(--space-heading-content)]">
                 <div data-testid="composer-biography" className="min-w-0 w-full text-base leading-8 text-[var(--text-muted)] md:text-lg">
                   <Bio value={bio} />
                 </div>
@@ -117,7 +117,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
           </article>
         </section>
 
-        <section className="mt-[var(--detail-section-gap)]">
+        {profile.albumIds.length > 0 ? <section data-testid="composer-albums-section" className="mt-[var(--detail-section-gap)]">
           <div className="mx-auto max-w-[1240px] px-[var(--space-page-gutter)]">
             <div className="mb-[var(--space-heading-content)]">
               <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">{locale === "fr" ? "Albums Parigo" : "Parigo albums"}</SignedTitle>
@@ -135,7 +135,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
               {locale === "fr" ? "Certains albums sont momentanément indisponibles." : "Some albums are temporarily unavailable."}
             </p>}
           </div>
-        </section>
+        </section> : null}
 
         {clips.length > 0 ? (
           <section data-testid="composer-clips-section" className="mt-[var(--detail-section-gap)]">

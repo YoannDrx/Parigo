@@ -30,10 +30,10 @@ export function PageHero({
     : undefined;
 
   return (
-    <header className={cn("page-hero border-b border-[var(--line)] px-[var(--space-page-gutter)] pb-[var(--space-page-hero-bottom)] pt-[var(--space-page-top)]", className)}>
+    <header className={cn("page-hero px-[var(--space-page-gutter)] pt-[var(--space-page-top)]", className)}>
       <div className="mx-auto max-w-[1700px]">
         <div className="page-hero__frame parigo-frame relative grid overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] md:grid-cols-12">
-          <div className="page-hero__title-panel relative min-w-0 px-6 py-9 sm:px-8 sm:py-11 md:col-span-8 lg:px-12 lg:py-14">
+          <div className="page-hero__title-panel relative min-w-0 px-6 pb-4 pt-9 sm:px-8 sm:pb-5 sm:pt-11 md:col-span-8 md:py-11 lg:px-12 lg:py-14">
             <SignedTitle
               variant={titleVariant}
               className="page-hero__title max-w-full break-words font-[var(--font-editorial)] font-semibold leading-[.9] tracking-[-.06em] md:max-w-[13ch]"
@@ -43,7 +43,7 @@ export function PageHero({
             </SignedTitle>
           </div>
           {(intro || meta || action) ? (
-            <div className="page-hero__aside relative flex min-w-0 flex-col justify-center gap-5 border-t border-[var(--line)] px-6 py-7 md:col-span-4 md:border-l md:border-t-0 md:px-8 lg:px-10">
+            <div className="page-hero__aside relative flex min-w-0 flex-col justify-center gap-4 px-6 pb-7 pt-0 md:col-span-4 md:px-8 md:py-9 lg:px-10">
               {intro ? <p className="max-w-xl text-sm leading-6 text-[var(--text-muted)] sm:text-base sm:leading-7">{intro}</p> : null}
               {action ? <div className="flex flex-wrap items-center gap-3">{action}</div> : null}
               {meta ? <p className="font-mono text-[.58rem] uppercase tracking-[.13em] text-[var(--text-muted)]">{meta}</p> : null}

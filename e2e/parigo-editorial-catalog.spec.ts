@@ -314,6 +314,14 @@ test("les fiches talent affichent les rôles au masculin", async ({ page }) => {
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
 });
 
+test("un talent sans album Parigo ne montre pas de section discographie vide", async ({ page }) => {
+  await page.goto("/talents/charlotte-savary");
+  await expect(page.getByRole("heading", { level: 1, name: "Charlotte Savary" })).toBeVisible();
+  await expect(page.getByTestId("composer-albums-section")).toHaveCount(0);
+  await expect(page.getByRole("heading", { name: "Albums Parigo" })).toHaveCount(0);
+  await expect(page.getByText(/Aucune discographie n’est actuellement disponible/i)).toHaveCount(0);
+});
+
 test("les biographies éditoriales nouvellement fournies sont publiées", async ({ page }) => {
   await page.goto("/talents/xavier-sibre");
   await expect(page.getByRole("heading", { level: 1, name: "Xavier Sibre" })).toBeVisible();

@@ -19,8 +19,6 @@ export function ParigoLoader({
       className={cn("parigo-loader", `parigo-loader--${size}`, className)}
     >
       <span aria-hidden="true" className="parigo-loader__frame">
-        <span className="parigo-loader__corner parigo-loader__corner--top" />
-        <span className="parigo-loader__corner parigo-loader__corner--bottom" />
         {size !== "icon" ? <span className="parigo-loader__word">Loading</span> : null}
         <span className="parigo-loader__dots">
           <span />
