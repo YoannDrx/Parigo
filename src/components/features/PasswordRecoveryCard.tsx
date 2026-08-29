@@ -19,9 +19,9 @@ export function PasswordRecoveryCard({ children, footer, icon: Icon, intro, titl
       aria-labelledby="password-recovery-title"
       className="parigo-frame mx-auto w-full max-w-[650px] border border-[var(--line-strong)] bg-[var(--surface)] p-6 shadow-[0_26px_80px_color-mix(in_srgb,var(--foreground)_10%,transparent)] sm:p-8"
     >
-      <div className="flex items-start justify-between gap-6">
-        <div>
-          <SignedTitle id="password-recovery-title" variant="compact" className="max-w-[11ch] font-[var(--font-editorial)] font-semibold">
+      <div className="flex min-w-0 items-start justify-between gap-4 sm:gap-6">
+        <div className="min-w-0 flex-1">
+          <SignedTitle id="password-recovery-title" variant="compact" className="max-w-full break-words font-[var(--font-editorial)] text-[clamp(2.15rem,10vw,4rem)] font-semibold leading-[.92] [overflow-wrap:anywhere]">
             {title}
           </SignedTitle>
         </div>

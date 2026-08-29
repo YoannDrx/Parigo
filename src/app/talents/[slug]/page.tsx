@@ -92,6 +92,16 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
           <article className="composer-detail-hero parigo-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-6 md:p-8 lg:p-10">
             <div className="grid items-end gap-7 md:grid-cols-[minmax(13rem,28rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
               <div className="parigo-frame relative aspect-square w-full max-w-[28rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
+                {profile.cardCrop?.fit === "contain" ? (
+                  <Image
+                    src={detailImage.src}
+                    alt=""
+                    fill
+                    aria-hidden="true"
+                    sizes="(max-width: 768px) 100vw, 28rem"
+                    className="scale-110 object-cover opacity-45 blur-xl"
+                  />
+                ) : null}
                 <Image
                   data-testid="composer-detail-image"
                   src={detailImage.src}
@@ -99,7 +109,8 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 28rem"
-                  className={profile.slug === "2080" ? "origin-bottom-left scale-[1.018] object-cover" : "object-cover"}
+                  style={{ objectPosition: profile.cardCrop?.objectPosition }}
+                  className={profile.slug === "2080" ? "origin-bottom-left scale-[1.018] object-cover" : profile.cardCrop?.fit === "contain" ? "object-contain" : "object-cover"}
                 />
               </div>
               <div className="min-w-0">

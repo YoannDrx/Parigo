@@ -1295,6 +1295,22 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     6px 6px 0 color-mix(in srgb, var(--signal) 13%, transparent),
     var(--shadow-lg);
 }
+@media (max-width: 1023px) {
+  .parigo-popover {
+    right: 0.75rem !important;
+    bottom: max(0.75rem, env(safe-area-inset-bottom)) !important;
+    left: 0.75rem !important;
+    top: auto !important;
+    width: auto !important;
+    max-height: min(70dvh, 32rem) !important;
+    overscroll-behavior: contain;
+    box-shadow: 0 -24px 70px rgba(0, 0, 0, 0.34);
+  }
+}
+.parigo-player__stowed-play,
+.parigo-player__stowed-expand {
+  border-radius: 999px !important;
+}
 :where(button, a, [role="button"], [role="switch"]).rounded-full {
   border-radius: var(--parigo-corner-md) var(--parigo-turn-md);
 }

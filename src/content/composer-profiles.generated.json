@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-29T20:25:10.269Z",
+  "generatedAt": "2026-08-29T21:35:05.186Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -298,10 +298,6 @@
         "height": 760
       },
       "imageStatus": "portrait",
-      "cardCrop": {
-        "objectPosition": "38% 45%",
-        "scale": 1.5
-      },
       "harvest": {
         "aliases": [
           "Laurent Dury"
@@ -476,7 +472,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "50% 14%"
+        "objectPosition": "center",
+        "fit": "contain"
       },
       "harvest": {
         "aliases": [
@@ -1160,7 +1157,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "50% 12%"
+        "objectPosition": "center",
+        "fit": "contain"
       },
       "harvest": {
         "aliases": [
@@ -1994,7 +1992,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "50% 12%"
+        "objectPosition": "center",
+        "fit": "contain"
       },
       "harvest": {
         "aliases": [

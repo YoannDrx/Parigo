@@ -31,4 +31,4 @@ Les limites de pages et de sections utilisent les variables sémantiques de `src
 - Les grilles de médias avec texte superposé utilisent `--space-grid-x` dans les deux axes. Les catalogues avec légende sous la pochette utilisent `--space-grid-x` horizontalement et `--space-grid-y` verticalement.
 - Sous `768 px`, les sections standard restent compactes. À partir de `768 px`, la même hiérarchie respire davantage sans modifier les largeurs maximales.
 - La compacité ne réduit jamais une cible interactive sous `44 × 44 px`.
-- Les surfaces publiques et l’espace compte consomment ces règles. Les routes d’authentification et `moods-photos` restent explicitement hors périmètre.
+- Les surfaces publiques et l’espace compte consomment ces règles. Les routes d’authentification restent explicitement hors périmètre.

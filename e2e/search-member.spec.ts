@@ -30,7 +30,7 @@ async function revealTrackAction(page: Page, actionName: string | RegExp, trigge
   return action;
 }
 
-test("le player se range sous la shortlist sans perdre sa piste ni ses liens", async ({ page }) => {
+test("le player se range sous la shortlist sans perdre sa piste ni ses liens", async ({ page }, testInfo) => {
   await mockMemberSearch(page);
   await page.goto("/search?q=piano&view=tracks&type=main");
 
@@ -57,9 +57,23 @@ test("le player se range sous la shortlist sans perdre sa piste ni ses liens", a
   await expect(player).toHaveAttribute("data-playing", "true");
   const playerBox = await player.boundingBox();
   expect(playerBox).not.toBeNull();
-  expect(playerBox!.width).toBeLessThanOrEqual(65);
-  expect(playerBox!.height).toBeLessThanOrEqual(70);
-  await expect(player.getByRole("button", { name: /pause/i })).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    expect(playerBox!.width).toBeGreaterThanOrEqual(84);
+    expect(playerBox!.height).toBeGreaterThanOrEqual(88);
+    const playTarget = await player.getByRole("button", { name: /pause/i }).boundingBox();
+    const expandTarget = await player.getByRole("button", { name: "Déployer le lecteur" }).boundingBox();
+    expect(playTarget!.width).toBeGreaterThanOrEqual(44);
+    expect(playTarget!.height).toBeGreaterThanOrEqual(44);
+    expect(expandTarget!.width).toBeGreaterThanOrEqual(36);
+    expect(expandTarget!.height).toBeGreaterThanOrEqual(36);
+    await player.getByRole("button", { name: /pause/i }).click();
+    await expect(player).toHaveAttribute("data-player-state", "stowed");
+    await expect(player).toHaveAttribute("data-playing", "false");
+  } else {
+    expect(playerBox!.width).toBeLessThanOrEqual(65);
+    expect(playerBox!.height).toBeLessThanOrEqual(70);
+  }
+  await expect(player.locator(".parigo-player__stowed-play")).toBeVisible();
   await expect(player.getByRole("button", { name: "Déployer le lecteur" })).toBeVisible();
   await expect(player.getByTestId("player-waveform")).toHaveAttribute("data-persistence-marker", "same-waveform");
 
@@ -73,6 +87,34 @@ test("le player se range sous la shortlist sans perdre sa piste ni ses liens", a
   await player.getByRole("button", { name: "Déployer le lecteur" }).click();
   await expect(player).toHaveAttribute("data-player-state", "docked");
   await expect(player.getByTestId("player-waveform")).toHaveAttribute("data-persistence-marker", "same-waveform");
+});
+
+test("la file du player expose tous les titres avec le scroll adapté au viewport", async ({ page }, testInfo) => {
+  await mockMemberSearch(page);
+  const queuedTracks = Array.from({ length: 7 }, (_, index) => ({
+    ...track,
+    id: `track-${index + 1}`,
+    title: `Piano documentaire ${index + 1}`,
+  }));
+  await page.route("**/api/search?**", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { items: queuedTracks, view: "tracks", facets }, meta: { page: 1, pageSize: 30, total: queuedTracks.length, requestId: "request-queue", searchHistoryId: "history-queue" } }),
+  }));
+  await page.goto("/search?q=piano&view=tracks&type=main");
+  await page.getByRole("button", { name: /^Écouter Piano documentaire 1/ }).click();
+  const player = page.getByTestId("player-dock");
+  await player.getByRole("button", { name: "Agrandir le lecteur" }).click();
+  const queue = player.getByTestId("player-queue");
+  await expect(queue.locator(".parigo-player__queue-card")).toHaveCount(6);
+  const dimensions = await queue.evaluate((node) => ({
+    clientHeight: node.clientHeight,
+    scrollHeight: node.scrollHeight,
+    clientWidth: node.clientWidth,
+    scrollWidth: node.scrollWidth,
+  }));
+  if (testInfo.project.name === "mobile") expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.clientHeight);
+  else expect(dimensions.scrollWidth).toBeGreaterThan(dimensions.clientWidth);
 });
 
 test("les points de partage de piste ouvrent la même modale et réutilisent le lien court", async ({ page }, testInfo) => {
@@ -383,18 +425,32 @@ test("les actions et tooltips de recherche suivent la langue active", async ({ p
 
 test("les actions playlist et tag utilisent un popover visible sans dialogue natif", async ({ page }, testInfo) => {
   await mockMemberSearch(page);
-  await page.route("**/api/user/playlists", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlists: [] } }) }));
+  await page.route("**/api/user/playlists", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { playlists: [{ id: "playlist-1", title: "Montage été", trackCount: 3, tracks: [] }] } }) }));
+  let playlistTrackPayload: Record<string, unknown> | null = null;
+  await page.route("**/api/user/playlists/playlist-1/tracks", async (route) => {
+    playlistTrackPayload = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { verified: true } }) });
+  });
   await page.route("**/api/user/tags", (route) => route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { tags: [] } }) }));
   let nativeDialog: string | null = null;
   page.on("dialog", async (dialog) => { nativeDialog = dialog.type(); await dialog.dismiss(); });
 
   await page.goto("/search?q=piano&view=tracks&type=main");
+  await expect(page.getByRole("button", { name: `Ajouter à la file d’attente : ${track.title}` })).toHaveCount(0);
   await (await revealTrackAction(page, `Ajouter à une playlist : ${track.title}`, `Plus d’actions : ${track.title}`)).click();
   const playlistDialog = page.getByRole("dialog", { name: new RegExp(`Ajouter à une playlist — ${track.title}`) });
   await expect(playlistDialog).toBeVisible();
-  await expect(playlistDialog.getByText("Aucune playlist pour le moment.", { exact: false })).toBeVisible();
-  await expect(playlistDialog.getByRole("link", { name: "Créer une playlist" })).toHaveAttribute("href", "/account/playlists");
-  await playlistDialog.getByRole("button", { name: "Fermer" }).click();
+  if (testInfo.project.name === "mobile") {
+    const bounds = await playlistDialog.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.x).toBeGreaterThanOrEqual(8);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(382);
+    expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(836);
+  }
+  await playlistDialog.getByRole("button", { name: "Montage été" }).click();
+  await expect(playlistDialog.getByRole("status")).toContainText("Ajouté à « Montage été »");
+  expect(playlistTrackPayload).toEqual({ action: "add", trackIds: ["track-1"] });
+  await expect(playlistDialog).toBeHidden();
 
   const row = page.locator("article").filter({ hasText: track.title }).first();
   await row.evaluate((element) => window.scrollTo(0, element.getBoundingClientRect().top + window.scrollY));

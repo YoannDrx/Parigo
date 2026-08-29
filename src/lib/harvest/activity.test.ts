@@ -17,7 +17,7 @@ vi.mock("./assets", async (importOriginal) => {
 });
 
 import { getAssetTemplates, type HarvestAssetTemplates } from "./assets";
-import { acceptSharedMusic, createMusicShare, getCommentedTracks, getDownloadHistory, getMemberPlaylistCategories, getMemberPlaylists, getMemberTags, getMemberTagsWithTrackCounts, getSharedMusic, isReservedMemberTagName, mapDownloadHistoryResponse } from "./activity";
+import { acceptSharedMusic, copyFeaturedPlaylist, createMusicShare, getCommentedTracks, getDownloadHistory, getMemberPlaylistCategories, getMemberPlaylists, getMemberTags, getMemberTagsWithTrackCounts, getSharedMusic, isReservedMemberTagName, mapDownloadHistoryResponse } from "./activity";
 import { guestRequest, memberRequest, serviceRequest } from "./client";
 import { HarvestError } from "./errors";
 
@@ -209,6 +209,54 @@ describe("Harvest member playlist hierarchy", () => {
     await expect(getMemberPlaylistCategories("member-token")).resolves.toEqual([
       expect.objectContaining({ id: "folder-test", name: "Test", playlistCount: 3 }),
     ]);
+  });
+});
+
+describe("Harvest featured playlist copy", () => {
+  beforeEach(() => {
+    vi.mocked(memberRequest).mockReset();
+    vi.mocked(getAssetTemplates).mockReset();
+    vi.mocked(getAssetTemplates).mockResolvedValue(templates);
+  });
+
+  it("repairs an empty Harvest copy and verifies every expected track", async () => {
+    let copied = false;
+    let copiedTrackIds: string[] = [];
+    vi.mocked(memberRequest).mockImplementation(async (_memberToken, pathBuilder, init) => {
+      const path = pathBuilder("redacted-member-token");
+      if (path.startsWith("/getmemberplaylistsnotracks/")) {
+        return { Playlists: copied ? [{ ID: "copy-1", Name: "Copie Parigo", TrackCount: copiedTrackIds.length }] : [] };
+      }
+      if (path.startsWith("/getmemberplaylistcategoriesandplaylists/")) return { PlaylistObjects: [] };
+      if (path.startsWith("/copytomemberplaylist/")) {
+        copied = true;
+        return { Playlists: [{ ID: "copy-1" }] };
+      }
+      if (path.startsWith("/getmemberplaylist/") && path.includes("copy-1")) {
+        return { Playlists: [{
+          ID: "copy-1",
+          Name: "Copie Parigo",
+          Tracks: copiedTrackIds.map((id) => ({ ID: id, DisplayTitle: id })),
+        }] };
+      }
+      if (path.startsWith("/addtomemberplaylists/")) {
+        const body = JSON.parse(String(init?.body)) as { ObjectIDs?: string[] };
+        copiedTrackIds = body.ObjectIDs || [];
+        return {};
+      }
+      throw new Error(`Unexpected Harvest path: ${path}`);
+    });
+
+    await expect(copyFeaturedPlaylist("member-token", "featured-1", ["track-1", "track-2"]))
+      .resolves.toMatchObject({ id: "copy-1", tracks: [{ id: "track-1" }, { id: "track-2" }] });
+
+    const addCall = vi.mocked(memberRequest).mock.calls.find(([, pathBuilder]) =>
+      pathBuilder("redacted-member-token").startsWith("/addtomemberplaylists/"));
+    expect(addCall).toBeDefined();
+    expect(JSON.parse(String(addCall?.[2]?.body))).toMatchObject({
+      AddToPlaylistIDs: ["copy-1"],
+      ObjectIDs: ["track-1", "track-2"],
+    });
   });
 });
 

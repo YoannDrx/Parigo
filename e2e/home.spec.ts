@@ -1881,6 +1881,7 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   await expect(backdrop).toHaveCSS("background-color", "rgb(7, 9, 7)");
   await expect(backdrop).toHaveCSS("backdrop-filter", "none");
   const switcher = dialog.getByTestId("auth-switcher");
+  await expect(switcher.locator("aside > span.rounded-full")).toHaveCount(0);
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
   await expect(dialog.getByRole("heading", { name: "Se connecter" })).toBeVisible();
   const registerSwitch = dialog.getByRole("button", { name: "Afficher le formulaire d’inscription" });
@@ -1919,7 +1920,7 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   }
 });
 
-test("le reset n’annonce pas un e-mail quand la route Harvest manque", async ({ page }, testInfo) => {
+test("le reset n’annonce pas un e-mail quand la route Harvest manque", async ({ page }) => {
   await page.route("**/api/auth/forgot-password", (route) => route.fulfill({
     status: 200,
     contentType: "application/json",

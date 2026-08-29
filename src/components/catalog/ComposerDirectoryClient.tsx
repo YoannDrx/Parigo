@@ -74,7 +74,7 @@ export function ComposerDirectoryClient({
             <Link
               key={profile.slug}
               href={localizedPath(locale, `/talents/${profile.slug}`)}
-              className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--signal)] bg-[var(--surface)] transition"
+              className="composer-card group relative flex aspect-square flex-col justify-end overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] transition"
             >
               {crop?.fit === "contain" ? <Image src={image} alt="" fill sizes="(max-width: 640px) 100vw, 25vw" aria-hidden="true" className="scale-110 object-cover opacity-45 blur-xl" /> : null}
               <Image

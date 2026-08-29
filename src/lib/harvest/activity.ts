@@ -552,7 +552,11 @@ export async function updateMemberPlaylist(memberToken: string, id: string, inpu
   return playlist;
 }
 
-export async function copyFeaturedPlaylist(memberToken: string, playlistId: string): Promise<Playlist> {
+export async function copyFeaturedPlaylist(
+  memberToken: string,
+  playlistId: string,
+  expectedTrackIds: string[],
+): Promise<Playlist> {
   const beforeIds = new Set(
     (await getMemberPlaylists(memberToken, 0, 500)).map((playlist) => playlist.id),
   );
@@ -573,7 +577,42 @@ export async function copyFeaturedPlaylist(memberToken: string, playlistId: stri
       false,
     );
   }
-  return copied;
+  try {
+    const currentIds = copied.tracks?.map((track) => track.id) || [];
+    const current = new Set(currentIds);
+    const expected = new Set(expectedTrackIds);
+    const missing = expectedTrackIds.filter((trackId) => !current.has(trackId));
+    const unexpected = currentIds.filter((trackId) => !expected.has(trackId));
+    if (missing.length) await addTracksToPlaylist(memberToken, copied.id, missing);
+    if (unexpected.length) await removeTracksFromPlaylist(memberToken, copied.id, unexpected);
+
+    let verified = await pollMemberPlaylistState(
+      memberToken,
+      copied.id,
+      (candidate) => {
+        const ids = candidate?.tracks?.map((track) => track.id) || [];
+        return ids.length === expectedTrackIds.length && ids.every((trackId) => expected.has(trackId));
+      },
+    );
+    const verifiedIds = verified?.tracks?.map((track) => track.id) || [];
+    if (verifiedIds.some((trackId, index) => trackId !== expectedTrackIds[index])) {
+      await reorderPlaylistTracks(memberToken, copied.id, expectedTrackIds);
+      verified = await pollMemberPlaylistState(
+        memberToken,
+        copied.id,
+        (candidate) => {
+          const ids = candidate?.tracks?.map((track) => track.id) || [];
+          return ids.length === expectedTrackIds.length &&
+            ids.every((trackId, index) => trackId === expectedTrackIds[index]);
+        },
+      );
+    }
+    if (!verified) throw new HarvestError("Copied playlist disappeared", "HARVEST_INVALID_RESPONSE", 502, false);
+    return verified;
+  } catch (error) {
+    await removeMemberPlaylist(memberToken, copied.id).catch(() => undefined);
+    throw error;
+  }
 }
 
 export async function addTracksToPlaylist(memberToken: string, playlistId: string, trackIds: string[]): Promise<void> {

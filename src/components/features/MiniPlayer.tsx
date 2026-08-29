@@ -251,7 +251,7 @@ export function MiniPlayer() {
   };
 
   const nextTracks = queue.length > 1
-    ? [...queue.slice(queueIndex + 1), ...queue.slice(0, queueIndex)].slice(0, 4)
+    ? [...queue.slice(queueIndex + 1), ...queue.slice(0, queueIndex)]
     : [];
 
   const trackHref = currentTrack
@@ -291,17 +291,17 @@ export function MiniPlayer() {
         className={cn(
           "parigo-player fixed inset-x-3 bottom-3 z-[60] mx-auto max-w-[1560px] overflow-hidden border border-white/18 bg-[#101410]/96 text-white shadow-[0_28px_90px_rgba(0,0,0,.34)] backdrop-blur-2xl md:inset-x-5 md:bottom-5",
           isExpanded && "parigo-player--expanded",
-          isStowed && "parigo-player--stowed !left-auto !right-3 !w-16 !max-w-16 !overflow-visible !mx-0 md:!right-5",
+          isStowed && "parigo-player--stowed !left-auto !right-3 !w-[5.5rem] !max-w-[5.5rem] !overflow-visible !mx-0 md:!right-5 md:!w-16 md:!max-w-16",
         )}
       >
-        {isStowed ? <div className="parigo-player__stowed flex w-16 flex-col">
-          <div className="parigo-player__stowed-cover relative h-16 w-16 overflow-hidden bg-[#101410]">
-            {albumCover ? <Image src={albumCover} alt="" fill sizes="64px" className="object-cover opacity-72" /> : <span className="absolute inset-0 grid place-items-center"><ListMusic size={20} className="text-white/68" /></span>}
+        {isStowed ? <div className="parigo-player__stowed flex w-[5.5rem] flex-col md:w-16">
+          <div className="parigo-player__stowed-cover relative h-[5.5rem] w-[5.5rem] overflow-hidden bg-[#101410] md:h-16 md:w-16">
+            {albumCover ? <Image src={albumCover} alt="" fill sizes="(max-width: 767px) 88px, 64px" className="object-cover opacity-72" /> : <span className="absolute inset-0 grid place-items-center"><ListMusic size={20} className="text-white/68" /></span>}
             <span aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(145deg,rgba(8,10,8,.04),rgba(8,10,8,.68))]" />
-            <Tooltip label={isPlaying ? t("common.pause") : t("common.play")}><button type="button" onClick={() => (isPlaying ? pause() : resume())} className="absolute inset-0 m-auto grid h-9 w-9 place-items-center bg-[var(--signal)] text-[#0c120d] shadow-[0_0_0_4px_rgba(8,10,8,.45)] transition hover:scale-105 hover:bg-white" aria-label={isPlaying ? t("common.pause") : t("common.play")}>
+            <Tooltip label={isPlaying ? t("common.pause") : t("common.play")}><button type="button" onClick={(event) => { event.stopPropagation(); if (isPlaying) pause(); else resume(); }} className="parigo-player__stowed-play absolute bottom-1 left-1 grid h-11 w-11 place-items-center bg-[var(--signal)] text-[#0c120d] shadow-[0_0_0_4px_rgba(8,10,8,.45)] transition hover:scale-105 hover:bg-white md:inset-0 md:m-auto md:h-9 md:w-9" aria-label={isPlaying ? t("common.pause") : t("common.play")}>
               {isLoading ? <ParigoLoader size="icon" label={locale === "fr" ? "Chargement de la piste" : "Loading track"} /> : isPlaying ? <Pause size={15} className="fill-current" /> : <Play size={15} className="ml-0.5 fill-current" />}
             </button></Tooltip>
-            <Tooltip label={locale === "fr" ? "Déployer le lecteur" : "Restore player"}><button type="button" onClick={() => setPlayerView("docked")} className="absolute right-0 top-0 grid h-6 w-6 place-items-center bg-black/72 text-white/82 transition hover:bg-white hover:text-black" aria-label={locale === "fr" ? "Déployer le lecteur" : "Restore player"}><Maximize2 size={11} /></button></Tooltip>
+            <Tooltip label={locale === "fr" ? "Déployer le lecteur" : "Restore player"}><button type="button" onClick={(event) => { event.stopPropagation(); setPlayerView("docked"); }} className="parigo-player__stowed-expand absolute right-1 top-1 grid h-9 w-9 place-items-center bg-black/78 text-white transition hover:bg-white hover:text-black md:right-0 md:top-0 md:h-6 md:w-6" aria-label={locale === "fr" ? "Déployer le lecteur" : "Restore player"}><Maximize2 size={13} className="md:h-[11px] md:w-[11px]" /></button></Tooltip>
           </div>
           <span aria-hidden="true" className="mt-[3px] block h-[2px] w-full overflow-hidden bg-[color-mix(in_srgb,var(--foreground)_18%,transparent)]"><span className="block h-full bg-[var(--signal-strong)]" style={{ width: `${Math.max(0, Math.min(100, progressPercent))}%` }} /></span>
         </div> : null}
@@ -381,7 +381,7 @@ export function MiniPlayer() {
               </div>
               <div className="min-w-0">
                 <div className="mb-3 flex items-center justify-between"><p className="font-mono text-[.55rem] uppercase tracking-[.13em] text-white/62">{locale === "fr" ? "À suivre" : "Up next"} · {Math.max(0, queue.length - 1)}</p>{hasError && <span className="flex items-center gap-1.5 text-[.62rem] text-amber-200/70" role="status"><AlertCircle size={13} />{locale === "fr" ? "Waveform de secours" : "Fallback waveform"}</span>}</div>
-                {nextTracks.length ? <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">{nextTracks.map((track, index) => <div key={`${track.id}-${index}`} className="parigo-player__queue-card flex min-w-0 items-center gap-3 border border-white/12 bg-white/[.035] p-2.5"><span className="font-mono text-[.52rem] text-[var(--signal)]">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-white">{track.title}</p><p className="mt-1 truncate text-[.6rem] text-white/62">{track.albumTitle}</p></div></div>)}</div> : <p className="text-xs text-white/62">{locale === "fr" ? "Aucune autre piste dans la file." : "No other tracks in the queue."}</p>}
+                {nextTracks.length ? <div data-testid="player-queue" className="flex max-h-52 flex-col gap-2 overflow-y-auto overscroll-contain pr-1 sm:max-h-none sm:flex-row sm:overflow-x-auto sm:overflow-y-hidden sm:pb-2 sm:pr-0 sm:snap-x">{nextTracks.map((track, index) => <div key={`${track.id}-${index}`} className="parigo-player__queue-card flex min-w-0 shrink-0 items-center gap-3 border border-white/12 bg-white/[.035] p-2.5 sm:w-52 sm:snap-start"><span className="font-mono text-[.52rem] text-[var(--signal)]">{String(index + 1).padStart(2, "0")}</span><div className="min-w-0"><p className="truncate text-xs font-semibold text-white">{track.title}</p><p className="mt-1 truncate text-[.6rem] text-white/62">{track.albumTitle}</p></div></div>)}</div> : <p className="text-xs text-white/62">{locale === "fr" ? "Aucune autre piste dans la file." : "No other tracks in the queue."}</p>}
               </div>
             </div>
           </motion.div>}

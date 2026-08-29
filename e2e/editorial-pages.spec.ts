@@ -296,6 +296,19 @@ test("le détail d’une synchronisation contient son titre et masque la descrip
 test("la playlist détail compacte ses actions et ses pistes sur mobile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "La composition icon-only est réservée au mobile.");
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/auth/session", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { session: { user: { id: "member-1", email: "yoann@parigo.test", name: "Yoann" }, session: { expiresAt: "2026-12-01T00:00:00.000Z" } } } }),
+  }));
+  let copiedPlaylistId = "";
+  let copiedTrackIds: string[] = [];
+  await page.route("**/api/user/playlists/copy-featured", async (route) => {
+    const payload = route.request().postDataJSON() as { playlistId?: string; trackIds?: string[] };
+    copiedPlaylistId = payload.playlistId || "";
+    copiedTrackIds = payload.trackIds || [];
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { copied: true, playlist: { id: "copied-playlist-1", title: "Ma copie" } } }) });
+  });
   await page.goto("/playlists/22b6c3499f843b2d");
   const actions = [
     page.getByRole("button", { name: "Écouter la sélection" }),
@@ -324,6 +337,11 @@ test("la playlist détail compacte ses actions et ses pistes sur mobile", async 
   await expect(firstTrack).toBeVisible();
   expect((await firstTrack.boundingBox())!.height).toBeLessThanOrEqual(230);
   await expect(tracksTitle).toBeVisible();
+  await actions[2].click();
+  await expect(page.getByRole("status")).toContainText("toutes ses pistes ont été copiées");
+  expect(copiedPlaylistId).toBe("22b6c3499f843b2d");
+  expect(copiedTrackIds.length).toBeGreaterThan(0);
+  await expect(page.getByRole("link", { name: "Ouvrir ma copie" })).toHaveAttribute("href", "/account/playlists/copied-playlist-1");
 });
 
 test("previous/next disparaît de toutes les fiches de détail", async ({ page }) => {

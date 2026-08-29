@@ -85,9 +85,7 @@ async function main() {
     exportOriginal(sources.r01, "r01-v1-home-1672x941.avif"),
     exportCrop(sources.r01, "r01-v1-home-1080x1920.avif", 1080, 1920, 0.71),
     exportOriginal(sources.r02, "r02-v1-login-1448x1086.avif"),
-    exportCrop(sources.r02, "r02-v1-login-1200x1500.avif", 1200, 1500, 0.5),
     exportOriginal(sources.r03, "r03-v1-contact-1672x941.avif"),
-    exportCrop(sources.r03, "r03-v1-contact-1200x1500.avif", 1200, 1500, 0.52),
     exportCrop(sources.r15v1, "r15-v1-register-1200x1500.avif", 1200, 1500, 0.5, 78),
     exportCrop(sources.r15v1, "r15-v1-register-1440x900.avif", 1440, 900, 0.5, 78),
     exportCrop(sources.r11, "r11-v1-forgot-password-1200x1500.avif", 1200, 1500, 0.5),
@@ -95,7 +93,7 @@ async function main() {
     exportCrop(sources.r14, "r14-v3-forgot-password-1200x1500.avif", 1200, 1500, 0.5),
   ]);
 
-  console.log(`11 exports Web créés dans ${outputRoot}`);
+  console.log(`9 exports Web créés dans ${outputRoot}`);
 }
 
 void main();

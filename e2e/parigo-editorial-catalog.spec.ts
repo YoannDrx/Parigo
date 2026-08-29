@@ -322,6 +322,29 @@ test("un talent sans album Parigo ne montre pas de section discographie vide", a
   await expect(page.getByText(/Aucune discographie n’est actuellement disponible/i)).toHaveCount(0);
 });
 
+test("Loïc Laporte, NSDOS et Kokane gardent leur portrait entier en liste et en détail", async ({ page }, testInfo) => {
+  await page.goto("/talents");
+  for (const slug of ["loic-laporte", "nsdos", "kokane"]) {
+    const card = page.locator(`a.composer-card[href="/talents/${slug}"]`);
+    await expect(card).toBeVisible();
+    await expect(card.locator("img").last()).toHaveCSS("object-fit", "contain");
+  }
+
+  const loicCard = page.locator('a.composer-card[href="/talents/loic-laporte"]');
+  const restingBorder = await loicCard.evaluate((node) => getComputedStyle(node).borderColor);
+  if (testInfo.project.name !== "mobile") {
+    await loicCard.hover();
+    await expect.poll(() => loicCard.evaluate((node) => getComputedStyle(node).borderColor)).not.toBe(restingBorder);
+  }
+
+  for (const [slug, name] of [["loic-laporte", "Loïc Laporte"], ["nsdos", "NSDOS"], ["kokane", "Kokane"]] as const) {
+    await page.goto(`/talents/${slug}`);
+    const portrait = page.getByRole("img", { name });
+    await expect(portrait).toBeVisible();
+    await expect(portrait).toHaveCSS("object-fit", "contain");
+  }
+});
+
 test("les biographies éditoriales nouvellement fournies sont publiées", async ({ page }) => {
   await page.goto("/talents/xavier-sibre");
   await expect(page.getByRole("heading", { level: 1, name: "Xavier Sibre" })).toBeVisible();
