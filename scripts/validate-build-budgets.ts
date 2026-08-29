@@ -11,9 +11,9 @@ const CSS_BUDGET = 157 * 1024;
 // Editorial empty states extend the search workspace while keeping a narrow
 // margin over its current 227.1 KiB Brotli route bundle.
 const DEFAULT_JS_BUDGET = 230 * 1024;
-// The home experience also exposes the versioned editorial photo surfaces; its
-// current 244.2 KiB Brotli baseline remains isolated from the other routes.
-const HOME_JS_BUDGET = 247 * 1024;
+// Stable story sections, shared social marks and the new sharing entry points
+// bring the Home baseline to 248.5 KiB Brotli while keeping it route-scoped.
+const HOME_JS_BUDGET = 251 * 1024;
 
 async function walk(directory: string): Promise<string[]> {
   const entries = await readdir(directory, { withFileTypes: true });
