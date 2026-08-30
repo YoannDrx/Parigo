@@ -33,7 +33,10 @@ describe("Parigo session JWE", () => {
   it("rejects a modified token", async () => {
     const { sealHarvestSession, unsealHarvestSession } = await import("./session");
     const token = await sealHarvestSession(payload);
-    const tampered = `${token.slice(0, -2)}aa`;
+    const parts = token.split(".");
+    const authenticationTag = parts[4]!;
+    parts[4] = `${authenticationTag.startsWith("A") ? "B" : "A"}${authenticationTag.slice(1)}`;
+    const tampered = parts.join(".");
     await expect(unsealHarvestSession(tampered)).resolves.toBeNull();
   });
 });
