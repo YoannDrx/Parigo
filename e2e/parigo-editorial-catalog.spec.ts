@@ -409,18 +409,19 @@ test("les relations clip sont réciproques, sans séparateurs et régulièrement
   await expect(minimaticRelations.getByRole("link", { name: /Minimatic/ })).toHaveAttribute("href", "/talents/minimatic");
   await expect(minimaticAlbum).toContainText("PGO0050");
 
-  const relationSpacing = await page.getByTestId("clip-relations").evaluate((relationsSection) => {
+  const relationSpacing = await page.getByTestId("clip-relations").evaluate((relationsSection, mobile) => {
     const detailPanel = document.querySelector<HTMLElement>('[data-testid="clip-detail-panel"]')!;
+    const spacingAnchor = mobile ? detailPanel : detailPanel.previousElementSibling as HTMLElement;
     const relationsStyle = getComputedStyle(relationsSection);
     const relationsBox = relationsSection.getBoundingClientRect();
-    const panelBox = detailPanel.getBoundingClientRect();
+    const anchorBox = spacingAnchor.getBoundingClientRect();
     return {
-      playerGap: relationsBox.top - panelBox.bottom,
+      playerGap: relationsBox.top - anchorBox.bottom,
       marginTop: Number.parseFloat(relationsStyle.marginTop),
       borderTopWidth: Number.parseFloat(relationsStyle.borderTopWidth),
       paddingTop: Number.parseFloat(relationsStyle.paddingTop),
     };
-  });
+  }, testInfo.project.name === "mobile");
   expect(relationSpacing.playerGap).toBeCloseTo(relationSpacing.marginTop, 0);
   expect(relationSpacing.borderTopWidth).toBe(0);
   expect(relationSpacing.paddingTop).toBe(0);

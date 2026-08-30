@@ -3,16 +3,16 @@ import { expect, test } from "@playwright/test";
 test("Licensing ouvre sur une introduction textuelle pleine largeur et conserve la grille", async ({ page }, testInfo) => {
   await page.goto("/licensing");
 
-  await expect(page.locator(".page-hero")).toHaveCount(0);
-  await expect(page.getByRole("heading", { level: 1, name: "Une musique trouvée, une licence maîtrisée" })).toBeVisible();
+  const hero = page.locator(".page-hero");
+  await expect(hero).toHaveCount(1);
+  await expect(hero.getByRole("heading", { level: 1, name: "Une musique trouvée, une licence maîtrisée" })).toBeVisible();
   await expect(page.getByText("Licensing · Parigo Music", { exact: true })).toHaveCount(0);
   await expect(page.getByTestId("licensing-hero-image")).toHaveCount(0);
-  await expect(page.getByTestId("licensing-title-card")).toBeVisible();
+  await expect(page.getByTestId("licensing-title-card")).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
-    const card = page.getByTestId("licensing-title-card");
     const [titleBox, introBox] = await Promise.all([
-      card.getByRole("heading", { level: 1 }).boundingBox(),
-      card.locator("p").first().boundingBox(),
+      hero.getByRole("heading", { level: 1 }).boundingBox(),
+      hero.locator("p").first().boundingBox(),
     ]);
     expect(titleBox).not.toBeNull();
     expect(introBox).not.toBeNull();
