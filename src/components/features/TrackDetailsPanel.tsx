@@ -150,7 +150,7 @@ function VersionRow({ track, onInspect }: { track: Track; onInspect: (track: Tra
           <button type="button" onClick={shareTrack} className="track-detail-version__action" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={16} /></button>
         </Tooltip>
         <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"}>
-          <Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="track-detail-version__action" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={16} /></Link>
+          <Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}#licence-request-message`} className="track-detail-version__action" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={16} /></Link>
         </Tooltip>
       </div>
     </article>
@@ -312,7 +312,7 @@ export function TrackDetailsPanel({ track, composerCredits, activeTab, highlight
         <div className="no-scrollbar min-w-0 flex-1 overflow-x-auto px-4 md:px-6">
           <div className="track-detail-tabs flex min-w-max gap-6" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={activeTab === id} onClick={() => onTabChange(id)} className={cn("relative min-h-11 px-0 text-xs font-semibold transition after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:origin-left after:scale-x-0 after:bg-[var(--signal-strong)] after:transition-transform", activeTab === id ? "text-[var(--foreground)] after:scale-x-100" : "text-[var(--text-muted)] hover:text-[var(--foreground)] hover:after:scale-x-50")}>{label}</button>)}</div>
         </div>
-        <Tooltip label={locale === "fr" ? "Partager" : "Share"}>
+        <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="hidden md:inline-flex">
           <button type="button" onClick={shareDisplayedTrack} className="m-1.5 flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--line)] transition hover:border-[var(--signal-strong)] hover:text-[var(--signal-strong)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${displayed.title}`}><Share2 size={14} /></button>
         </Tooltip>
         <button type="button" onClick={onClose} className="track-detail-panel__collapse m-1.5 flex h-8 w-8 shrink-0 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Replier les informations" : "Collapse information"}><ChevronUp size={14} /></button>

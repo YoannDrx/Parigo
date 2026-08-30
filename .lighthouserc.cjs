@@ -1,7 +1,7 @@
 const { existsSync } = require("node:fs");
 const { loadEnvFile } = require("node:process");
 
-if (existsSync(".env")) loadEnvFile(".env");
+if (existsSync(".env.local")) loadEnvFile(".env.local");
 
 const baseUrl = process.env.LIGHTHOUSE_BASE_URL;
 const albumUrl = process.env.LIGHTHOUSE_ALBUM_URL;

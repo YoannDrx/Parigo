@@ -48,7 +48,7 @@ describe("POST /api/share/short-url", () => {
     expect(response.status).toBe(200);
     expect(payload.data.shortened).toBe(false);
     expect(payload.data.url).toMatch(/^https:\/\/[^/]+\/albums\/album-slug\?track=track-1$/);
-    expect(mocks.logEvent).toHaveBeenCalledWith(expect.objectContaining({ message: "short_url_fallback", requestId: "share-request-1" }));
+    expect(mocks.logEvent).toHaveBeenCalledWith(expect.objectContaining({ message: "short_url_fallback", requestId: "share-request-1", code: "Error" }));
   });
 
   it.each([

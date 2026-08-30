@@ -5,6 +5,7 @@ import { assertSameOrigin } from "@/lib/harvest/session";
 import { createHarvestShortUrl } from "@/lib/harvest/short-url";
 import { SITE_URL } from "@/lib/seo";
 import { logEvent } from "@/lib/logger";
+import { HarvestError } from "@/lib/harvest/errors";
 
 const schema = z.object({ path: z.string().min(1).max(800) });
 
@@ -29,7 +30,14 @@ export async function POST(request: NextRequest) {
       const url = await createHarvestShortUrl(canonicalUrl);
       return NextResponse.json({ data: { url, shortened: true }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
     } catch (error) {
-      logEvent({ level: "warn", message: "short_url_fallback", route: "getshorturl", requestId: id, code: error instanceof Error ? error.name : "UNKNOWN" });
+      const code = error instanceof HarvestError
+        ? error.code
+        : error instanceof DOMException && error.name === "TimeoutError"
+          ? "TIMEOUT"
+          : error instanceof Error
+            ? error.name
+            : "UNKNOWN";
+      logEvent({ level: "warn", message: "short_url_fallback", route: "getshorturl", requestId: id, code });
       return NextResponse.json({ data: { url: canonicalUrl, shortened: false }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
     }
   } catch {

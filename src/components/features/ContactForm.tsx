@@ -59,7 +59,7 @@ export function ContactForm({ track, requestedTrackId }: { track?: Track | null;
         <label className="contact-field sm:!pl-5 sm:focus-within:!pl-5"><span><b>02</b>{t("institutional.company")}</span><input name="company" autoComplete="organization" /></label>
       </div>
       <label className="contact-field"><span><b>03</b>{t("auth.email")}</span><input required type="email" name="email" autoComplete="email" /></label>
-      <label className="contact-field"><span><b>04</b>{requestedTrackId ? (locale === "fr" ? "Projet & licence" : "Project & licence") : t("institutional.project")}</span><textarea required name="message" rows={requestedTrackId ? 13 : 6} defaultValue={defaultMessage} placeholder={t("institutional.projectPlaceholder")} /></label>
+      <label id={requestedTrackId ? "licence-request-message" : undefined} className="contact-field scroll-mt-28"><span><b>04</b>{requestedTrackId ? (locale === "fr" ? "Projet & licence" : "Project & licence") : t("institutional.project")}</span><textarea required name="message" rows={requestedTrackId ? 13 : 6} defaultValue={defaultMessage} placeholder={t("institutional.projectPlaceholder")} /></label>
       <label className="sr-only" aria-hidden="true">Website<input name="website" tabIndex={-1} autoComplete="off" /></label>
       <div className="grid gap-7 border-b border-[var(--line-strong)] py-7 sm:grid-cols-[1fr_auto] sm:items-center">
         <label data-invalid={consentError ? "true" : "false"} className="contact-consent-label group flex cursor-pointer items-start gap-3 text-sm text-[var(--text-muted)]">

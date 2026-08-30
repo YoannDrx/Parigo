@@ -499,12 +499,17 @@ test("l’icône de note privée ouvre directement le bon onglet", async ({ page
 });
 
 test("une demande de licence conserve la référence et préremplit le brief", async ({ page }) => {
-  await page.goto("/contact?track=track-reference-test");
+  await page.goto("/contact?track=track-reference-test#licence-request-message");
   await expect(page.getByRole("heading", { name: "Demander une licence pour ce morceau" })).toBeVisible();
-  const message = await page.getByRole("textbox", { name: /Projet & licence/ }).inputValue();
+  const messageField = page.getByRole("textbox", { name: /Projet & licence/ });
+  const message = await messageField.inputValue();
   expect(message).toContain("Référence : track-reference-test");
   expect(message).toContain("Médias et territoires :");
   expect(message).toContain("Calendrier :");
+  await expect.poll(async () => {
+    const bounds = await page.locator("#licence-request-message").boundingBox();
+    return bounds?.y ?? Number.POSITIVE_INFINITY;
+  }).toBeLessThan(180);
 });
 
 test("un attribut injecté par une extension sur body ne déclenche plus l’overlay d’hydratation", async ({ page }) => {
