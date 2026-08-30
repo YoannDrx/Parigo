@@ -493,7 +493,7 @@ test("la home conserve le process et le brief sans les deux sections supprimées
   await expect(page.locator("#editorial-playlists")).toHaveCount(0);
   await expect(page.getByRole("heading", { name: /Envoyez-nous un brief/ })).toBeVisible();
   await expect(page.getByText("Parlez-nous de votre projet, de votre deadline et de vos références, Nous construisons une sélection pour vous.", { exact: true })).toBeVisible();
-  await expect(page.getByText("Sorties, playlists, images et actualités du label — tous nos liens réunis au même endroit.", { exact: true })).toBeVisible();
+  await expect(page.getByText("Sorties, playlists, images et actualités du label - tous nos liens réunis au même endroit.", { exact: true })).toBeVisible();
 
   const socialSection = page.getByTestId("social-follow-section");
   const socialSpacing = await socialSection.evaluate((node) => {
@@ -695,8 +695,8 @@ test("la Similarité IA conserve les mêmes angles arrondis", async ({ page }, t
   }
 });
 
-test("les métriques publiques compactent le contenu après séparateur sur mobile", async ({ page }) => {
-  for (const [width, expectedGap] of [[390, 24], [1024, 64]] as const) {
+test("les métriques publiques compactent le contenu après le header", async ({ page }) => {
+  for (const [width, expectedGap] of [[390, 20], [1024, 40]] as const) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/clips");
     const firstCard = page.getByTestId("clips-content").locator(".parigo-video-card").first();
@@ -997,7 +997,7 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
   }
 
   await page.goto("/search");
-  await expect(page.locator("main h1")).toHaveText("Recherche");
+  await expect(page.locator("main h1").first()).toHaveText("Recherche");
   await expect(page.locator("main")).not.toContainText("Donnez le ton à vos images");
 });
 

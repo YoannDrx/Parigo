@@ -97,7 +97,8 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
     const [logoutBox, parentBox] = await Promise.all([logout.boundingBox(), logout.locator("xpath=..").boundingBox()]);
     expect(logoutBox).not.toBeNull();
     expect(parentBox).not.toBeNull();
-    expect(Math.abs(logoutBox!.width - parentBox!.width)).toBeLessThanOrEqual(2);
+    expect(Math.abs(logoutBox!.x - parentBox!.x - 16)).toBeLessThanOrEqual(1);
+    expect(Math.abs(parentBox!.x + parentBox!.width - (logoutBox!.x + logoutBox!.width) - 16)).toBeLessThanOrEqual(1);
   }
 });
 
