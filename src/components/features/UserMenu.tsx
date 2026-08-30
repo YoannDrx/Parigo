@@ -210,7 +210,7 @@ export function UserMenu({ compact = false, embedded = false, mobileSheet = fals
 
             </div>
 
-            <div className="bg-[var(--surface-soft)] py-4">
+            <div className="bg-[var(--surface-soft)] px-4 py-4 sm:px-5">
               <button
                 onClick={handleSignOut}
                 disabled={isSigningOut}
