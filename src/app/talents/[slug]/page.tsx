@@ -20,7 +20,6 @@ import { localizedPath } from "@/lib/locale";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata } from "@/lib/seo";
 import { ContextualBackLink } from "@/components/navigation/ContextualBackLink";
-import { composerRoleLabel } from "@/lib/composers/presentation";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 
@@ -104,8 +103,8 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
           <article className="composer-detail-hero parigo-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] p-4 shadow-[var(--shadow-sm)] sm:p-6 md:p-8 lg:p-10">
-            <div className="grid items-end gap-7 md:grid-cols-[minmax(13rem,28rem)_minmax(0,1fr)] md:gap-10 lg:gap-14">
-              <div className="parigo-frame relative aspect-square w-full max-w-[28rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)]">
+            <div className="flow-root">
+              <figure className="parigo-frame relative mb-7 aspect-square w-full max-w-[28rem] overflow-hidden border border-[var(--line)] bg-[var(--surface-soft)] md:float-left md:mb-6 md:mr-10 md:w-[min(42%,28rem)] lg:mr-14">
                 <Image
                   data-testid="composer-detail-image"
                   src={detailImage.src}
@@ -113,22 +112,21 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
                   fill
                   priority
                   sizes="(max-width: 768px) 100vw, 28rem"
-                  style={{ objectPosition: profile.cardCrop?.objectPosition }}
+                  style={{
+                    objectPosition: profile.cardCrop?.objectPosition,
+                    transform: profile.slug === "2080" ? "scale(1.018)" : profile.cardCrop?.scale ? `scale(${profile.cardCrop.scale})` : undefined,
+                    transformOrigin: profile.slug === "2080" ? "bottom left" : profile.cardCrop?.objectPosition,
+                  }}
                   className={profile.slug === "2080" ? "origin-bottom-left scale-[1.018] object-cover" : profile.cardCrop?.fit === "contain" ? "object-contain" : "object-cover"}
                 />
-              </div>
-              <div className="min-w-0">
-                <p className="eyebrow mb-3 text-[var(--signal-strong)]">{composerRoleLabel(profile, locale)}</p>
-                <SignedTitle className="max-w-full [overflow-wrap:anywhere] font-[var(--font-editorial)] text-[clamp(3.25rem,8vw,7rem)] leading-[.88] tracking-[-.06em]">{profile.name}</SignedTitle>
-              </div>
-            </div>
-            {bio ? (
-              <div className="mt-[var(--space-heading-content)]">
-                <div data-testid="composer-biography" className="min-w-0 w-full text-base leading-8 text-[var(--text-muted)] md:text-lg">
+              </figure>
+              <SignedTitle className="mb-6 max-w-full [overflow-wrap:anywhere] font-[var(--font-editorial)] text-[clamp(2.6rem,6vw,5.75rem)] leading-[.9] tracking-[-.055em] md:mb-7">{profile.name}</SignedTitle>
+              {bio ? (
+                <div data-testid="composer-biography" lang={locale} className="min-w-0 w-full hyphens-auto text-justify text-base leading-8 text-[var(--text-muted)] md:text-lg">
                   <Bio value={bio} />
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </article>
         </section>
 

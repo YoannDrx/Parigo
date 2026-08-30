@@ -126,7 +126,7 @@ const profiles: ProfileSource[] = [
   { slug: "blanka", name: "Blanka", kind: "person", localImageFile: "blanka.jpg", cardImageTransform: { position: "center" }, aliases: ["Blankalfe", "Blanka"], rightHolderIds: ["0792531a25bf9b87"] },
   { slug: "gerz", name: "Gerz Marcellino", kind: "person", localImageFile: "gerz.jpg", cardImageTransform: { position: "attention" }, aliases: ["Gerz Marcellino", "Marcellino Gerz"], rightHolderIds: ["a595070710de1b88"] },
   { slug: "nsdos", name: "NSDOS", kind: "person", localImageFile: "nsdos.jpg", cardImageTransform: { position: "north" }, cardCrop: { objectPosition: "50% 18%", fit: "cover" }, aliases: ["Brice Torres", "Torres Brice", "NSDOS"], rightHolderIds: ["c1b1226224708ecc"] },
-  { slug: "nicodrum", name: "Nicodrum", kind: "person", aliases: ["Nicodrum", "Nicodrums", "Nicodrums & Friends", "Nicodrums Friends"], rightHolderIds: ["3143a5ecb8bf5efb"], legacySlugs: ["nicodrums-friends"] },
+  { slug: "nicodrum", name: "Nicodrum", kind: "person", cardCrop: { objectPosition: "50% 0%", scale: 1.055 }, aliases: ["Nicodrum", "Nicodrums", "Nicodrums & Friends", "Nicodrums Friends"], rightHolderIds: ["3143a5ecb8bf5efb"], legacySlugs: ["nicodrums-friends"] },
   { slug: "2080", name: "2080", kind: "person", aliases: ["2080", "208"], rightHolderIds: ["a7794c511e6c3769"] },
   { slug: "jb-hanak", name: "JB Hanak", kind: "person", localImageFile: "jb_hanak.jpg", aliases: ["Jean-Baptiste Hanak", "Jean Baptiste Hanak", "JB HANAK"], rightHolderIds: ["5650745df4674916"] },
   { slug: "aeon-seven", name: "Aeon Seven", kind: "person", localImageFile: "aeon_seven.png", aliases: ["Stéphane Delplanque", "Stephane Delplanque"], rightHolderIds: ["bf5a545f55df4aa0"] },
