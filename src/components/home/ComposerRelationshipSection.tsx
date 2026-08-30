@@ -84,7 +84,7 @@ export function ComposerRelationshipSection({ profiles, locale }: { profiles: Co
     : "Discover our talents";
 
   return (
-    <section data-testid="home-composers" className="composer-relationship overflow-hidden border-b border-[var(--line)] px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
+    <section data-testid="home-composers" className="composer-relationship overflow-hidden px-[var(--space-page-gutter)] py-[var(--space-section-y-large)]">
       <div className="mx-auto max-w-[1580px]">
         <header className="mx-auto max-w-[1180px] text-center">
           <HomeReveal origin="left" viewportAmount={0.28}>

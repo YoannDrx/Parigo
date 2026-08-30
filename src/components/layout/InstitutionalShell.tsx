@@ -16,7 +16,7 @@ export function InstitutionalShell({ title, intro, children, showHero = true, ti
     <div className="page-shell overflow-x-clip">
       <Header />
       <main>
-        {showHero ? <PageHero title={title} intro={intro} titleVariant={titleVariant} /> : null}
+        {showHero ? <PageHero title={title} intro={intro} titleVariant={titleVariant} className="institutional-page-hero" /> : null}
         {children}
       </main>
       <Footer />

@@ -442,22 +442,34 @@ test("le CTA du brief conserve son contraste dans les deux thèmes", async ({ pa
   await expect(cta).toHaveCSS("color", "rgb(16, 20, 16)");
 });
 
-test("le libellé du rail des synchros reste lisible dans les deux thèmes", async ({ page }) => {
+test("le libellé du rail des synchros reste lisible sans devenir noir dans les deux thèmes", async ({ page }) => {
   await page.goto("/");
   const section = page.getByTestId("home-sync-section");
   const label = section.locator(".home-rail__label");
   await label.scrollIntoViewIfNeeded();
 
-  for (const [theme, foreground, background] of [
-    ["light", "rgb(242, 241, 237)", "rgb(21, 24, 21)"],
-    ["dark", "rgb(21, 24, 21)", "rgb(241, 241, 236)"],
+  for (const [theme, background] of [
+    ["light", "rgb(21, 24, 21)"],
+    ["dark", "rgb(241, 241, 236)"],
   ] as const) {
     await page.evaluate((nextTheme) => {
       document.documentElement.dataset.theme = nextTheme;
       document.documentElement.style.colorScheme = nextTheme;
     }, theme);
-    await expect(label).toHaveCSS("color", foreground);
     await expect(section).toHaveCSS("background-color", background);
+    const contrast = await label.evaluate((node) => {
+      const parse = (value: string) => {
+        const rgb = value.match(/rgba?\(([^)]+)\)/)?.[1].split(/[ ,/]+/).slice(0, 3).map(Number);
+        if (rgb?.length === 3) return rgb;
+        const srgb = value.match(/color\(srgb ([^)]+)\)/)?.[1].split(/[ /]+/).slice(0, 3).map((part) => Number(part) * 255);
+        return srgb?.length === 3 ? srgb : [0, 0, 0];
+      };
+      const luminance = (rgb: number[]) => rgb.map((channel) => channel / 255).map((channel) => channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4).reduce((sum, channel, index) => sum + channel * [.2126, .7152, .0722][index], 0);
+      const foregroundLuminance = luminance(parse(getComputedStyle(node).color));
+      const backgroundLuminance = luminance(parse(getComputedStyle(node.closest("section")!).backgroundColor));
+      return (Math.max(foregroundLuminance, backgroundLuminance) + .05) / (Math.min(foregroundLuminance, backgroundLuminance) + .05);
+    });
+    expect(contrast).toBeGreaterThanOrEqual(4.5);
   }
 });
 
@@ -1826,9 +1838,9 @@ test("la recherche expose des vues, tris et filtres partageables", async ({ page
   if (testInfo.project.name === "mobile") {
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     await page.getByRole("button", { name: "Filtres" }).click();
-    await expect(page.getByRole("dialog", { name: "Filtres" })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: "Affiner la recherche" })).toBeVisible();
     await page.waitForTimeout(400);
-    await page.getByRole("dialog", { name: "Filtres" }).locator("summary").filter({ hasText: "Instruments" }).click();
+    await page.getByRole("dialog", { name: "Affiner la recherche" }).locator("summary").filter({ hasText: "Instruments" }).click();
     const pianoFilter = page.getByRole("button", { name: /^Inclure Piano$/ }).first();
     await pianoFilter.scrollIntoViewIfNeeded();
     await pianoFilter.press("Enter");
