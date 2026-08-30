@@ -1196,6 +1196,10 @@
         "height": 336
       },
       "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "50% 0%",
+        "scale": 1.055
+      },
       "harvest": {
         "aliases": [
           "Nicodrum",

@@ -21,12 +21,31 @@ let persistedHeaderMenuOpen = false;
 
 function LanguageLink({ className, children }: { className: string; children: ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const { locale, t } = useI18n();
   const query = searchParams.toString();
-  const href = `${alternateLocalePath(pathname, locale)}${query ? `?${query}` : ""}`;
+  const targetPathname = alternateLocalePath(pathname, locale);
+  const href = `${targetPathname}${query ? `?${query}` : ""}`;
+  const pendingLocaleRefresh = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (pendingLocaleRefresh.current !== pathname) return;
+    pendingLocaleRefresh.current = null;
+    router.refresh();
+  }, [pathname, router]);
+
   return (
-    <Link href={href} prefetch={false} hrefLang={locale === "fr" ? "en" : "fr"} className={className} aria-label={`${t("common.language")} — ${locale === "fr" ? "English" : "Français"}`}>
+    <Link
+      href={href}
+      prefetch={false}
+      hrefLang={locale === "fr" ? "en" : "fr"}
+      className={className}
+      aria-label={`${t("common.language")} — ${locale === "fr" ? "English" : "Français"}`}
+      onNavigate={() => {
+        pendingLocaleRefresh.current = targetPathname;
+      }}
+    >
       {children}
     </Link>
   );
