@@ -143,20 +143,20 @@ test("les titres signés et les grilles catalogue restent lisibles sur mobile", 
     await page.setViewportSize({ width, height: 844 });
     for (const path of ["/talents", "/synchronisations", "/privacy"]) {
       await page.goto(path);
-      const frame = page.locator(".page-hero__frame");
-      const title = frame.getByRole("heading", { level: 1 });
+      const content = page.locator(".page-hero__content");
+      const title = content.getByRole("heading", { level: 1 });
       const signature = title.locator(".parigo-title-signature");
       await expect(signature).toBeVisible();
-      const [frameBox, titleBox, signatureBox] = await Promise.all([
-        frame.boundingBox(),
+      const [contentBox, titleBox, signatureBox] = await Promise.all([
+        content.boundingBox(),
         title.boundingBox(),
         signature.boundingBox(),
       ]);
-      expect(frameBox, `cadre absent sur ${path} à ${width}px`).not.toBeNull();
+      expect(contentBox, `contenu absent sur ${path} à ${width}px`).not.toBeNull();
       expect(titleBox, `titre absent sur ${path} à ${width}px`).not.toBeNull();
       expect(signatureBox, `signature absente sur ${path} à ${width}px`).not.toBeNull();
-      expect(titleBox!.x + titleBox!.width, `titre débordant sur ${path} à ${width}px`).toBeLessThanOrEqual(frameBox!.x + frameBox!.width + 1);
-      expect(signatureBox!.x + signatureBox!.width, `signature débordante sur ${path} à ${width}px`).toBeLessThanOrEqual(frameBox!.x + frameBox!.width + 1);
+      expect(titleBox!.x + titleBox!.width, `titre débordant sur ${path} à ${width}px`).toBeLessThanOrEqual(contentBox!.x + contentBox!.width + 1);
+      expect(signatureBox!.x + signatureBox!.width, `signature débordante sur ${path} à ${width}px`).toBeLessThanOrEqual(contentBox!.x + contentBox!.width + 1);
     }
   }
 
@@ -186,13 +186,41 @@ test("les headers catalogue, synchronisations et légaux partagent la même comp
   const fontSizes: string[] = [];
   for (const path of ["/labels", "/notre-label", "/playlists", "/synchronisations", "/legal"]) {
     await page.goto(path);
-    const hero = page.locator(".page-hero__frame");
+    const hero = page.locator(".page-hero__content");
     const title = hero.getByRole("heading", { level: 1 });
     await expect(hero).toBeVisible();
     await expect(title.locator(".parigo-title-signature")).toHaveCount(1);
     fontSizes.push(await title.evaluate((node) => getComputedStyle(node).fontSize));
   }
   expect(new Set(fontSizes).size).toBe(1);
+});
+
+test("les headers commencent sur l’axe réel de leur contenu et respirent sous la navigation", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "L’alignement des grands containers est un contrat desktop.");
+  const cases = [
+    ["/playlists", '[data-testid="catalog-workspace"]', ".page-hero p", 40],
+    ["/clips", ".parigo-video-card", ".page-hero p", 40],
+    ["/synchronisations", ".sync-gallery-card", ".page-hero__content > div:last-child", 40],
+    ["/licensing", 'button[aria-controls^="licensing-panel-"]', ".page-hero p", 40],
+    ["/legal", ".legal-document > div", ".page-hero p", 40],
+  ] as const;
+
+  for (const [path, contentSelector, lastHeaderSelector, maximumContentGap] of cases) {
+    await page.goto(path);
+    const [titleBox, contentBox, navigationBox, lastHeaderBox] = await Promise.all([
+      page.locator(".page-hero h1").boundingBox(),
+      page.locator(contentSelector).first().boundingBox(),
+      page.locator("header nav").first().boundingBox(),
+      page.locator(lastHeaderSelector).last().boundingBox(),
+    ]);
+    expect(titleBox, `titre absent sur ${path}`).not.toBeNull();
+    expect(contentBox, `contenu absent sur ${path}`).not.toBeNull();
+    expect(navigationBox, `navigation absente sur ${path}`).not.toBeNull();
+    expect(lastHeaderBox, `fin du header absente sur ${path}`).not.toBeNull();
+    expect(Math.abs(titleBox!.x - contentBox!.x), `axe décalé sur ${path}`).toBeLessThanOrEqual(1);
+    expect(titleBox!.y - (navigationBox!.y + navigationBox!.height), `air insuffisant sur ${path}`).toBeGreaterThanOrEqual(40);
+    expect(contentBox!.y - (lastHeaderBox!.y + lastHeaderBox!.height), `écart excessif après le header sur ${path}`).toBeLessThanOrEqual(maximumContentGap + 1);
+  }
 });
 
 test("les héros éditoriaux publient les titres et introductions validés", async ({ page }) => {
@@ -209,9 +237,7 @@ test("les héros éditoriaux publient les titres et introductions validés", asy
 
   for (const [path, title, intro] of cases) {
     await page.goto(path);
-    const hero = path === "/licensing"
-      ? page.getByTestId("licensing-title-card")
-      : page.locator(".page-hero__frame");
+    const hero = page.locator(".page-hero");
     await expect(hero.getByRole("heading", { level: 1, name: title, exact: true })).toBeVisible();
     await expect(hero.getByText(intro, { exact: true })).toBeVisible();
   }
@@ -403,6 +429,39 @@ test("les retours des fiches détail partagent le même rythme mobile", async ({
     expect(backBox!.height).toBeGreaterThanOrEqual(44);
     expect(backBox!.y - (headerBox!.y + headerBox!.height), route.path).toBeCloseTo(expectedGap, 0);
     expect(contentBox!.y - (backBox!.y + backBox!.height), route.path).toBeCloseTo(expectedGap, 0);
+  }
+});
+
+test("la pochette du détail album commence sur le même axe que les pistes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "L’alignement des grands containers est un contrat desktop.");
+  await page.goto("/albums/48b4b95fe1f09019");
+  const [coverBox, tracksTitleBox] = await Promise.all([
+    page.locator(".album-cover-frame").boundingBox(),
+    page.getByRole("heading", { level: 2, name: /pistes|tracks/i }).boundingBox(),
+  ]);
+  expect(coverBox).not.toBeNull();
+  expect(tracksTitleBox).not.toBeNull();
+  expect(Math.abs(coverBox!.x - tracksTitleBox!.x)).toBeLessThanOrEqual(1);
+});
+
+test("les panneaux d’information vidéo gardent une hauteur naturelle", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "La comparaison côte à côte concerne le layout desktop.");
+  for (const [path, playerSelector, panelSelector] of [
+    ["/clips/yt-wrO96WV69aY", ".editorial-detail-hero > div:first-child", '[data-testid="clip-detail-panel"]'],
+    ["/synchronisations/ajvhKSKcas8", 'section[aria-label="Lecteur vidéo"]', '[data-testid="synchronisation-detail-panel"]'],
+  ] as const) {
+    await page.goto(path);
+    const [playerBox, panelBox, ctaBox] = await Promise.all([
+      page.locator(playerSelector).boundingBox(),
+      page.locator(panelSelector).boundingBox(),
+      page.locator(panelSelector).getByRole("link", { name: /YouTube/ }).boundingBox(),
+    ]);
+    expect(playerBox, `player absent sur ${path}`).not.toBeNull();
+    expect(panelBox, `panneau absent sur ${path}`).not.toBeNull();
+    expect(ctaBox, `CTA absent sur ${path}`).not.toBeNull();
+    expect(Math.abs(playerBox!.y - panelBox!.y)).toBeLessThanOrEqual(1);
+    expect(panelBox!.height).toBeLessThan(playerBox!.height - 40);
+    expect(panelBox!.y + panelBox!.height - (ctaBox!.y + ctaBox!.height)).toBeLessThanOrEqual(33);
   }
 });
 
@@ -708,15 +767,11 @@ test("les héros des pages internes restent sobres sans formes géométriques en
   await expect(hero).toHaveCSS("background-image", "none");
   await expect(hero).toHaveCSS("border-bottom-width", "0px");
   expect(await hero.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
-  const frame = hero.locator(".page-hero__frame");
-  await expect(frame).toHaveCSS("border-bottom-width", "1px");
-  expect(await frame.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
-  expect(await frame.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
-  await expect(hero.locator(".page-hero__title-panel")).toHaveCSS("background-image", "none");
-  const aside = hero.locator(".page-hero__aside");
-  await expect(aside).toHaveCSS("border-top-width", "0px");
-  await expect(aside).toHaveCSS("border-left-width", "0px");
-  expect(await aside.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  await expect(hero.locator(".page-hero__frame")).toHaveCount(0);
+  const content = hero.locator(".page-hero__content");
+  await expect(content).toHaveCSS("border-top-width", "0px");
+  await expect(content).toHaveCSS("border-left-width", "0px");
+  expect(await content.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
 
   await page.goto("/albums/4b21f575ee992534");
   const detailHero = page.locator(".editorial-detail-hero").first();
@@ -820,7 +875,7 @@ test("la page des labels adopte l’intitulé Labels", async ({ page }, testInfo
   await expect(page.locator("footer").getByRole("link", { name: "Labels", exact: true })).toBeVisible();
   if (testInfo.project.name === "mobile") {
     const corners = await Promise.all([
-      page.locator(".page-hero__frame").evaluate((node) => {
+      page.locator(".page-hero__content").evaluate((node) => {
         const style = getComputedStyle(node, "::after");
         return style.content;
       }),
@@ -875,20 +930,47 @@ test("la description Musica.it reste dans les métadonnées mais disparaît du d
   await expect(page.locator('meta[name="description"]')).toHaveAttribute("content", /\S+/);
 });
 
-test("le détail compositeur aligne le nom en bas du portrait sans arc décoratif", async ({ page }, testInfo) => {
+test("le détail compositeur place le nom dans la colonne de texte et laisse la biographie entourer le portrait", async ({ page }, testInfo) => {
   await page.goto("/talents/harvest-minimatic-ns-1w2ynwe");
   const hero = page.locator(".editorial-detail-hero");
   await expect(hero).toBeVisible();
   expect(await hero.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
   if (testInfo.project.name === "desktop") {
-    const [portraitBox, titleBox] = await Promise.all([
+    const [portraitBox, titleTextBox, biographyStyle] = await Promise.all([
       page.getByTestId("composer-detail-image").locator("..").boundingBox(),
-      page.getByRole("heading", { level: 1, name: "Minimatic" }).boundingBox(),
+      page.getByRole("heading", { level: 1, name: "Minimatic" }).evaluate((node) => {
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        const box = range.getBoundingClientRect();
+        return { x: box.x, y: box.y, width: box.width, height: box.height };
+      }),
+      page.getByTestId("composer-biography").evaluate((node) => ({
+        textAlign: getComputedStyle(node).textAlign,
+        hyphens: getComputedStyle(node).hyphens,
+      })),
     ]);
     expect(portraitBox).not.toBeNull();
-    expect(titleBox).not.toBeNull();
-    expect(Math.abs((portraitBox!.y + portraitBox!.height) - (titleBox!.y + titleBox!.height))).toBeLessThanOrEqual(2);
+    expect(titleTextBox.x).toBeGreaterThanOrEqual(portraitBox!.x + portraitBox!.width - 1);
+    expect(titleTextBox.y).toBeLessThan(portraitBox!.y + portraitBox!.height);
+    expect(biographyStyle).toEqual({ textAlign: "justify", hyphens: "auto" });
   }
+});
+
+test("le changement de langue actualise immédiatement le détail compositeur", async ({ page }, testInfo) => {
+  await page.goto("/talents/scherazade-aissahine");
+  const biography = page.getByTestId("composer-biography");
+  await expect(biography).toHaveAttribute("lang", "fr");
+  await expect(biography).toContainText("Schérazade est une autrice-compositrice-interprète française");
+
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  }
+  await page.getByRole("link", { name: /English version — English/ }).first().click();
+
+  await expect(page).toHaveURL(/\/en\/talents\/scherazade-aissahine$/);
+  await expect(biography).toHaveAttribute("lang", "en");
+  await expect(biography).toContainText("Schérazade is a French singer-songwriter from Béziers");
+  await expect(page.getByRole("link", { name: /Back/ }).first()).toBeVisible();
 });
 
 test("les héros publics n’affichent plus de surtitre décoratif", async ({ page }) => {

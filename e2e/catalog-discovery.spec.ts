@@ -1,4 +1,21 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Locator } from "@playwright/test";
+
+async function expectSignalAccent(filter: Locator) {
+  const colors = await filter.evaluate((button) => {
+    const probe = document.createElement("span");
+    probe.style.color = "var(--signal-strong)";
+    document.body.appendChild(probe);
+    const signalColor = getComputedStyle(probe).color;
+    probe.remove();
+    return {
+      borderColor: getComputedStyle(button).borderColor,
+      iconColor: getComputedStyle(button.querySelector("svg")!).color,
+      signalColor,
+    };
+  });
+  expect(colors.borderColor).toBe(colors.signalColor);
+  expect(colors.iconColor).toBe(colors.signalColor);
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -43,6 +60,49 @@ test("les postes de filtrage défilent sur mobile et restent visibles sur deskto
       expect(filterBox!.y).toBeLessThanOrEqual(90);
     }
   }
+});
+
+test("le poste Albums mobile sépare la recherche et remplit toute la grille de commandes", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Cette composition est spécifique au poste Albums mobile.");
+  await page.goto("/albums");
+
+  const search = page.getByTestId("catalog-mobile-search");
+  const controls = page.getByTestId("catalog-mobile-controls");
+  const filter = page.getByRole("button", { name: "Tous les filtres" });
+  const sort = page.getByRole("combobox", { name: "Trier les résultats" });
+  const view = page.getByRole("group", { name: "Mode d’affichage" });
+
+  await expect(search).toBeVisible();
+  await expect(controls).toBeVisible();
+  await expect(filter).toBeVisible();
+  await expectSignalAccent(filter);
+
+  const [searchBox, controlsBox, filterBox, sortBox, viewBox] = await Promise.all([
+    search.boundingBox(),
+    controls.boundingBox(),
+    filter.boundingBox(),
+    sort.boundingBox(),
+    view.boundingBox(),
+  ]);
+  expect(searchBox).not.toBeNull();
+  expect(controlsBox).not.toBeNull();
+  expect(filterBox).not.toBeNull();
+  expect(sortBox).not.toBeNull();
+  expect(viewBox).not.toBeNull();
+
+  expect(controlsBox!.y - (searchBox!.y + searchBox!.height)).toBeGreaterThanOrEqual(6);
+  expect(filterBox!.width).toBeGreaterThanOrEqual(controlsBox!.width - 20);
+  expect(sortBox!.y).toBeGreaterThan(filterBox!.y + filterBox!.height);
+  expect(Math.abs(sortBox!.y - viewBox!.y)).toBeLessThanOrEqual(2);
+  expect(Math.abs(sortBox!.width - viewBox!.width)).toBeLessThanOrEqual(4);
+});
+
+test("Notre label reprend l’accent vert du filtre Albums sur mobile", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Ce traitement concerne le déclencheur mobile.");
+  await page.goto("/notre-label");
+  const filter = page.getByRole("button", { name: "Tous les filtres" });
+  await expect(filter).toBeVisible();
+  await expectSignalAccent(filter);
 });
 
 test("la première pochette du catalogue est prioritaire pour le LCP", async ({ page }) => {
