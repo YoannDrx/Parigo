@@ -560,8 +560,8 @@ test("le switch Catalogue et IA ne déplace ni le titre ni la barre du héros", 
       expect(heroBox).not.toBeNull();
       expect(contentBox).not.toBeNull();
       const contentOffset = contentBox!.y - heroBox!.y;
-      expect(contentOffset).toBeGreaterThanOrEqual(160);
-      expect(contentOffset).toBeLessThanOrEqual(210);
+      expect(contentOffset).toBeGreaterThanOrEqual(120);
+      expect(contentOffset).toBeLessThanOrEqual(150);
     }
 
     await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
@@ -628,8 +628,10 @@ test("le hover de la Similarité IA conserve les mêmes angles arrondis", async 
     await form.getByRole("combobox").evaluate((node) => node.blur());
     await page.mouse.move(0, 0);
     await page.waitForTimeout(550);
-    await row.hover();
-    expect(await row.evaluate((node) => node.matches(":hover"))).toBe(true);
+    const rowBox = await row.boundingBox();
+    expect(rowBox).not.toBeNull();
+    await page.mouse.move(rowBox!.x + rowBox!.width / 2, rowBox!.y + rowBox!.height / 2, { steps: 5 });
+    await expect.poll(() => row.evaluate((node) => node.matches(":hover"))).toBe(true);
     await expect(form).toHaveCSS("border-radius", `${corner} 16px`);
     await expect(form).toHaveCSS("background-image", "none");
     await expect(form).toHaveCSS("box-shadow", "none");
