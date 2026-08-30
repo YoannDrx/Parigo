@@ -62,6 +62,11 @@ export default async function ClipPage({ params }: ClipPageProps) {
     });
   }
   const title = clip.title[locale];
+  const titleSize = title.length > 105
+    ? "text-[clamp(1.4rem,7cqi,2.25rem)] leading-[1] tracking-[-.035em]"
+    : title.length > 68
+      ? "text-[clamp(1.6rem,7.8cqi,2.7rem)] leading-[.97] tracking-[-.045em]"
+      : "text-[clamp(1.9rem,8.5cqi,3.25rem)] leading-[.94] tracking-[-.05em]";
   const summary = locale === "fr" ? `Découvrez le clip ${title}.` : `Watch ${title}.`;
   const structuredData = clip.youtubeId ? {
     "@context": "https://schema.org",
@@ -87,7 +92,7 @@ export default async function ClipPage({ params }: ClipPageProps) {
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
-          <div className="editorial-detail-hero relative mt-[var(--space-contextual-back-gap)] grid gap-[var(--space-grid-x)] overflow-hidden md:mt-[var(--space-block-gap)] lg:grid-cols-12 lg:items-start">
+          <div className="editorial-detail-hero relative mt-[var(--space-contextual-back-gap)] grid items-start gap-[var(--space-grid-x)] overflow-hidden md:mt-[var(--space-block-gap)] lg:grid-cols-12">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
               <div className="overflow-hidden rounded-[.7rem]">
                 <ConsentAwareYouTubeEmbed
@@ -101,18 +106,18 @@ export default async function ClipPage({ params }: ClipPageProps) {
                 />
               </div>
             </div>
-            <aside data-testid="clip-detail-panel" className="flex min-h-full min-w-0 flex-col rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 lg:col-span-4 lg:p-8">
+            <aside data-testid="clip-detail-panel" className="flex min-w-0 flex-col self-start overflow-hidden rounded-[1.15rem] border border-[var(--line)] bg-[var(--surface)] p-6 [container-type:inline-size] lg:col-span-4 lg:p-8">
               <SignedTitle
                 data-testid="clip-detail-title"
-                variant="detail"
-                className="max-w-full font-semibold lg:text-[clamp(2.2rem,3.65vw,4.35rem)] [&_.parigo-signed-title__tail]:max-w-full [&_.parigo-signed-title__tail]:whitespace-normal"
+                lang={locale}
+                className={`max-w-full min-w-0 break-words font-semibold hyphens-auto text-wrap-balance [overflow-wrap:anywhere] [&_.parigo-signed-title__tail]:max-w-full [&_.parigo-signed-title__tail]:whitespace-normal ${titleSize}`}
               >
                 {title}
               </SignedTitle>
-              <div className="mt-auto grid gap-3 pt-8">
+              <div className="grid gap-3 pt-8">
                 {clip.youtubeId && (
-                  <a href={`https://www.youtube.com/watch?v=${clip.youtubeId}`} target="_blank" rel="noreferrer" className="flex min-h-12 items-center justify-between border border-[var(--line-strong)] px-4 text-sm font-semibold">
-                    <span>YouTube</span>
+                  <a href={`https://www.youtube.com/watch?v=${clip.youtubeId}`} target="_blank" rel="noreferrer" className="parigo-button group flex min-h-12 items-center justify-between border border-[var(--line-strong)] bg-transparent px-4 text-sm font-semibold transition hover:border-[var(--signal-strong)] hover:bg-[color-mix(in_srgb,var(--signal)_7%,var(--surface))] hover:text-[var(--signal-strong)] focus-visible:border-[var(--signal-strong)]">
+                    <span>{locale === "fr" ? "Voir sur YouTube" : "Watch on YouTube"}</span>
                     <ArrowUpRight size={15} />
                   </a>
                 )}
@@ -122,10 +127,10 @@ export default async function ClipPage({ params }: ClipPageProps) {
 
           {(relatedTalents.length > 0 || relatedAlbum) && (
             <section data-testid="clip-relations" className="mt-[var(--detail-section-gap)]">
-              <div className="grid gap-[var(--detail-section-gap)] lg:grid-cols-12 lg:gap-[var(--space-block-gap)]">
+              <div className="grid gap-[var(--detail-section-gap)]">
                 {relatedTalents.length > 0 && (
-                  <div data-testid="clip-talents-section" className={relatedAlbum ? "lg:col-span-8" : "lg:col-span-12"}>
-                    <SignedTitle as="h2" variant="section" className="mb-[var(--space-heading-content)]">
+                  <div data-testid="clip-talents-section">
+                    <SignedTitle as="h2" className="mb-[var(--space-heading-content)] [font-size:clamp(1.9rem,4vw,3.5rem)] leading-[.94]">
                       {locale === "fr" ? (relatedTalents.length > 1 ? "Talents" : "Talent") : (relatedTalents.length > 1 ? "Talent" : "Talent")}
                     </SignedTitle>
                     <div className="grid gap-3 sm:grid-cols-2">
@@ -150,11 +155,9 @@ export default async function ClipPage({ params }: ClipPageProps) {
                 {relatedAlbum && (
                   <div
                     data-testid="clip-album-section"
-                    className={relatedTalents.length > 0
-                      ? "lg:col-span-4"
-                      : "lg:col-span-12 lg:max-w-sm"}
+                    className="max-w-sm"
                   >
-                    <SignedTitle as="h2" variant="section" className="mb-[var(--space-heading-content)]">{locale === "fr" ? "Album associé" : "Related album"}</SignedTitle>
+                    <SignedTitle as="h2" className="mb-[var(--space-heading-content)] [font-size:clamp(1.9rem,4vw,3.5rem)] leading-[.94]">{locale === "fr" ? "Album associé" : "Related album"}</SignedTitle>
                     <AlbumCard album={relatedAlbum} headingLevel={3} />
                   </div>
                 )}
