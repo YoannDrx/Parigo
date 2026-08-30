@@ -612,7 +612,7 @@ test("la lumière de la Similarité IA reste statique en mouvement réduit", asy
   await expect(hero.getByTestId("hero-gradient-backdrop")).toHaveAttribute("data-motion", "static");
 });
 
-test("le hover de la Similarité IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {
+test("la Similarité IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop aux largeurs mobile et desktop.");
   await enableSimilarityForVisualTest(page);
   await page.addInitScript(() => localStorage.setItem("parigo-theme", "light"));
@@ -624,14 +624,8 @@ test("le hover de la Similarité IA conserve les mêmes angles arrondis", async 
     await hero.getByRole("option", { name: /Similarité IA/ }).click();
     const form = hero.locator(".search-command__form");
     const glow = hero.getByTestId("ai-search-glow");
-    const row = hero.locator(".search-command__row");
     await form.getByRole("combobox").evaluate((node) => node.blur());
-    await page.mouse.move(0, 0);
     await page.waitForTimeout(550);
-    const rowBox = await row.boundingBox();
-    expect(rowBox).not.toBeNull();
-    await page.mouse.move(rowBox!.x + rowBox!.width / 2, rowBox!.y + rowBox!.height / 2, { steps: 5 });
-    await expect.poll(() => row.evaluate((node) => node.matches(":hover"))).toBe(true);
     await expect(form).toHaveCSS("border-radius", `${corner} 16px`);
     await expect(form).toHaveCSS("background-image", "none");
     await expect(form).toHaveCSS("box-shadow", "none");

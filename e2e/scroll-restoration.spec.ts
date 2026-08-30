@@ -103,7 +103,8 @@ test("le retour Contact restaure immédiatement le bloc brief de l’accueil", a
 
 test("le logo du header remonte l’accueil déjà actif", async ({ page }) => {
   await page.goto("/");
-  await page.locator("#process").scrollIntoViewIfNeeded();
+  await expect(page.locator("#process")).toBeVisible();
+  await page.locator("#process").evaluate((node) => node.scrollIntoView());
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
   await page.waitForTimeout(400);
   await page.evaluate(() => window.scrollBy({ top: -500, behavior: "instant" }));

@@ -84,7 +84,7 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
   }));
 
   await page.goto("/search?mode=ai&source=track");
-  const workspace = page.getByTestId("search-workspace");
+  const workspace = page.getByRole("main").getByTestId("search-workspace");
   const sidebar = page.getByRole("complementary", { name: "Modes de recherche par similarité IA" });
   const methods = sidebar.getByRole("group", { name: "Choisir une méthode de similarité" });
   const emptyResults = page.getByRole("heading", { name: "Choisissez vos pistes de référence" });
@@ -336,14 +336,14 @@ test("l’affichage rejoint le compteur, retire le corner du Select et aligne la
     await expect(page.locator("header")).toHaveAttribute("data-header-visible", "false");
     await page.waitForTimeout(350);
     const [formBox, sidebarBox] = await Promise.all([
-      page.getByTestId("search-workspace").locator(".search-command__form").boundingBox(),
+      page.getByRole("main").getByTestId("search-workspace").locator(".search-command__form").boundingBox(),
       page.getByRole("complementary", { name: "Modes de recherche par similarité IA" }).locator(".search-filter-panel").boundingBox(),
     ]);
     expect(formBox).not.toBeNull();
     expect(sidebarBox).not.toBeNull();
     expect(formBox!.y).toBeGreaterThanOrEqual(8);
     expect(Math.abs(formBox!.y - sidebarBox!.y)).toBeLessThanOrEqual(2);
-    const scrollMask = await page.getByTestId("search-workspace").evaluate((node) => {
+    const scrollMask = await page.getByRole("main").getByTestId("search-workspace").evaluate((node) => {
       const mask = getComputedStyle(node, "::before");
       return {
         content: mask.content,
@@ -370,7 +370,7 @@ test("les contrôles sans résultat et les séparateurs décoratifs restent masq
   await page.goto("/search");
   await expect(page.getByRole("combobox", { name: "Niveau de détail des pistes" })).toHaveCount(0);
   await expect(page.locator(".search-results-status")).toHaveCSS("border-bottom-width", "0px");
-  expect(await page.getByTestId("search-workspace").evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
+  expect(await page.getByRole("main").getByTestId("search-workspace").evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
 });
 
 test("le survol d’un groupe de filtres utilise un repère vertical à gauche", async ({ page }, testInfo) => {
@@ -567,7 +567,7 @@ test("la pagination replace le début des résultats sous le poste de recherche"
   await expect.poll(() => new URL(page.url()).searchParams.get("page")).toBe("2");
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBeLessThan(100);
 
-  const workspace = page.getByTestId("search-workspace");
+  const workspace = page.getByRole("main").getByTestId("search-workspace");
   const firstAlbum = page.getByTestId("search-album-grid").locator("article").first();
   await expect(workspace).toBeVisible();
   await expect(firstAlbum).toContainText("Album crime 31");
@@ -587,7 +587,7 @@ test("la pagination replace le début des résultats sous le poste de recherche"
 
 test("le poste mobile défile et la colonne desktop suit la navbar", async ({ page }, testInfo) => {
   await page.goto("/search");
-  const workspace = page.getByTestId("search-workspace");
+  const workspace = page.getByRole("main").getByTestId("search-workspace");
   await expect(workspace).toBeVisible();
 
   if (testInfo.project.name === "mobile") {
@@ -1207,7 +1207,7 @@ test("le changement de langue conserve toute la recherche en cours", async ({ pa
       await page.getByRole("button", { name: "Ouvrir le menu" }).click();
       return page.getByRole("dialog", { name: "Menu principal" }).locator('a.nav-control[href^="/en/search?"]');
     })()
-    : page.locator('a.nav-control[href^="/en/search?"]');
+    : page.locator('a.nav-control[href^="/en/search?"]:visible').first();
   await expect(languageLink).toBeVisible();
   await languageLink.click();
   await expect(page.getByRole("combobox", { name: "Search the catalog" })).toHaveValue("reggae");

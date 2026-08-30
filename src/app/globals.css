@@ -721,6 +721,9 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   --hero-soft: var(--ai-search-soft);
 }
 @media (max-width: 767px) {
+  .home-hero [data-banner-reveal="search"] {
+    transform: none !important;
+  }
   .home-hero[data-search-mode="ai"] [data-testid="home-hero-content"] {
     transform: none !important;
   }
