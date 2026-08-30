@@ -17,6 +17,18 @@ La priorité de ce lot est de corriger les régressions visibles sans étendre l
 - CSS source : 162 605 octets (159,0 Kio), au-dessus du budget CI de 157 Kio.
 - Le score SEO réduit d’une Search filtrée est attendu : ces variantes exposent volontairement `noindex, follow`.
 
+## Mesure de contrôle après correction
+
+La configuration Lighthouse CI a été rejouée localement sur le build de production, en trois passages mobiles par route :
+
+| Surface | Scores Performance | LCP | TBT | CLS | Résultat des budgets bloquants |
+| --- | --- | --- | --- | --- | --- |
+| Home | 82, 73, 73 | 4,67 s, 7,83 s, 7,83 s | 12–20 ms | 0 | LCP encore en échec ; TBT et CLS conformes |
+| Albums | 81, 81, 86 | sous le seuil de 4,5 s | conforme | conforme | Conforme |
+| Détail Album | 86, 88, 88 | sous le seuil de 4,5 s | conforme | conforme | Conforme |
+
+Le test navigateur confirme parallèlement qu’aucun MP4 du showreel n’est demandé au chargement initial. Le reliquat Home ne doit pas être masqué : même si son meilleur passage progresse jusqu’à 82/100 et que la vidéo n’est plus sur le chemin initial, son LCP simulé reste 170 ms au-dessus du budget dans le meilleur échantillon et demeure un P0 de suivi. Les audits Lighthouse de la CI sont volontairement réservés à `main`; la PR exécute les smoke tests et contrats SEO sur Preview.
+
 ## Changements inclus
 
 ### Performance
