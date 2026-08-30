@@ -107,6 +107,8 @@ test("la file du player expose tous les titres avec le scroll adapté au viewpor
   await page.getByRole("button", { name: /^Écouter Piano documentaire 1/ }).click();
   const player = page.getByTestId("player-dock");
   await player.getByRole("button", { name: "Agrandir le lecteur" }).click();
+  await expect(player).toHaveAttribute("data-player-state", "expanded");
+  await page.waitForTimeout(400);
   const shuffle = player.getByRole("button", { name: "Lecture aléatoire" });
   const repeat = player.getByRole("button", { name: /^Répétition/ });
   const volume = player.getByRole("slider", { name: "Volume" });
@@ -301,7 +303,7 @@ test("la piste détaillée sépare titre, album et référence sans les tronquer
   await expect(row).toContainText("Réf. PGO 001");
   const leftLedgerLabel = page.getByText("Titre · album · waveform", { exact: true });
   const rightLedgerLabel = page.getByText("Tags · ambiance · tempo · durée · actions", { exact: true });
-  await expect(page.getByTestId("search-workspace")).toBeVisible();
+  await expect(page.getByRole("main").getByTestId("search-workspace")).toBeVisible();
   await expect(leftLedgerLabel).toHaveCount(0);
   await expect(rightLedgerLabel).toHaveCount(0);
   if (testInfo.project.name === "desktop") {
