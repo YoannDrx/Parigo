@@ -216,6 +216,12 @@ body {
   text-rendering: optimizeLegibility;
   transition: background-color var(--motion-medium) ease, color var(--motion-medium) ease;
 }
+html[data-theme-switching="instant"] *,
+html[data-theme-switching="instant"] *::before,
+html[data-theme-switching="instant"] *::after {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+}
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
@@ -699,6 +705,17 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   );
   transition: background 620ms var(--ease-out);
 }
+.hero-gradflow[data-motion="animated"] .hero-gradflow__fallback {
+  background-size: 100% 160%;
+  animation: hero-gradient-drift 9s ease-in-out infinite alternate;
+}
+@keyframes hero-gradient-drift {
+  from { background-position: 50% 0%; }
+  to { background-position: 50% 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-gradflow__fallback { animation: none !important; }
+}
 .hero-gradflow__layer {
   will-change: opacity;
 }
@@ -750,6 +767,12 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   position: relative;
   overflow: hidden;
   background: var(--background);
+}
+.institutional-page-hero {
+  padding-bottom: calc(var(--space-divider-content) / 2);
+}
+.legal-document {
+  padding-top: calc(var(--space-divider-content) / 2);
 }
 .page-hero::before {
   content: none;
@@ -1611,6 +1634,10 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 }
 [data-theme="dark"] .parigo-global-menu {
   background: #0b0d0b;
+}
+.parigo-global-menu[data-account-panel-open="true"] {
+  overflow: hidden;
+  touch-action: none;
 }
 .parigo-menu-card {
   position: relative;
@@ -2954,12 +2981,14 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   .history-track-row .parigo-track-row__main {
     display: grid;
     min-height: 0;
-    grid-template-columns: 3.4rem 2.25rem 3.5rem minmax(0, 1fr);
+    grid-template-columns: 2.75rem 3.5rem minmax(0, 1fr);
     grid-template-areas:
-      "meta play cover info"
-      "meta . . actions";
+      "meta meta meta"
+      "play cover info"
+      "waveform waveform waveform"
+      "actions actions actions";
     align-items: center;
-    gap: .45rem .6rem;
+    gap: .65rem;
     padding: .75rem;
   }
   .history-track-row .parigo-track-row:hover > .parigo-track-row__main {
@@ -2979,12 +3008,22 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   }
   .history-track-row .parigo-track-row__leading-meta {
     grid-area: meta;
-    width: 3.4rem;
-    align-self: stretch;
-    align-items: flex-start;
-    justify-content: center;
-    border-right: 1px solid var(--line);
-    padding-right: .55rem;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    padding: 0 0 .6rem;
+  }
+  .history-track-row .parigo-track-row__leading-meta > span:last-child {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .3rem .65rem;
+  }
+  .history-track-row .parigo-track-row__history-waveform {
+    grid-area: waveform;
   }
   .history-track-row .parigo-track-row__actions {
     grid-area: actions;
@@ -3409,7 +3448,21 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 }
 .track-actions-sheet .track-mobile-action {min-height:4.25rem;overflow:hidden}
 .track-actions-sheet .track-mobile-action__control button,
-.track-actions-sheet .track-mobile-action__control a {width:2.8125rem!important;height:2.8125rem!important;min-width:2.8125rem!important;min-height:2.8125rem!important}
+.track-actions-sheet .track-mobile-action__control a {
+  width:2.8125rem!important;
+  height:2.8125rem!important;
+  min-width:2.8125rem!important;
+  min-height:2.8125rem!important;
+  border: 1px solid var(--line-strong) !important;
+  background: var(--surface-soft) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+}
+.track-actions-sheet .track-mobile-action__control button[aria-pressed="true"] {
+  border-color: var(--signal-strong) !important;
+  background: color-mix(in srgb, var(--signal) 14%, var(--surface)) !important;
+  color: var(--signal-strong) !important;
+}
 .track-mobile-action:hover,
 .track-mobile-action:focus-within {
   z-index: 1;
@@ -3797,6 +3850,9 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   --home-rail-background: var(--surface-inverse);
   background: var(--home-rail-background);
 }
+.rail-inv {
+  color: color-mix(in srgb, var(--inverse-foreground) 72%, var(--surface-inverse));
+}
 .home-rail > [role="region"] {
   background-color: var(--home-rail-background);
 }
@@ -4043,6 +4099,38 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   filter: drop-shadow(0 0 0.35rem color-mix(in srgb, var(--signal) 28%, transparent));
 }
 .parigo-switch:disabled { cursor: not-allowed; opacity: .48; }
+.parigo-switch[data-loading="true"] { opacity: 1; }
+.parigo-switch__spinner {
+  position: absolute;
+  inset: .28rem;
+  border: 1.5px solid color-mix(in srgb, var(--background) 35%, transparent);
+  border-top-color: var(--background);
+  border-radius: 999px;
+  animation: spin .7s linear infinite;
+}
+
+.parigo-toast-viewport {
+  right: 1.5rem;
+  bottom: 1.5rem;
+}
+.parigo-toast {
+  border-radius: var(--parigo-corner-md) var(--parigo-turn-md);
+  animation: fade-in .2s var(--ease-out) both;
+}
+.parigo-toast[data-tone="success"] { border-color: color-mix(in srgb, var(--signal-strong) 55%, var(--line)); }
+.parigo-toast[data-tone="success"] > svg { color: var(--signal-strong); }
+.parigo-toast[data-tone="error"] { border-color: color-mix(in srgb, var(--danger) 60%, var(--line)); }
+.parigo-toast[data-tone="error"] > svg { color: var(--danger); }
+@media (max-width: 767px) {
+  .parigo-toast-viewport {
+    right: 50%;
+    bottom: calc(env(safe-area-inset-bottom) + 5.5rem);
+    transform: translateX(50%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .parigo-toast { animation: none; }
+}
 
 .no-scrollbar {
   -ms-overflow-style: none;

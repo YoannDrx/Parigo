@@ -14,6 +14,7 @@ interface AnchoredPopoverProps {
   className?: string;
   width?: number;
   anchorContainerSelector?: string;
+  mobileSheet?: boolean;
 }
 
 interface Position {
@@ -33,6 +34,7 @@ export function AnchoredPopover({
   className,
   width = 288,
   anchorContainerSelector,
+  mobileSheet = false,
 }: AnchoredPopoverProps) {
   const popoverRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<Position | null>(null);
@@ -43,6 +45,11 @@ export function AnchoredPopover({
     if (!anchor || !popover) return;
 
     const gutter = 12;
+    const mobilePresentation = mobileSheet && window.matchMedia("(max-width: 767px)").matches;
+    if (mobilePresentation) {
+      setPosition({ left: gutter, top: 86, width: window.innerWidth - gutter * 2, maxHeight: window.innerHeight - 98 });
+      return;
+    }
     const gap = 8;
     const anchorContainer = anchorContainerSelector
       ? anchor.closest<HTMLElement>(anchorContainerSelector) ?? anchor
@@ -67,12 +74,12 @@ export function AnchoredPopover({
       );
 
     setPosition({ left, top, width: resolvedWidth, maxHeight: window.innerHeight - gutter * 2 });
-  }, [anchorContainerSelector, anchorRef, width]);
+  }, [anchorContainerSelector, anchorRef, mobileSheet, width]);
 
   useLayoutEffect(() => {
     if (!open) return;
-    updatePosition();
     const frame = window.requestAnimationFrame(() => {
+      updatePosition();
       popoverRef.current?.querySelector<HTMLElement>(
         'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       )?.focus();
@@ -122,6 +129,7 @@ export function AnchoredPopover({
   if (!open || typeof document === "undefined") return null;
 
   return createPortal(
+    <><button type="button" aria-label={label} onClick={onClose} className={cn("fixed inset-0 z-[205] bg-black/28 backdrop-blur-[2px]", !mobileSheet && "hidden", "md:hidden")} />
     <div
       id={id}
       ref={popoverRef}
@@ -134,10 +142,10 @@ export function AnchoredPopover({
         maxHeight: position?.maxHeight,
         visibility: position ? "visible" : "hidden",
       }}
-      className={cn("parigo-popover fixed z-[210] overflow-y-auto border border-[var(--line-strong)] bg-[var(--surface)] p-2 text-[var(--foreground)]", className)}
+      className={cn("parigo-popover fixed z-[210] overflow-y-auto overscroll-contain border border-[var(--line-strong)] bg-[var(--surface)] p-2 text-[var(--foreground)]", mobileSheet && "max-md:bottom-3 max-md:!top-[86px] max-md:rounded-[var(--parigo-corner-lg)_var(--parigo-turn-lg)]", className)}
     >
       {children}
-    </div>,
+    </div></>,
     document.body,
   );
 }

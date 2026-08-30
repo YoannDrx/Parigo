@@ -28,6 +28,7 @@ interface SearchFilterPanelProps {
   onBpmChange: (value: [number, number]) => void;
   onDurationChange: (value: [number, number]) => void;
   onReset: () => void;
+  hideHeader?: boolean;
 }
 
 const EMPTY_FILTER_ITEMS: SearchFilterItem[] = [];
@@ -421,19 +422,20 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
     onBpmChange,
     onDurationChange,
     onReset,
+    hideHeader = false,
   } = props;
   const activeCount = categories.length + labels.length + styles.length + composers.length
     + (bpmRange[0] !== 50 || bpmRange[1] !== 200 ? 1 : 0)
     + (durationRange[0] !== 0 || durationRange[1] !== 300 ? 1 : 0);
   return (
     <div className="search-filter-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--background)]">
-      <div className="search-filter-panel__header flex min-h-20 items-center justify-between border-b border-[var(--line)] px-4 py-3">
+      {!hideHeader && <div className="search-filter-panel__header flex min-h-20 items-center justify-between border-b border-[var(--line)] px-4 py-3">
         <div>
           <h2 className="text-base font-semibold text-white">{locale === "fr" ? "Affiner la recherche" : "Refine search"}</h2>
           {activeCount > 0 && <p className="mt-0.5 text-[.65rem] text-[var(--text-muted)]">{activeCount} {locale === "fr" ? "critères actifs" : "active filters"}</p>}
         </div>
         {activeCount > 0 && <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center gap-2 border border-white/30 px-3 text-[.68rem] font-semibold text-white transition hover:border-[var(--signal)] hover:text-[var(--signal)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button>}
-      </div>
+      </div>}
       {groups.map((group, index) => (
         <FilterGroupSection
           key={group.key}

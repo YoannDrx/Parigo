@@ -488,25 +488,36 @@ export function SimilaritySearchWorkspace({
   density,
   onDensityChange,
   resultsAnchorRef,
+  initiallyCollapsed = false,
 }: {
   controller: SimilaritySearchController;
   density: SimilarityDensity;
   onDensityChange: (density: SimilarityDensity) => void;
   resultsAnchorRef: RefObject<HTMLDivElement | null>;
+  initiallyCollapsed?: boolean;
 }) {
   const { locale } = controller;
+  const selectorId = useId();
+  const [mobileSelectorOpen, setMobileSelectorOpen] = useState(!initiallyCollapsed);
   const unavailable = controller.capabilitiesQuery.isError || (!controller.capabilitiesQuery.isLoading && controller.enabledSources.length === 0);
+  const activeCopy = SIMILARITY_SOURCE_COPY[controller.effectiveSource];
+  const ActiveIcon = activeCopy.icon;
   return <>
     <aside className="search-filter-sticky order-2 min-w-0 overflow-y-auto pb-1 lg:order-none lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:pb-5" aria-label={locale === "fr" ? "Modes de recherche par similarité IA" : "AI similarity search modes"}>
       <section className="search-filter-panel overflow-hidden border border-[var(--line-strong)] bg-[var(--background)]">
-        <div className="search-filter-panel__header flex min-h-20 items-center border-b border-[var(--line)] px-4 py-3">
+        <div className="search-filter-panel__header hidden min-h-20 items-center border-b border-[var(--line)] px-4 py-3 lg:flex">
           <div><h2 className="text-base font-semibold text-white">{locale === "fr" ? "Recherche par similarité IA" : "AI similarity search"}</h2><p className="mt-1 text-[.65rem] text-white/55">{locale === "fr" ? "Choisissez votre méthode" : "Choose your method"}</p></div>
         </div>
-        {controller.capabilitiesQuery.isLoading ? <div className="flex min-h-28 items-center justify-center"><ParigoLoader label={locale === "fr" ? "Vérification des modes" : "Checking modes"} /></div> : unavailable ? <div className="px-4 py-10 text-center"><Sparkles className="mx-auto text-[var(--text-muted)]" size={24} /><p className="mt-4 text-sm font-semibold">{locale === "fr" ? "La similarité n’est pas disponible." : "Similarity is unavailable."}</p></div> : <div className="similarity-mode-selector grid sm:grid-cols-2 lg:grid-cols-1" role="group" aria-label={locale === "fr" ? "Choisir une méthode de similarité" : "Choose a similarity method"}>{SIMILARITY_SOURCE_ORDER.filter((source) => controller.enabledSources.includes(source)).map((source) => {
+        <button type="button" className="flex min-h-16 w-full items-center gap-3 border-b border-[var(--line)] px-4 text-left lg:hidden" aria-expanded={mobileSelectorOpen} aria-controls={selectorId} onClick={() => setMobileSelectorOpen((open) => !open)}>
+          <span className="grid h-9 w-9 shrink-0 place-items-center border border-[color-mix(in_srgb,var(--ai-search)_42%,var(--line))] text-[var(--ai-search)]"><ActiveIcon size={17} /></span>
+          <span className="min-w-0 flex-1"><span className="eyebrow text-[var(--ai-search)]">{locale === "fr" ? "Mode IA" : "AI mode"}</span><strong className="mt-1 block truncate text-sm">{locale === "fr" ? activeCopy.fr : activeCopy.en}</strong></span>
+          <span className="flex items-center gap-2 text-xs font-semibold text-[var(--text-muted)]">{locale === "fr" ? "Changer" : "Change"}<ChevronDown size={15} className={cn("transition-transform", mobileSelectorOpen && "rotate-180")} /></span>
+        </button>
+        {controller.capabilitiesQuery.isLoading ? <div className="flex min-h-28 items-center justify-center"><ParigoLoader label={locale === "fr" ? "Vérification des modes" : "Checking modes"} /></div> : unavailable ? <div className="px-4 py-10 text-center"><Sparkles className="mx-auto text-[var(--text-muted)]" size={24} /><p className="mt-4 text-sm font-semibold">{locale === "fr" ? "La similarité n’est pas disponible." : "Similarity is unavailable."}</p></div> : <div id={selectorId} className={cn("similarity-mode-selector sm:grid-cols-2 lg:grid lg:grid-cols-1", !mobileSelectorOpen && "max-lg:hidden", mobileSelectorOpen && "grid")} role="group" aria-label={locale === "fr" ? "Choisir une méthode de similarité" : "Choose a similarity method"}>{SIMILARITY_SOURCE_ORDER.filter((source) => controller.enabledSources.includes(source)).map((source) => {
           const copy = SIMILARITY_SOURCE_COPY[source];
           const Icon = copy.icon;
           const current = controller.effectiveSource === source;
-          return <button key={source} type="button" aria-pressed={current} onClick={() => controller.selectSource(source)} data-current={current ? "true" : "false"} className={cn("similarity-mode-selector__item grid min-h-[4.75rem] min-w-0 grid-cols-[2rem_minmax(0,1fr)] items-center gap-3 border-b border-[var(--line)] px-4 py-3 text-left transition last:border-b-0 hover:bg-[var(--surface-soft)] focus-visible:bg-[var(--surface-soft)] sm:[&:nth-child(odd)]:border-r lg:border-r-0", current && "bg-[color-mix(in_srgb,var(--ai-search)_7%,var(--surface))] text-[var(--ai-search)] shadow-[inset_3px_0_0_color-mix(in_srgb,var(--ai-search)_74%,transparent)]")}><span className="grid h-8 w-8 place-items-center text-[var(--text-muted)]" aria-hidden="true"><Icon size={16} /></span><span className="min-w-0"><strong className="block text-sm">{locale === "fr" ? copy.fr : copy.en}</strong><small className="mt-1 block text-[.65rem] leading-4 text-[var(--text-muted)]">{locale === "fr" ? copy.detailFr : copy.detailEn}</small></span></button>;
+          return <button key={source} type="button" aria-pressed={current} onClick={() => { controller.selectSource(source); setMobileSelectorOpen(false); }} data-current={current ? "true" : "false"} className={cn("similarity-mode-selector__item grid min-h-[4.75rem] min-w-0 grid-cols-[2rem_minmax(0,1fr)] items-center gap-3 border-b border-[var(--line)] px-4 py-3 text-left transition last:border-b-0 hover:bg-[var(--surface-soft)] focus-visible:bg-[var(--surface-soft)] sm:[&:nth-child(odd)]:border-r lg:border-r-0", current && "bg-[color-mix(in_srgb,var(--ai-search)_7%,var(--surface))] text-[var(--ai-search)] shadow-[inset_3px_0_0_color-mix(in_srgb,var(--ai-search)_74%,transparent)]")}><span className="grid h-8 w-8 place-items-center text-[var(--text-muted)]" aria-hidden="true"><Icon size={16} /></span><span className="min-w-0"><strong className="block text-sm">{locale === "fr" ? copy.fr : copy.en}</strong><small className="mt-1 block text-[.65rem] leading-4 text-[var(--text-muted)]">{locale === "fr" ? copy.detailFr : copy.detailEn}</small></span></button>;
         })}</div>}
       </section>
     </aside>

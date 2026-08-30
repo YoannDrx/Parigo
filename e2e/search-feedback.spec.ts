@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const similarityTrack = {
   id: "similarity-track-1",
@@ -25,6 +25,18 @@ const similarityCapabilities = {
     playlistSuggestions: false,
   },
 };
+
+async function openSimilarityMethods(page: Page) {
+  const sidebar = page.getByRole("complementary", { name: "Modes de recherche par similarité IA" });
+  const methods = sidebar.getByRole("group", { name: "Choisir une méthode de similarité" });
+  if ((page.viewportSize()?.width ?? 0) >= 1024) {
+    await expect(methods).toBeVisible();
+    return methods;
+  }
+  if (!await methods.isVisible()) await sidebar.getByRole("button", { name: /Mode IA/ }).click();
+  await expect(methods).toBeVisible();
+  return methods;
+}
 
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => {
@@ -86,13 +98,15 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
   await page.goto("/search?mode=ai&source=track");
   const workspace = page.getByRole("main").getByTestId("search-workspace");
   const sidebar = page.getByRole("complementary", { name: "Modes de recherche par similarité IA" });
-  const methods = sidebar.getByRole("group", { name: "Choisir une méthode de similarité" });
+  let methods = await openSimilarityMethods(page);
   const emptyResults = page.getByRole("heading", { name: "Choisissez vos pistes de référence" });
   await expect(workspace).toBeVisible();
   await expect(sidebar).toBeVisible();
   await expect(emptyResults).toBeVisible();
-  await expect(sidebar.getByRole("heading", { name: "Recherche par similarité IA" })).toBeVisible();
-  await expect(sidebar).toContainText("Choisissez votre méthode");
+  if (testInfo.project.name === "desktop") {
+    await expect(sidebar.getByRole("heading", { name: "Recherche par similarité IA" })).toBeVisible();
+    await expect(sidebar).toContainText("Choisissez votre méthode");
+  }
   await expect(sidebar).not.toContainText(/AIMS|Harvest|01 ·|02 ·|03 ·|04 ·/i);
   await expect(methods.getByRole("button")).toHaveCount(4);
   expect(await methods.locator("strong").allTextContents()).toEqual(["Décrire une musique", "Pistes de référence", "Importer un fichier", "Rechercher depuis un lien"]);
@@ -103,10 +117,16 @@ test("la similarité IA reprend l’architecture de la recherche Catalogue", asy
   await methods.getByRole("button", { name: /Décrire une musique/ }).click();
   await expect(workspace.getByLabel("Décrire la musique recherchée")).toBeVisible();
   await expect(workspace.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
+  if (testInfo.project.name === "mobile") {
+    await expect(methods).toBeHidden();
+    await expect(sidebar.getByRole("button", { name: /Mode IA.*Décrire une musique.*Changer/ })).toHaveAttribute("aria-expanded", "false");
+  }
+  methods = await openSimilarityMethods(page);
   await methods.getByRole("button", { name: /Importer un fichier/ }).click();
   await expect(workspace.getByText("Déposez un MP3 ou WAV, ou cliquez pour le choisir")).toBeVisible();
   await expect(workspace.getByRole("button", { name: "Envoyer et analyser" })).toBeDisabled();
   await expect(page.getByRole("checkbox", { name: /transmission/i })).toHaveCount(0);
+  methods = await openSimilarityMethods(page);
   await methods.getByRole("button", { name: /Rechercher depuis un lien/ }).click();
   const urlInput = workspace.getByLabel("Lien public vers une référence musicale");
   await expect(urlInput).toHaveAttribute("placeholder", "Collez un lien YouTube, Spotify, Vimeo, SoundCloud, Apple Music ou TikTok…");
@@ -321,12 +341,16 @@ test("l’affichage rejoint le compteur, retire le corner du Select et aligne la
 
   const status = page.locator(".search-results-status");
   const select = status.locator(".parigo-select");
-  const counter = status.locator("span").first();
+  const counter = status.locator(":scope > div > span").first();
   const [counterBox, displayBox] = await Promise.all([counter.boundingBox(), display.boundingBox()]);
   expect(counterBox).not.toBeNull();
   expect(displayBox).not.toBeNull();
   expect(Math.abs(counterBox!.y + counterBox!.height / 2 - (displayBox!.y + displayBox!.height / 2))).toBeLessThanOrEqual(2);
-  expect(displayBox!.x).toBeGreaterThan(counterBox!.x + counterBox!.width);
+  if (testInfo.project.name === "desktop") {
+    expect(displayBox!.x).toBeGreaterThan(counterBox!.x + counterBox!.width);
+  } else {
+    expect(displayBox!.x + displayBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+  }
 
   expect(await select.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
   expect(await select.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
@@ -474,7 +498,7 @@ test("la shortlist garde la hauteur du brief et l’import s’anime sans étire
   }));
   await page.goto("/search?mode=ai&source=prompt");
   const form = page.getByTestId("catalog-search-command").locator(".search-command__form");
-  const methods = page.getByRole("group", { name: "Choisir une méthode de similarité" });
+  let methods = await openSimilarityMethods(page);
   await expect(methods.getByRole("button")).toHaveCount(4);
   const promptHeight = (await form.boundingBox())!.height;
 
@@ -482,6 +506,7 @@ test("la shortlist garde la hauteur du brief et l’import s’anime sans étire
   const shortlistHeight = (await form.boundingBox())!.height;
   expect(Math.abs(shortlistHeight - promptHeight)).toBeLessThanOrEqual(1);
 
+  methods = await openSimilarityMethods(page);
   await methods.getByRole("button", { name: /Importer un fichier/ }).click();
   await page.waitForTimeout(160);
   const openingMidpoint = (await form.boundingBox())!.height;
@@ -498,6 +523,7 @@ test("la shortlist garde la hauteur du brief et l’import s’anime sans étire
   expect(openingMidpoint).toBeGreaterThan(promptHeight + 2);
   expect(openingMidpoint).toBeLessThan(uploadHeight - 2);
 
+  methods = await openSimilarityMethods(page);
   await methods.getByRole("button", { name: /Décrire une musique/ }).click();
   await page.waitForTimeout(160);
   const closingMidpoint = (await form.boundingBox())!.height;
@@ -640,7 +666,7 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   expect(new URL(page.url()).searchParams.has("layout")).toBe(false);
 
   const filterScope = testInfo.project.name === "mobile"
-    ? page.getByRole("dialog", { name: "Filtres" })
+    ? page.getByRole("dialog", { name: "Affiner la recherche" })
     : page.getByRole("complementary", { name: "Filtres de recherche" });
   if (testInfo.project.name === "mobile") await page.getByRole("button", { name: /^Filtres$/ }).click();
   await expect(filterScope).toBeVisible();
@@ -657,18 +683,25 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
     expect(sheetBox!.height).toBeLessThan(viewportHeight);
     await filterScope.getByRole("button", { name: "Fermer" }).last().click();
 
-    const [filterBox, resultTypeBox, versionBox, densityBox] = await Promise.all([
+    const [filterBox, resultTypeBox, versionBox, densityBox, sortBox] = await Promise.all([
       page.getByRole("button", { name: /^Filtres$/ }).boundingBox(),
       page.getByRole("combobox", { name: "Type de résultats" }).boundingBox(),
       page.getByRole("combobox", { name: "Versions des pistes" }).boundingBox(),
       page.getByRole("combobox", { name: "Niveau de détail des pistes" }).boundingBox(),
+      page.getByRole("combobox", { name: "Trier les résultats" }).boundingBox(),
     ]);
     expect(filterBox).not.toBeNull();
     expect(resultTypeBox).not.toBeNull();
     expect(versionBox).not.toBeNull();
     expect(densityBox).not.toBeNull();
-    expect(Math.abs(filterBox!.y - resultTypeBox!.y)).toBeLessThan(2);
-    expect(Math.abs(versionBox!.y - densityBox!.y)).toBeLessThan(2);
+    expect(sortBox).not.toBeNull();
+    expect(filterBox!.y + filterBox!.height).toBeLessThanOrEqual(resultTypeBox!.y + 2);
+    expect(Math.abs(resultTypeBox!.y - versionBox!.y)).toBeLessThan(2);
+    expect(densityBox!.y).toBeGreaterThan(resultTypeBox!.y);
+    expect(Math.abs(densityBox!.y - sortBox!.y)).toBeLessThan(2);
+    await page.getByRole("button", { name: /^Filtres$/ }).click();
+    await expect(page.getByRole("dialog", { name: "Affiner la recherche" }).getByRole("heading", { name: "Affiner la recherche" })).toHaveCount(1);
+    await page.getByRole("dialog", { name: "Affiner la recherche" }).getByRole("button", { name: "Fermer" }).last().click();
   }
 
   const density = page.getByRole("combobox", { name: "Niveau de détail des pistes" });
@@ -928,7 +961,7 @@ test("un filtre traduit ne consomme plus son terme et reste visible dans les fil
     await page.getByRole("button", { name: /^Filtres/ }).click();
   }
   const filterScope = testInfo.project.name === "mobile"
-    ? page.getByRole("dialog", { name: "Filtres" })
+    ? page.getByRole("dialog", { name: "Affiner la recherche" })
     : page.getByRole("complementary", { name: "Filtres de recherche" });
   const moodsGroup = filterScope.locator("details").filter({ hasText: "Ambiances" });
   await moodsGroup.locator("summary").click();
@@ -1032,7 +1065,7 @@ test("la sidebar recherche filtre immédiatement par compositeur", async ({ page
     await page.getByRole("button", { name: /^Filtres$/ }).click();
   }
   const filterScope = testInfo.project.name === "mobile"
-    ? page.getByRole("dialog", { name: "Filtres" })
+    ? page.getByRole("dialog", { name: "Affiner la recherche" })
     : page.getByRole("complementary", { name: "Filtres de recherche" });
   const composerGroup = filterScope.locator("details").filter({ hasText: "Compositeurs" });
   await composerGroup.locator("summary").click();
@@ -1056,7 +1089,7 @@ test("le filtre compositeur préfère la fiche Harvest fraîche à son index enc
     await page.getByRole("button", { name: /^Filtres$/ }).click();
   }
   const filterScope = testInfo.project.name === "mobile"
-    ? page.getByRole("dialog", { name: "Filtres" })
+    ? page.getByRole("dialog", { name: "Affiner la recherche" })
     : page.getByRole("complementary", { name: "Filtres de recherche" });
   const composerGroup = filterScope.locator("details").filter({ hasText: "Compositeurs" });
   await composerGroup.locator("summary").click();
@@ -1254,6 +1287,7 @@ test("le détail de piste mobile devient une sheet scrollable et contenue", asyn
   const sheet = page.locator(".track-detail-sheet");
   await expect(sheet).toBeVisible();
   await expect(page.locator(".track-detail-panel__mobile-summary")).toBeVisible();
+  await expect(sheet.locator(".track-detail-panel__tabs-bar").getByRole("button", { name: /^Partager/ })).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => document.body.style.position)).toBe("fixed");
   const box = await sheet.boundingBox();
   expect(box!.x).toBe(0);

@@ -39,6 +39,7 @@ export function Header({ variant = "default" }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const [open, setOpenState] = useState(() => persistedHeaderMenuOpen);
   const [headerVisible, setHeaderVisible] = useState(true);
+  const [accountPanelOpen, setAccountPanelOpen] = useState(false);
   const previousScrollY = useRef(0);
   const previousContentPath = useRef(stripLocalePrefix(pathname));
   const menuRef = useRef<HTMLDivElement>(null);
@@ -54,11 +55,16 @@ export function Header({ variant = "default" }: HeaderProps) {
     });
   }, []);
 
+  const closeMenu = useCallback(() => {
+    setAccountPanelOpen(false);
+    setOpen(false);
+  }, [setOpen]);
+
   useEffect(() => {
     const contentPath = stripLocalePrefix(pathname);
-    if (contentPath !== previousContentPath.current) setOpen(false);
+    if (contentPath !== previousContentPath.current) closeMenu();
     previousContentPath.current = contentPath;
-  }, [pathname, setOpen]);
+  }, [closeMenu, pathname]);
 
   useEffect(() => {
     const updateHeader = () => {
@@ -77,9 +83,10 @@ export function Header({ variant = "default" }: HeaderProps) {
     const focusable = () => [...(menuRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])];
     const frame = window.requestAnimationFrame(() => focusable()[0]?.focus());
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (accountPanelOpen) return;
       if (document.querySelector(".parigo-modal-backdrop")) return;
       if (event.key === "Escape") {
-        setOpen(false);
+        closeMenu();
         menuTriggerRef.current?.focus();
       }
       if (event.key !== "Tab") return;
@@ -94,7 +101,7 @@ export function Header({ variant = "default" }: HeaderProps) {
       window.cancelAnimationFrame(frame);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [open, pathname, setOpen]);
+  }, [accountPanelOpen, closeMenu, open, pathname]);
 
   const navigationItems = {
     search: { name: t("common.search"), href: "/search", note: locale === "fr" ? "Par humeur, instrument ou usage" : "By mood, instrument or use" },
@@ -131,24 +138,24 @@ export function Header({ variant = "default" }: HeaderProps) {
     if (!open) return;
     event.preventDefault();
     releaseBodyScrollLockBeforeNavigation();
-    setOpen(false);
+    closeMenu();
     router.push(href);
-  }, [open, router, setOpen]);
+  }, [closeMenu, open, router]);
   const closeMenuForAccountNavigation = useCallback(() => {
     if (open) releaseBodyScrollLockBeforeNavigation();
-    setOpen(false);
-  }, [open, setOpen]);
+    closeMenu();
+  }, [closeMenu, open]);
   const handleLogoClick = useCallback((event: React.MouseEvent<HTMLAnchorElement>) => {
     if (stripLocalePrefix(pathname) !== "/") {
-      setOpen(false);
+      closeMenu();
       return;
     }
     event.preventDefault();
     if (open) releaseBodyScrollLockBeforeNavigation();
-    setOpen(false);
+    closeMenu();
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     window.scrollTo({ top: 0, behavior: reduceMotion ? "instant" : "smooth" });
-  }, [open, pathname, setOpen]);
+  }, [closeMenu, open, pathname]);
 
   return (
     <header
@@ -177,14 +184,14 @@ export function Header({ variant = "default" }: HeaderProps) {
             <Tooltip label={theme === "light" ? t("common.themeDark") : t("common.themeLight")} side="bottom"><button type="button" onClick={toggleTheme} className="nav-control h-11 w-11 rounded-full" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button></Tooltip>
           </div>
           <div className="hidden xl:block"><UserMenu compact onNavigate={closeMenuForAccountNavigation} /></div>
-          <Tooltip label={open ? t("nav.closeMenu") : t("nav.openMenu")} side="bottom"><button ref={menuTriggerRef} type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-controls="global-menu" aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")} className="nav-control h-11 w-11">
+          <Tooltip label={open ? t("nav.closeMenu") : t("nav.openMenu")} side="bottom"><button ref={menuTriggerRef} type="button" onClick={() => open ? closeMenu() : setOpen(true)} aria-expanded={open} aria-controls="global-menu" aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")} className="nav-control h-11 w-11">
             {open ? <X size={18} /> : <Menu size={18} />}
           </button></Tooltip>
         </div>
       </nav>
 
         {open && (
-          <div ref={menuRef} id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom parigo-global-menu absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain text-[var(--foreground)]">
+          <div ref={menuRef} id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} aria-hidden={accountPanelOpen || undefined} inert={accountPanelOpen} data-account-panel-open={accountPanelOpen || undefined} className={cn("parigo-drawer parigo-drawer--bottom parigo-global-menu absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overscroll-contain text-[var(--foreground)] transition-[filter,opacity] duration-200", accountPanelOpen ? "overflow-hidden blur-[2px] opacity-55" : "overflow-y-auto")}>
             <div className="relative mx-auto grid min-h-max max-w-[1760px] gap-x-8 px-4 py-7 md:grid-cols-12 md:px-8 md:py-10 xl:gap-x-12">
               <div className="md:col-span-12">
                 <div className="mb-6 flex items-start justify-between gap-4 border-b border-[var(--line)] pb-5 md:block md:pb-6">
@@ -198,7 +205,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     <button type="button" onClick={toggleTheme} className="nav-control grid h-10 w-10 place-items-center" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}>
                       {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
                     </button>
-                    <UserMenu compact onNavigate={closeMenuForAccountNavigation} />
+                    <UserMenu compact mobileSheet onNavigate={closeMenuForAccountNavigation} onOpenChange={setAccountPanelOpen} />
                   </div>
                 </div>
                 <div data-testid="drawer-navigation" className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -208,7 +215,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                       <div key={item.href} style={{ animationDelay: `${index * 28}ms` }} className="animate-[fade-in_.25s_ease-out_both]">
                         <Link
                           href={hrefFor(item.href)}
-                          onClick={() => setOpen(false)}
+                          onClick={closeMenu}
                           onNavigate={navigateFromOpenMenu(hrefFor(item.href))}
                           aria-label={item.name}
                           aria-current={active ? "page" : undefined}

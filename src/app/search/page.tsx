@@ -614,6 +614,7 @@ function SearchContent() {
       onBpmChange={updateBpm}
       onDurationChange={updateDuration}
       onReset={resetFilters}
+      hideHeader={mobileFiltersOpen}
     />
   );
 
@@ -688,13 +689,13 @@ function SearchContent() {
 
               {searchMode === "keyword" && <div className="search-toolbar mt-2 grid grid-cols-2 items-stretch gap-2 border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:flex lg:flex-wrap lg:justify-between">
                 <div className="contents lg:flex lg:min-w-0 lg:flex-1 lg:flex-wrap lg:items-center lg:gap-2">
-                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="search-mobile-filter-trigger inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--line-strong)] px-3 text-xs font-semibold lg:hidden"><SlidersHorizontal size={15} />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
+                  <button ref={mobileTriggerRef} type="button" onClick={() => setMobileFiltersOpen(true)} className="search-mobile-filter-trigger col-span-2 inline-flex min-h-12 w-full items-center justify-center gap-2 border border-[var(--signal-strong)] bg-transparent px-3 text-xs font-semibold text-[var(--foreground)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--signal-strong)_18%,transparent)] lg:hidden"><SlidersHorizontal size={15} className="text-[var(--signal-strong)]" />{locale === "fr" ? "Filtres" : "Filters"}{includedCount + excludedCount > 0 && <span className="bg-[var(--signal-strong)] px-1.5 font-mono text-white">{includedCount + excludedCount}</span>}</button>
                   <Select variant="editorial" caption={locale === "fr" ? "Résultats" : "Results"} value={view} onValueChange={(value) => { setView(value as ResultView); setPage(1); }} ariaLabel={locale === "fr" ? "Type de résultats" : "Result type"} className="w-full min-w-0 lg:w-auto lg:min-w-[10rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "tracks", label: locale === "fr" ? "Pistes" : "Tracks" }, { value: "albums", label: "Albums" }]} />
-                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="w-full min-w-0 lg:w-auto lg:min-w-[11.5rem]" listboxClassName="search-mobile-select-listbox--left" options={[{ value: "main", label: locale === "fr" ? "Principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
+                  {view === "tracks" ? <Select variant="editorial" caption={locale === "fr" ? "Versions" : "Versions"} value={type} onValueChange={(value) => { setType(value); setPage(1); }} ariaLabel={locale === "fr" ? "Versions des pistes" : "Track versions"} className="w-full min-w-0 lg:w-auto lg:min-w-[11.5rem]" listboxClassName="search-mobile-select-listbox--right" options={[{ value: "main", label: locale === "fr" ? "Principales" : "Main versions" }, { value: "all", label: locale === "fr" ? "Toutes les versions" : "All versions" }]} /> : null}
                 </div>
                 <div className="contents lg:flex lg:min-w-0 lg:flex-wrap lg:items-stretch lg:justify-end lg:gap-2">
                   {view === "tracks" && tracks.length > 0 ? <Select variant="editorial" caption={locale === "fr" ? "Affichage" : "Display"} value={density} onValueChange={setDensity} ariaLabel={locale === "fr" ? "Niveau de détail des pistes" : "Track detail level"} className="w-full min-w-0 lg:w-auto lg:min-w-[10.5rem]" listboxClassName="search-mobile-select-listbox--right" options={[{ value: "full", label: locale === "fr" ? "Piste détaillée" : "Detailed track" }, { value: "mid", label: locale === "fr" ? "Piste compacte" : "Compact track" }, { value: "light", label: locale === "fr" ? "Piste essentielle" : "Essential track" }]} /> : null}
-                  <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="w-full min-w-0 lg:w-auto lg:min-w-[9rem]" listboxClassName="search-mobile-select-listbox--left" options={[
+                  <Select variant="editorial" caption={locale === "fr" ? "Ordre" : "Order"} value={sort} onValueChange={(value) => { setSort(value); setPage(1); }} ariaLabel={locale === "fr" ? "Trier les résultats" : "Sort results"} className="w-full min-w-0 lg:w-auto lg:min-w-[9rem]" listboxClassName="search-mobile-select-listbox--right" options={[
                     { value: "relevance", label: locale === "fr" ? "Pertinence" : "Relevance" },
                     { value: "recent", label: locale === "fr" ? "Plus récents" : "Newest" },
                     { value: "oldest", label: locale === "fr" ? "Plus anciens" : "Oldest" },
@@ -707,7 +708,7 @@ function SearchContent() {
             </div>
 
             {searchMode === "ai" ? (
-              <SimilaritySearchWorkspace controller={similarity} density={density} onDensityChange={setDensity} resultsAnchorRef={resultsAnchorRef} />
+              <SimilaritySearchWorkspace controller={similarity} density={density} onDensityChange={setDensity} resultsAnchorRef={resultsAnchorRef} initiallyCollapsed={Boolean(rawSimilaritySource)} />
             ) : <>
 
             {(categories.length > 0 || labels.length > 0 || styles.length > 0 || composers.length > 0 || bpmRange[0] !== 50 || bpmRange[1] !== 200 || durationRange[0] !== 0 || durationRange[1] !== 300) && (
@@ -843,8 +844,8 @@ function SearchContent() {
       {searchMode === "keyword" && mobileFiltersOpen && (
         <MobileFilterSheet
           ref={dialogRef}
-          title={locale === "fr" ? "Filtres" : "Filters"}
-          ariaLabel={locale === "fr" ? "Filtres" : "Filters"}
+          title={locale === "fr" ? "Affiner la recherche" : "Refine search"}
+          ariaLabel={locale === "fr" ? "Affiner la recherche" : "Refine search"}
           closeLabel={t("common.close")}
           actionLabel={locale === "fr" ? `Voir ${total.toLocaleString(locale)} résultats` : `View ${total.toLocaleString(locale)} results`}
           onClose={() => setMobileFiltersOpen(false)}
