@@ -43,9 +43,9 @@ export default async function ClipsPage({ searchParams }: ClipsPageProps) {
           intro={locale === "fr"
             ? "Le catalogue Parigo en images, entre clips, teasers et performances live."
             : "The Parigo catalogue in motion, through music videos, teasers and live performances."}
-          meta={`${videos.length} ${locale === "fr" ? "vidéos publiques" : "public videos"}`}
+          containerClassName="max-w-[1500px]"
         />
-        <section data-testid="clips-content" className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
+        <section data-testid="clips-content" className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-page-hero-follow)]">
           <div className="grid gap-[var(--space-grid-x)] md:grid-cols-2">
               {videos.map((clip: EditorialVideo) => (
                 <ClipCard

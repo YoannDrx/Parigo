@@ -46,13 +46,14 @@ export default async function OurLabelPage() {
           intro={locale === "fr"
             ? "Nos productions originales, au cœur de l’identité musicale de Parigo."
             : "Our original productions, at the heart of Parigo’s musical identity."}
-          meta={`${albums.total} albums`}
+          containerClassName="max-w-[1920px]"
         />
-        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
+        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-page-hero-follow)]">
           <ReactQueryProvider>
             <AlbumExplorer
               initialData={initialData}
               fixedLabel={PARIGO_LABEL_ID}
+              accentMobileFilter
               queryPlaceholder={{
                 fr: "Rechercher dans notre label",
                 en: "Search our label",

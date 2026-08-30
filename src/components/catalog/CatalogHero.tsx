@@ -1,12 +1,11 @@
-import type { ReactNode } from "react";
 import { PageHero } from "@/components/layout/PageHero";
 
 interface CatalogHeroProps {
   title: string;
   intro: string;
-  meta?: ReactNode;
+  containerClassName?: string;
 }
 
-export function CatalogHero({ title, intro, meta }: CatalogHeroProps) {
-  return <PageHero title={title} intro={intro} meta={meta} />;
+export function CatalogHero({ title, intro, containerClassName }: CatalogHeroProps) {
+  return <PageHero title={title} intro={intro} containerClassName={containerClassName} insetContainer />;
 }

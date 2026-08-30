@@ -43,7 +43,7 @@ export default async function TalentsPage({ searchParams }: TalentsPageProps) {
             ? "Les compositeurs, artistes et collectifs qui donnent sa couleur au catalogue original Parigo."
             : "The composers, artists and collectives who give Parigo’s original catalogue its unique character."}
         />
-        <section className="mx-auto max-w-[1700px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
+        <section className="mx-auto max-w-[1700px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-page-hero-follow)]">
           {directory.state === "unavailable" && <p role="alert" className="mb-6 border-l-2 border-[var(--danger)] pl-4 text-sm text-[var(--danger)]">
             {locale === "fr" ? "Les profils restent disponibles, mais les discographies n’ont pas pu être chargées." : "Profiles remain available, but discographies could not be loaded."}
           </p>}

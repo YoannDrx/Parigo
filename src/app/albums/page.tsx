@@ -11,17 +11,6 @@ import type { Album } from "@/types";
 
 type AlbumDiscoveryPromise = ReturnType<typeof getCachedAlbumDiscovery>;
 
-async function AlbumMeta({
-  albumsPromise,
-  label,
-}: {
-  albumsPromise: AlbumDiscoveryPromise;
-  label: string;
-}) {
-  const albums = await albumsPromise;
-  return <>{albums.total} {label}</>;
-}
-
 async function AlbumExplorerContent({
   albumsPromise,
 }: {
@@ -47,7 +36,7 @@ async function AlbumExplorerContent({
 
   return (
     <ReactQueryProvider>
-      <AlbumExplorer initialData={initialAlbums} />
+      <AlbumExplorer initialData={initialAlbums} separateMobileSearch accentMobileFilter />
     </ReactQueryProvider>
   );
 }
@@ -102,13 +91,9 @@ export default async function AlbumsPage() {
         <CatalogHero
           title={copy.catalog.albumsTitle}
           intro={copy.catalog.albumsIntro}
-          meta={(
-            <Suspense fallback={copy.common.albums.toLowerCase()}>
-              <AlbumMeta albumsPromise={albumsPromise} label={copy.common.albums.toLowerCase()} />
-            </Suspense>
-          )}
+          containerClassName="max-w-[1920px]"
         />
-        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
+        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-page-hero-follow)]">
           <Suspense fallback={<AlbumExplorerFallback loadingLabel={copy.common.loading} />}>
             <AlbumExplorerContent albumsPromise={albumsPromise} />
           </Suspense>
