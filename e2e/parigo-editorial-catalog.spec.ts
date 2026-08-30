@@ -303,14 +303,14 @@ test("les quatre profils rematchés utilisent leurs noms, portraits et bios édi
   await expect(page.getByText(/distinctive figure on the independent music scene/)).toBeVisible();
 });
 
-test("les fiches talent affichent les rôles au masculin", async ({ page }) => {
+test("les fiches talent n’affichent plus de rôle au-dessus du nom", async ({ page }) => {
   await page.goto("/talents/flore");
   await expect(page.getByRole("heading", { level: 1, name: "Flore" })).toBeVisible();
-  await expect(page.getByText("Compositeur", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Compositeur", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
   await page.goto("/talents/charlotte-savary");
   await expect(page.getByRole("heading", { level: 1, name: "Charlotte Savary" })).toBeVisible();
-  await expect(page.getByText("Compositeur", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Compositeur", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Compositrice", { exact: true })).toHaveCount(0);
 });
 
