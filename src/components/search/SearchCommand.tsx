@@ -127,6 +127,10 @@ export function SearchCommand({
   const resolveMenuPlacement = useCallback((menuHeight = 140) => {
     const rect = modeSelectorRef.current?.getBoundingClientRect();
     if (!rect) return "bottom" as const;
+    // On compact screens the selector sits in the lower half of the hero.
+    // Opening upward keeps both options clear of the next section and avoids
+    // browser auto-scroll changing the placement between the click and layout.
+    if (window.matchMedia("(max-width: 639px)").matches) return "top" as const;
     const safeEdge = 8;
     const spaceBelow = window.innerHeight - rect.bottom - safeEdge;
     const spaceAbove = rect.top - safeEdge;

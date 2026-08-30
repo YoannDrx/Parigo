@@ -253,7 +253,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   ])).toEqual(["none", "none"]);
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
-  await expect(page.getByTestId("search-workspace")).toBeVisible();
+  await expect(page.getByRole("main").getByTestId("search-workspace")).toBeVisible();
   const resolvedUrl = new URL(page.url());
   expect(resolvedUrl.searchParams.get("q")).toBe("piano");
   expect(resolvedUrl.searchParams.has("brief")).toBe(false);
@@ -1820,7 +1820,7 @@ test("la recherche expose des vues, tris et filtres partageables", async ({ page
   test.setTimeout(90_000);
   await page.goto("/search?q=techno&view=tracks&type=main");
 
-  await expect(page.getByTestId("search-workspace")).toBeVisible();
+  await expect(page.getByRole("main").getByTestId("search-workspace")).toBeVisible();
   await expect(page.getByRole("button", { name: /^Écouter / }).first()).toBeVisible({ timeout: 30_000 });
 
   if (testInfo.project.name === "mobile") {
