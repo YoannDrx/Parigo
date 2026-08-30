@@ -1,13 +1,14 @@
 "use client";
 
 import { getImageProps } from "next/image";
+import dynamic from "next/dynamic";
 import { AlertCircle, ArrowUpRight, RotateCcw } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { fetchAlbum, fetchAlbums, fetchPlaylist } from "@/lib/api-client";
-import { HeroGradientBackdrop } from "./HeroGradientBackdrop";
+import { DEFAULT_HERO_BACKGROUND, type HeroBackgroundId } from "./hero-backgrounds/types";
 import { HorizontalRail } from "./HorizontalRail";
 import { HomeStorySections } from "./HomeStorySections";
 import type { Album, Playlist, SearchMode, Track } from "@/types";
@@ -27,6 +28,13 @@ import { HomeSectionCta } from "./HomeSectionCta";
 import { LINKTREE_URL, SocialPlatformIcon, type SocialPlatformName } from "@/components/social/SocialPlatforms";
 
 const PartnerMarquee = lazy(() => import("./PartnerMarquee").then((module) => ({ default: module.PartnerMarquee })));
+const HeroBackgroundLab = dynamic(
+  () => import("./hero-backgrounds/HeroBackgroundLab").then((module) => module.HeroBackgroundLab),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
 
 const LINKTREE_PLATFORMS: Array<{ name: SocialPlatformName; position: string }> = [
   { name: "Instagram", position: "left-0 top-4 -rotate-12 group-hover:-translate-x-1 group-hover:-translate-y-2" },
@@ -79,15 +87,25 @@ function HomeAboutImage() {
 }
 
 export function HomeHero() {
-  const { locale } = useI18n();
+  const { locale, t } = useI18n();
   const [searchMode, setSearchMode] = useState<SearchMode>("keyword");
+  const [backgroundId, setBackgroundId] = useState<HeroBackgroundId>(DEFAULT_HERO_BACKGROUND);
   const publicSearchMode = searchMode === "keyword" ? "catalog" : "ai";
   const heroRef = useRef<HTMLElement>(null);
   const title = locale === "fr" ? "Trouvez la bonne musique" : "Find the right music";
 
   return (
     <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 mt-[74px] flex min-h-[calc(100svh-74px)] items-start overflow-x-clip bg-[var(--surface)] px-4 pb-10 pt-[clamp(8rem,18svh,9rem)] md:items-center md:px-8 md:py-12">
-      <HeroGradientBackdrop mode={searchMode} />
+      <div aria-hidden="true" className="hero-gradflow hero-background-loading absolute inset-0 overflow-hidden">
+        <div className="hero-background-loading__fallback absolute inset-0" />
+        <div className="hero-gradflow__veil pointer-events-none absolute inset-0" />
+      </div>
+      <HeroBackgroundLab
+        backgroundId={backgroundId}
+        mode={searchMode}
+        onBackgroundChange={setBackgroundId}
+        selectLabel={t("home.heroBackgroundLabel")}
+      />
       <HomeHeroContent
         target={heroRef}
         title={title}

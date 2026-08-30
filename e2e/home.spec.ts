@@ -260,6 +260,75 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
 });
 
+test("le laboratoire du héros expose dix backgrounds sans persistance", async ({ page }, testInfo) => {
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const backdrop = hero.getByTestId("hero-gradient-backdrop");
+  const selector = hero.getByRole("combobox", { name: "Background du héros" });
+  const ids = [
+    "gradflow", "floating-lines", "soft-aurora", "iridescence", "waves",
+    "orb", "ghost-fibers", "gradient-waves", "web-threads", "liquid-ether",
+  ];
+
+  await expect(selector.locator("option")).toHaveCount(10);
+  await expect(selector).toHaveValue("gradflow");
+  await expect(backdrop).toHaveAttribute("data-hero-background", "gradflow");
+  const initialUrl = page.url();
+
+  for (const id of ids.slice(1)) {
+    await selector.selectOption(id);
+    await expect(backdrop).toHaveAttribute("data-hero-background", id);
+    expect(await backdrop.locator("canvas").count()).toBeLessThanOrEqual(1);
+  }
+  expect(page.url()).toBe(initialUrl);
+
+  const [heroBox, selectorBox] = await Promise.all([hero.boundingBox(), selector.boundingBox()]);
+  expect(heroBox).not.toBeNull();
+  expect(selectorBox).not.toBeNull();
+  expect(selectorBox!.height).toBeGreaterThanOrEqual(44);
+  expect(Math.abs(selectorBox!.x - heroBox!.x - (testInfo.project.name === "mobile" ? 16 : 32))).toBeLessThanOrEqual(1);
+  expect(selectorBox!.y).toBeGreaterThanOrEqual(heroBox!.y + 16);
+
+  await page.reload();
+  await expect(hero.getByRole("combobox", { name: "Background du héros" })).toHaveValue("gradflow");
+  await expect(hero.getByTestId("hero-gradient-backdrop")).toHaveAttribute("data-hero-palette", /catalog-(light|dark)/);
+});
+
+test("les neuf moteurs alternatifs se montent et se démontent isolément", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Les shaders complets sont validés une fois sur le viewport desktop.");
+  await page.addInitScript(() => {
+    const rendererParameter = 37_446;
+    for (const prototype of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
+      if (!prototype) continue;
+      const original = prototype.getParameter;
+      prototype.getParameter = function getParameter(parameter: number) {
+        if (parameter === rendererParameter) return "ANGLE (Apple, ANGLE Metal Renderer: Apple M3)";
+        return original.call(this, parameter);
+      };
+    }
+  });
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const backdrop = hero.getByTestId("hero-gradient-backdrop");
+  const selector = hero.getByRole("combobox", { name: "Background du héros" });
+  const renderers = new Map([
+    ["floating-lines", "three"], ["soft-aurora", "ogl"], ["iridescence", "ogl"],
+    ["waves", "canvas-2d"], ["orb", "ogl"], ["ghost-fibers", "ogl"],
+    ["gradient-waves", "ogl"], ["web-threads", "ogl"], ["liquid-ether", "three"],
+  ]);
+
+  for (const [id, renderer] of renderers) {
+    await selector.selectOption(id);
+    await expect(backdrop).toHaveAttribute("data-renderer", renderer, { timeout: 15_000 });
+    await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+  }
+  expect(pageErrors).toEqual([]);
+  await selector.selectOption("gradflow");
+  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+});
+
 test("les suggestions du héros restent au-dessus de la section suivante", async ({ page }) => {
   await page.route("**/api/autocomplete?**", async (route) => {
     await route.fulfill({

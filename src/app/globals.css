@@ -679,7 +679,7 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   --hero-gradient-2: #b7ddc0;
   --hero-gradient-3: #5eaf77;
   isolation: isolate;
-  background: var(--hero-gradient-1);
+  background: var(--hero-bg, var(--hero-gradient-1));
 }
 .hero-gradflow[data-gradient-preset="ai-light"] {
   --hero-gradient-1: #f4efff;
@@ -697,6 +697,13 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   --hero-gradient-3: #5c3594;
 }
 .hero-gradflow__fallback {
+  background: linear-gradient(135deg, var(--hero-bg), var(--hero-soft) 42%, var(--hero-primary) 72%, var(--hero-bg));
+  transition: opacity 400ms var(--ease-out);
+}
+.hero-background:has(canvas) .hero-background__fallback {
+  opacity: 0;
+}
+.hero-background[data-hero-background="gradflow"] .hero-gradflow__fallback {
   background: linear-gradient(
     180deg,
     var(--hero-gradient-1) 0%,
@@ -708,8 +715,36 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   transition: background 620ms var(--ease-out);
 }
 .hero-gradflow[data-motion="animated"] .hero-gradflow__fallback {
-  background-size: 100% 160%;
+  background-size: 145% 165%;
   animation: hero-gradient-drift 9s ease-in-out infinite alternate;
+}
+.hero-background-loading {
+  background: var(--surface);
+}
+.hero-background-loading__fallback {
+  background: linear-gradient(180deg, var(--surface), var(--signal-soft) 45%, var(--signal) 68%, var(--surface));
+}
+.hero-background__fallback[data-fallback-family="lines"] {
+  background:
+    repeating-linear-gradient(168deg, transparent 0 8%, color-mix(in srgb, var(--hero-highlight) 34%, transparent) 8.5%, transparent 9.5% 17%),
+    linear-gradient(135deg, var(--hero-bg), var(--hero-soft) 42%, var(--hero-primary) 74%, var(--hero-bg));
+}
+.hero-background__fallback[data-fallback-family="mesh"] {
+  background:
+    radial-gradient(circle at 15% 25%, color-mix(in srgb, var(--hero-secondary) 78%, transparent), transparent 42%),
+    radial-gradient(circle at 82% 68%, color-mix(in srgb, var(--hero-highlight) 72%, transparent), transparent 44%),
+    radial-gradient(circle at 54% 38%, var(--hero-primary), transparent 58%),
+    var(--hero-bg);
+}
+.hero-background__fallback[data-fallback-family="orb"] {
+  background:
+    radial-gradient(circle at 50% 48%, var(--hero-highlight) 0 5%, var(--hero-secondary) 17%, var(--hero-primary) 36%, transparent 60%),
+    var(--hero-bg);
+}
+.hero-background__fallback[data-fallback-family="horizon"] {
+  background:
+    linear-gradient(176deg, transparent 43%, color-mix(in srgb, var(--hero-highlight) 70%, transparent) 47%, transparent 52%),
+    linear-gradient(168deg, var(--hero-bg) 0 30%, var(--hero-primary) 58%, var(--hero-secondary) 75%, var(--hero-bg) 100%);
 }
 @keyframes hero-gradient-drift {
   from { background-position: 50% 0%; }
@@ -718,8 +753,12 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
 @media (prefers-reduced-motion: reduce) {
   .hero-gradflow__fallback { animation: none !important; }
 }
-.hero-gradflow__layer {
-  will-change: opacity;
+.hero-background__engine {
+  pointer-events: auto;
+}
+.hero-background__engine > * {
+  height: 100%;
+  width: 100%;
 }
 .hero-gradflow__canvas {
   display: block;
@@ -727,8 +766,30 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   width: 100%;
 }
 .hero-gradflow__veil {
+  background:
+    radial-gradient(ellipse 72% 64% at 50% 48%, var(--surface) 0%, color-mix(in srgb, var(--surface) 78%, transparent) 46%, transparent 78%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 15%, transparent), transparent 28%, color-mix(in srgb, var(--surface) 16%, transparent));
+  opacity: var(--hero-veil-opacity, .68);
+  transition: opacity 400ms var(--ease-out);
+}
+.hero-background[data-hero-background="gradflow"] .hero-gradflow__veil {
   background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 6%, transparent), transparent 26%, color-mix(in srgb, var(--surface) 9%, transparent));
-  opacity: .32;
+}
+.hero-background-select select {
+  min-height: 44px;
+  max-width: min(72vw, 15rem);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--foreground);
+  padding: .65rem 2.25rem .65rem .85rem;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  backdrop-filter: blur(14px);
+}
+.hero-background-select select:focus-visible {
+  outline: 2px solid var(--hero-accent);
+  outline-offset: 3px;
 }
 .home-hero {
   --hero-accent: var(--signal);
