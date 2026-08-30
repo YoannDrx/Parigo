@@ -51,7 +51,7 @@ export function HorizontalRail({ children, label, wide = false, cinema = false, 
         {children}
       </div>
       <div className="mt-2 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 pt-4 lg:mt-3 lg:grid-cols-[auto_1fr_auto] lg:gap-5 lg:pt-5">
-        <span className={cn("home-rail__label font-mono text-[.58rem] font-semibold uppercase tracking-[.14em]", inverse ? "text-[var(--inverse-foreground)]" : "text-[var(--text-muted)]")}>{label}</span>
+        <span className={cn("home-rail__label font-mono text-[.58rem] font-semibold uppercase tracking-[.14em]", inverse ? "rail-inv" : "text-[var(--text-muted)]")}>{label}</span>
         <div aria-hidden="true" className={cn("relative h-[3px] overflow-hidden", inverse ? "bg-[color:color-mix(in_srgb,var(--inverse-foreground)_20%,transparent)]" : "bg-[var(--line)]")}><div style={{ transform: `scaleX(${bounds.overflow ? Math.max(.06, progress) : 1})` }} className="absolute inset-0 origin-left bg-[var(--signal)] transition-transform duration-300" /></div>
         <div className="home-rail-nav-group hidden items-center lg:flex">
           <Tooltip label={locale === "fr" ? "Précédent" : "Previous"}>

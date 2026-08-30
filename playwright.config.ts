@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 import { existsSync } from "node:fs";
 import { loadEnvFile } from "node:process";
 
-if (existsSync(".env")) loadEnvFile(".env");
+if (existsSync(".env.local")) loadEnvFile(".env.local");
 
 const externalBaseURL = process.env.PLAYWRIGHT_BASE_URL;
 const baseURL = externalBaseURL || "http://127.0.0.1:3100";

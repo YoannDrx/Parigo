@@ -228,9 +228,9 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
       setShareUrl(payload.data?.share?.url || "");
       setShareSuccess(payload.data?.share?.delivered
         ? (locale === "fr" ? "La playlist a été ajoutée directement au compte du destinataire." : "The playlist was added directly to the recipient’s account.")
-        : (shareMode === "collaborate"
-          ? (locale === "fr" ? "L’invitation à collaborer a été créée et envoyée." : "The collaboration invitation was created and sent.")
-          : (locale === "fr" ? "Le lien de consultation a été créé et envoyé." : "The viewing link was created and sent.")));
+        : payload.data?.share?.emailRequested || payload.data?.share?.emailed
+          ? (locale === "fr" ? "Le lien a été créé. La transmission par e-mail a été demandée." : "The link was created. Email delivery was requested.")
+          : (locale === "fr" ? "Le lien de partage a été créé." : "The share link was created."));
     }
     else setShareError(payload.error?.message || (locale === "fr" ? "Le partage n’a pas pu être créé." : "The share could not be created."));
     setShareSending(false);
@@ -253,7 +253,7 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
       title={playlist.title}
       description={playlist.description}
       wideTitle
-      actions={<>{suggestionsEnabled && <Button variant="outline" onClick={() => void loadSuggestions()}><Lightbulb size={16} />{locale === "fr" ? "Prolonger la sélection" : "Extend selection"}</Button>}{shareEnabled && <Button variant="outline" onClick={() => setShareOpen((value) => !value)}><Share2 size={16} />{locale === "fr" ? "Partager" : "Share"}</Button>}<Button variant="outline" onClick={() => void duplicatePlaylist()} disabled={dialogBusy}><Copy size={16} />{locale === "fr" ? "Dupliquer" : "Duplicate"}</Button><Button variant="outline" onClick={openRename}><Pencil size={16} /> {locale === "fr" ? "Renommer" : "Rename"}</Button><Button variant="ghost" onClick={() => setDeleteOpen(true)} className="text-[var(--danger)]"><Trash2 size={16} /> {locale === "fr" ? "Supprimer" : "Delete"}</Button></>}
+      actions={<>{suggestionsEnabled && <Button variant="outline" onClick={() => void loadSuggestions()}><Lightbulb size={16} />{locale === "fr" ? "Prolonger la sélection" : "Extend selection"}</Button>}{shareEnabled && <Button variant="outline" onClick={() => setShareOpen(true)}><Share2 size={16} />{locale === "fr" ? "Partager" : "Share"}</Button>}<Button variant="outline" onClick={() => void duplicatePlaylist()} disabled={dialogBusy}><Copy size={16} />{locale === "fr" ? "Dupliquer" : "Duplicate"}</Button><Button variant="outline" onClick={openRename}><Pencil size={16} /> {locale === "fr" ? "Renommer" : "Rename"}</Button><Button variant="ghost" onClick={() => setDeleteOpen(true)} className="text-[var(--danger)]"><Trash2 size={16} /> {locale === "fr" ? "Supprimer" : "Delete"}</Button></>}
     />
 
     <section className="account-toolbar grid gap-3 md:grid-cols-[minmax(14rem,1fr)_minmax(14rem,1fr)_auto] md:items-end">
@@ -263,17 +263,9 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
     </section>
     {operationError && <p role="alert" className="border-l-2 border-[var(--danger)] px-4 py-3 text-sm text-[var(--danger)]">{operationError}</p>}
 
-    {shareEnabled && shareOpen && (
-      <section className="parigo-frame border border-[var(--line-strong)] bg-[var(--surface)] p-5 md:p-6" aria-labelledby="share-playlist-title">
-        <div className="flex items-start justify-between gap-5">
-          <div>
-            <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Lien Parigo sécurisé" : "Secure Parigo link"}</p>
-            <h2 id="share-playlist-title" className="mt-2 font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Partager cette sélection." : "Share this selection."}</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--text-muted)]">{locale === "fr" ? "Le destinataire reçoit un accès synchronisé : le lien suit les modifications de la playlist. Les permissions restent attachées au partage." : "The recipient receives synced access: the link follows playlist changes. Permissions remain attached to the share."}</p>
-          </div>
-          <button type="button" onClick={() => setShareOpen(false)} className="flex h-10 w-10 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer le partage" : "Close sharing"}><X size={16} /></button>
-        </div>
-        <div className="mt-6 grid gap-4">
+    {shareEnabled && (
+      <ParigoDialog open={shareOpen} onClose={() => { if (!shareSending) setShareOpen(false); }} eyebrow={locale === "fr" ? "Lien Parigo sécurisé" : "Secure Parigo link"} title={locale === "fr" ? "Partager cette sélection." : "Share this selection."} description={locale === "fr" ? "Le destinataire reçoit un accès synchronisé : le lien suit les modifications de la playlist. Les permissions restent attachées au partage." : "The recipient receives synced access: the link follows playlist changes. Permissions remain attached to the share."} closeLabel={locale === "fr" ? "Fermer le partage" : "Close sharing"} className="max-w-3xl">
+        <div className="grid gap-4">
           <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "E-mail du destinataire" : "Recipient email"}</span><input type="email" value={shareEmail} onChange={(event) => setShareEmail(event.target.value)} className="min-h-11 w-full border border-[var(--line)] bg-[var(--background)] px-3 outline-none focus:border-[var(--foreground)]" placeholder="nom@studio.com" /></label>
           <label className="text-xs font-semibold"><span className="mb-2 block">{locale === "fr" ? "Message" : "Message"}</span><textarea value={shareMessage} onChange={(event) => setShareMessage(event.target.value)} rows={3} maxLength={1200} className="w-full resize-y border border-[var(--line)] bg-[var(--background)] p-3 outline-none focus:border-[var(--foreground)]" placeholder={locale === "fr" ? "Quelques mots sur cette sélection…" : "A few words about this selection…"} /></label>
         </div>
@@ -294,7 +286,7 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
         <div className="mt-6 flex flex-wrap items-center gap-3"><Button onClick={() => void createShare()} disabled={shareSending || !shareEmail.trim()}>{shareSending ? <ParigoLoader size="icon" label={locale === "fr" ? "Partage en cours" : "Sharing"} /> : <Mail size={16} />}{shareMode === "deliver" ? (locale === "fr" ? "Ajouter au compte" : "Add to account") : shareMode === "collaborate" ? (locale === "fr" ? "Envoyer l’invitation" : "Send invitation") : (locale === "fr" ? "Créer le lien et envoyer" : "Create link and send")}</Button>{shareUrl && <button type="button" onClick={() => void copyShare()} className="inline-flex min-h-11 max-w-full items-center gap-2 border border-[var(--signal-strong)] px-4 text-xs font-semibold text-[var(--signal-strong)]"><span className="max-w-[28rem] truncate">{shareUrl}</span>{copied ? <Check size={15} /> : <Copy size={15} />}</button>}</div>
         {shareSuccess && <p role="status" className="mt-4 border-l-2 border-[var(--signal-strong)] pl-3 text-sm text-[var(--text-muted)]">{shareSuccess}</p>}
         {shareError && <p className="mt-4 text-sm text-[var(--danger)]">{shareError}</p>}
-      </section>
+      </ParigoDialog>
     )}
 
     {suggestionsEnabled && suggestionsOpen && <section className="parigo-frame border border-[var(--line-strong)] bg-[var(--surface)] p-6" aria-labelledby="suggestions-title"><div className="mb-5 flex items-start justify-between gap-5"><div><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "À partir de votre playlist" : "Based on your playlist"}</p><h2 id="suggestions-title" className="mt-2 font-[var(--font-editorial)] text-3xl">{locale === "fr" ? "Prolonger le récit." : "Extend the story."}</h2></div><button type="button" onClick={() => setSuggestionsOpen(false)} className="flex h-10 w-10 items-center justify-center border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer les suggestions" : "Close suggestions"}><X size={16} /></button></div>{suggestionsLoading ? <div className="flex min-h-36 items-center justify-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des suggestions" : "Loading suggestions"} /></div> : suggestionsError ? <div className="parigo-choice border border-[var(--line)] p-5"><p className="text-sm text-[var(--text-muted)]">{suggestionsError}</p><p className="mt-2 text-xs text-[var(--text-muted)]">{locale === "fr" ? "Cette fonction nécessite que la recommandation musicale soit activée sur votre compte." : "This feature requires music recommendations to be enabled on your account."}</p></div> : suggestions.length ? <div className="border-t border-[var(--line)]">{suggestions.map((track, index) => <div key={track.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center"><TrackRow track={track} album={albumFor(track)} index={index} queue={suggestions} density="mid" /><button type="button" onClick={() => void addSuggestion(track)} className="mr-2 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--signal-strong)] text-[var(--signal-strong)] transition hover:bg-[var(--signal-strong)] hover:text-white" aria-label={`${locale === "fr" ? "Ajouter à la playlist" : "Add to playlist"} : ${track.title}`}><Plus size={16} /></button></div>)}</div> : <p className="py-8 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Aucune suggestion supplémentaire." : "No additional suggestion."}</p>}</section>}

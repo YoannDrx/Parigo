@@ -330,6 +330,8 @@ describe("Harvest collaborative sharing", () => {
     })).resolves.toMatchObject({
       url: "https://www.parigomusic.com/engage-playlist/share-token",
       emailed: true,
+      emailRequested: true,
+      emailDeliveryConfirmed: false,
       delivered: false,
       recipientType: "MemberAccount",
       mode: "collaborate",
@@ -371,7 +373,7 @@ describe("Harvest collaborative sharing", () => {
       allowSave: true,
       allowShare: false,
       sendEmail: false,
-    })).resolves.toMatchObject({ delivered: true, emailed: false, url: null, status: "Delivered" });
+    })).resolves.toMatchObject({ delivered: true, emailed: false, emailRequested: false, emailDeliveryConfirmed: false, url: null, status: "Delivered" });
 
     const deliveryPath = vi.mocked(memberRequest).mock.calls[0][1]("member-token");
     const deliveryInit = vi.mocked(memberRequest).mock.calls[0][2];

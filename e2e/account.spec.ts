@@ -70,6 +70,11 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(accountMark).toHaveCSS("width", "64px");
   if (testInfo.project.name === "mobile") {
     await expect(menu.getByText("Yoann Andrieux", { exact: true })).toBeVisible();
+    await expect(menu).not.toContainText("Votre catalogue à portée de main");
+    const globalMenu = page.locator("#global-menu");
+    await expect(globalMenu).toHaveAttribute("inert", "");
+    await expect(globalMenu).toHaveCSS("overflow-y", "hidden");
+    expect(Number.parseFloat(await globalMenu.evaluate((node) => getComputedStyle(node).filter.match(/blur\(([^p]+)/)?.[1] || "0"))).toBeGreaterThan(0);
     const accountBox = await menu.boundingBox();
     const triggerBox = await trigger.boundingBox();
     expect(accountBox).not.toBeNull();
@@ -87,6 +92,13 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(menu.getByRole("link", { name: /Historique/ })).toHaveAttribute("href", "/account/history");
   await expect(menu.getByText(/^0[1-5]$/)).toHaveCount(0);
   await expect(menu.getByRole("button", { name: "Se déconnecter" })).toHaveCSS("text-transform", "none");
+  if (testInfo.project.name === "mobile") {
+    const logout = menu.getByRole("button", { name: "Se déconnecter" });
+    const [logoutBox, parentBox] = await Promise.all([logout.boundingBox(), logout.locator("xpath=..").boundingBox()]);
+    expect(logoutBox).not.toBeNull();
+    expect(parentBox).not.toBeNull();
+    expect(Math.abs(logoutBox!.width - parentBox!.width)).toBeLessThanOrEqual(2);
+  }
 });
 
 test("naviguer vers le compte depuis le menu global ferme le menu et libère la page", async ({ page }, testInfo) => {
@@ -628,7 +640,7 @@ test("les notifications utilisent un switch Parigo et enregistrent la préféren
 
   await expect.poll(() => subscriptionPayload).toEqual({ subscribed: true });
   await expect(notifications).toHaveAttribute("aria-checked", "true");
-  await expect(page.getByRole("status")).toHaveText("Préférence enregistrée.");
+  await expect(page.getByRole("status")).toContainText("Préférence enregistrée.");
 });
 
 test("la suppression du compte utilise une alerte éditoriale progressive", async ({ page }) => {
@@ -638,12 +650,11 @@ test("la suppression du compte utilise une alerte éditoriale progressive", asyn
 
   await expect(page.getByRole("heading", { name: "Supprimer votre espace Parigo." })).toBeVisible();
   await page.getByRole("button", { name: /Supprimer mon compte/ }).click();
-  await expect(page.getByRole("radio", { name: /Archiver/ })).toBeChecked();
-  await expect(page.getByRole("radio", { name: /Supprimer définitivement/ })).not.toBeChecked();
+  await expect(page.getByRole("radio")).toHaveCount(0);
+  await expect(page.getByText(/désactive durablement votre compte/)).toBeVisible();
   await expect(page.getByLabel("Mot de passe actuel")).toBeVisible();
   await expect(page.getByPlaceholder("SUPPRIMER")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Confirmer l’archivage" })).toBeDisabled();
-  await page.getByRole("radio", { name: /Supprimer définitivement/ }).check();
+  await expect(page.getByRole("button", { name: "Confirmer la suppression" })).toBeDisabled();
   await page.getByLabel("Mot de passe actuel").fill("mot-de-passe-test");
   await page.getByPlaceholder("SUPPRIMER").fill("SUPPRIMER");
   await expect(page.getByRole("button", { name: "Confirmer la suppression" })).toBeEnabled();

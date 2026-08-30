@@ -58,13 +58,13 @@ export function TrackActionsSheet({
     };
   }, [onClose, open, returnFocusRef]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (typeof document === "undefined") return null;
   const closeAndRestore = () => {
     onClose();
     window.requestAnimationFrame(() => returnFocusRef.current?.focus());
   };
   return createPortal(
-    <div className="fixed inset-0 z-[200]" role="dialog" aria-modal="true" aria-label={`${eyebrow} : ${title}`}>
+    <div hidden={!open} aria-hidden={!open || undefined} className="fixed inset-0 z-[200]" role="dialog" aria-modal="true" aria-label={`${eyebrow} : ${title}`}>
       <button type="button" className="track-actions-sheet__backdrop absolute inset-0" onClick={closeAndRestore} aria-label={`${closeLabel} — ${eyebrow.toLocaleLowerCase()}`} />
       <section ref={sheetRef} id={id} className="track-actions-sheet absolute inset-x-0 bottom-0 flex max-h-[min(92dvh,46rem)] flex-col overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] shadow-[0_-28px_90px_rgba(0,0,0,.32)]">
         <header className="flex shrink-0 items-center gap-3 border-b border-[var(--line)] px-4 py-3">

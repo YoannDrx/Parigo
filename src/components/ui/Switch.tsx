@@ -7,9 +7,10 @@ export interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement
   checked: boolean;
   label: string;
   onCheckedChange: (checked: boolean) => void;
+  loading?: boolean;
 }
 
-export function Switch({ checked, label, onCheckedChange, className, disabled, ...props }: SwitchProps) {
+export function Switch({ checked, label, onCheckedChange, className, disabled, loading = false, ...props }: SwitchProps) {
   return (
     <button
       type="button"
@@ -17,6 +18,8 @@ export function Switch({ checked, label, onCheckedChange, className, disabled, .
       aria-checked={checked}
       aria-label={label}
       data-state={checked ? "checked" : "unchecked"}
+      data-loading={loading || undefined}
+      aria-busy={loading || undefined}
       disabled={disabled}
       onClick={() => onCheckedChange(!checked)}
       className={cn("parigo-switch", className)}
@@ -24,7 +27,7 @@ export function Switch({ checked, label, onCheckedChange, className, disabled, .
     >
       <span aria-hidden="true" className="parigo-switch__track">
         <span className="parigo-switch__rail" />
-        <span className="parigo-switch__thumb" />
+        <span className="parigo-switch__thumb">{loading && <span className="parigo-switch__spinner" />}</span>
       </span>
     </button>
   );

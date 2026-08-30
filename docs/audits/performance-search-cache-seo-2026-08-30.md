@@ -37,7 +37,8 @@ Le test navigateur confirme parallèlement qu’aucun MP4 du showreel n’est de
 - Le showreel desktop a été réencodé en H.264/AAC, `faststart`, 1440×760 : 30 218 204 octets (~29 Mio).
 - Une source mobile 854×450, `faststart`, pèse 12 794 797 octets (~13 Mio).
 - L’élément audio persistant utilise `preload="none"`.
-- GradFlow est différé jusqu’à l’inactivité du navigateur et désactivé sur `saveData`, mouvement réduit, écrans compacts et pointeurs tactiles/coarse. Le gradient CSS reste disponible immédiatement.
+- GradFlow est différé jusqu’à l’inactivité du navigateur. Il reste animé sur mobile et desktop lorsque WebGL est disponible ; `saveData` ou un appareil contraint reçoit une animation CSS légère. Seule la préférence explicite de réduction des animations produit un fond statique.
+- Règle de non-régression : une optimisation de performance ne doit jamais supprimer toute animation du hero sur mobile.
 - Les anciennes règles CSS liées aux angles décoratifs ont été retirées. Le validateur de budget mesure désormais 151,7 Kio, soit plus de 5 Kio sous le budget CI.
 
 ### Recherche
@@ -85,6 +86,13 @@ Aucun message n’est envoyé à Harvest dans ce lot.
 - Le fournisseur de contact est sélectionnable avec `CONTACT_EMAIL_PROVIDER=resend|harvest` et utilise Resend par défaut pour le déploiement courant.
 - Les variables d’expéditeur et de destinataire sont présentes dans Vercel pour Preview et Production.
 - Le contrôle du 30 août 2026 a toutefois montré que les clés `RESEND_API_KEY` actuellement stockées dans ces deux environnements sont refusées par l’API Resend (`API key is invalid`). La vérification du domaine `yodev.fr` et le test réel d’envoi restent donc bloqués jusqu’au remplacement de cette clé, sans qu’aucun secret soit ajouté au dépôt.
+
+## Partage Harvest et fermeture de compte
+
+- Les liens courts restent créés par `getshorturl` et l’interface attend désormais la réponse avant d’autoriser la copie. Un échec expose clairement l’URL canonique de secours.
+- `getsharemusicurl` crée le partage synchronisé et `sendsharemusiclinkemail` demande son envoi. Le code distingue désormais création du lien, demande d’envoi et livraison directe au compte.
+- Les essais Harvest précédents ont reproduit un template contenant littéralement `[downloadlink]`. Une réponse `Code=OK` ne doit donc pas être présentée comme une confirmation de livraison correcte tant que ce défaut n’est pas corrigé.
+- La fermeture de compte utilise volontairement `ArchiveOnly: true`. L’accès et la session sont supprimés pour l’utilisateur, tandis qu’un archivage fournisseur limite le risque d’effets de bord sur les relations de catalogue. La politique de confidentialité précise les possibilités de conservation et le droit de demander un examen ou un effacement complémentaire.
 
 ## Priorités suivantes
 

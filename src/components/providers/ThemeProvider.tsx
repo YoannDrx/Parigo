@@ -39,7 +39,11 @@ export function ThemeProvider({ children, initialTheme }: { children: ReactNode;
     if (!compactOrTouch && !window.matchMedia("(prefers-reduced-motion: reduce)").matches && documentWithTransition.startViewTransition) {
       documentWithTransition.startViewTransition(apply);
     } else {
+      if (compactOrTouch) document.documentElement.dataset.themeSwitching = "instant";
       apply();
+      if (compactOrTouch) window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+        delete document.documentElement.dataset.themeSwitching;
+      }));
     }
   }, []);
 

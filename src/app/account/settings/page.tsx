@@ -16,6 +16,7 @@ import { Button, Switch } from "@/components/ui";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
+import { toast } from "@/stores/toast-store";
 
 export default function SettingsPage() {
   useSession();
@@ -25,7 +26,6 @@ export default function SettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
   const [deletePassword, setDeletePassword] = useState("");
-  const [deleteMode, setDeleteMode] = useState<"archive" | "delete">("archive");
   const [deleteError, setDeleteError] = useState("");
 
   const [passwordError, setPasswordError] = useState("");
@@ -34,7 +34,6 @@ export default function SettingsPage() {
   const [subscribed, setSubscribed] = useState(false);
   const [isLoadingSubscription, setIsLoadingSubscription] = useState(true);
   const [isSavingSubscription, setIsSavingSubscription] = useState(false);
-  const [subscriptionMessage, setSubscriptionMessage] = useState("");
 
   useEffect(() => {
     const controller = new AbortController();
@@ -78,7 +77,6 @@ export default function SettingsPage() {
     const previous = subscribed;
     setSubscribed(next);
     setIsSavingSubscription(true);
-    setSubscriptionMessage("");
     try {
       const response = await fetch("/api/user/profile", {
         method: "PUT",
@@ -87,10 +85,10 @@ export default function SettingsPage() {
       });
       if (!response.ok) throw new Error("subscription update failed");
       setSubscribed(next);
-      setSubscriptionMessage(locale === "fr" ? "Préférence enregistrée." : "Preference saved.");
+      toast.success(locale === "fr" ? "Préférence enregistrée." : "Preference saved.");
     } catch {
       setSubscribed(previous);
-      setSubscriptionMessage(locale === "fr" ? "Impossible d’enregistrer cette préférence." : "Could not save this preference.");
+      toast.error(locale === "fr" ? "Impossible d’enregistrer cette préférence." : "Could not save this preference.");
     } finally {
       setIsSavingSubscription(false);
     }
@@ -105,7 +103,7 @@ export default function SettingsPage() {
       const response = await fetch("/api/user/delete", {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: deletePassword, archiveOnly: deleteMode === "archive" }),
+        body: JSON.stringify({ password: deletePassword }),
       });
 
       if (response.ok) {
@@ -198,17 +196,16 @@ export default function SettingsPage() {
               {locale === "fr" ? "Une veille ponctuelle sur les nouveaux albums et les sélections éditoriales." : "Occasional updates about new albums and editorial selections."}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            {(isLoadingSubscription || isSavingSubscription) && <ParigoLoader size="icon" label={locale === "fr" ? "Mise à jour des notifications" : "Updating notifications"} />}
+          <div className="flex items-center">
             <Switch
               checked={subscribed}
               disabled={isLoadingSubscription || isSavingSubscription}
+              loading={isLoadingSubscription || isSavingSubscription}
               onCheckedChange={(next) => void handleSubscriptionChange(next)}
               label={locale === "fr" ? "Recevoir les nouvelles sorties Parigo" : "Receive Parigo new releases"}
               aria-describedby="release-notifications-description"
             />
           </div>
-          {subscriptionMessage && <p id="subscription-status" role="status" className="text-sm text-[var(--text-muted)] sm:col-span-2">{subscriptionMessage}</p>}
         </div>
       </motion.div>
 
@@ -227,7 +224,7 @@ export default function SettingsPage() {
               {locale === "fr" ? "Supprimer votre espace Parigo." : "Delete your Parigo space."}
             </h2>
             <p className="mt-4 text-sm leading-6 text-[var(--text-muted)]">
-              {locale === "fr" ? "Archivez votre compte pour conserver vos données, ou demandez leur suppression définitive. Votre mot de passe actuel sera vérifié avant toute action." : "Archive your account to retain its data, or request permanent deletion. Your current password will be verified before either action."}
+              {locale === "fr" ? "Votre accès sera fermé et vous serez immédiatement déconnecté. Vous ne pourrez plus utiliser ce compte. Votre mot de passe actuel sera vérifié avant cette action." : "Your access will be closed and you will be signed out immediately. You will no longer be able to use this account. Your current password will be verified first."}
             </p>
           </div>
           <div className="hidden border-l border-[var(--line)] pl-6 md:block">
@@ -245,25 +242,9 @@ export default function SettingsPage() {
         ) : (
           <div className="border-t border-[var(--line)] bg-[color-mix(in_srgb,var(--danger)_5%,var(--surface))] px-6 py-6 md:px-8">
             <div className="max-w-xl">
-              <fieldset>
-                <legend className="text-sm font-semibold text-[var(--foreground)]">{locale === "fr" ? "Choisissez le devenir de votre compte" : "Choose what happens to your account"}</legend>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  {([{
-                    value: "archive" as const,
-                    title: locale === "fr" ? "Archiver" : "Archive",
-                    description: locale === "fr" ? "L’accès est désactivé, les données du compte restent conservées." : "Access is disabled while the account data remains stored.",
-                  }, {
-                    value: "delete" as const,
-                    title: locale === "fr" ? "Supprimer définitivement" : "Delete permanently",
-                    description: locale === "fr" ? "Le profil et les données du compte sont définitivement supprimés." : "The profile and account data are permanently deleted.",
-                  }]).map((option) => (
-                    <label key={option.value} data-selected={deleteMode === option.value} className="parigo-choice flex cursor-pointer gap-3 border border-[var(--line)] bg-[var(--surface)] p-4 transition-colors data-[selected=true]:border-[var(--danger)] data-[selected=true]:bg-[color-mix(in_srgb,var(--danger)_6%,var(--surface))]">
-                      <input type="radio" name="account-removal-mode" value={option.value} checked={deleteMode === option.value} onChange={() => setDeleteMode(option.value)} className="mt-1 accent-[var(--danger)]" />
-                      <span><span className="block text-sm font-semibold">{option.title}</span><span className="mt-1 block text-xs leading-5 text-[var(--text-muted)]">{option.description}</span></span>
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
+              <div className="border border-[color-mix(in_srgb,var(--danger)_35%,var(--line))] bg-[var(--surface)] p-4 text-sm leading-6 text-[var(--text-muted)]">
+                {locale === "fr" ? "Cette fermeture désactive durablement votre compte. Certaines données peuvent rester conservées par notre prestataire technique lorsque la continuité du catalogue ou une obligation légale l’impose." : "This closure permanently disables your account. Some data may remain with our technical provider where catalog continuity or a legal obligation requires it."}
+              </div>
               <label className="mt-5 block text-sm font-semibold text-[var(--foreground)]">
                 <span>{locale === "fr" ? "Mot de passe actuel" : "Current password"}</span>
                 <input
@@ -308,10 +289,10 @@ export default function SettingsPage() {
                 {isDeleting ? (
                   <>
                     <ParigoLoader size="icon" label={locale === "fr" ? "Suppression du compte" : "Deleting account"} />
-                    {deleteMode === "archive" ? (locale === "fr" ? "Archivage…" : "Archiving…") : (locale === "fr" ? "Suppression…" : "Deleting…")}
+                    {locale === "fr" ? "Fermeture…" : "Closing…"}
                   </>
                 ) : (
-                  deleteMode === "archive" ? (locale === "fr" ? "Confirmer l’archivage" : "Confirm archiving") : (locale === "fr" ? "Confirmer la suppression" : "Confirm deletion")
+                  locale === "fr" ? "Confirmer la suppression" : "Confirm deletion"
                 )}
               </Button>
             </div>

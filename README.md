@@ -8,14 +8,15 @@ Le projet utilise Node.js 24 LTS et pnpm 9.15.0.
 
 ```bash
 pnpm install
-cp .env.example .env
+cp .env.example .env.local
 pnpm dev
 ```
 
-Le projet utilise volontairement un seul fichier local `.env`. Il ne faut pas
-créer de `.env.local`, `.env.development`, `.env.production` ou de variante
-Sentry : toutes les valeurs locales sont regroupées dans `.env`, qui reste
-ignoré par Git. `.env.example` est l’inventaire versionné sans secrets.
+Les valeurs locales et les secrets sont regroupés dans `.env.local`, qui reste
+ignoré par Git. Les scripts Harvest et SEO chargent explicitement ce fichier,
+tandis que Next.js le charge automatiquement. `.env.example` est le seul
+inventaire versionné et ne contient aucun secret. Les secrets de déploiement
+sont gérés séparément dans Vercel pour Development, Preview et Production.
 
 Variables obligatoires pour le catalogue public :
 

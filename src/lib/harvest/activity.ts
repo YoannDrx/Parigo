@@ -741,6 +741,8 @@ export async function createMusicShare(memberToken: string, input: {
     return {
       url: null,
       emailed: false,
+      emailRequested: false,
+      emailDeliveryConfirmed: false,
       delivered: true,
       recipientType,
       shareType: "Sync" as const,
@@ -785,6 +787,8 @@ export async function createMusicShare(memberToken: string, input: {
   return {
     url,
     emailed: input.sendEmail,
+    emailRequested: input.sendEmail,
+    emailDeliveryConfirmed: false,
     delivered: false,
     recipientType,
     shareType: "Sync" as const,

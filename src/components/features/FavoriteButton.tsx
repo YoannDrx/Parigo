@@ -17,6 +17,7 @@ interface FavoriteButtonProps {
   className?: string;
   showTooltip?: boolean;
   appearance?: "default" | "editorial";
+  onAction?: () => void;
 }
 
 export function FavoriteButton({
@@ -25,6 +26,7 @@ export function FavoriteButton({
   className,
   showTooltip = true,
   appearance = "default",
+  onAction,
 }: FavoriteButtonProps) {
   const { locale } = useI18n();
   const { data: session } = useSession();
@@ -52,10 +54,12 @@ export function FavoriteButton({
     e.stopPropagation();
 
     if (!session?.user) {
+      onAction?.();
       openLogin();
       return;
     }
 
+    onAction?.();
     await toggleFavoriteTrack(itemId);
   };
 
@@ -92,6 +96,7 @@ export function FavoriteButton({
           className
         )}
         aria-label={tooltipLabel}
+        aria-pressed={isFavorite}
       >
           {isLoading ? (
             <span className="animate-[fade-in_.18s_ease-out_both]">

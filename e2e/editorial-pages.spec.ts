@@ -315,11 +315,14 @@ test("la playlist détail compacte ses actions et ses pistes sur mobile", async 
     page.getByRole("button", { name: "Lecture aléatoire" }),
     page.getByRole("button", { name: "Copier dans mes playlists" }),
   ];
-  const boxes = [];
   for (const action of actions) {
     await expect(action).toBeVisible({ timeout: 30_000 });
-    boxes.push((await action.boundingBox())!);
   }
+  await expect.poll(async () => {
+    const positions = await Promise.all(actions.map(async (action) => Math.round((await action.boundingBox())!.y)));
+    return new Set(positions).size;
+  }).toBe(1);
+  const boxes = await Promise.all(actions.map(async (action) => (await action.boundingBox())!));
   expect(new Set(boxes.map((box) => Math.round(box.y))).size).toBe(1);
   for (const box of boxes) {
     expect(box.width).toBeGreaterThanOrEqual(44);

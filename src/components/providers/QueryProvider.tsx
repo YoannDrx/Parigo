@@ -28,41 +28,29 @@ function GlobalOverlays() {
   const [ShortlistDrawer, setShortlistDrawer] = useState<ComponentType | null>(null);
   const [MiniPlayer, setMiniPlayer] = useState<ComponentType | null>(null);
   const [TrackShareDialog, setTrackShareDialog] = useState<ComponentType | null>(null);
+  const [ToastViewport, setToastViewport] = useState<ComponentType | null>(null);
 
   useEffect(() => {
+    void import("@/components/ui/ToastViewport").then(({ ToastViewport }) => setToastViewport(() => ToastViewport));
+  }, []);
+  useEffect(() => {
     if (!authOpen || AuthModal) return;
-    let active = true;
-    void import("@/components/features/AuthModal").then((module) => {
-      if (active) setAuthModal(() => module.AuthModal);
-    });
-    return () => { active = false; };
+    void import("@/components/features/AuthModal").then(({ AuthModal }) => setAuthModal(() => AuthModal));
   }, [AuthModal, authOpen]);
 
   useEffect(() => {
     if (shortlistItems === 0 || ShortlistDrawer) return;
-    let active = true;
-    void import("@/components/features/ShortlistDrawer").then((module) => {
-      if (active) setShortlistDrawer(() => module.ShortlistDrawer);
-    });
-    return () => { active = false; };
+    void import("@/components/features/ShortlistDrawer").then(({ ShortlistDrawer }) => setShortlistDrawer(() => ShortlistDrawer));
   }, [ShortlistDrawer, shortlistItems]);
 
   useEffect(() => {
     if (!currentTrack || MiniPlayer) return;
-    let active = true;
-    void import("@/components/features/MiniPlayer").then((module) => {
-      if (active) setMiniPlayer(() => module.MiniPlayer);
-    });
-    return () => { active = false; };
+    void import("@/components/features/MiniPlayer").then(({ MiniPlayer }) => setMiniPlayer(() => MiniPlayer));
   }, [MiniPlayer, currentTrack]);
 
   useEffect(() => {
     if (!shareOpen || TrackShareDialog) return;
-    let active = true;
-    void import("@/components/features/TrackShareDialog").then((module) => {
-      if (active) setTrackShareDialog(() => module.TrackShareDialog);
-    });
-    return () => { active = false; };
+    void import("@/components/features/TrackShareDialog").then(({ TrackShareDialog }) => setTrackShareDialog(() => TrackShareDialog));
   }, [TrackShareDialog, shareOpen]);
 
   return (
@@ -71,6 +59,7 @@ function GlobalOverlays() {
       {AuthModal && <AuthModal />}
       {ShortlistDrawer && <ShortlistDrawer />}
       {TrackShareDialog && <TrackShareDialog />}
+      {ToastViewport && <ToastViewport />}
     </>
   );
 }

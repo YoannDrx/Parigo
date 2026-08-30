@@ -40,7 +40,7 @@ function AccountMark({ initials, image, large = false }: { initials: string; ima
   );
 }
 
-export function UserMenu({ compact = false, embedded = false, onNavigate }: { compact?: boolean; embedded?: boolean; onNavigate?: () => void }) {
+export function UserMenu({ compact = false, embedded = false, mobileSheet = false, onNavigate, onOpenChange }: { compact?: boolean; embedded?: boolean; mobileSheet?: boolean; onNavigate?: () => void; onOpenChange?: (open: boolean) => void }) {
   const { locale, t } = useI18n();
   const { data: session, isPending } = useSession();
   const router = useRouter();
@@ -54,11 +54,13 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
   };
   const closeForNavigation = () => {
     setIsOpen(false);
+    onOpenChange?.(false);
     onNavigate?.();
   };
 
   const closePopover = () => {
     setIsOpen(false);
+    onOpenChange?.(false);
     window.requestAnimationFrame(() => triggerRef.current?.focus());
   };
 
@@ -67,6 +69,7 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
     try {
       await signOut();
       setIsOpen(false);
+      onOpenChange?.(false);
       onNavigate?.();
       router.push("/");
       router.refresh();
@@ -143,7 +146,7 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
             return <Link key={item.href} href={item.href} onClick={closeForNavigation} aria-current={active ? "page" : undefined} className={cn("group/item grid min-h-[4.35rem] grid-cols-[1.8rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-3 transition-colors hover:bg-[var(--signal-soft)] sm:px-5 sm:odd:border-r", active && "bg-[var(--signal-soft)]")}><item.icon size={16} className={cn("text-[var(--text-muted)] transition-colors group-hover/item:text-[var(--signal-strong)]", active && "text-[var(--signal-strong)]")} /><span className="min-w-0"><span className="block text-sm font-semibold">{item.label}</span><span className="mt-0.5 block truncate text-[.68rem] text-[var(--text-muted)]">{item.note}</span></span><ArrowUpRight size={15} className="opacity-35 transition-transform group-hover/item:-rotate-12 group-hover/item:opacity-100" /></Link>;
           })}
         </div>
-        <div className="flex items-center justify-between gap-4 bg-[var(--surface-soft)] px-3 py-4 sm:px-5"><p className="text-[.67rem] leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Votre catalogue, gardé à portée de main." : "Your catalogue, kept close at hand."}</p><button onClick={handleSignOut} disabled={isSigningOut} style={{ fontSize: ".7rem", fontWeight: 500, letterSpacing: 0, textTransform: "none" }} className="inline-flex min-h-9 shrink-0 items-center gap-2 border-b border-[color-mix(in_srgb,var(--danger)_38%,transparent)] text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50">{isSigningOut ? <ParigoLoader size="icon" label={`${t("auth.logout")}…`} /> : <LogOut size={17} />}<span>{isSigningOut ? `${t("auth.logout")}…` : t("auth.logout")}</span></button></div>
+        <div className="bg-[var(--surface-soft)] px-3 py-4 sm:px-5"><button onClick={handleSignOut} disabled={isSigningOut} className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[color-mix(in_srgb,var(--danger)_48%,var(--line))] px-4 text-sm font-semibold text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50">{isSigningOut ? <ParigoLoader size="icon" label={`${t("auth.logout")}…`} /> : <LogOut size={17} />}<span>{isSigningOut ? `${t("auth.logout")}…` : t("auth.logout")}</span></button></div>
       </section>
     );
   }
@@ -152,7 +155,7 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
     <button
       ref={triggerRef}
       data-testid="account-trigger"
-      onClick={() => setIsOpen(!isOpen)}
+      onClick={() => setIsOpen((current) => { const next = !current; onOpenChange?.(next); return next; })}
       aria-label={isOpen ? `${t("common.close")} ${t("common.account")}` : `${t("common.open")} ${t("common.account")}`}
       aria-expanded={isOpen}
       aria-controls={isOpen ? "account-navigation-popover" : undefined}
@@ -174,6 +177,7 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
           anchorRef={triggerRef}
           label={locale === "fr" ? "Navigation du compte" : "Account navigation"}
           width={368}
+          mobileSheet={mobileSheet}
           className="!p-0 origin-top-right animate-[fade-in_.2s_ease-out_both]"
         >
           <div data-testid="account-menu">
@@ -206,13 +210,12 @@ export function UserMenu({ compact = false, embedded = false, onNavigate }: { co
 
             </div>
 
-            <div className="grid grid-cols-[1fr_auto] items-center gap-4 bg-[var(--surface-soft)] px-5 py-4">
-              <p className="text-[.67rem] leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Votre catalogue, gardé à portée de main." : "Your catalogue, kept close at hand."}</p>
+            <div className="bg-[var(--surface-soft)] py-4">
               <button
                 onClick={handleSignOut}
                 disabled={isSigningOut}
                 style={{ fontSize: ".7rem", fontWeight: 500, letterSpacing: 0, textTransform: "none" }}
-                className="inline-flex min-h-9 items-center gap-2 border-b border-[color-mix(in_srgb,var(--danger)_38%,transparent)] text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[color-mix(in_srgb,var(--danger)_48%,var(--line))] px-4 text-sm font-semibold text-[color-mix(in_srgb,var(--danger)_82%,var(--foreground))] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] disabled:opacity-50"
               >
                 {isSigningOut ? (
                   <ParigoLoader size="icon" label={`${t("auth.logout")}…`} />

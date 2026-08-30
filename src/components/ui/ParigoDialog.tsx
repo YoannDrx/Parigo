@@ -34,23 +34,31 @@ export function ParigoDialog({
 }: ParigoDialogProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
   const modalMotion = useParigoModalMotion();
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
     if (!open) return;
+    returnFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const frame = window.requestAnimationFrame(() => closeRef.current?.focus());
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onClose();
+      if (event.key === "Escape") onCloseRef.current();
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => {
       window.cancelAnimationFrame(frame);
       document.body.style.overflow = previousOverflow;
       window.removeEventListener("keydown", closeOnEscape);
+      window.requestAnimationFrame(() => returnFocusRef.current?.focus());
     };
-  }, [onClose, open]);
+  }, [open]);
 
   if (typeof document === "undefined") return null;
 
@@ -72,12 +80,12 @@ export function ParigoDialog({
             aria-labelledby={titleId}
             data-tone={tone}
             className={cn(
-              "parigo-modal relative my-auto w-full max-w-xl overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]",
+              "parigo-modal relative my-auto flex max-h-[calc(100dvh-1.5rem)] w-full max-w-xl flex-col overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] text-[var(--foreground)]",
               className,
             )}
             {...modalMotion.dialog}
           >
-            <header className="parigo-modal__header relative border-b border-[var(--line)] px-6 pb-5 pt-7 sm:px-8 sm:pt-8">
+            <header className="parigo-modal__header relative shrink-0 border-b border-[var(--line)] px-6 pb-5 pt-7 sm:px-8 sm:pt-8">
               <p className={cn("eyebrow", tone === "danger" ? "text-[var(--danger)]" : "text-[var(--signal-strong)]")}>{eyebrow}</p>
               <h2 id={titleId} className="mt-3 pr-14 font-[var(--font-editorial)] text-4xl tracking-[-.05em] sm:text-5xl">{title}</h2>
               {description && <p className="mt-3 max-w-lg text-sm leading-6 text-[var(--text-muted)]">{description}</p>}
@@ -91,8 +99,8 @@ export function ParigoDialog({
                 <X size={17} />
               </button>
             </header>
-            {children && <div className="parigo-modal__body px-6 py-6 sm:px-8">{children}</div>}
-            {footer && <footer className="parigo-modal__footer flex flex-col-reverse gap-2 border-t border-[var(--line)] px-6 py-5 sm:flex-row sm:justify-end sm:px-8">{footer}</footer>}
+            {children && <div className="parigo-modal__body min-h-0 overflow-y-auto overscroll-contain px-6 py-6 sm:px-8">{children}</div>}
+            {footer && <footer className="parigo-modal__footer flex shrink-0 flex-col-reverse gap-2 border-t border-[var(--line)] px-6 py-5 sm:flex-row sm:justify-end sm:px-8">{footer}</footer>}
           </motion.section>
         </motion.div>
       )}

@@ -10,7 +10,7 @@ import type { MemberTag } from "@/types";
 import { AnchoredPopover } from "@/components/ui/AnchoredPopover";
 import { Tooltip } from "@/components/ui/Tooltip";
 
-export function AddTagButton({ trackId, trackTitle }: { trackId: string; trackTitle: string }) {
+export function AddTagButton({ trackId, trackTitle, mobileSheet = false, onOpen }: { trackId: string; trackTitle: string; mobileSheet?: boolean; onOpen?: () => void }) {
   const { data: session } = useSession();
   const { locale } = useI18n();
   const [open, setOpen] = useState(false);
@@ -25,6 +25,7 @@ export function AddTagButton({ trackId, trackTitle }: { trackId: string; trackTi
   if (!session?.user) return null;
   const show = async () => {
     setOpen(true);
+    onOpen?.();
     setLoading(true);
     setMessage("");
     setError("");
@@ -88,7 +89,7 @@ export function AddTagButton({ trackId, trackTitle }: { trackId: string; trackTi
   return (
     <>
       <Tooltip label={locale === "fr" ? "Ajouter un tag" : "Add tag"}><button ref={buttonRef} type="button" onClick={() => open ? setOpen(false) : void show()} aria-expanded={open} className="flex h-10 w-10 items-center justify-center transition hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter un tag" : "Add tag"} : ${trackTitle}`}><Tag size={16} /></button></Tooltip>
-      <AnchoredPopover open={open} onClose={() => setOpen(false)} anchorRef={buttonRef} label={`${locale === "fr" ? "Ajouter à un tag" : "Add to a tag"} — ${trackTitle}`} width={272}>
+      <AnchoredPopover open={open} onClose={() => setOpen(false)} anchorRef={buttonRef} label={`${locale === "fr" ? "Ajouter à un tag" : "Add to a tag"} — ${trackTitle}`} width={272} mobileSheet={mobileSheet}>
         <div className="flex items-center justify-between border-b border-[var(--line)] px-2 pb-2"><div><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Tag personnel" : "Personal tag"}</p><p className="mt-1 text-sm font-semibold">{locale === "fr" ? "Ajouter à un tag" : "Add to a tag"}</p></div><button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer" : "Close"}><X size={14} /></button></div>
         {loading ? <div className="grid min-h-28 place-items-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des tags" : "Loading tags"} /></div> : tags.length ? <div className="max-h-56 overflow-y-auto py-1">{tags.map((tag) => {
           const assigned = assignedTagIds.has(tag.id);

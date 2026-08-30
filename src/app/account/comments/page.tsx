@@ -3,7 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpRight, Check, MessageSquareText, Pencil, RefreshCw, Save, Search, ShieldCheck, Trash2, X } from "lucide-react";
 import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 import { useI18n } from "@/components/providers/I18nProvider";
@@ -17,8 +18,7 @@ type SortMode = "recent" | "title";
 
 export default function CommentsPage() {
   const { locale, localizedPath, t } = useI18n();
-  const [groups, setGroups] = useState<MemberTrackCommentGroup[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -29,30 +29,20 @@ export default function CommentsPage() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<{ trackId: string; trackTitle: string; comment: MemberTrackComment } | null>(null);
 
-  const load = useCallback(async () => {
-    setError("");
-    const response = await fetch("/api/user/comments", { cache: "no-store" });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.error?.message || (locale === "fr" ? "Impossible de charger vos commentaires." : "Could not load your comments."));
-    setGroups(payload.data?.groups || []);
-  }, [locale]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    void fetch("/api/user/comments", { cache: "no-store", signal: controller.signal })
-      .then(async (response) => {
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) throw new Error(payload?.error?.message || (locale === "fr" ? "Impossible de charger vos commentaires." : "Could not load your comments."));
-        if (!controller.signal.aborted) setGroups(payload.data?.groups || []);
-      })
-      .catch((loadError) => {
-        if (!controller.signal.aborted) setError(loadError instanceof Error ? loadError.message : String(loadError));
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setLoading(false);
-      });
-    return () => controller.abort();
-  }, [locale]);
+  const commentsQuery = useQuery<MemberTrackCommentGroup[]>({
+    queryKey: ["account", "comments", locale],
+    staleTime: 60_000,
+    queryFn: async ({ signal }) => {
+      const response = await fetch("/api/user/comments", { cache: "no-store", signal });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error?.message || (locale === "fr" ? "Impossible de charger vos commentaires." : "Could not load your comments."));
+      return payload.data?.groups || [];
+    },
+  });
+  const groups = useMemo(() => commentsQuery.data ?? [], [commentsQuery.data]);
+  const loading = commentsQuery.isLoading;
+  const loadError = commentsQuery.error instanceof Error ? commentsQuery.error.message : "";
+  const visibleError = error || loadError;
 
   const totalComments = groups.reduce((total, group) => total + group.comments.length, 0);
   const visibleGroups = useMemo(() => {
@@ -78,7 +68,7 @@ export default function CommentsPage() {
       const response = await fetch("/api/user/comments", { method: "POST" });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error?.message || (locale === "fr" ? "La synchronisation a échoué." : "Sync failed."));
-      setGroups(payload.data?.groups || []);
+      queryClient.setQueryData(["account", "comments", locale], payload.data?.groups || []);
       const scanned = payload.data?.sync?.scannedTracks || 0;
       const indexed = payload.data?.sync?.indexedTracks || 0;
       setMessage(locale === "fr"
@@ -109,7 +99,7 @@ export default function CommentsPage() {
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error?.message || (locale === "fr" ? "Impossible de modifier ce commentaire." : "Could not update this comment."));
-      await load();
+      await commentsQuery.refetch();
       setEditing(null);
       setDraft("");
       setMessage(locale === "fr" ? "Commentaire mis à jour." : "Comment updated.");
@@ -128,7 +118,7 @@ export default function CommentsPage() {
       const response = await fetch(`/api/user/tracks/${encodeURIComponent(deleting.trackId)}/comments?commentId=${encodeURIComponent(deleting.comment.id)}`, { method: "DELETE" });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error?.message || (locale === "fr" ? "Impossible de supprimer ce commentaire." : "Could not delete this comment."));
-      await load();
+      await commentsQuery.refetch();
       setDeleting(null);
       setMessage(locale === "fr" ? "Commentaire supprimé." : "Comment deleted.");
     } catch (removeError) {
@@ -153,7 +143,7 @@ export default function CommentsPage() {
         <div className="bg-[var(--surface)] p-5"><span className="flex h-10 items-center text-[var(--signal-strong)]"><ShieldCheck size={30} strokeWidth={1.4} /></span><p className="mt-2 font-mono text-[.58rem] uppercase tracking-[.11em] text-[var(--text-muted)]">{locale === "fr" ? "Visible par vous uniquement" : "Visible only to you"}</p></div>
       </section>}
 
-      {(error || message) && <div aria-live="polite" className={`parigo-frame flex items-start gap-3 border p-4 text-sm leading-6 ${error ? "border-[color-mix(in_srgb,var(--danger)_45%,var(--line))] text-[var(--danger)]" : "border-[var(--line)] text-[var(--signal-strong)]"}`}>{error ? <X size={17} className="mt-0.5 shrink-0" /> : <Check size={17} className="mt-0.5 shrink-0" />}<p>{error || message}</p></div>}
+      {(visibleError || message) && <div aria-live="polite" className={`parigo-frame flex items-start gap-3 border p-4 text-sm leading-6 ${visibleError ? "border-[color-mix(in_srgb,var(--danger)_45%,var(--line))] text-[var(--danger)]" : "border-[var(--line)] text-[var(--signal-strong)]"}`}>{visibleError ? <X size={17} className="mt-0.5 shrink-0" /> : <Check size={17} className="mt-0.5 shrink-0" />}<p>{visibleError || message}</p></div>}
 
       {!loading && groups.length > 0 && <section className="account-toolbar grid gap-3 md:grid-cols-[minmax(16rem,1fr)_minmax(13rem,17rem)_auto] md:items-center" aria-label={locale === "fr" ? "Rechercher et trier les commentaires" : "Search and sort comments"}>
         <CatalogSearchField id="account-comments-search" value={query} onValueChange={setQuery} placeholder={locale === "fr" ? "Titre, album ou texte du commentaire…" : "Title, album or comment text…"} ariaLabel={locale === "fr" ? "Rechercher dans mes commentaires" : "Search my comments"} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" />

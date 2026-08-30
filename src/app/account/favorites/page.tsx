@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { Heart, Music, Search, X } from "lucide-react";
@@ -22,29 +23,20 @@ export default function FavoritesPage() {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [tracks, setTracks] = useState<Track[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
 
-  useEffect(() => {
-    if (!userId) return;
-    const controller = new AbortController();
-    void fetch("/api/user/favorites/tracks", { cache: "no-store", signal: controller.signal })
-      .then(async (tracksRes) => {
-        if (tracksRes.ok) {
-          const data = await tracksRes.json();
-          setTracks(data.data?.tracks || []);
-        }
-      })
-      .catch((error) => {
-        if (!controller.signal.aborted) console.error("Error loading favorites:", error);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
-      });
-    return () => controller.abort();
-  }, [userId]);
+  const { data: tracks = [], isLoading } = useQuery<Track[]>({
+    queryKey: ["account", "favorites", userId],
+    enabled: Boolean(userId),
+    staleTime: 60_000,
+    queryFn: async ({ signal }) => {
+      const response = await fetch("/api/user/favorites/tracks", { cache: "no-store", signal });
+      if (!response.ok) throw new Error("favorites fetch failed");
+      const data = await response.json();
+      return data.data?.tracks || [];
+    },
+  });
 
   const categories = useMemo(() => {
     const values = tracks.flatMap((track) => [...track.genres, ...track.moods]);
