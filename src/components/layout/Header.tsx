@@ -134,6 +134,10 @@ export function Header({ variant = "default" }: HeaderProps) {
     setOpen(false);
     router.push(href);
   }, [open, router, setOpen]);
+  const closeMenuForAccountNavigation = useCallback(() => {
+    if (open) releaseBodyScrollLockBeforeNavigation();
+    setOpen(false);
+  }, [open, setOpen]);
   const handleLogoClick = useCallback((event: React.MouseEvent<HTMLAnchorElement>) => {
     if (stripLocalePrefix(pathname) !== "/") {
       setOpen(false);
@@ -172,7 +176,7 @@ export function Header({ variant = "default" }: HeaderProps) {
             <Tooltip label={locale === "fr" ? "Passer en anglais" : "Switch to French"} side="bottom"><Suspense fallback={<span className="nav-control grid h-11 w-11 place-items-center rounded-full font-mono text-[.64rem] font-semibold tracking-[.12em]">{locale === "fr" ? "EN" : "FR"}</span>}><LanguageLink className="nav-control grid h-11 w-11 place-items-center rounded-full font-mono text-[.64rem] font-semibold tracking-[.12em]">{locale === "fr" ? "EN" : "FR"}</LanguageLink></Suspense></Tooltip>
             <Tooltip label={theme === "light" ? t("common.themeDark") : t("common.themeLight")} side="bottom"><button type="button" onClick={toggleTheme} className="nav-control h-11 w-11 rounded-full" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button></Tooltip>
           </div>
-          <div className="hidden xl:block"><UserMenu compact /></div>
+          <div className="hidden xl:block"><UserMenu compact onNavigate={closeMenuForAccountNavigation} /></div>
           <Tooltip label={open ? t("nav.closeMenu") : t("nav.openMenu")} side="bottom"><button ref={menuTriggerRef} type="button" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-controls="global-menu" aria-label={open ? t("nav.closeMenu") : t("nav.openMenu")} className="nav-control h-11 w-11">
             {open ? <X size={18} /> : <Menu size={18} />}
           </button></Tooltip>
@@ -182,7 +186,7 @@ export function Header({ variant = "default" }: HeaderProps) {
         {open && (
           <div ref={menuRef} id="global-menu" role="dialog" aria-modal="true" aria-label={locale === "fr" ? "Menu principal" : "Main menu"} className="parigo-drawer parigo-drawer--bottom parigo-global-menu absolute inset-x-0 bottom-0 top-[74px] z-[1] h-[calc(100dvh-74px)] min-h-0 overflow-y-auto overscroll-contain text-[var(--foreground)]">
             <div className="relative mx-auto grid min-h-max max-w-[1760px] gap-x-8 px-4 py-7 md:grid-cols-12 md:px-8 md:py-10 xl:gap-x-12">
-              <div className="md:col-span-8 lg:col-span-9">
+              <div className="md:col-span-12">
                 <div className="mb-6 flex items-start justify-between gap-4 border-b border-[var(--line)] pb-5 md:block md:pb-6">
                   <SignedTitle as="h2" className="max-w-[11ch] text-[clamp(2.5rem,4.6vw,5rem)] leading-[.88] text-[var(--foreground)]">
                     {locale === "fr" ? "Explorer Parigo." : "Explore Parigo."}
@@ -194,7 +198,7 @@ export function Header({ variant = "default" }: HeaderProps) {
                     <button type="button" onClick={toggleTheme} className="nav-control grid h-10 w-10 place-items-center" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}>
                       {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
                     </button>
-                    <UserMenu compact />
+                    <UserMenu compact onNavigate={closeMenuForAccountNavigation} />
                   </div>
                 </div>
                 <div data-testid="drawer-navigation" className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
@@ -221,36 +225,10 @@ export function Header({ variant = "default" }: HeaderProps) {
                 </div>
                 <div className="mt-8 hidden md:block xl:hidden">
                   <p className="eyebrow mb-4 text-[var(--text-muted)]">{locale === "fr" ? "Votre espace" : "Your space"}</p>
-                  <UserMenu embedded />
+                  <UserMenu embedded onNavigate={closeMenuForAccountNavigation} />
                 </div>
               </div>
 
-              <aside className="parigo-menu-aside mt-8 flex flex-col gap-7 p-5 md:col-span-4 md:mt-0 md:p-6 lg:col-span-3">
-                <div className="parigo-menu-aside__intro">
-                  <p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Un projet en tête ?" : "A project in mind?"}</p>
-                  <p className="mt-3 text-xl font-semibold leading-tight tracking-[-.035em]">
-                    {locale === "fr" ? "Parlons musique, images et intentions." : "Let’s talk music, images and intent."}
-                  </p>
-                  <Link href={hrefFor("/contact")} onClick={() => setOpen(false)} onNavigate={navigateFromOpenMenu(hrefFor("/contact"))} className="parigo-menu-contact group mt-5">
-                    <span>{locale === "fr" ? "Nous envoyer un brief" : "Send us a brief"}</span>
-                    <ArrowUpRight size={14} className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-                  </Link>
-                </div>
-                <div className="hidden md:block lg:hidden">
-                  <p className="eyebrow mb-4 text-[var(--text-muted)]">{locale === "fr" ? "Préférences" : "Preferences"}</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Suspense fallback={<span className="flex min-h-14 items-center justify-between border border-[var(--line)] px-4 text-left text-xs font-semibold"><span>{locale === "fr" ? "Langue" : "Language"}</span><span className="font-mono text-[.65rem] text-[var(--signal-strong)]">{locale === "fr" ? "EN" : "FR"}</span></span>}><LanguageLink className="flex min-h-14 items-center justify-between border border-[var(--line)] px-4 text-left text-xs font-semibold transition hover:border-[var(--signal)] hover:bg-[var(--signal-soft)]"><span>{locale === "fr" ? "Langue" : "Language"}</span><span className="font-mono text-[.65rem] text-[var(--signal-strong)]">{locale === "fr" ? "EN" : "FR"}</span></LanguageLink></Suspense>
-                    <button onClick={toggleTheme} className="flex min-h-14 items-center justify-between border border-[var(--line)] px-4 text-left text-xs font-semibold transition hover:border-[var(--signal)] hover:bg-[var(--signal-soft)]" aria-label={theme === "light" ? t("common.themeDark") : t("common.themeLight")}><span>{locale === "fr" ? "Thème" : "Theme"}</span>{theme === "light" ? <Moon size={16} /> : <Sun size={16} />}</button>
-                  </div>
-                </div>
-
-                <div className="mt-auto grid gap-2 border-t border-[var(--line)] pt-5 text-sm text-[var(--text-muted)]">
-                  <Link href={hrefFor("/about")} onClick={() => setOpen(false)} className="min-h-9 hover:text-[var(--foreground)]">{t("common.about")}</Link>
-                  <Link href={hrefFor("/contact")} onClick={() => setOpen(false)} className="min-h-9 hover:text-[var(--foreground)]">{t("common.contact")}</Link>
-                  <Link href={hrefFor("/legal")} onClick={() => setOpen(false)} className="min-h-9 hover:text-[var(--foreground)]">{t("footer.legalNotice")}</Link>
-                  <Link href={hrefFor("/privacy")} onClick={() => setOpen(false)} className="min-h-9 hover:text-[var(--foreground)]">{t("footer.privacy")}</Link>
-                </div>
-              </aside>
             </div>
           </div>
         )}

@@ -38,7 +38,7 @@ import { canonicalSearchFilterLabel } from "@/lib/search-filter-labels";
 import { normalizeSearchText } from "@/lib/search-normalization";
 import { looksLikeExternalUrl } from "@/lib/search/similarity-platforms";
 import { cn, formatDuration } from "@/lib/utils";
-import type { SimilaritySearchSource, Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchMode, SearchTranslationMode, SortMode, Track } from "@/types";
+import type { AutocompleteItem, SimilaritySearchSource, Album, SearchFacets, SearchFilterGroupKey, SearchFilterItem, SearchMode, SearchTranslationMode, SortMode, Track } from "@/types";
 import { useSession } from "@/lib/auth-client";
 import { clearSimilarityHandoff, useSimilarityHandoff } from "@/stores/similarity-handoff-store";
 
@@ -388,6 +388,38 @@ function SearchContent() {
     setTranslation("offer");
   };
 
+  const selectAutocompleteSuggestion = (item: AutocompleteItem, remainingQuery = "") => {
+    if (item.kind === "filter" && item.filterGroup) {
+      if (item.filterGroup === "styles") updateStyles([...styles, item.id]);
+      else if (item.filterGroup === "labels") updateLabels([...labels, item.id]);
+      else if (item.filterGroup === "composers") updateComposers([item.label]);
+      else updateCategories([...categories, item.id]);
+      setQueryDraft(remainingQuery.trim());
+      commitSearchDraft(remainingQuery);
+      return;
+    }
+    if (item.kind === "label") {
+      setQueryDraft("");
+      setQuery("");
+      setTranslation("offer");
+      updateLabels([item.id]);
+      return;
+    }
+    if (item.kind === "composer") {
+      setQueryDraft("");
+      setQuery("");
+      setTranslation("offer");
+      updateComposers([item.label]);
+      return;
+    }
+    if (item.href) {
+      router.push(localizedPath(item.href));
+      return;
+    }
+    setQueryDraft(item.label);
+    applyUnifiedSearch(item.label);
+  };
+
   const switchSearchMode = (nextMode: SearchMode) => {
     setSearchMode(nextMode);
     const params = new URLSearchParams(window.location.search);
@@ -603,9 +635,20 @@ function SearchContent() {
                 locale={locale}
                 onValueChange={setQueryDraft}
                 onSubmit={applyUnifiedSearch}
-                onSelect={() => undefined}
+                onSelect={selectAutocompleteSuggestion}
                 onClear={clearUnifiedSearch}
-                autocompleteEnabled={false}
+                autocompleteContext={{
+                  categories,
+                  styles,
+                  labels,
+                  composer: composers[0],
+                  minBpm: bpmRange[0] !== DEFAULT_BPM[0] ? bpmRange[0] : undefined,
+                  maxBpm: bpmRange[1] !== DEFAULT_BPM[1] ? bpmRange[1] : undefined,
+                  minDuration: durationRange[0] !== DEFAULT_DURATION[0] ? durationRange[0] : undefined,
+                  maxDuration: durationRange[1] !== DEFAULT_DURATION[1] ? durationRange[1] : undefined,
+                  type: type === "all" ? "main" : type,
+                  sort,
+                }}
                 mode={searchMode}
                 onModeChange={switchSearchMode}
                 aiEnabled={aiEnabled}
@@ -723,10 +766,6 @@ function SearchContent() {
               <div className="rounded-xl border border-[var(--line)] px-5 py-24 text-center"><h2 className="text-3xl">{locale === "fr" ? "La recherche est temporairement indisponible." : "Search is temporarily unavailable."}</h2><p className="mt-3 text-sm text-[var(--text-muted)]">{locale === "fr" ? "Réessayez dans quelques instants." : "Please try again in a moment."}</p><Button variant="outline" onClick={() => activeQuery.refetch()} className="mt-7">{t("common.retry")}</Button></div>
             ) : view === "tracks" ? tracks.length ? (
                 <div className="search-results-ledger overflow-visible border border-[var(--line-strong)] bg-[var(--surface)]">
-                  <div className="search-results-ledger__header hidden min-h-10 items-center justify-between gap-6 border-b border-[var(--line-strong)] px-4 font-mono text-[.54rem] uppercase tracking-[.12em] text-[var(--text-muted)] xl:flex">
-                    <span>{locale === "fr" ? "Titre · album · waveform" : "Title · album · waveform"}</span>
-                    <span>{locale === "fr" ? "Tags · ambiance · tempo · durée · actions" : "Tags · mood · tempo · duration · actions"}</span>
-                  </div>
                   {tracks.map((track, index) => {
                     const mainNumber = (page - 1) * PAGE_SIZE + index + 1;
                     const alternates = type === "all" ? track.alternateTracks ?? [] : [];

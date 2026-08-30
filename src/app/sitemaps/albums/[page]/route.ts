@@ -12,7 +12,7 @@ export async function GET(_request: Request, context: { params: Promise<{ page: 
     return xmlResponse(renderUrlSet(result.items.map((album) => ({
       fr: `/albums/${album.id}`,
       en: `/en/albums/${album.id}`,
-      lastModified: album.updatedAt || album.releaseDate,
+      lastModified: album.updatedAt,
       priority: 0.7,
     }))));
   } catch {

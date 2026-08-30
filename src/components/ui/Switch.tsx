@@ -22,12 +22,10 @@ export function Switch({ checked, label, onCheckedChange, className, disabled, .
       className={cn("parigo-switch", className)}
       {...props}
     >
-      <span aria-hidden="true" className="parigo-switch__corner parigo-switch__corner--top" />
       <span aria-hidden="true" className="parigo-switch__track">
         <span className="parigo-switch__rail" />
         <span className="parigo-switch__thumb" />
       </span>
-      <span aria-hidden="true" className="parigo-switch__corner parigo-switch__corner--bottom" />
     </button>
   );
 }

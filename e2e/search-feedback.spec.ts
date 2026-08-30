@@ -297,7 +297,7 @@ test("le drawer shortlist ouvre un sélecteur vide sans présélection implicite
   expect(new URL(page.url()).searchParams.get("pick")).toBe("1");
 });
 
-test("l’affichage rejoint le compteur, garde le corner catalogue et aligne la barre sticky", async ({ page }, testInfo) => {
+test("l’affichage rejoint le compteur, retire le corner du Select et aligne la barre sticky", async ({ page }, testInfo) => {
   const similarityTracks = Array.from({ length: 12 }, (_, index) => ({
     ...similarityTrack,
     id: `${similarityTrack.id}-${index + 1}`,
@@ -328,18 +328,8 @@ test("l’affichage rejoint le compteur, garde le corner catalogue et aligne la 
   expect(Math.abs(counterBox!.y + counterBox!.height / 2 - (displayBox!.y + displayBox!.height / 2))).toBeLessThanOrEqual(2);
   expect(displayBox!.x).toBeGreaterThan(counterBox!.x + counterBox!.width);
 
-  const cornerColors = await select.evaluate((node) => ({
-    select: getComputedStyle(node, "::after").borderBottomColor,
-    signal: (() => {
-      const probe = document.createElement("span");
-      probe.style.borderBottom = "1px solid var(--signal-strong)";
-      node.appendChild(probe);
-      const color = getComputedStyle(probe).borderBottomColor;
-      probe.remove();
-      return color;
-    })(),
-  }));
-  expect(cornerColors.select).toBe(cornerColors.signal);
+  expect(await select.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  expect(await select.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
 
   if (testInfo.project.name === "desktop") {
     await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
@@ -683,14 +673,10 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
 
   const density = page.getByRole("combobox", { name: "Niveau de détail des pistes" });
   const densityCorners = await density.evaluate((node) => ({
-    trigger: getComputedStyle(node).borderTopRightRadius,
-    corner: getComputedStyle(node.parentElement!, "::before").borderTopRightRadius,
-    top: getComputedStyle(node.parentElement!, "::before").top,
-    right: getComputedStyle(node.parentElement!, "::before").right,
+    before: getComputedStyle(node.parentElement!, "::before").content,
+    after: getComputedStyle(node.parentElement!, "::after").content,
   }));
-  expect(densityCorners.corner).toBe(densityCorners.trigger);
-  expect(densityCorners.top).toBe("-1px");
-  expect(densityCorners.right).toBe("-1px");
+  expect(densityCorners).toEqual({ before: "none", after: "none" });
   await density.click();
   await expect(page.getByRole("option", { name: "Piste détaillée" })).toBeVisible();
   await expect(page.getByRole("option", { name: "Piste compacte" })).toBeVisible();
@@ -782,7 +768,7 @@ test("la recherche impose la liste pour les pistes et la grille pour les albums"
   await expect(page.getByRole("combobox", { name: "Niveau de détail des pistes" })).toHaveCount(0);
 });
 
-test("la saisie Catalogue reste littérale et ne déclenche aucune autocomplétion", async ({ page }) => {
+test("la saisie Catalogue reste littérale tout en proposant l’autocomplétion", async ({ page }) => {
   let autocompleteRequests = 0;
   await page.route("**/api/search/filters?**", async (route) => {
     await route.fulfill({
@@ -838,8 +824,8 @@ test("la saisie Catalogue reste littérale et ne déclenche aucune autocompléti
   await input.fill("crime");
   expect(new URL(page.url()).searchParams.get("q")).toBeNull();
   await page.waitForTimeout(500);
-  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
-  expect(autocompleteRequests).toBe(0);
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
+  expect(autocompleteRequests).toBeGreaterThan(0);
   await input.press("Enter");
   await expect(input).toHaveValue("crime");
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("crime");
@@ -848,6 +834,40 @@ test("la saisie Catalogue reste littérale et ne déclenche aucune autocompléti
   await page.getByRole("option", { name: "Albums", exact: true }).click();
   await expect.poll(() => new URL(page.url()).searchParams.get("view")).toBe("albums");
   await expect(input).toBeVisible();
+});
+
+test("une référence de label sélectionnée dans Search applique le filtre et efface le texte", async ({ page }) => {
+  await page.route("**/api/search/filters?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { groups: [] } }),
+  }));
+  await page.route("**/api/autocomplete?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { groups: [
+      { key: "labels", count: 1, items: [{ id: "label-pgo", kind: "label", label: "Parigo", subtitle: "Réf. PGO", href: "/search?view=tracks&type=main&labels=label-pgo", matchEvidence: [{ field: "catalogReference", value: "PGO", matchedTerms: ["pgo"] }] }] },
+      { key: "albums", count: 1, items: [{ id: "album-pgo", kind: "album", label: "Parigo Test", subtitle: "Parigo · PGO 028", href: "/albums/album-pgo" }] },
+    ] } }),
+  }));
+  await page.route("**/api/search?**", async (route) => {
+    const url = new URL(route.request().url());
+    await route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: { items: [], view: "tracks", facets: { categories: [], labels: [], styles: [] } },
+        meta: { page: 1, pageSize: 30, total: 0, requestId: "label-reference-e2e", appliedLabel: url.searchParams.get("labels") },
+      }),
+    });
+  });
+
+  await page.goto("/search");
+  const search = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
+  await search.fill("PGO");
+  await page.getByRole("option", { name: /Parigo.*Réf\. PGO/ }).click();
+  await expect(search).toHaveValue("");
+  await expect.poll(() => ({
+    query: new URL(page.url()).searchParams.get("q"),
+    labels: new URL(page.url()).searchParams.get("labels"),
+  })).toEqual({ query: null, labels: "label-pgo" });
 });
 
 test("un filtre traduit ne consomme plus son terme et reste visible dans les filtres manuels", async ({ page }, testInfo) => {
@@ -900,7 +920,7 @@ test("un filtre traduit ne consomme plus son terme et reste visible dans les fil
   const searchInput = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await searchInput.focus();
   await expect(searchInput).toHaveValue("reggae triste");
-  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
   await expect(page.getByText("Ambiance · Triste", { exact: true })).toBeVisible();
 
   await searchInput.press("Escape");
@@ -924,7 +944,7 @@ test("un filtre traduit ne consomme plus son terme et reste visible dans les fil
   await expect(usesGroup.getByText("Mariage", { exact: true })).toBeVisible();
 });
 
-test("une saisie sans résultat ne crée aucun panneau d’autocomplétion", async ({ page }) => {
+test("une saisie sans suggestion conserve un accès vers tous les résultats", async ({ page }) => {
   let autocompleteRequests = 0;
   await page.route("**/api/autocomplete?**", async (route) => {
     autocompleteRequests += 1;
@@ -938,8 +958,11 @@ test("une saisie sans résultat ne crée aucun panneau d’autocomplétion", asy
   const input = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await input.fill("introuvable");
   await page.waitForTimeout(500);
-  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
-  expect(autocompleteRequests).toBe(0);
+  const panel = page.getByRole("listbox", { name: "Suggestions de recherche" });
+  await expect(panel).toBeVisible();
+  await expect(panel).toContainText("Aucun résultat pour « introuvable »");
+  await expect(page.getByRole("button", { name: "Voir tous les résultats pour « introuvable »" })).toBeVisible();
+  expect(autocompleteRequests).toBeGreaterThan(0);
 });
 
 test("la référence Harvest reste recherchable mais séparée du titre éditorial", async ({ page }) => {
@@ -1113,6 +1136,8 @@ test("DeepL reste hors du panneau et ne se propose qu’après une recherche vid
   const search = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await search.focus();
   const autocompletePanel = page.locator(".search-autocomplete-panel");
+  await expect(autocompletePanel).toBeVisible();
+  await search.press("Escape");
   await expect(autocompletePanel).toHaveCount(0);
   await page.getByRole("button", { name: "Rechercher en anglais" }).click();
   await expect(search).toHaveValue("sunset");
@@ -1121,7 +1146,7 @@ test("DeepL reste hors du panneau et ne se propose qu’après une recherche vid
     query: new URL(page.url()).searchParams.get("q"),
     translation: new URL(page.url()).searchParams.get("translation"),
   })).toEqual({ query: "sunset", translation: "off" });
-  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toHaveCount(0);
+  await expect(page.getByRole("listbox", { name: "Suggestions de recherche" })).toBeVisible();
   await expect(page.getByText(/Rechercher aussi « sunset »/)).toHaveCount(0);
 });
 
@@ -1152,13 +1177,13 @@ test("une correspondance de filtre partielle n’empêche pas DeepL après soumi
   const search = page.getByRole("combobox", { name: "Rechercher dans le catalogue" });
   await search.fill("une forêt sombre");
   const panel = page.locator(".search-autocomplete-panel");
-  await expect(panel).toHaveCount(0);
+  await expect(panel).toBeVisible();
   await search.press("Enter");
   const translation = page.getByRole("button", { name: "Rechercher en anglais" });
   await expect(translation).toBeVisible();
   await translation.click();
   await expect(search).toHaveValue("dark forest");
-  await expect(panel).toHaveCount(0);
+  await expect(panel).toBeVisible();
 });
 
 test("le changement de langue conserve toute la recherche en cours", async ({ page }, testInfo) => {

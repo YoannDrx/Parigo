@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-13T11:57:51.727Z",
+  "generatedAt": "2026-08-29T22:47:47.396Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -294,14 +294,10 @@
       "image": "/images/composers/canonical/laurent_dury.webp",
       "detailImage": {
         "src": "/images/composers/detail/laurent_dury.webp",
-        "width": 1448,
-        "height": 1086
+        "width": 760,
+        "height": 760
       },
       "imageStatus": "portrait",
-      "cardCrop": {
-        "objectPosition": "38% 45%",
-        "scale": 1.5
-      },
       "harvest": {
         "aliases": [
           "Laurent Dury"
@@ -476,7 +472,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "50% 14%"
+        "objectPosition": "50% 18%",
+        "fit": "cover"
       },
       "harvest": {
         "aliases": [
@@ -1160,7 +1157,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "50% 12%"
+        "objectPosition": "50% 18%",
+        "fit": "cover"
       },
       "harvest": {
         "aliases": [
@@ -1994,7 +1992,8 @@
       },
       "imageStatus": "portrait",
       "cardCrop": {
-        "objectPosition": "50% 12%"
+        "objectPosition": "50% 14%",
+        "fit": "cover"
       },
       "harvest": {
         "aliases": [

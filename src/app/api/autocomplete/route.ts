@@ -12,7 +12,7 @@ import { configuredSearchFieldProfile } from "@/lib/harvest/search";
 import { getSearchFilterGroups } from "@/lib/harvest/search-filters";
 import { isTitlePrioritySearchResult, searchWithTitlePriority } from "@/lib/harvest/title-priority-search";
 import { isCatalogIdentifier, stripLegacySearchQuotes } from "@/lib/search-query";
-import { albumSearchEvidence, explainsSearchQuery, prioritizeTitleEvidence, trackSearchEvidence } from "@/lib/search-match-evidence";
+import { albumSearchEvidence, entitySearchEvidence, explainsSearchQuery, prioritizeTitleEvidence, trackSearchEvidence } from "@/lib/search-match-evidence";
 import { resolveTaxonomySuggestions } from "@/lib/search-taxonomy";
 import { logEvent } from "@/lib/logger";
 import type { Album, AutocompleteGroup, AutocompleteItem, Track } from "@/types";
@@ -129,8 +129,8 @@ export async function GET(request: NextRequest) {
         return null;
       }
     };
-    const fieldProfile = isCatalogIdentifier(query) ? "title" : configuredSearchFieldProfile();
-    const textScope = fieldProfile === "aggregate-title-first" ? "aggregate" : fieldProfile;
+    const fieldProfile = configuredSearchFieldProfile();
+    const textScope = isCatalogIdentifier(query) || fieldProfile === "aggregate-title-first" ? "aggregate" : fieldProfile;
     const searchEntities = (view: "Track" | "Album") => {
       const searchInput = {
       query: stripLegacySearchQuotes(query),
@@ -177,6 +177,27 @@ export async function GET(request: NextRequest) {
     if (rankedAlbumsResult) {
       const rankedAlbums = rankedAlbumsResult.albums.map((album) => albumAutocompleteItem(album));
       groups = replaceEntityGroup(groups, "albums", rankedAlbums, rankedAlbumsResult.total);
+    }
+    const existingLabelGroup = groups.find((group) => group.key === "labels");
+    if ((!existingLabelGroup || existingLabelGroup.items.length === 0) && isCatalogIdentifier(query)) {
+      const albumWithLabel = rankedAlbumsResult?.albums.find((album) => album.labelSlug && album.label && album.code);
+      const reference = albumWithLabel?.code?.replace(/[^a-z0-9]/gi, "").match(/^[a-z]{2,8}/i)?.[0]?.toUpperCase();
+      const matchEvidence = reference
+        ? entitySearchEvidence(query, [{ field: "catalogReference", values: [reference] }])
+        : [];
+      if (albumWithLabel?.labelSlug && albumWithLabel.label && reference && explainsSearchQuery(matchEvidence, query)) {
+        const item: AutocompleteItem = {
+          id: albumWithLabel.labelSlug,
+          kind: "label",
+          label: albumWithLabel.label,
+          subtitle: `Réf. ${reference}`,
+          href: `/search?view=${request.nextUrl.searchParams.get("view") === "albums" ? "albums" : "tracks"}&type=main&labels=${encodeURIComponent(albumWithLabel.labelSlug)}`,
+          matchEvidence,
+        };
+        groups = existingLabelGroup
+          ? groups.map((group) => group.key === "labels" ? { ...group, count: Math.max(1, group.count), items: [item] } : group)
+          : [...groups, { key: "labels", count: 1, items: [item] }];
+      }
     }
     const trackItems = groups.find((group) => group.key === "tracks")?.items ?? [];
     const albumItems = groups.find((group) => group.key === "albums")?.items ?? [];
@@ -260,7 +281,7 @@ export async function GET(request: NextRequest) {
       ? lyricsGroup(resolvedLyrics.tracks, resolvedLyrics.total, excludedTrackIds, locale, query)
       : undefined;
     if (lyrics) groups.push(lyrics);
-    const priority = ["titles", "filters", "tracks", "albums", "playlists", "words", "composers", "labels", "lyrics"];
+    const priority = ["titles", "filters", "labels", "tracks", "albums", "playlists", "words", "composers", "lyrics"];
     groups.sort((left, right) => priority.indexOf(left.key) - priority.indexOf(right.key));
     return NextResponse.json(
       { data: { groups }, meta: { requestId: id } },

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("Licensing ouvre sur une introduction textuelle pleine largeur et conserve la grille", async ({ page }) => {
+test("Licensing ouvre sur une introduction textuelle pleine largeur et conserve la grille", async ({ page }, testInfo) => {
   await page.goto("/licensing");
 
   await expect(page.locator(".page-hero")).toHaveCount(0);
@@ -8,6 +8,16 @@ test("Licensing ouvre sur une introduction textuelle pleine largeur et conserve 
   await expect(page.getByText("Licensing · Parigo Music", { exact: true })).toHaveCount(0);
   await expect(page.getByTestId("licensing-hero-image")).toHaveCount(0);
   await expect(page.getByTestId("licensing-title-card")).toBeVisible();
+  if (testInfo.project.name === "mobile") {
+    const card = page.getByTestId("licensing-title-card");
+    const [titleBox, introBox] = await Promise.all([
+      card.getByRole("heading", { level: 1 }).boundingBox(),
+      card.locator("p").first().boundingBox(),
+    ]);
+    expect(titleBox).not.toBeNull();
+    expect(introBox).not.toBeNull();
+    expect(introBox!.y - (titleBox!.y + titleBox!.height)).toBeLessThanOrEqual(32);
+  }
   await expect(page.getByText("R29 · L’atelier des droits", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Quatre repères suffisent", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Usages & tarifs", { exact: true })).toHaveCount(0);

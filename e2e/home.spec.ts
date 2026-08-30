@@ -186,6 +186,23 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     await expect(hero.getByRole("button", { name: "Mode de recherche : Similarité IA" })).toBeVisible();
     await expect(hero.getByLabel("Brief, lien ou fichier pour la similarité IA")).toBeVisible();
     await expect(hero.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
+    if (testInfo.project.name === "mobile") {
+      const hint = hero.getByLabel("Fonctionnement de la recherche par similarité IA");
+      const backdrop = hero.getByTestId("hero-gradient-backdrop");
+      await expect(hint).toBeVisible();
+      await page.evaluate(() => window.scrollTo({ top: 180, behavior: "instant" }));
+      const [heroBox, hintBox, backdropBox] = await Promise.all([
+        hero.boundingBox(),
+        hint.boundingBox(),
+        backdrop.boundingBox(),
+      ]);
+      expect(heroBox).not.toBeNull();
+      expect(hintBox).not.toBeNull();
+      expect(backdropBox).not.toBeNull();
+      expect(hintBox!.y + hintBox!.height).toBeLessThanOrEqual(heroBox!.y + heroBox!.height + 1);
+      expect(Math.abs(backdropBox!.height - heroBox!.height)).toBeLessThanOrEqual(1);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    }
     await hero.getByRole("button", { name: "Mode de recherche : Similarité IA" }).click();
     await hero.getByRole("option", { name: /Catalogue/ }).click();
   } else {
@@ -201,67 +218,39 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await page.mouse.move(0, 0);
   await page.evaluate(() => (document.activeElement as HTMLElement | null)?.blur());
   await expect.poll(() => searchBar.evaluate((node) => Number.parseFloat(getComputedStyle(node).borderTopLeftRadius))).toBeGreaterThan(5);
-  await expect.poll(() => searchBar.evaluate((node) => [
-    Number.parseFloat(getComputedStyle(node, "::before").opacity),
-    Number.parseFloat(getComputedStyle(node, "::after").opacity),
-  ])).toEqual([0, 0]);
   const restingRadius = await searchBar.evaluate((node) => ({
     topLeft: Number.parseFloat(getComputedStyle(node).borderTopLeftRadius),
     topRight: Number.parseFloat(getComputedStyle(node).borderTopRightRadius),
-    topCornerOpacity: getComputedStyle(node, "::before").opacity,
-    bottomCornerOpacity: getComputedStyle(node, "::after").opacity,
+    before: getComputedStyle(node, "::before").content,
+    after: getComputedStyle(node, "::after").content,
   }));
   expect(restingRadius.topRight).toBeGreaterThan(restingRadius.topLeft);
-  expect(restingRadius.topCornerOpacity).toBe("0");
-  expect(restingRadius.bottomCornerOpacity).toBe("0");
+  expect(restingRadius.before).toBe("none");
+  expect(restingRadius.after).toBe("none");
   await search.focus();
   await expect(submitSearch).toBeDisabled();
   expect(Number.parseFloat(await submitSearch.evaluate((node) => getComputedStyle(node).opacity))).toBeLessThan(0.5);
-  await expect.poll(() => searchBar.evaluate((node) => ({
-    topLeft: Number.parseFloat(getComputedStyle(node).borderTopLeftRadius),
-    topRight: Number.parseFloat(getComputedStyle(node).borderTopRightRadius),
-    bottomRight: Number.parseFloat(getComputedStyle(node).borderBottomRightRadius),
-    bottomLeft: Number.parseFloat(getComputedStyle(node).borderBottomLeftRadius),
-  }))).toEqual({ topLeft: 0, topRight: 16, bottomRight: 0, bottomLeft: 16 });
+  await expect.poll(() => searchBar.evaluate((node) => [
+    getComputedStyle(node).borderTopLeftRadius,
+    getComputedStyle(node).borderTopRightRadius,
+    getComputedStyle(node).borderBottomRightRadius,
+    getComputedStyle(node).borderBottomLeftRadius,
+  ].every((radius) => Number.parseFloat(radius) > 0))).toBe(true);
   const focusedFrame = await searchBar.evaluate((node) => ({
     boxShadow: getComputedStyle(node).boxShadow,
-    topCornerBottom: getComputedStyle(node, "::before").borderBottomWidth,
-    topCornerLeft: getComputedStyle(node, "::before").borderLeftWidth,
-    bottomCornerTop: getComputedStyle(node, "::after").borderTopWidth,
-    bottomCornerRight: getComputedStyle(node, "::after").borderRightWidth,
-    topCornerOpacity: getComputedStyle(node, "::before").opacity,
-    bottomCornerOpacity: getComputedStyle(node, "::after").opacity,
-    topCornerInset: [getComputedStyle(node, "::before").top, getComputedStyle(node, "::before").right],
-    bottomCornerInset: [getComputedStyle(node, "::after").bottom, getComputedStyle(node, "::after").left],
-    topCornerRadius: getComputedStyle(node, "::before").borderTopRightRadius,
-    formTopCornerRadius: getComputedStyle(node).borderTopRightRadius,
-    bottomCornerRadius: getComputedStyle(node, "::after").borderBottomLeftRadius,
-    formBottomCornerRadius: getComputedStyle(node).borderBottomLeftRadius,
+    before: getComputedStyle(node, "::before").content,
+    after: getComputedStyle(node, "::after").content,
   }));
   expect(focusedFrame.boxShadow).toContain("inset");
-  expect(focusedFrame.topCornerBottom).toBe("2px");
-  expect(focusedFrame.topCornerLeft).toBe("2px");
-  expect(focusedFrame.bottomCornerTop).toBe("2px");
-  expect(focusedFrame.bottomCornerRight).toBe("2px");
-  expect(focusedFrame.topCornerOpacity).toBe("1");
-  expect(focusedFrame.bottomCornerOpacity).toBe("1");
-  expect(focusedFrame.topCornerInset).toEqual(["-1px", "-1px"]);
-  expect(focusedFrame.bottomCornerInset).toEqual(["-1px", "-1px"]);
-  expect(focusedFrame.topCornerRadius).toBe(focusedFrame.formTopCornerRadius);
-  expect(focusedFrame.bottomCornerRadius).toBe(focusedFrame.formBottomCornerRadius);
+  expect(focusedFrame.before).toBe("none");
+  expect(focusedFrame.after).toBe("none");
   await search.fill("piano");
   await expect(submitSearch).toBeEnabled();
   await expect(searchBar).toHaveAttribute("data-has-value", "true");
-  const activeCorners = await searchBar.evaluate((node) => ({
-    topAnimation: getComputedStyle(node, "::before").animationName,
-    bottomAnimation: getComputedStyle(node, "::after").animationName,
-  }));
-  expect(activeCorners.topAnimation).toBe("search-corner-breathe");
-  expect(activeCorners.bottomAnimation).toBe("search-corner-breathe");
-  await expect.poll(() => searchBar.evaluate((node) => ({
-    top: getComputedStyle(node, "::before").borderTopWidth,
-    bottom: getComputedStyle(node, "::after").borderBottomWidth,
-  }))).toEqual({ top: "2px", bottom: "2px" });
+  await expect.poll(() => searchBar.evaluate((node) => [
+    getComputedStyle(node, "::before").content,
+    getComputedStyle(node, "::after").content,
+  ])).toEqual(["none", "none"]);
   await search.press("Enter");
   await expect(page).toHaveURL(/\/search\?/, { timeout: 30_000 });
   await expect(page.getByTestId("search-workspace")).toBeVisible();
@@ -560,6 +549,7 @@ test("les pages d’authentification partagent un panneau coulissant responsive"
   const loginPanel = switcher.locator("#auth-login-panel");
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
   await expect(hero.locator('[data-auth-image="login"][data-active="true"] img')).toHaveAttribute("src", /r14-v3-forgot-password/);
+  await expect(hero.locator('[class*="border-l-2"], [class*="border-r-2"]')).toHaveCount(0);
   await expect(hero.getByRole("heading", { name: "Entrez dans le catalogue." })).toBeVisible();
   const [switcherBox, heroBefore, loginBox] = await Promise.all([
     switcher.boundingBox(),
@@ -688,9 +678,8 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await expect(menu).toHaveCSS("background-image", "none");
   await expect(menu).toHaveCSS("color", "rgb(21, 24, 21)");
   await expect(menu).toHaveCSS("backdrop-filter", "none");
-  const projectCard = menu.locator(".parigo-menu-aside");
-  await expect(projectCard).toHaveCSS("background-color", "rgb(255, 255, 255)");
-  await expect(projectCard).toHaveCSS("background-image", "none");
+  await expect(menu.locator(".parigo-menu-aside")).toHaveCount(0);
+  await expect(menu.getByText("Un projet en tête ?", { exact: true })).toHaveCount(0);
   await expect(menu.locator('a[href="/labels"]')).toContainText("Labels");
   await expect(menu.getByRole("link", { name: "Notre label" })).toBeVisible();
   for (const note of [
@@ -735,7 +724,6 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
   await themeToggle.click();
   await expect(menu).toHaveCSS("background-color", "rgb(11, 13, 11)");
   await expect(menu).toHaveCSS("color", "rgb(241, 241, 236)");
-  await expect(projectCard).toHaveCSS("background-color", "rgb(17, 20, 17)");
   if (testInfo.project.name === "mobile") {
     const mobileControls = menu.getByTestId("mobile-menu-controls");
     await expect(mobileControls).toBeVisible();
@@ -747,19 +735,10 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
     await expect(menu.getByText("Votre espace", { exact: true })).not.toBeVisible();
     await expect(menu.getByText("Préférences", { exact: true })).not.toBeVisible();
     await expect(menu.getByTestId("embedded-login")).not.toBeVisible();
-    const mobileCardCorner = await menu.locator(".parigo-menu-card").first().evaluate((node) => ({
-      width: Number.parseFloat(getComputedStyle(node, "::after").width),
-      bottom: getComputedStyle(node, "::after").bottom,
-      radius: getComputedStyle(node, "::after").borderRadius,
-      cardRadius: getComputedStyle(node).borderRadius,
-      clipPath: getComputedStyle(node, "::after").clipPath,
-      shadow: getComputedStyle(node).boxShadow,
-    }));
-    expect(mobileCardCorner.width).toBeGreaterThan(300);
-    expect(mobileCardCorner.bottom).toBe("-1px");
-    expect(mobileCardCorner.radius).toBe(mobileCardCorner.cardRadius);
-    expect(mobileCardCorner.clipPath).not.toBe("none");
-    expect(mobileCardCorner.shadow).toBe("none");
+    const mobileCard = menu.locator(".parigo-menu-card").first();
+    expect(await mobileCard.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+    expect(await mobileCard.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
+    await expect(mobileCard).toHaveCSS("box-shadow", "none");
     await expect(menu).toHaveCSS("overflow-y", "auto");
     const initialScrollMetrics = await menu.evaluate((element) => ({
       clientHeight: element.clientHeight,
@@ -768,7 +747,6 @@ test("la home expose le catalogue Parigo et un menu modal responsive", async ({ 
     expect(initialScrollMetrics.scrollHeight).toBeGreaterThan(initialScrollMetrics.clientHeight);
     await menu.evaluate((element) => element.scrollTo({ top: element.scrollHeight }));
     await expect.poll(() => menu.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
-    await expect(menu.getByRole("link", { name: "Confidentialité" })).toBeVisible();
   } else {
     await expect(menu.getByTestId("mobile-menu-controls")).not.toBeVisible();
     await expect(menu.getByText("Préférences", { exact: true })).not.toBeVisible();
@@ -820,6 +798,7 @@ test("le footer reprend l’ordre du menu et sépare le compte des réseaux soci
     "/talents",
   ]);
   await expect(footer.getByRole("link", { name: "Licensing", exact: true })).toHaveCount(1);
+  await expect(footer.getByRole("link", { name: "Linktree" })).toHaveCount(0);
 
   const account = footer.getByRole("button", { name: /Créer un compte Parigo/ });
   const instagram = footer.getByRole("link", { name: "Instagram" });
@@ -838,7 +817,10 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const showreelTitle = showreel.locator("h2").first();
   await expect(showreel).toBeVisible({ timeout: 30_000 });
   expect(await showreel.evaluate((node) => node.clientHeight)).toBeGreaterThanOrEqual((await page.evaluate(() => innerHeight)) * .95);
-  await expect(showreel.getByTestId("home-showreel-video")).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  const showreelVideo = showreel.getByTestId("home-showreel-video");
+  await expect(showreelVideo).not.toHaveAttribute("src");
+  await showreelTitle.scrollIntoViewIfNeeded();
+  await expect(showreelVideo.locator('source[media="(max-width: 767px)"]')).toHaveAttribute("src", "/videos/garden-of-eden-showreel-mobile.mp4");
   expect(Number.parseFloat(await showreelTitle.evaluate((node) => getComputedStyle(node).fontSize))).toBeGreaterThan(48);
 
   await page.getByRole("tab", { name: "Playlists" }).click();
@@ -846,8 +828,6 @@ test("la home et les pistes proposent des interactions tactiles dédiées", asyn
   const carouselArrows = page.locator('button[aria-label="Précédent"], button[aria-label="Suivant"]');
   expect(await carouselArrows.count()).toBeGreaterThan(0);
   for (let index = 0; index < await carouselArrows.count(); index += 1) await expect(carouselArrows.nth(index)).toBeHidden();
-
-  await showreelTitle.scrollIntoViewIfNeeded();
 
   const process = page.locator("#process");
   await process.scrollIntoViewIfNeeded();
@@ -937,18 +917,14 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     await expect(firstSyncCard.locator(".home-sync-card__frame").getByRole("link", { name: /^Voir le détail/ })).toBeVisible();
     await expect(firstSyncCard.locator(".editorial-video-card__mobile-link")).toBeVisible();
   } else {
-    const cornersBeforeHover = await firstSyncCard.evaluate((node) => ({
-      top: getComputedStyle(node, "::before").width,
-      bottom: getComputedStyle(node, "::after").width,
-    }));
+    expect(await firstSyncCard.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+    expect(await firstSyncCard.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
     await expect(syncCaption).toHaveCSS("opacity", "0");
     await firstSyncCard.hover();
     await expect(syncCaption).toHaveCSS("opacity", "1");
     await expect(firstSyncCard.locator(".home-sync-card__image")).toHaveCSS("filter", "blur(5px)");
-    expect(await firstSyncCard.evaluate((node) => ({
-      top: getComputedStyle(node, "::before").width,
-      bottom: getComputedStyle(node, "::after").width,
-    }))).toEqual(cornersBeforeHover);
+    expect(await firstSyncCard.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+    expect(await firstSyncCard.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
   }
   if (testInfo.project.name === "mobile") {
     const clipCard = page.getByTestId("home-clips-section").locator(".parigo-video-card").first();
@@ -958,15 +934,11 @@ test("les rails de la home bouclent et les synchronisations ouvrent leur lecteur
     expect((await clipFooter.boundingBox())!.height).toBeLessThanOrEqual(64);
   } else {
     const clipCard = page.getByTestId("home-clips-section").locator(".parigo-video-card").first();
-    const cornersBeforeHover = await clipCard.evaluate((node) => ({
-      top: getComputedStyle(node, "::before").width,
-      bottom: getComputedStyle(node, "::after").width,
-    }));
+    expect(await clipCard.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+    expect(await clipCard.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
     await clipCard.hover();
-    expect(await clipCard.evaluate((node) => ({
-      top: getComputedStyle(node, "::before").width,
-      bottom: getComputedStyle(node, "::after").width,
-    }))).toEqual(cornersBeforeHover);
+    expect(await clipCard.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+    expect(await clipCard.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
   }
   const syncHref = await firstSync.getAttribute("href");
   expect(syncHref).toMatch(/^\/synchronisations\/[^/]+$/);
@@ -1010,6 +982,7 @@ test("les rails reprennent le fond de leur section et adaptent leur espacement v
         section: getComputedStyle(node).backgroundColor,
         surface: getComputedStyle(document.querySelector<HTMLElement>("#featured")!).backgroundColor,
         rail: railNode ? getComputedStyle(railNode).backgroundColor : "",
+        railBottomBorder: railNode ? getComputedStyle(railNode).borderBottomWidth : "",
         viewport: viewportNode ? getComputedStyle(viewportNode).backgroundColor : "",
         paddingTop: viewportNode ? getComputedStyle(viewportNode).paddingTop : "",
         paddingBottom: viewportNode ? getComputedStyle(viewportNode).paddingBottom : "",
@@ -1018,6 +991,7 @@ test("les rails reprennent le fond de leur section et adaptent leur espacement v
       };
     });
     expect(colors.rail).toBe(colors.section);
+    expect(colors.railBottomBorder).toBe("0px");
     expect(colors.viewport).toBe(colors.section);
     expect(colors.paddingTop).toBe("8px");
     expect(colors.paddingBottom).toBe(index === 0 ? "20px" : "0px");
@@ -1043,9 +1017,23 @@ test("le showreel occupe le viewport et ne contient plus l’effet de pochettes"
   await expect(section.getByText(/Parigo accompagne chaque année/i)).toHaveCount(0);
   await expect(page.getByTestId("manifesto-album-cover")).toHaveCount(0);
   const video = section.getByTestId("home-showreel-video");
-  await expect(video).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  await expect(video).not.toHaveAttribute("src");
+  await expect(video.locator('source[media="(max-width: 767px)"]')).toHaveAttribute("src", "/videos/garden-of-eden-showreel-mobile.mp4");
+  await expect(video.locator("source").last()).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
   await expect(video).toHaveAttribute("poster", "/images/home/garden-of-eden-poster.jpg");
   await expect(section.locator("iframe")).toHaveCount(0);
+});
+
+test("le showreel ne demande aucun MP4 avant d’approcher sa section", async ({ page }) => {
+  let videoRequests = 0;
+  await page.route("**/videos/garden-of-eden-showreel*.mp4", async (route) => {
+    videoRequests += 1;
+    await route.continue();
+  });
+  await page.goto("/");
+  await page.waitForTimeout(800);
+  expect(videoRequests).toBe(0);
+  await expect(page.getByTestId("home-showreel-video").locator("source")).toHaveCount(0);
 });
 
 test("le showreel charge le MP4 local et son contrôle sonore sans consentement marketing", async ({ page }) => {
@@ -1054,7 +1042,8 @@ test("le showreel charge le MP4 local et son contrôle sonore sans consentement 
   await section.scrollIntoViewIfNeeded();
   const player = section.getByTestId("home-showreel-video");
   await expect(player).toBeVisible();
-  await expect(player).toHaveAttribute("src", "/videos/garden-of-eden-showreel.mp4");
+  await expect(player).not.toHaveAttribute("src");
+  await expect(player.locator("source")).toHaveCount(2);
   await expect(page.getByRole("button", { name: /Activer le son|Couper le son/ })).toBeVisible({ timeout: 30_000 });
 });
 
@@ -1910,6 +1899,7 @@ test("la modale de compte bascule entre connexion et inscription complète", asy
   await expect(backdrop).toHaveCSS("background-color", "rgb(7, 9, 7)");
   await expect(backdrop).toHaveCSS("backdrop-filter", "none");
   const switcher = dialog.getByTestId("auth-switcher");
+  await expect(switcher.locator("aside > span.rounded-full")).toHaveCount(0);
   await expect(switcher).toHaveAttribute("data-auth-view", "login");
   await expect(dialog.getByRole("heading", { name: "Se connecter" })).toBeVisible();
   const registerSwitch = dialog.getByRole("button", { name: "Afficher le formulaire d’inscription" });

@@ -193,9 +193,6 @@ export function AuthSwitcher({
           className="absolute inset-0"
           style={{ background: "linear-gradient(180deg, rgb(6 10 8 / .3), rgb(6 10 8 / .76))" }}
         />
-        <span aria-hidden="true" className="absolute -right-16 -top-16 h-52 w-52 rounded-full border border-current opacity-15" />
-        <span aria-hidden="true" className="absolute bottom-6 left-6 h-16 w-16 border-b-2 border-l-2 border-current opacity-50" />
-        <span aria-hidden="true" className="absolute right-6 top-6 h-16 w-16 border-r-2 border-t-2 border-current opacity-50" />
         <ParigoLogo monochrome className="relative z-[1] text-[1.75rem]" />
         <div className="relative z-[1] flex flex-1 items-center justify-center py-6 text-center md:py-10">
           <AnimatePresence mode="wait" initial={false}>

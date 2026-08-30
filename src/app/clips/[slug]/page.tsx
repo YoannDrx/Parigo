@@ -7,6 +7,7 @@ import { Footer, Header } from "@/components/layout";
 import { AlbumCard } from "@/components/features/AlbumCard";
 import { ConsentAwareYouTubeEmbed } from "@/components/media/ConsentAwareYouTubeEmbed";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { getEditorialVideo } from "@/lib/editorial/videos";
 import { emptyCanonicalComposerSummaries } from "@/lib/composers/profiles";
 import { getCachedAlbumDiscovery } from "@/lib/harvest/catalog-cache";
@@ -75,6 +76,10 @@ export default async function ClipPage({ params }: ClipPageProps) {
   return (
     <div className="page-shell min-h-screen">
       {structuredData && <JsonLd data={structuredData} />}
+      <BreadcrumbJsonLd locale={locale} items={[
+        { name: "Clips", path: "/clips" },
+        { name: title, path: `/clips/${slug}` },
+      ]} />
       <Header />
       <main className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-contextual-back-page-top)] md:pt-[var(--space-page-top)]">
         <div className="mx-auto max-w-[1440px]">

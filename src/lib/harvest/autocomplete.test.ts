@@ -30,7 +30,7 @@ describe("Harvest autocomplete", () => {
     expect(buildAutocompletePayload("crime", "albums")).toMatchObject({
       ReturnTracks: true,
       ReturnAlbums: true,
-      ReturnAlbums_Fields: "DisplayTitle,Description,Keywords",
+      ReturnAlbums_Fields: "DisplayTitle,Description,Keywords,CDCode,LibraryName",
       ReturnAlbums_DisableKeywordGroup: true,
     });
   });
@@ -47,7 +47,7 @@ describe("Harvest autocomplete", () => {
       FeaturedPlaylistsFound: 1,
       FeaturedPlaylists: [{ FeaturedPlaylistID: "playlist-1", Name: "Investigation — Crime" }],
       LibrariesFound: 1,
-      Libraries: [{ LibraryID: "label-1", Name: "Parigo" }],
+      Libraries: [{ LibraryID: "label-1", Name: "Parigo", Prefix: "PGO", Description: "Catalogue original Parigo" }],
       RightHolderFound: 1,
       rightHolders: [{ RightHolderID: "composer-1", firstname: "Jane", lastname: "Doe" }],
       KeywordsFound: 1,
@@ -74,8 +74,80 @@ describe("Harvest autocomplete", () => {
       href: "/search?view=tracks&type=main&composer=Jane%20Doe",
     });
     expect(groups.find((group) => group.key === "labels")?.items[0]?.href).toBe("/search?view=tracks&type=main&labels=label-1");
+    expect(groups.find((group) => group.key === "labels")?.items[0]).toMatchObject({
+      subtitle: "Réf. PGO · Catalogue original Parigo",
+    });
     expect(groups.find((group) => group.key === "words")?.items.every((item) => item.kind === "keyword")).toBe(true);
     expect(groups.some((group) => (group.key as string) === "styles")).toBe(false);
+  });
+
+  it.each(["PGO", "pgo", "  PGO  "])("matches a label reference for %s", (query) => {
+    const label = mapAutocompleteResponse({
+      LibrariesFound: 1,
+      Libraries: [{ LibraryID: "label-pgo", Name: "Parigo", Prefix: "PGO" }],
+    }, "tracks", undefined, undefined, query)
+      .find((group) => group.key === "labels")?.items[0];
+
+    expect(label).toMatchObject({
+      id: "label-pgo",
+      subtitle: "Réf. PGO",
+      matchEvidence: [expect.objectContaining({ field: "catalogReference", value: "PGO" })],
+    });
+  });
+
+  it("infers Harvest's omitted library prefix from albums of the same label", () => {
+    const label = mapAutocompleteResponse({
+      LibrariesFound: 1,
+      Libraries: [{ LibraryID: "label-pgo", Name: "Parigo" }],
+      AlbumsFound: 1,
+      Albums: [{ AlbumID: "album-pgo", DisplayTitle: "PGO0028 Paris", CDCode: "PGO0028" }],
+    }, "tracks", undefined, undefined, "PGO")
+      .find((group) => group.key === "labels")?.items[0];
+
+    expect(label).toMatchObject({
+      id: "label-pgo",
+      subtitle: "Réf. PGO",
+      matchEvidence: [expect.objectContaining({ field: "catalogReference", value: "PGO" })],
+    });
+  });
+
+  it("normalizes spaces and zero padding in complete catalog references", () => {
+    const groups = mapAutocompleteResponse({
+      LibrariesFound: 1,
+      Libraries: [{ LibraryID: "label-pgo", Name: "Parigo" }],
+      AlbumsFound: 1,
+      Albums: [{ AlbumID: "album-pgo", DisplayTitle: "Paris", LibraryName: "Parigo", CDCode: "PGO0028" }],
+    }, "albums", undefined, undefined, "PGO 028");
+
+    expect(groups.find((group) => group.key === "labels")?.items[0]?.matchEvidence).toEqual([
+      expect.objectContaining({ field: "catalogReference", value: "PGO" }),
+    ]);
+    expect(groups.find((group) => group.key === "albums")?.items[0]?.matchEvidence).toEqual([
+      expect.objectContaining({ field: "catalogReference", value: "PGO0028" }),
+    ]);
+  });
+
+  it("supports other label references without hard-coding Parigo", () => {
+    const label = mapAutocompleteResponse({
+      LibrariesFound: 1,
+      Libraries: [{ LibraryID: "label-prtm", Name: "Primetime", Prefix: "PRTM" }],
+    }, "albums", undefined, undefined, "PRTM")
+      .find((group) => group.key === "labels")?.items[0];
+
+    expect(label).toMatchObject({
+      href: "/search?view=albums&type=main&labels=label-prtm",
+      subtitle: "Réf. PRTM",
+    });
+  });
+
+  it("does not attribute an unknown reference to an unrelated label", () => {
+    const label = mapAutocompleteResponse({
+      LibrariesFound: 1,
+      Libraries: [{ LibraryID: "label-pgo", Name: "Parigo", Prefix: "PGO" }],
+    }, "tracks", undefined, undefined, "UNKNOWN")
+      .find((group) => group.key === "labels")?.items[0];
+
+    expect(label?.matchEvidence).toBeUndefined();
   });
 
   it("returns stable empty groups for an invalid response", () => {

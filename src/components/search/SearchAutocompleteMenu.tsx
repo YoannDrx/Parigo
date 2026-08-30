@@ -303,7 +303,7 @@ function SideGroup({
                 <span className="mt-0.5 block text-[.65rem] opacity-60">
                   {item.kind === "composer"
                     ? locale === "fr" ? "Filtrer par compositeur" : "Filter by composer"
-                    : locale === "fr" ? "Filtrer par label" : "Filter by label"}
+                    : [item.subtitle, locale === "fr" ? "Filtrer par label" : "Filter by label"].filter(Boolean).join(" · ")}
                 </span>
               </span>
             </button>

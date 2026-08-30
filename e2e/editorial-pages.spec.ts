@@ -25,7 +25,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test("le footer expose les huit plateformes officielles avec leurs URLs canoniques", async ({ page }) => {
+test("le footer expose les sept plateformes officielles sans Linktree", async ({ page }) => {
   await page.goto("/");
   const footer = page.locator("footer");
   const platforms = [
@@ -36,7 +36,6 @@ test("le footer expose les huit plateformes officielles avec leurs URLs canoniqu
     ["Parigo sur Bandcamp", "https://parigomusic.bandcamp.com/music"],
     ["Les playlists Parigo sur Spotify", "https://open.spotify.com/user/zy4tz4ibp2hi7qvf315g5dv85/playlists"],
     ["Parigo sur TikTok", "https://www.tiktok.com/@parigomusic"],
-    ["Tous les liens Parigo sur Linktree", "https://linktr.ee/parigomusicproduction"],
   ] as const;
   for (const [label, href] of platforms) {
     const link = footer.getByRole("link", { name: label });
@@ -44,6 +43,7 @@ test("le footer expose les huit plateformes officielles avec leurs URLs canoniqu
     await expect(link).toHaveAttribute("rel", "noopener noreferrer");
     await expect(link.locator("svg")).toHaveCount(1);
   }
+  await expect(footer.getByRole("link", { name: /Linktree/i })).toHaveCount(0);
 });
 
 test("les synchronisations restent contenues sur un écran de 320 px", async ({ page }) => {
@@ -217,7 +217,7 @@ test("les héros éditoriaux publient les titres et introductions validés", asy
   }
 });
 
-test("la bordure et les corners des synchronisations restent visibles au survol", async ({ page }, testInfo) => {
+test("la bordure des synchronisations reste visible au survol sans corners décoratifs", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name === "mobile", "Le survol est vérifié avec un pointeur desktop.");
   await page.goto("/synchronisations");
   const card = page.locator(".sync-gallery-card").first();
@@ -227,8 +227,8 @@ test("la bordure et les corners des synchronisations restent visibles au survol"
   await card.hover();
   await expect(caption).toHaveCSS("opacity", "1");
   await expect(image).toHaveCSS("filter", "blur(5px)");
-  const topCorner = await card.evaluate((node) => getComputedStyle(node, "::before").width);
-  expect(Number.parseFloat(topCorner)).toBeCloseTo(48, 0);
+  expect(await card.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  expect(await card.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
 });
 
 test("la home expose une section Clips reliée à la vidéothèque", async ({ page }) => {
@@ -251,7 +251,7 @@ test("la recherche compositeurs reste limitée aux profils publics canoniques", 
   await expect(card).toBeVisible();
   await expect(card.locator("img")).toHaveAttribute("src", /\/images\/composers\/detail\//);
   await expect(card.locator("img")).toHaveCSS("object-fit", "cover");
-  await expect(card.locator(".composer-card__corner")).toHaveCount(2);
+  await expect(card.locator(".composer-card__corner")).toHaveCount(0);
   await expect(page.locator(".composer-card").getByText(/^C\s*\/\s*\d+$/)).toHaveCount(0);
 
   await search.fill("Rebecca");
@@ -296,6 +296,19 @@ test("le détail d’une synchronisation contient son titre et masque la descrip
 test("la playlist détail compacte ses actions et ses pistes sur mobile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "La composition icon-only est réservée au mobile.");
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.route("**/api/auth/session", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ data: { session: { user: { id: "member-1", email: "yoann@parigo.test", name: "Yoann" }, session: { expiresAt: "2026-12-01T00:00:00.000Z" } } } }),
+  }));
+  let copiedPlaylistId = "";
+  let copiedTrackIds: string[] = [];
+  await page.route("**/api/user/playlists/copy-featured", async (route) => {
+    const payload = route.request().postDataJSON() as { playlistId?: string; trackIds?: string[] };
+    copiedPlaylistId = payload.playlistId || "";
+    copiedTrackIds = payload.trackIds || [];
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ data: { copied: true, playlist: { id: "copied-playlist-1", title: "Ma copie" } } }) });
+  });
   await page.goto("/playlists/22b6c3499f843b2d");
   const actions = [
     page.getByRole("button", { name: "Écouter la sélection" }),
@@ -324,6 +337,11 @@ test("la playlist détail compacte ses actions et ses pistes sur mobile", async 
   await expect(firstTrack).toBeVisible();
   expect((await firstTrack.boundingBox())!.height).toBeLessThanOrEqual(230);
   await expect(tracksTitle).toBeVisible();
+  await actions[2].click();
+  await expect(page.getByRole("status")).toContainText("toutes ses pistes ont été copiées");
+  expect(copiedPlaylistId).toBe("22b6c3499f843b2d");
+  expect(copiedTrackIds.length).toBeGreaterThan(0);
+  await expect(page.getByRole("link", { name: "Ouvrir ma copie" })).toHaveAttribute("href", "/account/playlists/copied-playlist-1");
 });
 
 test("previous/next disparaît de toutes les fiches de détail", async ({ page }) => {
@@ -390,15 +408,8 @@ test("les pages d’information alignent leurs corners et retirent la signature 
   await expect(page.locator("main")).not.toContainText("Parigo Music · Paris · France");
 
   const toc = page.locator(".legal-toc");
-  const radii = await toc.evaluate((node) => ({
-    container: getComputedStyle(node).borderTopRightRadius,
-    corner: getComputedStyle(node, "::before").borderTopRightRadius,
-    top: getComputedStyle(node, "::before").top,
-    right: getComputedStyle(node, "::before").right,
-  }));
-  expect(radii.corner).toBe(radii.container);
-  expect(radii.top).toBe("-1px");
-  expect(radii.right).toBe("-1px");
+  expect(await toc.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  expect(await toc.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
   await expect(toc).toHaveCSS("scrollbar-gutter", "auto");
 });
 
@@ -696,9 +707,16 @@ test("les héros des pages internes restent sobres sans formes géométriques en
   const hero = page.locator(".page-hero");
   await expect(hero).toBeVisible();
   await expect(hero).toHaveCSS("background-image", "none");
+  await expect(hero).toHaveCSS("border-bottom-width", "0px");
   expect(await hero.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  const frame = hero.locator(".page-hero__frame");
+  await expect(frame).toHaveCSS("border-bottom-width", "1px");
+  expect(await frame.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
+  expect(await frame.evaluate((node) => getComputedStyle(node, "::after").content)).toBe("none");
   await expect(hero.locator(".page-hero__title-panel")).toHaveCSS("background-image", "none");
   const aside = hero.locator(".page-hero__aside");
+  await expect(aside).toHaveCSS("border-top-width", "0px");
+  await expect(aside).toHaveCSS("border-left-width", "0px");
   expect(await aside.evaluate((node) => getComputedStyle(node, "::before").content)).toBe("none");
 
   await page.goto("/albums/4b21f575ee992534");
@@ -805,21 +823,19 @@ test("la page des labels adopte l’intitulé Labels", async ({ page }, testInfo
     const corners = await Promise.all([
       page.locator(".page-hero__frame").evaluate((node) => {
         const style = getComputedStyle(node, "::after");
-        return { width: style.width, clipPath: style.clipPath, offset: style.bottom };
+        return style.content;
       }),
       page.locator(".catalog-toolbar").evaluate((node) => {
         const style = getComputedStyle(node, "::after");
-        return { width: style.width, clipPath: style.clipPath, offset: style.bottom };
+        return style.content;
       }),
       page.locator('.parigo-select[data-variant="editorial"]').evaluate((node) => {
         const style = getComputedStyle(node, "::before");
-        return { width: style.width, clipPath: style.clipPath, offset: style.top };
+        return style.content;
       }),
     ]);
     for (const corner of corners) {
-      expect(Number.parseFloat(corner.width)).toBeGreaterThan(100);
-      expect(corner.clipPath).not.toBe("none");
-      expect(corner.offset).toBe("-1px");
+      expect(corner).toBe("none");
     }
   }
 });

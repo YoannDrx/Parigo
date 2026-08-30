@@ -9,8 +9,14 @@ export async function POST(request: NextRequest) {
   try {
     assertSameOrigin(request);
     const session = await requireHarvestSession();
-    const { playlistId } = z.object({ playlistId: z.string().min(1) }).parse(await request.json());
-    const playlist = await copyFeaturedPlaylist(session.memberToken, playlistId);
+    const { playlistId, trackIds } = z.object({
+      playlistId: z.string().min(1),
+      trackIds: z.array(z.string().min(1)).max(500).refine(
+        (ids) => new Set(ids).size === ids.length,
+        "trackIds must be unique",
+      ),
+    }).parse(await request.json());
+    const playlist = await copyFeaturedPlaylist(session.memberToken, playlistId, trackIds);
     return NextResponse.json({ data: { copied: true, playlist: apiPlaylist(playlist) }, meta: { requestId: id } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

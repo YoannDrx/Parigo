@@ -260,6 +260,7 @@ export interface Label {
   id: string;
   slug?: string;
   name: string;
+  references?: string[];
   logo: string | null;
   description?: string;
   descriptions?: Partial<Record<"fr" | "en", string>>;

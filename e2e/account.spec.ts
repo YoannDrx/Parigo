@@ -50,7 +50,7 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   if (testInfo.project.name === "mobile") await page.getByRole("button", { name: "Ouvrir le menu" }).click();
 
   const scope = testInfo.project.name === "mobile" ? page.locator("#global-menu") : page.getByRole("navigation", { name: "Navigation principale" });
-  const accountSurface = testInfo.project.name === "mobile" ? scope.getByRole("dialog", { name: "Navigation du compte" }) : scope;
+  const accountSurface = testInfo.project.name === "mobile" ? page.getByRole("dialog", { name: "Navigation du compte" }) : scope;
   const trigger = scope.getByTestId("account-trigger");
   if (testInfo.project.name === "mobile") {
     await expect(trigger).toBeVisible();
@@ -65,7 +65,7 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(menu).toBeVisible();
   const accountMark = menu.getByTestId("account-mark").first();
   await expect(accountMark).toBeVisible();
-  await expect(accountMark.locator(".account-mark__corner")).toHaveCount(2);
+  await expect(accountMark.locator(".account-mark__corner")).toHaveCount(0);
   await expect(accountMark).toHaveCSS("border-radius", "0px");
   await expect(accountMark).toHaveCSS("width", "64px");
   if (testInfo.project.name === "mobile") {
@@ -74,8 +74,9 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
     const triggerBox = await trigger.boundingBox();
     expect(accountBox).not.toBeNull();
     expect(triggerBox).not.toBeNull();
-    expect(accountBox!.y).toBeGreaterThanOrEqual(triggerBox!.y + triggerBox!.height - 1);
+    expect(accountBox!.y).toBeGreaterThanOrEqual(0);
     expect(accountBox!.x + accountBox!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+    expect(accountBox!.y + accountBox!.height).toBeLessThanOrEqual(page.viewportSize()!.height);
   }
   await expect(menu.getByText("Espace personnel", { exact: true })).toBeVisible();
   await expect(menu.getByRole("link", { name: "Ouvrir mon profil" })).toHaveAttribute("href", "/account");
@@ -86,6 +87,26 @@ test("le menu membre adopte la composition éditoriale et le monogramme Parigo",
   await expect(menu.getByRole("link", { name: /Historique/ })).toHaveAttribute("href", "/account/history");
   await expect(menu.getByText(/^0[1-5]$/)).toHaveCount(0);
   await expect(menu.getByRole("button", { name: "Se déconnecter" })).toHaveCSS("text-transform", "none");
+});
+
+test("naviguer vers le compte depuis le menu global ferme le menu et libère la page", async ({ page }, testInfo) => {
+  await mockSession(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Ouvrir le menu" }).click();
+  const globalMenu = page.getByRole("dialog", { name: "Menu principal" });
+  await expect(globalMenu).toBeVisible();
+
+  const accountTrigger = testInfo.project.name === "mobile"
+    ? globalMenu.getByTestId("account-trigger")
+    : page.getByRole("navigation", { name: "Navigation principale" }).getByTestId("account-trigger");
+  await accountTrigger.click();
+  const accountMenu = page.locator('[data-testid="account-menu"]:visible');
+  await expect(accountMenu).toBeVisible();
+  await accountMenu.getByRole("link", { name: "Ouvrir mon profil" }).click();
+
+  await expect(page).toHaveURL(/\/account$/);
+  await expect(globalMenu).toHaveCount(0);
+  await expect(page.locator("body")).not.toHaveCSS("overflow", "hidden");
 });
 
 test("les favoris chargés ne réamorcent pas leur propre requête", async ({ page }, testInfo) => {
@@ -381,17 +402,10 @@ test("la shortlist rend ses pistes navigables et garde les longues listes de pla
   await expect(saveCard).toBeVisible();
   await expect(drawer.getByText("Destination", { exact: true })).toHaveCount(0);
   expect(await saveCard.evaluate((node) => getComputedStyle(node).borderRadius)).not.toBe("0px");
-  const saveCardCorner = await saveCard.evaluate((node) => {
-    const style = getComputedStyle(node, "::after");
-    return {
-      left: style.left,
-      right: style.right,
-      bottom: style.bottom,
-      borderLeft: style.borderLeftWidth,
-      borderRight: style.borderRightWidth,
-    };
-  });
-  expect(saveCardCorner).toMatchObject({ left: "-1px", right: "-1px", bottom: "-1px", borderLeft: "1px", borderRight: "0px" });
+  await expect.poll(() => saveCard.evaluate((node) => [
+    getComputedStyle(node, "::before").content,
+    getComputedStyle(node, "::after").content,
+  ])).toEqual(["none", "none"]);
   if (testInfo.project.name !== "mobile") {
     const closeButton = drawer.getByRole("button", { name: "Fermer", exact: true });
     const closeIconTransform = await closeButton.locator("svg").evaluate((node) => getComputedStyle(node).transform);

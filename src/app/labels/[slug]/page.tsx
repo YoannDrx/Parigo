@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { LabelDetailClient } from "@/components/catalog/LabelDetailClient";
 import { ReactQueryProvider } from "@/components/providers/ReactQueryProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { BreadcrumbJsonLd } from "@/components/seo/BreadcrumbJsonLd";
 import { getCachedAlbumDiscovery, getCachedLabel } from "@/lib/harvest/catalog-cache";
 import { getRequestLocale } from "@/lib/locale-server";
 import { absoluteUrl, buildMetadata, hasSearchParams, type PageSearchParams } from "@/lib/seo";
@@ -67,6 +68,10 @@ export default async function LabelPage({ params }: LabelPageProps) {
         url: absoluteUrl(`${locale === "en" ? "/en" : ""}/labels/${slug}`),
         description: label.description || undefined,
       }} />
+      <BreadcrumbJsonLd locale={locale} items={[
+        { name: locale === "fr" ? "Labels" : "Labels", path: "/labels" },
+        { name: label.name, path: `/labels/${slug}` },
+      ]} />
       <ReactQueryProvider><LabelDetailClient label={label} /></ReactQueryProvider>
     </>
   );

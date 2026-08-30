@@ -64,7 +64,7 @@ export function CatalogToolbar<TSort extends string>({
             options={sortOptions}
           />
           <div className={cn(
-            "search-view-toggle w-fit shrink-0 border border-[var(--line-strong)] bg-[var(--background)] p-1",
+            "search-view-toggle h-12 w-fit shrink-0 items-center border border-[var(--line-strong)] bg-[var(--background)] p-1",
             viewControlVisibility === "desktop" ? "hidden md:inline-flex" : viewControlVisibility === "hidden" ? "hidden" : "inline-flex",
           )} role="group" aria-label={locale === "fr" ? "Mode d’affichage" : "Display mode"}>
             {([
