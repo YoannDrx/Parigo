@@ -60,10 +60,9 @@ export function ContactExperience({ track, requestedTrackId }: { track: Track | 
 
   return (
     <InstitutionalShell title={title} intro={intro} showHero={false}>
-      <section className="bg-[var(--surface-soft)] px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
+      <h1 className="sr-only">{title}</h1>
+      <section className="bg-[var(--background)] px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[calc(74px+var(--space-page-hero-follow))]">
         <div className="mx-auto max-w-[1500px]">
-          <h1 className="sr-only">{title}</h1>
-
           <figure data-testid="contact-image-frame" className="parigo-frame relative aspect-[16/10] w-full overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)] sm:aspect-[16/8] lg:aspect-[16/7]">
             <ContactLocationImage locale={locale} />
           </figure>

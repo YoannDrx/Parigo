@@ -196,8 +196,8 @@ export function PlaylistsPageClient({ playlists }: { playlists: ApiPlaylist[] })
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <CatalogHero title={t("catalog.playlistsTitle")} intro={t("catalog.playlistsIntro")} meta={`${playlists.length} ${t("common.playlists").toLowerCase()}`} />
-        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
+        <CatalogHero title={t("catalog.playlistsTitle")} intro={t("catalog.playlistsIntro")} containerClassName="max-w-[1920px]" />
+        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-page-hero-follow)]">
           <CatalogToolbar
             locale={locale}
             sort={sort}

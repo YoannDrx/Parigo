@@ -101,8 +101,8 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
       <main className="flex-1">
-        <CatalogHero title={t("catalog.labelsTitle")} intro={t("catalog.labelsIntro")} meta={`${labels.length} ${t("common.labels").toLowerCase()}`} />
-        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-divider-content)]">
+        <CatalogHero title={t("catalog.labelsTitle")} intro={t("catalog.labelsIntro")} containerClassName="max-w-[1920px]" />
+        <div className="mx-auto max-w-[1920px] px-[var(--space-page-gutter)] pb-[var(--space-section-y)] pt-[var(--space-page-hero-follow)]">
           <CatalogToolbar
             locale={locale}
             query={query}

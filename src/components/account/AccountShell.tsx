@@ -17,9 +17,9 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
       <PageHero
         title={t("account.title")}
         intro={locale === "fr" ? "Retrouvez vos recherches, sélections et préférences au même endroit." : "Find your searches, selections and preferences in one place."}
-        meta={locale === "fr" ? "Parigo Music · Espace membre" : "Parigo Music · Member space"}
+        containerClassName="max-w-[1600px]"
       />
-      <div className="flex-1 pb-[var(--space-page-end)] pt-[var(--space-divider-content)]">
+      <div className="flex-1 pb-[var(--space-page-end)] pt-[var(--space-page-hero-follow)]">
         <div className="mx-auto max-w-[1600px] px-4 lg:px-8">
           <div className="flex min-w-0 flex-col gap-[var(--space-account-flow)] lg:flex-row">
             <AccountNavigation />

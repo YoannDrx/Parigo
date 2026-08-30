@@ -33,6 +33,8 @@ interface AlbumExplorerProps {
   queryPlaceholder?: { fr: string; en: string };
   headingLevel?: 2 | 3;
   enableTrackView?: boolean;
+  separateMobileSearch?: boolean;
+  accentMobileFilter?: boolean;
 }
 
 const DEFAULT_BPM: [number, number] = [50, 200];
@@ -70,7 +72,7 @@ function albumFromTrack(track: Track): Album {
   };
 }
 
-export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headingLevel = 2, enableTrackView = false }: AlbumExplorerProps) {
+export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headingLevel = 2, enableTrackView = false, separateMobileSearch = false, accentMobileFilter = false }: AlbumExplorerProps) {
   const { locale, t, localizedPath } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
@@ -287,6 +289,23 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
       onReset={reset}
     />
   );
+  const mobileFilterTrigger = (
+    <Button
+      ref={filterTriggerRef}
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={() => setMobileFiltersOpen(true)}
+      className={cn(
+        "search-mobile-filter-trigger gap-2 lg:hidden",
+        separateMobileSearch && "w-full justify-center",
+        accentMobileFilter && "!border-[var(--signal-strong)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--signal-strong)_18%,transparent)]",
+      )}
+    >
+      <SlidersHorizontal size={16} className={cn(accentMobileFilter && "text-[var(--signal-strong)]")} />
+      {locale === "fr" ? "Tous les filtres" : "All filters"}
+    </Button>
+  );
 
   return (
     <section ref={catalogWorkspaceRef}>
@@ -311,6 +330,8 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             onViewChange={setView}
             resultCount={total}
             viewControlVisibility={kind === "tracks" ? "hidden" : "all"}
+            separateMobileSearch={separateMobileSearch}
+            mobileLeadingControl={separateMobileSearch ? mobileFilterTrigger : undefined}
             primaryControls={enableTrackView ? (
               <div className="search-view-toggle inline-flex w-fit shrink-0 border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Contenu du label" : "Label content"}>
                 {(["albums", "tracks"] as const).map((value) => {
@@ -321,11 +342,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
               </div>
             ) : undefined}
           >
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Button ref={filterTriggerRef} type="button" variant="outline" size="sm" onClick={() => setMobileFiltersOpen(true)} className="search-mobile-filter-trigger gap-2 lg:hidden">
-                <SlidersHorizontal size={16} />{locale === "fr" ? "Tous les filtres" : "All filters"}
-              </Button>
-            </div>
+            {!separateMobileSearch ? <div className="mt-2 flex flex-wrap items-center gap-2">{mobileFilterTrigger}</div> : null}
             <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={reset} />
           </CatalogToolbar>
 

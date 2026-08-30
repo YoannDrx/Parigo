@@ -14,29 +14,11 @@ export default function LicensingPage() {
     <InstitutionalShell
       title={t("institutional.licensingTitle")}
       intro={t("institutional.licensingIntro")}
-      showHero={false}
+      heroContainerClassName="max-w-[1320px]"
     >
-      <section className="bg-[var(--surface-soft)] px-[var(--space-page-gutter)] pb-[var(--space-page-end)] pt-[var(--space-page-top)]">
+      <section className="bg-[var(--background)] px-[var(--space-page-gutter)] pb-[var(--space-page-end)] pt-[var(--space-page-hero-follow)]">
         <div className="mx-auto max-w-[1500px]">
-          <div data-testid="licensing-split">
-            <div
-              data-testid="licensing-title-card"
-              className="parigo-frame flex flex-col border border-[var(--line-strong)] bg-[var(--surface)] p-6 sm:p-8 md:min-h-[26rem] md:justify-between lg:min-h-[32rem] lg:p-12 xl:p-14"
-            >
-              <SignedTitle
-                as="h1"
-                className="max-w-[15ch] break-words font-[var(--font-editorial)] text-[clamp(2.5rem,9vw,6.8rem)] font-semibold leading-[.92] tracking-[-.055em]"
-              >
-                {t("institutional.licensingTitle")}
-              </SignedTitle>
-              <p className="mt-4 max-w-3xl text-sm leading-6 text-[var(--text-muted)] sm:mt-5 sm:text-base sm:leading-7 md:mt-8 lg:mt-12 lg:text-lg lg:leading-8">
-                {t("institutional.licensingIntro")}
-              </p>
-            </div>
-
-          </div>
-
-          <div className="mx-auto mt-[var(--space-section-y-large)] max-w-[1320px]">
+          <div className="mx-auto max-w-[1320px]">
             <LicensingRates />
           </div>
 

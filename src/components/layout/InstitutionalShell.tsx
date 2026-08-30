@@ -8,15 +8,16 @@ interface InstitutionalShellProps {
   intro: string;
   children: ReactNode;
   showHero?: boolean;
+  heroContainerClassName?: string;
   titleVariant?: "display" | "page" | "detail" | "section" | "compact";
 }
 
-export function InstitutionalShell({ title, intro, children, showHero = true, titleVariant = "page" }: InstitutionalShellProps) {
+export function InstitutionalShell({ title, intro, children, showHero = true, heroContainerClassName = "max-w-[1500px]", titleVariant = "page" }: InstitutionalShellProps) {
   return (
     <div className="page-shell overflow-x-clip">
       <Header />
       <main>
-        {showHero ? <PageHero title={title} intro={intro} titleVariant={titleVariant} className="institutional-page-hero" /> : null}
+        {showHero ? <PageHero title={title} intro={intro} titleVariant={titleVariant} className="institutional-page-hero" containerClassName={heroContainerClassName} /> : null}
         {children}
       </main>
       <Footer />
