@@ -998,7 +998,7 @@ test("les héros publics n’affichent plus de surtitre décoratif", async ({ pa
 
   await page.goto("/search");
   await expect(page.locator("main h1").first()).toHaveText("Recherche");
-  await expect(page.locator("main")).not.toContainText("Donnez le ton à vos images");
+  await expect(page.locator("main").first()).not.toContainText("Donnez le ton à vos images");
 });
 
 test("Contact ouvre sur une grande image des locaux puis aligne coordonnées et formulaire", async ({ page }) => {

@@ -341,8 +341,10 @@ test("l’affichage rejoint le compteur, retire le corner du Select et aligne la
 
   const status = page.locator(".search-results-status");
   const select = status.locator(".parigo-select");
-  const counter = status.locator(":scope > div > span").first();
-  const [counterBox, displayBox] = await Promise.all([counter.boundingBox(), display.boundingBox()]);
+  const { counterBox, displayBox } = await status.evaluate((node) => ({
+    counterBox: node.querySelector(":scope > div > span")?.getBoundingClientRect().toJSON() ?? null,
+    displayBox: node.querySelector("[role='combobox']")?.getBoundingClientRect().toJSON() ?? null,
+  }));
   expect(counterBox).not.toBeNull();
   expect(displayBox).not.toBeNull();
   expect(Math.abs(counterBox!.y + counterBox!.height / 2 - (displayBox!.y + displayBox!.height / 2))).toBeLessThanOrEqual(2);
