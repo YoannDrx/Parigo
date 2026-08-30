@@ -7,8 +7,7 @@ import { assertSameOrigin, clearHarvestSession, requireHarvestSession } from "@/
 
 const deletionSchema = z.object({
   password: z.string().min(1).max(512),
-  archiveOnly: z.boolean().default(false),
-});
+}).strict();
 
 export async function DELETE(request: Request) {
   const id = requestId();
@@ -18,9 +17,9 @@ export async function DELETE(request: Request) {
     const input = deletionSchema.parse(await request.json());
     await memberRequest(session.memberToken, (token) => `/removememberverifypassword/${token}`, {
       method: "POST",
-      body: JSON.stringify(buildMemberRemoval(input.password, input.archiveOnly)),
+      body: JSON.stringify(buildMemberRemoval(input.password, true)),
     });
     await clearHarvestSession();
-    return NextResponse.json({ data: { deleted: !input.archiveOnly, archived: input.archiveOnly }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
+    return NextResponse.json({ data: { closed: true }, meta: { requestId: id } }, { headers: { "Cache-Control": "no-store", "X-Request-ID": id } });
   } catch (error) { return apiError(error, id, { surface: "account" }); }
 }

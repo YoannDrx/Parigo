@@ -14,9 +14,10 @@ interface DownloadButtonProps {
   trackTitle: string;
   className?: string;
   label?: string;
+  onAction?: () => void;
 }
 
-export function DownloadButton({ trackId, trackTitle, className, label }: DownloadButtonProps) {
+export function DownloadButton({ trackId, trackTitle, className, label, onAction }: DownloadButtonProps) {
   const { data: session } = useSession();
   const openLogin = useAuthModalStore((state) => state.openLogin);
   const { locale } = useI18n();
@@ -24,6 +25,7 @@ export function DownloadButton({ trackId, trackTitle, className, label }: Downlo
   const [message, setMessage] = useState("");
 
   const startDownload = async () => {
+    onAction?.();
     if (!session?.user) {
       openLogin();
       return;

@@ -9,7 +9,7 @@ import { Tooltip } from "@/components/ui/Tooltip";
 import { useI18n } from "@/components/providers/I18nProvider";
 import { cn } from "@/lib/utils";
 
-export function CueSheetButton({ title, trackIds, compact = false, className }: { title: string; trackIds: string[]; compact?: boolean; className?: string }) {
+export function CueSheetButton({ title, trackIds, compact = false, className, onAction }: { title: string; trackIds: string[]; compact?: boolean; className?: string; onAction?: () => void }) {
   const { data: session } = useSession();
   const { locale } = useI18n();
   const [loading, setLoading] = useState(false);
@@ -17,6 +17,7 @@ export function CueSheetButton({ title, trackIds, compact = false, className }: 
   const [requestId, setRequestId] = useState("");
   if (!session?.user || !trackIds.length) return null;
   const create = async () => {
+    onAction?.();
     setLoading(true);
     setError("");
     setRequestId("");

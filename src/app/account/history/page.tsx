@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ChevronDown, Clock } from "lucide-react";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
@@ -30,26 +31,17 @@ export default function HistoryPage() {
   const { locale, t } = useI18n();
   const { data: session } = useSession();
   const userId = session?.user?.id;
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (!userId) return;
-    const controller = new AbortController();
-    void fetch("/api/user/history", { cache: "no-store", signal: controller.signal })
-      .then(async (response) => {
-        if (!response.ok) return;
-        const data = await response.json();
-        setHistory(data.data?.history || []);
-      })
-      .catch((error) => {
-        if (!controller.signal.aborted) console.error("Error loading history:", error);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setIsLoading(false);
-      });
-    return () => controller.abort();
-  }, [userId]);
+  const { data: history = [], isLoading } = useQuery<HistoryEntry[]>({
+    queryKey: ["account", "history", userId],
+    enabled: Boolean(userId),
+    staleTime: 60_000,
+    queryFn: async ({ signal }) => {
+      const response = await fetch("/api/user/history", { cache: "no-store", signal });
+      if (!response.ok) throw new Error("history fetch failed");
+      const data = await response.json();
+      return data.data?.history || [];
+    },
+  });
 
   const groupedHistory = useMemo(() => {
     const sortedHistory = [...history].sort((a, b) => {
@@ -148,6 +140,7 @@ export default function HistoryPage() {
                         density="full"
                         condensedActions
                         showTags={false}
+                        mobileLayout="history"
                         leadingMeta={<>
                           <span className="font-mono text-[.5rem] uppercase tracking-[.08em] text-[var(--text-muted)]">
                             {entry.playedAts.length > 1

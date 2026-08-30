@@ -46,7 +46,7 @@ interface TrackRowProps {
   showTags?: boolean;
   displayNumber?: string;
   groupedVersion?: boolean;
-  mobileLayout?: "default" | "dense";
+  mobileLayout?: "default" | "dense" | "history";
   managementActions?: ReactNode;
 }
 
@@ -89,6 +89,7 @@ export function TrackRow({
   const [detailsOpen, setDetailsOpen] = useState(initialDetailsOpen);
   const [detailsTab, setDetailsTab] = useState<TrackDetailsTab>(initialDetailsTab);
   const [mobileActionsOpen, setMobileActionsOpen] = useState(false);
+  const [mobileActionsMounted, setMobileActionsMounted] = useState(false);
   const isTouchLayout = useTouchLayout();
   const openShare = useTrackShareStore((state) => state.open);
   const mobileActionsToken = useRef(Symbol(track.id));
@@ -176,6 +177,15 @@ export function TrackRow({
     seekTo((percentage / 100) * track.duration);
   };
   const shareTrack = () => openShare({ trackId: track.id, title: track.title, description: track.description, albumSlug: album?.slug || track.albumSlug || track.albumId });
+  const closeMobileActions = () => setMobileActionsOpen(false);
+  const toggleMobileActions = () => {
+    if (!mobileActionsOpen) setMobileActionsMounted(true);
+    setMobileActionsOpen((value) => !value);
+  };
+  const afterClosingMobileActions = (action: () => void) => {
+    setMobileActionsOpen(false);
+    window.requestAnimationFrame(action);
+  };
   const toggleDetails = (tab: TrackDetailsTab) => {
     if (detailsOpen && detailsTab === tab) setDetailsOpen(false);
     else {
@@ -330,7 +340,7 @@ export function TrackRow({
 
         {/* Waveform */}
         {showWaveform && density !== "light" && (
-          <div className="parigo-track-row__waveform w-full">
+          <div className={cn("parigo-track-row__waveform w-full", mobileLayout === "history" && "max-md:hidden")}>
             <TrackWaveform
               trackId={track.id}
               initialData={track.waveform}
@@ -346,6 +356,21 @@ export function TrackRow({
         {density === "full" && track.description && <p className="parigo-track-row__description line-clamp-2 max-w-5xl text-xs leading-5 text-[var(--text-muted)]">{track.description}</p>}
         <p className="parigo-track-row__mobile-meta font-mono text-[.6rem] text-[var(--text-muted)] sm:hidden">{formatDuration(track.duration)}{track.bpm ? ` · ${formatBPM(track.bpm)}` : ""}</p>
       </div>
+
+      {mobileLayout === "history" && showWaveform && density !== "light" && (
+        <div className="parigo-track-row__history-waveform hidden w-full max-md:block">
+          <TrackWaveform
+            trackId={track.id}
+            initialData={track.waveform}
+            progress={progressPercent}
+            height={20}
+            interactive
+            onSeek={handleWaveformSeek}
+            ariaLabel={`${locale === "fr" ? "Position de lecture" : "Playback position"} : ${track.title}`}
+            className="opacity-80"
+          />
+        </div>
+      )}
 
       {/* Tags - Hidden on small screens */}
       {density === "full" && showTags && <div className="parigo-track-row__tags hidden flex-shrink-0 items-center gap-1 xl:flex">
@@ -387,32 +412,32 @@ export function TrackRow({
         <Tooltip label={isShortlisted ? (locale === "fr" ? "Déjà dans la sélection — retirer" : "Already selected — remove") : (locale === "fr" ? "Ajouter à la sélection" : "Add to selection")}><button onClick={() => isShortlisted ? removeFromShortlist(track.id) : addToShortlist(track)} aria-pressed={isShortlisted} className={cn("flex h-10 w-10 items-center justify-center border transition-colors", isShortlisted ? "border-[var(--signal-strong)] bg-[var(--signal-strong)] text-white shadow-[0_0_0_3px_color-mix(in_srgb,var(--signal)_16%,transparent)]" : "border-[var(--signal-strong)]/45 text-[var(--signal-strong)] hover:bg-[var(--signal-strong)] hover:text-white")} aria-label={`${isShortlisted ? t("search.removeShortlist") : t("search.addShortlist")} : ${track.title}`}>
           {isShortlisted ? <Check size={17} /> : <ListPlus size={17} />}
         </button></Tooltip>
-        <button ref={actionsTriggerRef} type="button" onClick={() => setMobileActionsOpen((value) => !value)} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} aria-haspopup="dialog" className={cn("parigo-track-row__actions-trigger flex h-10 w-10 items-center justify-center border border-[var(--line-strong)] transition lg:hidden", condensedActions && "rounded-[var(--parigo-corner-sm)_var(--parigo-turn-sm)]", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
+        <button ref={actionsTriggerRef} type="button" onClick={toggleMobileActions} aria-expanded={mobileActionsOpen} aria-controls={mobileActionsId} aria-haspopup="dialog" className={cn("parigo-track-row__actions-trigger flex h-10 w-10 items-center justify-center border border-[var(--line-strong)] transition lg:hidden", condensedActions && "rounded-[var(--parigo-corner-sm)_var(--parigo-turn-sm)]", mobileActionsOpen && "border-[var(--foreground)] bg-[var(--foreground)] text-[var(--background)]")} aria-label={`${mobileActionsOpen ? (locale === "fr" ? "Fermer les actions" : "Close actions") : (locale === "fr" ? "Plus d’actions" : "More actions")} : ${track.title}`}>
           <Ellipsis size={19} />
         </button>
         {showCompleteActions && <Tooltip label={locale === "fr" ? "Partager" : "Share"} className="parigo-track-row__wide-action hidden xl:inline-flex"><button type="button" onClick={shareTrack} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></Tooltip>}
-        {showCompleteActions && <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"} className="parigo-track-row__wide-action hidden 2xl:inline-flex"><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}>
+        {showCompleteActions && <Tooltip label={locale === "fr" ? "Demander une licence" : "Request a licence"} className="parigo-track-row__wide-action hidden 2xl:inline-flex"><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}#licence-request-message`} className="flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}>
           <ArrowUpRight size={17} className="text-[var(--color-gray-500)]" />
         </Link></Tooltip>}
       </div>
       {managementActions ? <div className="parigo-track-row__management-desktop hidden shrink-0 items-center lg:flex">{managementActions}</div> : null}
       </div>
       {managementActions ? <div className="parigo-track-row__management border-t border-[var(--line)] px-2 py-2 lg:hidden">{managementActions}</div> : null}
-      <TrackActionsSheet open={mobileActionsOpen} onClose={() => setMobileActionsOpen(false)} returnFocusRef={actionsTriggerRef} id={mobileActionsId} title={track.title} subtitle={`${album?.title || track.albumTitle || ""}${album?.code || track.albumCode ? ` · ${album?.code || track.albumCode}` : ""}`} image={album?.cover || track.albumCover} closeLabel={locale === "fr" ? "Fermer les actions" : "Close actions"} eyebrow={locale === "fr" ? "Actions de la piste" : "Track actions"}>
+      {mobileActionsMounted ? <TrackActionsSheet open={mobileActionsOpen} onClose={() => setMobileActionsOpen(false)} returnFocusRef={actionsTriggerRef} id={mobileActionsId} title={track.title} subtitle={`${album?.title || track.albumTitle || ""}${album?.code || track.albumCode ? ` · ${album?.code || track.albumCode}` : ""}`} image={album?.cover || track.albumCover} closeLabel={locale === "fr" ? "Fermer les actions" : "Close actions"} eyebrow={locale === "fr" ? "Actions de la piste" : "Track actions"}>
         <div className="grid grid-cols-2 gap-2">
-          <MobileAction label={locale === "fr" ? "Favoris" : "Favourite"}><FavoriteButton type="track" itemId={track.id} size="md" showTooltip={false} /></MobileAction>
-          <MobileAction label={locale === "fr" ? "Informations" : "Information"}><button type="button" onClick={() => { toggleDetails("information"); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></MobileAction>
+          <MobileAction label={locale === "fr" ? "Favoris" : "Favourite"}><FavoriteButton type="track" itemId={track.id} size="md" showTooltip={false} onAction={closeMobileActions} /></MobileAction>
+          <MobileAction label={locale === "fr" ? "Informations" : "Information"}><button type="button" onClick={() => afterClosingMobileActions(() => toggleDetails("information"))} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Informations sur la piste" : "Track information"} : ${track.title}`}><Info size={17} /></button></MobileAction>
           <SimilarTracksButton track={track} mobileAction onNavigate={() => setMobileActionsOpen(false)} />
-          {session?.user && <MobileAction label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => { toggleDetails("notes"); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></MobileAction>}
-          <MobileAction label={locale === "fr" ? "Télécharger" : "Download"}><DownloadButton trackId={track.id} trackTitle={track.title} /></MobileAction>
-          <MobileAction label={locale === "fr" ? "Playlist" : "Playlist"}><AddToPlaylistButton trackId={track.id} trackTitle={track.title} /></MobileAction>
-          {session?.user && <MobileAction label={locale === "fr" ? "Tag personnel" : "Personal tag"}><AddTagButton trackId={track.id} trackTitle={track.title} /></MobileAction>}
-          {session?.user && <MobileAction label="Cue sheet"><CueSheetButton compact title={track.title} trackIds={[track.id]} /></MobileAction>}
+          {session?.user && <MobileAction label={locale === "fr" ? "Note privée" : "Private note"}><button type="button" onClick={() => afterClosingMobileActions(() => toggleDetails("notes"))} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ouvrir les notes privées" : "Open private notes"} : ${track.title}`}><NotebookPen size={17} /></button></MobileAction>}
+          <MobileAction label={locale === "fr" ? "Télécharger" : "Download"}><DownloadButton trackId={track.id} trackTitle={track.title} onAction={closeMobileActions} /></MobileAction>
+          <MobileAction label={locale === "fr" ? "Playlist" : "Playlist"}><AddToPlaylistButton trackId={track.id} trackTitle={track.title} mobileSheet onOpen={closeMobileActions} /></MobileAction>
+          {session?.user && <MobileAction label={locale === "fr" ? "Tag personnel" : "Personal tag"}><AddTagButton trackId={track.id} trackTitle={track.title} mobileSheet onOpen={closeMobileActions} /></MobileAction>}
+          {session?.user && <MobileAction label="Cue sheet"><CueSheetButton compact title={track.title} trackIds={[track.id]} onAction={closeMobileActions} /></MobileAction>}
           {currentTrack && <MobileAction label={locale === "fr" ? "File d’attente" : "Queue"}><button type="button" onClick={() => { addToQueue(track); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Ajouter à la file d’attente" : "Add to queue"} : ${track.title}`}><ListEnd size={17} /></button></MobileAction>}
-          <MobileAction label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => { shareTrack(); setMobileActionsOpen(false); }} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></MobileAction>
-          <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
+          <MobileAction label={locale === "fr" ? "Partager" : "Share"}><button type="button" onClick={() => afterClosingMobileActions(shareTrack)} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Partager" : "Share"} : ${track.title}`}><Share2 size={17} /></button></MobileAction>
+          <MobileAction label={locale === "fr" ? "Licence" : "Licence"}><Link href={`/contact?track=${encodeURIComponent(track.slug || track.id)}#licence-request-message`} className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--surface-soft)]" aria-label={`${locale === "fr" ? "Demander une licence" : "Request a licence"} : ${track.title}`}><ArrowUpRight size={17} /></Link></MobileAction>
         </div>
-      </TrackActionsSheet>
+      </TrackActionsSheet> : null}
       {detailsSheet && isTouchLayout && typeof document !== "undefined" ? createPortal(detailsSheet, document.body) : detailsSheet}
     </article>
   );

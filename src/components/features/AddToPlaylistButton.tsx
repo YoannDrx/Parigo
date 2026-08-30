@@ -12,7 +12,7 @@ import type { Playlist } from "@/types";
 import { AnchoredPopover } from "@/components/ui/AnchoredPopover";
 import { Tooltip } from "@/components/ui/Tooltip";
 
-export function AddToPlaylistButton({ trackId, trackTitle, className }: { trackId: string; trackTitle: string; className?: string }) {
+export function AddToPlaylistButton({ trackId, trackTitle, className, mobileSheet = false, onOpen }: { trackId: string; trackTitle: string; className?: string; mobileSheet?: boolean; onOpen?: () => void }) {
   const { data: session } = useSession();
   const openLogin = useAuthModalStore((state) => state.openLogin);
   const { locale } = useI18n();
@@ -25,10 +25,12 @@ export function AddToPlaylistButton({ trackId, trackTitle, className }: { trackI
 
   const show = async () => {
     if (!session?.user) {
+      onOpen?.();
       openLogin();
       return;
     }
     setOpen(true);
+    onOpen?.();
     setLoading(true);
     setMessage("");
     setError("");
@@ -69,7 +71,7 @@ export function AddToPlaylistButton({ trackId, trackTitle, className }: { trackI
   return (
     <>
       <Tooltip label={label}><button ref={buttonRef} type="button" onClick={() => open ? setOpen(false) : void show()} disabled={loading && !open} aria-expanded={open} className={cn("flex h-10 w-10 items-center justify-center transition-colors hover:bg-[var(--surface-soft)] disabled:opacity-50", className)} aria-label={`${label} : ${trackTitle}`}>{loading && !open ? <ParigoLoader size="icon" label={locale === "fr" ? "Chargement des playlists" : "Loading playlists"} /> : <ListPlus size={17} className="text-[var(--color-gray-500)]" />}</button></Tooltip>
-      <AnchoredPopover open={open} onClose={() => setOpen(false)} anchorRef={buttonRef} label={`${label} — ${trackTitle}`} width={304}>
+      <AnchoredPopover open={open} onClose={() => setOpen(false)} anchorRef={buttonRef} label={`${label} — ${trackTitle}`} width={304} mobileSheet={mobileSheet}>
         <div className="flex items-center justify-between border-b border-[var(--line)] px-2 pb-2"><div><p className="eyebrow text-[var(--signal-strong)]">{locale === "fr" ? "Sélection personnelle" : "Personal selection"}</p><p className="mt-1 text-sm font-semibold">{locale === "fr" ? "Choisir une playlist" : "Choose a playlist"}</p></div><button type="button" onClick={() => setOpen(false)} className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--line)]" aria-label={locale === "fr" ? "Fermer" : "Close"}><X size={14} /></button></div>
         {loading ? <div className="grid min-h-28 place-items-center"><ParigoLoader size="compact" label={locale === "fr" ? "Chargement des playlists" : "Loading playlists"} /></div> : playlists.length ? <div className="max-h-64 overflow-y-auto py-1">{playlists.map((playlist) => <button key={playlist.id} type="button" onClick={() => void add(playlist)} className="grid min-h-12 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] px-2 text-left transition last:border-0 hover:bg-[var(--signal-soft)]"><span className="truncate text-xs font-semibold">{playlist.title}</span><span className="font-mono text-[.6rem] text-[var(--text-muted)]">{playlist.trackCount ?? playlist.tracks?.length ?? 0}</span></button>)}</div> : !error && <div className="p-3"><p className="text-xs leading-5 text-[var(--text-muted)]">{locale === "fr" ? "Aucune playlist pour le moment. Créez-en une, puis revenez ajouter cette piste." : "No playlist yet. Create one, then come back to add this track."}</p><Link href="/account/playlists" className="mt-3 inline-flex min-h-9 items-center border-b border-[var(--signal-strong)] text-xs font-semibold text-[var(--signal-strong)]">{locale === "fr" ? "Créer une playlist" : "Create a playlist"}</Link></div>}
         {message && <p role="status" className="flex items-center gap-1.5 border-t border-[var(--line)] p-3 text-xs font-semibold text-[var(--signal-strong)]"><Check size={14} />{message}</p>}
