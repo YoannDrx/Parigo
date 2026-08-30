@@ -340,7 +340,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
           ) : albums.length ? (
             <div className={cn(view === "grid" ? "grid grid-cols-1 gap-x-[var(--space-grid-x)] gap-y-[var(--space-grid-y)] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5" : "border-y border-[var(--line)]")}>
               {albums.map((album, index) => view === "grid"
-                ? <AlbumCard key={album.id} album={album} headingLevel={headingLevel} priority={index < 2} />
+                ? <AlbumCard key={album.id} album={album} headingLevel={headingLevel} priority={index === 0} />
                 : <Link key={album.id} href={localizedPath(`/albums/${album.slug || album.id}`)} prefetch={false} className="catalog-list-row group grid min-h-28 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 last:border-0 sm:grid-cols-[6rem_minmax(0,1fr)_auto] sm:px-4">
                     <div className="relative aspect-square overflow-hidden border border-[var(--line)]"><Image src={album.cover} alt="" fill sizes="96px" className="object-cover" /></div>
                     <div className="min-w-0"><p className="truncate font-mono text-[.56rem] uppercase tracking-[.1em] text-[var(--text-muted)]">{album.label}</p><ResultHeading className="catalog-list-row__title mt-2 truncate text-lg font-semibold sm:text-2xl">{album.title}</ResultHeading><p className="mt-2 text-xs text-[var(--text-muted)]">{album.genres.slice(0, 3).join(" · ")}</p></div>

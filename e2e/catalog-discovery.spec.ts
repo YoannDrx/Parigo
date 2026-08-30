@@ -50,10 +50,9 @@ test("la première pochette du catalogue est prioritaire pour le LCP", async ({ 
   const albumImages = page.locator(".album-card img");
 
   await expect(albumImages.first()).toBeVisible({ timeout: 30_000 });
-  await expect(albumImages.first()).toHaveAttribute("fetchpriority", "high");
   await expect(albumImages.first()).not.toHaveAttribute("loading", "lazy");
-  await expect(albumImages.nth(1)).toHaveAttribute("fetchpriority", "high");
-  await expect(albumImages.nth(1)).not.toHaveAttribute("loading", "lazy");
+  await expect(page.locator('link[rel="preload"][as="image"]')).toHaveCount(1);
+  await expect(albumImages.nth(1)).toHaveAttribute("loading", "lazy");
   await expect(albumImages.nth(2)).not.toHaveAttribute("fetchpriority", "high");
 });
 

@@ -86,7 +86,7 @@ export function HomeHero() {
   const title = locale === "fr" ? "Trouvez la bonne musique" : "Find the right music";
 
   return (
-    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 mt-[74px] flex min-h-[calc(100svh-74px)] items-start overflow-x-clip bg-[var(--surface)] px-4 pb-10 pt-[clamp(10rem,20svh,12rem)] md:items-center md:px-8 md:py-12">
+    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 mt-[74px] flex min-h-[calc(100svh-74px)] items-start overflow-x-clip bg-[var(--surface)] px-4 pb-10 pt-[clamp(8rem,18svh,9rem)] md:items-center md:px-8 md:py-12">
       <HeroGradientBackdrop mode={searchMode} />
       <HomeHeroContent
         target={heroRef}

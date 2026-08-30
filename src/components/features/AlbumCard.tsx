@@ -29,8 +29,6 @@ export function AlbumCard({ album, priority = false, headingLevel = 3 }: AlbumCa
                 ? "object-cover"
                 : "object-cover transition duration-[900ms] ease-out group-hover/card:scale-[1.035]"}
               preload={priority}
-              fetchPriority={priority ? "high" : undefined}
-              decoding={priority ? "sync" : "async"}
             />
           </div>
 
