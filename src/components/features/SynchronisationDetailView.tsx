@@ -27,14 +27,14 @@ export function SynchronisationDetailView({ sync }: { sync: Synchronisation }) {
   return (
     <div className="page-shell min-h-screen">
       <Header />
-      <main className="px-[var(--space-page-gutter)] pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)] md:pt-[var(--space-page-top)]">
+      <main className="px-[var(--space-page-gutter)] pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)]">
         <div className="mx-auto max-w-[1440px]">
           <ContextualBackLink href={localizedPath("/synchronisations")} className="font-semibold hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
 
-          <div className="mt-[var(--space-contextual-back-gap)] grid gap-[var(--space-grid-x)] md:mt-[var(--space-block-gap)] lg:grid-cols-12 lg:items-start">
+          <div className="mt-[var(--space-contextual-back-gap)] grid gap-[var(--space-grid-x)] lg:grid-cols-12 lg:items-start">
             <section className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8" aria-label={locale === "fr" ? "Lecteur vidéo" : "Video player"}>
               <div className="overflow-hidden rounded-[.7rem]">
                 <ConsentAwareYouTubeEmbed clip={clip} />

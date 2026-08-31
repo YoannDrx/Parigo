@@ -389,8 +389,7 @@ test("previous/next disparaît de toutes les fiches de détail", async ({ page }
   }
 });
 
-test("les retours des fiches détail partagent le même rythme mobile", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "Le rythme compact des retours est spécifique au mobile.");
+test("les retours des fiches détail partagent le même rythme compact", async ({ page }) => {
   test.setTimeout(120_000);
 
   const routes = [
@@ -874,8 +873,10 @@ test("About présente son paysage en 4/3 puis l’empile sur petit écran", asyn
   expect(desktopHeadingBox).not.toBeNull();
   expect(desktopImageBox!.y + desktopImageBox!.height).toBeLessThanOrEqual(901);
   expect(desktopHeadingBox!.x).toBeGreaterThan(desktopImageBox!.x + desktopImageBox!.width);
+  expect(Math.abs(desktopHeadingBox!.y - desktopImageBox!.y)).toBeLessThanOrEqual(1);
   expect(Math.abs((desktopImageBox!.width / desktopImageBox!.height) - (4 / 3))).toBeLessThan(0.03);
   await expect(desktopImage).toHaveCSS("object-fit", "cover");
+  await expect(page.getByText("Fondée en 2004, Parigo est une librairie musicale indépendante", { exact: false })).toHaveCSS("text-align", "justify");
 
   await page.setViewportSize({ width: 800, height: 900 });
   await page.reload();
@@ -927,11 +928,37 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
   const logoPanelBox = await logoPanel.boundingBox();
   expect(logoPanelBox).not.toBeNull();
   if (testInfo.project.name === "mobile") {
-    expect(logoPanelBox!.height).toBeLessThanOrEqual(181);
+    expect(logoPanelBox!.height).toBeGreaterThanOrEqual(219);
+    expect(logoPanelBox!.height).toBeLessThanOrEqual(221);
   } else {
-    expect(logoPanelBox!.height).toBeLessThanOrEqual(241);
-    expect(logoPanelBox!.width).toBeLessThanOrEqual(321);
+    expect(logoPanelBox!.height).toBeGreaterThanOrEqual(280);
+    expect(logoPanelBox!.height).toBeLessThanOrEqual(361);
+    expect(logoPanelBox!.width).toBeGreaterThan(400);
+    expect(logoPanelBox!.width).toBeLessThanOrEqual(481);
+    const [detailTitleSize, labelsPageTitleSize] = await Promise.all([
+      hero.getByRole("heading", { level: 1 }).evaluate((node) => getComputedStyle(node).fontSize),
+      page.evaluate(() => {
+        const probe = document.createElement("h1");
+        probe.className = "type-page";
+        document.body.append(probe);
+        const size = getComputedStyle(probe).fontSize;
+        probe.remove();
+        return size;
+      }),
+    ]);
+    expect(detailTitleSize).toBe(labelsPageTitleSize);
+
+    const toolbar = page.getByTestId("catalog-workspace").locator(".catalog-toolbar");
+    const toggle = toolbar.getByRole("group", { name: "Contenu du label" });
+    const [toolbarBox, toggleBox] = await Promise.all([toolbar.boundingBox(), toggle.boundingBox()]);
+    expect(toolbarBox).not.toBeNull();
+    expect(toggleBox).not.toBeNull();
+    expect(toolbarBox!.y + toolbarBox!.height - (toggleBox!.y + toggleBox!.height)).toBeLessThanOrEqual(12);
   }
+
+  const toolbar = page.getByTestId("catalog-workspace").locator(".catalog-toolbar");
+  await expect(toolbar.getByRole("status")).toHaveCount(0);
+  await expect(page.getByTestId("catalog-workspace").getByRole("status")).toBeVisible();
 });
 
 test("la description Musica.it reste dans les métadonnées mais disparaît du détail", async ({ page }, testInfo) => {

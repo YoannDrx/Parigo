@@ -19,6 +19,7 @@ interface CatalogToolbarProps<TSort extends string> {
   resultCount: number;
   primaryControls?: React.ReactNode;
   children?: React.ReactNode;
+  compactBottom?: boolean;
   sticky?: boolean;
   viewControlVisibility?: "all" | "desktop" | "hidden";
   separateMobileSearch?: boolean;
@@ -80,6 +81,7 @@ export function CatalogToolbar<TSort extends string>({
   resultCount,
   primaryControls,
   children,
+  compactBottom = false,
   sticky = true,
   viewControlVisibility = "all",
   separateMobileSearch = false,
@@ -123,7 +125,10 @@ export function CatalogToolbar<TSort extends string>({
         </div>
       ) : null}
 
-      {!separateMobileSearch ? <div className="catalog-toolbar search-toolbar border border-[var(--line-strong)] bg-[var(--surface)] p-2.5">
+      {!separateMobileSearch ? <><div className={cn(
+        "catalog-toolbar search-toolbar border border-[var(--line-strong)] bg-[var(--surface)]",
+        compactBottom ? "px-2.5 pb-0 pt-2.5" : "p-2.5",
+      )}>
         <div className="flex min-w-0 flex-wrap items-stretch gap-2">
           {query !== undefined && onQueryChange && queryPlaceholder && (
             <CatalogSearchField id="catalog-search" value={query} onValueChange={onQueryChange} placeholder={queryPlaceholder} ariaLabel={queryPlaceholder} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" className="min-w-0 flex-[1_1_24rem]" />
@@ -141,10 +146,13 @@ export function CatalogToolbar<TSort extends string>({
           <CatalogViewControl locale={locale} view={view} onViewChange={onViewChange} visibility={viewControlVisibility} />
         </div>
         {children}
-        <p className="mt-2 font-mono text-[.6rem] uppercase tracking-[.11em] text-[var(--text-muted)]" role="status">
+        {!compactBottom ? <p className="mt-2 font-mono text-[.6rem] uppercase tracking-[.11em] text-[var(--text-muted)]" role="status">
           {resultCount} {locale === "fr" ? "résultats" : "results"}
-        </p>
-      </div> : null}
+        </p> : null}
+      </div>
+      {compactBottom ? <p className="mt-1 px-2 font-mono text-[.6rem] uppercase tracking-[.11em] text-[var(--text-muted)]" role="status">
+        {resultCount} {locale === "fr" ? "résultats" : "results"}
+      </p> : null}</> : null}
     </div>
   );
 }

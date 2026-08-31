@@ -115,9 +115,9 @@ export function AlbumDetailClient({
     <div className="page-shell flex min-h-screen flex-col">
       <Header />
 
-      <main className="flex-1 pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)] md:pt-[70px]">
+      <main className="flex-1 pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)]">
         {/* Back Link */}
-        <div className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)] md:pt-[var(--space-divider-content)]">
+        <div className="mx-auto max-w-[1500px] px-[var(--space-page-gutter)]">
           <ContextualBackLink
             href={localizedPath("/albums")}
             className="hover:text-[var(--foreground)]"
@@ -128,7 +128,7 @@ export function AlbumDetailClient({
         </div>
 
         {/* Album Header */}
-        <section data-testid="album-detail-hero" className="editorial-detail-hero relative mx-auto max-w-[1500px] overflow-hidden px-[var(--space-page-gutter)] pb-0 pt-[var(--space-contextual-back-gap)] md:pt-[var(--space-section-y)]">
+        <section data-testid="album-detail-hero" className="editorial-detail-hero relative mx-auto max-w-[1500px] overflow-hidden px-[var(--space-page-gutter)] pb-0 pt-[var(--space-contextual-back-gap)]">
           <div className="grid gap-10 md:grid-cols-12 md:items-start md:gap-12">
             {/* Cover */}
             <div className="w-full max-w-[520px] md:col-span-4">

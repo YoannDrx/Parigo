@@ -402,6 +402,22 @@ test("les relations manuelles publient les clips sur chaque profil compositeur c
   await expect(page.getByTestId("composer-clips-section")).toHaveCount(0);
 });
 
+test("les titres des sections talent s’accordent au nombre d’albums et de clips", async ({ page }) => {
+  await page.goto("/talents/aiwa");
+  await expect(page.getByRole("heading", { level: 2, name: "Album Parigo", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Albums Parigo", exact: true })).toHaveCount(0);
+
+  await page.goto("/talents/minimatic");
+  await expect(page.getByRole("heading", { level: 2, name: "Clip", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 2, name: "Clips", exact: true })).toHaveCount(0);
+
+  await page.goto("/en/talents/aiwa");
+  await expect(page.getByRole("heading", { level: 2, name: "Parigo album", exact: true })).toBeVisible();
+
+  await page.goto("/en/talents/minimatic");
+  await expect(page.getByRole("heading", { level: 2, name: "Video", exact: true })).toBeVisible();
+});
+
 test("les relations clip sont réciproques, sans séparateurs et régulièrement espacées", async ({ page }, testInfo) => {
   await page.goto("/clips/yt-wrO96WV69aY");
   const minimaticRelations = page.getByTestId("clip-talents-section");

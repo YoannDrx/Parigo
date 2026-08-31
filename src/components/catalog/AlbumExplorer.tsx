@@ -33,6 +33,7 @@ interface AlbumExplorerProps {
   queryPlaceholder?: { fr: string; en: string };
   headingLevel?: 2 | 3;
   enableTrackView?: boolean;
+  compactToolbarBottom?: boolean;
   separateMobileSearch?: boolean;
   accentMobileFilter?: boolean;
 }
@@ -72,7 +73,7 @@ function albumFromTrack(track: Track): Album {
   };
 }
 
-export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headingLevel = 2, enableTrackView = false, separateMobileSearch = false, accentMobileFilter = false }: AlbumExplorerProps) {
+export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headingLevel = 2, enableTrackView = false, compactToolbarBottom = false, separateMobileSearch = false, accentMobileFilter = false }: AlbumExplorerProps) {
   const { locale, t, localizedPath } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
@@ -329,6 +330,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             view={view}
             onViewChange={setView}
             resultCount={total}
+            compactBottom={compactToolbarBottom}
             viewControlVisibility={kind === "tracks" ? "hidden" : "all"}
             separateMobileSearch={separateMobileSearch}
             mobileLeadingControl={separateMobileSearch ? mobileFilterTrigger : undefined}

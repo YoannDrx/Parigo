@@ -86,13 +86,13 @@ export default async function ClipPage({ params }: ClipPageProps) {
         { name: title, path: `/clips/${slug}` },
       ]} />
       <Header />
-      <main className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-contextual-back-page-top)] md:pt-[var(--space-page-top)]">
+      <main className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-contextual-back-page-top)]">
         <div className="mx-auto max-w-[1440px]">
           <ContextualBackLink href={localizedPath(locale, "/clips")} className="font-semibold hover:text-[var(--signal-strong)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
-          <div className="editorial-detail-hero relative mt-[var(--space-contextual-back-gap)] grid items-start gap-[var(--space-grid-x)] overflow-hidden md:mt-[var(--space-block-gap)] lg:grid-cols-12">
+          <div className="editorial-detail-hero relative mt-[var(--space-contextual-back-gap)] grid items-start gap-[var(--space-grid-x)] overflow-hidden lg:grid-cols-12">
             <div className="overflow-hidden rounded-[1.15rem] border border-white/14 bg-[#090c09] p-2 shadow-[0_28px_90px_rgba(0,0,0,.2)] md:p-3 lg:col-span-8">
               <div className="overflow-hidden rounded-[.7rem]">
                 <ConsentAwareYouTubeEmbed

@@ -35,7 +35,6 @@ export const VIDEO_COMPOSER_RELATIONS = {
   "FbuyBO-115s": ["modulhater"],
   "6uWDbe6IhEg": ["dj-hertz", "victor-baillet", "vincent-bouhelier"],
   GjkpUarLgIs: ["thierry-los"],
-  H5cHj1S7c0o: ["ugly-mac-beer"],
   XmsEYm9_8MM: ["thierry-los"],
   FNoeX3pfJdc: ["thierry-los"],
   "GMa-HQwGp-M": ["thierry-los"],

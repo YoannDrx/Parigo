@@ -3,11 +3,11 @@ import { canonicalComposerProfiles } from "@/lib/composers/profiles";
 import { getVideoComposerSlugs, VIDEO_COMPOSER_RELATIONS } from "./video-composer-relations";
 
 describe("manual video-to-composer relations", () => {
-  it("contains the 30 supplied clips and 52 validated associations", () => {
+  it("contains the 29 supplied clips and 51 validated associations", () => {
     const entries = Object.entries(VIDEO_COMPOSER_RELATIONS);
 
-    expect(entries).toHaveLength(30);
-    expect(entries.reduce((total, [, composerSlugs]) => total + composerSlugs.length, 0)).toBe(52);
+    expect(entries).toHaveLength(29);
+    expect(entries.reduce((total, [, composerSlugs]) => total + composerSlugs.length, 0)).toBe(51);
   });
 
   it("publishes every validated Lofi Hip Hop contributor", () => {
