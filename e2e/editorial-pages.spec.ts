@@ -549,6 +549,7 @@ test("Orb reste en pleine qualité sur mobile avec saveData, un renderer logicie
   await expect(backdrop).toHaveAttribute("data-renderer-capability", "software");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-orb-quality", "full");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-max-fps", "60");
+  await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-animation-mode", "interaction");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-render-scale", "1");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-active-max-fps", "60");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-active-render-scale", "1");
