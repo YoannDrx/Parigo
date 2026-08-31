@@ -18,14 +18,21 @@ interface RecentSearchesMenuProps {
   onClearAll: () => void;
 }
 
-function relativeDate(timestamp: number, locale: "fr" | "en") {
-  const elapsed = timestamp - Date.now();
+export function formatRecentSearchDate(timestamp: number, locale: "fr" | "en", now = Date.now()) {
+  const date = new Date(timestamp);
+  const currentDate = new Date(now);
+  const dateDay = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  const currentDay = Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+  const dayDifference = Math.round((dateDay - currentDay) / 86_400_000);
+
+  if (dayDifference === 0) {
+    const time = new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }).format(date);
+    return `${locale === "fr" ? "Aujourd’hui" : "Today"} · ${time}`;
+  }
+
   const formatter = new Intl.RelativeTimeFormat(locale, { numeric: "auto", style: "short" });
-  const minutes = Math.round(elapsed / 60_000);
-  if (Math.abs(minutes) < 60) return formatter.format(minutes, "minute");
-  const hours = Math.round(elapsed / 3_600_000);
-  if (Math.abs(hours) < 24) return formatter.format(hours, "hour");
-  return formatter.format(Math.round(elapsed / 86_400_000), "day");
+  const relativeDay = formatter.format(dayDifference, "day");
+  return relativeDay.charAt(0).toLocaleUpperCase(locale) + relativeDay.slice(1);
 }
 
 export function RecentSearchesMenu({
@@ -54,7 +61,7 @@ export function RecentSearchesMenu({
     >
       <div className="flex min-h-12 items-center justify-between gap-3 border-b border-[var(--line)] px-4">
         <p className={cn("flex items-center gap-2 text-xs font-semibold", mode === "ai" && "text-[var(--ai-search)]")}><Clock3 size={14} className={mode === "ai" ? "text-[var(--ai-search)]" : "text-[var(--signal-strong)]"} />{historyLabel}</p>
-        {total > 0 ? <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClearAll} className="inline-flex min-h-11 items-center gap-1.5 text-[.68rem] font-semibold text-[var(--text-muted)] transition hover:text-[var(--danger)] focus-visible:text-[var(--danger)]"><Trash2 size={13} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button> : null}
+        {total > 0 ? <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClearAll} className="inline-flex min-h-10 items-center gap-1.5 text-[.56rem] font-medium text-[var(--text-muted)] transition hover:text-[var(--danger)] focus-visible:text-[var(--danger)]"><Trash2 size={14} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button> : null}
       </div>
       {items.length ? (
         <div id={id} role="listbox" aria-label={historyLabel} className="max-h-[min(18rem,42vh)] overflow-y-auto p-2">
@@ -72,7 +79,7 @@ export function RecentSearchesMenu({
             >
               <Clock3 size={14} className="opacity-55" />
               <span className="truncate text-sm font-medium">{entry.query}</span>
-              <span className="font-mono text-[.55rem] opacity-55">{relativeDate(entry.updatedAt, locale)}</span>
+              <span className="font-mono text-[.55rem] opacity-55">{formatRecentSearchDate(entry.updatedAt, locale)}</span>
             </button>
           ))}
         </div>

@@ -14,7 +14,7 @@ interface LabelLogoProps {
   sizes?: string;
   fallbackSize?: number;
   priority?: boolean;
-  fallbackVariant?: "mark" | "monogram";
+  fallbackVariant?: "mark" | "monogram" | "mosaic";
 }
 
 export function LabelLogo({
@@ -41,14 +41,27 @@ export function LabelLogo({
         aria-label={decorative ? undefined : name}
         aria-hidden={decorative || undefined}
         data-testid="label-logo-fallback"
-        className={`grid place-items-center overflow-hidden text-[var(--foreground)] ${fallbackVariant === "mark" ? "border border-[var(--line-strong)] bg-[var(--surface-soft)]" : ""} ${fill ? "absolute inset-0" : ""} ${className ?? ""}`}
+        className={`grid place-items-center overflow-hidden text-[var(--foreground)] ${fallbackVariant === "mark" ? "border border-[var(--line-strong)] bg-[var(--surface-soft)]" : ""} ${fallbackVariant === "mosaic" ? "bg-[radial-gradient(circle_at_75%_20%,color-mix(in_srgb,var(--signal)_34%,transparent),transparent_38%),linear-gradient(145deg,color-mix(in_srgb,var(--signal)_15%,var(--surface-soft)),var(--surface))]" : ""} ${fill ? "absolute inset-0" : ""} ${className ?? ""}`}
         style={{
           width: fill ? undefined : width,
           height: fill ? undefined : height,
           maxWidth: "100%",
         }}
       >
-        <span className="inline-flex items-center justify-center gap-[.35em]">
+        {fallbackVariant === "mosaic" ? (
+          <span className="flex h-full w-full flex-col items-center justify-center gap-4 p-5 text-center">
+            <span
+              aria-hidden="true"
+              className="font-mono font-semibold tracking-[-.1em] text-[var(--signal-strong)]"
+              style={{ fontSize: Math.max(40, fallbackSize * 0.72) }}
+            >
+              {initials}
+            </span>
+            <span className="max-w-[15ch] text-balance font-[var(--font-editorial)] text-[clamp(.9rem,2vw,1.35rem)] font-semibold leading-[1.05] tracking-[-.035em]">
+              {name}
+            </span>
+          </span>
+        ) : <span className="inline-flex items-center justify-center gap-[.35em]">
           {fallbackVariant === "mark" ? <span aria-hidden="true" className="relative grid shrink-0 place-items-center rounded-full border-2 border-[var(--foreground)]" style={{ width: markSize, height: markSize }}><span className="h-[58%] w-[58%] rounded-full border border-[var(--signal-strong)]" /><span className="absolute h-[16%] w-[16%] rounded-full bg-[var(--signal-strong)]" /></span> : null}
           {initials ? (
             <span
@@ -58,7 +71,7 @@ export function LabelLogo({
               {initials}
             </span>
           ) : null}
-        </span>
+        </span>}
       </span>
     );
   }

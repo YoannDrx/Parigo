@@ -98,7 +98,7 @@ export function CatalogToolbar<TSort extends string>({
     >
       {separateMobileSearch && query !== undefined && onQueryChange && queryPlaceholder ? (
         <div className="catalog-toolbar search-toolbar border-0 bg-transparent p-0 shadow-none lg:border lg:border-[var(--line-strong)] lg:bg-[var(--surface)] lg:p-2.5 lg:shadow-[7px_7px_0_color-mix(in_srgb,var(--signal)_10%,transparent)]">
-          <div className="grid min-w-0 gap-2 lg:flex lg:flex-wrap lg:items-stretch">
+          <div className="grid min-w-0 gap-2 lg:flex lg:flex-wrap lg:items-center">
             <div data-testid="catalog-mobile-search" className="search-toolbar border border-[var(--line-strong)] bg-[var(--surface)] p-2 lg:contents">
               <CatalogSearchField id="catalog-search" value={query} onValueChange={onQueryChange} placeholder={queryPlaceholder} ariaLabel={queryPlaceholder} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" className="w-full min-w-0 lg:flex-[1_1_24rem]" />
             </div>
@@ -125,11 +125,8 @@ export function CatalogToolbar<TSort extends string>({
         </div>
       ) : null}
 
-      {!separateMobileSearch ? <><div className={cn(
-        "catalog-toolbar search-toolbar border border-[var(--line-strong)] bg-[var(--surface)]",
-        compactBottom ? "px-2.5 pb-0 pt-2.5" : "p-2.5",
-      )}>
-        <div className="flex min-w-0 flex-wrap items-stretch gap-2">
+      {!separateMobileSearch ? <div className="catalog-toolbar search-toolbar border border-[var(--line-strong)] bg-[var(--surface)] p-2.5">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           {query !== undefined && onQueryChange && queryPlaceholder && (
             <CatalogSearchField id="catalog-search" value={query} onValueChange={onQueryChange} placeholder={queryPlaceholder} ariaLabel={queryPlaceholder} clearLabel={locale === "fr" ? "Effacer la recherche" : "Clear search"} density="compact" className="min-w-0 flex-[1_1_24rem]" />
           )}
@@ -146,13 +143,10 @@ export function CatalogToolbar<TSort extends string>({
           <CatalogViewControl locale={locale} view={view} onViewChange={onViewChange} visibility={viewControlVisibility} />
         </div>
         {children}
-        {!compactBottom ? <p className="mt-2 font-mono text-[.6rem] uppercase tracking-[.11em] text-[var(--text-muted)]" role="status">
+        <p className={cn("font-mono text-[.6rem] uppercase tracking-[.11em] text-[var(--text-muted)]", compactBottom ? "mt-3" : "mt-2")} role="status">
           {resultCount} {locale === "fr" ? "résultats" : "results"}
-        </p> : null}
-      </div>
-      {compactBottom ? <p className="mt-1 px-2 font-mono text-[.6rem] uppercase tracking-[.11em] text-[var(--text-muted)]" role="status">
-        {resultCount} {locale === "fr" ? "résultats" : "results"}
-      </p> : null}</> : null}
+        </p>
+      </div> : null}
     </div>
   );
 }

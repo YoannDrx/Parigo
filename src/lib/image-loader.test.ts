@@ -26,6 +26,16 @@ describe("parigoImageLoader", () => {
     expect(result.searchParams.get("parigo-width")).toBe("1920");
   });
 
+  it("uses the uploaded label master beyond the default 200 px transform", () => {
+    const result = new URL(parigoImageLoader({
+      src: "https://d3vy0pmxxxelni.cloudfront.net/assets/librarylogo/parigo?width=200&height=200",
+      width: 750,
+    }));
+
+    expect(result.searchParams.get("width")).toBe("750");
+    expect(result.searchParams.get("height")).toBe("750");
+  });
+
   it("makes a capped responsive width visible to Next.js validation", () => {
     const src = "https://d3vy0pmxxxelni.cloudfront.net/assets/albumart/cover?width=320&height=320";
     const result = new URL(parigoImageLoader({ src, width: 400 }));

@@ -70,10 +70,11 @@ export function recordRecentSearch(mode: SearchMode, query: string, updatedAt = 
   return next;
 }
 
-export function clearRecentSearches() {
+export function clearRecentSearches(mode?: SearchMode) {
   if (typeof window === "undefined") return EMPTY_STATE;
-  persistRecentSearches(EMPTY_STATE);
-  return EMPTY_STATE;
+  const next = mode ? { ...readRecentSearches(), [mode]: [] } : EMPTY_STATE;
+  persistRecentSearches(next);
+  return next;
 }
 
 export function useRecentSearches(mode: SearchMode) {
@@ -96,8 +97,8 @@ export function useRecentSearches(mode: SearchMode) {
   const record = useCallback((query: string) => {
     setState(recordRecentSearch(mode, query));
   }, [mode]);
-  const clearAll = useCallback(() => setState(clearRecentSearches()), []);
-  const total = state.keyword.length + state.ai.length;
+  const clearAll = useCallback(() => setState(clearRecentSearches(mode)), [mode]);
+  const total = state[mode].length;
 
   return { items: state[mode], total, record, clearAll };
 }

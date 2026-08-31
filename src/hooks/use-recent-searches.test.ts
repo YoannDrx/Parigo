@@ -42,4 +42,20 @@ describe("recent searches", () => {
     expect(clearRecentSearches()).toEqual({ version: 1, keyword: [], ai: [] });
     expect(parseRecentSearches(localStorage.getItem(RECENT_SEARCHES_STORAGE_KEY))).toEqual({ version: 1, keyword: [], ai: [] });
   });
+
+  it("efface uniquement l’historique du mode demandé", () => {
+    recordRecentSearch("keyword", "Piano catalogue", 10);
+    recordRecentSearch("ai", "Film solaire", 20);
+
+    expect(clearRecentSearches("keyword")).toEqual({
+      version: 1,
+      keyword: [],
+      ai: [{ query: "Film solaire", updatedAt: 20 }],
+    });
+    expect(parseRecentSearches(localStorage.getItem(RECENT_SEARCHES_STORAGE_KEY))).toEqual({
+      version: 1,
+      keyword: [],
+      ai: [{ query: "Film solaire", updatedAt: 20 }],
+    });
+  });
 });

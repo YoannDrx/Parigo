@@ -32,10 +32,10 @@ export const getCachedAlbumCount = cache(
   unstable_cache(async () => (await getAlbums({ limit: 1 })).total, ["catalog-album-count"], { revalidate: 86400, tags: ["catalog", "sitemaps"] }),
 );
 export const getCachedLabel = cache(
-  unstable_cache(getLabel, ["catalog-label-v3-localized"], { revalidate: 600, tags: ["catalog", "labels"] }),
+  unstable_cache(getLabel, ["catalog-label-v4-square-images"], { revalidate: 600, tags: ["catalog", "labels"] }),
 );
 export const getCachedLabels = cache(
-  unstable_cache(getLabels, ["catalog-labels-v3-localized"], { revalidate: 600, tags: ["catalog", "labels"] }),
+  unstable_cache(getLabels, ["catalog-labels-v4-square-images"], { revalidate: 600, tags: ["catalog", "labels"] }),
 );
 export const getCachedPlaylist = cache(
   unstable_cache(getPlaylist, ["catalog-playlist-v2-localized"], { revalidate: 600, tags: ["catalog", "playlists"] }),

@@ -1364,7 +1364,37 @@ test("la barre mémorise et relance les recherches Catalogue", async ({ page }) 
   await expect.poll(() => new URL(page.url()).searchParams.get("q")).toBe("piano intime");
 });
 
-test("les historiques Catalogue et Similarité IA restent séparés et s’effacent ensemble", async ({ page }) => {
+test("l’historique précise l’heure des recherches du jour seulement", async ({ page }) => {
+  await page.addInitScript(() => {
+    const today = new Date();
+    today.setHours(14, 32, 0, 0);
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    window.localStorage.setItem("parigo-recent-searches-v1", JSON.stringify({
+      version: 1,
+      keyword: [
+        { query: "Cordes du jour", updatedAt: today.getTime() },
+        { query: "Piano de la veille", updatedAt: yesterday.getTime() },
+      ],
+      ai: [],
+    }));
+  });
+  await page.goto("/search");
+  await page.getByRole("combobox", { name: "Rechercher dans le catalogue" }).focus();
+  const history = page.getByRole("listbox", { name: "Recherches récentes" });
+  const todayOption = history.getByRole("option", { name: /Cordes du jour/ });
+  const yesterdayOption = history.getByRole("option", { name: /Piano de la veille/ });
+  const expectedTime = await page.evaluate(() => {
+    const state = JSON.parse(window.localStorage.getItem("parigo-recent-searches-v1") || "null");
+    return new Intl.DateTimeFormat("fr", { hour: "2-digit", minute: "2-digit" }).format(state.keyword[0].updatedAt);
+  });
+
+  await expect(todayOption).toContainText(`Aujourd’hui · ${expectedTime}`);
+  await expect(yesterdayOption).toContainText("Hier");
+  await expect(yesterdayOption).not.toContainText(/\d{1,2}:\d{2}/);
+});
+
+test("les historiques Catalogue et Similarité IA restent séparés et s’effacent indépendamment", async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("parigo-recent-searches-v1", JSON.stringify({
     version: 1,
     keyword: [{ query: "Piano catalogue", updatedAt: Date.now() - 60_000 }],
@@ -1376,6 +1406,13 @@ test("les historiques Catalogue et Similarité IA restent séparés et s’effac
   let history = page.getByRole("listbox", { name: "Recherches récentes" });
   await expect(history.getByRole("option", { name: /Piano catalogue/ })).toBeVisible();
   await expect(history).not.toContainText("Film solaire");
+  await page.getByRole("button", { name: "Tout effacer" }).click();
+  await expect(history.getByRole("option")).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("parigo-recent-searches-v1") || "null"))).toEqual({
+    version: 1,
+    keyword: [],
+    ai: [{ query: "Film solaire", updatedAt: expect.any(Number) }],
+  });
   await page.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
   await page.getByRole("option", { name: /Similarité IA/ }).click();
   await page.getByRole("group", { name: "Choisir une méthode de similarité" }).getByRole("button", { name: /Décrire une musique/ }).click();

@@ -262,6 +262,27 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
 });
 
+test("la navbar de la home devient lisible hors du sommet puis redevient transparente", async ({ page }) => {
+  await page.goto("/");
+  await waitForHeaderHydration(page);
+  const header = page.locator('header[data-variant="overlay"]');
+  const navbar = header.getByRole("navigation", { name: "Navigation principale" });
+
+  await expect(header).toHaveAttribute("data-header-at-top", "true");
+  await expect(navbar).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+
+  await page.evaluate(() => window.scrollTo({ top: 900, behavior: "instant" }));
+  await expect(header).toHaveAttribute("data-header-visible", "false");
+  await page.evaluate(() => window.scrollBy({ top: -140, behavior: "instant" }));
+  await expect(header).toHaveAttribute("data-header-visible", "true");
+  await expect(header).toHaveAttribute("data-header-at-top", "false");
+  await expect.poll(() => navbar.evaluate((node) => getComputedStyle(node).backgroundColor)).not.toBe("rgba(0, 0, 0, 0)");
+
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+  await expect(header).toHaveAttribute("data-header-at-top", "true");
+  await expect(navbar).toHaveCSS("background-color", "rgba(0, 0, 0, 0)");
+});
+
 test("le héros utilise uniquement Orb sans sélecteur de background", async ({ page }) => {
   await page.goto("/");
   const hero = page.getByTestId("home-hero");

@@ -29,6 +29,15 @@ describe("LabelLogo", () => {
     expect(fallback.querySelector(".rounded-full")).toBeNull();
   });
 
+  it("compose un fallback carré avec le nom complet pour la mosaïque", () => {
+    render(<LabelLogo src={null} name="Cosmic Library" decorative fallbackVariant="mosaic" />);
+
+    const fallback = screen.getByTestId("label-logo-fallback");
+    expect(fallback).toHaveTextContent("CL");
+    expect(fallback).toHaveTextContent("Cosmic Library");
+    expect(fallback).toHaveAttribute("aria-hidden", "true");
+  });
+
   it("remplace une image en erreur par le fallback du même label", () => {
     render(<LabelLogo src="/broken-logo.png" name="Cosmic Library" />);
     fireEvent.error(screen.getByRole("img", { name: "Cosmic Library" }));

@@ -34,18 +34,25 @@ Fixture live : **Musica.it**, ID `9d330c152c37bca0`. Le label Parigo possède
 une description anglaise mais son champ français est vide : il s’agit d’une
 action de contenu, pas d’un défaut API.
 
-## Spécification de logo à transmettre aux labels
+## Spécification de l’image de label
 
-- master préféré : SVG transparent, textes vectorisés, couleurs sRGB ;
-- fallback : PNG transparent 2:1 de 2000 × 1000 px ;
-- minimum raster : 1600 × 800 px ;
-- zone de sécurité : 10 % autour du signe ;
+La direction artistique retenue le 31 août 2026 est une image carrée plein
+cadre, avec le nom du label déjà composé dans le visuel et un fond coloré propre
+à chaque label. La liste et le détail affichent donc le même asset sans canevas
+ni carte intermédiaire.
+
+- ratio obligatoire : 1:1 ;
+- dimensions identiques pour tous les masters, minimum conseillé 1600 × 1600 px ;
+- couleurs sRGB ;
+- nom lisible jusque dans une tuile mobile d’environ 140 px ;
+- zone de sécurité : 8 % autour du nom et des éléments essentiels ;
 - poids conseillé : moins de 2 Mo ;
-- aucun blanc artificiel autour du logo ;
-- éviter le JPEG, qui ne conserve pas la transparence.
+- JPEG haute qualité, PNG ou WebP selon ce que le back-office Harvest confirme accepter.
 
-Un logo carré doit être centré dans un canevas transparent 2:1. Harvest doit
-confirmer l'acceptation et la sécurisation des SVG avant leur utilisation.
+L’URL publique auditée contient une transformation 200 × 200, mais le CDN
+Harvest sait servir le même master jusqu’à 800 × 800 pour le détail. Cette
+transformation ne doit donc pas être interprétée comme la taille du fichier
+source uploadé.
 
 ## Questions restantes pour Harvest
 
@@ -53,6 +60,6 @@ confirmer l'acceptation et la sécurisation des SVG avant leur utilisation.
 2. Les champs `Name`, `Detail` et `Profile` sont-ils tous localisables ?
 3. Les codes ISO acceptés et la règle de fallback sont-ils documentés ?
 4. Quelle API ou quel webhook permet d'invalider le cache après publication ?
-5. Quels formats, dimensions, poids et traitements sont appliqués aux logos ?
-6. Pourquoi une majorité des `LibraryLogoUrl` auditées ne renvoient-elles pas un asset exploitable ?
+5. Quels formats, dimensions, poids et traitements sont appliqués aux images de labels ?
+6. Pourquoi `LibraryLogoUrl` reste-t-il renseigné lorsqu’aucun asset exploitable n’est disponible ?
 7. La création et la mise à jour sont-elles accessibles à l'Integration API ou uniquement au CMS ?
