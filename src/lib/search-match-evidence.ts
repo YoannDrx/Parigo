@@ -6,7 +6,7 @@ type Candidate = {
   values: Array<string | null | undefined>;
 };
 
-function normalizeCatalogReference(value: string): string {
+export function normalizeCatalogReference(value: string): string {
   const compact = normalizeSearchText(value).replace(/\s+/g, "");
   const parts = compact.match(/^([a-z]+)0*(\d+)$/);
   return parts ? `${parts[1]}${Number.parseInt(parts[2], 10)}` : compact;
@@ -87,5 +87,22 @@ export function prioritizeTitleEvidence<T extends { matchEvidence?: SearchMatchE
   return items.toSorted((left, right) => (
     Number(Boolean(right.matchEvidence?.some((evidence) => evidence.field === field)))
     - Number(Boolean(left.matchEvidence?.some((evidence) => evidence.field === field)))
+  ));
+}
+
+function albumSearchEvidenceTier(album: Album, query: string): number {
+  if (normalizeSearchText(album.title) === normalizeSearchText(query)) return 0;
+  if (album.code && normalizeCatalogReference(album.code) === normalizeCatalogReference(query)) return 1;
+
+  const evidence = album.matchEvidence ?? albumSearchEvidence(album, query);
+  const titleEvidence = evidence.filter((item) => item.field === "albumTitle");
+  if (explainsSearchQuery(titleEvidence, query)) return 2;
+  if (evidence.length) return 3;
+  return 4;
+}
+
+export function prioritizeAlbumSearchEvidence(items: readonly Album[], query: string): Album[] {
+  return items.toSorted((left, right) => (
+    albumSearchEvidenceTier(left, query) - albumSearchEvidenceTier(right, query)
   ));
 }

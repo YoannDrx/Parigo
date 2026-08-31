@@ -36,7 +36,7 @@ Les nombres et identifiants de catalogue ne sont jamais envoyés à DeepL. DeepL
 
 ## Filtres et suggestions
 
-Les styles utilisent `St_Style` en inclusion/exclusion. Leurs compteurs sont des occurrences indexées et non un nombre d’albums distincts. L’autocomplétion retourne des groupes piste, album, mot-clé, compositeur et label ; les paroles et playlists en sont exclues.
+Les styles utilisent `St_Style` en inclusion/exclusion. En vue Albums, les labels portent directement sur l’album et leurs compteurs représentent des albums. Les autres critères musicaux — catégories, styles, compositeur, BPM et durée — portent sur les pistes : Harvest retourne alors les albums distincts contenant au moins une piste correspondante, tandis que les compteurs de facettes restent des occurrences de pistes. Cette portée est explicitée dans le panneau de filtres. L’autocomplétion retourne des groupes piste, album, mot-clé, compositeur et label ; les paroles et playlists en sont exclues.
 
 L’interface utilise un bloc de recherche unique sur l’accueil et la page de résultats :
 
@@ -54,6 +54,8 @@ L’interface utilise un bloc de recherche unique sur l’accueil et la page de 
 - le panneau conserve un ordre et une limite stables pour la navigation clavier, puis propose une action explicite vers tous les résultats.
 
 Les groupes Pistes et Albums et `/api/search` utilisent désormais la même orchestration déterministe. Une première voie interroge le champ titre, vérifie localement que chaque mot est réellement présent dans le titre visible, puis une seconde voie éditoriale exclut les candidats du premier index. Les titres vérifiés précèdent donc toujours les correspondances de description, mots-clés, catégories ou métadonnées d’album. Les deux voies sont disjointes côté Harvest : pour `crime`, le live renvoie 174 candidats titre et 8 937 résultats éditoriaux restants, soit le total initial inchangé de 9 111.
+
+Les explorateurs d’albums démarrent sur les nouveautés sans requête et passent automatiquement en pertinence lorsqu’une recherche commence. Un tri explicite dans l’URL ou choisi ensuite par l’utilisateur reste prioritaire. En pertinence, un titre exact précède une référence exacte, puis les autres correspondances de titre, les métadonnées propres à l’album et enfin les correspondances provenant de ses pistes. Effacer la requête restaure le tri par nouveautés.
 
 Sur la première page, les deux requêtes partent en parallèle : la latence correspond au maximum des deux appels et non à leur somme. Un appel Harvest unique ne permettrait ce contrat que si `RankExpression` supportait une pondération documentée des champs ; ce n’est pas le cas du contrat public vérifié. Pour les pages profondes, le BFF parcourt l’index candidat par lots de 100 lorsque c’est nécessaire afin de conserver une pagination stable malgré les faux positifs de l’opérateur `Wildcard`. Les candidats non littéraux mais expliqués par une autre métadonnée sont replacés après tous les vrais titres. Le panneau n’affiche qu’un extrait de ce même ordre ; les groupes Filtres, Playlists, Affiner avec, Compositeurs et Labels restent issus de leurs contrats spécialisés.
 

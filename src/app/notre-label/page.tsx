@@ -55,8 +55,8 @@ export default async function OurLabelPage() {
               fixedLabel={PARIGO_LABEL_ID}
               accentMobileFilter
               queryPlaceholder={{
-                fr: "Rechercher dans notre label",
-                en: "Search our label",
+                fr: "Titre, référence ou mot-clé dans notre label",
+                en: "Title, reference or keyword in our label",
               }}
             />
           </ReactQueryProvider>

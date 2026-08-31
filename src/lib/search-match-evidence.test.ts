@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Album, Track } from "@/types";
-import { explainsSearchQuery, prioritizeTitleEvidence, trackSearchEvidence } from "./search-match-evidence";
+import { albumSearchEvidence, explainsSearchQuery, normalizeCatalogReference, prioritizeAlbumSearchEvidence, prioritizeTitleEvidence, trackSearchEvidence } from "./search-match-evidence";
 
 const track: Track = {
   id: "track-1",
@@ -54,5 +54,33 @@ describe("search match evidence", () => {
       { id: "title-2", matchEvidence: [{ field: "trackTitle" as const, value: "Crime Two", matchedTerms: ["crime"] }] },
     ], "trackTitle");
     expect(ordered.map((item) => item.id)).toEqual(["title-1", "title-2", "metadata-1", "metadata-2"]);
+  });
+
+  it("normalizes exact catalogue references with optional spaces and leading zeroes", () => {
+    expect(normalizeCatalogReference("PGO0033")).toBe("pgo33");
+    expect(normalizeCatalogReference("PGO 0033")).toBe("pgo33");
+  });
+
+  it("ranks exact album titles and references before broader album evidence", () => {
+    const candidates: Album[] = [
+      { ...album, id: "track-derived", title: "Unattributed", matchEvidence: [] },
+      { ...album, id: "metadata", title: "Rockabilly Rebel", keywords: ["Surf Fiction"] },
+      { ...album, id: "title", title: "The Surf Fiction Sessions" },
+      { ...album, id: "reference", title: "Reference Match", code: "SURF0001" },
+      { ...album, id: "exact", title: "Surf Fiction" },
+    ].map((candidate) => ({
+      ...candidate,
+      matchEvidence: candidate.matchEvidence ?? albumSearchEvidence(candidate, "Surf Fiction"),
+    }));
+
+    expect(prioritizeAlbumSearchEvidence(candidates, "Surf Fiction").map((item) => item.id)).toEqual([
+      "exact",
+      "title",
+      "metadata",
+      "track-derived",
+      "reference",
+    ]);
+
+    expect(prioritizeAlbumSearchEvidence(candidates, "SURF 0001")[0]?.id).toBe("reference");
   });
 });

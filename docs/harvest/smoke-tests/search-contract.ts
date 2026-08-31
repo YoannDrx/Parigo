@@ -10,6 +10,7 @@ type HistoricalCase = {
   query: string;
   view: SearchView;
   expectedProfile: "aggregate-title-first" | "title";
+  expectedFirstTitle?: string;
 };
 
 const historicalMatrix: HistoricalCase[] = [
@@ -18,7 +19,10 @@ const historicalMatrix: HistoricalCase[] = [
   { query: "reggae triste", view: "tracks", expectedProfile: "aggregate-title-first" },
   { query: "crime", view: "tracks", expectedProfile: "aggregate-title-first" },
   { query: "mariage", view: "tracks", expectedProfile: "aggregate-title-first" },
-  { query: "PGO", view: "albums", expectedProfile: "title" },
+  { query: "PGO", view: "albums", expectedProfile: "aggregate-title-first" },
+  { query: "Surf Fiction", view: "albums", expectedProfile: "aggregate-title-first", expectedFirstTitle: "Surf Fiction" },
+  { query: "PGO0033", view: "albums", expectedProfile: "aggregate-title-first", expectedFirstTitle: "Surf Fiction" },
+  { query: "PGO 0033", view: "albums", expectedProfile: "aggregate-title-first", expectedFirstTitle: "Surf Fiction" },
 ];
 
 function record(value: unknown): RecordValue {
@@ -131,6 +135,11 @@ async function checkHistoricalCase(testCase: HistoricalCase, references: Record<
         throw new Error(`Missing ${timing} for ${matrixKey(testCase)}`);
       }
     }
+  }
+  if (testCase.expectedFirstTitle && firstTitles[0] !== testCase.expectedFirstTitle) {
+    throw new Error(
+      `Unexpected first result for ${matrixKey(testCase)}: expected "${testCase.expectedFirstTitle}", received "${firstTitles[0] ?? ""}"`,
+    );
   }
 
   const expectedTotal = references[matrixKey(testCase)];

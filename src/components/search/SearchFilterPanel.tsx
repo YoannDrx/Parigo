@@ -20,6 +20,7 @@ interface SearchFilterPanelProps {
   categoryFacets: SearchFacetItem[];
   labelFacets: SearchFacetItem[];
   styleFacets: SearchFacetItem[];
+  resultScope?: "tracks" | "albums";
   locale: "fr" | "en";
   onCategoriesChange: (values: string[]) => void;
   onLabelsChange: (values: string[]) => void;
@@ -76,6 +77,22 @@ function descendantStates(items: SearchFilterItem[], values: string[]) {
     included: ids.filter((id) => values.includes(id)).length,
     excluded: ids.filter((id) => values.includes(`-${id}`)).length,
   };
+}
+
+function albumFilterDescription(group: SearchFilterGroup, locale: "fr" | "en"): string {
+  if (group.key === "labels") {
+    return locale === "fr"
+      ? "Les nombres indiquent des albums."
+      : "Counts represent albums.";
+  }
+  if (group.key === "composers") {
+    return locale === "fr"
+      ? "Ce critère conserve les albums dont au moins une piste crédite ce compositeur."
+      : "This criterion keeps albums where at least one track credits the composer.";
+  }
+  return locale === "fr"
+    ? "Ce critère conserve les albums contenant au moins une piste correspondante. Les nombres indiquent des occurrences de pistes, pas des albums distincts."
+    : "This criterion keeps albums containing at least one matching track. Counts represent track occurrences, not distinct albums.";
 }
 
 function FilterItemRow({
@@ -185,6 +202,7 @@ function FilterGroupSection({
   index,
   values,
   facets,
+  resultScope,
   locale,
   onChange,
 }: {
@@ -192,6 +210,7 @@ function FilterGroupSection({
   index: number;
   values: string[];
   facets: SearchFacetItem[];
+  resultScope: "tracks" | "albums";
   locale: "fr" | "en";
   onChange: (values: string[]) => void;
 }) {
@@ -262,6 +281,7 @@ function FilterGroupSection({
   const available = facets.length
     ? [...groupIds].filter((id) => counts.has(id.replace(/^ATT_/i, ""))).length
     : group.available;
+  const description = resultScope === "albums" ? albumFilterDescription(group, locale) : group.description;
   return (
     <details
       open={open}
@@ -295,14 +315,14 @@ function FilterGroupSection({
         </span>
       </summary>
       {open && <div className="search-filter-group__body px-4 pb-5 pt-3">
-        {group.description && (
+        {description && (
           <p className={cn(
             "mb-3 border-l-2 pl-3 text-[.66rem] leading-5",
             group.state === "unavailable"
               ? "border-[var(--danger)] text-[var(--danger)]"
               : "border-[var(--signal-strong)] text-[var(--text-muted)]",
           )}>
-            {group.description}
+            {description}
           </p>
         )}
         {group.state === "unavailable" ? null : <>
@@ -414,6 +434,7 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
     categoryFacets,
     labelFacets,
     styleFacets,
+    resultScope = "tracks",
     locale,
     onCategoriesChange,
     onLabelsChange,
@@ -436,6 +457,13 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
         </div>
         {activeCount > 0 && <button type="button" onClick={onReset} className="inline-flex min-h-9 items-center gap-2 border border-white/30 px-3 text-[.68rem] font-semibold text-white transition hover:border-[var(--signal)] hover:text-[var(--signal)]"><RotateCcw size={12} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button>}
       </div>}
+      {resultScope === "albums" && (
+        <p data-testid="album-filter-scope" className="border-b border-[var(--line)] px-4 py-3 text-[.68rem] leading-5 text-[var(--text-muted)]">
+          {locale === "fr"
+            ? "Les critères musicaux conservent les albums contenant au moins une piste correspondante. Le total principal compte des albums distincts."
+            : "Musical criteria keep albums containing at least one matching track. The main total counts distinct albums."}
+        </p>
+      )}
       {groups.map((group, index) => (
         <FilterGroupSection
           key={group.key}
@@ -443,6 +471,7 @@ export function SearchFilterPanel(props: SearchFilterPanelProps) {
           index={index}
           values={group.key === "labels" ? labels : group.key === "styles" ? styles : group.key === "composers" ? composers : categories}
           facets={group.key === "labels" ? labelFacets : group.key === "styles" ? styleFacets : group.key === "composers" ? [] : categoryFacets}
+          resultScope={resultScope}
           locale={locale}
           onChange={group.key === "labels" ? onLabelsChange : group.key === "styles" ? onStylesChange : group.key === "composers" ? onComposersChange : onCategoriesChange}
         />
