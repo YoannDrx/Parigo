@@ -165,7 +165,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     footer: getComputedStyle(document.querySelector<HTMLElement>(".parigo-footer")!).backgroundColor,
   }));
   expect(["rgb(242, 241, 237)", "rgb(11, 17, 13)"]).toContain(backgrounds.hero);
-  expect(backgrounds.navbar).toBe(backgrounds.hero);
+  expect(backgrounds.navbar).toBe("rgba(0, 0, 0, 0)");
   expect(backgrounds.footer).toBe(backgrounds.hero);
   expect(backgrounds.canvas).not.toBe(backgrounds.hero);
   await expect(page.getByRole("navigation", { name: "Navigation principale" })).toHaveCSS("border-bottom-width", "0px");
@@ -299,6 +299,14 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
   await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
   await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
   await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
+  const [headerBox, backdropBox] = await Promise.all([
+    page.getByRole("banner").boundingBox(),
+    backdrop.boundingBox(),
+  ]);
+  expect(headerBox).not.toBeNull();
+  expect(backdropBox).not.toBeNull();
+  expect(Math.abs(backdropBox!.y)).toBeLessThanOrEqual(1);
+  expect(backdropBox!.y + backdropBox!.height).toBeGreaterThanOrEqual(headerBox!.y + headerBox!.height);
 
   if (testInfo.project.name === "mobile") {
     await expect(orb).toHaveAttribute("data-orb-center", "title");

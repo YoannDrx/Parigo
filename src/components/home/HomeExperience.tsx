@@ -93,7 +93,7 @@ export function HomeHero() {
   const title = locale === "fr" ? "Trouvez la bonne musique" : "Find the right music";
 
   return (
-    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 mt-[74px] flex min-h-[calc(100svh-74px)] items-start overflow-x-clip bg-[var(--brand-deep)] px-4 pb-10 pt-[clamp(8rem,18svh,9rem)] text-[var(--brand-deep-foreground)] md:items-center md:px-8 md:py-12">
+    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 flex min-h-[100svh] items-start overflow-x-clip bg-[var(--brand-deep)] px-4 pb-10 pt-[calc(74px+clamp(8rem,18svh,9rem))] text-[var(--brand-deep-foreground)] md:items-center md:px-8 md:pb-0 md:pt-[74px]">
       <div aria-hidden="true" className="hero-background-loading absolute inset-0 overflow-hidden">
         <div className="hero-background-loading__fallback absolute inset-0" />
       </div>

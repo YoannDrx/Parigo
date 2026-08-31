@@ -315,9 +315,8 @@ export default function Orb({
       targetHover = 0;
     };
 
-    const interactionSurface = container.closest<HTMLElement>('.home-hero') ?? container;
-    interactionSurface.addEventListener('mousemove', handleMouseMove);
-    interactionSurface.addEventListener('mouseleave', handleMouseLeave);
+    window.addEventListener('mousemove', handleMouseMove);
+    document.documentElement.addEventListener('mouseleave', handleMouseLeave);
 
     let rafId: number;
     const update = (t: number) => {
@@ -347,8 +346,8 @@ export default function Orb({
       window.clearTimeout(settleTimeout);
       window.removeEventListener('resize', resize);
       resizeObserver.disconnect();
-      interactionSurface.removeEventListener('mousemove', handleMouseMove);
-      interactionSurface.removeEventListener('mouseleave', handleMouseLeave);
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };

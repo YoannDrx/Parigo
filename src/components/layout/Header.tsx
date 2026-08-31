@@ -183,7 +183,7 @@ export function Header({ variant = "default" }: HeaderProps) {
       style={{ top: headerVisible || open ? 0 : -82 }}
       className={cn("fixed inset-x-0 z-[80] w-full text-[var(--foreground)] transition-[top] duration-300 ease-out", open && "h-[100dvh] overflow-hidden")}
     >
-      <nav aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"} className="parigo-header-bar relative z-[2] grid h-[74px] w-full grid-cols-[1fr_auto] items-center px-4 md:px-8 lg:grid-cols-[190px_minmax(0,1fr)_auto]">
+      <nav aria-label={locale === "fr" ? "Navigation principale" : "Main navigation"} className={cn("parigo-header-bar relative z-[2] grid h-[74px] w-full grid-cols-[1fr_auto] items-center px-4 md:px-8 lg:grid-cols-[190px_minmax(0,1fr)_auto]", variant === "overlay" && "parigo-header-bar--overlay")}>
         <Link href={hrefFor("/")} onClick={handleLogoClick} aria-label={locale === "fr" ? "Parigo — Accueil" : "Parigo — Home"} className="group justify-self-start focus-visible:outline-offset-8">
           <ParigoLogo className="text-[1.75rem] md:text-[1.95rem]" />
         </Link>

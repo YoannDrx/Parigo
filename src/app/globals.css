@@ -724,6 +724,9 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   background: var(--brand-deep);
   color: var(--foreground);
 }
+.parigo-header-bar--overlay {
+  background: transparent;
+}
 .home-hero {
   --hero-accent: var(--signal);
   --hero-soft: var(--signal-soft);
