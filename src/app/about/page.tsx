@@ -22,7 +22,7 @@ export default function AboutPage() {
   return (
     <InstitutionalShell title={t("institutional.aboutTitle")} intro={t("institutional.aboutIntro")} showHero={false}>
       <section className="px-[var(--space-page-gutter)] pb-[var(--space-section-y-large)] pt-[var(--space-page-top)]">
-        <div className="about-story mx-auto grid max-w-[1540px] gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-center lg:gap-10 xl:gap-14">
+        <div className="about-story mx-auto grid max-w-[1540px] gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)] lg:items-start lg:gap-10 xl:gap-14">
           <figure className="parigo-frame relative aspect-[4/3] w-full overflow-hidden border border-[var(--line-strong)] bg-[var(--surface)]">
             <Image
               src="/images/editorial/parigo-selected/r02-v1-login-1448x1086.avif"
@@ -37,7 +37,7 @@ export default function AboutPage() {
             <SignedTitle as="h1" className="font-[var(--font-editorial)] text-5xl font-normal leading-[.93] tracking-[-.05em] md:text-6xl lg:text-[clamp(3.5rem,5vw,5.75rem)]">
               {locale === "fr" ? "Une librairie avant tout" : "A music library first"}
             </SignedTitle>
-            <div className="mt-7 space-y-5 text-[1.02rem] leading-relaxed text-[var(--text-muted)] lg:mt-8">
+            <div className="mt-7 space-y-5 text-justify text-[1.02rem] leading-relaxed text-[var(--text-muted)] lg:mt-8">
               {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
             </div>
           </div>

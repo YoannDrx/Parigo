@@ -130,13 +130,14 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
   const enhanced = rendererCapability !== "disabled";
   const renderer = enhanced ? "ogl" : "fallback";
   const motionEnabled = mobileRendererRequired || !reduceMotion;
-  const fullQuality = rendererCapability !== "software";
+  const mobileWaves = mobileViewport;
 
   return (
     <div
       aria-hidden="true"
       className="hero-background absolute inset-0 overflow-hidden"
       data-hero-background="orb"
+      data-orb-hover={mobileWaves ? "tap-horizontal-waves" : coarsePointer ? "none" : "horizontal-waves"}
       data-orb-setup="original"
       data-orb-palette={palette}
       data-motion={motionEnabled ? "animated" : "static"}
@@ -150,17 +151,21 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
           <div className="hero-background__engine absolute inset-0">
             <Orb
               hue={ORB_HUES[palette]}
-              hoverIntensity={5}
-              rotateOnHover={!coarsePointer}
+              hoverIntensity={mobileWaves ? 7.2 : 5}
+              rotateOnHover={false}
               forceHoverState={false}
               backgroundColor={ORB_BACKGROUNDS[theme]}
-              centerOnTitle={mobileViewport}
+              centerOnTitle={mobileWaves}
               interactionExclusionSelector="[data-orb-safe-zone]"
               interactionExclusionPadding={14}
+              horizontalWaves
               motionEnabled={motionEnabled}
-              quality={fullQuality ? "full" : "software-performance"}
-              renderScale={fullQuality ? 1 : 0.25}
-              maxFps={fullQuality ? 60 : 24}
+              quality="full"
+              renderScale={1}
+              tapToToggle={mobileWaves}
+              maxFps={60}
+              waveBleed={mobileWaves ? 1.16 : 1.08}
+              waveFrequency={mobileWaves ? 3.2 : 8}
             />
           </div>
         </RendererBoundary>

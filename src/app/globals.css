@@ -149,7 +149,7 @@
   --space-section-y-large: 3rem;
   --space-heading-content: 1.5rem;
   --space-block-gap: 1.5rem;
-  --space-contextual-back-gap: 1rem;
+  --space-contextual-back-gap: 1.25rem;
   --space-contextual-back-page-top: calc(74px + var(--space-contextual-back-gap));
   --space-grid-x: 1rem;
   --space-grid-y: 1.5rem;

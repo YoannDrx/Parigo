@@ -277,7 +277,7 @@ test("le héros utilise uniquement Orb sans sélecteur de background", async ({ 
   await expect(hero.getByTestId("hero-orb-backdrop")).toHaveAttribute("data-hero-background", "orb");
 });
 
-test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, testInfo) => {
+test("Orb se monte seul et adapte les ondes au viewport", async ({ page }, testInfo) => {
   await page.addInitScript(() => {
     const rendererParameter = 37_446;
     for (const prototype of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
@@ -313,6 +313,7 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
 
   await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
   await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+  await expect(orb).toHaveAttribute("data-orb-rotation", "disabled");
   const initialCanvas = await backdrop.locator("canvas").elementHandle();
   expect(initialCanvas).not.toBeNull();
   await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
@@ -327,22 +328,32 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
   expect(backdropBox!.y + backdropBox!.height).toBeGreaterThanOrEqual(headerBox!.y + headerBox!.height);
 
   if (testInfo.project.name === "mobile") {
+    await expect(backdrop).toHaveAttribute("data-orb-hover", "tap-horizontal-waves");
     await expect(orb).toHaveAttribute("data-orb-center", "title");
+    await expect(orb).toHaveAttribute("data-orb-force-hover", "inactive");
+    await expect(orb).toHaveAttribute("data-orb-hover-effect", "horizontal-waves");
+    await expect(orb).toHaveAttribute("data-orb-tap-toggle", "enabled");
+    await expect(orb).toHaveAttribute("data-orb-tap-state", "orb");
+    await expect(orb).toHaveAttribute("data-wave-amplitude", "0.72");
+    await expect(orb).toHaveAttribute("data-wave-bleed", "1.16");
+    await expect(orb).toHaveAttribute("data-wave-frequency", "3.2");
     await expect(backdrop).toHaveAttribute("data-renderer-capability", "hardware");
     await expect(orb).toHaveAttribute("data-orb-quality", "full");
     await expect(orb).toHaveAttribute("data-render-scale", "1");
     await expect(orb).toHaveAttribute("data-max-fps", "60");
-    const measureCenterOffset = () => orb.evaluate((node) => {
-      const title = node.closest("[data-testid='home-hero']")?.querySelector("h1");
-      const centerY = Number.parseFloat((node as HTMLElement).dataset.orbCenterY ?? "0.5");
-      if (!title) return Number.POSITIVE_INFINITY;
-      const orbRect = node.getBoundingClientRect();
-      const titleRect = title.getBoundingClientRect();
-      const visualOrbCenter = orbRect.top + orbRect.height * (1 - centerY);
-      const titleCenter = titleRect.top + titleRect.height / 2;
-      return Math.abs(visualOrbCenter - titleCenter);
-    });
-    await expect.poll(measureCenterOffset).toBeLessThanOrEqual(2);
+
+    const titleBox = await hero.locator("h1").boundingBox();
+    expect(titleBox).not.toBeNull();
+    await page.touchscreen.tap(titleBox!.x + titleBox!.width / 2, titleBox!.y + titleBox!.height / 2);
+    await expect(orb).toHaveAttribute("data-orb-tap-state", "waves");
+    const searchBox = await page.getByTestId("home-hero-search-mask").boundingBox();
+    expect(searchBox).not.toBeNull();
+    await page.touchscreen.tap(searchBox!.x + searchBox!.width / 2, searchBox!.y + searchBox!.height / 2);
+    await expect(orb).toHaveAttribute("data-orb-tap-state", "waves");
+    const heroBox = await hero.boundingBox();
+    expect(heroBox).not.toBeNull();
+    await page.touchscreen.tap(heroBox!.x + heroBox!.width - 24, heroBox!.y + heroBox!.height - 80);
+    await expect(orb).toHaveAttribute("data-orb-tap-state", "orb");
 
     await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
     await expect(backdrop).toHaveAttribute("data-renderer", "ogl");
@@ -354,12 +365,18 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
     await page.waitForTimeout(850);
     await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
     await page.waitForTimeout(100);
-    expect(await measureCenterOffset()).toBeLessThanOrEqual(2);
     await expect.poll(() => backdrop.locator("canvas").evaluate((canvas, originalCanvas) => (
       canvas === originalCanvas && originalCanvas.isConnected
     ), initialCanvas)).toBe(true);
   } else {
+    await expect(backdrop).toHaveAttribute("data-orb-hover", "horizontal-waves");
     await expect(orb).toHaveAttribute("data-orb-center", "canvas");
+    await expect(orb).toHaveAttribute("data-orb-force-hover", "inactive");
+    await expect(orb).toHaveAttribute("data-orb-hover-effect", "horizontal-waves");
+    await expect(orb).toHaveAttribute("data-orb-tap-toggle", "disabled");
+    await expect(orb).toHaveAttribute("data-wave-amplitude", "0.50");
+    await expect(orb).toHaveAttribute("data-wave-bleed", "1.08");
+    await expect(orb).toHaveAttribute("data-wave-frequency", "8");
     const [orbBox, safeZoneBox] = await Promise.all([
       orb.boundingBox(),
       page.getByTestId("home-hero-search-mask").boundingBox(),
@@ -404,7 +421,7 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
   expect(pageErrors).toEqual([]);
 });
 
-test("le héros respire sur un grand mobile tout en gardant le titre au centre de l’Orb", async ({ page }, testInfo) => {
+test("le héros respire sur un grand mobile avec des ondes plein écran", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "La composition grand mobile est contrôlée sur mobile.");
   await page.addInitScript(() => {
     const rendererParameter = 37_446;
@@ -426,8 +443,15 @@ test("le héros respire sur un grand mobile tout en gardant le titre au centre d
   const description = hero.locator('[data-banner-reveal="description"]');
   const search = hero.getByTestId("home-hero-search-mask");
   await expect(orb).toHaveAttribute("data-orb-quality", "full");
+  await expect(orb).toHaveAttribute("data-orb-center", "title");
+  await expect(orb).toHaveAttribute("data-orb-force-hover", "inactive");
+  await expect(orb).toHaveAttribute("data-orb-hover-effect", "horizontal-waves");
+  await expect(orb).toHaveAttribute("data-orb-tap-toggle", "enabled");
   await expect(orb).toHaveAttribute("data-render-scale", "1");
   await expect(orb).toHaveAttribute("data-max-fps", "60");
+  await expect(orb).toHaveAttribute("data-wave-amplitude", "0.72");
+  await expect(orb).toHaveAttribute("data-wave-bleed", "1.16");
+  await expect(orb).toHaveAttribute("data-wave-frequency", "3.2");
 
   const [titleBox, descriptionBox, searchBox] = await Promise.all([
     title.boundingBox(),
@@ -439,15 +463,6 @@ test("le héros respire sur un grand mobile tout en gardant le titre au centre d
   expect(searchBox).not.toBeNull();
   expect(descriptionBox!.y - (titleBox!.y + titleBox!.height)).toBeGreaterThanOrEqual(32);
   expect(searchBox!.y - (descriptionBox!.y + descriptionBox!.height)).toBeGreaterThanOrEqual(48);
-
-  await expect.poll(() => orb.evaluate((node) => {
-    const heading = node.closest("[data-testid='home-hero']")?.querySelector("h1");
-    if (!heading) return Number.POSITIVE_INFINITY;
-    const centerY = Number.parseFloat((node as HTMLElement).dataset.orbCenterY ?? "0.5");
-    const orbRect = node.getBoundingClientRect();
-    const titleRect = heading.getBoundingClientRect();
-    return Math.abs(orbRect.top + orbRect.height * (1 - centerY) - (titleRect.top + titleRect.height / 2));
-  })).toBeLessThanOrEqual(2);
 });
 
 test("les suggestions du héros restent au-dessus de la section suivante", async ({ page }) => {

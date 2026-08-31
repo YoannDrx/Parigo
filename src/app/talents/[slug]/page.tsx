@@ -78,7 +78,7 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
   const albums = albumResults
     .flatMap((result) => result.status === "fulfilled" ? [result.value.album] : [])
     .sort(compareAlbumsNewestFirst);
-  const hasUnavailableAlbums = albumResults.some((result) => result.status === "rejected");
+  const unavailableAlbumCount = albumResults.filter((result) => result.status === "rejected").length;
   const bio = profile.bio[locale];
   const detailImage = profile.detailImage ?? { src: profile.image, width: 720, height: 720 };
   return (
@@ -96,9 +96,9 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
         { name: profile.name, path: `/talents/${profile.slug}` },
       ]} />
       <Header />
-      <main className="pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)] md:pt-[70px]">
-        <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-[var(--space-page-gutter)] md:pt-[var(--space-divider-content)]">
-          <ContextualBackLink href={localizedPath(locale, "/talents")} className="mb-[var(--space-contextual-back-gap)] hover:text-[var(--foreground)] md:mb-[var(--space-heading-content)]">
+      <main className="pb-[var(--space-page-end)] pt-[var(--space-contextual-back-page-top)]">
+        <section className="editorial-detail-hero relative mx-auto max-w-[1240px] px-[var(--space-page-gutter)]">
+          <ContextualBackLink href={localizedPath(locale, "/talents")} className="mb-[var(--space-contextual-back-gap)] hover:text-[var(--foreground)]">
             <ArrowLeft size={16} />
             {locale === "fr" ? "Retour" : "Back"}
           </ContextualBackLink>
@@ -133,7 +133,11 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
         {profile.albumIds.length > 0 ? <section data-testid="composer-albums-section" className="mt-[var(--detail-section-gap)]">
           <div className="mx-auto max-w-[1240px] px-[var(--space-page-gutter)]">
             <div className="mb-[var(--space-heading-content)]">
-              <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">{locale === "fr" ? "Albums Parigo" : "Parigo albums"}</SignedTitle>
+              <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">
+                {locale === "fr"
+                  ? albums.length === 1 ? "Album Parigo" : "Albums Parigo"
+                  : albums.length === 1 ? "Parigo album" : "Parigo albums"}
+              </SignedTitle>
             </div>
             {albums.length > 0 ? (
               <div className="grid grid-cols-1 gap-[var(--space-grid-x)] sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
@@ -144,8 +148,10 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
                 {locale === "fr" ? "Aucune discographie n’est actuellement disponible pour ce profil." : "No discography is currently available for this profile."}
               </p>
             )}
-            {hasUnavailableAlbums && <p role="alert" className="mt-6 border-l-2 border-[var(--danger)] pl-4 text-sm text-[var(--danger)]">
-              {locale === "fr" ? "Certains albums sont momentanément indisponibles." : "Some albums are temporarily unavailable."}
+            {unavailableAlbumCount > 0 && <p role="alert" className="mt-6 border-l-2 border-[var(--danger)] pl-4 text-sm text-[var(--danger)]">
+              {locale === "fr"
+                ? unavailableAlbumCount === 1 ? "Un album est momentanément indisponible." : "Certains albums sont momentanément indisponibles."
+                : unavailableAlbumCount === 1 ? "One album is temporarily unavailable." : "Some albums are temporarily unavailable."}
             </p>}
           </div>
         </section> : null}
@@ -155,7 +161,9 @@ export default async function ComposerPage({ params }: ComposerPageProps) {
             <div className="mx-auto max-w-[1240px] px-[var(--space-page-gutter)]">
               <div className="mb-[var(--space-heading-content)]">
                 <SignedTitle as="h2" className="font-[var(--font-editorial)] text-5xl tracking-[-.05em]">
-                  {locale === "fr" ? "Clips" : "Videos"}
+                  {locale === "fr"
+                    ? clips.length === 1 ? "Clip" : "Clips"
+                    : clips.length === 1 ? "Video" : "Videos"}
                 </SignedTitle>
               </div>
               <div className="grid gap-[var(--space-grid-x)] md:grid-cols-2">

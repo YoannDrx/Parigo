@@ -246,7 +246,7 @@ export default function MemberPlaylistPage({ params }: { params: Promise<{ id: s
   if (!playlist) return <div className="py-20 text-center"><p>{error}</p><Button variant="outline" className="mt-6" onClick={backToPlaylists}><ArrowLeft size={16} /> {locale === "fr" ? "Retour" : "Back"}</Button></div>;
 
   return <div className="account-page grid gap-[var(--space-account-flow)]">
-    <button type="button" onClick={backToPlaylists} className="inline-flex items-center gap-2 text-sm text-[var(--text-muted)]"><ArrowLeft size={16} /> {locale === "fr" ? "Mes playlists" : "My playlists"}</button>
+    <button type="button" onClick={backToPlaylists} className="mb-[calc(var(--space-contextual-back-gap)-var(--space-account-flow))] inline-flex min-h-11 items-center gap-2 self-start text-sm text-[var(--text-muted)]"><ArrowLeft size={16} /> {locale === "fr" ? "Mes playlists" : "My playlists"}</button>
     <AccountPageHeader
       icon={ListMusic}
       eyebrow={`Parigo · ${playlist.tracks.length} ${locale === "fr" ? "pistes" : "tracks"}`}
