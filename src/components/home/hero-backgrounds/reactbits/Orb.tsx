@@ -27,6 +27,7 @@ interface OrbProps {
   renderScale?: number;
   tapToToggle?: boolean;
   maxFps?: number;
+  animateWhileIdle?: boolean;
   waveBleed?: number;
   waveFrequency?: number;
 }
@@ -46,6 +47,7 @@ export default function Orb({
   renderScale = 1,
   tapToToggle = false,
   maxFps = 60,
+  animateWhileIdle = true,
   waveBleed = 1.08,
   waveFrequency = 8
 }: OrbProps) {
@@ -291,6 +293,7 @@ export default function Orb({
     const hero = container.closest<HTMLElement>('.home-hero');
     const title = hero?.querySelector<HTMLElement>('h1') ?? null;
     let centerUpdateFrame: number | undefined;
+    const renderRequest: { current?: () => void } = {};
 
     function updateOrbCenter() {
       const center = program.uniforms.orbCenter.value as Float32Array;
@@ -299,6 +302,7 @@ export default function Orb({
         center[1] = 0.5;
         mountedContainer.dataset.orbCenterX = "0.500";
         mountedContainer.dataset.orbCenterY = "0.500";
+        renderRequest.current?.();
         return;
       }
       const containerRect = mountedContainer.getBoundingClientRect();
@@ -308,6 +312,7 @@ export default function Orb({
       center[1] = Math.min(0.85, Math.max(0.15, 1 - (titleRect.top + titleRect.height / 2 - containerRect.top) / containerRect.height));
       mountedContainer.dataset.orbCenterX = center[0].toFixed(3);
       mountedContainer.dataset.orbCenterY = center[1].toFixed(3);
+      renderRequest.current?.();
     }
 
     function scheduleOrbCenterUpdate() {
@@ -441,6 +446,7 @@ export default function Orb({
       if (rafId !== undefined || (!force && (!motionEnabled || !inViewport || !pageVisible))) return;
       rafId = requestAnimationFrame(update);
     };
+    renderRequest.current = () => scheduleAnimationFrame(true);
 
     function update(t: number) {
       rafId = undefined;
@@ -467,7 +473,10 @@ export default function Orb({
       program.uniforms.rot.value = currentRot;
 
       renderer.render({ scene: mesh });
-      scheduleAnimationFrame();
+      const hoverIsSettling = Math.abs(effectiveHover - program.uniforms.hover.value) > 0.001;
+      if (animateWhileIdle || effectiveHover > 0 || hoverIsSettling) {
+        scheduleAnimationFrame();
+      }
     }
 
     const syncAnimationActivity = () => {
@@ -522,7 +531,7 @@ export default function Orb({
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, horizontalWaves, motionEnabled, renderScale, tapToToggle, maxFps, waveBleed, waveFrequency]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, horizontalWaves, motionEnabled, renderScale, tapToToggle, maxFps, animateWhileIdle, waveBleed, waveFrequency]);
 
   return (
     <div
@@ -530,6 +539,7 @@ export default function Orb({
       className="orb-container"
       data-orb-quality={quality}
       data-max-fps={maxFps}
+      data-animation-mode={animateWhileIdle ? 'continuous' : 'interaction'}
       data-orb-center={centerOnTitle ? 'title' : 'canvas'}
       data-orb-force-hover={forceHoverState ? 'active' : 'inactive'}
       data-orb-hover-effect={horizontalWaves ? 'horizontal-waves' : 'distortion'}

@@ -341,6 +341,7 @@ test("Orb se monte seul et adapte les ondes au viewport", async ({ page }, testI
     await expect(orb).toHaveAttribute("data-orb-quality", "full");
     await expect(orb).toHaveAttribute("data-render-scale", "1");
     await expect(orb).toHaveAttribute("data-max-fps", "60");
+    await expect(orb).toHaveAttribute("data-animation-mode", "continuous");
 
     const titleBox = await hero.locator("h1").boundingBox();
     expect(titleBox).not.toBeNull();
@@ -449,6 +450,7 @@ test("le héros respire sur un grand mobile avec des ondes plein écran", async 
   await expect(orb).toHaveAttribute("data-orb-tap-toggle", "enabled");
   await expect(orb).toHaveAttribute("data-render-scale", "1");
   await expect(orb).toHaveAttribute("data-max-fps", "60");
+  await expect(orb).toHaveAttribute("data-animation-mode", "continuous");
   await expect(orb).toHaveAttribute("data-wave-amplitude", "0.72");
   await expect(orb).toHaveAttribute("data-wave-bleed", "1.16");
   await expect(orb).toHaveAttribute("data-wave-frequency", "3.2");
