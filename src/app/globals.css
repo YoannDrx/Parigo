@@ -24,6 +24,11 @@
   --inverse-foreground: #f2f1ed;
   --inverse-muted: #b9beb8;
   --inverse-accent: #68bf83;
+  --brand-deep: #f2f1ed;
+  --brand-deep-foreground: #151815;
+  --brand-deep-muted: #666b66;
+  --brand-deep-accent: #247b43;
+  --brand-deep-line: rgba(21, 24, 21, .16);
   --danger: #bd3f36;
   --image-filter: saturate(.92) contrast(1.02);
   --header-bg: rgba(255, 255, 255, .9);
@@ -75,6 +80,11 @@
   --inverse-foreground: #151815;
   --inverse-muted: #555c55;
   --inverse-accent: #247b43;
+  --brand-deep: #0b110d;
+  --brand-deep-foreground: #f2f1ed;
+  --brand-deep-muted: #aeb7ae;
+  --brand-deep-accent: #72ca90;
+  --brand-deep-line: rgba(242, 241, 237, .16);
   --danger: #ef7469;
   --image-filter: saturate(.78) contrast(1.06) brightness(.9);
   --header-bg: rgba(17, 20, 17, .9);
@@ -674,127 +684,53 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     url("/images/home/project-invitation-vinyl.png") center 34% / cover no-repeat,
     #0b0f0c;
 }
-.hero-gradflow {
-  --hero-gradient-1: #f2f1ed;
-  --hero-gradient-2: #b7ddc0;
-  --hero-gradient-3: #5eaf77;
+.hero-background {
   isolation: isolate;
-  background: var(--hero-bg, var(--hero-gradient-1));
+  background: var(--brand-deep);
+  pointer-events: none;
 }
-.hero-gradflow[data-gradient-preset="ai-light"] {
-  --hero-gradient-1: #f4efff;
-  --hero-gradient-2: #cbb5fb;
-  --hero-gradient-3: #a06fe8;
-}
-.hero-gradflow[data-gradient-preset="catalog-dark"] {
-  --hero-gradient-1: #111411;
-  --hero-gradient-2: #203929;
-  --hero-gradient-3: #3f704d;
-}
-.hero-gradflow[data-gradient-preset="ai-dark"] {
-  --hero-gradient-1: #111411;
-  --hero-gradient-2: #2c1b49;
-  --hero-gradient-3: #5c3594;
-}
-.hero-gradflow__fallback {
-  background: linear-gradient(135deg, var(--hero-bg), var(--hero-soft) 42%, var(--hero-primary) 72%, var(--hero-bg));
+.hero-background__fallback {
+  background: var(--brand-deep);
   transition: opacity 400ms var(--ease-out);
 }
 .hero-background:has(canvas) .hero-background__fallback {
   opacity: 0;
 }
-.hero-background[data-hero-background="gradflow"] .hero-gradflow__fallback {
-  background: linear-gradient(
-    180deg,
-    var(--hero-gradient-1) 0%,
-    var(--hero-gradient-2) 36%,
-    var(--hero-gradient-3) 58%,
-    var(--hero-gradient-2) 78%,
-    var(--hero-gradient-1) 100%
-  );
-  transition: background 620ms var(--ease-out);
-}
-.hero-gradflow[data-motion="animated"] .hero-gradflow__fallback {
-  background-size: 145% 165%;
-  animation: hero-gradient-drift 9s ease-in-out infinite alternate;
-}
 .hero-background-loading {
-  background: var(--surface);
+  background: var(--brand-deep);
+  pointer-events: none;
 }
 .hero-background-loading__fallback {
-  background: linear-gradient(180deg, var(--surface), var(--signal-soft) 45%, var(--signal) 68%, var(--surface));
-}
-.hero-background__fallback[data-fallback-family="lines"] {
-  background:
-    repeating-linear-gradient(168deg, transparent 0 8%, color-mix(in srgb, var(--hero-highlight) 34%, transparent) 8.5%, transparent 9.5% 17%),
-    linear-gradient(135deg, var(--hero-bg), var(--hero-soft) 42%, var(--hero-primary) 74%, var(--hero-bg));
-}
-.hero-background__fallback[data-fallback-family="mesh"] {
-  background:
-    radial-gradient(circle at 15% 25%, color-mix(in srgb, var(--hero-secondary) 78%, transparent), transparent 42%),
-    radial-gradient(circle at 82% 68%, color-mix(in srgb, var(--hero-highlight) 72%, transparent), transparent 44%),
-    radial-gradient(circle at 54% 38%, var(--hero-primary), transparent 58%),
-    var(--hero-bg);
-}
-.hero-background__fallback[data-fallback-family="orb"] {
-  background:
-    radial-gradient(circle at 50% 48%, var(--hero-highlight) 0 5%, var(--hero-secondary) 17%, var(--hero-primary) 36%, transparent 60%),
-    var(--hero-bg);
-}
-.hero-background__fallback[data-fallback-family="horizon"] {
-  background:
-    linear-gradient(176deg, transparent 43%, color-mix(in srgb, var(--hero-highlight) 70%, transparent) 47%, transparent 52%),
-    linear-gradient(168deg, var(--hero-bg) 0 30%, var(--hero-primary) 58%, var(--hero-secondary) 75%, var(--hero-bg) 100%);
-}
-@keyframes hero-gradient-drift {
-  from { background-position: 50% 0%; }
-  to { background-position: 50% 100%; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-gradflow__fallback { animation: none !important; }
+  background: var(--brand-deep);
 }
 .hero-background__engine {
-  pointer-events: auto;
+  pointer-events: none;
 }
 .hero-background__engine > * {
   height: 100%;
   width: 100%;
 }
-.hero-gradflow__canvas {
-  display: block;
-  height: 100%;
+.orb-container {
+  position: relative;
+  z-index: 0;
   width: 100%;
+  height: 100%;
 }
-.hero-gradflow__veil {
-  background:
-    radial-gradient(ellipse 72% 64% at 50% 48%, var(--surface) 0%, color-mix(in srgb, var(--surface) 78%, transparent) 46%, transparent 78%),
-    linear-gradient(180deg, color-mix(in srgb, var(--surface) 15%, transparent), transparent 28%, color-mix(in srgb, var(--surface) 16%, transparent));
-  opacity: var(--hero-veil-opacity, .68);
-  transition: opacity 400ms var(--ease-out);
-}
-.hero-background[data-hero-background="gradflow"] .hero-gradflow__veil {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 6%, transparent), transparent 26%, color-mix(in srgb, var(--surface) 9%, transparent));
-}
-.hero-background-select select {
-  min-height: 44px;
-  max-width: min(72vw, 15rem);
-  border: 1px solid var(--line-strong);
-  border-radius: var(--parigo-corner-sm) var(--parigo-turn-md);
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
+.parigo-header-bar {
+  --foreground: var(--brand-deep-foreground);
+  --text-muted: var(--brand-deep-muted);
+  --line: var(--brand-deep-line);
+  --line-strong: color-mix(in srgb, var(--brand-deep-foreground) 34%, transparent);
+  background: var(--brand-deep);
   color: var(--foreground);
-  padding: .65rem 2.25rem .65rem .85rem;
-  font-family: var(--font-mono);
-  font-size: .68rem;
-  backdrop-filter: blur(14px);
-}
-.hero-background-select select:focus-visible {
-  outline: 2px solid var(--hero-accent);
-  outline-offset: 3px;
 }
 .home-hero {
   --hero-accent: var(--signal);
   --hero-soft: var(--signal-soft);
   transition: background-color 500ms ease;
+}
+.home-hero [data-banner-reveal="description"] {
+  color: var(--brand-deep-muted);
 }
 .home-hero[data-search-mode="ai"] {
   --hero-accent: var(--ai-search);
@@ -806,16 +742,6 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   }
   .home-hero[data-search-mode="ai"] [data-testid="home-hero-content"] {
     transform: none !important;
-  }
-  .home-hero[data-search-mode="ai"] .hero-gradflow__fallback {
-    background: linear-gradient(
-      180deg,
-      var(--hero-gradient-1) 0%,
-      var(--hero-gradient-2) 34%,
-      var(--hero-gradient-3) 62%,
-      var(--hero-gradient-2) 90%,
-      var(--hero-gradient-1) 100%
-    );
   }
 }
 .home-hero [data-testid="home-hero-search-mask"]:has(.search-autocomplete-panel) {
@@ -997,12 +923,11 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   }
 }
 .parigo-footer {
-  --surface-inverse: #0b110d;
-  --inverse-foreground: #f2f1ed;
-  --inverse-muted: #aeb7ae;
-  --inverse-accent: #72ca90;
-  --line: rgba(242, 241, 237, .16);
-  color-scheme: dark;
+  --surface-inverse: var(--brand-deep);
+  --inverse-foreground: var(--brand-deep-foreground);
+  --inverse-muted: var(--brand-deep-muted);
+  --inverse-accent: var(--brand-deep-accent);
+  --line: var(--brand-deep-line);
 }
 @keyframes social-platform-float {
   0%, 100% { translate: 0 0; }

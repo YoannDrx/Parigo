@@ -29,7 +29,7 @@ export function Footer() {
     { title: t("footer.legal"), links: [{ name: t("footer.legalNotice"), href: "/legal" }, { name: t("footer.privacy"), href: "/privacy" }, { name: t("footer.terms"), href: "/terms" }, { name: locale === "fr" ? "Réservation des droits" : "Reservation of rights", href: "/rights" }] },
   ];
   return (
-    <footer className="parigo-footer relative overflow-hidden bg-[#0b110d] px-4 pb-7 pt-[var(--space-footer-top)] text-[#f2f1ed] md:px-8">
+    <footer className="parigo-footer relative overflow-hidden bg-[var(--brand-deep)] px-4 pb-7 pt-[var(--space-footer-top)] text-[var(--inverse-foreground)] md:px-8">
       <div className="relative mx-auto max-w-[1680px]">
         <div className="grid gap-8 border-b border-current/18 pb-8 lg:grid-cols-12 lg:gap-8 lg:pb-16">
           <div className="lg:col-span-4">

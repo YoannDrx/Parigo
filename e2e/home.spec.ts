@@ -158,15 +158,17 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero).toBeVisible();
-  const heroVeilGradients = await hero.locator(".hero-gradflow__veil").evaluate((node) => (
-    getComputedStyle(node).backgroundImage.match(/linear-gradient/g)?.length ?? 0
-  ));
-  expect(heroVeilGradients).toBe(1);
   const backgrounds = await page.evaluate(() => ({
     canvas: getComputedStyle(document.documentElement).backgroundColor,
     hero: getComputedStyle(document.querySelector<HTMLElement>("[data-testid='home-hero']")!).backgroundColor,
+    navbar: getComputedStyle(document.querySelector<HTMLElement>("header nav")!).backgroundColor,
+    footer: getComputedStyle(document.querySelector<HTMLElement>(".parigo-footer")!).backgroundColor,
   }));
-  expect(backgrounds.canvas).toBe(backgrounds.hero);
+  expect(["rgb(242, 241, 237)", "rgb(11, 17, 13)"]).toContain(backgrounds.hero);
+  expect(backgrounds.navbar).toBe(backgrounds.hero);
+  expect(backgrounds.footer).toBe(backgrounds.hero);
+  expect(backgrounds.canvas).not.toBe(backgrounds.hero);
+  await expect(page.getByRole("navigation", { name: "Navigation principale" })).toHaveCSS("border-bottom-width", "0px");
   await expect(
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
@@ -188,7 +190,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     await expect(hero.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
     if (testInfo.project.name === "mobile") {
       const hint = hero.getByLabel("Fonctionnement de la recherche par similarité IA");
-      const backdrop = hero.getByTestId("hero-gradient-backdrop");
+      const backdrop = hero.getByTestId("hero-orb-backdrop");
       await expect(hint).toBeVisible();
       await page.evaluate(() => window.scrollTo({ top: 180, behavior: "instant" }));
       const [heroBox, hintBox, backdropBox] = await Promise.all([
@@ -260,42 +262,22 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
 });
 
-test("le laboratoire du héros expose dix backgrounds sans persistance", async ({ page }, testInfo) => {
+test("le héros utilise uniquement Orb sans sélecteur de background", async ({ page }) => {
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
-  const backdrop = hero.getByTestId("hero-gradient-backdrop");
-  const selector = hero.getByRole("combobox", { name: "Background du héros" });
-  const ids = [
-    "gradflow", "floating-lines", "soft-aurora", "iridescence", "waves",
-    "orb", "ghost-fibers", "gradient-waves", "web-threads", "liquid-ether",
-  ];
+  const backdrop = hero.getByTestId("hero-orb-backdrop");
 
-  await expect(selector.locator("option")).toHaveCount(10);
-  await expect(selector).toHaveValue("gradflow");
-  await expect(backdrop).toHaveAttribute("data-hero-background", "gradflow");
-  const initialUrl = page.url();
-
-  for (const id of ids.slice(1)) {
-    await selector.selectOption(id);
-    await expect(backdrop).toHaveAttribute("data-hero-background", id);
-    expect(await backdrop.locator("canvas").count()).toBeLessThanOrEqual(1);
-  }
-  expect(page.url()).toBe(initialUrl);
-
-  const [heroBox, selectorBox] = await Promise.all([hero.boundingBox(), selector.boundingBox()]);
-  expect(heroBox).not.toBeNull();
-  expect(selectorBox).not.toBeNull();
-  expect(selectorBox!.height).toBeGreaterThanOrEqual(44);
-  expect(Math.abs(selectorBox!.x - heroBox!.x - (testInfo.project.name === "mobile" ? 16 : 32))).toBeLessThanOrEqual(1);
-  expect(selectorBox!.y).toBeGreaterThanOrEqual(heroBox!.y + 16);
+  await expect(backdrop).toHaveAttribute("data-hero-background", "orb");
+  await expect(backdrop).toHaveAttribute("data-orb-setup", "original");
+  await expect(backdrop).toHaveAttribute("data-orb-palette", /catalog-(light|dark)/);
+  await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
+  expect(await backdrop.locator("canvas").count()).toBeLessThanOrEqual(1);
 
   await page.reload();
-  await expect(hero.getByRole("combobox", { name: "Background du héros" })).toHaveValue("gradflow");
-  await expect(hero.getByTestId("hero-gradient-backdrop")).toHaveAttribute("data-hero-palette", /catalog-(light|dark)/);
+  await expect(hero.getByTestId("hero-orb-backdrop")).toHaveAttribute("data-hero-background", "orb");
 });
 
-test("les neuf moteurs alternatifs se montent et se démontent isolément", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name === "mobile", "Les shaders complets sont validés une fois sur le viewport desktop.");
+test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, testInfo) => {
   await page.addInitScript(() => {
     const rendererParameter = 37_446;
     for (const prototype of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
@@ -311,22 +293,29 @@ test("les neuf moteurs alternatifs se montent et se démontent isolément", asyn
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
-  const backdrop = hero.getByTestId("hero-gradient-backdrop");
-  const selector = hero.getByRole("combobox", { name: "Background du héros" });
-  const renderers = new Map([
-    ["floating-lines", "three"], ["soft-aurora", "ogl"], ["iridescence", "ogl"],
-    ["waves", "canvas-2d"], ["orb", "ogl"], ["ghost-fibers", "ogl"],
-    ["gradient-waves", "ogl"], ["web-threads", "ogl"], ["liquid-ether", "three"],
-  ]);
+  const backdrop = hero.getByTestId("hero-orb-backdrop");
+  const orb = backdrop.locator("[data-orb-center]");
 
-  for (const [id, renderer] of renderers) {
-    await selector.selectOption(id);
-    await expect(backdrop).toHaveAttribute("data-renderer", renderer, { timeout: 15_000 });
-    await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+  await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
+  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+  await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
+
+  if (testInfo.project.name === "mobile") {
+    await expect(orb).toHaveAttribute("data-orb-center", "title");
+    await expect.poll(() => orb.evaluate((node) => {
+      const title = node.closest("[data-testid='home-hero']")?.querySelector("h1");
+      const centerY = Number.parseFloat((node as HTMLElement).dataset.orbCenterY ?? "0.5");
+      if (!title) return Number.POSITIVE_INFINITY;
+      const orbRect = node.getBoundingClientRect();
+      const titleRect = title.getBoundingClientRect();
+      const visualOrbCenter = orbRect.top + orbRect.height * (1 - centerY);
+      const titleCenter = titleRect.top + titleRect.height / 2;
+      return Math.abs(visualOrbCenter - titleCenter);
+    })).toBeLessThanOrEqual(2);
+  } else {
+    await expect(orb).toHaveAttribute("data-orb-center", "canvas");
   }
   expect(pageErrors).toEqual([]);
-  await selector.selectOption("gradflow");
-  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
 });
 
 test("les suggestions du héros restent au-dessus de la section suivante", async ({ page }) => {
@@ -1705,7 +1694,7 @@ test("les logos clients défilent en bandeau entre les synchronisations et le fi
   }
 });
 
-test("les trois segments de la home restent égaux et le footer toujours sombre", async ({ page }) => {
+test("les trois segments de la home restent égaux et le footer suit le thème", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/");
   const tabs = page.getByRole("tablist", { name: "Sélections mises en avant" });
@@ -1722,7 +1711,8 @@ test("les trois segments de la home restent égaux et le footer toujours sombre"
     document.documentElement.dataset.theme = "dark";
     document.documentElement.style.colorScheme = "dark";
   });
-  await expect(footer).toHaveCSS("background-color", lightBackground);
+  await expect(footer).not.toHaveCSS("background-color", lightBackground);
+  await expect(footer).toHaveCSS("background-color", "rgb(11, 17, 13)");
 });
 
 test("le showreel respecte la réduction des animations", async ({ page }) => {

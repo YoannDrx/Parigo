@@ -195,13 +195,24 @@ export default function Orb({
       uv.x += hover * hoverIntensity * 0.1 * sin(uv.y * 10.0 + iTime);
       uv.y += hover * hoverIntensity * 0.1 * sin(uv.x * 10.0 + iTime);
       
-      return draw(uv);
+      vec4 orb = draw(uv);
+      float bgLuminance = dot(backgroundColor, vec3(0.299, 0.587, 0.114));
+      float edgeStart = mix(1.05, 0.82, bgLuminance);
+      float edgeEnd = mix(1.35, 0.87, bgLuminance);
+      float edgeMask = 1.0 - smoothstep(edgeStart, edgeEnd, length(uv));
+      orb.a *= edgeMask;
+      return orb;
     }
     
     void main() {
       vec2 fragCoord = vUv * iResolution.xy;
       vec4 col = mainImage(fragCoord);
-      gl_FragColor = vec4(col.rgb * col.a, col.a);
+      float bgLuminance = dot(backgroundColor, vec3(0.299, 0.587, 0.114));
+      if (bgLuminance > 0.5) {
+        gl_FragColor = vec4(mix(backgroundColor, col.rgb, col.a), 1.0);
+      } else {
+        gl_FragColor = vec4(col.rgb * col.a, col.a);
+      }
     }
   `;
 
@@ -343,7 +354,7 @@ export default function Orb({
     };
   }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle]);
 
-  return <div ref={ctnDom} className="w-full h-full" data-orb-center={centerOnTitle ? 'title' : 'canvas'} />;
+  return <div ref={ctnDom} className="orb-container" data-orb-center={centerOnTitle ? 'title' : 'canvas'} />;
 }
 
 function hslToRgb(h: number, s: number, l: number) {
