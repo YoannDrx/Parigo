@@ -21,12 +21,14 @@ interface OrbProps {
   centerOnTitle?: boolean;
   interactionExclusionSelector?: string;
   interactionExclusionPadding?: number;
-  horizontalWavesOnHover?: boolean;
+  horizontalWaves?: boolean;
   motionEnabled?: boolean;
   quality?: 'full' | 'software-performance';
   renderScale?: number;
+  tapToToggle?: boolean;
   maxFps?: number;
   waveBleed?: number;
+  waveFrequency?: number;
 }
 
 export default function Orb({
@@ -38,12 +40,14 @@ export default function Orb({
   centerOnTitle = false,
   interactionExclusionSelector,
   interactionExclusionPadding = 0,
-  horizontalWavesOnHover = false,
+  horizontalWaves = false,
   motionEnabled = true,
   quality = 'full',
   renderScale = 1,
+  tapToToggle = false,
   maxFps = 60,
-  waveBleed = 1.08
+  waveBleed = 1.08,
+  waveFrequency = 8
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
 
@@ -69,6 +73,7 @@ export default function Orb({
     uniform float hoverIntensity;
     uniform float horizontalWaves;
     uniform float waveBleed;
+    uniform float waveFrequency;
     uniform vec3 backgroundColor;
     uniform vec2 orbCenter;
     varying vec2 vUv;
@@ -210,8 +215,8 @@ export default function Orb({
       // every edge of the hero without increasing the canvas resolution.
       vec2 waveUv = (fragCoord - center) / (iResolution.xy * 0.5 * waveBleed);
       float waveShape =
-        sin(waveUv.x * 8.0 - iTime * 0.65) * 0.78 +
-        sin(waveUv.x * 3.25 + iTime * 0.32) * 0.22;
+        sin(waveUv.x * waveFrequency - iTime * 0.65) * 0.78 +
+        sin(waveUv.x * waveFrequency * 0.40625 + iTime * 0.32) * 0.22;
       waveUv.x *= 0.32;
       waveUv.y += hoverIntensity * 0.1 * waveShape;
 
@@ -273,8 +278,9 @@ export default function Orb({
         hover: { value: 0 },
         rot: { value: 0 },
         hoverIntensity: { value: hoverIntensity },
-        horizontalWaves: { value: horizontalWavesOnHover ? 1 : 0 },
+        horizontalWaves: { value: horizontalWaves ? 1 : 0 },
         waveBleed: { value: waveBleed },
+        waveFrequency: { value: waveFrequency },
         backgroundColor: { value: hexToVec3(backgroundColor) },
         orbCenter: { value: new Float32Array([0.5, 0.5]) }
       }
@@ -341,6 +347,8 @@ export default function Orb({
     const settleTimeout = window.setTimeout(updateOrbCenter, 700);
 
     let targetHover = 0;
+    let tapWaveActive = false;
+    let tapStart: { pointerId: number; x: number; y: number } | null = null;
     let lastRenderTime = 0;
     let currentRot = 0;
     const rotationSpeed = 0.3;
@@ -348,36 +356,39 @@ export default function Orb({
       ? Array.from(document.querySelectorAll(interactionExclusionSelector))
       : [];
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
-      const insideExclusionZone = Boolean(
-        interactionExclusionSelector && hoveredElement?.closest(interactionExclusionSelector)
+    const isInsideInteractionExclusion = (clientX: number, clientY: number) => {
+      const pointedElement = document.elementFromPoint(clientX, clientY);
+      return Boolean(
+        interactionExclusionSelector && pointedElement?.closest(interactionExclusionSelector)
       ) || exclusionZones.some((zone) => {
         const rect = zone.getBoundingClientRect();
-        return e.clientX >= rect.left - interactionExclusionPadding
-          && e.clientX <= rect.right + interactionExclusionPadding
-          && e.clientY >= rect.top - interactionExclusionPadding
-          && e.clientY <= rect.bottom + interactionExclusionPadding;
+        return clientX >= rect.left - interactionExclusionPadding
+          && clientX <= rect.right + interactionExclusionPadding
+          && clientY >= rect.top - interactionExclusionPadding
+          && clientY <= rect.bottom + interactionExclusionPadding;
       });
-      if (insideExclusionZone) {
+    };
+
+    const isInsideRestingOrb = (clientX: number, clientY: number) => {
+      const rect = container.getBoundingClientRect();
+      const width = rect.width;
+      const height = rect.height;
+      const size = Math.min(width, height);
+      if (size <= 0) return false;
+      const orbCenter = program.uniforms.orbCenter.value as Float32Array;
+      const uvX = ((clientX - rect.left - width * orbCenter[0]) / size) * 2.0;
+      const uvY = ((clientY - rect.top - height * (1 - orbCenter[1])) / size) * 2.0;
+      return Math.sqrt(uvX * uvX + uvY * uvY) < 0.8;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isInsideInteractionExclusion(e.clientX, e.clientY)) {
         targetHover = 0;
         mountedContainer.dataset.orbInteraction = 'safe';
         return;
       }
 
-      const rect = container.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const width = rect.width;
-      const height = rect.height;
-      const size = Math.min(width, height);
-      const orbCenter = program.uniforms.orbCenter.value as Float32Array;
-      const centerX = width * orbCenter[0];
-      const centerY = height * (1 - orbCenter[1]);
-      const uvX = ((x - centerX) / size) * 2.0;
-      const uvY = ((y - centerY) / size) * 2.0;
-
-      if (Math.sqrt(uvX * uvX + uvY * uvY) < 0.8) {
+      if (isInsideRestingOrb(e.clientX, e.clientY)) {
         targetHover = 1;
         mountedContainer.dataset.orbInteraction = 'active';
       } else {
@@ -391,9 +402,35 @@ export default function Orb({
       mountedContainer.dataset.orbInteraction = 'idle';
     };
 
-    if (motionEnabled) {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!event.isPrimary) return;
+      tapStart = { pointerId: event.pointerId, x: event.clientX, y: event.clientY };
+    };
+
+    const handlePointerUp = (event: PointerEvent) => {
+      const start = tapStart;
+      tapStart = null;
+      if (!start || start.pointerId !== event.pointerId) return;
+      if (Math.hypot(event.clientX - start.x, event.clientY - start.y) > 12) return;
+      if (isInsideInteractionExclusion(event.clientX, event.clientY)) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('a,button,input,textarea,select,[role="button"]')) return;
+      if (!tapWaveActive && !isInsideRestingOrb(event.clientX, event.clientY)) return;
+
+      tapWaveActive = !tapWaveActive;
+      mountedContainer.dataset.orbTapState = tapWaveActive ? 'waves' : 'orb';
+      mountedContainer.dataset.orbInteraction = tapWaveActive ? 'active' : 'idle';
+      scheduleAnimationFrame(true);
+    };
+
+    if (motionEnabled && !tapToToggle) {
       window.addEventListener('mousemove', handleMouseMove);
       document.documentElement.addEventListener('mouseleave', handleMouseLeave);
+    }
+    if (tapToToggle && hero) {
+      mountedContainer.dataset.orbTapState = 'orb';
+      hero.addEventListener('pointerdown', handlePointerDown);
+      hero.addEventListener('pointerup', handlePointerUp);
     }
 
     let rafId: number | undefined;
@@ -419,7 +456,9 @@ export default function Orb({
       lastRenderTime = t;
       program.uniforms.iTime.value = motionEnabled ? t * 0.001 : 0;
 
-      const effectiveHover = motionEnabled ? forceHoverState ? 1 : targetHover : 0;
+      const effectiveHover = motionEnabled
+        ? forceHoverState || (tapToToggle && tapWaveActive) ? 1 : targetHover
+        : 0;
       program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * 0.1;
 
       if (rotateOnHover && effectiveHover > 0.5) {
@@ -472,14 +511,18 @@ export default function Orb({
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       visibilityObserver?.disconnect();
       resizeObserver.disconnect();
-      if (motionEnabled) {
+      if (motionEnabled && !tapToToggle) {
         window.removeEventListener('mousemove', handleMouseMove);
         document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
+      }
+      if (tapToToggle && hero) {
+        hero.removeEventListener('pointerdown', handlePointerDown);
+        hero.removeEventListener('pointerup', handlePointerUp);
       }
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, horizontalWavesOnHover, motionEnabled, renderScale, maxFps, waveBleed]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, horizontalWaves, motionEnabled, renderScale, tapToToggle, maxFps, waveBleed, waveFrequency]);
 
   return (
     <div
@@ -488,10 +531,15 @@ export default function Orb({
       data-orb-quality={quality}
       data-max-fps={maxFps}
       data-orb-center={centerOnTitle ? 'title' : 'canvas'}
-      data-orb-hover-effect={horizontalWavesOnHover ? 'horizontal-waves' : 'distortion'}
+      data-orb-force-hover={forceHoverState ? 'active' : 'inactive'}
+      data-orb-hover-effect={horizontalWaves ? 'horizontal-waves' : 'distortion'}
       data-orb-rotation={rotateOnHover ? 'enabled' : 'disabled'}
+      data-orb-tap-state={tapToToggle ? 'orb' : undefined}
+      data-orb-tap-toggle={tapToToggle ? 'enabled' : 'disabled'}
       data-render-scale={renderScale}
-      data-wave-bleed={horizontalWavesOnHover ? waveBleed : undefined}
+      data-wave-amplitude={horizontalWaves ? (hoverIntensity * 0.1).toFixed(2) : undefined}
+      data-wave-bleed={horizontalWaves ? waveBleed : undefined}
+      data-wave-frequency={horizontalWaves ? waveFrequency : undefined}
     />
   );
 }
