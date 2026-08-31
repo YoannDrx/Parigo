@@ -22,10 +22,10 @@ function readConsentSnapshot() {
   return normalizeConsentSnapshot(cookie);
 }
 
-export function ClientCookieConsentBanner({ locale }: { locale: Locale }) {
-  // Keep the shared initial render deterministic while reserving the banner's
-  // layout before hydration. Existing choices are hidden during hydration.
-  const [visible, setVisible] = useState(true);
+export function ClientCookieConsentBanner({ locale, initialSnapshot }: { locale: Locale; initialSnapshot: string }) {
+  // Match the request cookie on the first render so an existing choice never
+  // flashes before hydration. Local storage remains the client-side fallback.
+  const [visible, setVisible] = useState(initialSnapshot === CONSENT_UNSET);
 
   useEffect(() => {
     const refresh = () => setVisible(readConsentSnapshot() === CONSENT_UNSET);

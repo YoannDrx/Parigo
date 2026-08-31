@@ -182,7 +182,8 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
 
   const query = page.getByPlaceholder("Rechercher un label");
   await query.fill("PGO Parigo");
-  await expect(page.getByRole("heading", { level: 2, name: "Parigo", exact: true })).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByRole("heading", { level: 2, name: "Parigo", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("status").filter({ hasText: "résultats" })).toContainText("0 résultats");
   await query.fill("PRTM");
   await expect(page.getByRole("heading", { level: 2, name: "Primetime Tracks", exact: true })).toBeVisible({ timeout: 30_000 });
   await query.fill("101 Music Compilations");
