@@ -21,10 +21,12 @@ interface OrbProps {
   centerOnTitle?: boolean;
   interactionExclusionSelector?: string;
   interactionExclusionPadding?: number;
+  horizontalWavesOnHover?: boolean;
   motionEnabled?: boolean;
   quality?: 'full' | 'software-performance';
   renderScale?: number;
   maxFps?: number;
+  waveBleed?: number;
 }
 
 export default function Orb({
@@ -36,10 +38,12 @@ export default function Orb({
   centerOnTitle = false,
   interactionExclusionSelector,
   interactionExclusionPadding = 0,
+  horizontalWavesOnHover = false,
   motionEnabled = true,
   quality = 'full',
   renderScale = 1,
-  maxFps = 60
+  maxFps = 60,
+  waveBleed = 1.08
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
 
@@ -63,6 +67,8 @@ export default function Orb({
     uniform float hover;
     uniform float rot;
     uniform float hoverIntensity;
+    uniform float horizontalWaves;
+    uniform float waveBleed;
     uniform vec3 backgroundColor;
     uniform vec2 orbCenter;
     varying vec2 vUv;
@@ -197,20 +203,36 @@ export default function Orb({
     vec4 mainImage(vec2 fragCoord) {
       vec2 center = iResolution.xy * orbCenter;
       float size = min(iResolution.x, iResolution.y);
-      vec2 uv = (fragCoord - center) / size * 2.0;
+      vec2 circularUv = (fragCoord - center) / size * 2.0;
+
+      // On hover, morph the centered sphere into a wide pair of horizontal
+      // wave fronts. Independent X/Y normalization lets the waves bleed past
+      // every edge of the hero without increasing the canvas resolution.
+      vec2 waveUv = (fragCoord - center) / (iResolution.xy * 0.5 * waveBleed);
+      float waveShape =
+        sin(waveUv.x * 8.0 - iTime * 0.65) * 0.78 +
+        sin(waveUv.x * 3.25 + iTime * 0.32) * 0.22;
+      waveUv.x *= 0.32;
+      waveUv.y += hoverIntensity * 0.1 * waveShape;
+
+      float waveMorph = hover * horizontalWaves;
+      vec2 uv = mix(circularUv, waveUv, waveMorph);
       
       float angle = rot;
       float s = sin(angle);
       float c = cos(angle);
       uv = vec2(c * uv.x - s * uv.y, s * uv.x + c * uv.y);
       
-      uv.x += hover * hoverIntensity * 0.1 * sin(uv.y * 10.0 + iTime);
-      uv.y += hover * hoverIntensity * 0.1 * sin(uv.x * 10.0 + iTime);
+      float legacyHover = hover * (1.0 - horizontalWaves);
+      uv.x += legacyHover * hoverIntensity * 0.1 * sin(uv.y * 10.0 + iTime);
+      uv.y += legacyHover * hoverIntensity * 0.1 * sin(uv.x * 10.0 + iTime);
       
       vec4 orb = draw(uv);
       float bgLuminance = dot(backgroundColor, vec3(0.299, 0.587, 0.114));
       float edgeStart = mix(1.05, 0.82, bgLuminance);
       float edgeEnd = mix(1.35, 0.87, bgLuminance);
+      edgeStart = mix(edgeStart, 1.05, waveMorph);
+      edgeEnd = mix(edgeEnd, 1.35, waveMorph);
       float edgeMask = 1.0 - smoothstep(edgeStart, edgeEnd, length(uv));
       orb.a *= edgeMask;
       return orb;
@@ -251,6 +273,8 @@ export default function Orb({
         hover: { value: 0 },
         rot: { value: 0 },
         hoverIntensity: { value: hoverIntensity },
+        horizontalWaves: { value: horizontalWavesOnHover ? 1 : 0 },
+        waveBleed: { value: waveBleed },
         backgroundColor: { value: hexToVec3(backgroundColor) },
         orbCenter: { value: new Float32Array([0.5, 0.5]) }
       }
@@ -455,7 +479,7 @@ export default function Orb({
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, motionEnabled, renderScale, maxFps]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, horizontalWavesOnHover, motionEnabled, renderScale, maxFps, waveBleed]);
 
   return (
     <div
@@ -464,7 +488,10 @@ export default function Orb({
       data-orb-quality={quality}
       data-max-fps={maxFps}
       data-orb-center={centerOnTitle ? 'title' : 'canvas'}
+      data-orb-hover-effect={horizontalWavesOnHover ? 'horizontal-waves' : 'distortion'}
+      data-orb-rotation={rotateOnHover ? 'enabled' : 'disabled'}
       data-render-scale={renderScale}
+      data-wave-bleed={horizontalWavesOnHover ? waveBleed : undefined}
     />
   );
 }

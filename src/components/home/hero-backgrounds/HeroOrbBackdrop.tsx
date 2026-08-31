@@ -137,6 +137,7 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
       aria-hidden="true"
       className="hero-background absolute inset-0 overflow-hidden"
       data-hero-background="orb"
+      data-orb-hover={coarsePointer ? "none" : "horizontal-waves"}
       data-orb-setup="original"
       data-orb-palette={palette}
       data-motion={motionEnabled ? "animated" : "static"}
@@ -151,16 +152,18 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
             <Orb
               hue={ORB_HUES[palette]}
               hoverIntensity={5}
-              rotateOnHover={!coarsePointer}
+              rotateOnHover={false}
               forceHoverState={false}
               backgroundColor={ORB_BACKGROUNDS[theme]}
               centerOnTitle={mobileViewport}
               interactionExclusionSelector="[data-orb-safe-zone]"
               interactionExclusionPadding={14}
+              horizontalWavesOnHover={!coarsePointer}
               motionEnabled={motionEnabled}
               quality={fullQuality ? "full" : "software-performance"}
               renderScale={fullQuality ? 1 : 0.25}
               maxFps={fullQuality ? 60 : 24}
+              waveBleed={1.08}
             />
           </div>
         </RendererBoundary>

@@ -313,6 +313,7 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
 
   await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
   await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+  await expect(orb).toHaveAttribute("data-orb-rotation", "disabled");
   const initialCanvas = await backdrop.locator("canvas").elementHandle();
   expect(initialCanvas).not.toBeNull();
   await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
@@ -327,7 +328,10 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
   expect(backdropBox!.y + backdropBox!.height).toBeGreaterThanOrEqual(headerBox!.y + headerBox!.height);
 
   if (testInfo.project.name === "mobile") {
+    await expect(backdrop).toHaveAttribute("data-orb-hover", "none");
     await expect(orb).toHaveAttribute("data-orb-center", "title");
+    await expect(orb).toHaveAttribute("data-orb-hover-effect", "distortion");
+    await expect(orb).not.toHaveAttribute("data-wave-bleed", /.+/);
     await expect(backdrop).toHaveAttribute("data-renderer-capability", "hardware");
     await expect(orb).toHaveAttribute("data-orb-quality", "full");
     await expect(orb).toHaveAttribute("data-render-scale", "1");
@@ -359,7 +363,10 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
       canvas === originalCanvas && originalCanvas.isConnected
     ), initialCanvas)).toBe(true);
   } else {
+    await expect(backdrop).toHaveAttribute("data-orb-hover", "horizontal-waves");
     await expect(orb).toHaveAttribute("data-orb-center", "canvas");
+    await expect(orb).toHaveAttribute("data-orb-hover-effect", "horizontal-waves");
+    await expect(orb).toHaveAttribute("data-wave-bleed", "1.08");
     const [orbBox, safeZoneBox] = await Promise.all([
       orb.boundingBox(),
       page.getByTestId("home-hero-search-mask").boundingBox(),
