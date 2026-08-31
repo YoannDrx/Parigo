@@ -5,7 +5,7 @@ import { QueryProvider } from "@/components/providers/QueryProvider";
 import { cookies, headers } from "next/headers";
 import { isLocale } from "@/lib/locale";
 import { siteConfig } from "@/lib/seo";
-import { CONSENT_UNSET } from "@/lib/consent";
+import { CONSENT_COOKIE_NAME, normalizeConsentSnapshot } from "@/lib/consent";
 import { ClientCookieConsentBanner } from "@/components/privacy/ClientCookieConsentBanner";
 import type { Theme } from "@/components/providers/ThemeProvider";
 
@@ -67,6 +67,7 @@ export default async function RootLayout({
   const locale = isLocale(localeHeader) ? localeHeader : "fr";
   const storedTheme = cookieStore.get("parigo-theme")?.value;
   const initialTheme: Theme = storedTheme === "light" || storedTheme === "dark" ? storedTheme : "dark";
+  const initialConsentSnapshot = normalizeConsentSnapshot(cookieStore.get(CONSENT_COOKIE_NAME)?.value);
 
   return (
     <html lang={locale} data-theme={initialTheme} style={{ colorScheme: initialTheme }} suppressHydrationWarning>
@@ -83,10 +84,10 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${archivo.variable} ${manrope.variable} ${ibmPlexMono.variable} antialiased`}
       >
-        <QueryProvider initialLocale={locale} initialConsentSnapshot={CONSENT_UNSET} initialTheme={initialTheme}>
+        <QueryProvider initialLocale={locale} initialConsentSnapshot={initialConsentSnapshot} initialTheme={initialTheme}>
           {children}
         </QueryProvider>
-        <ClientCookieConsentBanner locale={locale} />
+        <ClientCookieConsentBanner locale={locale} initialSnapshot={initialConsentSnapshot} />
       </body>
     </html>
   );

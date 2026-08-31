@@ -57,6 +57,25 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test("un refresh ne réaffiche pas le bandeau après un choix de cookies", async ({ page }) => {
+  const value = JSON.stringify({
+    necessary: true,
+    preferences: false,
+    analytics: false,
+    marketing: true,
+    updatedAt: "2026-08-31T22:00:00.000Z",
+  });
+  await page.goto("/");
+  await page.evaluate(({ storageKey, cookieName, consent }) => {
+    window.localStorage.setItem(storageKey, consent);
+    document.cookie = `${cookieName}=${encodeURIComponent(consent)};path=/;max-age=31536000;samesite=lax`;
+  }, { storageKey: "parigo-cookie-consent", cookieName: "parigo-consent", consent: value });
+
+  const response = await page.reload();
+  expect(await response?.text()).not.toContain('id="parigo-consent-banner"');
+  await expect(page.locator("#parigo-consent-banner")).toHaveCount(0);
+});
+
 test("un clip se lit dans sa carte, se détache et se réattache au détail sans recréer l’iframe", async ({ page }, testInfo) => {
   await page.goto("/clips");
   const card = page.locator(".parigo-video-card").filter({ hasText: /Garden Of Eden/i }).first();

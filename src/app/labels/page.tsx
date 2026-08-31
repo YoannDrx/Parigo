@@ -1,4 +1,5 @@
 import { LabelsPageClient } from "@/components/catalog/LabelsPageClient";
+import { PARIGO_LABEL_ID } from "@/config/catalog";
 import { getCachedLabels } from "@/lib/harvest/catalog-cache";
 import { localizeLabel } from "@/lib/catalog-localization";
 import { getRequestLocale } from "@/lib/locale-server";
@@ -11,7 +12,7 @@ export async function generateMetadata({ searchParams }: { searchParams: PageSea
 
 export default async function LabelsPage() {
   const [labels, locale] = await Promise.all([getCachedLabels(), getRequestLocale()]);
-  return <LabelsPageClient labels={labels.map((source) => {
+  return <LabelsPageClient labels={labels.filter((source) => source.id !== PARIGO_LABEL_ID).map((source) => {
     const label = localizeLabel(source, locale);
     return { ...label, slug: label.slug || label.id, description: label.description || null, website: label.website || null };
   })} />;
