@@ -61,7 +61,7 @@ export function RecentSearchesMenu({
     >
       <div className="flex min-h-12 items-center justify-between gap-3 border-b border-[var(--line)] px-4">
         <p className={cn("flex items-center gap-2 text-xs font-semibold", mode === "ai" && "text-[var(--ai-search)]")}><Clock3 size={14} className={mode === "ai" ? "text-[var(--ai-search)]" : "text-[var(--signal-strong)]"} />{historyLabel}</p>
-        {total > 0 ? <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClearAll} className="inline-flex min-h-11 items-center gap-1.5 text-[.68rem] font-semibold text-[var(--text-muted)] transition hover:text-[var(--danger)] focus-visible:text-[var(--danger)]"><Trash2 size={13} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button> : null}
+        {total > 0 ? <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={onClearAll} className="inline-flex min-h-10 items-center gap-1.5 text-[.56rem] font-medium text-[var(--text-muted)] transition hover:text-[var(--danger)] focus-visible:text-[var(--danger)]"><Trash2 size={14} />{locale === "fr" ? "Tout effacer" : "Clear all"}</button> : null}
       </div>
       {items.length ? (
         <div id={id} role="listbox" aria-label={historyLabel} className="max-h-[min(18rem,42vh)] overflow-y-auto p-2">
