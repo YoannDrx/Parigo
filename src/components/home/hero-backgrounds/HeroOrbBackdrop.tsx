@@ -64,15 +64,22 @@ function useSaveData() {
   );
 }
 
+type RendererCapability = "disabled" | "software" | "hardware";
+
 function useEnhancedRenderer(disabled: boolean, allowSoftwareRenderer: boolean, eager: boolean) {
-  const [enabled, setEnabled] = useState(false);
+  const [capability, setCapability] = useState<RendererCapability>("disabled");
 
   useEffect(() => {
-    if (disabled || enabled) return;
+    if (disabled || capability !== "disabled") return;
     let cancelled = false;
     const enable = () => {
-      const supported = allowSoftwareRenderer ? supportsWebGl() : supportsHardwareAcceleratedWebGl();
-      if (!cancelled && supported) setEnabled(true);
+      const hardwareAccelerated = supportsHardwareAcceleratedWebGl();
+      const nextCapability = hardwareAccelerated
+        ? "hardware"
+        : allowSoftwareRenderer && supportsWebGl()
+          ? "software"
+          : "disabled";
+      if (!cancelled) setCapability(nextCapability);
     };
     if (eager) {
       enable();
@@ -87,9 +94,9 @@ function useEnhancedRenderer(disabled: boolean, allowSoftwareRenderer: boolean, 
       if (idleId !== undefined) window.cancelIdleCallback?.(idleId);
       if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
-  }, [allowSoftwareRenderer, disabled, eager, enabled]);
+  }, [allowSoftwareRenderer, capability, disabled, eager]);
 
-  return !disabled && enabled;
+  return disabled ? "disabled" : capability;
 }
 
 class RendererBoundary extends Component<{ children: ReactNode; onError: () => void }, { failed: boolean }> {
@@ -119,9 +126,11 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
   const [failed, setFailed] = useState(false);
   const mobileRendererRequired = mobileViewport;
   const rendererDisabled = failed || (!mobileRendererRequired && (reduceMotion || saveData));
-  const enhanced = useEnhancedRenderer(rendererDisabled, mobileRendererRequired, mobileRendererRequired);
+  const rendererCapability = useEnhancedRenderer(rendererDisabled, mobileRendererRequired, mobileRendererRequired);
+  const enhanced = rendererCapability !== "disabled";
   const renderer = enhanced ? "ogl" : "fallback";
   const motionEnabled = mobileRendererRequired || !reduceMotion;
+  const fullQuality = rendererCapability !== "software";
 
   return (
     <div
@@ -132,6 +141,7 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
       data-orb-palette={palette}
       data-motion={motionEnabled ? "animated" : "static"}
       data-renderer={renderer}
+      data-renderer-capability={rendererCapability}
       data-testid="hero-orb-backdrop"
     >
       <div className="hero-background__fallback absolute inset-0" />
@@ -148,8 +158,9 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
               interactionExclusionSelector="[data-orb-safe-zone]"
               interactionExclusionPadding={14}
               motionEnabled={motionEnabled}
-              renderScale={1}
-              maxFps={60}
+              quality={fullQuality ? "full" : "software-performance"}
+              renderScale={fullQuality ? 1 : 0.25}
+              maxFps={fullQuality ? 60 : 24}
             />
           </div>
         </RendererBoundary>

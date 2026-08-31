@@ -22,6 +22,7 @@ interface OrbProps {
   interactionExclusionSelector?: string;
   interactionExclusionPadding?: number;
   motionEnabled?: boolean;
+  quality?: 'full' | 'software-performance';
   renderScale?: number;
   maxFps?: number;
 }
@@ -36,6 +37,7 @@ export default function Orb({
   interactionExclusionSelector,
   interactionExclusionPadding = 0,
   motionEnabled = true,
+  quality = 'full',
   renderScale = 1,
   maxFps = 60
 }: OrbProps) {
@@ -459,7 +461,7 @@ export default function Orb({
     <div
       ref={ctnDom}
       className="orb-container"
-      data-orb-quality="full"
+      data-orb-quality={quality}
       data-max-fps={maxFps}
       data-orb-center={centerOnTitle ? 'title' : 'canvas'}
       data-render-scale={renderScale}
