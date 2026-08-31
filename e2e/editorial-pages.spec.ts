@@ -398,7 +398,7 @@ test("les retours des fiches détail partagent le même rythme compact", async (
     { path: "/synchronisations/ajvhKSKcas8", content: 'section[aria-label="Lecteur vidéo"]' },
     { path: "/albums/48b4b95fe1f09019", content: ".album-cover-frame" },
     { path: "/playlists/22b6c3499f843b2d", content: ".editorial-detail-hero > div:first-child" },
-    { path: "/labels/0f9769346759ee5a", content: ".editorial-detail-hero > .parigo-frame" },
+    { path: "/labels/0f9769346759ee5a", content: "[data-testid='label-detail-image']" },
   ];
 
   for (const route of routes) {
@@ -932,17 +932,28 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
   const hero = page.locator(".editorial-detail-hero").first();
   await expect(hero).toBeVisible();
   await expect(hero.getByRole("link", { name: /Site web|Website/i })).toHaveCount(0);
-  const logoPanel = hero.locator("> div").first();
+  const logoPanel = page.getByTestId("label-detail-image");
   const logoPanelBox = await logoPanel.boundingBox();
   expect(logoPanelBox).not.toBeNull();
+  expect(Math.abs(logoPanelBox!.width - logoPanelBox!.height)).toBeLessThanOrEqual(1);
+  await expect(logoPanel).toHaveCSS("border-top-width", "0px");
+  await expect(logoPanel).toHaveCSS("box-shadow", "none");
+  const stats = page.getByTestId("label-detail-stats");
+  await expect(stats).toHaveCSS("border-top-width", "0px");
+  await expect(stats).toHaveCSS("border-bottom-width", "0px");
+  const [titleBox, statsBox] = await Promise.all([
+    hero.getByRole("heading", { level: 1 }).boundingBox(),
+    stats.boundingBox(),
+  ]);
+  expect(titleBox).not.toBeNull();
+  expect(statsBox).not.toBeNull();
+  expect(statsBox!.y - (titleBox!.y + titleBox!.height)).toBeLessThanOrEqual(21);
   if (testInfo.project.name === "mobile") {
-    expect(logoPanelBox!.height).toBeGreaterThanOrEqual(219);
-    expect(logoPanelBox!.height).toBeLessThanOrEqual(221);
+    expect(logoPanelBox!.width).toBeGreaterThanOrEqual(200);
+    expect(logoPanelBox!.width).toBeLessThanOrEqual(221);
   } else {
-    expect(logoPanelBox!.height).toBeGreaterThanOrEqual(280);
-    expect(logoPanelBox!.height).toBeLessThanOrEqual(361);
-    expect(logoPanelBox!.width).toBeGreaterThan(400);
-    expect(logoPanelBox!.width).toBeLessThanOrEqual(481);
+    expect(logoPanelBox!.width).toBeGreaterThanOrEqual(320);
+    expect(logoPanelBox!.width).toBeLessThanOrEqual(341);
     const [detailTitleSize, labelsPageTitleSize] = await Promise.all([
       hero.getByRole("heading", { level: 1 }).evaluate((node) => getComputedStyle(node).fontSize),
       page.evaluate(() => {
@@ -958,15 +969,27 @@ test("le détail label privilégie le logo et ne renvoie plus vers son site", as
 
     const toolbar = page.getByTestId("catalog-workspace").locator(".catalog-toolbar");
     const toggle = toolbar.getByRole("group", { name: "Contenu du label" });
-    const [toolbarBox, toggleBox] = await Promise.all([toolbar.boundingBox(), toggle.boundingBox()]);
-    expect(toolbarBox).not.toBeNull();
+    const toggleButton = toggle.getByRole("button", { name: "Albums" });
+    const sort = toolbar.getByRole("combobox", { name: "Trier les résultats" });
+    const [toggleBox, toggleButtonBox, sortBox] = await Promise.all([toggle.boundingBox(), toggleButton.boundingBox(), sort.boundingBox()]);
     expect(toggleBox).not.toBeNull();
-    expect(toolbarBox!.y + toolbarBox!.height - (toggleBox!.y + toggleBox!.height)).toBeLessThanOrEqual(12);
+    expect(toggleButtonBox).not.toBeNull();
+    expect(sortBox).not.toBeNull();
+    expect(Math.abs(toggleBox!.height - 48)).toBeLessThanOrEqual(1);
+    expect(Math.abs(toggleBox!.y - sortBox!.y)).toBeLessThanOrEqual(1);
+    const togglePaddingTop = toggleButtonBox!.y - toggleBox!.y;
+    const togglePaddingBottom = toggleBox!.y + toggleBox!.height - (toggleButtonBox!.y + toggleButtonBox!.height);
+    expect(Math.abs(togglePaddingTop - togglePaddingBottom)).toBeLessThanOrEqual(1);
   }
 
   const toolbar = page.getByTestId("catalog-workspace").locator(".catalog-toolbar");
-  await expect(toolbar.getByRole("status")).toHaveCount(0);
-  await expect(page.getByTestId("catalog-workspace").getByRole("status")).toBeVisible();
+  const status = toolbar.getByRole("status");
+  await expect(status).toBeVisible();
+  await expect(toolbar).toHaveCSS("background-image", "none");
+  const [finalToolbarBox, statusBox] = await Promise.all([toolbar.boundingBox(), status.boundingBox()]);
+  expect(finalToolbarBox).not.toBeNull();
+  expect(statusBox).not.toBeNull();
+  expect(finalToolbarBox!.y + finalToolbarBox!.height - (statusBox!.y + statusBox!.height)).toBeGreaterThanOrEqual(8);
 });
 
 test("la description Musica.it reste dans les métadonnées mais disparaît du détail", async ({ page }, testInfo) => {

@@ -335,7 +335,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
             separateMobileSearch={separateMobileSearch}
             mobileLeadingControl={separateMobileSearch ? mobileFilterTrigger : undefined}
             primaryControls={enableTrackView ? (
-              <div className="search-view-toggle inline-flex w-fit shrink-0 border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Contenu du label" : "Label content"}>
+              <div className="search-view-toggle inline-flex h-12 w-fit shrink-0 items-center border border-[var(--line-strong)] bg-[var(--background)] p-1" role="group" aria-label={locale === "fr" ? "Contenu du label" : "Label content"}>
                 {(["albums", "tracks"] as const).map((value) => {
                   const Icon = value === "albums" ? Disc3 : Music2;
                   const label = value === "albums" ? "Albums" : locale === "fr" ? "Pistes" : "Tracks";
@@ -344,7 +344,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
               </div>
             ) : undefined}
           >
-            {!separateMobileSearch ? <div className="mt-2 flex flex-wrap items-center gap-2">{mobileFilterTrigger}</div> : null}
+            {!separateMobileSearch ? <div className="mt-2 flex flex-wrap items-center gap-2 lg:hidden">{mobileFilterTrigger}</div> : null}
             <CatalogActiveFilters locale={locale} filters={activeFilters} onReset={reset} />
           </CatalogToolbar>
 

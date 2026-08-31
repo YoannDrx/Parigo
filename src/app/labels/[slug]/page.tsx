@@ -67,6 +67,7 @@ export default async function LabelPage({ params }: LabelPageProps) {
         name: label.name,
         url: absoluteUrl(`${locale === "en" ? "/en" : ""}/labels/${slug}`),
         description: label.description || undefined,
+        logo: label.logo || undefined,
       }} />
       <BreadcrumbJsonLd locale={locale} items={[
         { name: locale === "fr" ? "Labels" : "Labels", path: "/labels" },

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight, Building2, Disc3 } from "lucide-react";
+import { Building2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Header, Footer } from "@/components/layout";
@@ -124,24 +124,15 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
             <div className="py-24 text-center"><Building2 size={42} className="mx-auto mb-6 opacity-25" /><h2 className="font-[var(--font-editorial)] text-5xl font-normal">{t("catalog.noLabels")}</h2></div>
           ) : (
             <>
-              <div data-testid="labels-mobile-list" className="border-t border-[var(--line)] md:hidden">
-                {visibleLabels.map((label) => (
-                  <Link key={label.id} href={localizedPath(`/labels/${label.slug}`)} className="group grid min-h-[5.25rem] min-w-0 grid-cols-[6.5rem_minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--line)] py-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--signal-strong)]">
-                    <span className="relative h-[4.25rem] w-[6.5rem] overflow-hidden">
-                      <LabelLogo src={label.logo} name={label.name} decorative fill sizes="104px" fallbackSize={40} fallbackVariant="monogram" className="object-contain p-0.5" />
-                    </span>
-                    <h2 className="line-clamp-2 min-w-0 break-words text-base font-semibold leading-[1.12] tracking-[-.025em]">{label.name}</h2>
-                    <span className="flex min-w-11 flex-col items-end gap-1 pr-1 text-xs text-[var(--text-muted)]"><span className="flex items-center gap-1.5 whitespace-nowrap"><Disc3 size={13} />{label.albumCount}</span><ArrowUpRight size={15} className="transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" /></span>
-                  </Link>
-                ))}
-              </div>
               {view === "grid" ? (
-            <div className="hidden border-l border-t border-[var(--line)] md:grid md:grid-cols-3 xl:grid-cols-4">
+            <div data-testid="labels-mosaic" className="grid grid-cols-2 border-l border-t border-[var(--line)] md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
               {visibleLabels.map((label) => (
-                <article key={label.id} className="label-editorial-card group relative min-w-0 overflow-hidden border-b border-r border-[var(--line)]">
-                  <Link href={localizedPath(`/labels/${label.slug}`)} className="flex min-h-56 min-w-0 flex-col justify-between p-4 focus-visible:outline-none sm:min-h-64 sm:p-6">
-                    <h2 className="max-w-[12ch] break-words font-[var(--font-editorial)] text-[clamp(1.65rem,3vw,3rem)] font-normal leading-[.92] tracking-[-.045em] transition-colors group-hover:text-[var(--color-primary-dark)]">{label.name}</h2>
-                    <div className="mt-8 flex items-center justify-between gap-2 font-mono text-[.58rem] uppercase tracking-[.08em] text-[var(--text-muted)]"><span className="flex items-center gap-2"><Disc3 size={13} /> {label.albumCount} {label.albumCount === 1 ? t("catalog.album") : t("catalog.albums")}</span><ArrowUpRight size={16} className="shrink-0 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--signal-strong)]" /></div>
+                <article key={label.id} className="label-editorial-card group relative aspect-square min-w-0 overflow-hidden border-b border-r border-[var(--line)]">
+                  <Link href={localizedPath(`/labels/${label.slug}`)} className="relative block h-full w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--signal-strong)]">
+                    <LabelLogo src={label.logo} name={label.name} decorative fill sizes="(max-width: 767px) 50vw, (max-width: 1279px) 33vw, 25vw" fallbackSize={84} fallbackVariant="mosaic" className="object-cover transition duration-500 ease-out group-hover:scale-[1.08] group-hover:blur-[9px] group-hover:saturate-[1.35] group-focus-within:scale-[1.08] group-focus-within:blur-[9px] group-focus-within:saturate-[1.35]" />
+                    <span data-testid="label-card-overlay" className="absolute inset-0 flex items-center justify-center bg-[#050806]/0 p-5 opacity-0 backdrop-blur-none transition-[opacity,background-color,backdrop-filter] duration-300 ease-out group-hover:bg-[#050806]/32 group-hover:opacity-100 group-hover:backdrop-blur-[24px] group-hover:backdrop-brightness-75 group-hover:backdrop-saturate-150 group-focus-within:bg-[#050806]/32 group-focus-within:opacity-100 group-focus-within:backdrop-blur-[24px] group-focus-within:backdrop-brightness-75 group-focus-within:backdrop-saturate-150">
+                      <h2 className="max-w-[15ch] text-balance text-center font-[var(--font-editorial)] text-[clamp(1.15rem,2.4vw,2.35rem)] font-semibold leading-[.96] tracking-[-.045em] text-white drop-shadow-sm">{label.name}</h2>
+                    </span>
                   </Link>
                 </article>
               ))}
@@ -149,10 +140,9 @@ export function LabelsPageClient({ labels }: { labels: Label[] }) {
           ) : (
             <div className="hidden border-t border-[var(--line)] md:block">
               {visibleLabels.map((label) => (
-                <Link key={label.id} href={localizedPath(`/labels/${label.slug}`)} className="group grid min-h-24 grid-cols-[5rem_minmax(0,1fr)_auto] items-center gap-4 border-b border-[var(--line)] py-4 sm:grid-cols-[8rem_minmax(0,1fr)_auto] sm:px-4">
+                <Link key={label.id} href={localizedPath(`/labels/${label.slug}`)} className="group grid min-h-24 grid-cols-[5rem_minmax(0,1fr)] items-center gap-4 border-b border-[var(--line)] py-4 sm:grid-cols-[8rem_minmax(0,1fr)] sm:px-4">
                   <div className="relative h-14 w-full"><LabelLogo src={label.logo} name={label.name} decorative fill sizes="128px" className="object-contain object-left grayscale transition group-hover:grayscale-0" /></div>
                   <div className="min-w-0"><h2 className="truncate text-xl font-semibold sm:text-2xl">{label.name}</h2></div>
-                  <span className="flex items-center gap-2 whitespace-nowrap pr-2 text-xs text-[var(--text-muted)]"><Disc3 size={14} />{label.albumCount}</span>
                 </Link>
               ))}
             </div>

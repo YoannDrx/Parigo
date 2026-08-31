@@ -97,6 +97,18 @@ test("le poste Albums mobile sépare la recherche et remplit toute la grille de 
   expect(Math.abs(sortBox!.width - viewBox!.width)).toBeLessThanOrEqual(4);
 });
 
+test("le sélecteur d’ordre et le toggle de vue Albums sont alignés sur desktop", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name === "mobile", "Cet alignement horizontal concerne le poste desktop.");
+  await page.goto("/albums");
+  const sort = page.getByRole("combobox", { name: "Trier les résultats" });
+  const view = page.getByRole("group", { name: "Mode d’affichage" });
+  const [sortBox, viewBox] = await Promise.all([sort.boundingBox(), view.boundingBox()]);
+  expect(sortBox).not.toBeNull();
+  expect(viewBox).not.toBeNull();
+  expect(Math.abs(sortBox!.y - viewBox!.y)).toBeLessThanOrEqual(1);
+  expect(Math.abs(sortBox!.height - viewBox!.height)).toBeLessThanOrEqual(1);
+});
+
 test("Notre label reprend l’accent vert du filtre Albums sur mobile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "Ce traitement concerne le déclencheur mobile.");
   await page.goto("/notre-label");
@@ -121,9 +133,17 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
   await page.goto("/labels");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   await expect(page.getByText(/^0 albums$/)).toHaveCount(0);
-  await expect(page.locator("article").first()).toContainText(/[1-9]\d* albums/);
   const firstCards = page.locator(".label-editorial-card");
   expect(await firstCards.count()).toBeGreaterThan(2);
+  await expect(firstCards.first()).not.toContainText(/\d+ albums?/i);
+  await expect(firstCards.first().locator("svg")).toHaveCount(0);
+  await expect(firstCards.first().getByTestId("label-card-overlay")).toHaveCSS("opacity", "0");
+  if (testInfo.project.name === "desktop") {
+    await firstCards.first().hover({ force: true });
+    await expect(firstCards.first().getByTestId("label-card-overlay")).toHaveCSS("opacity", "1");
+    await expect(firstCards.first().getByTestId("label-card-overlay")).toHaveCSS("backdrop-filter", /blur\(24px\)/);
+    await expect(firstCards.first().getByTestId("label-card-overlay")).toContainText(/\S+/);
+  }
   await expect(firstCards.first().locator("p")).toHaveCount(0);
   const firstHeights = await firstCards.evaluateAll((cards) => cards.slice(0, 3).map((card) => card.getBoundingClientRect().height));
   expect(new Set(firstHeights.map((height) => Math.round(height))).size).toBe(1);
@@ -145,7 +165,7 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
 
   if (testInfo.project.name === "mobile") {
     await expect(page.getByRole("button", { name: "Vue liste" })).toHaveCount(0);
-    await expect(page.getByTestId("labels-mobile-list")).toBeVisible();
+    await expect(page.getByTestId("labels-mosaic")).toBeVisible();
   } else {
     await page.getByRole("button", { name: "Vue liste" }).click();
     await expect(page.getByRole("button", { name: "Vue liste" })).toHaveAttribute("aria-pressed", "true");
@@ -153,21 +173,22 @@ test("les labels exposent les vrais volumes, la recherche et les deux vues", asy
   }
 });
 
-test("les labels mobiles utilisent une liste logo-first unique", async ({ page }, testInfo) => {
-  test.skip(testInfo.project.name !== "mobile", "La liste logo-first est spécifique au mobile.");
+test("les labels mobiles utilisent une mosaïque carrée", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La mosaïque mobile est vérifiée sur son viewport dédié.");
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/labels");
-  const list = page.getByTestId("labels-mobile-list");
-  await expect(list).toBeVisible({ timeout: 30_000 });
+  const mosaic = page.getByTestId("labels-mosaic");
+  await expect(mosaic).toBeVisible({ timeout: 30_000 });
   await expect(page.getByRole("button", { name: "Vue grille" })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Vue liste" })).toHaveCount(0);
-  const rows = list.locator('a[href^="/labels/"]');
-  const [first, second] = await Promise.all([rows.nth(0).boundingBox(), rows.nth(1).boundingBox()]);
-  expect(first!.width).toBeGreaterThanOrEqual(280);
-  expect(first!.height).toBeGreaterThanOrEqual(84);
-  expect(second!.y).toBeGreaterThan(first!.y + first!.height - 1);
-  await expect(rows.first().locator("img, [data-testid='label-logo-fallback']")).toHaveCount(1);
-  const fallback = list.locator("[data-testid='label-logo-fallback']").first();
+  const tiles = mosaic.locator('a[href^="/labels/"]');
+  const [first, second] = await Promise.all([tiles.nth(0).boundingBox(), tiles.nth(1).boundingBox()]);
+  expect(first!.width).toBeGreaterThan(120);
+  expect(Math.abs(first!.width - first!.height)).toBeLessThanOrEqual(1);
+  expect(Math.abs(second!.y - first!.y)).toBeLessThanOrEqual(1);
+  expect(second!.x).toBeGreaterThan(first!.x + first!.width - 1);
+  await expect(tiles.first().locator("img, [data-testid='label-logo-fallback']")).toHaveCount(1);
+  const fallback = mosaic.locator("[data-testid='label-logo-fallback']").first();
   if (await fallback.count()) {
     await expect(fallback).not.toContainText("PM");
     await expect(fallback).toHaveCSS("border-top-width", "0px");

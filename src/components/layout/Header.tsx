@@ -58,6 +58,7 @@ export function Header({ variant = "default" }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const [open, setOpenState] = useState(() => persistedHeaderMenuOpen);
   const [headerVisible, setHeaderVisible] = useState(true);
+  const [headerAtTop, setHeaderAtTop] = useState(true);
   const [accountPanelOpen, setAccountPanelOpen] = useState(false);
   const previousScrollY = useRef(0);
   const previousContentPath = useRef(stripLocalePrefix(pathname));
@@ -89,10 +90,12 @@ export function Header({ variant = "default" }: HeaderProps) {
     const updateHeader = () => {
       const currentY = window.scrollY;
       const delta = currentY - previousScrollY.current;
+      setHeaderAtTop(currentY <= 2);
       if (currentY < 72 || delta < -8) setHeaderVisible(true);
       else if (delta > 8 && currentY > 110 && !open) setHeaderVisible(false);
       previousScrollY.current = currentY;
     };
+    updateHeader();
     window.addEventListener("scroll", updateHeader, { passive: true });
     return () => window.removeEventListener("scroll", updateHeader);
   }, [open]);
@@ -180,6 +183,7 @@ export function Header({ variant = "default" }: HeaderProps) {
     <header
       data-variant={variant}
       data-header-visible={headerVisible || open ? "true" : "false"}
+      data-header-at-top={headerAtTop && !open ? "true" : "false"}
       style={{ top: headerVisible || open ? 0 : -82 }}
       className={cn("fixed inset-x-0 z-[80] w-full text-[var(--foreground)] transition-[top] duration-300 ease-out", open && "h-[100dvh] overflow-hidden")}
     >

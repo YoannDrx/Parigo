@@ -13,8 +13,17 @@ function positiveInteger(value: string | null): number | null {
 function resizeHarvestUrl(url: URL, width: number): string {
   const sourceWidth = positiveInteger(url.searchParams.get("width"));
   const sourceHeight = positiveInteger(url.searchParams.get("height"));
-  const targetWidth = Math.min(width, sourceWidth ?? MAX_HARVEST_IMAGE_WIDTH, MAX_HARVEST_IMAGE_WIDTH);
-  const targetHeight = sourceWidth && sourceHeight
+  const isLibraryLogo = url.pathname.includes("/assets/librarylogo/");
+  // LibraryLogoUrl is emitted with a 200 × 200 transform even when the uploaded
+  // master is larger. It is not an intrinsic-size signal like the artwork URLs.
+  const targetWidth = Math.min(
+    width,
+    isLibraryLogo ? MAX_HARVEST_IMAGE_WIDTH : sourceWidth ?? MAX_HARVEST_IMAGE_WIDTH,
+    MAX_HARVEST_IMAGE_WIDTH,
+  );
+  const targetHeight = isLibraryLogo
+    ? targetWidth
+    : sourceWidth && sourceHeight
     ? Math.max(1, Math.round(sourceHeight * targetWidth / sourceWidth))
     : targetWidth;
 
