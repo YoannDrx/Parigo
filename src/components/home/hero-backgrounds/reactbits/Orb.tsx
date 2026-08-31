@@ -302,7 +302,6 @@ export default function Orb({
         center[1] = 0.5;
         mountedContainer.dataset.orbCenterX = "0.500";
         mountedContainer.dataset.orbCenterY = "0.500";
-        renderRequest.current?.();
         return;
       }
       const containerRect = mountedContainer.getBoundingClientRect();
@@ -312,7 +311,6 @@ export default function Orb({
       center[1] = Math.min(0.85, Math.max(0.15, 1 - (titleRect.top + titleRect.height / 2 - containerRect.top) / containerRect.height));
       mountedContainer.dataset.orbCenterX = center[0].toFixed(3);
       mountedContainer.dataset.orbCenterY = center[1].toFixed(3);
-      renderRequest.current?.();
     }
 
     function scheduleOrbCenterUpdate() {
@@ -337,6 +335,11 @@ export default function Orb({
       mountedContainer.dataset.activeMaxFps = maxFps.toString();
       mountedContainer.dataset.activeRenderScale = renderScale.toString();
       updateOrbCenter();
+      // Resizing clears the WebGL drawing buffer, so request exactly one repaint.
+      // Center-only updates are intentionally deferred to the next scheduled frame:
+      // on software renderers this avoids shading the full-resolution hero several
+      // times while the title and fonts settle during initial page load.
+      renderRequest.current?.();
     }
     window.addEventListener('resize', resize);
     window.addEventListener('scroll', scheduleOrbCenterUpdate, { passive: true });
@@ -345,7 +348,13 @@ export default function Orb({
     visualViewport?.addEventListener('resize', scheduleOrbCenterUpdate);
     visualViewport?.addEventListener('scroll', scheduleOrbCenterUpdate);
     resize();
-    const resizeObserver = new ResizeObserver(resize);
+    const resizeObserver = new ResizeObserver((entries) => {
+      if (entries.some((entry) => entry.target === container)) {
+        resize();
+        return;
+      }
+      updateOrbCenter();
+    });
     resizeObserver.observe(container);
     if (title) resizeObserver.observe(title);
     const settleFrame = requestAnimationFrame(updateOrbCenter);
