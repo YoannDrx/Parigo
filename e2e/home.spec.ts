@@ -1479,10 +1479,10 @@ test("la section compositeurs présente un flux désaxé de talents", async ({ p
   expect(composerCtaShape).toEqual(aboutCtaShape);
   await expect(section.getByRole("link", { name: "Découvrir nos compositeurs" })).toHaveCount(0);
   const primaryCards = section.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/talents/"]');
-  await expect(primaryCards).toHaveCount(63);
+  await expect(primaryCards).toHaveCount(64);
   await expect(primaryCards.locator("svg")).toHaveCount(0);
-  await expect(section.locator('.composer-cloud__duplicate a[href^="/talents/"]')).toHaveCount(63);
-  await expect(section.locator("img")).toHaveCount(126);
+  await expect(section.locator('.composer-cloud__duplicate a[href^="/talents/"]')).toHaveCount(64);
+  await expect(section.locator("img")).toHaveCount(128);
   await expect(primaryCards.locator("img").first()).toHaveAttribute("src", /\/images\/composers\/detail\//);
   await expect(primaryCards.locator("img").first()).toHaveCSS("object-fit", "cover");
   const verticalOffsets = await section.locator('.composer-cloud__group:not([aria-hidden="true"]) .composer-cloud__item').evaluateAll((items) => (
@@ -1806,7 +1806,7 @@ test("le showreel reste sans effet au survol et introduit la relation avec les c
   await expect(composerIntro).toHaveCSS("transform", "none");
   await expect(composerTitle.locator(".reveal-segment")).toHaveCount(0);
   await expect(composers.getByText(/^Parigo \//)).toHaveCount(0);
-  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/talents/"]')).toHaveCount(63);
+  await expect(composers.locator('.composer-cloud__group:not([aria-hidden="true"]) a[href^="/talents/"]')).toHaveCount(64);
   const cta = composers.getByRole("link", { name: "Découvrez nos talents" });
   await cta.scrollIntoViewIfNeeded();
   await page.waitForTimeout(900);

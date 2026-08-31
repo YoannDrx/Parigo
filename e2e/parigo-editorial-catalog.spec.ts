@@ -113,12 +113,12 @@ test("un ancien slug Harvest redirige vers le profil public stable et ses albums
   await expect(page.locator(".track-detail-panel").getByRole("link", { name: "Ugly Mac Beer" })).toBeVisible();
 });
 
-test("l’annuaire publie exactement les 63 profils canoniques", async ({ page }) => {
+test("l’annuaire publie exactement les 64 profils canoniques", async ({ page }) => {
   test.setTimeout(120_000);
   await page.goto("/talents");
   await expect(page.getByRole("heading", { level: 1, name: "Nos talents" })).toBeVisible();
   const directory = page.getByTestId("composer-directory-results");
-  await expect(directory.locator("a")).toHaveCount(63);
+  await expect(directory.locator("a")).toHaveCount(64);
   await expect(directory.locator('a[href="/talents/pierre-millet"]')).toHaveCount(0);
   await expect(directory.locator('a[href="/talents/mutant-ninja"]')).toHaveCount(0);
   await expect(directory.getByText("Schérazade", { exact: true })).toBeVisible();
@@ -131,6 +131,9 @@ test("l’annuaire publie exactement les 63 profils canoniques", async ({ page }
   await expect(directory.locator('a[href="/talents/yann-lean"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/nsdos"]')).toHaveCount(1);
   await expect(directory.locator('a[href="/talents/kokane"]')).toHaveCount(1);
+  const philippe = directory.locator('a[href="/talents/philippe-almosnino"]');
+  await expect(philippe).toHaveCount(1);
+  await expect(philippe.locator("img")).toHaveCSS("object-position", "50% 18%");
   const minimatic = directory.locator('a[href="/talents/minimatic"]');
   await expect(minimatic).toHaveCount(1);
   await minimatic.click();
@@ -152,6 +155,21 @@ test("Kokane publie son portrait, ses biographies et sa discographie Parigo", as
   await expect(page.getByTestId("composer-biography")).toContainText(
     "Kokane, real name Jerry B. Long Jr., is an American rapper, singer, songwriter and producer",
   );
+});
+
+test("Philippe Almosnino publie son portrait, sa biographie et ses quatre albums Harvest", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/talents/philippe-almosnino");
+  await expect(page.getByRole("heading", { level: 1, name: "Philippe Almosnino" })).toBeVisible();
+  const portrait = page.getByTestId("composer-detail-image");
+  await expect(portrait).toHaveAttribute("src", /\/images\/composers\/detail\/philippe_almosnino/);
+  await expect(portrait).toHaveCSS("object-position", "50% 18%");
+  await expect(page.getByTestId("composer-biography")).toContainText(
+    "Philippe Almosnino est un guitariste, compositeur et musicien français",
+  );
+  for (const title of ["Paris Rocks", "Electro Boutique", "Acoustic Trip", "Vintage Rock And Remixes"]) {
+    await expect(page.getByRole("link").filter({ hasText: title }).first()).toBeVisible();
+  }
 });
 
 test("les nouveaux profils publient leurs noms de scène et le contenu disponible", async ({ page }) => {

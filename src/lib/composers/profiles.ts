@@ -59,7 +59,7 @@ const composerProfileSchema = z.object({
   }),
 });
 
-export const CANONICAL_COMPOSER_PROFILE_COUNT = 63;
+export const CANONICAL_COMPOSER_PROFILE_COUNT = 64;
 
 const registrySchema = z.object({
   generatedAt: z.string(),

@@ -11,12 +11,12 @@ import {
 } from "./profiles";
 
 describe("canonical composer registry", () => {
-  it("contains exactly the 63 unique public profiles", () => {
-    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(63);
-    expect(canonicalComposerProfiles).toHaveLength(63);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(63);
-    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(63);
-    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(63);
+  it("contains exactly the 64 unique public profiles", () => {
+    expect(CANONICAL_COMPOSER_PROFILE_COUNT).toBe(64);
+    expect(canonicalComposerProfiles).toHaveLength(64);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.slug))).toHaveLength(64);
+    expect(new Set(canonicalComposerProfiles.map((profile) => profile.name))).toHaveLength(64);
+    expect(canonicalComposerProfiles.filter((profile) => profile.imageStatus === "portrait" && profile.detailImage)).toHaveLength(64);
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "loic-laporte")?.detailImage).toMatchObject({
       src: "/images/composers/detail/loic_laporte.webp",
       width: 450,
@@ -29,13 +29,13 @@ describe("canonical composer registry", () => {
       .filter((profile) => profile.bio.fr === null && profile.bio.en === null)
       .map((profile) => profile.name);
     expect(withoutBio).toEqual([]);
-    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(63);
+    expect(canonicalComposerProfiles.filter((profile) => profile.bio.fr && profile.bio.en)).toHaveLength(64);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.source === "local-editorial")).toBe(true);
     expect(canonicalComposerProfiles.every((profile) => profile.provenance.biographyFile === "site-biographies.user-provided.json")).toBe(true);
   });
 
   it("publishes the supplied biographies verbatim and records local portraits", () => {
-    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(63);
+    expect(Object.keys(suppliedBiographies.profiles)).toHaveLength(64);
     for (const [slug, biography] of Object.entries(suppliedBiographies.profiles)) {
       expect(canonicalComposerProfiles.find((profile) => profile.slug === slug)?.bio).toEqual({
         fr: biography.fr,
@@ -47,6 +47,7 @@ describe("canonical composer registry", () => {
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "aiwa")?.provenance.portraitFile).toBe("aiwa.jpg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "arat-kilo")?.provenance.portraitFile).toBe("arat_kilo.jpeg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "kokane")?.provenance.portraitFile).toBe("kokane.jpg");
+    expect(canonicalComposerProfiles.find((profile) => profile.slug === "philippe-almosnino")?.provenance.portraitFile).toBe("philippe_almosnino.jpg");
     expect(canonicalComposerProfiles.find((profile) => profile.slug === "vincent-bouhelier")?.provenance.portraitFile).toBe("public/images/composers/detail/vincent_bouhelier.webp");
   });
 
@@ -324,6 +325,33 @@ describe("canonical composer registry", () => {
     }]).find((profile) => profile.slug === "scherazade-aissahine")).toMatchObject({
       trackCount: 1,
       albumCodes: ["PGO0053"],
+    });
+  });
+
+  it("maps Philippe Almosnino to his four Harvest albums", () => {
+    const philippe = canonicalComposerProfiles.find((profile) => profile.slug === "philippe-almosnino");
+    expect(philippe?.harvest.rightHolderIds).toContain("242bbac121a16d4b");
+    expect(getCanonicalComposerProfileForCredit("Philippe Almosnino (NS)")?.slug).toBe("philippe-almosnino");
+
+    const albums = [
+      ["3d401caa45dd4a4e", "PGO0001", "Paris Rocks"],
+      ["cfca9cd22ed282dd", "PGO0003", "Electro Boutique"],
+      ["f252ec3a4b6ba814", "PGO0006", "Acoustic Trip"],
+      ["a4596e8be97b780b", "PGO0014", "Vintage Rock And Remixes"],
+    ] as const;
+    const summary = collectCanonicalComposerSummaries(albums.map(([albumId, albumCode, albumTitle]) => ({
+      id: `${albumCode}-philippe-almosnino`,
+      albumId,
+      albumCode,
+      albumTitle,
+      composers: ["Philippe Almosnino (NS)"],
+      rightHolderIds: ["242bbac121a16d4b"],
+    }))).find((profile) => profile.slug === "philippe-almosnino");
+
+    expect(summary).toMatchObject({
+      trackCount: 4,
+      albumCodes: ["PGO0001", "PGO0003", "PGO0006", "PGO0014"],
+      albumTitles: ["Acoustic Trip", "Electro Boutique", "Paris Rocks", "Vintage Rock And Remixes"],
     });
   });
 

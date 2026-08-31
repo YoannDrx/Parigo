@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-29T22:47:47.396Z",
+  "generatedAt": "2026-08-31T22:02:18.883Z",
   "profiles": [
     {
       "slug": "aiwa",
@@ -49,7 +49,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aïwa.docx",
         "portraitFile": "aiwa.jpg"
@@ -103,7 +103,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arat Kilo.docx",
         "portraitFile": "arat_kilo.jpeg"
@@ -137,7 +137,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Fabien Girard.docx",
         "portraitFile": "public/images/composers/detail/fabien_girard.webp"
@@ -171,7 +171,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Xavier Sibre.docx",
         "portraitFile": "xavier_sibre.jpg"
@@ -205,7 +205,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Ugly Mac Beer.docx",
         "portraitFile": "ugly_mac_beer.jpg"
@@ -239,7 +239,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Kornowicz.docx",
         "portraitFile": "public/images/composers/detail/yann_kornowicz.webp"
@@ -277,7 +277,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ HERTZ (Franck Sinnassamy).docx",
         "portraitFile": "public/images/composers/detail/dj_hertz.webp"
@@ -311,7 +311,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Laurent Dury.docx",
         "portraitFile": "laurent_dury.png"
@@ -348,7 +348,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Liqid.docx",
         "portraitFile": "public/images/composers/detail/liqid.webp"
@@ -382,7 +382,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Tcheep.docx",
         "portraitFile": "tcheep.jpg"
@@ -416,7 +416,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Chicho Cortez.docx",
         "portraitFile": "chicho_cortez.png"
@@ -450,7 +450,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bonetrips.docx",
         "portraitFile": "public/images/composers/detail/bonetrips.webp"
@@ -486,7 +486,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Kokane.docx",
         "portraitFile": "kokane.jpg"
@@ -520,7 +520,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Cœur.docx",
         "portraitFile": "coeur.jpg"
@@ -558,7 +558,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "AROM.docx",
         "portraitFile": "arom.jpg"
@@ -592,7 +592,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Minimatic.docx",
         "portraitFile": "minimatic.jpg"
@@ -651,7 +651,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Sébastien Blanchon.docx",
         "portraitFile": "sebastien_blanchon.jpg"
@@ -687,7 +687,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Drixxxé.docx",
         "portraitFile": "drixxxe.jpg"
@@ -721,7 +721,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Emmanuel Marée.docx",
         "portraitFile": "public/images/composers/detail/emmanuel_maree.webp"
@@ -755,7 +755,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "F. Stokes.docx",
         "portraitFile": "public/images/composers/detail/f_stokes.webp"
@@ -790,7 +790,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Forever Pavot.docx",
         "portraitFile": "forever_pavot.jpg"
@@ -825,7 +825,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "frederic-hanak.docx",
         "portraitFile": "public/images/composers/detail/frederic_hanak.webp"
@@ -859,7 +859,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Madben.docx",
         "portraitFile": "public/images/composers/detail/madben.webp"
@@ -892,7 +892,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "YANN LEAN.docx",
         "portraitFile": "yann_lean.jpeg"
@@ -926,7 +926,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Arandel.docx",
         "portraitFile": "arandel.jpg"
@@ -960,7 +960,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "The Architect.docx",
         "portraitFile": "the_architect.jpg"
@@ -996,10 +996,47 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "After in Paris.docx",
         "portraitFile": "after_in_paris.jpg"
+      }
+    },
+    {
+      "slug": "philippe-almosnino",
+      "name": "Philippe Almosnino",
+      "kind": "person",
+      "bio": {
+        "fr": "Philippe Almosnino est un guitariste, compositeur et musicien français dont le parcours traverse depuis plusieurs décennies le rock, la chanson et la musique à l’image. Formé au jazz au conservatoire durant son adolescence, il développe très tôt une approche instinctive et polyvalente de la guitare, nourrie par une profonde culture rock et un goût particulier pour les instruments et les sonorités vintage.\n\nAprès avoir fondé le groupe parisien Wanderers dans les années 1980 et collaboré avec les Dogs, il rejoint Les Wampas en 1991. Pendant près de vingt-cinq ans, il participe à l’aventure du groupe et contribue à façonner son identité sonore sur scène comme en studio. Parallèlement, Philippe Almosnino multiplie les collaborations et accompagne de nombreux artistes, parmi lesquels Tarmac, Daniel Darc, Keren Ann, Déportivo, Vanessa Paradis, Johnny Hallyday ou encore Benjamin Biolay.\n\nMusicien de studio particulièrement expérimenté, il met également son savoir-faire au service du cinéma, de la publicité, de la télévision et de l’animation. Cette activité pour l’image prolonge naturellement son travail de compositeur et son goût pour des univers musicaux très caractérisés, où l’énergie du rock dialogue avec le blues, le rockabilly, la pop et des sonorités résolument vintage.\n\nSa collaboration avec PARIGO s’inscrit dans cette diversité musicale. Philippe Almosnino a co-composé plusieurs œuvres pour les albums Paris Rocks, Electro Boutique, Acoustic Trip et Vintage Rock And Remixes, participant ainsi à plusieurs des premières productions originales du label.\n\nToujours actif, Philippe Almosnino poursuit ses collaborations et ses projets musicaux. En 2025, il retrouve notamment le batteur Christophe Deschamps autour de Go Cats Go Rockabilly, un projet consacré aux sonorités et à l’énergie du rockabilly, témoignant de son attachement durable aux racines du rock’n’roll.\n\nDe la scène au studio, du rock à la musique à l’image, Philippe Almosnino développe une approche de la musique fondée sur le jeu, le son et l’expérience collective. Son parcours, marqué par une grande diversité de collaborations, révèle un musicien capable de mettre sa personnalité au service d’univers très différents tout en conservant une signature profondément ancrée dans la culture rock.",
+        "en": "Philippe Almosnino is a French guitarist, composer and musician whose career has spanned rock, chanson and music for screen for several decades. Trained in jazz at the conservatory during his teenage years, he developed an instinctive and versatile approach to the guitar from an early age, shaped by a deep knowledge of rock and a particular fondness for vintage instruments and sounds.\n\nAfter founding the Parisian band Wanderers in the 1980s and collaborating with the Dogs, he joined Les Wampas in 1991. For nearly twenty-five years, he took part in the band’s journey and helped shape its sound both on stage and in the studio. Alongside this work, Philippe Almosnino has collaborated and performed with numerous artists, including Tarmac, Daniel Darc, Keren Ann, Déportivo, Vanessa Paradis, Johnny Hallyday and Benjamin Biolay.\n\nA highly experienced studio musician, he has also brought his expertise to film, advertising, television and animation. This work for visual media is a natural extension of his activity as a composer and his taste for strongly defined musical worlds, where the energy of rock meets blues, rockabilly, pop and distinctly vintage sounds.\n\nHis collaboration with PARIGO reflects this musical diversity. Philippe Almosnino co-composed several works for the albums Paris Rocks, Electro Boutique, Acoustic Trip and Vintage Rock And Remixes, contributing to some of the label’s earliest original productions.\n\nStill active, Philippe Almosnino continues to pursue collaborations and musical projects. In 2025, he notably reunited with drummer Christophe Deschamps for Go Cats Go Rockabilly, a project devoted to the sounds and energy of rockabilly that reflects his enduring attachment to the roots of rock’n’roll.\n\nFrom stage to studio and from rock to music for screen, Philippe Almosnino has developed an approach to music grounded in performance, sound and collective experience. His wide-ranging career reveals a musician capable of placing his personality at the service of very different musical worlds while retaining a signature deeply rooted in rock culture."
+      },
+      "image": "/images/composers/canonical/philippe_almosnino.webp",
+      "detailImage": {
+        "src": "/images/composers/detail/philippe_almosnino.webp",
+        "width": 300,
+        "height": 375
+      },
+      "imageStatus": "portrait",
+      "cardCrop": {
+        "objectPosition": "50% 18%"
+      },
+      "harvest": {
+        "aliases": [
+          "Philippe Almosnino"
+        ],
+        "rightHolderIds": [
+          "242bbac121a16d4b"
+        ],
+        "memberAliases": [],
+        "scopedRelations": []
+      },
+      "legacySlugs": [],
+      "provenance": {
+        "source": "local-editorial",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
+        "biographyFile": "site-biographies.user-provided.json",
+        "sourceDocument": "E-mail de Caroline Senyk — Philippe Almosnino",
+        "portraitFile": "philippe_almosnino.jpg"
       }
     },
     {
@@ -1031,7 +1068,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Thierry Los.docx",
         "portraitFile": "thierry_los.jpg"
@@ -1065,7 +1102,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Nicolas Pisani (1).docx",
         "portraitFile": "nicolas_pisani.jpg"
@@ -1100,7 +1137,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "BLANKA (1).docx",
         "portraitFile": "blanka.jpg"
@@ -1135,7 +1172,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "GERZ MARCELLINO.docx",
         "portraitFile": "gerz.jpg"
@@ -1175,7 +1212,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "NSDOS.docx",
         "portraitFile": "nsdos.jpg"
@@ -1218,7 +1255,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Nicodrum.docx",
         "portraitFile": "public/images/composers/detail/nicodrum.webp"
@@ -1253,7 +1290,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "2080.docx",
         "portraitFile": "public/images/composers/detail/2080.webp"
@@ -1289,7 +1326,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "JB Hanak.docx",
         "portraitFile": "jb_hanak.jpg"
@@ -1324,7 +1361,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Aeon Seven.docx",
         "portraitFile": "aeon_seven.png"
@@ -1361,7 +1398,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Dan Amozig.docx",
         "portraitFile": "dan_amozig.jpg"
@@ -1395,7 +1432,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Yann Jankielewicz.docx",
         "portraitFile": "public/images/composers/detail/yann_jankielewicz.webp"
@@ -1429,7 +1466,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Victor Baillet.docx",
         "portraitFile": "victor_baillet.jpg"
@@ -1463,7 +1500,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Vincent Bouhelier.docx",
         "portraitFile": "public/images/composers/detail/vincent_bouhelier.webp"
@@ -1501,7 +1538,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "ANA KAP.docx",
         "portraitFile": "ana_kap.jpg"
@@ -1538,7 +1575,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "ALEXIS MOLENAT.docx",
         "portraitFile": "public/images/composers/detail/alexis_molenat.webp"
@@ -1575,7 +1612,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Maxime Raynier.docx",
         "portraitFile": "public/images/composers/detail/maxime_raynier.webp"
@@ -1612,7 +1649,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Patrice Dambrine.docx",
         "portraitFile": "patrice_dambrine.jpg"
@@ -1646,7 +1683,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Bruno Hovart.docx",
         "portraitFile": "bruno_hovart.jpg"
@@ -1684,7 +1721,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Sr Ortegon.docx",
         "portraitFile": "public/images/composers/detail/senior_ortegon.webp"
@@ -1720,7 +1757,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Stan Galouo.docx",
         "portraitFile": "stan_galouo.png"
@@ -1754,7 +1791,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Modulhater.docx",
         "portraitFile": "modulhater.jpg"
@@ -1788,7 +1825,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Ducer.docx",
         "portraitFile": "public/images/composers/detail/ducer.webp"
@@ -1823,7 +1860,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "DJ TROUBL.docx",
         "portraitFile": "dj_troubl.jpg"
@@ -1863,7 +1900,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Of Ivory & Horn (Dorian Chamoin).docx",
         "portraitFile": "of_ivory_and_horn.jpg"
@@ -1902,7 +1939,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Mister Modo.docx",
         "portraitFile": "mister_modo.jpg"
@@ -1937,7 +1974,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Le Grand David.docx",
         "portraitFile": "grand_david.jpeg"
@@ -1974,7 +2011,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Jean-Pierre Ménager.docx",
         "portraitFile": "public/images/composers/detail/jean_pierre_menager.webp"
@@ -2011,7 +2048,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Loic Laporte.docx",
         "portraitFile": "loic_laporte.webp"
@@ -2043,7 +2080,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Cyril laurent.docx",
         "portraitFile": "public/images/composers/detail/cyril_laurent.webp"
@@ -2075,7 +2112,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Charlotte Savary.docx",
         "portraitFile": "public/images/composers/detail/charlotte_savary.webp"
@@ -2112,7 +2149,7 @@
       ],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Schérazade.docx",
         "portraitFile": "public/images/composers/detail/scherazade_aissahine.webp"
@@ -2146,7 +2183,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Roma Luca.docx",
         "portraitFile": "public/images/composers/detail/roma_luca.webp"
@@ -2180,7 +2217,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "The Real Fake MC.docx",
         "portraitFile": "the_real_fake_mc.jpg"
@@ -2214,7 +2251,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Well Quartet.docx",
         "portraitFile": "the_well_quartet.jpeg"
@@ -2260,7 +2297,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "Flore.docx",
         "portraitFile": "public/images/composers/detail/flore.webp"
@@ -2296,7 +2333,7 @@
       "legacySlugs": [],
       "provenance": {
         "source": "local-editorial",
-        "capturedAt": "2026-08-07T21:41:26.000Z",
+        "capturedAt": "2026-08-31T21:42:00.000Z",
         "biographyFile": "site-biographies.user-provided.json",
         "sourceDocument": "nouvelle bio latest CEDRIC HANAK.docx",
         "portraitFile": "cedric_hanak.jpg"
