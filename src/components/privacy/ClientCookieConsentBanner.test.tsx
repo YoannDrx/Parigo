@@ -17,8 +17,8 @@ describe("ClientCookieConsentBanner", () => {
 
   afterEach(cleanup);
 
-  it("ne sérialise pas le bandeau dans la coque HTML partagée", () => {
-    expect(renderToString(<ClientCookieConsentBanner locale="fr" />)).not.toContain(CONSENT_BANNER_ID);
+  it("sérialise le bandeau pour les nouveaux visiteurs dans la coque HTML partagée", () => {
+    expect(renderToString(<ClientCookieConsentBanner locale="fr" />)).toContain(CONSENT_BANNER_ID);
   });
 
   it("respecte après hydratation un choix conservé uniquement dans le cookie", async () => {

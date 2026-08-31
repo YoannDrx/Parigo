@@ -72,7 +72,9 @@ test("un refresh ne réaffiche pas le bandeau après un choix de cookies", async
   }, { storageKey: "parigo-cookie-consent", cookieName: "parigo-consent", consent: value });
 
   const response = await page.reload();
-  expect(await response?.text()).not.toContain('id="parigo-consent-banner"');
+  const responseHtml = await response?.text();
+  expect(responseHtml).toContain("dataset.parigoConsent");
+  expect(responseHtml).toContain('id="parigo-consent-banner"');
   await expect(page.locator("#parigo-consent-banner")).toHaveCount(0);
 });
 

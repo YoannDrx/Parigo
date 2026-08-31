@@ -710,6 +710,9 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   height: 100%;
   width: 100%;
 }
+html[data-parigo-consent="set"] #parigo-consent-banner {
+  display: none;
+}
 .orb-container {
   position: relative;
   z-index: 0;

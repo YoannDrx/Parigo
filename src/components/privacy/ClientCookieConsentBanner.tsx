@@ -23,12 +23,16 @@ function readConsentSnapshot() {
 }
 
 export function ClientCookieConsentBanner({ locale }: { locale: Locale }) {
-  // Vercel can reuse the prerendered HTML shell across requests. Keep that
-  // shell banner-free, then reveal the banner only after reading this browser.
-  const [visible, setVisible] = useState(false);
+  // The shared shell keeps the banner available for first-time visitors. The
+  // head prepaint script hides it before paint when this browser has a choice.
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const refresh = () => setVisible(readConsentSnapshot() === CONSENT_UNSET);
+    const refresh = () => {
+      const nextVisible = readConsentSnapshot() === CONSENT_UNSET;
+      document.documentElement.dataset.parigoConsent = nextVisible ? "unset" : "set";
+      setVisible(nextVisible);
+    };
     refresh();
     window.addEventListener(CONSENT_CHANGE_EVENT, refresh);
     return () => window.removeEventListener(CONSENT_CHANGE_EVENT, refresh);
