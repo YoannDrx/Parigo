@@ -328,6 +328,10 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
 
   if (testInfo.project.name === "mobile") {
     await expect(orb).toHaveAttribute("data-orb-center", "title");
+    await expect(backdrop).toHaveAttribute("data-renderer-capability", "hardware");
+    await expect(orb).toHaveAttribute("data-orb-quality", "full");
+    await expect(orb).toHaveAttribute("data-render-scale", "1");
+    await expect(orb).toHaveAttribute("data-max-fps", "60");
     const measureCenterOffset = () => orb.evaluate((node) => {
       const title = node.closest("[data-testid='home-hero']")?.querySelector("h1");
       const centerY = Number.parseFloat((node as HTMLElement).dataset.orbCenterY ?? "0.5");
@@ -402,6 +406,17 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
 
 test("le héros respire sur un grand mobile tout en gardant le titre au centre de l’Orb", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "La composition grand mobile est contrôlée sur mobile.");
+  await page.addInitScript(() => {
+    const rendererParameter = 37_446;
+    for (const prototype of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
+      if (!prototype) continue;
+      const original = prototype.getParameter;
+      prototype.getParameter = function getParameter(parameter: number) {
+        if (parameter === rendererParameter) return "ANGLE (Apple, ANGLE Metal Renderer: Apple M3)";
+        return original.call(this, parameter);
+      };
+    }
+  });
   await page.setViewportSize({ width: 430, height: 932 });
   await page.goto("/");
 
