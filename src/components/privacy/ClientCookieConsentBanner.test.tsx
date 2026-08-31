@@ -5,7 +5,6 @@ import {
   CONSENT_BANNER_ID,
   CONSENT_COOKIE_NAME,
   CONSENT_STORAGE_KEY,
-  CONSENT_UNSET,
   createDefaultConsentPreferences,
 } from "@/lib/consent";
 import { ClientCookieConsentBanner } from "./ClientCookieConsentBanner";
@@ -18,20 +17,26 @@ describe("ClientCookieConsentBanner", () => {
 
   afterEach(cleanup);
 
-  it("sérialise le bandeau lorsqu’aucun choix serveur n’existe", () => {
-    expect(renderToString(<ClientCookieConsentBanner locale="fr" initialSnapshot={CONSENT_UNSET} />)).toContain(CONSENT_BANNER_ID);
+  it("ne sérialise pas le bandeau dans la coque HTML partagée", () => {
+    expect(renderToString(<ClientCookieConsentBanner locale="fr" />)).not.toContain(CONSENT_BANNER_ID);
   });
 
-  it("ne sérialise pas le bandeau lorsqu’un choix existe déjà dans le cookie", () => {
+  it("respecte après hydratation un choix conservé uniquement dans le cookie", async () => {
     const snapshot = JSON.stringify({
       ...createDefaultConsentPreferences(),
       updatedAt: "2026-08-31T22:00:00.000Z",
     });
-    expect(renderToString(<ClientCookieConsentBanner locale="fr" initialSnapshot={snapshot} />)).not.toContain(CONSENT_BANNER_ID);
+    document.cookie = `${CONSENT_COOKIE_NAME}=${encodeURIComponent(snapshot)};path=/`;
+
+    render(<ClientCookieConsentBanner locale="fr" />);
+
+    await waitFor(() => {
+      expect(screen.queryByRole("complementary", { name: "Préférences de cookies" })).not.toBeInTheDocument();
+    });
   });
 
   it("affiche le bandeau après hydratation lorsqu’aucun choix n’existe", async () => {
-    render(<ClientCookieConsentBanner locale="fr" initialSnapshot={CONSENT_UNSET} />);
+    render(<ClientCookieConsentBanner locale="fr" />);
 
     expect(await screen.findByRole("complementary", { name: "Préférences de cookies" })).toBeVisible();
   });
@@ -42,7 +47,7 @@ describe("ClientCookieConsentBanner", () => {
       updatedAt: "2026-08-06T09:00:00.000Z",
     }));
 
-    render(<ClientCookieConsentBanner locale="fr" initialSnapshot={CONSENT_UNSET} />);
+    render(<ClientCookieConsentBanner locale="fr" />);
 
     await waitFor(() => {
       expect(screen.queryByRole("complementary", { name: "Préférences de cookies" })).not.toBeInTheDocument();

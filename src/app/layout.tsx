@@ -87,7 +87,7 @@ export default async function RootLayout({
         <QueryProvider initialLocale={locale} initialConsentSnapshot={initialConsentSnapshot} initialTheme={initialTheme}>
           {children}
         </QueryProvider>
-        <ClientCookieConsentBanner locale={locale} initialSnapshot={initialConsentSnapshot} />
+        <ClientCookieConsentBanner locale={locale} />
       </body>
     </html>
   );

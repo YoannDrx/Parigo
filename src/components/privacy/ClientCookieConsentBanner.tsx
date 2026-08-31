@@ -22,10 +22,10 @@ function readConsentSnapshot() {
   return normalizeConsentSnapshot(cookie);
 }
 
-export function ClientCookieConsentBanner({ locale, initialSnapshot }: { locale: Locale; initialSnapshot: string }) {
-  // Match the request cookie on the first render so an existing choice never
-  // flashes before hydration. Local storage remains the client-side fallback.
-  const [visible, setVisible] = useState(initialSnapshot === CONSENT_UNSET);
+export function ClientCookieConsentBanner({ locale }: { locale: Locale }) {
+  // Vercel can reuse the prerendered HTML shell across requests. Keep that
+  // shell banner-free, then reveal the banner only after reading this browser.
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const refresh = () => setVisible(readConsentSnapshot() === CONSENT_UNSET);
