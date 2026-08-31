@@ -19,6 +19,9 @@ interface OrbProps {
   forceHoverState?: boolean;
   backgroundColor?: string;
   centerOnTitle?: boolean;
+  interactionExclusionSelector?: string;
+  interactionExclusionPadding?: number;
+  motionEnabled?: boolean;
 }
 
 export default function Orb({
@@ -27,7 +30,10 @@ export default function Orb({
   rotateOnHover = true,
   forceHoverState = false,
   backgroundColor = '#000000',
-  centerOnTitle = false
+  centerOnTitle = false,
+  interactionExclusionSelector,
+  interactionExclusionPadding = 0,
+  motionEnabled = true
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
 
@@ -290,8 +296,27 @@ export default function Orb({
     let lastTime = 0;
     let currentRot = 0;
     const rotationSpeed = 0.3;
+    const exclusionZones = interactionExclusionSelector
+      ? Array.from(document.querySelectorAll(interactionExclusionSelector))
+      : [];
 
     const handleMouseMove = (e: MouseEvent) => {
+      const hoveredElement = document.elementFromPoint(e.clientX, e.clientY);
+      const insideExclusionZone = Boolean(
+        interactionExclusionSelector && hoveredElement?.closest(interactionExclusionSelector)
+      ) || exclusionZones.some((zone) => {
+        const rect = zone.getBoundingClientRect();
+        return e.clientX >= rect.left - interactionExclusionPadding
+          && e.clientX <= rect.right + interactionExclusionPadding
+          && e.clientY >= rect.top - interactionExclusionPadding
+          && e.clientY <= rect.bottom + interactionExclusionPadding;
+      });
+      if (insideExclusionZone) {
+        targetHover = 0;
+        mountedContainer.dataset.orbInteraction = 'safe';
+        return;
+      }
+
       const rect = container.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
@@ -306,28 +331,33 @@ export default function Orb({
 
       if (Math.sqrt(uvX * uvX + uvY * uvY) < 0.8) {
         targetHover = 1;
+        mountedContainer.dataset.orbInteraction = 'active';
       } else {
         targetHover = 0;
+        mountedContainer.dataset.orbInteraction = 'idle';
       }
     };
 
     const handleMouseLeave = () => {
       targetHover = 0;
+      mountedContainer.dataset.orbInteraction = 'idle';
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    document.documentElement.addEventListener('mouseleave', handleMouseLeave);
+    if (motionEnabled) {
+      window.addEventListener('mousemove', handleMouseMove);
+      document.documentElement.addEventListener('mouseleave', handleMouseLeave);
+    }
 
     let rafId: number;
     const update = (t: number) => {
-      rafId = requestAnimationFrame(update);
+      if (motionEnabled) rafId = requestAnimationFrame(update);
       const dt = (t - lastTime) * 0.001;
       lastTime = t;
-      program.uniforms.iTime.value = t * 0.001;
+      program.uniforms.iTime.value = motionEnabled ? t * 0.001 : 0;
       program.uniforms.hue.value = hue;
       program.uniforms.hoverIntensity.value = hoverIntensity;
 
-      const effectiveHover = forceHoverState ? 1 : targetHover;
+      const effectiveHover = motionEnabled ? forceHoverState ? 1 : targetHover : 0;
       program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * 0.1;
 
       if (rotateOnHover && effectiveHover > 0.5) {
@@ -341,17 +371,19 @@ export default function Orb({
     rafId = requestAnimationFrame(update);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      if (rafId !== undefined) cancelAnimationFrame(rafId);
       cancelAnimationFrame(settleFrame);
       window.clearTimeout(settleTimeout);
       window.removeEventListener('resize', resize);
       resizeObserver.disconnect();
-      window.removeEventListener('mousemove', handleMouseMove);
-      document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
+      if (motionEnabled) {
+        window.removeEventListener('mousemove', handleMouseMove);
+        document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
+      }
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, motionEnabled]);
 
   return <div ref={ctnDom} className="orb-container" data-orb-center={centerOnTitle ? 'title' : 'canvas'} />;
 }

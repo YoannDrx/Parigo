@@ -159,6 +159,7 @@ export function HomeHeroContent({
 
       <motion.div
         data-testid="home-hero-search-mask"
+        data-orb-safe-zone="true"
         data-banner-mask={reduceMotion || searchRevealComplete ? "open" : "closed"}
         style={reduceMotion ? { opacity: 1 } : { opacity }}
         className={`pointer-events-auto relative mx-auto mt-9 min-h-[4.75rem] max-w-4xl text-left ${reduceMotion || searchRevealComplete ? "overflow-visible" : "overflow-hidden"}`}

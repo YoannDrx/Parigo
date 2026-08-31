@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const formFixtureValue = ["Ui", "Form", "Value", "1"].join("-");
@@ -289,6 +289,21 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
       };
     }
   });
+  await page.route("**/api/autocomplete?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { groups: [{
+      key: "tracks",
+      count: 1,
+      items: [{
+        id: "track-orb-safe-zone",
+        kind: "track",
+        label: "Piano Safe Zone",
+        subtitle: "Main · SAFE001",
+        image: "/images/placeholder-album.svg",
+        href: "/albums/orb-safe-zone?track=track-orb-safe-zone",
+      }],
+    }] } }),
+  }));
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto("/");
@@ -299,6 +314,7 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
   await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
   await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
   await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
+  await expect(page.getByTestId("home-hero-search-mask")).toHaveAttribute("data-orb-safe-zone", "true");
   const [headerBox, backdropBox] = await Promise.all([
     page.getByRole("banner").boundingBox(),
     backdrop.boundingBox(),
@@ -322,6 +338,46 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
     })).toBeLessThanOrEqual(2);
   } else {
     await expect(orb).toHaveAttribute("data-orb-center", "canvas");
+    const [orbBox, safeZoneBox] = await Promise.all([
+      orb.boundingBox(),
+      page.getByTestId("home-hero-search-mask").boundingBox(),
+    ]);
+    expect(orbBox).not.toBeNull();
+    expect(safeZoneBox).not.toBeNull();
+    await page.mouse.move(orbBox!.x + orbBox!.width / 2, orbBox!.y + orbBox!.height / 2);
+    await expect(orb).toHaveAttribute("data-orb-interaction", "active");
+    await page.mouse.move(safeZoneBox!.x + safeZoneBox!.width / 2, safeZoneBox!.y + safeZoneBox!.height / 2);
+    await expect(orb).toHaveAttribute("data-orb-interaction", "safe");
+
+    const searchForm = hero.locator(".search-command__form");
+    const searchInput = hero.getByLabel("Rechercher dans le catalogue Parigo");
+    const assertGapIsSafe = async (panel: Locator) => {
+      const [formBox, panelBox] = await Promise.all([searchForm.boundingBox(), panel.boundingBox()]);
+      expect(formBox).not.toBeNull();
+      expect(panelBox).not.toBeNull();
+      const formTop = formBox!.y;
+      const formBottom = formBox!.y + formBox!.height;
+      const panelTop = panelBox!.y;
+      const panelBottom = panelBox!.y + panelBox!.height;
+      const gap = panelTop >= formBottom ? panelTop - formBottom : formTop - panelBottom;
+      const gapY = panelTop >= formBottom ? formBottom + gap / 2 : panelBottom + gap / 2;
+      expect(gap).toBeGreaterThan(0);
+      expect(gap).toBeLessThanOrEqual(14);
+      await page.mouse.move(orbBox!.x + orbBox!.width / 2, orbBox!.y + orbBox!.height / 2);
+      await expect(orb).toHaveAttribute("data-orb-interaction", "active");
+      await page.mouse.move(formBox!.x + formBox!.width / 2, gapY);
+      await expect(orb).toHaveAttribute("data-orb-interaction", "safe");
+    };
+
+    await searchInput.focus();
+    const recentPanel = page.getByTestId("recent-searches-menu");
+    await expect(recentPanel).toBeVisible();
+    await assertGapIsSafe(recentPanel);
+
+    await searchInput.fill("piano");
+    const resultsPanel = page.locator(".search-autocomplete-panel");
+    await expect(resultsPanel).toBeVisible();
+    await assertGapIsSafe(resultsPanel);
   }
   expect(pageErrors).toEqual([]);
 });
@@ -1548,6 +1604,7 @@ test("le héros garde sa chorégraphie et les textes des autres sections restent
   const descriptionLines = page.getByTestId("home-hero-description-line");
   const heroSearch = page.getByTestId("home-hero-search-reveal");
   const heroSearchMask = page.getByTestId("home-hero-search-mask");
+  const heroOrb = page.getByTestId("hero-orb-backdrop");
 
   await expect(heroContent).toHaveAttribute("data-home-hero-motion", "animated");
   await expect(heroWords).toHaveCount(4);
@@ -1564,6 +1621,7 @@ test("le héros garde sa chorégraphie et les textes des autres sections restent
   await expect.poll(() => heroCopy.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(copyOpacityBefore - .25);
   await expect.poll(() => heroSearchMask.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(searchOpacityBefore - .25);
   await expect.poll(() => heroContent.evaluate((node) => getComputedStyle(node).transform)).not.toBe("none");
+  await expect(heroOrb).toHaveCSS("opacity", "1");
 
   const opacityTrail = await page.evaluate(async () => {
     const hero = document.querySelector<HTMLElement>('[data-testid="home-hero"]');

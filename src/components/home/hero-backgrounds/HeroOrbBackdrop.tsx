@@ -5,7 +5,7 @@ import { Component, useEffect, useRef, useState, useSyncExternalStore, type Reac
 import { useTheme } from "@/components/providers/ThemeProvider";
 import type { SearchMode } from "@/types";
 import { useHomeReducedMotion } from "../HomeMotion";
-import { supportsHardwareAcceleratedWebGl } from "../webgl-capability";
+import { supportsHardwareAcceleratedWebGl, supportsWebGl } from "../webgl-capability";
 
 const Orb = dynamic(() => import("./reactbits/Orb"), { ssr: false });
 
@@ -78,15 +78,22 @@ function useStageVisibility(ref: RefObject<HTMLDivElement | null>) {
   return visible;
 }
 
-function useEnhancedRenderer(disabled: boolean) {
+function useEnhancedRenderer(disabled: boolean, allowSoftwareRenderer: boolean, eager: boolean) {
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
     if (disabled || enabled) return;
     let cancelled = false;
     const enable = () => {
-      if (!cancelled && supportsHardwareAcceleratedWebGl()) setEnabled(true);
+      const supported = allowSoftwareRenderer ? supportsWebGl() : supportsHardwareAcceleratedWebGl();
+      if (!cancelled && supported) setEnabled(true);
     };
+    if (eager) {
+      enable();
+      return () => {
+        cancelled = true;
+      };
+    }
     const idleId = window.requestIdleCallback?.(enable);
     const timeoutId = idleId === undefined ? window.setTimeout(enable, 500) : undefined;
     return () => {
@@ -94,7 +101,7 @@ function useEnhancedRenderer(disabled: boolean) {
       if (idleId !== undefined) window.cancelIdleCallback?.(idleId);
       if (timeoutId !== undefined) window.clearTimeout(timeoutId);
     };
-  }, [disabled, enabled]);
+  }, [allowSoftwareRenderer, disabled, eager, enabled]);
 
   return !disabled && enabled;
 }
@@ -126,8 +133,11 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
   const stageRef = useRef<HTMLDivElement>(null);
   const visible = useStageVisibility(stageRef);
   const [failed, setFailed] = useState(false);
-  const enhanced = useEnhancedRenderer(reduceMotion || saveData || !visible || failed);
+  const mobileRendererRequired = mobileViewport;
+  const rendererDisabled = !visible || failed || (!mobileRendererRequired && (reduceMotion || saveData));
+  const enhanced = useEnhancedRenderer(rendererDisabled, mobileRendererRequired, mobileRendererRequired);
   const renderer = enhanced ? "ogl" : "fallback";
+  const motionEnabled = mobileRendererRequired || !reduceMotion;
 
   return (
     <div
@@ -137,7 +147,7 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
       data-hero-background="orb"
       data-orb-setup="original"
       data-orb-palette={palette}
-      data-motion={reduceMotion ? "static" : "animated"}
+      data-motion={motionEnabled ? "animated" : "static"}
       data-renderer={renderer}
       data-testid="hero-orb-backdrop"
     >
@@ -152,6 +162,9 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
               forceHoverState={false}
               backgroundColor={ORB_BACKGROUNDS[theme]}
               centerOnTitle={mobileViewport}
+              interactionExclusionSelector="[data-orb-safe-zone]"
+              interactionExclusionPadding={14}
+              motionEnabled={motionEnabled}
             />
           </div>
         </RendererBoundary>

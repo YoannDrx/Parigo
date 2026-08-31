@@ -532,23 +532,28 @@ test("le sommaire légal suit la lecture et conserve les ancres natives", async 
   await expect(hostingLink).toHaveAttribute("aria-current", "location");
 });
 
-test("Orb préserve son fallback sur un renderer logiciel", async ({ page }) => {
-  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
+test("Orb reste visible et animé sur mobile avec saveData, un renderer logiciel et le mouvement réduit", async ({ page }) => {
+  await page.addInitScript(() => {
+    window.localStorage.setItem("parigo-theme", "light");
+    const connection = new EventTarget();
+    Object.defineProperty(connection, "saveData", { value: true });
+    Object.defineProperty(navigator, "connection", { configurable: true, value: connection });
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   const backdrop = hero.getByTestId("hero-orb-backdrop");
   await expect(backdrop).toHaveAttribute("data-orb-setup", "original");
   await expect(backdrop).toHaveAttribute("data-motion", "animated");
-  await expect(backdrop).toHaveAttribute("data-renderer", "fallback");
-  await expect(backdrop.locator("canvas")).toHaveCount(0);
+  await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
+  await expect(backdrop.locator("canvas")).toHaveCount(1);
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();
   const reducedBackdrop = page.getByTestId("home-hero").getByTestId("hero-orb-backdrop");
-  await expect(reducedBackdrop).toHaveAttribute("data-motion", "static");
-  await expect(reducedBackdrop).toHaveAttribute("data-renderer", "fallback");
-  await expect(reducedBackdrop.locator("canvas")).toHaveCount(0);
+  await expect(reducedBackdrop).toHaveAttribute("data-motion", "animated");
+  await expect(reducedBackdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
+  await expect(reducedBackdrop.locator("canvas")).toHaveCount(1);
 });
 
 test("le héros suit les accents Catalogue puis Similarité IA", async ({ page }) => {
