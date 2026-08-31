@@ -550,6 +550,8 @@ test("Orb reste en pleine qualité sur mobile avec saveData, un renderer logicie
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-orb-quality", "full");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-max-fps", "60");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-animation-mode", "interaction");
+  await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-render-on-mount", "deferred");
+  await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-orb-rendered", "false");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-render-scale", "1");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-active-max-fps", "60");
   await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-active-render-scale", "1");
@@ -558,6 +560,10 @@ test("Orb reste en pleine qualité sur mobile avec saveData, un renderer logicie
     const expectedDpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
     return bounds.width > 0 ? (canvas as HTMLCanvasElement).width / bounds.width / expectedDpr : Number.POSITIVE_INFINITY;
   })).toBeCloseTo(1, 1);
+
+  await hero.locator("h1").click();
+  await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-orb-tap-state", "waves");
+  await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-orb-rendered", "true");
 
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.reload();

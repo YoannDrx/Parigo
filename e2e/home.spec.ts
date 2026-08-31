@@ -342,6 +342,8 @@ test("Orb se monte seul et adapte les ondes au viewport", async ({ page }, testI
     await expect(orb).toHaveAttribute("data-render-scale", "1");
     await expect(orb).toHaveAttribute("data-max-fps", "60");
     await expect(orb).toHaveAttribute("data-animation-mode", "continuous");
+    await expect(orb).toHaveAttribute("data-render-on-mount", "enabled");
+    await expect(orb).toHaveAttribute("data-orb-rendered", "true");
 
     const titleBox = await hero.locator("h1").boundingBox();
     expect(titleBox).not.toBeNull();

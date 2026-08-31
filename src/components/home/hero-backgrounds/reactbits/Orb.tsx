@@ -28,6 +28,7 @@ interface OrbProps {
   tapToToggle?: boolean;
   maxFps?: number;
   animateWhileIdle?: boolean;
+  renderOnMount?: boolean;
   waveBleed?: number;
   waveFrequency?: number;
 }
@@ -48,6 +49,7 @@ export default function Orb({
   tapToToggle = false,
   maxFps = 60,
   animateWhileIdle = true,
+  renderOnMount = true,
   waveBleed = 1.08,
   waveFrequency = 8
 }: OrbProps) {
@@ -261,6 +263,7 @@ export default function Orb({
     const container = ctnDom.current;
     if (!container) return;
     const mountedContainer: HTMLDivElement = container;
+    mountedContainer.dataset.orbRendered = 'false';
 
     const renderer = new Renderer({ alpha: true, premultipliedAlpha: false });
     const gl = renderer.gl;
@@ -455,7 +458,11 @@ export default function Orb({
       if (rafId !== undefined || (!force && (!motionEnabled || !inViewport || !pageVisible))) return;
       rafId = requestAnimationFrame(update);
     };
-    renderRequest.current = () => scheduleAnimationFrame(true);
+    renderRequest.current = () => {
+      if (renderOnMount || mountedContainer.dataset.orbRendered === 'true') {
+        scheduleAnimationFrame(true);
+      }
+    };
 
     function update(t: number) {
       rafId = undefined;
@@ -482,6 +489,7 @@ export default function Orb({
       program.uniforms.rot.value = currentRot;
 
       renderer.render({ scene: mesh });
+      mountedContainer.dataset.orbRendered = 'true';
       const hoverIsSettling = Math.abs(effectiveHover - program.uniforms.hover.value) > 0.001;
       if (animateWhileIdle || effectiveHover > 0 || hoverIsSettling) {
         scheduleAnimationFrame();
@@ -494,7 +502,12 @@ export default function Orb({
       if (!active && rafId !== undefined) {
         cancelAnimationFrame(rafId);
         rafId = undefined;
-      } else if (active) {
+      } else if (active && (
+        animateWhileIdle
+        || tapWaveActive
+        || targetHover > 0
+        || program.uniforms.hover.value > 0.001
+      )) {
         lastRenderTime = 0;
         scheduleAnimationFrame(!motionEnabled);
       }
@@ -514,7 +527,7 @@ export default function Orb({
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     mountedContainer.dataset.renderActive = 'true';
-    scheduleAnimationFrame(true);
+    if (renderOnMount) scheduleAnimationFrame(true);
 
     return () => {
       if (rafId !== undefined) cancelAnimationFrame(rafId);
@@ -540,7 +553,7 @@ export default function Orb({
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, horizontalWaves, motionEnabled, renderScale, tapToToggle, maxFps, animateWhileIdle, waveBleed, waveFrequency]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, horizontalWaves, motionEnabled, renderScale, tapToToggle, maxFps, animateWhileIdle, renderOnMount, waveBleed, waveFrequency]);
 
   return (
     <div
@@ -549,6 +562,7 @@ export default function Orb({
       data-orb-quality={quality}
       data-max-fps={maxFps}
       data-animation-mode={animateWhileIdle ? 'continuous' : 'interaction'}
+      data-render-on-mount={renderOnMount ? 'enabled' : 'deferred'}
       data-orb-center={centerOnTitle ? 'title' : 'canvas'}
       data-orb-force-hover={forceHoverState ? 'active' : 'inactive'}
       data-orb-hover-effect={horizontalWaves ? 'horizontal-waves' : 'distortion'}

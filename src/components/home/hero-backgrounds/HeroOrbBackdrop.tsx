@@ -165,6 +165,7 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
               tapToToggle={mobileWaves}
               maxFps={60}
               animateWhileIdle={rendererCapability !== "software"}
+              renderOnMount={rendererCapability !== "software"}
               waveBleed={mobileWaves ? 1.16 : 1.08}
               waveFrequency={mobileWaves ? 3.2 : 8}
             />
