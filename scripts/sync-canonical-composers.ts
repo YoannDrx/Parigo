@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
-const CANONICAL_PROFILE_COUNT = 63;
+const CANONICAL_PROFILE_COUNT = 64;
 
 type ProfileSource = {
   slug: string;
@@ -120,6 +120,22 @@ const profiles: ProfileSource[] = [
     localImageFile: "after_in_paris.jpg",
     aliases: ["After In Paris"],
     memberAliases: ["Jean-Michel Vallet", "Claire Michael", "Patrick Chartol"],
+  },
+  {
+    slug: "philippe-almosnino",
+    name: "Philippe Almosnino",
+    kind: "person",
+    localImageFile: "philippe_almosnino.jpg",
+    cardImageTransform: {
+      extract: { left: 43, top: 15, width: 290, height: 290 },
+      position: "center",
+    },
+    detailImageTransform: {
+      extract: { left: 31, top: 11, width: 300, height: 375 },
+    },
+    cardCrop: { objectPosition: "50% 18%" },
+    aliases: ["Philippe Almosnino"],
+    rightHolderIds: ["242bbac121a16d4b"],
   },
   { slug: "thierry-los", name: "Thierry Los", kind: "person", localImageFile: "thierry_los.jpg", cardImageTransform: { inset: 0.06, background: "#eee6ad" }, aliases: ["Thierry Loshouarn", "Thierry Los"], rightHolderIds: ["03583bf3ad7eb3fa"] },
   { slug: "nicolas-pisani", name: "Offset Prod", kind: "person", localImageFile: "nicolas_pisani.jpg", aliases: ["Nicolas Pisani"], rightHolderIds: ["676423316c421740"] },
