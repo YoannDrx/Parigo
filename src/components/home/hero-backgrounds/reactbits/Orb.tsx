@@ -22,6 +22,8 @@ interface OrbProps {
   interactionExclusionSelector?: string;
   interactionExclusionPadding?: number;
   motionEnabled?: boolean;
+  renderScale?: number;
+  maxFps?: number;
 }
 
 export default function Orb({
@@ -33,7 +35,9 @@ export default function Orb({
   centerOnTitle = false,
   interactionExclusionSelector,
   interactionExclusionPadding = 0,
-  motionEnabled = true
+  motionEnabled = true,
+  renderScale = 1,
+  maxFps = 60
 }: OrbProps) {
   const ctnDom = useRef<HTMLDivElement>(null);
 
@@ -275,7 +279,7 @@ export default function Orb({
 
     function resize() {
       if (!container) return;
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.max(0.25, (window.devicePixelRatio || 1) * renderScale);
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width * dpr, height * dpr);
@@ -293,7 +297,7 @@ export default function Orb({
     const settleTimeout = window.setTimeout(updateOrbCenter, 700);
 
     let targetHover = 0;
-    let lastTime = 0;
+    let lastRenderTime = 0;
     let currentRot = 0;
     const rotationSpeed = 0.3;
     const exclusionZones = interactionExclusionSelector
@@ -351,8 +355,10 @@ export default function Orb({
     let rafId: number;
     const update = (t: number) => {
       if (motionEnabled) rafId = requestAnimationFrame(update);
-      const dt = (t - lastTime) * 0.001;
-      lastTime = t;
+      const frameInterval = 1000 / Math.max(1, maxFps);
+      if (motionEnabled && lastRenderTime > 0 && t - lastRenderTime < frameInterval) return;
+      const dt = lastRenderTime > 0 ? (t - lastRenderTime) * 0.001 : 0;
+      lastRenderTime = t;
       program.uniforms.iTime.value = motionEnabled ? t * 0.001 : 0;
       program.uniforms.hue.value = hue;
       program.uniforms.hoverIntensity.value = hoverIntensity;
@@ -383,7 +389,7 @@ export default function Orb({
       container.removeChild(gl.canvas);
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, motionEnabled]);
+  }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, motionEnabled, renderScale, maxFps]);
 
   return <div ref={ctnDom} className="orb-container" data-orb-center={centerOnTitle ? 'title' : 'canvas'} />;
 }
