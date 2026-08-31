@@ -360,8 +360,6 @@ export default function Orb({
       const dt = lastRenderTime > 0 ? (t - lastRenderTime) * 0.001 : 0;
       lastRenderTime = t;
       program.uniforms.iTime.value = motionEnabled ? t * 0.001 : 0;
-      program.uniforms.hue.value = hue;
-      program.uniforms.hoverIntensity.value = hoverIntensity;
 
       const effectiveHover = motionEnabled ? forceHoverState ? 1 : targetHover : 0;
       program.uniforms.hover.value += (effectiveHover - program.uniforms.hover.value) * 0.1;
@@ -370,7 +368,6 @@ export default function Orb({
         currentRot += dt * rotationSpeed;
       }
       program.uniforms.rot.value = currentRot;
-      program.uniforms.backgroundColor.value = hexToVec3(backgroundColor);
 
       renderer.render({ scene: mesh });
     };
@@ -391,7 +388,15 @@ export default function Orb({
     };
   }, [hue, hoverIntensity, rotateOnHover, forceHoverState, backgroundColor, centerOnTitle, interactionExclusionSelector, interactionExclusionPadding, motionEnabled, renderScale, maxFps]);
 
-  return <div ref={ctnDom} className="orb-container" data-orb-center={centerOnTitle ? 'title' : 'canvas'} />;
+  return (
+    <div
+      ref={ctnDom}
+      className="orb-container"
+      data-max-fps={maxFps}
+      data-orb-center={centerOnTitle ? 'title' : 'canvas'}
+      data-render-scale={renderScale}
+    />
+  );
 }
 
 function hslToRgb(h: number, s: number, l: number) {
