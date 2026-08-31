@@ -547,6 +547,8 @@ test("Orb reste visible et animé sur mobile avec saveData, un renderer logiciel
   await expect(backdrop).toHaveAttribute("data-motion", "animated");
   await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
   await expect(backdrop.locator("canvas")).toHaveCount(1);
+  await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-max-fps", "24");
+  await expect(backdrop.locator("[data-orb-center]")).toHaveAttribute("data-render-scale", "0.25");
   await expect.poll(() => backdrop.locator("canvas").evaluate((canvas) => {
     const bounds = canvas.getBoundingClientRect();
     return bounds.width > 0 ? (canvas as HTMLCanvasElement).width / bounds.width : Number.POSITIVE_INFINITY;
