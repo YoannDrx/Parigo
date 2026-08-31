@@ -165,6 +165,8 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
               interactionExclusionSelector="[data-orb-safe-zone]"
               interactionExclusionPadding={14}
               motionEnabled={motionEnabled}
+              renderScale={mobileViewport ? 0.4 : 1}
+              maxFps={mobileViewport ? 30 : 60}
             />
           </div>
         </RendererBoundary>
