@@ -693,7 +693,7 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
   background: var(--brand-deep);
   transition: opacity 400ms var(--ease-out);
 }
-.hero-background:has(canvas) .hero-background__fallback {
+.hero-background:has([data-orb-rendered="true"]) .hero-background__fallback {
   opacity: 0;
 }
 .hero-background-loading {
