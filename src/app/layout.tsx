@@ -79,6 +79,11 @@ export default async function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('parigo-theme');var v=t==='dark'||t==='light'?t:(document.documentElement.dataset.theme||'dark');document.documentElement.dataset.theme=v;document.documentElement.style.colorScheme=v}catch(e){}})()`,
           }}
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var valid=function(value){if(!value)return false;try{var parsed=JSON.parse(decodeURIComponent(value));return parsed.necessary===true&&typeof parsed.preferences==='boolean'&&typeof parsed.analytics==='boolean'&&typeof parsed.marketing==='boolean'&&typeof parsed.updatedAt==='string'}catch(e){return false}};var stored=localStorage.getItem('parigo-cookie-consent');var cookie=document.cookie.split('; ').find(function(entry){return entry.indexOf('parigo-consent=')===0});var cookieValue=cookie?cookie.slice('parigo-consent='.length):'';document.documentElement.dataset.parigoConsent=valid(stored)||valid(cookieValue)?'set':'unset'}catch(e){document.documentElement.dataset.parigoConsent='unset'}})()`,
+          }}
+        />
       </head>
       <body
         suppressHydrationWarning
