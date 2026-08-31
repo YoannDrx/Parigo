@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { Component, useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
+import { Component, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useTheme } from "@/components/providers/ThemeProvider";
 import type { SearchMode } from "@/types";
 import { useHomeReducedMotion } from "../HomeMotion";
@@ -64,20 +64,6 @@ function useSaveData() {
   );
 }
 
-function useStageVisibility(ref: RefObject<HTMLDivElement | null>) {
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || !("IntersectionObserver" in window)) return;
-    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting), { rootMargin: "120px" });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [ref]);
-
-  return visible;
-}
-
 function useEnhancedRenderer(disabled: boolean, allowSoftwareRenderer: boolean, eager: boolean) {
   const [enabled, setEnabled] = useState(false);
 
@@ -130,18 +116,15 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
   const saveData = useSaveData();
   const coarsePointer = useMediaQuery("(pointer: coarse)");
   const mobileViewport = useMediaQuery("(max-width: 767px)");
-  const stageRef = useRef<HTMLDivElement>(null);
-  const visible = useStageVisibility(stageRef);
   const [failed, setFailed] = useState(false);
   const mobileRendererRequired = mobileViewport;
-  const rendererDisabled = !visible || failed || (!mobileRendererRequired && (reduceMotion || saveData));
+  const rendererDisabled = failed || (!mobileRendererRequired && (reduceMotion || saveData));
   const enhanced = useEnhancedRenderer(rendererDisabled, mobileRendererRequired, mobileRendererRequired);
   const renderer = enhanced ? "ogl" : "fallback";
   const motionEnabled = mobileRendererRequired || !reduceMotion;
 
   return (
     <div
-      ref={stageRef}
       aria-hidden="true"
       className="hero-background absolute inset-0 overflow-hidden"
       data-hero-background="orb"
@@ -165,8 +148,8 @@ export function HeroOrbBackdrop({ mode: searchMode }: { mode: SearchMode }) {
               interactionExclusionSelector="[data-orb-safe-zone]"
               interactionExclusionPadding={14}
               motionEnabled={motionEnabled}
-              renderScale={mobileViewport ? 0.25 : 1}
-              maxFps={mobileViewport ? 24 : 60}
+              renderScale={1}
+              maxFps={60}
             />
           </div>
         </RendererBoundary>

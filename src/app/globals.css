@@ -747,6 +747,14 @@ body:has(.parigo-player--stowed) .parigo-footer{padding-bottom:max(5.5rem,calc(1
     transform: none !important;
   }
 }
+@media (min-width: 400px) and (max-width: 767px) and (min-height: 850px) {
+  .home-hero [data-banner-reveal="description"] {
+    margin-top: 2.5rem;
+  }
+  .home-hero [data-testid="home-hero-search-mask"] {
+    margin-top: 3.5rem;
+  }
+}
 .home-hero [data-testid="home-hero-search-mask"]:has(.search-autocomplete-panel) {
   opacity: 1 !important;
 }

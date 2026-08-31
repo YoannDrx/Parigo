@@ -313,6 +313,8 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
 
   await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
   await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+  const initialCanvas = await backdrop.locator("canvas").elementHandle();
+  expect(initialCanvas).not.toBeNull();
   await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
   await expect(page.getByTestId("home-hero-search-mask")).toHaveAttribute("data-orb-safe-zone", "true");
   const [headerBox, backdropBox] = await Promise.all([
@@ -326,7 +328,7 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
 
   if (testInfo.project.name === "mobile") {
     await expect(orb).toHaveAttribute("data-orb-center", "title");
-    await expect.poll(() => orb.evaluate((node) => {
+    const measureCenterOffset = () => orb.evaluate((node) => {
       const title = node.closest("[data-testid='home-hero']")?.querySelector("h1");
       const centerY = Number.parseFloat((node as HTMLElement).dataset.orbCenterY ?? "0.5");
       if (!title) return Number.POSITIVE_INFINITY;
@@ -335,7 +337,23 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
       const visualOrbCenter = orbRect.top + orbRect.height * (1 - centerY);
       const titleCenter = titleRect.top + titleRect.height / 2;
       return Math.abs(visualOrbCenter - titleCenter);
-    })).toBeLessThanOrEqual(2);
+    });
+    await expect.poll(measureCenterOffset).toBeLessThanOrEqual(2);
+
+    await page.evaluate(() => window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" }));
+    await expect(backdrop).toHaveAttribute("data-renderer", "ogl");
+    await expect(orb).toHaveAttribute("data-render-active", "false");
+    await expect(backdrop.locator("canvas")).toHaveCount(1);
+    await page.evaluate(() => window.scrollTo({ top: 300, behavior: "instant" }));
+    await expect(orb).toHaveAttribute("data-render-active", "true");
+    await expect(backdrop.locator("canvas")).toHaveCount(1);
+    await page.waitForTimeout(850);
+    await page.evaluate(() => window.scrollTo({ top: 0, behavior: "instant" }));
+    await page.waitForTimeout(100);
+    expect(await measureCenterOffset()).toBeLessThanOrEqual(2);
+    await expect.poll(() => backdrop.locator("canvas").evaluate((canvas, originalCanvas) => (
+      canvas === originalCanvas && originalCanvas.isConnected
+    ), initialCanvas)).toBe(true);
   } else {
     await expect(orb).toHaveAttribute("data-orb-center", "canvas");
     const [orbBox, safeZoneBox] = await Promise.all([
@@ -380,6 +398,41 @@ test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, t
     await assertGapIsSafe(resultsPanel);
   }
   expect(pageErrors).toEqual([]);
+});
+
+test("le héros respire sur un grand mobile tout en gardant le titre au centre de l’Orb", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "La composition grand mobile est contrôlée sur mobile.");
+  await page.setViewportSize({ width: 430, height: 932 });
+  await page.goto("/");
+
+  const hero = page.getByTestId("home-hero");
+  const orb = hero.locator("[data-orb-center]");
+  const title = hero.locator('[data-banner-reveal="title"]');
+  const description = hero.locator('[data-banner-reveal="description"]');
+  const search = hero.getByTestId("home-hero-search-mask");
+  await expect(orb).toHaveAttribute("data-orb-quality", "full");
+  await expect(orb).toHaveAttribute("data-render-scale", "1");
+  await expect(orb).toHaveAttribute("data-max-fps", "60");
+
+  const [titleBox, descriptionBox, searchBox] = await Promise.all([
+    title.boundingBox(),
+    description.boundingBox(),
+    search.boundingBox(),
+  ]);
+  expect(titleBox).not.toBeNull();
+  expect(descriptionBox).not.toBeNull();
+  expect(searchBox).not.toBeNull();
+  expect(descriptionBox!.y - (titleBox!.y + titleBox!.height)).toBeGreaterThanOrEqual(32);
+  expect(searchBox!.y - (descriptionBox!.y + descriptionBox!.height)).toBeGreaterThanOrEqual(48);
+
+  await expect.poll(() => orb.evaluate((node) => {
+    const heading = node.closest("[data-testid='home-hero']")?.querySelector("h1");
+    if (!heading) return Number.POSITIVE_INFINITY;
+    const centerY = Number.parseFloat((node as HTMLElement).dataset.orbCenterY ?? "0.5");
+    const orbRect = node.getBoundingClientRect();
+    const titleRect = heading.getBoundingClientRect();
+    return Math.abs(orbRect.top + orbRect.height * (1 - centerY) - (titleRect.top + titleRect.height / 2));
+  })).toBeLessThanOrEqual(2);
 });
 
 test("les suggestions du héros restent au-dessus de la section suivante", async ({ page }) => {

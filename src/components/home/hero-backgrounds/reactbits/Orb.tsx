@@ -258,6 +258,7 @@ export default function Orb({
 
     const hero = container.closest<HTMLElement>('.home-hero');
     const title = hero?.querySelector<HTMLElement>('h1') ?? null;
+    let centerUpdateFrame: number | undefined;
 
     function updateOrbCenter() {
       const center = program.uniforms.orbCenter.value as Float32Array;
@@ -277,18 +278,35 @@ export default function Orb({
       mountedContainer.dataset.orbCenterY = center[1].toFixed(3);
     }
 
+    function scheduleOrbCenterUpdate() {
+      if (centerUpdateFrame !== undefined) return;
+      centerUpdateFrame = requestAnimationFrame(() => {
+        centerUpdateFrame = undefined;
+        updateOrbCenter();
+      });
+    }
+
     function resize() {
       if (!container) return;
-      const dpr = Math.max(0.25, (window.devicePixelRatio || 1) * renderScale);
+      // Full quality on every viewport, capped at the desktop Retina baseline so
+      // high-density phones do not shade substantially more pixels than desktop.
+      const dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1)) * renderScale;
       const width = container.clientWidth;
       const height = container.clientHeight;
       renderer.setSize(width * dpr, height * dpr);
       gl.canvas.style.width = width + 'px';
       gl.canvas.style.height = height + 'px';
       program.uniforms.iResolution.value.set(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
+      mountedContainer.dataset.activeMaxFps = maxFps.toString();
+      mountedContainer.dataset.activeRenderScale = renderScale.toString();
       updateOrbCenter();
     }
     window.addEventListener('resize', resize);
+    window.addEventListener('scroll', scheduleOrbCenterUpdate, { passive: true });
+    window.addEventListener('pageshow', scheduleOrbCenterUpdate);
+    const visualViewport = window.visualViewport;
+    visualViewport?.addEventListener('resize', scheduleOrbCenterUpdate);
+    visualViewport?.addEventListener('scroll', scheduleOrbCenterUpdate);
     resize();
     const resizeObserver = new ResizeObserver(resize);
     resizeObserver.observe(container);
@@ -352,11 +370,25 @@ export default function Orb({
       document.documentElement.addEventListener('mouseleave', handleMouseLeave);
     }
 
-    let rafId: number;
-    const update = (t: number) => {
-      if (motionEnabled) rafId = requestAnimationFrame(update);
+    let rafId: number | undefined;
+    let inViewport = true;
+    let pageVisible = !document.hidden;
+
+    const scheduleAnimationFrame = (force = false) => {
+      if (rafId !== undefined || (!force && (!motionEnabled || !inViewport || !pageVisible))) return;
+      rafId = requestAnimationFrame(update);
+    };
+
+    function update(t: number) {
+      rafId = undefined;
+      if (!inViewport || !pageVisible) return;
       const frameInterval = 1000 / Math.max(1, maxFps);
-      if (motionEnabled && lastRenderTime > 0 && t - lastRenderTime < frameInterval) return;
+      // requestAnimationFrame is already synchronized to the display. Applying a
+      // strict 16.67 ms gate at 60 FPS can accidentally discard every other frame.
+      if (motionEnabled && maxFps < 60 && lastRenderTime > 0 && t - lastRenderTime < frameInterval) {
+        scheduleAnimationFrame();
+        return;
+      }
       const dt = lastRenderTime > 0 ? (t - lastRenderTime) * 0.001 : 0;
       lastRenderTime = t;
       program.uniforms.iTime.value = motionEnabled ? t * 0.001 : 0;
@@ -370,14 +402,49 @@ export default function Orb({
       program.uniforms.rot.value = currentRot;
 
       renderer.render({ scene: mesh });
+      scheduleAnimationFrame();
+    }
+
+    const syncAnimationActivity = () => {
+      const active = inViewport && pageVisible;
+      mountedContainer.dataset.renderActive = active ? 'true' : 'false';
+      if (!active && rafId !== undefined) {
+        cancelAnimationFrame(rafId);
+        rafId = undefined;
+      } else if (active) {
+        lastRenderTime = 0;
+        scheduleAnimationFrame(!motionEnabled);
+      }
     };
-    rafId = requestAnimationFrame(update);
+
+    const visibilityObserver = "IntersectionObserver" in window
+      ? new IntersectionObserver(([entry]) => {
+          inViewport = entry.isIntersecting;
+          syncAnimationActivity();
+        }, { rootMargin: '120px' })
+      : null;
+    visibilityObserver?.observe(container);
+
+    const handleVisibilityChange = () => {
+      pageVisible = !document.hidden;
+      syncAnimationActivity();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    mountedContainer.dataset.renderActive = 'true';
+    scheduleAnimationFrame(true);
 
     return () => {
       if (rafId !== undefined) cancelAnimationFrame(rafId);
+      if (centerUpdateFrame !== undefined) cancelAnimationFrame(centerUpdateFrame);
       cancelAnimationFrame(settleFrame);
       window.clearTimeout(settleTimeout);
       window.removeEventListener('resize', resize);
+      window.removeEventListener('scroll', scheduleOrbCenterUpdate);
+      window.removeEventListener('pageshow', scheduleOrbCenterUpdate);
+      visualViewport?.removeEventListener('resize', scheduleOrbCenterUpdate);
+      visualViewport?.removeEventListener('scroll', scheduleOrbCenterUpdate);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      visibilityObserver?.disconnect();
       resizeObserver.disconnect();
       if (motionEnabled) {
         window.removeEventListener('mousemove', handleMouseMove);
@@ -392,6 +459,7 @@ export default function Orb({
     <div
       ref={ctnDom}
       className="orb-container"
+      data-orb-quality="full"
       data-max-fps={maxFps}
       data-orb-center={centerOnTitle ? 'title' : 'canvas'}
       data-render-scale={renderScale}
