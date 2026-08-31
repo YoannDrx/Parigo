@@ -46,8 +46,8 @@ export function LabelDetailClient({ label }: { label: LabelDetail }) {
             enableTrackView
             compactToolbarBottom
             queryPlaceholder={{
-              fr: `Rechercher dans les albums de ${label.name}`,
-              en: `Search ${label.name} albums`,
+              fr: `Titre, référence ou mot-clé dans ${label.name}`,
+              en: `Title, reference or keyword in ${label.name}`,
             }}
           />
         </section>

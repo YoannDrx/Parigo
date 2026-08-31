@@ -606,6 +606,7 @@ function SearchContent() {
       categoryFacets={facets?.categories ?? []}
       labelFacets={facets?.labels ?? []}
       styleFacets={facets?.styles ?? []}
+      resultScope={view}
       locale={locale}
       onCategoriesChange={updateCategories}
       onLabelsChange={updateLabels}

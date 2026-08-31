@@ -109,6 +109,33 @@ test("le sélecteur d’ordre et le toggle de vue Albums sont alignés sur deskt
   expect(Math.abs(sortBox!.height - viewBox!.height)).toBeLessThanOrEqual(1);
 });
 
+test("la recherche Albums privilégie le titre exact tout en respectant un tri manuel", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/albums?q=surf+fiction");
+
+  const firstAlbum = page.locator("[data-album-card]").first();
+  const sort = page.getByRole("combobox", { name: "Trier les résultats" });
+  await expect(firstAlbum).toContainText("Surf Fiction", { timeout: 30_000 });
+  await expect(sort).toContainText("Pertinence");
+  await expect.poll(() => new URL(page.url()).searchParams.get("sort")).toBe("relevance");
+
+  await sort.click();
+  await page.getByRole("option", { name: "Plus récents", exact: true }).click();
+  await expect.poll(() => new URL(page.url()).searchParams.get("sort")).toBe("recent");
+  await expect(sort).toContainText("Plus récents");
+});
+
+test("Notre label conserve Parigo et explique la portée piste de ses filtres", async ({ page }) => {
+  test.setTimeout(120_000);
+  await page.goto("/notre-label?q=surf+fiction");
+
+  await expect(page.locator("[data-album-card]").first()).toContainText("Surf Fiction", { timeout: 30_000 });
+  await expect(page.getByTestId("album-filter-scope")).toContainText("au moins une piste correspondante");
+  await expect.poll(() => new URL(page.url()).searchParams.get("sort")).toBe("relevance");
+  const cardLabels = await page.locator("[data-album-card] p").allTextContents();
+  expect(cardLabels.filter(Boolean).every((value) => value === "Parigo")).toBe(true);
+});
+
 test("Notre label reprend l’accent vert du filtre Albums sur mobile", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "Ce traitement concerne le déclencheur mobile.");
   await page.goto("/notre-label");
@@ -201,7 +228,8 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   test.setTimeout(90_000);
   await page.goto("/labels/0f9769346759ee5a");
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-  await expect(page.getByPlaceholder(/Rechercher dans les albums de/)).toBeVisible();
+  const albumSearch = page.getByPlaceholder(/Titre, référence ou mot-clé dans/);
+  await expect(albumSearch).toBeVisible();
   await expect(page.getByText("Discographie", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Albums", exact: true })).toHaveAttribute("aria-pressed", "true");
   if (testInfo.project.name === "mobile") {
@@ -229,6 +257,10 @@ test("la discographie d’un label se recherche et expose les filtres complets",
   await page.getByRole("button", { name: "Pistes", exact: true }).click();
   await expect(page).toHaveURL(/kind=tracks/);
   await expect(page.locator(".search-results-ledger")).toBeVisible({ timeout: 30_000 });
+
+  await page.getByRole("button", { name: "Albums", exact: true }).click();
+  await albumSearch.fill("crime");
+  await expect.poll(() => new URL(page.url()).searchParams.get("sort")).toBe("relevance");
 });
 
 test("Albums et Notre label filtrent par un compositeur unique sans perdre le label fixe", async ({ page }, testInfo) => {

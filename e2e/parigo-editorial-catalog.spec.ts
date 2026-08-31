@@ -70,7 +70,7 @@ test("le catalogue général s’intitule Albums et la home relie Notre label", 
 test("Notre label impose le label et conserve les fonctions du catalogue", async ({ page }) => {
   await page.goto("/notre-label");
   await expect(page.getByRole("heading", { level: 1, name: "Notre label" })).toBeVisible();
-  await expect(page.getByPlaceholder("Rechercher dans notre label")).toBeVisible();
+  await expect(page.getByPlaceholder("Titre, référence ou mot-clé dans notre label")).toBeVisible();
   await expect(page.getByRole("button", { name: "Vue liste" })).toBeVisible();
   await expect(page.getByText("Label", { exact: true })).toHaveCount(0);
   const cardLabels = await page.locator("main a[href^='/albums/'] p").allTextContents();

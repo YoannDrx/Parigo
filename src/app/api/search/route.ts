@@ -15,7 +15,7 @@ import { isTitlePrioritySearchResult, searchWithTitlePriority } from "@/lib/harv
 import { logEvent } from "@/lib/logger";
 import { isCatalogIdentifier, stripLegacySearchQuotes } from "@/lib/search-query";
 import { translateFrenchSearchQuery } from "@/lib/search-translation";
-import { albumSearchEvidence, explainsSearchQuery, prioritizeTitleEvidence, trackSearchEvidence } from "@/lib/search-match-evidence";
+import { albumSearchEvidence, explainsSearchQuery, prioritizeAlbumSearchEvidence, prioritizeTitleEvidence, trackSearchEvidence } from "@/lib/search-match-evidence";
 import { normalizeSearchText, searchExpressionsCoverQuery } from "@/lib/search-normalization";
 import { resolveTaxonomySuggestions } from "@/lib/search-taxonomy";
 import {
@@ -263,7 +263,9 @@ export async function GET(request: NextRequest) {
       });
     }
     const orderedItems = input.sort === "relevance"
-      ? prioritizeTitleEvidence<Album | Track>(items, input.view === "albums" ? "albumTitle" : "trackTitle")
+      ? input.view === "albums"
+        ? prioritizeAlbumSearchEvidence(items as Album[], evidenceQuery)
+        : prioritizeTitleEvidence<Track>(items as Track[], "trackTitle")
       : items;
     const providerDurationMs = Date.now() - startedAt;
     logEvent({

@@ -12,14 +12,13 @@ import { Button } from "@/components/ui/Button";
 import { MobileFilterSheet } from "@/components/ui/MobileFilterSheet";
 import { useAlbums, useSearchFilters, useTracks } from "@/hooks/use-api";
 import { useI18n } from "@/components/providers/I18nProvider";
+import { albumSearchSortAfterQueryChange, initialAlbumSearchSort, type AlbumSearchSort } from "@/lib/album-search-sort";
 import { displaySearchFilterName } from "@/lib/search-filter-labels";
 import { cn } from "@/lib/utils";
 import type { Album, SearchFacets, SearchFilterItem, Track, ViewMode } from "@/types";
 import { CatalogActiveFilters, type CatalogActiveFilter } from "./CatalogActiveFilters";
 import { CatalogToolbar } from "./CatalogToolbar";
 import { ParigoLoader } from "@/components/ui/ParigoLoader";
-
-type AlbumSort = "relevance" | "recent" | "oldest";
 
 interface InitialAlbums {
   albums: Album[];
@@ -78,15 +77,12 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get("q") ?? "");
+  const initialQuery = searchParams.get("q") ?? "";
+  const [query, setQuery] = useState(initialQuery);
   const [kind, setKind] = useState<"albums" | "tracks">(
     enableTrackView && searchParams.get("kind") === "tracks" ? "tracks" : "albums",
   );
-  const [sort, setSort] = useState<AlbumSort>(
-    searchParams.get("sort") === "oldest" || searchParams.get("sort") === "relevance"
-      ? searchParams.get("sort") as AlbumSort
-      : "recent",
-  );
+  const [sort, setSort] = useState<AlbumSearchSort>(() => initialAlbumSearchSort(initialQuery, searchParams.get("sort")));
   const [view, setView] = useState<ViewMode>(searchParams.get("view") === "list" ? "list" : "grid");
   const [page, setPage] = useState(Math.max(1, Number(searchParams.get("page")) || 1));
   const [categories, setCategories] = useState(csv(searchParams.get("categories")));
@@ -164,7 +160,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
     const params = new URLSearchParams();
     if (query) params.set("q", query);
     if (enableTrackView && kind === "tracks") params.set("kind", "tracks");
-    if (sort !== "recent") params.set("sort", sort);
+    if (query || sort !== "recent") params.set("sort", sort);
     if (view !== "grid") params.set("view", view);
     if (page > 1) params.set("page", String(page));
     if (labels.length) params.set("labels", labels.join(","));
@@ -280,6 +276,7 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
       categoryFacets={facets?.categories ?? []}
       labelFacets={facets?.labels ?? []}
       styleFacets={facets?.styles ?? []}
+      resultScope={kind}
       locale={locale}
       onCategoriesChange={(value) => update(setCategories, value)}
       onLabelsChange={(value) => update(setLabels, value)}
@@ -316,10 +313,14 @@ export function AlbumExplorer({ initialData, fixedLabel, queryPlaceholder, headi
           <CatalogToolbar
             locale={locale}
             query={query}
-            onQueryChange={(value) => { setQuery(value); setPage(1); }}
+            onQueryChange={(value) => {
+              setSort((current) => albumSearchSortAfterQueryChange(query, value, current));
+              setQuery(value);
+              setPage(1);
+            }}
             queryPlaceholder={kind === "tracks"
               ? locale === "fr" ? "Rechercher une piste ou un mot-clé" : "Search a track or keyword"
-              : queryPlaceholder?.[locale] ?? (locale === "fr" ? "Rechercher un titre d’album ou un mot-clé" : "Search an album title or keyword")}
+              : queryPlaceholder?.[locale] ?? (locale === "fr" ? "Titre d’album, référence ou mot-clé" : "Album title, reference or keyword")}
             sort={sort}
             onSortChange={(value) => { setSort(value); setPage(1); }}
             sortOptions={[
