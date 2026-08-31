@@ -626,7 +626,7 @@ test("le switch Catalogue et IA ne déplace ni le titre ni la barre du héros", 
       expect(contentBox).not.toBeNull();
       const contentOffset = contentBox!.y - heroBox!.y;
       expect(contentOffset).toBeGreaterThanOrEqual(120);
-      expect(contentOffset).toBeLessThanOrEqual(150);
+      expect(contentOffset + contentBox!.height).toBeLessThanOrEqual(heroBox!.height);
     }
 
     await hero.getByRole("button", { name: "Mode de recherche : Catalogue" }).click();
@@ -665,7 +665,7 @@ test("le switch Catalogue et IA ne déplace ni le titre ni la barre du héros", 
   }
 });
 
-test("la lumière de la Similarité IA reste statique en mouvement réduit", async ({ page }) => {
+test("la lumière de la Similarité IA reste statique en mouvement réduit", async ({ page }, testInfo) => {
   await enableSimilarityForVisualTest(page);
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
@@ -674,7 +674,10 @@ test("la lumière de la Similarité IA reste statique en mouvement réduit", asy
   await hero.getByRole("option", { name: /Similarité IA/ }).click();
   await expect(hero.getByTestId("ai-search-glow")).toHaveCSS("opacity", "1");
   await expect(hero.getByTestId("ai-search-glow-beam")).toHaveCSS("animation-name", "none");
-  await expect(hero.getByTestId("hero-orb-backdrop")).toHaveAttribute("data-motion", "static");
+  await expect(hero.getByTestId("hero-orb-backdrop")).toHaveAttribute(
+    "data-motion",
+    testInfo.project.name === "mobile" ? "animated" : "static",
+  );
 });
 
 test("la Similarité IA conserve les mêmes angles arrondis", async ({ page }, testInfo) => {

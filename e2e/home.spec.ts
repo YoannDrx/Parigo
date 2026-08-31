@@ -1762,6 +1762,7 @@ test("les logos clients défilent en bandeau entre les synchronisations et le fi
 
 test("les trois segments de la home restent égaux et le footer suit le thème", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
+  await page.addInitScript(() => window.localStorage.setItem("parigo-theme", "light"));
   await page.goto("/");
   const tabs = page.getByRole("tablist", { name: "Sélections mises en avant" });
   await tabs.scrollIntoViewIfNeeded();
@@ -1776,6 +1777,7 @@ test("les trois segments de la home restent égaux et le footer suit le thème",
   await page.evaluate(() => {
     document.documentElement.dataset.theme = "dark";
     document.documentElement.style.colorScheme = "dark";
+    window.dispatchEvent(new Event("parigo:theme-change"));
   });
   await expect(footer).not.toHaveCSS("background-color", lightBackground);
   await expect(footer).toHaveCSS("background-color", "rgb(11, 17, 13)");
