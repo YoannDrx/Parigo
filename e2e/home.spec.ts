@@ -1,4 +1,4 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 
 const formFixtureValue = ["Ui", "Form", "Value", "1"].join("-");
@@ -158,15 +158,17 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   await page.goto("/");
   const hero = page.getByTestId("home-hero");
   await expect(hero).toBeVisible();
-  const heroVeilGradients = await hero.locator(".hero-gradflow__veil").evaluate((node) => (
-    getComputedStyle(node).backgroundImage.match(/linear-gradient/g)?.length ?? 0
-  ));
-  expect(heroVeilGradients).toBe(1);
   const backgrounds = await page.evaluate(() => ({
     canvas: getComputedStyle(document.documentElement).backgroundColor,
     hero: getComputedStyle(document.querySelector<HTMLElement>("[data-testid='home-hero']")!).backgroundColor,
+    navbar: getComputedStyle(document.querySelector<HTMLElement>("header nav")!).backgroundColor,
+    footer: getComputedStyle(document.querySelector<HTMLElement>(".parigo-footer")!).backgroundColor,
   }));
-  expect(backgrounds.canvas).toBe(backgrounds.hero);
+  expect(["rgb(242, 241, 237)", "rgb(11, 17, 13)"]).toContain(backgrounds.hero);
+  expect(backgrounds.navbar).toBe("rgba(0, 0, 0, 0)");
+  expect(backgrounds.footer).toBe(backgrounds.hero);
+  expect(backgrounds.canvas).not.toBe(backgrounds.hero);
+  await expect(page.getByRole("navigation", { name: "Navigation principale" })).toHaveCSS("border-bottom-width", "0px");
   await expect(
     page.getByRole("heading", { level: 1, name: /Trouvez la bonne musique/i }),
   ).toBeVisible();
@@ -188,7 +190,7 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
     await expect(hero.getByRole("button", { name: "Lancer le brief" })).toBeDisabled();
     if (testInfo.project.name === "mobile") {
       const hint = hero.getByLabel("Fonctionnement de la recherche par similarité IA");
-      const backdrop = hero.getByTestId("hero-gradient-backdrop");
+      const backdrop = hero.getByTestId("hero-orb-backdrop");
       await expect(hint).toBeVisible();
       await page.evaluate(() => window.scrollTo({ top: 180, behavior: "instant" }));
       const [heroBox, hintBox, backdropBox] = await Promise.all([
@@ -258,6 +260,126 @@ test("la homepage rend la recherche principale et navigue vers les résultats", 
   expect(resolvedUrl.searchParams.get("q")).toBe("piano");
   expect(resolvedUrl.searchParams.has("brief")).toBe(false);
   expect(resolvedUrl.searchParams.has("categories")).toBe(false);
+});
+
+test("le héros utilise uniquement Orb sans sélecteur de background", async ({ page }) => {
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const backdrop = hero.getByTestId("hero-orb-backdrop");
+
+  await expect(backdrop).toHaveAttribute("data-hero-background", "orb");
+  await expect(backdrop).toHaveAttribute("data-orb-setup", "original");
+  await expect(backdrop).toHaveAttribute("data-orb-palette", /catalog-(light|dark)/);
+  await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
+  expect(await backdrop.locator("canvas").count()).toBeLessThanOrEqual(1);
+
+  await page.reload();
+  await expect(hero.getByTestId("hero-orb-backdrop")).toHaveAttribute("data-hero-background", "orb");
+});
+
+test("Orb se monte seul et se centre sur le titre en mobile", async ({ page }, testInfo) => {
+  await page.addInitScript(() => {
+    const rendererParameter = 37_446;
+    for (const prototype of [window.WebGLRenderingContext?.prototype, window.WebGL2RenderingContext?.prototype]) {
+      if (!prototype) continue;
+      const original = prototype.getParameter;
+      prototype.getParameter = function getParameter(parameter: number) {
+        if (parameter === rendererParameter) return "ANGLE (Apple, ANGLE Metal Renderer: Apple M3)";
+        return original.call(this, parameter);
+      };
+    }
+  });
+  await page.route("**/api/autocomplete?**", (route) => route.fulfill({
+    contentType: "application/json",
+    body: JSON.stringify({ data: { groups: [{
+      key: "tracks",
+      count: 1,
+      items: [{
+        id: "track-orb-safe-zone",
+        kind: "track",
+        label: "Piano Safe Zone",
+        subtitle: "Main · SAFE001",
+        image: "/images/placeholder-album.svg",
+        href: "/albums/orb-safe-zone?track=track-orb-safe-zone",
+      }],
+    }] } }),
+  }));
+  const pageErrors: string[] = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.goto("/");
+  const hero = page.getByTestId("home-hero");
+  const backdrop = hero.getByTestId("hero-orb-backdrop");
+  const orb = backdrop.locator("[data-orb-center]");
+
+  await expect(backdrop).toHaveAttribute("data-renderer", "ogl", { timeout: 15_000 });
+  await expect(backdrop.locator("canvas")).toHaveCount(1, { timeout: 15_000 });
+  await expect(hero.getByRole("combobox", { name: /background du héros/i })).toHaveCount(0);
+  await expect(page.getByTestId("home-hero-search-mask")).toHaveAttribute("data-orb-safe-zone", "true");
+  const [headerBox, backdropBox] = await Promise.all([
+    page.getByRole("banner").boundingBox(),
+    backdrop.boundingBox(),
+  ]);
+  expect(headerBox).not.toBeNull();
+  expect(backdropBox).not.toBeNull();
+  expect(Math.abs(backdropBox!.y)).toBeLessThanOrEqual(1);
+  expect(backdropBox!.y + backdropBox!.height).toBeGreaterThanOrEqual(headerBox!.y + headerBox!.height);
+
+  if (testInfo.project.name === "mobile") {
+    await expect(orb).toHaveAttribute("data-orb-center", "title");
+    await expect.poll(() => orb.evaluate((node) => {
+      const title = node.closest("[data-testid='home-hero']")?.querySelector("h1");
+      const centerY = Number.parseFloat((node as HTMLElement).dataset.orbCenterY ?? "0.5");
+      if (!title) return Number.POSITIVE_INFINITY;
+      const orbRect = node.getBoundingClientRect();
+      const titleRect = title.getBoundingClientRect();
+      const visualOrbCenter = orbRect.top + orbRect.height * (1 - centerY);
+      const titleCenter = titleRect.top + titleRect.height / 2;
+      return Math.abs(visualOrbCenter - titleCenter);
+    })).toBeLessThanOrEqual(2);
+  } else {
+    await expect(orb).toHaveAttribute("data-orb-center", "canvas");
+    const [orbBox, safeZoneBox] = await Promise.all([
+      orb.boundingBox(),
+      page.getByTestId("home-hero-search-mask").boundingBox(),
+    ]);
+    expect(orbBox).not.toBeNull();
+    expect(safeZoneBox).not.toBeNull();
+    await page.mouse.move(orbBox!.x + orbBox!.width / 2, orbBox!.y + orbBox!.height / 2);
+    await expect(orb).toHaveAttribute("data-orb-interaction", "active");
+    await page.mouse.move(safeZoneBox!.x + safeZoneBox!.width / 2, safeZoneBox!.y + safeZoneBox!.height / 2);
+    await expect(orb).toHaveAttribute("data-orb-interaction", "safe");
+
+    const searchForm = hero.locator(".search-command__form");
+    const searchInput = hero.getByLabel("Rechercher dans le catalogue Parigo");
+    const assertGapIsSafe = async (panel: Locator) => {
+      const [formBox, panelBox] = await Promise.all([searchForm.boundingBox(), panel.boundingBox()]);
+      expect(formBox).not.toBeNull();
+      expect(panelBox).not.toBeNull();
+      const formTop = formBox!.y;
+      const formBottom = formBox!.y + formBox!.height;
+      const panelTop = panelBox!.y;
+      const panelBottom = panelBox!.y + panelBox!.height;
+      const gap = panelTop >= formBottom ? panelTop - formBottom : formTop - panelBottom;
+      const gapY = panelTop >= formBottom ? formBottom + gap / 2 : panelBottom + gap / 2;
+      expect(gap).toBeGreaterThan(0);
+      expect(gap).toBeLessThanOrEqual(14);
+      await page.mouse.move(orbBox!.x + orbBox!.width / 2, orbBox!.y + orbBox!.height / 2);
+      await expect(orb).toHaveAttribute("data-orb-interaction", "active");
+      await page.mouse.move(formBox!.x + formBox!.width / 2, gapY);
+      await expect(orb).toHaveAttribute("data-orb-interaction", "safe");
+    };
+
+    await searchInput.focus();
+    const recentPanel = page.getByTestId("recent-searches-menu");
+    await expect(recentPanel).toBeVisible();
+    await assertGapIsSafe(recentPanel);
+
+    await searchInput.fill("piano");
+    const resultsPanel = page.locator(".search-autocomplete-panel");
+    await expect(resultsPanel).toBeVisible();
+    await assertGapIsSafe(resultsPanel);
+  }
+  expect(pageErrors).toEqual([]);
 });
 
 test("les suggestions du héros restent au-dessus de la section suivante", async ({ page }) => {
@@ -1482,6 +1604,7 @@ test("le héros garde sa chorégraphie et les textes des autres sections restent
   const descriptionLines = page.getByTestId("home-hero-description-line");
   const heroSearch = page.getByTestId("home-hero-search-reveal");
   const heroSearchMask = page.getByTestId("home-hero-search-mask");
+  const heroOrb = page.getByTestId("hero-orb-backdrop");
 
   await expect(heroContent).toHaveAttribute("data-home-hero-motion", "animated");
   await expect(heroWords).toHaveCount(4);
@@ -1498,6 +1621,7 @@ test("le héros garde sa chorégraphie et les textes des autres sections restent
   await expect.poll(() => heroCopy.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(copyOpacityBefore - .25);
   await expect.poll(() => heroSearchMask.evaluate((node) => Number.parseFloat(getComputedStyle(node).opacity))).toBeLessThan(searchOpacityBefore - .25);
   await expect.poll(() => heroContent.evaluate((node) => getComputedStyle(node).transform)).not.toBe("none");
+  await expect(heroOrb).toHaveCSS("opacity", "1");
 
   const opacityTrail = await page.evaluate(async () => {
     const hero = document.querySelector<HTMLElement>('[data-testid="home-hero"]');
@@ -1636,7 +1760,7 @@ test("les logos clients défilent en bandeau entre les synchronisations et le fi
   }
 });
 
-test("les trois segments de la home restent égaux et le footer toujours sombre", async ({ page }) => {
+test("les trois segments de la home restent égaux et le footer suit le thème", async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 740 });
   await page.goto("/");
   const tabs = page.getByRole("tablist", { name: "Sélections mises en avant" });
@@ -1653,7 +1777,8 @@ test("les trois segments de la home restent égaux et le footer toujours sombre"
     document.documentElement.dataset.theme = "dark";
     document.documentElement.style.colorScheme = "dark";
   });
-  await expect(footer).toHaveCSS("background-color", lightBackground);
+  await expect(footer).not.toHaveCSS("background-color", lightBackground);
+  await expect(footer).toHaveCSS("background-color", "rgb(11, 17, 13)");
 });
 
 test("le showreel respecte la réduction des animations", async ({ page }) => {

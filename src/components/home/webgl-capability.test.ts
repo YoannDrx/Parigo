@@ -15,7 +15,7 @@ describe("home hero WebGL capability", () => {
     "ANGLE (Apple, ANGLE Metal Renderer: Apple M3)",
     "ANGLE (NVIDIA, NVIDIA GeForce RTX 4070)",
     "AMD Radeon Pro 5500M OpenGL Engine",
-  ])("keeps Gradflow for the accelerated renderer %s", (renderer) => {
+  ])("keeps Orb for the accelerated renderer %s", (renderer) => {
     expect(isSoftwareWebGlRenderer(renderer)).toBe(false);
   });
 });

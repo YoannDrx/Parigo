@@ -1,13 +1,13 @@
 "use client";
 
 import { getImageProps } from "next/image";
+import dynamic from "next/dynamic";
 import { AlertCircle, ArrowUpRight, RotateCcw } from "lucide-react";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AISearch } from "@/components/features/AISearch";
 import { useI18n } from "@/components/providers/I18nProvider";
 import type { Synchronisation } from "@/lib/youtube/synchronisation-types";
 import { fetchAlbum, fetchAlbums, fetchPlaylist } from "@/lib/api-client";
-import { HeroGradientBackdrop } from "./HeroGradientBackdrop";
 import { HorizontalRail } from "./HorizontalRail";
 import { HomeStorySections } from "./HomeStorySections";
 import type { Album, Playlist, SearchMode, Track } from "@/types";
@@ -27,6 +27,13 @@ import { HomeSectionCta } from "./HomeSectionCta";
 import { LINKTREE_URL, SocialPlatformIcon, type SocialPlatformName } from "@/components/social/SocialPlatforms";
 
 const PartnerMarquee = lazy(() => import("./PartnerMarquee").then((module) => ({ default: module.PartnerMarquee })));
+const HeroOrbBackdrop = dynamic(
+  () => import("./hero-backgrounds/HeroOrbBackdrop").then((module) => module.HeroOrbBackdrop),
+  {
+    ssr: false,
+    loading: () => null,
+  },
+);
 
 const LINKTREE_PLATFORMS: Array<{ name: SocialPlatformName; position: string }> = [
   { name: "Instagram", position: "left-0 top-4 -rotate-12 group-hover:-translate-x-1 group-hover:-translate-y-2" },
@@ -86,8 +93,11 @@ export function HomeHero() {
   const title = locale === "fr" ? "Trouvez la bonne musique" : "Find the right music";
 
   return (
-    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 mt-[74px] flex min-h-[calc(100svh-74px)] items-start overflow-x-clip bg-[var(--surface)] px-4 pb-10 pt-[clamp(8rem,18svh,9rem)] md:items-center md:px-8 md:py-12">
-      <HeroGradientBackdrop mode={searchMode} />
+    <section ref={heroRef} data-testid="home-hero" data-search-mode={publicSearchMode} className="home-hero relative z-10 flex min-h-[100svh] items-start overflow-x-clip bg-[var(--brand-deep)] px-4 pb-10 pt-[calc(74px+clamp(8rem,18svh,9rem))] text-[var(--brand-deep-foreground)] md:items-center md:px-8 md:pb-0 md:pt-[74px]">
+      <div aria-hidden="true" className="hero-background-loading absolute inset-0 overflow-hidden">
+        <div className="hero-background-loading__fallback absolute inset-0" />
+      </div>
+      <HeroOrbBackdrop mode={searchMode} />
       <HomeHeroContent
         target={heroRef}
         title={title}
