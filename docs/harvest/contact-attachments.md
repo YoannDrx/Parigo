@@ -1,25 +1,16 @@
-# Formulaire de contact et pièces jointes
+# Formulaire de contact
 
 ## Choix actuellement implémenté
 
-Le formulaire `/contact` envoie un `multipart/form-data` à la route BFF
-`/api/contact`. Le serveur valide les champs et la pièce jointe, puis transmet
-le message à `info@parigomusic.com` via Resend. Aucun enregistrement n'est créé
-dans une base de données Parigo.
-
-Formats acceptés : PDF, JPEG, PNG, WebP, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT
-et RTF. La limite applicative est de 3 Mo par document. Le serveur contrôle le
-nom, l'extension, le type MIME et la signature binaire lorsque le format le
-permet. La pièce jointe est envoyée uniquement à l'équipe ; l'accusé visiteur
-confirme son nom sans la joindre à nouveau.
+Le formulaire `/contact` envoie un payload JSON à la route BFF `/api/contact`.
+Le serveur valide les champs texte et le contexte éventuel d’une piste, puis
+appelle exclusivement `sendcontactusemail`. Aucun enregistrement n’est créé
+dans une base de données Parigo et aucune pièce jointe n’est acceptée.
 
 ## Limites Harvest constatées
 
-La documentation et l'inventaire d'API Harvest audités ne fournissent pas de
-ressource générique de contact, de stockage de briefs ou de téléversement de
-pièces jointes pour ce parcours. Harvest gère le catalogue et les comptes, mais
-ne peut donc pas être considéré aujourd'hui comme la source de vérité du
-formulaire de contact.
+`sendcontactusemail` couvre le message texte, mais aucun contrat de stockage de
+brief ou de téléversement de pièce jointe n’a été identifié.
 
 Questions à adresser à Harvest :
 
@@ -34,4 +25,4 @@ Questions à adresser à Harvest :
 
 Si Harvest fournit ultérieurement ce contrat, le BFF pourra continuer à
 protéger les secrets et relayer le fichier sans exposer de jeton au navigateur.
-La solution Resend actuelle reste le repli opérationnel sans base de données.
+Il n’existe aucun fournisseur de repli.

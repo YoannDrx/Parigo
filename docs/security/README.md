@@ -11,5 +11,5 @@ l’API Vercel Firewall. Le rate limiting ne peut pas être déclaré dans
 3. Après analyse des faux positifs, passer Bot Protection à `challenge`.
 4. Ne jamais bloquer les robots vérifiés sur les pages publiques.
 
-L’application conserve en complément la validation same-origin, le honeypot,
-la limite de 16 Kio et l’idempotence Resend.
+L’application conserve en complément la validation same-origin, le honeypot et
+la limite de 16 Kio. L’envoi du contact est exclusivement délégué à Harvest.

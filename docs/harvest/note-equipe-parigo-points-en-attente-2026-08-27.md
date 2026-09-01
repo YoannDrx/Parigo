@@ -3,6 +3,11 @@
 Date de préparation : **27 août 2026**  
 Public visé : direction et équipe Parigo, sans prérequis technique.
 
+> **Archive :** ce brouillon précède la réponse de Peter du 1er septembre. Pour
+> l’état actuel, utiliser
+> [`gaps-and-requests.md`](./gaps-and-requests.md) et le nouveau brouillon
+> [`email-reply-peter-2026-09-01.txt`](./email-reply-peter-2026-09-01.txt).
+
 ## Version courte à envoyer par e-mail
 
 **Objet : Points Harvest à débloquer avant la mise en production du nouveau site**

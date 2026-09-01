@@ -81,11 +81,13 @@ Questions à confirmer auprès de Harvest avant d’élargir le cache :
 
 Aucun message n’est envoyé à Harvest dans ce lot.
 
-## Configuration Resend
+## Formulaire de contact
 
-- Le fournisseur de contact est sélectionnable avec `CONTACT_EMAIL_PROVIDER=resend|harvest` et utilise Resend par défaut pour le déploiement courant.
-- Les variables d’expéditeur et de destinataire sont présentes dans Vercel pour Preview et Production.
-- Le contrôle du 30 août 2026 a toutefois montré que les clés `RESEND_API_KEY` actuellement stockées dans ces deux environnements sont refusées par l’API Resend (`API key is invalid`). La vérification du domaine `yodev.fr` et le test réel d’envoi restent donc bloqués jusqu’au remplacement de cette clé, sans qu’aucun secret soit ajouté au dépôt.
+- Depuis le 1er septembre 2026, `sendcontactusemail` est l’unique fournisseur
+  configuré dans le code Parigo.
+- L’ancien fournisseur local, ses modèles et ses variables ont été retirés.
+- Le succès du formulaire dépend désormais directement de la correction du
+  `Code=4 — Internal Operation Error` par Harvest.
 
 ## Partage Harvest et fermeture de compte
 
