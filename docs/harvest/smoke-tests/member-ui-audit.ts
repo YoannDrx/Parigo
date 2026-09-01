@@ -841,8 +841,8 @@ async function testContact(page: Page, trackId: string) {
   return {
     status: response.status(),
     sentMessageVisible: await page.getByText("Message envoyé", { exact: true }).isVisible().catch(() => false),
-    provider: "Resend via Parigo",
-    harvestEndpointUsed: false,
+    provider: "Harvest via Parigo",
+    harvestEndpointUsed: true,
   };
 }
 
@@ -1432,7 +1432,7 @@ async function runViewport(browser: Browser, name: "desktop" | "mobile", viewpor
       const favouriteTrackId = favourite && typeof favourite === "object" && "trackId" in favourite
         ? String(favourite.trackId || "")
         : "";
-      console.error("[ui-audit] desktop: optional contact and acknowledgement");
+      console.error("[ui-audit] desktop: optional Harvest contact");
       extended.contact = favouriteTrackId
         ? await testContact(page, favouriteTrackId)
         : { skipped: "No verified track id was available" };

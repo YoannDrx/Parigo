@@ -1,14 +1,17 @@
 # Analyse des fils Harvest et AIMS
 
-Date de lecture : **27 août 2026**.
+Date de lecture initiale : **27 août 2026** — mise à jour après la réponse de
+Peter et les retests du **1er septembre 2026**.
 
 Fils Gmail relus :
 
 - `Parigo/Harvest API` : 24 messages, du 18 mai au 18 août 2026 ;
 - `AIMS Agreement Draft` : 10 messages, du 20 mai au 20 août 2026.
 
-Aucun message n’a été envoyé ou modifié pendant cette analyse. Les clés, tokens
-et liens confidentiels présents dans les échanges ne sont pas reproduits ici.
+Aucun message n’a été envoyé à Harvest ou AIMS pendant cette analyse. Des
+e-mails de recette identifiables ont été déclenchés vers les comptes Parigo de
+test pour le contact, le partage et le reset. Les clés, tokens et liens
+confidentiels présents dans les échanges ne sont pas reproduits ici.
 
 ## Conclusion
 
@@ -57,23 +60,24 @@ Peter a confirmé que :
 - `sendcontactusemail` ne prend pas de pièce jointe et attend cinq champs ;
 - l’historique des formulaires de contact n’est pas stocké dans l’Admin.
 
-Ces réponses ont permis d’avancer, mais elles ne répondent pas aux précisions
-posées le 11 août sur plusieurs domaines, le HTTPS direct, l’erreur `Code=4`,
-la langue des e-mails et l’historique membre.
+Ces réponses ont permis d’avancer. Peter a complété le 1er septembre les sujets
+domaines/HTTPS, région et langue, tags, opérateurs de recherche, RankExpression
+et historique. Le contact, l’écriture explicite de la langue, les contrats de
+localisation et l’historique des partages restent à corriger ou investiguer.
 
-## Questions du 11 août restées sans réponse complète
+## Questions du 11 août après la réponse de Peter du 1er septembre
 
-| Sujet | Question posée | Réponse postérieure trouvée | État actuel | Destinataire |
-| --- | --- | --- | --- | --- |
-| Domaines et callbacks | Une clé peut-elle accepter localhost, Preview et production, ou une base URL autorisée par requête ? Les liens peuvent-ils être générés directement en HTTPS ? | Aucune. Le message du 10 août confirme seulement un domaine et des routes par clé. | Le partage fonctionne, mais Harvest renvoie encore une URL HTTP que Parigo convertit en HTTPS. Le callback reset doit être contrôlé dans l’e-mail reçu. | Harvest |
-| Contact | Pourquoi le payload officiel sans pièce jointe renvoie-t-il HTTP 200 puis `Code=4` ? | Aucune après le signalement du 11 août. | Erreur reproduite directement et dans le formulaire ; BFF 502, aucun e-mail et expéditeur vide sur Contact Us (API/Custom). Blocage de lancement malgré l’adresse de secours. | Harvest |
-| Album bilingue | Pourquoi `PGO0031`, traduit en Admin, reste-t-il anglais dans `getalbum` ? | Aucune. | Écart Harvest confirmé ; fallback anglais côté Parigo. | Harvest |
-| Langue membre et e-mails | Quel champ définit la langue et comment Harvest choisit-il le modèle pour vérification, reset, partage, contact et téléchargement ? | Aucune. | L’Admin expose `Language=EN/FR` avec `EN` par défaut, mais l’écriture Public API n’est pas documentée. Sur 26 types/34 variantes, six seulement sont françaises. | Harvest |
-| Compteurs de tags | Comment obtenir un `TrackCount` fiable avec `ReturnTagCount` ? | Aucune. | L’option n’ajoute aucun champ de compteur ; les détails contiennent 1, 4 et 1 pistes. La mutation temporaire a confirmé l’écart et a été nettoyée. | Harvest |
-| Titre exact | Quels payloads donnent « contient », « commence par » et « égal » avec `ExactPhrase`/`Wildcard` ? | Aucune. | Les titres complets sont bien retrouvés, mais les drapeaux ne définissent pas trois opérateurs de champ distincts pour un terme simple. Parigo normalise et post-filtre. | Harvest |
-| Historique membre | Quels e-mails alimentent `gethistorybycommunications` et les partages doivent-ils apparaître ? | Aucune. La réponse précédente concernait seulement les formulaires de contact dans l’Admin. | Les resets apparaissent, les partages reçus non ; aucun corps ni identifiant de modèle. | Harvest |
-| Identité d’envoi | Authentifier le domaine Parigo et supprimer « via harvestmedia.net ». | Pas de réponse textuelle identifiée. | Résolu opérationnellement : SPF, DKIM et DMARC alignés, sans « via ». | Ne pas relancer |
-| Right Holder | Valider les merge fields, capacités, séparateurs, étapes et périmètre mains/alternates/stems avant le batch à 100 €. | Aucune réponse détaillée. Roland avait seulement décrit le workflow général le 3 août. | Ne pas activer les modèles ; demander un essai réversible sur un album. | Harvest |
+| Sujet | Réponse de Peter | État démontré le 1er septembre | Suite |
+| --- | --- | --- | --- |
+| Domaines et callbacks | Une clé correspond à un domaine ; FLEX et Parigo pointent sur `www.parigomusic.com`; routes passées en HTTPS. | Le partage réel renvoie désormais `https://www.parigomusic.com/engage-playlist/{token}`. Le reset est fonctionnel de bout en bout et le nouvel appel d’envoi répond 200. | Sujet résolu ; aucun nouveau domaine ni nouvelle clé demandés. |
+| Contact | Un management user doit recevoir les messages ; Peter demande la boîte cible. | `Parigo Music Notifications` existe déjà sur `info@parigomusic.com`. Le Sender du modèle, seul réglage directement corrigeable, a été associé à cet utilisateur. Le retest reste en `Code=4`. Aucun réglage de destinataire Contact n’est visible et la documentation « primary email » ne décrit pas le même mécanisme que Peter. | Peter doit associer le destinataire côté serveur ou documenter le contrôle exact, vérifier clé/end-point et confirmer destinataire/From/Reply-To. Blocage de lancement. |
+| Album bilingue | Peter demande la liste complète des contrats concernés avant de répondre. | `PGO0031` reste anglais pour `en`, `fr`, `fr-FR`, sans `LanguageItems`. | Transmettre les cinq contrats localisés ; fallback anglais en attendant. |
+| Langue membre et e-mails | Région via `Country`; ancien `LanguageCode` non documenté ne fonctionne pas comme attendu ; investigation ouverte. | `getregions` renvoie seulement Global (245 pays dont FR) et `getregion` confirme `LanguageCode=EN`. Une région France/FR est techniquement créable, mais piloterait aussi catalogue, approbation, téléchargements et licence, tout en imposant la langue par pays plutôt que par locale Parigo. `updatemember` avec `LanguageCode: FR` répond 200 mais la valeur reste absente de `getmember`. | Obtenir le contrat explicite Register/Update. S’il n’existe plus, faire confirmer l’alternative région et la migration des membres existants avant toute modification Admin. |
+| Compteurs de tags | Aucun compteur de pistes par tag ; `TotalTagsCount` compte les tags. | Trois tags à 1, 5 et 1 pistes ; aucun compteur dans la liste. | Limitation acceptée, demande fermée ; détails lus par tag. |
+| Recherche positionnelle | `ExactPhrase` règle l’ordre des mots ; `Wildcard` ajoute uniquement un suffixe. RankExpression personnalisable avec possible coût. | Track « Piano » : 1 480/1 491/1 480/1 480. Album « Music » : 80/82/80/80. Les positions restent mélangées ; les titres complets donnent bien un résultat strict. | Demander un devis séparant les opérateurs sur `TrackDisplayTitle`/`AlbumDisplayTitle` du pilote de classement Track/Album. |
+| Historique membre | Tout e-mail reçu devrait apparaître ; Peter demande l’endpoint source précis. | Nouveau partage réel réussi par `sendsharemusiclinkemail`, puis relecture immédiate : dix entrées, toutes des resets. Le nouveau partage et celui reçu le 10 août manquent. | Fournir endpoint/payload et demander la reproduction du couple send/read. |
+| Identité d’envoi | Jarrod Collett a piloté la migration Amazon SES et créé l’utilisateur Admin dédié. | SPF, DKIM et DMARC alignés, sans « via ». | Résolu, ne pas relancer. |
+| Right Holder | Point omis dans la réponse de Peter. | Aucune mutation globale ; nettoyage d’affichage temporaire seulement. | Reporter après lancement et exiger un pilote réversible sur un album. |
 
 ## Nouveaux constats à ajouter à Harvest
 
@@ -83,12 +87,12 @@ Ces sujets n’étaient pas formulés ainsi dans le message du 11 août :
   que `getlibrary?languagecode=en/fr` place directement la langue demandée dans
   `Detail` et omet `LanguageItems`. Parigo appelle le détail deux fois ; Harvest
   doit confirmer que ce contrat est stable.
-- **Playlists éditoriales** : la liste comme le détail contiennent les
-  `LanguageItems` disponibles. Sur 64 playlists, 60 noms FR sont présents, 4
-  manquent et seules 2 descriptions FR existent. Deux playlists seulement ont
-  des lignes de description FR dupliquées, sans valeur conflictuelle. La
-  demande pertinente est de confirmer `LanguageItems` comme source officielle ;
-  les absences sont classées comme contenu à compléter, pas comme bug API.
+- **Playlists éditoriales** : le dernier retest trouve zéro `LanguageItems`
+  dans les 64 objets de liste EN et FR. Les traductions sont disponibles sur le
+  détail : 60 noms FR, 4 noms manquants et seulement 2 descriptions FR. Deux
+  groupes sont des doublons exacts, sans conflit. La demande pertinente est de
+  confirmer le détail comme source officielle ; les absences sont classées
+  comme contenu à compléter, pas comme bug API.
 - **Recherche multilingue** : la réponse précédente indiquait l’absence de
   recherche multilingue native et l’usage possible des keyword groups. Après
   présentation de cette réponse à l’équipe Parigo, Guillaume maintient qu’une
@@ -97,8 +101,10 @@ Ces sujets n’étaient pas formulés ainsi dans le message du 11 août :
   alors chez Parigo, avait transmis une template de traduction à Harvest lors
   du paramétrage initial. La nouvelle demande doit reconnaître la réponse reçue,
   laisser ouverte la possibilité d’une ancienne terminologie ou configuration,
-  puis demander la vérification des archives et la restauration éventuelle du
-  mapping, des groupes ou des règles concernés.
+  puis demander le format d’import attendu et le besoin éventuel de
+  réindexation. La template n’a pas été retrouvée dans la boîte accessible ;
+  elle doit être recherchée auprès de Guillaume, Caroline ou Lucas sans être
+  reconstituée de mémoire.
 
 ## Chronologie AIMS et statut des réponses
 

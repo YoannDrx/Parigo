@@ -1,0 +1,176 @@
+Subject: Re: Parigo/Harvest API
+
+Hi Peter,
+
+Thank you for your detailed reply — it was very useful, particularly in helping us understand the Harvest search engine more clearly.
+
+Apologies for the number of questions. None of the points below prevents us from continuing towards production, which we are currently targeting for this Thursday. I have kept this reply to the confirmations and server-side points that still require your input.
+
+1. Contact form
+
+The required recipient inbox is info@parigomusic.com.
+
+This notification is internal to the French Parigo team, so it does not require dynamic language selection: the Contact Us (API/Custom) template can always be sent in French.
+
+An active management user already exists for this purpose: “Parigo Music Notifications”, using info@parigomusic.com. Jarrod created it during the move to Amazon SES, so no additional user should be needed.
+
+We checked everything available to us in the Admin. The active “Contact Us (API/Custom)” template had no Sender, so we selected “Parigo Music Notifications” as its From user and saved it. The management-user editor only exposes Registration, Distribution and MemberUpdate notifications; we could not find any setting for the Contact recipient.
+
+We then retested:
+
+POST /sendcontactusemail/{serviceToken}
+
+{
+  "Name": "Parigo API audit",
+  "Email": "<test address>",
+  "PhoneNumber": "",
+  "Subject": "Parigo contact endpoint retest <timestamp>",
+  "Message": "Automated Parigo audit message after Harvest support configuration review."
+}
+
+The endpoint still returns HTTP 200 with Error.Code=4 and Error.Description=Internal Operation Error, and no message reaches info@parigomusic.com.
+
+Parigo now uses sendcontactusemail as its only contact provider. Could you please associate the existing management user with the Contact recipient on the server, or point us to the exact Admin setting if we have missed it? Could you also run the same payload and confirm the resulting recipient, From and Reply-To?
+
+2. Domains and HTTPS — closed
+
+The original multi-domain question concerned localhost, Vercel Preview and production, not separate language domains. For production we only need https://www.parigomusic.com.
+
+Thank you for updating the routes. A fresh getsharemusicurl test now returns https://www.parigomusic.com/engage-playlist/{token}. The password-reset workflow has also passed end to end, so no further action is required on this point.
+
+3. Member and email language
+
+Thank you for checking the former LanguageCode property with your team. Our retest confirms the issue you observed.
+
+Parigo currently has a single Harvest region, Global, covering 245 countries with English as its default language. Country=FR therefore still assigns the member to Global.
+
+We also investigated whether this should be solved by creating a France/French region in the Admin, but we have not changed the configuration. A live GET /getregions/{serviceToken} still returns only Global, with 245 countries including FR, and GET /getregion/{serviceToken}/e361bcb57f53f791 returns LanguageCode=EN. The Admin does allow another region to be created and France to be assigned to it, but a region also carries catalogue/label access, member approval, download and licensing settings.
+
+More importantly, Parigo's language preference is independent of country: a member in France may use the English site, and a French-speaking member may live outside France. Our current registermember payload sends Country, but not the /fr or /en locale. A France region would therefore select French by country rather than by the member's chosen language, and it is not clear whether existing Country=FR members already assigned to Global would be migrated. The six existing French email variants are all configured for All regions + French, so they do not themselves require a France-specific region.
+
+We sent the member’s current valid payload to:
+
+POST /updatemember/{memberToken}
+
+with "LanguageCode": "FR" added. The endpoint returned HTTP 200 without an Error, but repeated getmember reads still returned no Language or LanguageCode field. Country and RegionID were unchanged, and we then restored the original profile.
+
+Our preferred solution therefore remains an explicit, documented language property on registermember and updatemember. We will wait for your confirmation of the supported property, accepted EN/FR values and the field getmember should return before changing the region setup. If LanguageCode is no longer supported, could you confirm whether a France/French region is Harvest's supported alternative and whether existing Country=FR members would be reassigned or require migration? Could you also confirm that the resolved member language selects the corresponding verification, reset, approval, sharing and download templates?
+
+4. Localised catalogue contracts
+
+Here is the complete endpoint list you requested:
+
+GET /getalbum/{guestToken}/{albumId}
+GET /getlibraries/{guestToken}
+GET /getlibrary/{guestToken}/{libraryId}?languagecode=en|fr
+GET /getfeaturedplaylistsplaylistonly/{guestToken}?languagecode=en|fr
+POST /getfeaturedplaylistandtracks/{guestToken}/{playlistId}
+
+The required fields are the album description, library/label description, and featured-playlist name and description in EN and FR.
+
+The current response shapes are:
+
+- getalbum/750a3d73a7f4dae6 returns the same English Detail for en, fr and fr-FR, without LanguageItems;
+- getlibraries exposes the Musica.it French description in LanguageItems;
+- getlibrary/9d330c152c37bca0?languagecode=en|fr changes Detail correctly but omits LanguageItems;
+- getfeaturedplaylistsplaylistonly returns no LanguageItems, while getfeaturedplaylistandtracks exposes the available translations in LanguageItems.
+
+Parigo already handles merging, deduplication and English fallback. Missing catalogue translations will be managed by the Parigo catalogue team. We only need confirmation of the intended API contract: stable canonical fields plus LanguageItems, or direct field replacement through languagecode for each endpoint.
+
+5. Keyword groups and bilingual search
+
+We will search the Parigo archives with Guillaume, Caroline and Eliott for the historical translation file. If it cannot be recovered, we will prepare a new, reviewed keyword-group list to submit to you.
+
+Before submitting anything, we will establish an API baseline, test a small batch, compare the responses before and after, and have the catalogue team validate the relevance. We will not ask Harvest to manage the underlying catalogue wording for us.
+
+The current business case remains:
+
+POST /cloudsearch/{guestToken}, aggregate keyword search, keyword groups enabled
+
+reggae sad: 53 results; DAYS OF OPPRESSION is present.
+reggae triste: 2 results; DAYS OF OPPRESSION is absent.
+
+The existing brazil / brésil / bresil group confirms that bilingual expansion works, but our enabled/disabled comparison suggests that a group may do more than simply add the union of all terms.
+
+Before we prepare the new list, could you please confirm:
+
+- whether a keyword group is applied as a union, a substitution or another operation;
+- the supported import/export format;
+- whether group changes require reindexing.
+
+6. Tag counts — closed
+
+Thank you, this is now clear. We will continue to call getmembertagtracks/{memberToken}/{tagId} when a per-tag track count is required. No further Harvest action is needed.
+
+7. Positional title matching and custom RankExpression
+
+Thank you for the detailed explanation of ExactPhrase, Wildcard and the default RankExpression. Our retests now match your explanation.
+
+Using POST /cloudsearch/{memberToken}, with St_Keyword.Fields restricted first to TrackDisplayTitle and then AlbumDisplayTitle, the four ExactPhrase/Wildcard combinations still mix starts-with, contains and ends-with results. ExactPhrase controls word order and Wildcard adds a suffix wildcard; neither provides distinct field-level starts-with, contains, ends-with and equals operators.
+
+A. Positional title matching
+
+Our requirement is to support starts with, contains, ends with and equals on both TrackDisplayTitle and AlbumDisplayTitle. If the Public API already has supported payloads for these operations, could you please send them? Otherwise, could this requirement be included as a separate item in an indicative quote?
+
+B. Custom RankExpression
+
+Today, one browser request to Parigo’s /api/search causes the BFF to run two Harvest cloudsearch calls in parallel: a title-only query, followed by an aggregate editorial result set from which those literal titles are excluded. Track results are then enriched through gettracks. Autocomplete applies the same title/aggregate strategy to both Track and Album results.
+
+The extra title lane is currently necessary. With the default Harvest ranking, literal titles can appear too far down the aggregate response; for example, the exact album MUSIC ON HOLD was absent from the first 30 aggregate results, while our title-first merge places it first.
+
+If a Parigo RankExpression can reproduce that priority inside a single aggregate query, we should be able to remove one cloudsearch call from each Track or Album search while keeping the BFF and the required enrichment calls.
+
+Our initial business-weight proposal is:
+
+Track view
+- exact TrackDisplayTitle: +100
+- full phrase in TrackDisplayTitle: +70
+- all query terms in TrackDisplayTitle: +50
+- Track keywords, mood, music-for, category or genre: +25
+- Track description: +15
+- AlbumDisplayTitle: +12
+- Album keywords or description: +8
+- composer or library: +5
+
+Album view
+- exact AlbumDisplayTitle: +100
+- exact catalogue reference: +80, if that field can be enabled safely
+- full phrase in AlbumDisplayTitle: +70
+- all query terms in AlbumDisplayTitle: +50
+- Album keywords: +25
+- Album description: +15
+- contained TrackDisplayTitle: +10
+- Track editorial metadata: +6
+
+For recency, we would use it only as a tie-breaker: at most +5 for releases from the last 30 days and +2 for days 31–90. We would not want a recent weak match to outrank an older, clearly relevant title.
+
+This is our first proposal, so we would very much appreciate your view on the weighting. Would separate Track and Album profiles be possible, and could the same ranking be used for cloudsearch and autocomplete? At this stage, an indication of feasibility, likely setup cost and whether reindexing would be required would be very helpful.
+
+8. Communication history
+
+The missing source endpoint is:
+
+POST /sendsharemusiclinkemail/{senderMemberToken}
+
+with FromEmail, ToEmail, Message, Link, ContentType=Playlist, ContentTitle and SelectEmailTemplateByMemberRegion=false.
+
+The send returned success and the recipient received the email. Immediately afterwards we called:
+
+POST /gethistorybycommunications/{recipientMemberToken}
+
+{
+  "Skip": 0,
+  "Limit": 100,
+  "Sort": "Created_Desc",
+  "StartDate": "",
+  "EndDate": ""
+}
+
+The response was HTTP 200 with 10 password-reset entries, but no playlist-share entry. Could you please check this sender-endpoint/recipient-history combination when you have a chance?
+
+The Harvest/AIMS integration is complete and the four search modes are working in our tests, so no further action is required there.
+
+Thank you again for your help. We are aiming to go live this Thursday and these clarifications will help us finalise the remaining configuration cleanly.
+
+Many thanks,
+Yoann

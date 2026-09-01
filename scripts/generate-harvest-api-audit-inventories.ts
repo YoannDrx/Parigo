@@ -177,7 +177,7 @@ async function main() {
         route,
         file: path.relative(root, file),
         source_system: isContact
-          ? "Resend + Harvest catalogue lookup"
+          ? "Harvest Public API + Harvest catalogue lookup"
           : harvestBacked
             ? "Harvest Public API / Parigo server session"
             : "Parigo local",

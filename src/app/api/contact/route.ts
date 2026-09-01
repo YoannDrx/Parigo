@@ -53,24 +53,12 @@ export async function POST(request: Request) {
       input.trackId ? `${input.locale === "fr" ? "Référence" : "Reference"}: ${track?.cdCode || input.trackId}` : "",
     ].filter(Boolean);
     const message = context.length ? `${context.join("\n")}\n\n${input.message}` : input.message;
-    const delivery = await deliverContactMessage({
-      requestId,
+    await deliverContactMessage({
       name: input.name,
-      company: input.company,
       email: input.email,
-      locale: input.locale,
       subject,
-      message: input.message,
       harvestMessage: message,
-      track: track
-        ? { title: track.title, albumTitle: track.albumTitle || null, reference: track.cdCode || track.id, verified: true }
-        : input.trackId
-          ? { title: input.locale === "fr" ? "Piste demandée" : "Requested track", albumTitle: null, reference: input.trackId, verified: false }
-          : null,
     });
-    if (delivery.provider === "resend" && !delivery.acknowledgementSent) {
-      logEvent({ level: "warn", message: "contact_acknowledgement_failed", route: "/api/contact", requestId, status: 201, durationMs: Math.round(performance.now() - started) });
-    }
     logEvent({ level: "info", message: "contact_sent", route: "/api/contact", requestId, status: 201, durationMs: Math.round(performance.now() - started) });
     return NextResponse.json({ data: { requestId, status: "sent" } }, { status: 201, headers: { "Cache-Control": "no-store", "X-Request-ID": requestId } });
   } catch (error) {

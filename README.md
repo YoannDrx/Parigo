@@ -26,13 +26,11 @@ Variables obligatoires pour le catalogue public :
 
 Pour activer les comptes Parigo, ajouter `HARVEST_SESSION_SECRET`, un secret indépendant généré par exemple avec `openssl rand -base64 48`. Son absence désactive uniquement la surface membre ; elle ne fait pas tomber le catalogue public.
 
-Le formulaire de contact utilise temporairement Resend avec `CONTACT_EMAIL_PROVIDER=resend`,
-`RESEND_API_KEY` et les variables `CONTACT_*_EMAIL`. Il envoie une notification interne puis un
-accusé localisé ; la notification réussie reste validée si seul l’accusé échoue. La valeur
-`CONTACT_EMAIL_PROVIDER=harvest` réactive l’endpoint `sendcontactusemail` sans changement du
-contrat navigateur. Cette bascule concerne uniquement le contact : inscription, reset et session
-restent exclusivement gérés par Harvest. Le formulaire accepte uniquement les champs texte et le
-contexte éventuel d’une piste. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
+Le formulaire de contact utilise exclusivement l’endpoint Harvest
+`sendcontactusemail`. Il accepte uniquement les champs texte et le contexte
+éventuel d’une piste ; aucun accusé de réception distinct n’est envoyé par
+Parigo. L’inscription, le reset et la session restent également gérés par
+Harvest. `NEXT_PUBLIC_SITE_URL` doit toujours désigner le domaine
 public réellement accessible. Tant que le domaine Parigo n’est pas raccordé,
 la valeur de référence est `https://parigo-ten.vercel.app`.
 

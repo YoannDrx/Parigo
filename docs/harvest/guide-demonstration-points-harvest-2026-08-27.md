@@ -1,13 +1,13 @@
 # Guide de démonstration — points Harvest encore en attente
 
-Date : **27 août 2026**  
+Date initiale : **27 août 2026** — retests techniques actualisés le
+**1er septembre 2026**
 Preview vérifiée : [https://parigo-ten.vercel.app](https://parigo-ten.vercel.app)  
 Administration Harvest : [https://admin.harvestmedia.net/dashboard.aspx](https://admin.harvestmedia.net/dashboard.aspx)
 
-Les preuves Public API et site ont été retestées le 27 août. Les constats
-visuels Admin ont été inspectés le 26 août ; la session Admin ayant expiré lors
-du second contrôle, refaire une lecture visuelle de `PGO0031` et des modèles
-d’e-mail juste avant la démonstration, sans enregistrer de modification.
+Les preuves Public API ont été retestées le 1er septembre. Les constats Admin
+ont également été relus sans enregistrer de modification. Refaire une lecture
+visuelle de `PGO0031` et des modèles d’e-mail juste avant la démonstration.
 
 Ce guide permet de présenter les constats à une personne non technique. Les
 tests sont classés selon trois niveaux :
@@ -113,10 +113,10 @@ Confirmer la règle officielle pour récupérer les traductions des labels.
 3. Constater que les textes sous les titres sont des métadonnées génériques du
    site : `Discovery - Travel` ne possède actuellement aucune description
    éditoriale, ni anglaise ni française, dans la Public API.
-4. Expliquer que la liste et le détail Harvest contiennent tous deux les
-   `LanguageItems` disponibles. Le paramètre `languagecode`, lui, ne remplace
-   pas les champs canoniques de la liste. Parigo lit donc explicitement
-   `LanguageItems` et applique un fallback anglais.
+4. Expliquer que le dernier retest ne trouve aucun `LanguageItems` dans les
+   objets de liste. Les traductions disponibles se trouvent dans le détail.
+   Parigo fusionne donc le détail avec la liste, déduplique puis applique un
+   fallback anglais.
 
 **Quatre exemples dont le nom français manque dans Harvest**
 
@@ -141,13 +141,12 @@ plutôt que d’inventer une traduction.
 - 60 noms français présents ;
 - quatre noms français manquants ;
 - seulement deux descriptions françaises présentes ;
-- deux playlists contiennent des lignes FR dupliquées à l’identique, sans
-  conflit de valeur.
+- deux groupes de valeurs FR sont dupliqués à l’identique, sans conflit.
 
 **Attente envers Harvest**  
-Confirmer que `LanguageItems` est la source officielle. Les 62 descriptions et
-les quatre noms absents doivent être traités comme du contenu à compléter, sauf
-si Harvest indique un autre endpoint officiel.
+Confirmer que le détail est la source officielle des `LanguageItems`. Les 62
+descriptions et les quatre noms absents doivent être traités comme du contenu à
+compléter, sauf si Harvest indique un autre contrat officiel.
 
 ### 4. Description française du label Parigo — action interne, pas bug Harvest
 
@@ -191,9 +190,10 @@ si Harvest indique un autre endpoint officiel.
 **Phrase simple à dire**
 
 > Harvest sait enregistrer EN ou FR dans le back-office, mais ne nous a pas
-> expliqué comment le site doit écrire cette valeur par l’API ni comment elle
-> choisit le bon modèle. La majorité des e-mails n’a aujourd’hui aucune version
-> française explicite.
+> encore donné de contrat API fonctionnel pour cette valeur. Notre test réel
+> `updatemember` avec `LanguageCode=FR` est accepté sans erreur mais ignoré à la
+> relecture. La majorité des e-mails n’a aujourd’hui aucune version française
+> explicite.
 
 **Ce que ce test ne prouve pas**  
 L’absence d’une variante française ne prouve pas que le parcours est inutilisable :
@@ -225,6 +225,11 @@ exemple : `TEST RECETTE PARIGO — ne pas traiter`.
 Harvest reçoit bien la demande, mais répond avec son erreur interne `Code=4`.
 Le site ne masque pas cette erreur et propose une autre façon de contacter
 Parigo.
+
+Le Sender vide du modèle a été corrigé dans l’Admin vers `Parigo Music
+Notifications`, puis le même payload a été renvoyé : l’erreur `Code=4`
+persiste. Aucun réglage de destinataire Contact n’est visible dans l’éditeur du
+management user ; la suite dépend donc de Harvest.
 
 **Phrase simple à dire**
 
@@ -274,7 +279,7 @@ de tous les liens en HTTPS.
 1. Se connecter avec le compte de recette.
 2. Ouvrir la page Communications.
 3. Montrer les entrées de réinitialisation de mot de passe visibles dans la
-   liste — sept lors du dernier audit.
+   liste — dix lors du dernier audit.
 4. Dans la boîte e-mail de test, ouvrir un e-mail de partage de playlist reçu.
 5. Revenir à la page Communications et constater que ce partage n’apparaît pas.
 6. Montrer également que l’historique contient le sujet, l’expéditeur, le
@@ -290,7 +295,7 @@ de tous les liens en HTTPS.
 Indiquer précisément quels e-mails sont enregistrés et s’il existe un historique
 administrateur plus complet.
 
-### 9. Compteurs de tags — défaut masqué par Parigo
+### 9. Compteurs de tags — limitation confirmée et acceptée
 
 **Lien après connexion**  
 [Compte > Tags](https://parigo-ten.vercel.app/account/tags)
@@ -301,8 +306,8 @@ tag par tag.
 
 **Preuve de l’audit à présenter**
 
-- Harvest annonce zéro piste pour trois tags de test ;
-- les détails de ces mêmes tags contiennent respectivement 1, 4 et 1 pistes ;
+- `ReturnTagCount=1` n’ajoute aucun compteur par tag ;
+- les détails des trois tags contiennent respectivement 1, 5 et 1 pistes ;
 - Parigo doit donc ouvrir chaque tag séparément pour calculer le vrai total.
 
 **Phrase simple à dire**
@@ -311,9 +316,10 @@ tag par tag.
 > cette correction multiplie les demandes envoyées à Harvest et pourrait ralentir
 > un compte contenant beaucoup de tags.
 
-**Attente envers Harvest**  
-Corriger le compteur global ou fournir une façon de récupérer tous les comptes
-en une seule fois.
+**Conclusion**
+Peter a confirmé qu’aucun compteur de pistes par tag n’existe actuellement.
+Parigo accepte cette limitation et conserve son calcul par détail ; aucune
+nouvelle demande Harvest n’est nécessaire.
 
 ### 10. Recherche exacte par titre — défaut masqué par Parigo
 

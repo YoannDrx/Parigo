@@ -1,6 +1,9 @@
 # Brouillon — réponse technique Harvest avant mise en production
 
 Dernier contrôle : **27 août 2026**. Ne pas envoyer sans relecture humaine.
+Ce document est archivé : Peter y a répondu le 1er septembre. La réponse
+actualisée est dans
+[`email-reply-peter-2026-09-01.txt`](./email-reply-peter-2026-09-01.txt).
 Version sans Markdown prête pour Gmail :
 [`email-harvest-gmail-ready-2026-08-27.txt`](./email-harvest-gmail-ready-2026-08-27.txt).
 

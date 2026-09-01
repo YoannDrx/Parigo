@@ -1,0 +1,176 @@
+Objet : Re: Parigo/Harvest API
+
+Bonjour Peter,
+
+Merci pour ta réponse détaillée — elle nous a été très utile, notamment pour mieux comprendre le fonctionnement du moteur de recherche Harvest.
+
+Désolé pour le nombre de questions. Aucun des points ci-dessous ne nous empêche de poursuivre la mise en production, que nous visons actuellement pour ce jeudi. J’ai limité cette réponse aux confirmations et aux points côté serveur pour lesquels nous avons encore besoin de ton aide.
+
+1. Formulaire de contact
+
+La boîte destinataire doit être info@parigomusic.com.
+
+Cette notification est interne à l’équipe française de Parigo. Elle n’a donc pas besoin d’une sélection dynamique de langue : le modèle « Contact Us (API/Custom) » peut toujours être envoyé en français.
+
+Un management user actif existe déjà pour cela : « Parigo Music Notifications », associé à info@parigomusic.com. Jarrod l’a créé pendant la migration vers Amazon SES ; il ne devrait donc pas être nécessaire de créer un nouvel utilisateur.
+
+Nous avons vérifié tout ce qui nous était accessible dans l’Admin. Le modèle actif « Contact Us (API/Custom) » n’avait pas de Sender ; nous avons donc sélectionné « Parigo Music Notifications » comme utilisateur From et enregistré le modèle. L’éditeur du management user propose uniquement les notifications Registration, Distribution et MemberUpdate. Nous n’avons trouvé aucun réglage pour le destinataire Contact.
+
+Nous avons ensuite retesté :
+
+POST /sendcontactusemail/{serviceToken}
+
+{
+  "Name": "Parigo API audit",
+  "Email": "<adresse de test>",
+  "PhoneNumber": "",
+  "Subject": "Parigo contact endpoint retest <timestamp>",
+  "Message": "Automated Parigo audit message after Harvest support configuration review."
+}
+
+L’endpoint renvoie toujours HTTP 200 avec Error.Code=4 et Error.Description=Internal Operation Error. Aucun message n’arrive dans info@parigomusic.com.
+
+Parigo utilise désormais sendcontactusemail comme unique fournisseur pour le contact. Peux-tu associer côté serveur le management user existant au destinataire Contact, ou nous indiquer le réglage Admin exact si nous l’avons manqué ? Peux-tu également exécuter le même payload et confirmer le destinataire, le From et le Reply-To obtenus ?
+
+2. Domaines et HTTPS — clos
+
+La question initiale sur les domaines multiples concernait localhost, les Preview Vercel et la production, et non des domaines différents selon la langue. Pour la production, nous avons uniquement besoin de https://www.parigomusic.com.
+
+Merci pour la mise à jour des routes. Un nouveau test getsharemusicurl renvoie désormais https://www.parigomusic.com/engage-playlist/{token}. Le workflow de reset password a également réussi de bout en bout. Aucune autre action n’est nécessaire sur ce point.
+
+3. Langue du membre et des e-mails
+
+Merci d’avoir demandé à ton équipe de vérifier l’ancienne propriété LanguageCode. Notre retest confirme le comportement que tu as observé.
+
+Parigo ne possède actuellement qu’une région Harvest, Global, qui couvre 245 pays et dont la langue par défaut est l’anglais. Country=FR affecte donc toujours le membre à Global.
+
+Nous avons également vérifié s’il fallait résoudre ce point en créant une région France/français dans l’Admin, mais nous n’avons modifié aucune configuration. Un GET /getregions/{serviceToken} live ne renvoie toujours que Global, avec 245 pays dont FR, et GET /getregion/{serviceToken}/e361bcb57f53f791 renvoie LanguageCode=EN. L’Admin permet bien de créer une autre région et de lui affecter la France, mais une région porte également les accès au catalogue et aux labels, les règles d’approbation des membres, les téléchargements et les paramètres de licence.
+
+Surtout, la langue souhaitée sur Parigo est indépendante du pays : un membre en France peut utiliser le site anglais, et un francophone peut vivre hors de France. Notre payload registermember actuel envoie Country, mais pas la locale /fr ou /en. Une région France choisirait donc le français d’après le pays et non d’après la langue choisie par le membre. Nous ne savons pas non plus si les membres Country=FR déjà affectés à Global seraient migrés. Les six variantes françaises existantes sont toutes configurées pour Toutes les régions + français ; elles n’exigent donc pas elles-mêmes une région France spécifique.
+
+Nous avons envoyé le payload valide actuel du membre à :
+
+POST /updatemember/{memberToken}
+
+en ajoutant "LanguageCode": "FR". L’endpoint a renvoyé HTTP 200 sans Error, mais plusieurs relectures getmember ne contenaient toujours ni Language ni LanguageCode. Country et RegionID sont restés inchangés, puis nous avons restauré le profil initial.
+
+Notre solution préférée reste donc une propriété de langue explicite et documentée sur registermember et updatemember. Nous attendrons ta confirmation sur la propriété supportée, les valeurs EN/FR admises et le champ que getmember doit renvoyer avant de modifier les régions. Si LanguageCode n’est plus supporté, peux-tu confirmer qu’une région France/français est l’alternative prévue par Harvest et si les membres Country=FR existants seraient réaffectés ou devraient être migrés ? Peux-tu également confirmer que la langue résolue du membre sélectionne les modèles correspondants pour la vérification, le reset, l’approbation, le partage et le téléchargement ?
+
+4. Contrats de catalogue localisé
+
+Voici la liste complète des endpoints que tu nous as demandée :
+
+GET /getalbum/{guestToken}/{albumId}
+GET /getlibraries/{guestToken}
+GET /getlibrary/{guestToken}/{libraryId}?languagecode=en|fr
+GET /getfeaturedplaylistsplaylistonly/{guestToken}?languagecode=en|fr
+POST /getfeaturedplaylistandtracks/{guestToken}/{playlistId}
+
+Les champs attendus sont la description de l’album, la description de la library/du label, ainsi que le nom et la description de la featured playlist en EN et FR.
+
+Les formes de réponse actuelles sont les suivantes :
+
+- getalbum/750a3d73a7f4dae6 renvoie le même Detail anglais pour en, fr et fr-FR, sans LanguageItems ;
+- getlibraries expose la description française de Musica.it dans LanguageItems ;
+- getlibrary/9d330c152c37bca0?languagecode=en|fr change correctement Detail, mais omet LanguageItems ;
+- getfeaturedplaylistsplaylistonly ne renvoie aucun LanguageItems, tandis que getfeaturedplaylistandtracks expose les traductions disponibles dans LanguageItems.
+
+Parigo gère déjà la fusion, la déduplication et le fallback anglais. Les traductions de catalogue manquantes seront gérées par l’équipe catalogue Parigo. Nous avons seulement besoin de confirmer le contrat API attendu : champs canoniques stables accompagnés de LanguageItems, ou remplacement direct des champs via languagecode pour chaque endpoint.
+
+5. Keyword groups et recherche bilingue
+
+Nous allons rechercher le fichier de traduction historique dans les archives Parigo avec Guillaume, Caroline et Eliott. S’il ne peut pas être retrouvé, nous préparerons une nouvelle liste de keyword groups, revue en interne, que nous pourrons vous soumettre.
+
+Avant de transmettre quoi que ce soit, nous établirons un état de référence de l’API, testerons un petit lot, comparerons les réponses avant et après, puis ferons valider la pertinence par l’équipe catalogue. Nous ne demanderons pas à Harvest de gérer le contenu catalogue à notre place.
+
+Le cas métier actuel reste le suivant :
+
+POST /cloudsearch/{guestToken}, recherche agrégée, keyword groups activés
+
+reggae sad : 53 résultats ; DAYS OF OPPRESSION est présent.
+reggae triste : 2 résultats ; DAYS OF OPPRESSION est absent.
+
+Le groupe existant brazil / brésil / bresil confirme que l’expansion bilingue fonctionne. Toutefois, notre comparaison avec les groupes activés puis désactivés laisse penser qu’un groupe ne se contente pas nécessairement d’ajouter l’union de tous les termes.
+
+Avant de préparer la nouvelle liste, peux-tu confirmer :
+
+- si un keyword group fonctionne comme une union, une substitution ou une autre opération ;
+- le format d’import/export supporté ;
+- si une modification des groupes nécessite une réindexation.
+
+6. Compteurs des tags — clos
+
+Merci, ce point est maintenant clair. Nous continuerons à appeler getmembertagtracks/{memberToken}/{tagId} lorsqu’un nombre de pistes par tag est nécessaire. Aucune autre action Harvest n’est demandée.
+
+7. Correspondance positionnelle des titres et RankExpression personnalisée
+
+Merci pour l’explication détaillée d’ExactPhrase, Wildcard et de la RankExpression par défaut. Nos retests correspondent maintenant à ton explication.
+
+Avec POST /cloudsearch/{memberToken}, en limitant St_Keyword.Fields d’abord à TrackDisplayTitle puis à AlbumDisplayTitle, les quatre combinaisons ExactPhrase/Wildcard mélangent toujours les résultats qui commencent par, contiennent ou finissent par la requête. ExactPhrase contrôle l’ordre des mots et Wildcard ajoute un wildcard en suffixe ; aucun des deux ne fournit des opérateurs distincts commence par, contient, finit par et égal au niveau du champ.
+
+A. Correspondance positionnelle des titres
+
+Notre besoin est de supporter commence par, contient, finit par et égal sur TrackDisplayTitle et AlbumDisplayTitle. Si la Public API possède déjà des payloads supportés pour ces opérations, peux-tu nous les transmettre ? Sinon, ce besoin pourrait-il être inclus comme un élément séparé dans un devis indicatif ?
+
+B. RankExpression personnalisée
+
+Aujourd’hui, une requête du navigateur vers /api/search conduit le BFF Parigo à exécuter deux appels Harvest cloudsearch en parallèle : une requête limitée aux titres, puis un jeu de résultats éditorial agrégé dont ces titres littéraux sont exclus. Les résultats Track sont ensuite enrichis avec gettracks. L’autocomplétion applique la même stratégie titre/agrégé aux résultats Track et Album.
+
+La voie supplémentaire réservée aux titres est actuellement nécessaire. Avec le classement Harvest par défaut, les titres littéraux peuvent apparaître trop loin dans la réponse agrégée. Par exemple, l’album exact MUSIC ON HOLD était absent des 30 premiers résultats agrégés, alors que notre fusion titre-first le place en première position.
+
+Si une RankExpression Parigo peut reproduire cette priorité dans une seule requête agrégée, nous devrions pouvoir supprimer un appel cloudsearch pour chaque recherche Track ou Album, tout en conservant le BFF et les appels d’enrichissement nécessaires.
+
+Notre première proposition de pondération métier est la suivante :
+
+Vue Track
+- égalité exacte TrackDisplayTitle : +100
+- phrase complète dans TrackDisplayTitle : +70
+- tous les termes de la requête dans TrackDisplayTitle : +50
+- mots-clés, mood, music-for, catégorie ou genre de piste : +25
+- description de piste : +15
+- AlbumDisplayTitle : +12
+- mots-clés ou description d’album : +8
+- compositeur ou library : +5
+
+Vue Album
+- égalité exacte AlbumDisplayTitle : +100
+- référence catalogue exacte : +80, si ce champ peut être activé sans risque
+- phrase complète dans AlbumDisplayTitle : +70
+- tous les termes de la requête dans AlbumDisplayTitle : +50
+- mots-clés album : +25
+- description album : +15
+- TrackDisplayTitle contenu dans l’album : +10
+- métadonnées éditoriales des pistes : +6
+
+Pour la récence, nous l’utiliserions uniquement comme départage : au maximum +5 pour les sorties des 30 derniers jours et +2 entre 31 et 90 jours. Nous ne souhaitons pas qu’une nouveauté faiblement liée dépasse un titre plus ancien mais clairement pertinent.
+
+Il s’agit de notre première proposition ; ton avis sur la pondération nous serait donc très utile. Serait-il possible d’avoir des profils distincts pour Track et Album, et d’utiliser le même classement dans cloudsearch et autocomplete ? À ce stade, une indication sur la faisabilité, le coût probable de la mise en place et le besoin éventuel de réindexation serait déjà très utile.
+
+8. Historique des communications
+
+L’endpoint source manquant est :
+
+POST /sendsharemusiclinkemail/{senderMemberToken}
+
+avec FromEmail, ToEmail, Message, Link, ContentType=Playlist, ContentTitle et SelectEmailTemplateByMemberRegion=false.
+
+L’envoi a renvoyé un succès et le destinataire a bien reçu le message. Immédiatement après, nous avons appelé :
+
+POST /gethistorybycommunications/{recipientMemberToken}
+
+{
+  "Skip": 0,
+  "Limit": 100,
+  "Sort": "Created_Desc",
+  "StartDate": "",
+  "EndDate": ""
+}
+
+La réponse était HTTP 200 avec 10 entrées de reset password, mais aucune entrée correspondant au partage de playlist. Peux-tu vérifier ce couple endpoint expéditeur/historique destinataire lorsque tu en auras l’occasion ?
+
+L’intégration Harvest/AIMS est terminée et les quatre modes de recherche fonctionnent dans nos tests. Aucune autre action n’est nécessaire sur ce point.
+
+Merci encore pour ton aide. Nous visons une mise en production ce jeudi et ces précisions nous permettront de finaliser proprement les derniers réglages.
+
+Merci beaucoup,
+Yoann
